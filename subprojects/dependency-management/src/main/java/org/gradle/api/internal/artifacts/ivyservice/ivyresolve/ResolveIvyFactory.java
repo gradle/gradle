@@ -57,6 +57,7 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.util.BuildCommencedTimeProvider;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 public class ResolveIvyFactory {
@@ -114,7 +115,7 @@ public class ResolveIvyFactory {
 
             Instantiator instantiator = instantiatorFactory.inject();
             if (baseRepository instanceof ExternalResourceResolver) {
-                ExternalResourceResolver resourceResolver = (ExternalResourceResolver) baseRepository;
+                ExternalResourceResolver<?> resourceResolver = (ExternalResourceResolver<?>) baseRepository;
                 resourceResolver.setComponentResolvers(parentModuleResolver);
                 instantiator = resourceResolver.getComponentMetadataInstantiator();
             }
@@ -194,7 +195,7 @@ public class ResolveIvyFactory {
         }
 
         @Override
-        public void resolve(DependencyMetadata dependency, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
+        public void resolve(DependencyMetadata dependency, VersionSelector acceptor, @Nullable VersionSelector rejector, BuildableComponentIdResolveResult result) {
             delegate.getComponentIdResolver().resolve(dependency, acceptor, rejector, result);
         }
 

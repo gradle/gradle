@@ -21,7 +21,7 @@ import org.junit.Rule
 
 class BasicPlaySampleIntegrationTest extends AbstractPlaySampleIntegrationTest {
     @Rule
-    Sample basicPlaySample = new Sample(temporaryFolder, "play/basic")
+    Sample basicPlaySample = new Sample(temporaryFolder, "play/basic/groovy")
 
     Sample getPlaySample() {
         return basicPlaySample

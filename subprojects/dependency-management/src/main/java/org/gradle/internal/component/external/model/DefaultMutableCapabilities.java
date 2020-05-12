@@ -22,7 +22,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
 import org.gradle.internal.Cast;
 
-import java.util.Iterator;
 import java.util.List;
 
 public class DefaultMutableCapabilities implements MutableCapabilitiesMetadata {
@@ -44,13 +43,7 @@ public class DefaultMutableCapabilities implements MutableCapabilitiesMetadata {
 
     @Override
     public void removeCapability(String group, String name) {
-        Iterator<Capability> it = descriptors.iterator();
-        while (it.hasNext()) {
-            Capability next = it.next();
-            if (next.getGroup().equals(group) && next.getName().equals(name)) {
-                it.remove();
-            }
-        }
+        descriptors.removeIf(next -> next.getGroup().equals(group) && next.getName().equals(name));
     }
 
     @Override

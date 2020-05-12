@@ -92,6 +92,9 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
             tasks.create('a', SlowTask) {
                 dependsOn('b', 'c')
             }
+            tasks.create('d', SlowTask) {
+                mustRunAfter('a')
+            }
         """
 
         when:
@@ -99,7 +102,8 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
         server.expectConcurrent("b")
         server.expectConcurrent("c")
         server.expectConcurrent("a")
-        instantRun "a"
+        server.expectConcurrent("d")
+        instantRun "a", "d"
 
         then:
         noExceptionThrown()
@@ -107,7 +111,8 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
         when:
         server.expectConcurrent("b", "c")
         server.expectConcurrent("a")
-        instantRun "a"
+        server.expectConcurrent("d")
+        instantRun "a", "d"
 
         then:
         noExceptionThrown()

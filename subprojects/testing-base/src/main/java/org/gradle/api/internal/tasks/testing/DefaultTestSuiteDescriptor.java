@@ -16,7 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
+@UsedByScanPlugin("test-distribution")
 public class DefaultTestSuiteDescriptor extends AbstractTestDescriptor {
+
+    @UsedByScanPlugin("test-distribution")
     public DefaultTestSuiteDescriptor(Object id, String name) {
         super(id, name);
     }

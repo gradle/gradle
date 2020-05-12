@@ -16,12 +16,13 @@
 
 package org.gradle.internal.work
 
-import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.*
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock
 
 class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
     ResourceLockCoordinationService coordinationService = new DefaultResourceLockCoordinationService()
@@ -358,6 +359,6 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
     }
 
     WorkerLeaseService workerLeaseService(int maxWorkers) {
-        return new DefaultWorkerLeaseService(coordinationService, new ParallelismConfigurationManagerFixture(true, maxWorkers))
+        return new DefaultWorkerLeaseService(coordinationService, new DefaultParallelismConfiguration(true, maxWorkers))
     }
 }

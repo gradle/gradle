@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
-import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
@@ -46,6 +45,7 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.util.function.Supplier;
 
 public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal, MetadataSupplierAware {
     private String name;
@@ -55,7 +55,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     private Action<? super ActionConfiguration> componentMetadataSupplierRuleConfiguration;
     private Action<? super ActionConfiguration> componentMetadataListerRuleConfiguration;
     private final ObjectFactory objectFactory;
-    private Supplier<RepositoryContentDescriptorInternal> repositoryContentDescriptor = Suppliers.memoize(this::createRepositoryDescriptor);
+    private final Supplier<RepositoryContentDescriptorInternal> repositoryContentDescriptor = Suppliers.memoize(this::createRepositoryDescriptor)::get;
 
     protected AbstractArtifactRepository(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
@@ -123,17 +123,19 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
         configureAction.execute(repositoryContentDescriptor.get());
     }
 
+    @Nullable
     InstantiatingAction<ComponentMetadataSupplierDetails> createComponentMetadataSupplierFactory(Instantiator instantiator, IsolatableFactory isolatableFactory) {
         if (componentMetadataSupplierRuleClass != null) {
-            return createRuleAction(instantiator, DefaultConfigurableRule.<ComponentMetadataSupplierDetails>of(componentMetadataSupplierRuleClass, componentMetadataSupplierRuleConfiguration, isolatableFactory));
+            return createRuleAction(instantiator, DefaultConfigurableRule.of(componentMetadataSupplierRuleClass, componentMetadataSupplierRuleConfiguration, isolatableFactory));
         } else {
             return null;
         }
     }
 
+    @Nullable
     InstantiatingAction<ComponentMetadataListerDetails> createComponentMetadataVersionLister(Instantiator instantiator, IsolatableFactory isolatableFactory) {
         if (componentMetadataListerRuleClass != null) {
-            return createRuleAction(instantiator, DefaultConfigurableRule.<ComponentMetadataListerDetails>of(componentMetadataListerRuleClass, componentMetadataListerRuleConfiguration, isolatableFactory));
+            return createRuleAction(instantiator, DefaultConfigurableRule.of(componentMetadataListerRuleClass, componentMetadataListerRuleConfiguration, isolatableFactory));
         } else {
             return null;
         }
@@ -162,7 +164,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
 
 
     private static <T> InstantiatingAction<T> createRuleAction(final Instantiator instantiator, final ConfigurableRule<T> rule) {
-        return new InstantiatingAction<T>(DefaultConfigurableRules.of(rule), instantiator, (target, throwable) -> {
+        return new InstantiatingAction<>(DefaultConfigurableRules.of(rule), instantiator, (target, throwable) -> {
             throw UncheckedException.throwAsUncheckedException(throwable);
         });
     }

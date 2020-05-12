@@ -34,6 +34,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.scopes.BuildTreeScopeServices;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
@@ -43,7 +44,7 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.Map;
 
-@ServiceScope(ServiceScope.Value.BuildTree)
+@ServiceScope(Scopes.BuildTree)
 public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppable {
     private final IncludedBuildFactory includedBuildFactory;
     private final IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder;

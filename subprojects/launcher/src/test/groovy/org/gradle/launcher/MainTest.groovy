@@ -24,7 +24,8 @@ import spock.lang.Specification
 
 class MainTest extends Specification {
 
-    @Rule final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
+    @Rule
+    final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
 
     CommandLineActionFactory.CommandLineExecution actionImpl
 
@@ -35,24 +36,26 @@ class MainTest extends Specification {
     def actionFactoryImpl
 
     void actionFactory(Closure closure) {
-        actionFactoryImpl = new DefaultCommandLineActionFactory() { CommandLineActionFactory.CommandLineExecution convert(List args) { closure(args) } }
+        actionFactoryImpl = new DefaultCommandLineActionFactory() {
+            CommandLineActionFactory.CommandLineExecution convert(List args) { closure(args) }
+        }
     }
     boolean completedSuccessfully
     boolean completedWithFailure
     Throwable failure
 
-    final Main main = new Main() {
-        protected ExecutionCompleter createCompleter() {
-            [complete: { completedSuccessfully = true }, completeWithFailure: { completedWithFailure = true; failure = it }] as ExecutionCompleter
-        }
-
-        CommandLineActionFactory createActionFactory() {
-            actionFactoryImpl
-        }
-    }
-
+    Main main
 
     def setup() {
+        main = new Main() {
+            protected ExecutionCompleter createCompleter() {
+                [complete: { completedSuccessfully = true }, completeWithFailure: { completedWithFailure = true; failure = it }] as ExecutionCompleter
+            }
+
+            CommandLineActionFactory createActionFactory() {
+                actionFactoryImpl
+            }
+        }
         actionFactory { actionImpl }
     }
 

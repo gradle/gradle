@@ -30,6 +30,7 @@ import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.gradle.process.internal.worker.child.WorkerLogEventListener;
@@ -60,7 +61,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         try {
             ServiceRegistry parentServices = workerProcessContext.getServiceRegistry();
             if (instantiatorFactory == null) {
-                instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()), Collections.emptyList(), new OutputPropertyRoleAnnotationHandler(Collections.emptyList()));
+                instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager(Scopes.Global)), Collections.emptyList(), new OutputPropertyRoleAnnotationHandler(Collections.emptyList()));
             }
             DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry("worker-action-services", parentServices);
             // Make the argument serializers available so work implementations can register their own serializers

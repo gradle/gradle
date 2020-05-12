@@ -81,8 +81,8 @@ This example demonstrates how to declare various named and custom URL repositori
 
 .Declaring multiple repositories
 ====
-include::sample[dir="snippets/dependencyManagement/declaringRepositories/multipleRepositories/groovy",files="build.gradle[tags=multiple-repositories]"]
-include::sample[dir="snippets/dependencyManagement/declaringRepositories/multipleRepositories/kotlin",files="build.gradle.kts[tags=multiple-repositories]"]
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-multipleRepositories/groovy",files="build.gradle[tags=multiple-repositories]"]
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-multipleRepositories/kotlin",files="build.gradle.kts[tags=multiple-repositories]"]
 ====
 
 [NOTE]
@@ -340,8 +340,8 @@ It's even more important when considering that the declared order of repositorie
 
 .Declaring repository contents
 ====
-include::sample[dir="snippets/dependencyManagement/declaringRepositories/filtering/groovy",files="build.gradle[tags=repository-filter]"]
-include::sample[dir="snippets//dependencyManagement/declaringRepositories/filtering/kotlin",files="build.gradle.kts[tags=repository-filter]"]
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/groovy",files="build.gradle[tags=repository-filter]"]
+include::sample[dir="snippets//dependencyManagement/declaringRepositories-filtering/kotlin",files="build.gradle.kts[tags=repository-filter]"]
 ====
 
 By default, repositories include everything and exclude nothing:
@@ -366,8 +366,8 @@ If you do so:
 
 .Declaring exclusive repository contents
 ====
-include::sample[dir="snippets/dependencyManagement/declaringRepositories/filtering/groovy",files="build.gradle[tags=exclusive-repository-filter]"]
-include::sample[dir="snippets/dependencyManagement/declaringRepositories/filtering/kotlin",files="build.gradle.kts[tags=exclusive-repository-filter]"]
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/groovy",files="build.gradle[tags=exclusive-repository-filter]"]
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/kotlin",files="build.gradle.kts[tags=exclusive-repository-filter]"]
 ====
 
 It is possible to filter either by explicit _group_, _module_ or _version_, either strictly or using regular expressions.
@@ -380,8 +380,8 @@ Gradle lets you declare what kind of artifacts are found in a repository using t
 
 .Splitting snapshots and releases
 ====
-include::sample[dir="snippets/dependencyManagement/declaringRepositories/filtering/groovy",files="build.gradle[tags=repository-snapshots]"]
-include::sample[dir="snippets/dependencyManagement/declaringRepositories/filtering/kotlin",files="build.gradle.kts[tags=repository-snapshots]"]
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/groovy",files="build.gradle[tags=repository-snapshots]"]
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/kotlin",files="build.gradle.kts[tags=repository-snapshots]"]
 ====
 
 [[sec:supported_metadata_sources]]

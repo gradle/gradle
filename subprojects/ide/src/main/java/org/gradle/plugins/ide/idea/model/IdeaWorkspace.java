@@ -74,6 +74,7 @@ public class IdeaWorkspace {
         action.execute(iws);
     }
 
+    @SuppressWarnings("unchecked")
     public void mergeXmlWorkspace(Workspace xmlWorkspace) {
         iws.getBeforeMerged().execute(xmlWorkspace);
 

@@ -40,7 +40,7 @@ import java.util.Map;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet.NO_ARTIFACTS;
 
 class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifactSelector {
-    private final Map<String, ModuleComponentRepository> repositories = new LinkedHashMap<String, ModuleComponentRepository>();
+    private final Map<String, ModuleComponentRepository> repositories = new LinkedHashMap<>();
 
     void add(ModuleComponentRepository repository) {
         repositories.put(repository.getId(), repository);

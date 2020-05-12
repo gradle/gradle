@@ -117,7 +117,7 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         return new DefaultImmutableVersionConstraint(versionConstraint.getPreferredVersion(), versionConstraint.getRequiredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions(), versionConstraint.getBranch());
     }
 
-    public static ImmutableVersionConstraint of(String version) {
+    public static ImmutableVersionConstraint of(@Nullable String version) {
         if (version == null) {
             return of();
         }

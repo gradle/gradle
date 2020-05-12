@@ -176,7 +176,7 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(file)
-        def cachedFile = testDir.file("cached/349f8baba38535e2ce3916f4d42f83ee/thing.jar")
+        def cachedFile = testDir.file("cached/8e4b9e80c38bd91c60da528b6bc0a28a/thing.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, BuildLogic)
@@ -204,7 +204,7 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         def dir = testDir.file("thing.dir")
         classesDir(dir)
         def classpath = DefaultClassPath.of(dir)
-        def cachedFile = testDir.file("cached/33fbc773e43e04aa1837a9e4e20be853/thing.dir.jar")
+        def cachedFile = testDir.file("cached/eaacf77ab251121a64643cf529b7035d/thing.dir.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, BuildLogic)
@@ -233,7 +233,7 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(file)
-        def cachedFile = testDir.file("cached/1a0547a447cfc594a350aa4dbb30ae3d/thing.jar")
+        def cachedFile = testDir.file("cached/64d750a7ec71cadd2e777ef2af19a432/thing.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, BuildLogic, transform)

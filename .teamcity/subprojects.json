@@ -178,7 +178,7 @@
     "dirName": "docs",
     "name": "docs",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

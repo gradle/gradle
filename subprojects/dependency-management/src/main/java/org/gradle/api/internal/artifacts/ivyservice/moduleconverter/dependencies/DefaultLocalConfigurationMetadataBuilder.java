@@ -31,8 +31,8 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import javax.annotation.Nullable;
 
 public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurationMetadataBuilder {
-    private DependencyDescriptorFactory dependencyDescriptorFactory;
-    private ExcludeRuleConverter excludeRuleConverter;
+    private final DependencyDescriptorFactory dependencyDescriptorFactory;
+    private final ExcludeRuleConverter excludeRuleConverter;
 
     public DefaultLocalConfigurationMetadataBuilder(DependencyDescriptorFactory dependencyDescriptorFactory,
                                                     ExcludeRuleConverter excludeRuleConverter) {

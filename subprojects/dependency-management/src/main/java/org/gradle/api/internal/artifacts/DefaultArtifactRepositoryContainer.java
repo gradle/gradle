@@ -60,6 +60,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public DefaultArtifactRepositoryContainer configure(Closure closure) {
         return ConfigureUtil.configureSelf(closure, this);
     }

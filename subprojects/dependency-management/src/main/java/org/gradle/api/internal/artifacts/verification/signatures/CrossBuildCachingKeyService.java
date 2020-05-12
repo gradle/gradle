@@ -98,7 +98,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
         PersistentIndexedCacheParameters<Long, CacheEntry<List<Fingerprint>>> mappingParameters = PersistentIndexedCacheParameters.of(
             "keymappings",
             BaseSerializerFactory.LONG_SERIALIZER,
-            new FingerprintListCacheEntrySerializer(new ListSerializer<Fingerprint>(fingerprintSerializer))
+            new FingerprintListCacheEntrySerializer(new ListSerializer<>(fingerprintSerializer))
         ).withCacheDecorator(
             decoratorFactory.decorator(2000, true)
         );

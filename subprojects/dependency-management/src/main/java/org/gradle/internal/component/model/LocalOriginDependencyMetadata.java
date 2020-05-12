@@ -18,11 +18,14 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
 
+import javax.annotation.Nullable;
+
 /**
  * A dependency that is defined locally in a build script, not resolved from a repository.
  * This has a simplified model of a dependency, that maps from a single module configuration to a single target configuration.
  */
 public interface LocalOriginDependencyMetadata extends ForcingDependencyMetadata {
+    @Nullable
     String getModuleConfiguration();
 
     String getDependencyConfiguration();

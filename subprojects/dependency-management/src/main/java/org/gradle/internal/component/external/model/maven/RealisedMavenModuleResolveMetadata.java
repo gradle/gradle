@@ -252,7 +252,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
 
     @Override
     protected Optional<ImmutableList<? extends ConfigurationMetadata>> maybeDeriveVariants() {
-        return Optional.<ImmutableList<? extends ConfigurationMetadata>>of(getDerivedVariants());
+        return Optional.of(getDerivedVariants());
     }
 
     ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {

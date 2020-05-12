@@ -30,6 +30,15 @@ import org.gradle.util.TestPrecondition
 
 import java.text.SimpleDateFormat
 
+
+/**
+ * Smoke test building gradle/gradle with instant execution enabled.
+ *
+ * gradle/gradle requires Java >=9 and <=11 to build, see {@link GradleBuildJvmSpec}.
+ *
+ * This test takes a while to run so is disabled for the Java 8 smoke test CI job and
+ * only run on the Java 14 smoke test CI job, see the {@link Requires} annotation below.
+ */
 @Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
     GradleContextualExecuter.isNotInstant() && GradleBuildJvmSpec.isAvailable()
 })

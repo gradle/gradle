@@ -20,7 +20,6 @@ import org.gradle.cache.internal.DefaultPersistentDirectoryStore
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.hash.Hashing
@@ -42,19 +41,20 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
 
         buildFile << """
             @CacheableTask
-            class CustomTask extends DefaultTask {
+            abstract class CustomTask extends DefaultTask {
                 @OutputFile File outputFile = new File(temporaryDir, "output.txt")
                 @Input String run = project.findProperty("run") ?: ""
-                @TaskAction 
+                @javax.inject.Inject abstract FileSystemOperations getFs()
+                @TaskAction
                 void generate() {
                     logger.warn("Run " + run)
-                    project.copy {
+                    fs.copy {
                         from("output.txt")
                         into temporaryDir
                     }
                 }
             }
-            
+
             task cacheable(type: CustomTask) {
                 description = "Generates a 1MB file"
             }
@@ -71,7 +71,6 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         """
     }
 
-    @ToBeFixedForInstantExecution
     def "cleans up entries"() {
         executer.requireIsolatedDaemons() // needs to stop daemon
         requireOwnGradleUserHomeDir() // needs its own journal
@@ -118,7 +117,6 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         days << [-1, 0]
     }
 
-    @ToBeFixedForInstantExecution
     def "build cache cleanup is triggered after max number of hours expires"() {
         run()
         def originalCheckTime = gcFile().lastModified()
@@ -155,7 +153,6 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         assertCacheWasCleanedUpSince(lastCleanupCheck)
     }
 
-    @ToBeFixedForInstantExecution
     def "buildSrc does not try to clean build cache"() {
         // Copy cache configuration
         file("buildSrc/settings.gradle").text = settingsFile.text
@@ -189,7 +186,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
                 dir = file("included/")
                 tasks = [ "build" ]
             }
-            
+
             cacheable {
                 dependsOn gradleBuild
             }

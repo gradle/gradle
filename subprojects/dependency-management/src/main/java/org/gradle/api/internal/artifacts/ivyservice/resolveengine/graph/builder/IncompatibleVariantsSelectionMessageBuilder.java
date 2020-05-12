@@ -21,7 +21,6 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -32,7 +31,7 @@ class IncompatibleVariantsSelectionMessageBuilder {
                 .append(selected.getId())
                 .append(" were selected:\n");
         ArrayList<NodeState> sorted = Lists.newArrayList(incompatibleNodes);
-        Collections.sort(sorted, Comparator.comparing(NodeState::getNameWithVariant));
+        sorted.sort(Comparator.comparing(NodeState::getNameWithVariant));
         for (NodeState node : sorted) {
             sb.append("   - Variant ").append(node.getNameWithVariant()).append(" has attributes ");
             appendAttributes(sb, node.getMetadata().getAttributes());
@@ -44,7 +43,7 @@ class IncompatibleVariantsSelectionMessageBuilder {
     private static void appendAttributes(StringBuilder sb, ImmutableAttributes attributes) {
         ImmutableSet<Attribute<?>> keySet = attributes.keySet();
         List<Attribute<?>> sorted = Lists.newArrayList(keySet);
-        Collections.sort(sorted, Comparator.comparing(Attribute::getName));
+        sorted.sort(Comparator.comparing(Attribute::getName));
         boolean space = false;
         sb.append("{");
         for (Attribute<?> attribute : sorted) {

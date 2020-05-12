@@ -23,7 +23,7 @@ import org.gradle.api.Task
 import org.gradle.test.fixtures.file.TestFile
 
 trait JavaPluginImplementation {
-    void javaPlugin(TestFile sourceFile) {
+    void javaPlugin(TestFile sourceFile, SystemPropertyRead read) {
         sourceFile << """
             import ${Action.name};
             import ${Project.name};
@@ -32,24 +32,47 @@ trait JavaPluginImplementation {
 
             public class SneakyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
-                    String ci = System.getProperty("CI");
-                    System.out.println("apply CI = " + ci);
-                    System.out.println("apply CI2 = " + System.getProperty("CI2"));
-
-                    // Lambda
-                    Runnable r = () -> {
-                        System.out.println("apply CI3 = " + System.getProperty("CI3"));
-                    };
-                    r.run();
+                    Object value = ${read.javaExpression};
+                    System.out.println("apply = " + value);
 
                     project.getTasks().register("thing", t -> {
                         t.doLast(new Action<Task>() {
                             public void execute(Task t) {
-                                String ci2 = System.getProperty("CI");
-                                System.out.println("task CI = " + ci2);
+                                Object value = ${read.javaExpression};
+                                System.out.println("task = " + value);
                             }
                         });
                     });
+                }
+            }
+        """
+    }
+
+    void javaLambdaPlugin(TestFile sourceFile, SystemPropertyRead read) {
+        sourceFile << """
+            import ${Action.name};
+            import ${Project.name};
+            import ${Plugin.name};
+            import ${Task.name};
+
+            public class SneakyPlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    // Inside a lambda body
+                    lambda("apply").run();
+
+                    project.getTasks().register("thing", t -> {
+                        t.doLast(new Action<Task>() {
+                            public void execute(Task t) {
+                                lambda("task").run();
+                            }
+                        });
+                    });
+                }
+
+                static Runnable lambda(String location) {
+                    return () -> {
+                        System.out.println(location + " = " + ${read.javaExpression});
+                    };
                 }
             }
         """

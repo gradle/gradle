@@ -100,9 +100,7 @@ public class SignatureVerificationFailure extends AbstractVerificationFailure {
             public void keyRing(PGPPublicKeyRing keyring) {
                 Set<String> userIds = Sets.newTreeSet();
                 collectUserIds(userIds, key);
-                keyring.getPublicKeys().forEachRemaining(userkey -> {
-                    collectUserIds(userIds, userkey);
-                });
+                keyring.getPublicKeys().forEachRemaining(userkey -> collectUserIds(userIds, userkey));
                 if (!userIds.isEmpty()) {
                     sb.append("(");
                 }

@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
+import javax.annotation.Nullable;
+
 /**
  * This class wraps knowledge about a potential edge to a component. It's called potential,
  * because when the edge is created we don't know if the target component exists, and, since
@@ -36,7 +38,7 @@ class PotentialEdge {
     final ComponentResolveMetadata metadata;
     final ComponentState component;
 
-    private PotentialEdge(EdgeState edge, ModuleVersionIdentifier toModuleVersionId, ComponentResolveMetadata metadata, ComponentState component) {
+    private PotentialEdge(EdgeState edge, ModuleVersionIdentifier toModuleVersionId, @Nullable ComponentResolveMetadata metadata, ComponentState component) {
         this.edge = edge;
         this.toModuleVersionId = toModuleVersionId;
         this.metadata = metadata;

@@ -21,29 +21,42 @@ import org.gradle.api.Project
 import org.gradle.test.fixtures.file.TestFile
 
 trait KotlinPluginImplementation {
-    void kotlinPlugin(TestFile sourceFile) {
+    void kotlinPlugin(TestFile sourceFile, SystemPropertyRead read) {
         sourceFile << """
             import ${Project.name}
             import ${Plugin.name}
 
             class SneakyPlugin: Plugin<Project> {
                 override fun apply(project: Project) {
-                    val ci = System.getProperty("CI")
-                    println("apply CI = " + ci)
-                    println("apply CI2 = \${System.getProperty("CI2")}")
+                    var value = ${read.kotlinExpression}
+                    println("apply = " + value)
 
-                    // Function
+                    // Call from a function body
                     val f = { p: String ->
-                        println("apply \$p = " + System.getProperty(p))
+                        println("\$p FUNCTION = " + System.getProperty("FUNCTION"))
                     }
-                    f("CI3")
+                    f("apply")
 
                     project.tasks.register("thing") {
                         doLast {
-                            val ci2 = System.getProperty("CI")
-                            println("task CI = " + ci2)
+                            var value = ${read.kotlinExpression}
+                            println("task = " + value)
+
+                            f("task")
                         }
                     }
+                }
+            }
+        """
+    }
+
+    void kotlinDsl(TestFile sourceFile, SystemPropertyRead read) {
+        sourceFile << """
+            println("apply = " + ${read.kotlinExpression})
+
+            tasks.register("thing") {
+                doLast {
+                    println("task = " + ${read.kotlinExpression})
                 }
             }
         """

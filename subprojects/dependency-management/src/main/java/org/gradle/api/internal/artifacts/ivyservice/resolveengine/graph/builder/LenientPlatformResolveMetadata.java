@@ -35,7 +35,6 @@ import org.gradle.internal.component.external.model.RealisedConfigurationMetadat
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 
 import javax.annotation.Nullable;
@@ -92,7 +91,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     @Override
     public ConfigurationMetadata getConfiguration(String name) {
         if ("default".equals(name)) {
-            ImmutableList.Builder<ModuleDependencyMetadata> dependencies = new ImmutableList.Builder<ModuleDependencyMetadata>();
+            ImmutableList.Builder<ModuleDependencyMetadata> dependencies = new ImmutableList.Builder<>();
             Set<ModuleResolveState> participatingModules = platformState.getParticipatingModules();
             for (ModuleResolveState module : participatingModules) {
                 dependencies.add(new LenientPlatformDependencyMetadata(
@@ -107,7 +106,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
             }
             return new RealisedConfigurationMetadata(
                 moduleComponentIdentifier, name, false, false,
-                ImmutableSet.of(name), ImmutableList.<ModuleComponentArtifactMetadata>of(), ImmutableList.<ExcludeMetadata>of(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, false, dependencies.build(), false
+                ImmutableSet.of(name), ImmutableList.of(), ImmutableList.of(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, false, dependencies.build(), false
             );
         }
         throw new IllegalArgumentException("Undefined configuration '" + name + "'");

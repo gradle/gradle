@@ -116,7 +116,6 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
-import org.gradle.authentication.Authentication;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
@@ -394,7 +393,7 @@ class DependencyManagementBuildScopeServices {
     TextUriResourceLoader.Factory createTextUrlResourceLoaderFactory(FileStoreAndIndexProvider fileStoreAndIndexProvider, RepositoryTransportFactory repositoryTransportFactory) {
         final HashSet<String> schemas = Sets.newHashSet("https", "http");
         return redirectVerifier -> {
-            RepositoryTransport transport = repositoryTransportFactory.createTransport(schemas, "resources http", Collections.<Authentication>emptyList(), redirectVerifier);
+            RepositoryTransport transport = repositoryTransportFactory.createTransport(schemas, "resources http", Collections.emptyList(), redirectVerifier);
             ExternalResourceAccessor externalResourceAccessor = new DefaultExternalResourceAccessor(fileStoreAndIndexProvider.getExternalResourceFileStore(), transport.getResourceAccessor());
             return new CachingTextUriResourceLoader(externalResourceAccessor, schemas);
         };

@@ -22,6 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 
 @ThreadSafe
+@SuppressWarnings("overloads")
 public interface IvyContextManager {
     /**
      * Executes the given action against an Ivy instance. Sets up the Ivy context before the action and cleans up at the end.

@@ -15,9 +15,11 @@
  */
 package org.gradle.internal.nativeintegration.filesystem
 
+import org.gradle.api.JavaVersion
 import org.gradle.internal.file.FileException
+import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.FileType
-import org.gradle.internal.file.impl.DefaultFileMetadata
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
@@ -173,7 +175,10 @@ class CommonFileSystemTest extends Specification {
         return Files.getFileAttributeView(file.toPath(), BasicFileAttributeView, LinkOption.NOFOLLOW_LINKS).readAttributes().lastModifiedTime().toMillis()
     }
 
-    def lastModified(DefaultFileMetadata file) {
-        return file.lastModified
+    def lastModified(FileMetadata fileMetadata) {
+        // Java 8 on Unix only captures the seconds in lastModified, so we cut it off the value returned from the filesystem as well
+        return (JavaVersion.current().java9Compatible || OperatingSystem.current().windows)
+            ? fileMetadata.lastModified
+            : fileMetadata.lastModified.intdiv(1000) * 1000
     }
 }

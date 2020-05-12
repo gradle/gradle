@@ -117,7 +117,7 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
     public Collection<Authentication> getConfiguredAuthentication() {
         populateAuthenticationCredentials();
         if (getConfiguredCredentials() != null & authenticationContainer.size() == 0) {
-            return Collections.<Authentication>singleton(new AllSchemesAuthentication(getConfiguredCredentials()));
+            return Collections.singleton(new AllSchemesAuthentication(getConfiguredCredentials()));
         } else {
             return getAuthentication();
         }

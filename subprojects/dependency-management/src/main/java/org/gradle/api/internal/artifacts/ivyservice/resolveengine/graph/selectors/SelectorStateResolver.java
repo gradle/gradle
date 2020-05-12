@@ -42,13 +42,13 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class SelectorStateResolver<T extends ComponentResolutionState> {
-    private final ModuleConflictResolver conflictResolver;
+    private final ModuleConflictResolver<T> conflictResolver;
     private final ComponentStateFactory<T> componentFactory;
     private final T rootComponent;
     private final ModuleIdentifier rootModuleId;
     private final ResolveOptimizations resolveOptimizations;
 
-    public SelectorStateResolver(ModuleConflictResolver conflictResolver, ComponentStateFactory<T> componentFactory, T rootComponent, ResolveOptimizations resolveOptimizations) {
+    public SelectorStateResolver(ModuleConflictResolver<T> conflictResolver, ComponentStateFactory<T> componentFactory, T rootComponent, ResolveOptimizations resolveOptimizations) {
         this.conflictResolver = conflictResolver;
         this.componentFactory = componentFactory;
         this.rootComponent = rootComponent;
@@ -63,7 +63,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
 
         // If the module matches, add the root component into the mix
         if (moduleId.equals(rootModuleId) && !candidates.contains(rootComponent)) {
-            candidates = new ArrayList<T>(candidates);
+            candidates = new ArrayList<>(candidates);
             candidates.add(rootComponent);
         }
 
@@ -89,7 +89,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         return resolveConflicts(candidates);
     }
 
-    private List<T> resolveSelectors(ModuleSelectors selectors, VersionSelector allRejects) {
+    private List<T> resolveSelectors(ModuleSelectors<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
         if (selectors.size() == 1) {
             ResolvableSelectorState selectorState = selectors.first();
             // Short-circuit selector merging for single selector without 'prefer'
@@ -175,7 +175,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      * Given the result of resolving any 'prefer' constraints, see if these can be used to further refine the results
      *  of resolving the 'require' constraints.
      */
-    private void integratePreferResults(ModuleSelectors selectors, SelectorStateResolverResults results, TreeSet<ComponentIdResolveResult> preferResults) {
+    private void integratePreferResults(ModuleSelectors<? extends ResolvableSelectorState> selectors, SelectorStateResolverResults results, TreeSet<ComponentIdResolveResult> preferResults) {
 
         if (preferResults == null) {
             return;
@@ -218,7 +218,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
 
     private T resolveConflicts(Collection<T> candidates) {
         // Do conflict resolution to choose the best out of current selection and candidate.
-        ConflictResolverDetails<T> details = new DefaultConflictResolverDetails<T>(candidates);
+        ConflictResolverDetails<T> details = new DefaultConflictResolverDetails<>(candidates);
         conflictResolver.select(details);
         T selected = details.getSelected();
         if (details.hasFailure()) {

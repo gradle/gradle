@@ -217,7 +217,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         if (variants != null && newVariants == null) {
             return variants;
         }
-        ImmutableList.Builder<ComponentVariant> builder = new ImmutableList.Builder<ComponentVariant>();
+        ImmutableList.Builder<ComponentVariant> builder = new ImmutableList.Builder<>();
         if (variants != null) {
             builder.addAll(variants);
         }

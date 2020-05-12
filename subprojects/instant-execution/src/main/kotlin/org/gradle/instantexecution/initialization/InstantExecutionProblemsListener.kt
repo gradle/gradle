@@ -27,10 +27,11 @@ import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.problems.StructuredMessage
 import org.gradle.internal.InternalListener
+import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 
 
-@ServiceScope(ServiceScope.Value.Build)
+@ServiceScope(Scopes.Build)
 interface InstantExecutionProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener
 
 

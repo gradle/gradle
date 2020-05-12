@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
+@UsedByScanPlugin("test-distribution")
 public class DefaultTestClassDescriptor extends DefaultTestSuiteDescriptor {
     private final String classDisplayName;
 
@@ -23,6 +26,7 @@ public class DefaultTestClassDescriptor extends DefaultTestSuiteDescriptor {
         this(id, className, className);
     }
 
+    @UsedByScanPlugin("test-distribution")
     public DefaultTestClassDescriptor(Object id, String className, String classDisplayName) {
         super(id, className);
         this.classDisplayName = classDisplayName;

@@ -18,7 +18,6 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -26,7 +25,6 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
 @Requires(TestPrecondition.SYMLINKS)
-@ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/11851")
 class IncrementalBuildSymlinkHandlingIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """

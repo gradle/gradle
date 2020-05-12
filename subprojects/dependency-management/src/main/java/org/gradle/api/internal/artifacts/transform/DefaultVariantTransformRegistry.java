@@ -20,11 +20,9 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.TransformSpec;
-import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.DefaultActionConfiguration;
@@ -50,7 +48,8 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     private final InstantiatorFactory instantiatorFactory;
     private final InstantiationScheme parametersInstantiationScheme;
     private final TransformationRegistrationFactory registrationFactory;
-    private final IsolationScheme<TransformAction, TransformParameters> isolationScheme = new IsolationScheme<>(TransformAction.class, TransformParameters.class, TransformParameters.None.class);
+    @SuppressWarnings("unchecked")
+    private final IsolationScheme<TransformAction<?>, TransformParameters> isolationScheme = new IsolationScheme<TransformAction<?>, TransformParameters>((Class)TransformAction.class, TransformParameters.class, TransformParameters.None.class);
 
     public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, ServiceRegistry services, TransformationRegistrationFactory registrationFactory, InstantiationScheme parametersInstantiationScheme) {
         this.instantiatorFactory = instantiatorFactory;
@@ -61,7 +60,8 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     }
 
     @Override
-    public void registerTransform(Action<? super VariantTransform> registrationAction) {
+    @SuppressWarnings("deprecation")
+    public void registerTransform(Action<? super org.gradle.api.artifacts.transform.VariantTransform> registrationAction) {
         try {
             UntypedRegistration registration = instantiatorFactory.decorateLenient().newInstance(UntypedRegistration.class, immutableAttributesFactory, instantiatorFactory);
             registrationAction.execute(registration);
@@ -172,10 +172,10 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
     @SuppressWarnings("deprecation")
     @NonExtensible
-    public static class UntypedRegistration extends RecordingRegistration implements VariantTransform {
+    public static class UntypedRegistration extends RecordingRegistration implements org.gradle.api.artifacts.transform.VariantTransform {
         private Action<? super ActionConfiguration> configAction;
         private final InstantiatorFactory instantiatorFactory;
-        Class<? extends ArtifactTransform> actionType;
+        Class<? extends org.gradle.api.artifacts.transform.ArtifactTransform> actionType;
 
         public UntypedRegistration(ImmutableAttributesFactory immutableAttributesFactory, InstantiatorFactory instantiatorFactory) {
             super(immutableAttributesFactory);
@@ -183,12 +183,12 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
 
         @Override
-        public void artifactTransform(Class<? extends ArtifactTransform> type) {
+        public void artifactTransform(Class<? extends org.gradle.api.artifacts.transform.ArtifactTransform> type) {
             artifactTransform(type, null);
         }
 
         @Override
-        public void artifactTransform(Class<? extends ArtifactTransform> type, @Nullable Action<? super ActionConfiguration> config) {
+        public void artifactTransform(Class<? extends org.gradle.api.artifacts.transform.ArtifactTransform> type, @Nullable Action<? super ActionConfiguration> config) {
             if (this.actionType != null) {
                 throw new IllegalStateException("Only one ArtifactTransform may be provided for registration.");
             }

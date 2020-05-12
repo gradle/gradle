@@ -19,6 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Matchers
 import org.gradle.util.ToBeImplemented
 import org.junit.Rule
@@ -1975,7 +1976,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         given:
         buildScript '''
             task (copy, type:Copy) {
-               caseSensitive = providers.systemProperty('case-sensitive').present
+               caseSensitive = providers.systemProperty('case-sensitive').forUseAtConfigurationTime().present
                from 'src'
                into 'dest'
                include '**/sub/**'
@@ -2109,7 +2110,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         buildScript """
             task (copy, type:Copy) {
                from ('src') {
-                  def newValue = providers.systemProperty('new-value').present
+                  def newValue = providers.systemProperty('new-value').forUseAtConfigurationTime().present
                   $property = newValue ? $newValue : $oldValue
                }
                into 'dest'
@@ -2166,8 +2167,11 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         method << ["from", "into"]
     }
 
-
     @Unroll
+    @ToBeFixedForInstantExecution(
+        because = "eachFile, expand, filter and rename",
+        skip = ToBeFixedForInstantExecution.Skip.FLAKY
+    )
     def "task output caching is disabled when #description is used"() {
         file("src.txt").createFile()
         buildFile << """

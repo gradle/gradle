@@ -179,10 +179,10 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     public String dump() {
         StringBuilder reply = new StringBuilder();
 
-        reply.append("Configuration of type: " + getTypeDisplayName());
+        reply.append("Configuration of type: ").append(getTypeDisplayName());
         Collection<? extends Configuration> configs = getAll();
         for (Configuration c : configs) {
-            reply.append("\n  " + c.toString());
+            reply.append("\n  ").append(c.toString());
         }
 
         return reply.toString();

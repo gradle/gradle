@@ -18,18 +18,22 @@ package org.gradle.internal.classpath;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.GFileUtils;
 
+import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-@ServiceScope(ServiceScope.Value.UserHome)
+@ServiceScope(Scopes.UserHome)
 public class ClasspathBuilder {
     private static final int BUFFER_SIZE = 8192;
 
@@ -69,6 +73,7 @@ public class ClasspathBuilder {
 
     private static class ZipEntryBuilder implements EntryBuilder {
         private final ZipOutputStream outputStream;
+        private final Set<String> dirs = new HashSet<>();
 
         public ZipEntryBuilder(ZipOutputStream outputStream) {
             this.outputStream = outputStream;
@@ -76,10 +81,34 @@ public class ClasspathBuilder {
 
         @Override
         public void put(String name, byte[] content) throws IOException {
+            maybeAddParent(name);
             ZipEntry zipEntry = newZipEntryWithFixedTime(name);
             outputStream.putNextEntry(zipEntry);
             outputStream.write(content);
             outputStream.closeEntry();
+        }
+
+        private void maybeAddParent(String name) throws IOException {
+            String dir = dir(name);
+            if (dir != null && dirs.add(dir)) {
+                maybeAddParent(dir);
+                ZipEntry zipEntry = newZipEntryWithFixedTime(dir);
+                outputStream.putNextEntry(zipEntry);
+                outputStream.closeEntry();
+            }
+        }
+
+        @Nullable
+        String dir(String name) {
+            int pos = name.lastIndexOf('/');
+            if (pos == name.length() - 1) {
+                pos = name.lastIndexOf('/', pos - 1);
+            }
+            if (pos >= 0) {
+                return name.substring(0, pos + 1);
+            } else {
+                return null;
+            }
         }
 
         private ZipEntry newZipEntryWithFixedTime(String name) {

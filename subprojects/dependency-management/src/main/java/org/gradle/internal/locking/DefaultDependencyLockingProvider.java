@@ -41,6 +41,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -123,6 +124,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
     }
 
+    @Nullable
     private List<String> findLockedModules(String configurationName, boolean uniqueLockStateEnabled) {
         List<String> result = null;
         if (uniqueLockStateEnabled) {
@@ -223,7 +225,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
 
     private static class LockingDependencySubstitution implements DependencySubstitutionInternal {
 
-        private ComponentSelector selector;
+        private final ComponentSelector selector;
         private boolean didSubstitute = false;
 
         private LockingDependencySubstitution(ComponentSelector selector) {
@@ -260,7 +262,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
 
         @Override
         public List<ComponentSelectionDescriptorInternal> getRuleDescriptors() {
-            return null;
+            return Collections.emptyList();
         }
 
         @Override

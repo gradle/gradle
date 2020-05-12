@@ -28,7 +28,6 @@ import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
@@ -132,7 +131,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             this.variantName = variantName;
             this.variantAttributes = variantAttributes;
             this.dependencyMetadata = dependencyMetadata;
-            artifact = new PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), this.artifactIdentifier, file, (TaskDependencyContainer) this.dependencyMetadata.getFiles());
+            artifact = new PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), this.artifactIdentifier, file, this.dependencyMetadata.getFiles());
         }
 
         @Override

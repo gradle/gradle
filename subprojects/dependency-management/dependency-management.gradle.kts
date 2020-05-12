@@ -123,10 +123,6 @@ dependencies {
     crossVersionTestRuntimeOnly(project(":maven"))
 }
 
-strictCompile {
-    ignoreParameterizedVarargType() // TODO remove this and address warnings and/or add the RIGHT ignores here
-}
-
 classycle {
     excludePatterns.set(listOf("org/gradle/**"))
 }

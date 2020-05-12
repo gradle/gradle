@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
+import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Comparator;
@@ -66,4 +67,9 @@ public interface CompleteFileSystemLocationSnapshot extends FileSystemSnapshot, 
      * Whether the content and the metadata (modification date) of the current snapshot is the same as for the given one.
      */
     boolean isContentAndMetadataUpToDate(CompleteFileSystemLocationSnapshot other);
+
+    /**
+     * Whether the file system location represented by this snapshot is a symlink or not.
+     */
+    FileMetadata.AccessType getAccessType();
 }

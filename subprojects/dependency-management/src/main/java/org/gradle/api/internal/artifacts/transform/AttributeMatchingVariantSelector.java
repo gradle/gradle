@@ -108,7 +108,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             }
         }
 
-        List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates = new ArrayList<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>>();
+        List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates = new ArrayList<>();
         for (ResolvedVariant variant : producer.getVariants()) {
             AttributeContainerInternal variantAttributes = variant.getAttributes().asImmutable();
             ConsumerVariantMatchResult matchResult = consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, componentRequested);

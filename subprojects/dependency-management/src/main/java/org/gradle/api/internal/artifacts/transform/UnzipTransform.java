@@ -59,8 +59,7 @@ public interface UnzipTransform extends TransformAction<TransformParameters.None
     }
 
     static void unzipTo(File headersZip, File unzipDir) throws IOException {
-        ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(new FileInputStream(headersZip)));
-        try {
+        try (ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(new FileInputStream(headersZip)))) {
             ZipEntry entry;
             while ((entry = inputStream.getNextEntry()) != null) {
                 if (entry.isDirectory()) {
@@ -68,15 +67,10 @@ public interface UnzipTransform extends TransformAction<TransformParameters.None
                 }
                 File outFile = new File(unzipDir, entry.getName());
                 Files.createParentDirs(outFile);
-                FileOutputStream outputStream = new FileOutputStream(outFile);
-                try {
+                try (FileOutputStream outputStream = new FileOutputStream(outFile)) {
                     IOUtils.copyLarge(inputStream, outputStream);
-                } finally {
-                    outputStream.close();
                 }
             }
-        } finally {
-            inputStream.close();
         }
     }
 }

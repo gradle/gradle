@@ -24,6 +24,11 @@ configurations {
     jmhImplementation {
         extendsFrom(configurations.implementation.get())
     }
+    jmhRuntime {
+        attributes {
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+        }
+    }
 }
 
 jmh {

@@ -33,19 +33,18 @@ public class DependencyGraphPathResolver {
     public static Collection<List<ComponentIdentifier>> calculatePaths(List<DependencyGraphNode> fromNodes, DependencyGraphNode toNode) {
         // Include the shortest path from each version that has a direct dependency on the broken dependency, back to the root
 
-        Map<ResolvedGraphComponent, List<ComponentIdentifier>> shortestPaths = new LinkedHashMap<ResolvedGraphComponent, List<ComponentIdentifier>>();
-        List<ComponentIdentifier> rootPath = new ArrayList<ComponentIdentifier>();
+        Map<ResolvedGraphComponent, List<ComponentIdentifier>> shortestPaths = new LinkedHashMap<>();
+        List<ComponentIdentifier> rootPath = new ArrayList<>();
         rootPath.add(toNode.getOwner().getComponentId());
         shortestPaths.put(toNode.getOwner(), rootPath);
 
-        Set<DependencyGraphComponent> directDependees = new LinkedHashSet<DependencyGraphComponent>();
+        Set<DependencyGraphComponent> directDependees = new LinkedHashSet<>();
         for (DependencyGraphNode node : fromNodes) {
             directDependees.add(node.getOwner());
         }
 
-        Set<DependencyGraphComponent> seen = new HashSet<DependencyGraphComponent>();
-        LinkedList<DependencyGraphComponent> queue = new LinkedList<DependencyGraphComponent>();
-        queue.addAll(directDependees);
+        Set<DependencyGraphComponent> seen = new HashSet<>();
+        LinkedList<DependencyGraphComponent> queue = new LinkedList<>(directDependees);
         while (!queue.isEmpty()) {
             DependencyGraphComponent version = queue.getFirst();
             if (version == toNode.getOwner()) {
@@ -72,14 +71,13 @@ public class DependencyGraphPathResolver {
                 if (shortest == null) {
                     continue;
                 }
-                List<ComponentIdentifier> path = new ArrayList<ComponentIdentifier>();
-                path.addAll(shortest);
+                List<ComponentIdentifier> path = new ArrayList<>(shortest);
                 path.add(version.getComponentId());
                 shortestPaths.put(version, path);
             }
         }
 
-        List<List<ComponentIdentifier>> paths = new ArrayList<List<ComponentIdentifier>>();
+        List<List<ComponentIdentifier>> paths = new ArrayList<>();
         for (DependencyGraphComponent version : directDependees) {
             List<ComponentIdentifier> path = shortestPaths.get(version);
             paths.add(path);

@@ -20,11 +20,15 @@ package org.gradle.api.tasks.testing;
 // Teamcity has the concept of a "wave" of messages
 // where each thread/process uses a unique wave id
 
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
+
 /**
  * Interface for listening to test execution.  The intent is to be
  * framework agnostic.  Currently this interface can support feedback
  * from JUnit and TestNG tests.
  */
+@EventScope(Scopes.Build)
 public interface TestListener {
     /**
      * Called before a test suite is started.

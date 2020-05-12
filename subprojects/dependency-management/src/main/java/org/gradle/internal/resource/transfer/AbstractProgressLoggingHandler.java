@@ -30,7 +30,7 @@ public class AbstractProgressLoggingHandler {
         this.progressLoggerFactory = progressLoggerFactory;
     }
 
-    protected ResourceOperation createResourceOperation(URI resource, ResourceOperation.Type operationType, Class loggingClazz, long contentLength) {
+    protected ResourceOperation createResourceOperation(URI resource, ResourceOperation.Type operationType, Class<?> loggingClazz, long contentLength) {
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(loggingClazz != null ? loggingClazz : getClass());
         String description = createDescription(operationType, resource);
         progressLogger.setDescription(description);

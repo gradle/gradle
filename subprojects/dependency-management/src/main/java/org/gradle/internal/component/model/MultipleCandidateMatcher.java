@@ -24,6 +24,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
+import javax.annotation.Nullable;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
@@ -347,6 +348,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         }
     }
 
+    @Nullable
     private Object getRequestedValue(int a) {
         if (a < requestedAttributes.size()) {
             return requestedAttributeValues[a];
@@ -355,17 +357,18 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         }
     }
 
+    @Nullable
     private Object getCandidateValue(int c, int a) {
         if (a < requestedAttributes.size()) {
             return requestedAttributeValues[getValueIndex(c, a)];
         } else {
             Attribute<?> extraAttribute = getAttribute(a);
-            AttributeValue attributeValue = candidateAttributeSets[c].findEntry(extraAttribute.getName());
+            AttributeValue<?> attributeValue = candidateAttributeSets[c].findEntry(extraAttribute.getName());
             return attributeValue.isPresent() ? attributeValue.coerce(extraAttribute) : null;
         }
     }
 
-    private void setRequestedValue(int a, Object value) {
+    private void setRequestedValue(int a, @Nullable Object value) {
         requestedAttributeValues[a] = value;
     }
 

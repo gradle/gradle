@@ -20,7 +20,6 @@ import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
@@ -71,34 +70,31 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                           ExecutorFactory executorFactory,
                                           LoggingManagerInternal loggingManager,
                                           GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
-                                          FileSystemChangeWaiterFactory fileSystemChangeWaiterFactory,
-                                          ParallelismConfigurationManager parallelismConfigurationManager
+                                          FileSystemChangeWaiterFactory fileSystemChangeWaiterFactory
         ) {
             return new SetupLoggingActionExecuter(
                 new SessionFailureReportingActionExecuter(
                     new StartParamsValidatingActionExecuter(
-                        new ParallelismConfigurationBuildActionExecuter(
-                            new GradleThreadBuildActionExecuter(
-                                new SessionScopeBuildActionExecuter(
-                                    new SubscribableBuildActionExecuter(
-                                        new ContinuousBuildActionExecuter(
-                                            new BuildTreeScopeBuildActionExecuter(
-                                                new InProcessBuildActionExecuter(
-                                                    new RunAsBuildOperationBuildActionRunner(
-                                                        new BuildCompletionNotifyingBuildActionRunner(
-                                                            new ValidatingBuildActionRunner(
-                                                                new BuildOutcomeReportingBuildActionRunner(
-                                                                    new ChainingBuildActionRunner(buildActionRunners),
-                                                                    styledTextOutputFactory)))))),
-                                            fileSystemChangeWaiterFactory,
-                                            inputsListeners,
-                                            styledTextOutputFactory,
-                                            executorFactory),
-                                        listenerManager,
-                                        buildOperationListenerManager,
-                                        registrations),
-                                    userHomeServiceRegistry)),
-                            parallelismConfigurationManager)),
+                        new GradleThreadBuildActionExecuter(
+                            new SessionScopeBuildActionExecuter(
+                                new SubscribableBuildActionExecuter(
+                                    new ContinuousBuildActionExecuter(
+                                        new BuildTreeScopeBuildActionExecuter(
+                                            new InProcessBuildActionExecuter(
+                                                new RunAsBuildOperationBuildActionRunner(
+                                                    new BuildCompletionNotifyingBuildActionRunner(
+                                                        new ValidatingBuildActionRunner(
+                                                            new BuildOutcomeReportingBuildActionRunner(
+                                                                new ChainingBuildActionRunner(buildActionRunners),
+                                                                styledTextOutputFactory)))))),
+                                        fileSystemChangeWaiterFactory,
+                                        inputsListeners,
+                                        styledTextOutputFactory,
+                                        executorFactory),
+                                    listenerManager,
+                                    buildOperationListenerManager,
+                                    registrations),
+                                userHomeServiceRegistry))),
                     styledTextOutputFactory,
                     Time.clock()),
                 loggingManager);

@@ -53,7 +53,7 @@ public class VariantMetadataRules {
     private VariantFilesRules variantFilesRules;
     private VariantDerivationStrategy variantDerivationStrategy = NoOpDerivationStrategy.getInstance();
     private final ModuleVersionIdentifier moduleVersionId;
-    private List<AdditionalVariant> additionalVariants = Lists.newArrayList();
+    private final List<AdditionalVariant> additionalVariants = Lists.newArrayList();
 
     public VariantMetadataRules(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId) {
         this.attributesFactory = attributesFactory;

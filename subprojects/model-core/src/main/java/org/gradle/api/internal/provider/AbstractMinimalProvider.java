@@ -83,17 +83,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     public T get() {
         Value<? extends T> value = calculateOwnValue(ValueConsumer.IgnoreUnsafeRead);
         if (value.isMissing()) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node("Cannot query the value of ").append(getDisplayName().getDisplayName()).append(" because it has no value available.");
-            if (!value.getPathToOrigin().isEmpty()) {
-                formatter.node("The value of ").append(getTypedDisplayName().getDisplayName()).append(" is derived from");
-                formatter.startChildren();
-                for (DisplayName displayName : value.getPathToOrigin()) {
-                    formatter.node(displayName.getDisplayName());
-                }
-                formatter.endChildren();
-            }
-            throw new MissingValueException(formatter.toString());
+            throw new MissingValueException(cannotQueryValueOf(value));
         }
         return value.get();
     }
@@ -125,6 +115,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public Provider<T> forUseAtConfigurationTime() {
+        // By default, any provider can be used at configuration time
         return this;
     }
 
@@ -186,4 +177,17 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         return ManagedFactories.ProviderManagedFactory.FACTORY_ID;
     }
 
+    private String cannotQueryValueOf(Value<? extends T> value) {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("Cannot query the value of ").append(getDisplayName().getDisplayName()).append(" because it has no value available.");
+        if (!value.getPathToOrigin().isEmpty()) {
+            formatter.node("The value of ").append(getTypedDisplayName().getDisplayName()).append(" is derived from");
+            formatter.startChildren();
+            for (DisplayName displayName : value.getPathToOrigin()) {
+                formatter.node(displayName.getDisplayName());
+            }
+            formatter.endChildren();
+        }
+        return formatter.toString();
+    }
 }

@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 
 public class ConflictResolverFactory {
     private final VersionComparator versionComparator;
@@ -29,10 +30,10 @@ public class ConflictResolverFactory {
         this.versionParser = versionParser;
     }
 
-    public ModuleConflictResolver createConflictResolver(ConflictResolution conflictResolution) {
-        ModuleConflictResolver conflictResolver = new LatestModuleConflictResolver(versionComparator, versionParser);
+    public ModuleConflictResolver<ComponentState> createConflictResolver(ConflictResolution conflictResolution) {
+        ModuleConflictResolver<ComponentState> conflictResolver = new LatestModuleConflictResolver<>(versionComparator, versionParser);
         if (conflictResolution == ConflictResolution.preferProjectModules) {
-            conflictResolver = new ProjectDependencyForcingResolver(conflictResolver);
+            conflictResolver = new ProjectDependencyForcingResolver<>(conflictResolver);
         }
         return conflictResolver;
     }

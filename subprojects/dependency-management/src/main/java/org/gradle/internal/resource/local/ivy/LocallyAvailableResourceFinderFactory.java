@@ -69,12 +69,12 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
 
     @Override
     public LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> create() {
-        List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders = new LinkedList<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>>();
+        List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders = new LinkedList<>();
 
         // Order is important here, because they will be searched in that order
 
         // The current filestore
-        finders.add(new LocallyAvailableResourceFinderSearchableFileStoreAdapter<ModuleComponentArtifactMetadata>(key -> fileStore.search(key.getId()), checksumService));
+        finders.add(new LocallyAvailableResourceFinderSearchableFileStoreAdapter<>(key -> fileStore.search(key.getId()), checksumService));
 
         // 1.8
         addForPattern(finders, "artifacts-26/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
@@ -116,7 +116,7 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
         } catch (CannotLocateLocalMavenRepositoryException ex) {
             finders.add(new NoMavenLocalRepositoryResourceFinder(ex));
         }
-        return new CompositeLocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>(finders);
+        return new CompositeLocallyAvailableResourceFinder<>(finders);
     }
 
     private void addForPattern(List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders, String pattern) {

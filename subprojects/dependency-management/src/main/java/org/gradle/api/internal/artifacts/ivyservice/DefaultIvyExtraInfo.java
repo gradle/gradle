@@ -29,10 +29,10 @@ import java.util.List;
 import java.util.Map;
 
 public class DefaultIvyExtraInfo implements IvyExtraInfo {
-    protected Map<NamespaceId, String> extraInfo;
+    protected final Map<NamespaceId, String> extraInfo;
 
     public DefaultIvyExtraInfo() {
-        this.extraInfo = new LinkedHashMap<NamespaceId, String>();
+        this.extraInfo = new LinkedHashMap<>();
     }
 
     public DefaultIvyExtraInfo(Map<NamespaceId, String> extraInfo) {
@@ -41,7 +41,7 @@ public class DefaultIvyExtraInfo implements IvyExtraInfo {
 
     @Override
     public String get(String name) {
-        List<Map.Entry<NamespaceId, String>> foundEntries = new ArrayList<Map.Entry<NamespaceId, String>>();
+        List<Map.Entry<NamespaceId, String>> foundEntries = new ArrayList<>();
         for (Map.Entry<NamespaceId, String> entry : extraInfo.entrySet()) {
             if (entry.getKey().getName().equals(name)) {
                 foundEntries.add(entry);
@@ -61,7 +61,7 @@ public class DefaultIvyExtraInfo implements IvyExtraInfo {
 
     @Override
     public Map<QName, String> asMap() {
-        Map<QName, String> map = new LinkedHashMap<QName, String>();
+        Map<QName, String> map = new LinkedHashMap<>();
         for (Map.Entry<NamespaceId, String> entry : extraInfo.entrySet()) {
             map.put(new QName(entry.getKey().getNamespace(), entry.getKey().getName()), entry.getValue());
         }

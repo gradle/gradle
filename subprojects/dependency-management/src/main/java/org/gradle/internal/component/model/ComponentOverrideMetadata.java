@@ -18,6 +18,7 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.ClientModule;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -35,6 +36,7 @@ public interface ComponentOverrideMetadata {
     /**
      * If the request originated from a ClientModule, return it. Null otherwise.
      */
+    @Nullable
     ClientModule getClientModule();
 
     /**

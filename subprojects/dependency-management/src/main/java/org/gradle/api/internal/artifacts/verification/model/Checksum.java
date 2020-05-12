@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.verification.model;
 import com.google.common.collect.ImmutableSet;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -97,10 +98,10 @@ public class Checksum {
         if (!value.equals(checksum.value)) {
             return false;
         }
-        if (alternatives != null ? !alternatives.equals(checksum.alternatives) : checksum.alternatives != null) {
+        if (!Objects.equals(alternatives, checksum.alternatives)) {
             return false;
         }
-        return origin != null ? origin.equals(checksum.origin) : checksum.origin == null;
+        return Objects.equals(origin, checksum.origin);
     }
 
     @Override

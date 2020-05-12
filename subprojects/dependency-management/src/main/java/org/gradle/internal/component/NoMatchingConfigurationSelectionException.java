@@ -43,7 +43,7 @@ public class NoMatchingConfigurationSelectionException extends StyledException {
     }
 
     private static String generateMessage(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentResolveMetadata targetComponent, boolean variantAware) {
-        Map<String, ConfigurationMetadata> configurations = new TreeMap<String, ConfigurationMetadata>();
+        Map<String, ConfigurationMetadata> configurations = new TreeMap<>();
         Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal = targetComponent.getVariantsForGraphTraversal();
         ImmutableList<? extends ConfigurationMetadata> variantsParticipatingInSelection = variantsForGraphTraversal.or(new LegacyConfigurationsSupplier(targetComponent));
         for (ConfigurationMetadata configurationMetadata : variantsParticipatingInSelection) {

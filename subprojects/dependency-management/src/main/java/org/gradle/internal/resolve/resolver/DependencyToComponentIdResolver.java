@@ -20,11 +20,13 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 
+import javax.annotation.Nullable;
+
 public interface DependencyToComponentIdResolver {
     /**
      * Resolves the given dependency to a component instance. Failures should be attached to the result.
      *
      * <p>At some point in the future, this should resolve to a set of candidates rather than a single instance.
      */
-    void resolve(DependencyMetadata dependency, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result);
+    void resolve(DependencyMetadata dependency, VersionSelector acceptor, @Nullable VersionSelector rejector, BuildableComponentIdResolveResult result);
 }

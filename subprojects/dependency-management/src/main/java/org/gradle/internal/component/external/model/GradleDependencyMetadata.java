@@ -47,11 +47,11 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     private final boolean force;
     private final List<IvyArtifactName> artifacts;
 
-    public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean endorsing, String reason, boolean force, @Nullable IvyArtifactName artifact) {
+    public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean endorsing, @Nullable String reason, boolean force, @Nullable IvyArtifactName artifact) {
         this(selector, excludes, constraint, endorsing, reason, force, artifact == null ? ImmutableList.of() : ImmutableList.of(artifact));
     }
 
-    private GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean endorsing, String reason, boolean force, List<IvyArtifactName> artifacts) {
+    private GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean endorsing, @Nullable String reason, boolean force, List<IvyArtifactName> artifacts) {
         this.selector = selector;
         this.excludes = excludes;
         this.reason = reason;

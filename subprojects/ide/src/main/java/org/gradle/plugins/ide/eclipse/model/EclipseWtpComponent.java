@@ -388,6 +388,7 @@ public class EclipseWtpComponent {
         return referenceFactory;
     }
 
+    @SuppressWarnings("unchecked")
     public void mergeXmlComponent(WtpComponent xmlComponent) {
         file.getBeforeMerged().execute(xmlComponent);
         ProjectInternal projectInternal = (ProjectInternal) this.project;

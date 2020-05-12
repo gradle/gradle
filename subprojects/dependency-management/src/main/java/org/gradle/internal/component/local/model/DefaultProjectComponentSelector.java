@@ -126,10 +126,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         if (!attributes.equals(that.attributes)) {
             return false;
         }
-        if (!requestedCapabilities.equals(that.requestedCapabilities)) {
-            return false;
-        }
-        return true;
+        return requestedCapabilities.equals(that.requestedCapabilities);
     }
 
     @Override

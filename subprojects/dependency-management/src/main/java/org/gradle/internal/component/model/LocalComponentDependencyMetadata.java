@@ -32,6 +32,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -56,28 +57,28 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     public LocalComponentDependencyMetadata(ComponentIdentifier componentId,
                                             ComponentSelector selector,
-                                            String moduleConfiguration,
-                                            AttributeContainer moduleAttributes,
+                                            @Nullable String moduleConfiguration,
+                                            @Nullable AttributeContainer moduleAttributes,
                                             AttributeContainer dependencyAttributes,
-                                            String dependencyConfiguration,
+                                            @Nullable String dependencyConfiguration,
                                             List<IvyArtifactName> artifactNames,
                                             List<ExcludeMetadata> excludes,
                                             boolean force, boolean changing, boolean transitive, boolean constraint, boolean endorsing,
-                                            String reason) {
+                                            @Nullable String reason) {
         this(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, false, reason);
     }
 
     public LocalComponentDependencyMetadata(ComponentIdentifier componentId,
                                             ComponentSelector selector,
-                                            String moduleConfiguration,
+                                            @Nullable String moduleConfiguration,
                                             AttributeContainer moduleAttributes,
                                             AttributeContainer dependencyAttributes,
-                                            String dependencyConfiguration,
+                                            @Nullable String dependencyConfiguration,
                                             List<IvyArtifactName> artifactNames,
                                             List<ExcludeMetadata> excludes,
                                             boolean force, boolean changing, boolean transitive,
                                             boolean constraint, boolean endorsing, boolean fromLock,
-                                            String reason) {
+                                            @Nullable String reason) {
         this.componentId = componentId;
         this.selector = selector;
         this.moduleConfiguration = moduleConfiguration;
@@ -226,7 +227,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         if (force) {
             return this;
         }
-        return copyWithForce(true);
+        return copyWithForce();
     }
 
     @Override
@@ -250,8 +251,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, fromLock, reason);
     }
 
-    private LocalOriginDependencyMetadata copyWithForce(boolean force) {
-        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, fromLock, reason);
+    private LocalOriginDependencyMetadata copyWithForce() {
+        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, true, changing, transitive, constraint, endorsing, fromLock, reason);
     }
 
 }

@@ -137,7 +137,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
     }
 
     private static RealisedConfigurationMetadata applyRules(ModuleComponentIdentifier id, String configurationName, VariantMetadataRules variantMetadataRules, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-                                                            ImmutableList<ExcludeMetadata> excludes, boolean transitive, boolean visible, ImmutableSet<String> hierarchy, IvyConfigurationHelper configurationHelper, List<ModuleDependencyMetadata> dependenciesOverride, boolean addedByRule) {
+                                                            ImmutableList<ExcludeMetadata> excludes, boolean transitive, boolean visible, ImmutableSet<String> hierarchy, IvyConfigurationHelper configurationHelper, @Nullable List<ModuleDependencyMetadata> dependenciesOverride, boolean addedByRule) {
         NameOnlyVariantResolveMetadata variant = new NameOnlyVariantResolveMetadata(configurationName);
         ImmutableAttributes variantAttributes = variantMetadataRules.applyVariantAttributeRules(variant, attributes);
         CapabilitiesMetadata capabilitiesMetadata = variantMetadataRules.applyCapabilitiesRules(variant, capabilities);

@@ -34,7 +34,7 @@ import static org.gradle.util.TextUtil.normaliseLineSeparators
 @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32)
 class GoogleTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    def prebuiltDir = buildContext.getSamplesDir().file("native-binaries/google-test/libs")
+    def prebuiltDir = buildContext.getSamplesDir().file("native-binaries/google-test/groovy/libs")
     def prebuiltPath = TextUtil.normaliseFileSeparators(prebuiltDir.path)
     def app = new CppHelloWorldApp()
 

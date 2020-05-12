@@ -18,6 +18,7 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
@@ -25,6 +26,8 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.internal.tasks.TaskDestroyablesInternal
+import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType
 import org.gradle.api.internal.tasks.properties.InputParameterUtils
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
@@ -48,6 +51,7 @@ import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.instantexecution.serialization.beans.readPropertyValue
 import org.gradle.instantexecution.serialization.beans.writeNextProperty
 import org.gradle.instantexecution.serialization.readCollection
+import org.gradle.instantexecution.serialization.readCollectionInto
 import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withIsolate
@@ -86,9 +90,12 @@ class TaskNodeCodec(
 
         withTaskOf(taskType, task, userTypesCodec) {
             writeUpToDateSpec(task)
+            writeCollection(task.outputs.cacheIfSpecs)
             beanStateWriterFor(task.javaClass).run {
                 writeStateOf(task)
                 writeRegisteredPropertiesOf(task, this as BeanPropertyWriter)
+                writeDestroyablesOf(task)
+                writeLocalStateOf(task)
             }
             writeRegisteredServicesOf(task)
         }
@@ -104,9 +111,12 @@ class TaskNodeCodec(
 
         withTaskOf(taskType, task, userTypesCodec) {
             readUpToDateSpec(task)
+            readCollectionInto { task.outputs.cacheIfSpecs.uncheckedCast() }
             beanStateReaderFor(task.javaClass).run {
                 readStateOf(task)
                 readRegisteredPropertiesOf(task)
+                readDestroyablesOf(task)
+                readLocalStateOf(task)
             }
             readRegisteredServicesOf(task)
         }
@@ -141,6 +151,42 @@ class TaskNodeCodec(
     suspend fun ReadContext.readRegisteredServicesOf(task: TaskInternal) {
         readCollection {
             task.usesService(readNonNull())
+        }
+    }
+
+    private
+    suspend fun WriteContext.writeDestroyablesOf(task: TaskInternal) {
+        val destroyables = (task.destroyables as TaskDestroyablesInternal).registeredFiles
+        if (destroyables.isEmpty) {
+            writeBoolean(false)
+        } else {
+            writeBoolean(true)
+            write(destroyables)
+        }
+    }
+
+    private
+    suspend fun ReadContext.readDestroyablesOf(task: TaskInternal) {
+        if (readBoolean()) {
+            task.destroyables.register(readNonNull<FileCollection>())
+        }
+    }
+
+    private
+    suspend fun WriteContext.writeLocalStateOf(task: TaskInternal) {
+        val localState = (task.localState as TaskLocalStateInternal).registeredFiles
+        if (localState.isEmpty) {
+            writeBoolean(false)
+        } else {
+            writeBoolean(true)
+            write(localState)
+        }
+    }
+
+    private
+    suspend fun ReadContext.readLocalStateOf(task: TaskInternal) {
+        if (readBoolean()) {
+            task.localState.register(readNonNull<FileCollection>())
         }
     }
 

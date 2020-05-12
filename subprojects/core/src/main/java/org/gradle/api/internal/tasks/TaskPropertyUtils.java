@@ -21,6 +21,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 @NonNullApi
 public class TaskPropertyUtils {
@@ -28,6 +29,7 @@ public class TaskPropertyUtils {
      * Visits both properties declared via annotations on the properties of the task type as well as
      * properties declared via the runtime API ({@link org.gradle.api.tasks.TaskInputs} etc.).
      */
+    @UsedByScanPlugin("test-distribution")
     public static void visitProperties(PropertyWalker propertyWalker, TaskInternal task, PropertyVisitor visitor) {
         visitProperties(propertyWalker, task, TypeValidationContext.NOOP, visitor);
     }
@@ -42,12 +44,8 @@ public class TaskPropertyUtils {
         propertyWalker.visitProperties(task, validationContext, visitor);
         task.getInputs().visitRegisteredProperties(visitor);
         task.getOutputs().visitRegisteredProperties(visitor);
-        for (Object path : ((TaskDestroyablesInternal) task.getDestroyables()).getRegisteredPaths()) {
-            visitor.visitDestroyableProperty(path);
-        }
-        for (Object path : ((TaskLocalStateInternal) task.getLocalState()).getRegisteredPaths()) {
-            visitor.visitLocalStateProperty(path);
-        }
+        ((TaskDestroyablesInternal) task.getDestroyables()).visitRegisteredProperties(visitor);
+        ((TaskLocalStateInternal) task.getLocalState()).visitRegisteredProperties(visitor);
     }
 
     /**

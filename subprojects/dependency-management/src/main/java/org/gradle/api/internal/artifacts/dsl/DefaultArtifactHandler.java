@@ -48,6 +48,7 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
         dynamicMethods = new DynamicMethods();
     }
 
+    @SuppressWarnings("rawtypes")
     private PublishArtifact pushArtifact(org.gradle.api.artifacts.Configuration configuration, Object notation, Closure configureClosure) {
         Action<Object> configureAction = ConfigureUtil.configureUsing(configureClosure);
         return pushArtifact(configuration, notation, configureAction);
@@ -82,6 +83,7 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public PublishArtifact add(String configurationName, Object artifactNotation, Closure configureClosure) {
         return pushArtifact(configurationContainer.getByName(configurationName), artifactNotation, configureClosure);
     }

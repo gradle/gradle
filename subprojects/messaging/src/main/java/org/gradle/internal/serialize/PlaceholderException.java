@@ -31,6 +31,7 @@ public class PlaceholderException extends RuntimeException {
     private final String toString;
     private final Throwable toStringRuntimeEx;
 
+    @UsedByScanPlugin("test-distribution")
     public PlaceholderException(String exceptionClassName, @Nullable String message, @Nullable Throwable getMessageException, @Nullable String toString,
                                 @Nullable Throwable toStringException, @Nullable Throwable cause) {
         super(message, cause);
