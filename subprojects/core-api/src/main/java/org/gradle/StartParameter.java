@@ -724,8 +724,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @since 6.5
      */
     @Incubating
-    public void setWatchFileSystem(boolean watchFileSystem) {
-        this.watchFileSystem = watchFileSystem;
+    public boolean isWatchFileSystem() {
+        return watchFileSystem;
     }
 
     /**
@@ -734,8 +734,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @since 6.5
      */
     @Incubating
-    public boolean isWatchFileSystem() {
-        return watchFileSystem;
+    public void setWatchFileSystem(boolean watchFileSystem) {
+        this.watchFileSystem = watchFileSystem;
     }
 
     /**
