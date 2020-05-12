@@ -123,6 +123,7 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
         server.start()
 
         given:
+        def instant = newInstantExecutionFixture()
         settingsFile << """
             include 'finalized', 'finalizer'
         """
@@ -148,22 +149,35 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
             }
         """
 
-        expect: "unrequested finalizer dependencies not to run in parallel"
-        2.times {
-            [":finalized:dep", ":finalized:task", ":finalizer:dep", ":finalizer:task"].each {
-                server.expectConcurrent(it)
-            }
-            instantRun ":finalized:task", "--parallel"
+        expect: "unrequested finalizer dependencies not to run in parallel when storing the graph"
+        [":finalized:dep", ":finalized:task", ":finalizer:dep", ":finalizer:task"].each {
+            server.expectConcurrent(it)
         }
+        instantRun ":finalized:task", "--parallel"
+        instant.assertStateStored()
 
-        and: "requested finalizer dependencies to run in parallel"
-        2.times {
-            server.expectConcurrent(":finalized:dep", ":finalizer:dep")
-            [":finalized:task", ":finalizer:task"].each {
-                server.expectConcurrent(it)
-            }
-            instantRun ":finalizer:dep", ":finalized:task", "--parallel"
+        and: "unrequested finalizer dependencies not to run in parallel when loading the graph"
+        [":finalized:dep", ":finalized:task", ":finalizer:dep", ":finalizer:task"].each {
+            server.expectConcurrent(it)
         }
+        instantRun ":finalized:task"
+        instant.assertStateLoaded()
+
+        and: "requested finalizer dependencies to run in parallel when storing the graph with --parallel"
+        server.expectConcurrent(":finalized:dep", ":finalizer:dep")
+        [":finalized:task", ":finalizer:task"].each {
+            server.expectConcurrent(it)
+        }
+        instantRun ":finalizer:dep", ":finalized:task", "--parallel"
+        instant.assertStateStored()
+
+        and: "requested finalizer dependencies to run in parallel when loading the graph by default"
+        server.expectConcurrent(":finalized:dep", ":finalizer:dep")
+        [":finalized:task", ":finalizer:task"].each {
+            server.expectConcurrent(it)
+        }
+        instantRun ":finalizer:dep", ":finalized:task"
+        instant.assertStateLoaded()
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -171,6 +185,7 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
         server.start()
 
         given:
+        def instant = newInstantExecutionFixture()
         buildFile << """
             class SlowTask extends DefaultTask {
                 @TaskAction
@@ -203,11 +218,13 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
             server.expectConcurrent(it)
         }
         instantRun "finalizerDep", "finalized"
+        instant.assertStateStored()
 
         server.expectConcurrent("finalizerDep", "finalizedDep")
         ["finalized", "finalizer"].each {
             server.expectConcurrent(it)
         }
         instantRun "finalizerDep", "finalized"
+        instant.assertStateLoaded()
     }
 }
