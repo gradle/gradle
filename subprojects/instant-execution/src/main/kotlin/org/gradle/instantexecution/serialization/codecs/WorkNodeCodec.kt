@@ -75,8 +75,8 @@ class WorkNodeCodec(
         val nodeId = scheduledNodeIds.getValue(node)
         writeSmallInt(nodeId)
         write(node)
-
         writeSuccessorReferencesOf(node, scheduledNodeIds)
+        writeExecutionStateOf(node)
     }
 
     private
@@ -84,9 +84,25 @@ class WorkNodeCodec(
         val nodeId = readSmallInt()
         val node = readNonNull<Node>()
         readSuccessorReferencesOf(node, nodesById)
-        node.dependenciesProcessed()
+        readExecutionStateOf(node)
         nodesById[nodeId] = node
         return node
+    }
+
+    private
+    fun WriteContext.writeExecutionStateOf(node: Node) {
+        // entry nodes are required, finalizer nodes and their dependencies are not
+        writeBoolean(node.isRequired)
+    }
+
+    private
+    fun ReadContext.readExecutionStateOf(node: Node) {
+        val isRequired = readBoolean()
+        when {
+            isRequired -> node.require()
+            else -> node.mustNotRun() // finalizer nodes and their dependencies
+        }
+        node.dependenciesProcessed()
     }
 
     private
