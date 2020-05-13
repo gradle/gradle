@@ -17,11 +17,10 @@
 
 package org.gradle.integtests.publish.ivy
 
-import org.gradle.api.artifacts.repositories.PasswordCredentials
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
-import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -280,85 +279,4 @@ class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
         module.jarFile.assertIsCopyOf(new TestFile(largeJar))
     }
 
-    @ToBeFixedForInstantExecution
-    void "can publish artifact to authenticated repository using credentials provider"() {
-        given:
-        String credentialsBlock = """
-            credentials(project.credentials.usernameAndPassword('ivyRepo'))
-        """
-        buildFile << publicationBuild('2', 'org.gradle', ivyHttpRepo.uri, credentialsBlock)
-
-        and:
-        PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
-
-        module.jar.expectPut(credentials)
-        module.jar.sha1.expectPut(credentials)
-        module.jar.sha256.expectPut(credentials)
-        module.jar.sha512.expectPut(credentials)
-        module.ivy.expectPut(credentials)
-        module.ivy.sha1.expectPut(credentials)
-        module.ivy.sha256.expectPut(credentials)
-        module.ivy.sha512.expectPut(credentials)
-        module.moduleMetadata.expectPut(credentials)
-        module.moduleMetadata.sha1.expectPut(credentials)
-        module.moduleMetadata.sha256.expectPut(credentials)
-        module.moduleMetadata.sha512.expectPut(credentials)
-
-        when:
-        executer.withArguments("-PivyRepoUsername=${credentials.username}", "-PivyRepoPassword=${credentials.password}")
-        succeeds 'publish'
-
-        then:
-        module.assertMetadataAndJarFilePublished()
-        module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
-    }
-
-    @ToBeFixedForInstantExecution
-    def "fails at configuration time with helpful error message when username and password provider has no value"() {
-        given:
-        String credentialsBlock = """
-            credentials(project.credentials.usernameAndPassword('ivyRepo'))
-        """
-        buildFile << publicationBuild('2', 'org.gradle', ivyHttpRepo.uri, credentialsBlock)
-
-        when:
-        succeeds 'jar'
-
-        and:
-        fails 'publish'
-
-        then:
-        notExecuted(':jar', ':publishIvyPublicationToIvyRepository')
-        failure.assertHasDescription("Could not determine the dependencies of task ':publish'.")
-        failure.assertHasCause("Could not create task ':publishIvyPublicationToIvyRepository'.")
-        failure.assertHasCause("Cannot query the value of username and password provider because it has no value available")
-        failure.assertHasErrorOutput("The value of this provider is derived from")
-        failure.assertHasErrorOutput("- Gradle property 'ivyRepoUsername'")
-        failure.assertHasErrorOutput("- Gradle property 'ivyRepoPassword'")
-    }
-
-    private static String publicationBuild(String version, String group, URI uri, String credentialsBlock) {
-        return """
-            plugins {
-                id 'java'
-                id 'ivy-publish'
-            }
-            version = '$version'
-            group = '$group'
-
-            publishing {
-                repositories {
-                    ivy {
-                        url "$uri"
-                        $credentialsBlock
-                    }
-                }
-                publications {
-                    ivy(IvyPublication) {
-                        from components.java
-                    }
-                }
-            }
-            """
-    }
 }
