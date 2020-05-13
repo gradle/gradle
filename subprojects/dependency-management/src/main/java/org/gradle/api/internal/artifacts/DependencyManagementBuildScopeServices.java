@@ -18,8 +18,10 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import org.gradle.BuildAdapter;
 import org.gradle.StartParameter;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.FeaturePreviews;
@@ -190,8 +192,16 @@ class DependencyManagementBuildScopeServices {
         return new DefaultComponentIdentifierFactory(buildRegistry.getBuild(currentBuild.getBuildIdentifier()));
     }
 
-    VersionComparator createVersionComparator(FeaturePreviews featurePreviews) {
-        return new DefaultVersionComparator(featurePreviews);
+    VersionComparator createVersionComparator(FeaturePreviews featurePreviews, ListenerManager listenerManager) {
+        DefaultVersionComparator defaultVersionComparator = new DefaultVersionComparator(featurePreviews);
+        // This needs to be removed once the feature preview disappears
+        listenerManager.addListener(new BuildAdapter() {
+            @Override
+            public void settingsEvaluated(Settings settings) {
+                defaultVersionComparator.configure();
+            }
+        });
+        return defaultVersionComparator;
     }
 
     DependencyFactory createDependencyFactory(

@@ -25,14 +25,12 @@ import java.util.Comparator;
  * @see StaticVersionComparator
  */
 public class DefaultVersionComparator implements VersionComparator {
-    private final Comparator<Version> baseComparator;
+    private Comparator<Version> baseComparator;
+    private final FeaturePreviews featurePreviews;
 
     public DefaultVersionComparator(FeaturePreviews featurePreviews) {
-        if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.DEPENDENCY_VERSION_SORTING)) {
-            baseComparator = new StaticVersionComparator(StaticVersionComparator.UPDATED_SPECIAL_MEANINGS);
-        } else {
-            baseComparator = new StaticVersionComparator(StaticVersionComparator.SPECIAL_MEANINGS);
-        }
+        this.featurePreviews = featurePreviews;
+        computeBaseComparator();
     }
 
     @Override
@@ -45,5 +43,18 @@ public class DefaultVersionComparator implements VersionComparator {
     @Override
     public Comparator<Version> asVersionComparator() {
         return baseComparator;
+    }
+
+    public void configure() {
+        computeBaseComparator();
+    }
+
+    // To be removed once the feature preview disappears
+    private void computeBaseComparator() {
+        if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.DEPENDENCY_VERSION_SORTING)) {
+            baseComparator = new StaticVersionComparator(StaticVersionComparator.UPDATED_SPECIAL_MEANINGS);
+        } else {
+            baseComparator = new StaticVersionComparator(StaticVersionComparator.SPECIAL_MEANINGS);
+        }
     }
 }
