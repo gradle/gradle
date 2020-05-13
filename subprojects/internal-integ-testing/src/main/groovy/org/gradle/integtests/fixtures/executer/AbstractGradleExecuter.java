@@ -1221,6 +1221,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                 }
                 int i = 0;
                 boolean insideVariantDescriptionBlock = false;
+                boolean insideKotlinCompilerFlakyStacktrace = false;
                 while (i < lines.size()) {
                     String line = lines.get(i);
                     if (insideVariantDescriptionBlock && line.contains("]")) {
@@ -1228,7 +1229,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                     } else if (!insideVariantDescriptionBlock && line.contains("variant \"")) {
                         insideVariantDescriptionBlock = true;
                     }
-                    if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
+
+                    // https://youtrack.jetbrains.com/issue/KT-29546
+                    if (line.contains("Compilation with Kotlin compile daemon was not successful")) {
+                        insideKotlinCompilerFlakyStacktrace = true;
+                        i++;
+                    } else if (insideKotlinCompilerFlakyStacktrace &&
+                        (line.contains("java.rmi.UnmarshalException") || line.contains("java.io.EOFException"))) {
+                        i++;
+                        i = skipStackTrace(lines, i);
+                    } else if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
                         // A javac warning, ignore
                         i++;
                     } else if (line.matches(".*w: .* is deprecated\\..*")) {
