@@ -103,6 +103,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
      *
      * Using this property causes Gradle to emit a deprecation warning.
      */
+    @Deprecated
     public static final String DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.retention";
 
     /**
