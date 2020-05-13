@@ -69,7 +69,6 @@ public class ApplicationPlugin implements Plugin<Project> {
         addRunTask(project, pluginExtension, pluginConvention);
         addCreateScriptsTask(project, pluginExtension, pluginConvention);
         configureJavaCompileTask(tasks.named(JavaPlugin.COMPILE_JAVA_TASK_NAME, JavaCompile.class), pluginExtension);
-        configureJarTask(tasks.named(JavaPlugin.JAR_TASK_NAME, Jar.class), pluginExtension);
         configureInstallTask(tasks.named(TASK_INSTALL_NAME, Sync.class), pluginConvention);
 
         DistributionContainer distributions = (DistributionContainer) project.getExtensions().getByName("distributions");
@@ -81,6 +80,7 @@ public class ApplicationPlugin implements Plugin<Project> {
         javaCompile.configure(j -> j.getOptions().getJavaModuleMainClass().convention(pluginExtension.getMainClass()));
     }
 
+    // Enable this back for Gradle 7.0
     private void configureJarTask(TaskProvider<Jar> jar, JavaApplication pluginExtension) {
         jar.configure(j -> j.getManifest().attributes(Collections.singletonMap("Main-Class", pluginExtension.getMainClass())));
     }
