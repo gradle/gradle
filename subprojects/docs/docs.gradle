@@ -482,7 +482,7 @@ samples {
                 from(templates.javaUtilitiesLibrary)
             }
         }
-        
+
         credentialsForExternalToolViaStdin {
             sampleDirectory = samplesRoot.dir("credentials-handling/pass-credentials-to-external-tool-via-stdin")
             displayName = "Supply credentials to external tool"

@@ -1,6 +1,9 @@
 plugins {
     `java-library`
     `maven-publish`
+
+    // this plugin comes from an included build - it fakes a maven repository to allow executing the authentication flow
+    id("maven-repository-stub")
 }
 
 version = "1.0.2"
@@ -16,7 +19,7 @@ publishing {
     repositories {
         maven {
             name = "mySecure"
-            url = uri(com.example.MavenRepositoryStub.address())
+            // url = uri(<<some repository url>>)
         }
     }
 }
@@ -41,14 +44,3 @@ gradle.taskGraph.whenReady {
     }
 }
 // end::credentials[]
-
-// the following block starts the stubbed Maven repository just before publishing
-// and stops it afterwards
-tasks.named("publishLibraryPublicationToMySecureRepository") {
-    doFirst {
-        com.example.MavenRepositoryStub.start()
-    }
-    doLast {
-        com.example.MavenRepositoryStub.stop()
-    }
-}
