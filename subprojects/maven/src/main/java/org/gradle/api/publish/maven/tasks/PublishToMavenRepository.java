@@ -59,7 +59,7 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
      */
     public void setRepository(MavenArtifactRepository repository) {
         this.repository = repository;
-        this.credentials.set(((AuthenticationSupportedInternal) repository).getConfiguredCredentialsProvider());
+        this.credentials.set(((AuthenticationSupportedInternal) repository).getConfiguredCredentials());
     }
 
     @TaskAction

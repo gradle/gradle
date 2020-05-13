@@ -125,7 +125,7 @@ public class PublishToIvyRepository extends DefaultTask {
      */
     public void setRepository(IvyArtifactRepository repository) {
         this.repository = repository;
-        this.credentials.set(((AuthenticationSupportedInternal) repository).getConfiguredCredentialsProvider());
+        this.credentials.set(((AuthenticationSupportedInternal) repository).getConfiguredCredentials());
     }
 
     @TaskAction

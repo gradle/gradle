@@ -29,7 +29,6 @@ import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.CollectionUtils;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
@@ -55,15 +54,9 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
         return delegate.getCredentials(credentialsType);
     }
 
-    @Nullable
     @Override
-    public Credentials getConfiguredCredentials() {
+    public Property<Credentials> getConfiguredCredentials() {
         return delegate.getConfiguredCredentials();
-    }
-
-    @Override
-    public Property<Credentials> getConfiguredCredentialsProvider() {
-        return delegate.getConfiguredCredentialsProvider();
     }
 
     @Override
@@ -123,5 +116,9 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
 
     List<String> getAuthenticationSchemes() {
         return CollectionUtils.collect(getConfiguredAuthentication(), authentication -> Cast.cast(AuthenticationInternal.class, authentication).getType().getSimpleName());
+    }
+
+    boolean usesCredentials() {
+        return delegate.usesCredentials();
     }
 }

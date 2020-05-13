@@ -184,7 +184,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         }
 
         return new IvyRepositoryDescriptor.Builder(getName(), urlArtifactRepository.getUrl())
-            .setAuthenticated(getConfiguredCredentials() != null)
+            .setAuthenticated(usesCredentials())
             .setAuthenticationSchemes(getAuthenticationSchemes())
             .setMetadataSources(metadataSources.asList())
             .setLayoutType(layoutType)

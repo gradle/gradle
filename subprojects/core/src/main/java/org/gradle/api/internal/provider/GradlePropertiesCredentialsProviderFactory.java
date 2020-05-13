@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.credentials.Credentials;
+import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Describables;
@@ -36,7 +36,7 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
     }
 
     @Override
-    public Provider<Credentials> usernameAndPassword(String identity) {
+    public Provider<PasswordCredentials> usernameAndPassword(String identity) {
         validateIdentity(identity);
         return new PasswordCredentialsProvider(identity);
     }
@@ -47,7 +47,7 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
         }
     }
 
-    private class PasswordCredentialsProvider extends AbstractMinimalProvider<Credentials> {
+    private class PasswordCredentialsProvider extends AbstractMinimalProvider<PasswordCredentials> {
 
         private final String usernameProperty;
         private final String passwordProperty;
@@ -63,7 +63,7 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
         }
 
         @Override
-        protected Value<? extends Credentials> calculateOwnValue(ValueConsumer consumer) {
+        protected Value<? extends PasswordCredentials> calculateOwnValue(ValueConsumer consumer) {
             String username = gradleProperties.find(usernameProperty);
             String password = gradleProperties.find(passwordProperty);
             List<DisplayName> missingProperties = new ArrayList<>();
@@ -78,7 +78,7 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
                 return Value.of(new DefaultPasswordCredentials(username, password));
             }
 
-            Value<Credentials> missing = Value.missing();
+            Value<PasswordCredentials> missing = Value.missing();
             for (DisplayName missingProperty : missingProperties) {
                 missing = missing.pushWhenMissing(missingProperty);
             }
@@ -87,8 +87,8 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
 
         @Nullable
         @Override
-        public Class<Credentials> getType() {
-            return Credentials.class;
+        public Class<PasswordCredentials> getType() {
+            return PasswordCredentials.class;
         }
 
         private DisplayName describeProperty(String property) {

@@ -35,7 +35,6 @@ import org.gradle.internal.credentials.DefaultHttpHeaderCredentials;
 import org.gradle.internal.credentials.DefaultPasswordCredentials;
 import org.gradle.internal.reflect.Instantiator;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -44,17 +43,17 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
     private final AuthenticationContainer authenticationContainer;
 
     private final Property<Credentials> credentials;
+    private boolean usesCredentials = false;
 
     public AuthenticationSupporter(Instantiator instantiator, ObjectFactory objectFactory, AuthenticationContainer authenticationContainer) {
         this.instantiator = instantiator;
         this.authenticationContainer = authenticationContainer;
-
-        this.credentials = objectFactory.property(Credentials.class).convention(NoCredentials.INSTANCE);
+        this.credentials = objectFactory.property(Credentials.class);
     }
 
     @Override
     public PasswordCredentials getCredentials() {
-        if (getConfiguredCredentials() == null) {
+        if (!usesCredentials()) {
             return setCredentials(PasswordCredentials.class);
         } else if (credentials.get() instanceof PasswordCredentials) {
             return Cast.uncheckedCast(credentials.get());
@@ -65,7 +64,7 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
 
     @Override
     public <T extends Credentials> T getCredentials(Class<T> credentialsType) {
-        if (getConfiguredCredentials() == null) {
+        if (!usesCredentials()) {
             return setCredentials(credentialsType);
         } else if (credentialsType.isInstance(credentials.get())) {
             return Cast.uncheckedCast(credentials.get());
@@ -76,7 +75,7 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
 
     @Override
     public void credentials(Action<? super PasswordCredentials> action) {
-        if (getConfiguredCredentials() != null && !(credentials.get() instanceof PasswordCredentials)) {
+        if (usesCredentials() && !(credentials.get() instanceof PasswordCredentials)) {
             throw new IllegalStateException("Can not use credentials(Action) method when not using PasswordCredentials; please use credentials(Class, Action)");
         }
         credentials(PasswordCredentials.class, action);
@@ -88,15 +87,18 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
     }
 
     public void credentials(Provider<Credentials> credentials) {
+        this.usesCredentials = true;
         this.credentials.set(credentials);
     }
 
     @Override
     public void setConfiguredCredentials(Credentials credentials) {
+        this.usesCredentials = true;
         this.credentials.set(credentials);
     }
 
     private <T extends Credentials> T setCredentials(Class<T> clazz) {
+        this.usesCredentials = true;
         T t = newCredentials(clazz);
         credentials.set(t);
         return t;
@@ -107,13 +109,7 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
     }
 
     @Override
-    @Nullable
-    public Credentials getConfiguredCredentials() {
-        return credentials.get() instanceof NoCredentials ? null : credentials.get();
-    }
-
-    @Override
-    public Property<Credentials> getConfiguredCredentialsProvider() {
+    public Property<Credentials> getConfiguredCredentials() {
         return credentials;
     }
 
@@ -130,17 +126,21 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
     @Override
     public Collection<Authentication> getConfiguredAuthentication() {
         populateAuthenticationCredentials();
-        if (getConfiguredCredentials() != null & authenticationContainer.size() == 0) {
-            return Collections.singleton(new AllSchemesAuthentication(getConfiguredCredentials()));
+        if (usesCredentials() && authenticationContainer.size() == 0) {
+            return Collections.singleton(new AllSchemesAuthentication(credentials.get()));
         } else {
             return getAuthentication();
         }
     }
 
+    boolean usesCredentials() {
+        return usesCredentials;
+    }
+
     private void populateAuthenticationCredentials() {
         // TODO: This will have to be changed when we support setting credentials directly on the authentication
         for (Authentication authentication : authenticationContainer) {
-            ((AuthenticationInternal) authentication).setCredentials(getConfiguredCredentials());
+            ((AuthenticationInternal) authentication).setCredentials(credentials.getOrNull());
         }
     }
 
@@ -171,10 +171,4 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
         }
     }
 
-    private static final class NoCredentials implements Credentials {
-        public static final Credentials INSTANCE = new NoCredentials();
-
-        private NoCredentials() {
-        }
-    }
 }
