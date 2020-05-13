@@ -355,6 +355,9 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, credentialsBlock)
 
         when:
+        succeeds 'jar'
+
+        and:
         fails 'publish'
 
         then:

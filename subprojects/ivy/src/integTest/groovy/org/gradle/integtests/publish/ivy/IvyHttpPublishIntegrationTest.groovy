@@ -322,6 +322,9 @@ class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
         buildFile << publicationBuild('2', 'org.gradle', ivyHttpRepo.uri, credentialsBlock)
 
         when:
+        succeeds 'jar'
+
+        and:
         fails 'publish'
 
         then:
