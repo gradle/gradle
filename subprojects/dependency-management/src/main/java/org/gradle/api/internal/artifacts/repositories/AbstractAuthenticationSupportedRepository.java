@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
@@ -39,7 +40,7 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
 
     AbstractAuthenticationSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer, ObjectFactory objectFactory) {
         super(objectFactory);
-        this.delegate = new AuthenticationSupporter(instantiator, authenticationContainer);
+        this.delegate = new AuthenticationSupporter(instantiator, objectFactory, authenticationContainer);
     }
 
     @Override
@@ -58,6 +59,11 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     @Override
     public Credentials getConfiguredCredentials() {
         return delegate.getConfiguredCredentials();
+    }
+
+    @Override
+    public Property<Credentials> getConfiguredCredentialsProvider() {
+        return delegate.getConfiguredCredentialsProvider();
     }
 
     @Override

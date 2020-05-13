@@ -18,6 +18,7 @@ package org.gradle.internal.artifacts.repositories;
 
 import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.credentials.Credentials;
+import org.gradle.api.provider.Property;
 import org.gradle.authentication.Authentication;
 
 import javax.annotation.Nullable;
@@ -34,4 +35,6 @@ public interface AuthenticationSupportedInternal extends AuthenticationSupported
 
     @Nullable
     Credentials getConfiguredCredentials();
+
+    Property<Credentials> getConfiguredCredentialsProvider();
 }

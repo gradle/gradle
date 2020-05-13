@@ -22,7 +22,8 @@ import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.credentials.HttpHeaderCredentials;
-import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
@@ -42,16 +43,18 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
     private final Instantiator instantiator;
     private final AuthenticationContainer authenticationContainer;
 
-    private Provider<Credentials> credentials;
+    private final Property<Credentials> credentials;
 
-    public AuthenticationSupporter(Instantiator instantiator, AuthenticationContainer authenticationContainer) {
+    public AuthenticationSupporter(Instantiator instantiator, ObjectFactory objectFactory, AuthenticationContainer authenticationContainer) {
         this.instantiator = instantiator;
         this.authenticationContainer = authenticationContainer;
+
+        this.credentials = objectFactory.property(Credentials.class).convention(NoCredentials.INSTANCE);
     }
 
     @Override
     public PasswordCredentials getCredentials() {
-        if (credentials == null) {
+        if (getConfiguredCredentials() == null) {
             return setCredentials(PasswordCredentials.class);
         } else if (credentials.get() instanceof PasswordCredentials) {
             return Cast.uncheckedCast(credentials.get());
@@ -62,7 +65,7 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
 
     @Override
     public <T extends Credentials> T getCredentials(Class<T> credentialsType) {
-        if (credentials == null) {
+        if (getConfiguredCredentials() == null) {
             return setCredentials(credentialsType);
         } else if (credentialsType.isInstance(credentials.get())) {
             return Cast.uncheckedCast(credentials.get());
@@ -73,7 +76,7 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
 
     @Override
     public void credentials(Action<? super PasswordCredentials> action) {
-        if (credentials != null && !(credentials.get() instanceof PasswordCredentials)) {
+        if (getConfiguredCredentials() != null && !(credentials.get() instanceof PasswordCredentials)) {
             throw new IllegalStateException("Can not use credentials(Action) method when not using PasswordCredentials; please use credentials(Class, Action)");
         }
         credentials(PasswordCredentials.class, action);
@@ -85,17 +88,17 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
     }
 
     public void credentials(Provider<Credentials> credentials) {
-        this.credentials = credentials;
+        this.credentials.set(credentials);
     }
 
     @Override
     public void setConfiguredCredentials(Credentials credentials) {
-        this.credentials = new DefaultProvider<>(() -> credentials);
+        this.credentials.set(credentials);
     }
 
     private <T extends Credentials> T setCredentials(Class<T> clazz) {
         T t = newCredentials(clazz);
-        credentials = new DefaultProvider<>(() -> t);
+        credentials.set(t);
         return t;
     }
 
@@ -106,7 +109,12 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
     @Override
     @Nullable
     public Credentials getConfiguredCredentials() {
-        return credentials == null ? null : credentials.get();
+        return credentials.get() instanceof NoCredentials ? null : credentials.get();
+    }
+
+    @Override
+    public Property<Credentials> getConfiguredCredentialsProvider() {
+        return credentials;
     }
 
     @Override
@@ -132,7 +140,7 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
     private void populateAuthenticationCredentials() {
         // TODO: This will have to be changed when we support setting credentials directly on the authentication
         for (Authentication authentication : authenticationContainer) {
-            ((AuthenticationInternal)authentication).setCredentials(getConfiguredCredentials());
+            ((AuthenticationInternal) authentication).setCredentials(getConfiguredCredentials());
         }
     }
 
@@ -160,6 +168,13 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
             return Cast.uncheckedCast(HttpHeaderCredentials.class);
         } else {
             throw new IllegalArgumentException(String.format("Unknown credentials implementation type: '%s' (supported types: %s, %s and %s).", implType.getName(), DefaultPasswordCredentials.class.getName(), DefaultAwsCredentials.class.getName(), DefaultHttpHeaderCredentials.class.getName()));
+        }
+    }
+
+    private static final class NoCredentials implements Credentials {
+        public static final Credentials INSTANCE = new NoCredentials();
+
+        private NoCredentials() {
         }
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
 import org.gradle.api.publish.ivy.IvyPublication;
@@ -119,10 +120,8 @@ public class PublishToIvyRepository extends DefaultTask {
     public void setRepository(IvyArtifactRepository repository) {
         this.repository = repository;
 
-        Credentials credentials = ((AuthenticationSupportedInternal) repository).getConfiguredCredentials();
-        if (credentials != null) {
-            getInputs().property("credentials", credentials);
-        }
+        Provider<Credentials> credentials = ((AuthenticationSupportedInternal) repository).getConfiguredCredentialsProvider();
+        getInputs().property("credentials", credentials);
     }
 
     @TaskAction
