@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.UncheckedException;
@@ -68,16 +69,19 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
     @Override
     public ClassPath transform(ClassPath classPath, StandardTransform transform) {
-        return transform(classPath, fileTransformerFor(transform));
+        return transformFiles(classPath, fileTransformerFor(transform));
     }
 
     @Override
     public ClassPath transform(ClassPath classPath, StandardTransform transform, Transform additional) {
-        return transform(classPath, new InstrumentingClasspathFileTransformer(classpathWalker, classpathBuilder, new CompositeTransformer(additional, tranformerFor(transform))));
+        return transformFiles(classPath, new InstrumentingClasspathFileTransformer(classpathWalker, classpathBuilder, new CompositeTransformer(additional, transformerFor(transform))));
     }
 
     @Override
     public Collection<URL> transform(Collection<URL> urls, StandardTransform transform) {
+        if (urls.isEmpty()) {
+            return ImmutableList.of();
+        }
         ClasspathFileTransformer transformer = fileTransformerFor(transform);
         return cache.useCache(() -> {
             List<CacheOperation> operations = new ArrayList<>(urls.size());
@@ -86,15 +90,15 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
                 operation.schedule(executor);
                 operations.add(operation);
             }
-            List<URL> cachedFiles = new ArrayList<>(urls.size());
+            ImmutableList.Builder<URL> cachedFiles = ImmutableList.builderWithExpectedSize(urls.size());
             for (CacheOperation operation : operations) {
                 operation.collectUrl(cachedFiles::add);
             }
-            return cachedFiles;
+            return cachedFiles.build();
         });
     }
 
-    private Transform tranformerFor(StandardTransform transform) {
+    private Transform transformerFor(StandardTransform transform) {
         if (transform == StandardTransform.BuildLogic) {
             return new InstrumentingTransformer();
         } else {
@@ -102,7 +106,10 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         }
     }
 
-    private ClassPath transform(ClassPath classPath, ClasspathFileTransformer transformer) {
+    private ClassPath transformFiles(ClassPath classPath, ClasspathFileTransformer transformer) {
+        if (classPath.isEmpty()) {
+            return classPath;
+        }
         return cache.useCache(() -> {
             List<File> originalFiles = classPath.getAsFiles();
             List<CacheOperation> operations = new ArrayList<>(originalFiles.size());
