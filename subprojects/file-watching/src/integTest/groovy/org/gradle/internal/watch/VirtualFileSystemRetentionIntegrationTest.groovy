@@ -685,6 +685,44 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         "symlink in a directory"        | "dirWithSymlink/symlinkInside" | "fileInside.txt" | 'dir("dirWithSymlink")' | "fileInside.txt"
     }
 
+    @Unroll
+    def "detects when a task removes the build directory #buildDir"() {
+        buildFile << """
+            apply plugin: 'base'
+
+            project.buildDir = file("${buildDir}")
+
+            task myClean {
+                doLast {
+                    delete buildDir
+                }
+            }
+
+            task producer {
+                def outputFile = new File(buildDir, "some/file/in/buildDir/output.txt")
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.parentFile.mkdirs()
+                    outputFile.text = "Output"
+                }
+            }
+        """
+
+        when:
+        withRetention().run "producer"
+        then:
+        executedAndNotSkipped ":producer"
+
+        when:
+        withRetention().run "myClean"
+        withRetention().run "producer"
+        then:
+        executedAndNotSkipped ":producer"
+
+        where:
+        buildDir << ["build", "build/myProject"]
+    }
+
     // This makes sure the next Gradle run starts with a clean BuildOutputCleanupRegistry
     private void invalidateBuildOutputCleanupState() {
         file(".gradle/buildOutputCleanup/cache.properties").text = """
