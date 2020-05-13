@@ -35,7 +35,7 @@ class StaticVersionComparator implements Comparator<Version> {
                                                                             .put("dev", -1)
                                                                             .put("rc", 1)
                                                                             .put("snapshot", 2)
-                                                                            .put("ga", 3).put("release", 4).put("final", 5)
+                                                                            .put("final", 3).put("ga", 4).put("release", 5)
                                                                             .put("sp", 6).build();
     private final Map<String, Integer> specialMeanings;
 

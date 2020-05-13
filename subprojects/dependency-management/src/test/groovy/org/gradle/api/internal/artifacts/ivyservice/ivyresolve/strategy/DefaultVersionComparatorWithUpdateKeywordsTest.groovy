@@ -44,4 +44,17 @@ class DefaultVersionComparatorWithUpdateKeywordsTest extends AbstractDefaultVers
         "1.0-sp1"      | "1.0"
     }
 
+    def 'does sort ga, final and release alphabetically'() {
+        expect:
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
+
+        where:
+        smaller | larger
+        "1.0-final"   | "1.0-release"
+        "1.0-final"   | "1.0-ga"
+        "1.0-ga"   | "1.0-release"
+    }
 }

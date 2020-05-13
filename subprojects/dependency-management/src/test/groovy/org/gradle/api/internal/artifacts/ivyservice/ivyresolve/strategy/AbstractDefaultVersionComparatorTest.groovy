@@ -118,7 +118,6 @@ abstract class AbstractDefaultVersionComparatorTest extends Specification {
         "1.0-dev-1"   | "1.0-rc-1"
         "1.0-rc-1"    | "1.0-final"
         "1.0-dev-1"   | "1.0-final"
-        "1.0-release" | "1.0-final"
         "1.0.0.RC1"   | "1.0.0.RC2"
         "1.0.0.RC2"   | "1.0.0.RELEASE"
     }
