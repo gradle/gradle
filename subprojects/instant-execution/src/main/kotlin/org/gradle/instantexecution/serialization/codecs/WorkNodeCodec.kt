@@ -49,9 +49,10 @@ class WorkNodeCodec(
 
     private
     suspend fun WriteContext.writeNodes(nodes: List<Node>) {
-        val scheduledNodeIds = nodes.asSequence().mapIndexed { index, node -> node to index }.toMap()
+        val scheduledNodeIds = HashMap<Node, Int>(nodes.size)
         writeSmallInt(nodes.size)
-        for (node in nodes) {
+        nodes.forEachIndexed { nodeId, node ->
+            scheduledNodeIds[node] = nodeId
             writeNode(node, scheduledNodeIds)
         }
     }
@@ -61,8 +62,10 @@ class WorkNodeCodec(
         val count = readSmallInt()
         val nodesById = HashMap<Int, Node>(count)
         val nodes = ArrayList<Node>(count)
-        for (i in 0 until count) {
-            nodes.add(readNode(nodesById))
+        for (nodeId in 0 until count) {
+            val node = readNode(nodesById)
+            nodes.add(node)
+            nodesById[nodeId] = node
         }
         return nodes
     }
@@ -72,20 +75,16 @@ class WorkNodeCodec(
         node: Node,
         scheduledNodeIds: Map<Node, Int>
     ) {
-        val nodeId = scheduledNodeIds.getValue(node)
-        writeSmallInt(nodeId)
         write(node)
         writeSuccessorReferencesOf(node, scheduledNodeIds)
         writeExecutionStateOf(node)
     }
 
     private
-    suspend fun ReadContext.readNode(nodesById: MutableMap<Int, Node>): Node {
-        val nodeId = readSmallInt()
+    suspend fun ReadContext.readNode(nodesById: Map<Int, Node>): Node {
         val node = readNonNull<Node>()
         readSuccessorReferencesOf(node, nodesById)
         readExecutionStateOf(node)
-        nodesById[nodeId] = node
         return node
     }
 
@@ -118,7 +117,7 @@ class WorkNodeCodec(
     }
 
     private
-    fun ReadContext.readSuccessorReferencesOf(node: Node, nodesById: MutableMap<Int, Node>) {
+    fun ReadContext.readSuccessorReferencesOf(node: Node, nodesById: Map<Int, Node>) {
         readSuccessorReferences(nodesById) {
             node.addDependencySuccessor(it)
         }
