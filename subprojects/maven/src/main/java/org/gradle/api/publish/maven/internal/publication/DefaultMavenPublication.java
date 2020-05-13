@@ -142,12 +142,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final PublicationArtifactSet<MavenArtifact> metadataArtifacts;
     private final PublicationArtifactSet<MavenArtifact> derivedArtifacts;
     private final PublicationArtifactSet<MavenArtifact> publishableArtifacts;
-    private final Set<MavenDependencyInternal> runtimeDependencies = new LinkedHashSet<MavenDependencyInternal>();
-    private final Set<MavenDependencyInternal> apiDependencies = new LinkedHashSet<MavenDependencyInternal>();
-    private final Set<MavenDependencyInternal> optionalDependencies = new LinkedHashSet<MavenDependencyInternal>();
-    private final Set<MavenDependency> runtimeDependencyConstraints = new LinkedHashSet<MavenDependency>();
-    private final Set<MavenDependency> apiDependencyConstraints = new LinkedHashSet<MavenDependency>();
-    private final Set<MavenDependency> importDependencyConstraints = new LinkedHashSet<MavenDependency>();
+    private final Set<MavenDependencyInternal> runtimeDependencies = new LinkedHashSet<>();
+    private final Set<MavenDependencyInternal> apiDependencies = new LinkedHashSet<>();
+    private final Set<MavenDependencyInternal> optionalDependencies = new LinkedHashSet<>();
+    private final Set<MavenDependency> runtimeDependencyConstraints = new LinkedHashSet<>();
+    private final Set<MavenDependency> apiDependencyConstraints = new LinkedHashSet<>();
+    private final Set<MavenDependency> importDependencyConstraints = new LinkedHashSet<>();
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final VersionMappingStrategyInternal versionMappingStrategy;
@@ -669,12 +669,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     private Set<MavenArtifact> getUnclassifiedArtifactsWithExtension() {
         populateFromComponent();
-        return CollectionUtils.filter(mainArtifacts, new Spec<MavenArtifact>() {
-            @Override
-            public boolean isSatisfiedBy(MavenArtifact mavenArtifact) {
-                return hasNoClassifier(mavenArtifact) && hasExtension(mavenArtifact);
-            }
-        });
+        return CollectionUtils.filter(mainArtifacts, mavenArtifact -> hasNoClassifier(mavenArtifact) && hasExtension(mavenArtifact));
     }
 
     private boolean hasNoClassifier(MavenArtifact element) {

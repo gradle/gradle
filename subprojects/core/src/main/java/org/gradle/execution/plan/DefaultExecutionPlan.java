@@ -108,9 +108,10 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         Deque<Node> queue = new ArrayDeque<>(nodes);
         for (Node node : nodes) {
             assert node.getDependenciesProcessed();
-            node.require();
-            node.dependenciesProcessed();
-            entryNodes.add(node);
+            assert node.isInKnownState();
+            if (node.isRequired()) {
+                entryNodes.add(node);
+            }
         }
         doAddNodes(queue);
     }
@@ -561,7 +562,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         } else if (!workerLease.tryLock()) {
             LOGGER.debug("Cannot acquire worker lease lock for node {}", node);
             return false;
-        // TODO: convert output file checks to a resource lock
+            // TODO: convert output file checks to a resource lock
         } else if (!canRunWithCurrentlyExecutedNodes(node, mutations)) {
             LOGGER.debug("Node {} cannot run with currently running nodes {}", node, runningNodes);
             return false;
@@ -590,7 +591,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private ResourceLock getProjectLock(Project project) {
-        return ((ProjectInternal)project).getMutationState().getAccessLock();
+        return ((ProjectInternal) project).getMutationState().getAccessLock();
     }
 
     private boolean tryLockSharedResourceFor(Node node) {
