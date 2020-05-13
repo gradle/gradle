@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.credentials.HttpHeaderCredentials;
+import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.provider.Provider;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
@@ -40,7 +42,7 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
     private final Instantiator instantiator;
     private final AuthenticationContainer authenticationContainer;
 
-    private Credentials credentials;
+    private Provider<Credentials> credentials;
 
     public AuthenticationSupporter(Instantiator instantiator, AuthenticationContainer authenticationContainer) {
         this.instantiator = instantiator;
@@ -51,8 +53,8 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
     public PasswordCredentials getCredentials() {
         if (credentials == null) {
             return setCredentials(PasswordCredentials.class);
-        } else if (credentials instanceof PasswordCredentials) {
-            return Cast.uncheckedCast(credentials);
+        } else if (credentials.get() instanceof PasswordCredentials) {
+            return Cast.uncheckedCast(credentials.get());
         } else {
             throw new IllegalStateException("Can not use getCredentials() method when not using PasswordCredentials; please use getCredentials(Class)");
         }
@@ -62,16 +64,16 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
     public <T extends Credentials> T getCredentials(Class<T> credentialsType) {
         if (credentials == null) {
             return setCredentials(credentialsType);
-        } else if (credentialsType.isInstance(credentials)) {
-            return Cast.uncheckedCast(credentials);
+        } else if (credentialsType.isInstance(credentials.get())) {
+            return Cast.uncheckedCast(credentials.get());
         } else {
-            throw new IllegalArgumentException(String.format("Given credentials type '%s' does not match actual type '%s'", credentialsType.getName(), getCredentialsPublicType(credentials.getClass()).getName()));
+            throw new IllegalArgumentException(String.format("Given credentials type '%s' does not match actual type '%s'", credentialsType.getName(), getCredentialsPublicType(credentials.get().getClass()).getName()));
         }
     }
 
     @Override
     public void credentials(Action<? super PasswordCredentials> action) {
-        if (credentials != null && !(credentials instanceof PasswordCredentials)) {
+        if (credentials != null && !(credentials.get() instanceof PasswordCredentials)) {
             throw new IllegalStateException("Can not use credentials(Action) method when not using PasswordCredentials; please use credentials(Class, Action)");
         }
         credentials(PasswordCredentials.class, action);
@@ -82,14 +84,18 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
         action.execute(getCredentials(credentialsType));
     }
 
+    public void credentials(Provider<Credentials> credentials) {
+        this.credentials = credentials;
+    }
+
     @Override
     public void setConfiguredCredentials(Credentials credentials) {
-        this.credentials = credentials;
+        this.credentials = new DefaultProvider<>(() -> credentials);
     }
 
     private <T extends Credentials> T setCredentials(Class<T> clazz) {
         T t = newCredentials(clazz);
-        credentials = t;
+        credentials = new DefaultProvider<>(() -> t);
         return t;
     }
 
@@ -100,7 +106,7 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
     @Override
     @Nullable
     public Credentials getConfiguredCredentials() {
-        return credentials;
+        return credentials == null ? null : credentials.get();
     }
 
     @Override
