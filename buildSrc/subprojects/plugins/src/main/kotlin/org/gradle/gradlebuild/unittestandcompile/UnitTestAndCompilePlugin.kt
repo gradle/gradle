@@ -42,7 +42,6 @@ import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
-import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import org.gradle.build.ClasspathManifest
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.BuildEnvironment.agentNum
@@ -54,11 +53,11 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.process.CommandLineArgumentProvider
-import org.gradle.testing.PerformanceTest
 import org.gradle.testretry.TestRetryPlugin
 import testLibrary
 import java.util.concurrent.Callable
 import java.util.jar.Attributes
+import org.gradle.testing.PerformanceTest
 
 
 /**
@@ -261,21 +260,6 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         inputs.property("operatingSystem", "${OperatingSystem.current().name} ${System.getProperty("os.arch")}")
     }
 
-    // JUnit 5 Vintage engine can't recognize Spock @Unroll test method correctly
-    // So we fallback to JUnit 4 runner if include pattern contains method name "SomeClass.methodName"
-    private
-    fun Test.fallbackToJUnitIfIncludePatternsPresent() {
-        if (filter.includePatterns.any { it.matches(".*[A-Z]\\w*\\.[a-z]\\w*.*".toRegex()) }) {
-            println("Fallback to JUnit for task: $path")
-            val junitPlatformOptions = options as JUnitPlatformOptions
-
-            useJUnit {
-                includeCategories.addAll(junitPlatformOptions.includeTags)
-                excludeCategories.addAll(junitPlatformOptions.excludeTags)
-            }
-        }
-    }
-
     private
     fun Project.configureTests() {
         normalization {
@@ -288,11 +272,6 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             maxParallelForks = project.maxParallelForks
 
             useJUnitPlatform()
-
-            doFirst {
-                fallbackToJUnitIfIncludePatternsPresent()
-            }
-
             configureJvmForTest()
             addOsAsInputs()
 
