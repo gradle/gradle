@@ -7,6 +7,7 @@ To demonstrate the concept, we will be using a stubbed maven HTTP repository tha
 ====
 include::sample[dir="groovy",files="buildSrc/src/main/java/com/example/MavenRepositoryStub.java[tags=credentials]"]
 ====
+The code in `buildSrc` is for the stubbed Maven repository and is otherwise irrelevant.
 
 This project has some sample Java code to be compiled and published as a Java library.
 Gradle build file registers a publication to a maven repository:

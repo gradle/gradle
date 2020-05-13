@@ -42,6 +42,8 @@ gradle.taskGraph.whenReady {
 }
 // end::credentials[]
 
+// the following block starts the stubbed Maven repository just before publishing
+// and stops it afterwards
 tasks.named("publishLibraryPublicationToMySecureRepository") {
     doFirst {
         com.example.MavenRepositoryStub.start()
