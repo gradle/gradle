@@ -16,10 +16,16 @@
 
 package org.gradle.integtests.fixtures.daemon
 
+import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.BasicGlobalScopeServices
+import org.gradle.launcher.cli.Parameters
+import org.gradle.launcher.daemon.client.DaemonClientFactory
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices
+import org.gradle.launcher.daemon.client.NotifyDaemonAboutChangedPathsClient
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
@@ -32,6 +38,7 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
     private final File daemonBaseDir
     private final DaemonRegistry registry
     private final String version
+    private final DaemonClientFactory daemonClientFactory
 
     DaemonLogsAnalyzer(File daemonBaseDir, String version = GradleVersion.current().version) {
         this.version = version
@@ -45,6 +52,7 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
             .provider(new DaemonRegistryServices(daemonBaseDir))
             .build()
         registry = services.get(DaemonRegistry)
+        daemonClientFactory = services.get(DaemonClientFactory)
     }
 
     static DaemonsFixture newAnalyzer(File daemonBaseDir, String version = GradleVersion.current().version) {
@@ -59,6 +67,17 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
         allDaemons*.kill()
     }
 
+    void notifyAboutChangedFiles(File file) {
+        FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory();
+        final Parameters parameters = new Parameters(fileCollectionFactory);
+
+        def daemonParameters = parameters.getDaemonParameters()
+        def notifyDaemonAboutChangedPathsClient = daemonClientFactory.createMessageDaemonServices(
+            OutputEventListener.NO_OP,
+            daemonParameters
+        ).get(NotifyDaemonAboutChangedPathsClient)
+        notifyDaemonAboutChangedPathsClient.notifyDaemonsAboutChangedPaths([file.getAbsolutePath()])
+    }
 
     List<DaemonFixture> getDaemons() {
         getAllDaemons().findAll { !daemonStoppedWithSocketExceptionOnWindows(it) || it.logContains("Starting build in new daemon") }

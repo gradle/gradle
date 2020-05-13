@@ -16,7 +16,6 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeoutInterceptor;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
 import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFAULT_TIMEOUT_SECONDS;
@@ -135,12 +134,6 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
             case instant:
                 return new InstantExecutionGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case vfsRetention:
-                if (OperatingSystem.current().isWindows()) {
-                    // We can't delete the watched directory (aka the project root) on Windows,
-                    // so that finished tests can't cleanup the test directory if the daemon is still running.
-                    // Therefore, we use isolated daemons on Windows.
-                    requireIsolatedDaemons();
-                }
                 return new VfsRetentionGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             default:
                 throw new RuntimeException("Not a supported executer type: " + executerType);
