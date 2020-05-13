@@ -35,6 +35,7 @@ import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInterna
  */
 public class PublishToMavenRepository extends AbstractPublishToMaven {
     private MavenArtifactRepository repository;
+    private final Property<Credentials> credentials = getProject().getObjects().property(Credentials.class).convention((Credentials)null);
 
     /**
      * The repository to publish to.
@@ -46,6 +47,11 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
         return repository;
     }
 
+    @Internal
+    Property<Credentials> getCredentials() {
+        return credentials;
+    }
+
     /**
      * Sets the repository to publish to.
      *
@@ -53,9 +59,7 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
      */
     public void setRepository(MavenArtifactRepository repository) {
         this.repository = repository;
-
-        Property<Credentials> credentials = ((AuthenticationSupportedInternal) repository).getConfiguredCredentialsProvider();
-        getInputs().property("credentials", credentials);
+        this.credentials.set(((AuthenticationSupportedInternal) repository).getConfiguredCredentialsProvider());
     }
 
     @TaskAction
