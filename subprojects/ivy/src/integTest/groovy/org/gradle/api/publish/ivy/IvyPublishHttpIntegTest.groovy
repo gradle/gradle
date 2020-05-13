@@ -609,8 +609,9 @@ credentials {
         //notExecuted(':jar', ':publishIvyPublicationToIvyRepository')
         //failure.assertHasDescription("Could not determine the dependencies of task ':publish'.")
         //failure.assertHasCause("Could not create task ':publishIvyPublicationToIvyRepository'.")
-        //failure.assertHasCause("Cannot query the value of username and password provider because it has no value available")
-        //failure.assertHasErrorOutput("The value of this provider is derived from")
+        // TODO where does 'configuredCredentialsProvider' name come from?
+        failure.assertHasCause("Cannot query the value of property 'configuredCredentialsProvider' because it has no value available")
+        failure.assertHasErrorOutput("The value of this property is derived from")
         failure.assertHasErrorOutput("- Gradle property 'ivyRepoUsername'")
         failure.assertHasErrorOutput("- Gradle property 'ivyRepoPassword'")
     }

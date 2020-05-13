@@ -32,7 +32,6 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore
-import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore
 import org.gradle.internal.resource.local.FileResourceRepository
@@ -60,7 +59,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         resolver, transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(),
         artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, externalResourceFileStore,
         Mock(FileResourceRepository), mavenMetadataFactory, SnapshotTestUtil.valueSnapshotter(),
-        Mock(ObjectFactory), urlArtifactRepositoryFactory, TestUtil.checksumService)
+        TestUtil.objectFactory(), urlArtifactRepositoryFactory, TestUtil.checksumService)
 
     def "creates local repository"() {
         given:
