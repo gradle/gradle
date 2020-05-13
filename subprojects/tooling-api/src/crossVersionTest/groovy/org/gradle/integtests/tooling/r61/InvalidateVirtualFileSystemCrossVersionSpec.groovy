@@ -83,8 +83,8 @@ class InvalidateVirtualFileSystemCrossVersionSpec extends ToolingApiSpecificatio
         pathsInvalidated()
     }
 
-    @TargetGradleVersion(">=6.1")
-    def "does not invalidate paths for single busy daemon"() {
+    @TargetGradleVersion(">=6.5")
+    def "does invalidate paths for single busy daemon"() {
         server.start()
         buildFile << """
             task block {
@@ -94,7 +94,7 @@ class InvalidateVirtualFileSystemCrossVersionSpec extends ToolingApiSpecificatio
             }
         """
         def block = server.expectAndBlock("block")
-        def build = executer.withTasks("block").start()
+        def build = executer.withTasks("block", "--info").start()
         block.waitForAllPendingCalls()
         toolingApi.daemons.daemon.assertBusy()
 
@@ -106,7 +106,7 @@ class InvalidateVirtualFileSystemCrossVersionSpec extends ToolingApiSpecificatio
         then:
         block.releaseAll()
         build.waitForFinish()
-        !pathsInvalidated()
+        pathsInvalidated()
 
         cleanup:
         block?.releaseAll()

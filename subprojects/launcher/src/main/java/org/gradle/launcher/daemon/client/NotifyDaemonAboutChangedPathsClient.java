@@ -27,7 +27,6 @@ import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,10 +48,6 @@ public class NotifyDaemonAboutChangedPathsClient {
 
     public void notifyDaemonsAboutChangedPaths(List<String> changedPaths) {
         for (DaemonInfo daemonInfo : daemonRegistry.getAll()) {
-            DaemonStateControl.State state = daemonInfo.getState();
-            if (state != DaemonStateControl.State.Idle) {
-                continue;
-            }
             DaemonClientConnection connection = connector.maybeConnect(daemonInfo);
             if (connection == null) {
                 continue;
