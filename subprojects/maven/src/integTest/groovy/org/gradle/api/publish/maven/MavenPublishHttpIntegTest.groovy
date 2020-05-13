@@ -344,7 +344,8 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @ToBeFixedForInstantExecution
-    def "fails at configuration time with helpful error message when username and password provider has no value"() {
+    // TODO replace execution with configuration once this behavior is implemented
+    def "fails at execution time with helpful error message when username and password provider has no value"() {
         given:
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, "credentials(project.credentials.usernameAndPassword('mavenRepo'))")
 
