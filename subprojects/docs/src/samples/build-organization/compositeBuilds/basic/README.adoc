@@ -44,19 +44,18 @@ While simple, this approach has the downside of modifying the `my-app` build.
 It is also possible to create a separate composite build that includes both the `my-app` and `my-utils` builds.
 
 ====
-include::sample[dir="groovy/composite",files="settings.gradle[]"]
-include::sample[dir="kotlin/composite",files="settings.gradle.kts[]"]
+include::sample[dir="groovy",files="settings.gradle[]"]
+include::sample[dir="kotlin",files="settings.gradle.kts[]"]
 ====
 
 Note that it is not yet possible to execute tasks in an included build from the command line. Instead, the build user must create delegating tasks in the composite.
 
 ====
-include::sample[dir="groovy/composite",files="build.gradle[tags=run]"]
-include::sample[dir="kotlin/composite",files="build.gradle.kts[tags=run]"]
+include::sample[dir="groovy",files="build.gradle[tags=run]"]
+include::sample[dir="kotlin",files="build.gradle.kts[tags=run]"]
 ====
 
 ```
-cd composite
 gradle run
 ```
 

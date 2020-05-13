@@ -10,9 +10,9 @@ This removes the need for the special `buildSrc` project and makes prototyping p
 
 == Buildscript dependencies are substituted
 
-In a composite build, dependencies declared in the `plugins { }` block or in the `buildscript` `classpath` configuration are substituted in the same way as other dependencies. In this sample, the `consumer` build declares that plugin 'org.sample.greeting', and this dependency is substituted by the `greeting-plugin` included build.
+In a composite build, dependencies declared in the `plugins { }` block or in the `buildscript` `classpath` configuration are substituted in the same way as other dependencies. In this sample, the build declares that plugin 'org.sample.greeting', and this dependency is substituted by the `greeting-plugin` included build.
 
-Without ever publishing the `greeting-plugin` project to a repository, it is possible to build the `consumer` project with the locally developed 'org.sample.greeting' plugin.
+Without ever publishing the `greeting-plugin` project to a repository, it is possible to build the project with the locally developed 'org.sample.greeting' plugin.
 
 [listing.terminal]
 ----

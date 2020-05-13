@@ -1,7 +1,7 @@
 rootProject.name = "app"
 
 // tag::composite_substitution[]
-includeBuild("../anonymous-library") {
+includeBuild("anonymous-library") {
     dependencySubstitution {
         substitute(module("org.sample:number-utils")).with(project(":"))
     }

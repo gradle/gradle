@@ -203,7 +203,6 @@ samples {
         }
     }
 
-
     // TODO: Do this lazily so we don't need to walk the filesystem during configuration
     // iterate through each snippets and record their names and locations
     FileFilter directoriesOnly = { it.directory }
