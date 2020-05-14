@@ -57,9 +57,6 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
-import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.api.internal.provider.CredentialsProviderFactory;
-import org.gradle.api.internal.provider.GradlePropertiesCredentialsProviderFactory;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
@@ -337,9 +334,5 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
             new org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory(fileFactory),
             new org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory(filePropertyFactory)
         );
-    }
-
-    protected CredentialsProviderFactory createCredentialsProviderFactory(GradleProperties gradleProperties) {
-        return new GradlePropertiesCredentialsProviderFactory(gradleProperties);
     }
 }

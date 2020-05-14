@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.credentials.HttpHeaderCredentials;
+import org.gradle.api.internal.provider.CredentialsProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -41,14 +42,17 @@ import java.util.Collections;
 public class AuthenticationSupporter implements AuthenticationSupportedInternal {
     private final Instantiator instantiator;
     private final AuthenticationContainer authenticationContainer;
+    private final CredentialsProviderFactory credentialsProviderFactory;
 
     private final Property<Credentials> credentials;
     private boolean usesCredentials = false;
+    private String identity;
 
-    public AuthenticationSupporter(Instantiator instantiator, ObjectFactory objectFactory, AuthenticationContainer authenticationContainer) {
+    public AuthenticationSupporter(Instantiator instantiator, ObjectFactory objectFactory, AuthenticationContainer authenticationContainer, CredentialsProviderFactory credentialsProviderFactory) {
         this.instantiator = instantiator;
         this.authenticationContainer = authenticationContainer;
         this.credentials = objectFactory.property(Credentials.class);
+        this.credentialsProviderFactory = credentialsProviderFactory;
     }
 
     @Override
@@ -86,9 +90,20 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
         action.execute(getCredentials(credentialsType));
     }
 
-    public void credentials(Provider<Credentials> credentials) {
+    public void credentials(Provider<? extends Credentials> credentials) {
         this.usesCredentials = true;
         this.credentials.set(credentials);
+    }
+
+    public Provider<Credentials> credentials(Class<? extends Credentials> credentialsType) {
+        if (identity == null) {
+            throw new IllegalStateException("Identity can not be null!");
+        }
+        if (credentialsType == PasswordCredentials.class) {
+            credentials(credentialsProviderFactory.usernameAndPassword(identity));
+            return getConfiguredCredentials();
+        }
+        throw new IllegalArgumentException(String.format("Unsupported credentials type: %s", credentialsType));
     }
 
     @Override
@@ -131,6 +146,10 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
         } else {
             return getAuthentication();
         }
+    }
+
+    void setIdentity(String identity) {
+        this.identity = identity;
     }
 
     boolean usesCredentials() {

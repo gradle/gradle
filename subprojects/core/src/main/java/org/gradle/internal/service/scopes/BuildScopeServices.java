@@ -66,9 +66,11 @@ import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
+import org.gradle.api.internal.provider.CredentialsProviderFactory;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
+import org.gradle.api.internal.provider.GradlePropertiesCredentialsProviderFactory;
 import org.gradle.api.internal.provider.ValueSourceProviderFactory;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
@@ -600,5 +602,9 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             scriptExecutionListener,
             instantiatorFactory.inject()
         );
+    }
+
+    protected CredentialsProviderFactory createCredentialsProviderFactory(GradleProperties gradleProperties) {
+        return new GradlePropertiesCredentialsProviderFactory(gradleProperties);
     }
 }

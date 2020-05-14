@@ -329,18 +329,24 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         when:
         executer.withArguments("-PmavenRepoUsername=${credentials.username}", "-PmavenRepoPassword=${credentials.password}")
-        succeeds 'publish'
 
         then:
-        def localPom = file("build/publications/maven/pom-default.xml").assertIsFile()
-        def localArtifact = file("build/libs/publish-2.jar").assertIsFile()
-        module.pomFile.assertIsCopyOf(localPom)
-        module.pom.verifyChecksums()
-        module.artifactFile.assertIsCopyOf(localArtifact)
-        module.artifact.verifyChecksums()
-        module.moduleMetadata.verifyChecksums()
-        module.rootMetaData.verifyChecksums()
-        module.rootMetaData.versions == ["2"]
+        succeeds 'publish'
+    }
+
+    @ToBeFixedForInstantExecution
+    def "can publish to authenticated repository using credentials Provider with inferred identity"() {
+        given:
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, "credentials(PasswordCredentials)")
+        server.authenticationScheme = AuthScheme.BASIC
+        PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
+        expectPublishModuleWithCredentials(module, credentials)
+
+        when:
+        executer.withArguments("-PmavenUsername=${credentials.username}", "-PmavenPassword=${credentials.password}")
+
+        then:
+        succeeds 'publish'
     }
 
     @ToBeFixedForInstantExecution
