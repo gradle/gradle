@@ -1,0 +1,30 @@
+[[config_cache]]
+= Configuration cache
+
+- What is it?
+- How to enable it?
+- How does it work?
+- Limitations?
+- Diagnosing problems?
+
+== Constraints
+
+Constraints and how to change your build
+
+[[undeclared_sys_prop_reads]]
+=== Reading system properties
+
+Plugins and build scripts should not read system properties directly using the Java APIs. Instead, these system properties should be declared as a potential build input by
+using the value supplier APIs.
+
+Before:
+
+```
+def enabled = System.getProperty("some-property")
+```
+
+After:
+
+```
+def enabled = providers.systemProperty("some-property").forUseAtConfigurationTime().present
+```
