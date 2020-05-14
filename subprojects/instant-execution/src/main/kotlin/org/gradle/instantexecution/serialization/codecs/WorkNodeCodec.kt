@@ -23,10 +23,8 @@ import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.readCollection
 import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withIsolate
-import org.gradle.instantexecution.serialization.writeCollection
 
 
 internal
@@ -143,15 +141,19 @@ class WorkNodeCodec(
         successors: Collection<Node>,
         scheduledNodeIds: Map<Node, Int>
     ) {
-        writeCollection(successors.mapNotNull(scheduledNodeIds::get)) {
-            writeSmallInt(it)
+        for (successor in successors) {
+            scheduledNodeIds[successor]?.let { successorId ->
+                writeSmallInt(successorId)
+            }
         }
+        writeSmallInt(-1)
     }
 
     private
     fun ReadContext.readSuccessorReferences(nodesById: Map<Int, Node>, onSuccessor: (Node) -> Unit) {
-        readCollection {
+        while (true) {
             val successorId = readSmallInt()
+            if (successorId == -1) break
             val successor = nodesById.getValue(successorId)
             onSuccessor(successor)
         }
