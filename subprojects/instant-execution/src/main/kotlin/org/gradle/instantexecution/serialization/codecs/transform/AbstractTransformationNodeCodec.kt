@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution.serialization.codecs
+package org.gradle.instantexecution.serialization.codecs.transform
 
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependencies
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.transform.DefaultExecutionGraphDependenciesResolver
 import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesResolver
@@ -33,7 +31,6 @@ import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.decodePreservingSharedIdentity
 import org.gradle.instantexecution.serialization.encodePreservingSharedIdentityOf
 import org.gradle.internal.Try
-import org.gradle.internal.operations.BuildOperationExecutor
 
 
 internal
@@ -44,9 +41,7 @@ abstract class AbstractTransformationNodeCodec<T : TransformationNode> : Codec<T
     }
 
     override suspend fun ReadContext.decode(): T =
-        decodePreservingSharedIdentity {
-            doDecode()
-        }
+        decodePreservingSharedIdentity { doDecode() }
 
     protected
     suspend fun WriteContext.writeDependenciesResolver(value: TransformationNode) {
@@ -75,48 +70,6 @@ abstract class AbstractTransformationNodeCodec<T : TransformationNode> : Codec<T
 
     protected
     abstract suspend fun ReadContext.doDecode(): T
-}
-
-
-internal
-class InitialTransformationNodeCodec(
-    private val buildOperationExecutor: BuildOperationExecutor,
-    private val transformListener: ArtifactTransformListener
-) : AbstractTransformationNodeCodec<TransformationNode.InitialTransformationNode>() {
-
-    override suspend fun WriteContext.doEncode(value: TransformationNode.InitialTransformationNode) {
-        write(value.transformationStep)
-        writeDependenciesResolver(value)
-        write(value.inputArtifact)
-    }
-
-    override suspend fun ReadContext.doDecode(): TransformationNode.InitialTransformationNode {
-        val transformationStep = read() as TransformationStep
-        val resolver = readDependenciesResolver()
-        val artifact = read() as ResolvableArtifact
-        return TransformationNode.initial(transformationStep, artifact, resolver, buildOperationExecutor, transformListener)
-    }
-}
-
-
-internal
-class ChainedTransformationNodeCodec(
-    private val buildOperationExecutor: BuildOperationExecutor,
-    private val transformListener: ArtifactTransformListener
-) : AbstractTransformationNodeCodec<TransformationNode.ChainedTransformationNode>() {
-
-    override suspend fun WriteContext.doEncode(value: TransformationNode.ChainedTransformationNode) {
-        write(value.transformationStep)
-        writeDependenciesResolver(value)
-        write(value.previousTransformationNode)
-    }
-
-    override suspend fun ReadContext.doDecode(): TransformationNode.ChainedTransformationNode {
-        val transformationStep = read() as TransformationStep
-        val resolver = readDependenciesResolver()
-        val previousStep = read() as TransformationNode
-        return TransformationNode.chained(transformationStep, previousStep, resolver, buildOperationExecutor, transformListener)
-    }
 }
 
 

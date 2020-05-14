@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution.serialization.codecs
+package org.gradle.instantexecution.serialization.codecs.transform
 
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
@@ -29,12 +29,14 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 
 
 internal
-class TransformationStepCodec(private val projectStateRegistry: ProjectStateRegistry, private val fingerprinterRegistry: FileCollectionFingerprinterRegistry, private val projectFinder: ProjectFinder) : Codec<TransformationStep> {
+class TransformationStepCodec(
+    private val projectStateRegistry: ProjectStateRegistry,
+    private val fingerprinterRegistry: FileCollectionFingerprinterRegistry,
+    private val projectFinder: ProjectFinder
+) : Codec<TransformationStep> {
+
     override suspend fun WriteContext.encode(value: TransformationStep) {
-        val project = value.owningProject
-        if (project == null) {
-            throw UnsupportedOperationException("Transformation must have an owning project to be encoded.")
-        }
+        val project = value.owningProject ?: throw UnsupportedOperationException("Transformation must have an owning project to be encoded.")
         writeString(project.path)
         write(value.transformer)
     }
