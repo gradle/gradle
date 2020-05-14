@@ -63,7 +63,7 @@ class DefaultSettingsLoaderTest extends Specification {
         1 * settingsProcessor.process(gradle, buildLayout, classLoaderScope, startParameter) >> settings
         1 * settings.settingsScript >> settingsScript
         1 * settingsScript.displayName >> "foo"
-        1 * gradlePropertiesController.loadGradlePropertiesFrom(buildLayout.settingsDir)
+        1 * gradlePropertiesController.applyToSystemProperties(buildLayout.settingsDir)
 
         then:
         settingsHandler.findAndLoadSettings(gradle).is(settings)

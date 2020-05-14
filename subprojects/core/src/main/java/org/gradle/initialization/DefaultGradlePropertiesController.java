@@ -16,20 +16,35 @@
 
 package org.gradle.initialization;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.Project;
 import org.gradle.api.internal.properties.GradleProperties;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
+import java.util.function.BiConsumer;
+
+import static java.util.Collections.emptyMap;
 
 public class DefaultGradlePropertiesController implements GradlePropertiesController {
 
     private State state = new NotLoaded();
     private final GradleProperties sharedGradleProperties = new SharedGradleProperties();
     private final IGradlePropertiesLoader propertiesLoader;
+    private final BiConsumer<String, String> systemPropertySetter;
 
     public DefaultGradlePropertiesController(IGradlePropertiesLoader propertiesLoader) {
+        this(propertiesLoader, System::setProperty);
+    }
+
+    @VisibleForTesting
+    DefaultGradlePropertiesController(
+        IGradlePropertiesLoader propertiesLoader,
+        BiConsumer<String, String> systemPropertySetter
+    ) {
         this.propertiesLoader = propertiesLoader;
+        this.systemPropertySetter = systemPropertySetter;
     }
 
     @Override
@@ -40,6 +55,11 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
     @Override
     public void loadGradlePropertiesFrom(File settingsDir) {
         state = state.loadGradlePropertiesFrom(settingsDir);
+    }
+
+    @Override
+    public void applyToSystemProperties(File settingsDir) {
+        state = state.applyToSystemProperties(settingsDir);
     }
 
     private class SharedGradleProperties implements GradleProperties {
@@ -65,6 +85,8 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         GradleProperties gradleProperties();
 
         State loadGradlePropertiesFrom(File settingsDir);
+
+        State applyToSystemProperties(File settingsDir);
     }
 
     private class NotLoaded implements State {
@@ -81,9 +103,15 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
                 settingsDir
             );
         }
+
+        @Override
+        public State applyToSystemProperties(File settingsDir) {
+            State loaded = loadGradlePropertiesFrom(settingsDir);
+            return loaded.applyToSystemProperties(settingsDir);
+        }
     }
 
-    private static class Loaded implements State {
+    private class Loaded implements State {
 
         private final GradleProperties gradleProperties;
         private final File propertiesDir;
@@ -100,15 +128,64 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
         @Override
         public State loadGradlePropertiesFrom(File settingsDir) {
-            if (!propertiesDir.equals(settingsDir)) {
-                throw new IllegalStateException(
-                    String.format(
-                        "GradleProperties has already been loaded from '%s' and cannot be loaded from '%s'.",
-                        propertiesDir, settingsDir
-                    )
-                );
-            }
+            validatePropertiesDir(propertiesDir, settingsDir);
             return this;
+        }
+
+        @Override
+        public State applyToSystemProperties(File settingsDir) {
+            validatePropertiesDir(propertiesDir, settingsDir);
+            applyToSystemProperties();
+            return new Applied(gradleProperties, propertiesDir);
+        }
+
+        private void applyToSystemProperties() {
+            String prefix = Project.SYSTEM_PROP_PREFIX + '.';
+            for (Map.Entry<String, String> entry : gradleProperties.mergeProperties(emptyMap()).entrySet()) {
+                String key = entry.getKey();
+                if (key.startsWith(prefix)) {
+                    systemPropertySetter.accept(key.substring(prefix.length()), entry.getValue());
+                }
+            }
+        }
+    }
+
+    private static class Applied implements State {
+
+        private final GradleProperties gradleProperties;
+        private final File propertiesDir;
+
+        private Applied(GradleProperties gradleProperties, File propertiesDir) {
+            this.gradleProperties = gradleProperties;
+            this.propertiesDir = propertiesDir;
+        }
+
+        @Override
+        public GradleProperties gradleProperties() {
+            return gradleProperties;
+        }
+
+        @Override
+        public State loadGradlePropertiesFrom(File settingsDir) {
+            validatePropertiesDir(propertiesDir, settingsDir);
+            return this;
+        }
+
+        @Override
+        public State applyToSystemProperties(File settingsDir) {
+            validatePropertiesDir(propertiesDir, settingsDir);
+            return this;
+        }
+    }
+
+    private static void validatePropertiesDir(File previousDir, File newDir) {
+        if (!previousDir.equals(newDir)) {
+            throw new IllegalStateException(
+                String.format(
+                    "GradleProperties has already been loaded from '%s' and cannot be loaded from '%s'.",
+                    previousDir, newDir
+                )
+            );
         }
     }
 }

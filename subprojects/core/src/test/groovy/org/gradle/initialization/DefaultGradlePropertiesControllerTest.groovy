@@ -17,10 +17,17 @@
 package org.gradle.initialization
 
 import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.util.SetSystemProperties
+import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.function.BiConsumer
+
 class DefaultGradlePropertiesControllerTest extends Specification {
+
+    @Rule
+    public SetSystemProperties sysProp = new SetSystemProperties()
 
     @Unroll
     def "attached GradleProperties #method fails before loading"() {
@@ -65,6 +72,26 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         properties.mergeProperties([:]) == [property: '42']
     }
 
+    def "attached GradleProperties methods succeed after applying"() {
+
+        given:
+        def settingsDir = new File('.')
+        def propertiesLoader = Mock(IGradlePropertiesLoader)
+        def subject = new DefaultGradlePropertiesController(propertiesLoader)
+        def properties = subject.gradleProperties
+        def loadedProperties = Mock(GradleProperties)
+        1 * propertiesLoader.loadGradleProperties(settingsDir) >> loadedProperties
+        2 * loadedProperties.mergeProperties(_) >> [property: '42']
+        1 * loadedProperties.find(_) >> '42'
+
+        when:
+        subject.applyToSystemProperties(settingsDir)
+
+        then:
+        properties.find("property") == '42'
+        properties.mergeProperties([:]) == [property: '42']
+    }
+
     def "loadGradlePropertiesFrom is idempotent"() {
 
         given:
@@ -82,6 +109,26 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         1 * propertiesLoader.loadGradleProperties(currentDir()) >> loadedProperties
     }
 
+    def "applyToSystemProperties is idempotent"() {
+
+        given:
+        // use a different File instance for each call to ensure it is compared by value
+        def currentDir = { new File('.') }
+        def propertiesLoader = Mock(IGradlePropertiesLoader)
+        def systemPropertySetter = Mock(BiConsumer)
+        def subject = new DefaultGradlePropertiesController(propertiesLoader, systemPropertySetter)
+        def loadedProperties = Mock(GradleProperties)
+        1 * propertiesLoader.loadGradleProperties(currentDir()) >> loadedProperties
+        1 * loadedProperties.mergeProperties(_) >> ['systemProp.property': '42']
+
+        when: "calling the method multiple times with the same value"
+        subject.applyToSystemProperties(currentDir())
+        subject.applyToSystemProperties(currentDir())
+
+        then:
+        1 * systemPropertySetter.accept("property", "42")
+    }
+
     def "loadGradlePropertiesFrom fails when called with different argument"() {
 
         given:
@@ -94,6 +141,23 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         when:
         subject.loadGradlePropertiesFrom(settingsDir)
         subject.loadGradlePropertiesFrom(new File('b'))
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "applyToSystemProperties fails when called with different argument"() {
+
+        given:
+        def settingsDir = new File('a')
+        def propertiesLoader = Mock(IGradlePropertiesLoader)
+        def subject = new DefaultGradlePropertiesController(propertiesLoader)
+        def loadedProperties = Mock(GradleProperties)
+        1 * propertiesLoader.loadGradleProperties(settingsDir) >> loadedProperties
+
+        when:
+        subject.loadGradlePropertiesFrom(settingsDir)
+        subject.applyToSystemProperties(new File('b'))
 
         then:
         thrown(IllegalStateException)

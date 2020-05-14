@@ -18,10 +18,8 @@ package org.gradle.initialization;
 import org.gradle.api.Project;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.internal.Cast;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GUtil;
-import org.gradle.util.SetSystemProperties;
 import org.gradle.util.WrapUtil;
 import org.junit.Before;
 import org.junit.Rule;
@@ -35,6 +33,7 @@ import java.util.Properties;
 import static java.util.Collections.emptyMap;
 import static org.gradle.api.Project.SYSTEM_PROP_PREFIX;
 import static org.gradle.initialization.IGradlePropertiesLoader.*;
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -46,11 +45,9 @@ public class DefaultGradlePropertiesLoaderTest {
     private File gradleInstallationHomeDir;
     private Map<String, String> systemProperties = new HashMap<>();
     private Map<String, String> envProperties = new HashMap<>();
-    private StartParameterInternal startParameter = new StartParameterInternal();
+    private final StartParameterInternal startParameter = new StartParameterInternal();
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
-    @Rule
-    public SetSystemProperties sysProp = new SetSystemProperties();
 
     @Before
     public void setUp() {
@@ -70,7 +67,7 @@ public class DefaultGradlePropertiesLoaderTest {
 
     @Test
     public void mergeAddsPropertiesFromInstallationPropertiesFile() {
-        writePropertyFile(gradleInstallationHomeDir, Cast.uncheckedNonnullCast(Cast.uncheckedNonnullCast(GUtil.map("settingsProp", "settings value"))));
+        writePropertyFile(gradleInstallationHomeDir, uncheckedNonnullCast(uncheckedNonnullCast(GUtil.map("settingsProp", "settings value"))));
 
         Map<String, String> properties = loadAndMergePropertiesWith(emptyMap());
 
@@ -79,7 +76,7 @@ public class DefaultGradlePropertiesLoaderTest {
 
     @Test
     public void mergeAddsPropertiesFromUserPropertiesFile() {
-        writePropertyFile(gradleUserHomeDir, Cast.uncheckedNonnullCast(GUtil.map("userProp", "user value")));
+        writePropertyFile(gradleUserHomeDir, uncheckedNonnullCast(GUtil.map("userProp", "user value")));
 
         Map<String, String> properties = loadAndMergePropertiesWith(emptyMap());
 
@@ -88,7 +85,7 @@ public class DefaultGradlePropertiesLoaderTest {
 
     @Test
     public void mergeAddsPropertiesFromSettingsPropertiesFile() {
-        writePropertyFile(settingsDir, Cast.uncheckedNonnullCast(GUtil.map("settingsProp", "settings value")));
+        writePropertyFile(settingsDir, uncheckedNonnullCast(GUtil.map("settingsProp", "settings value")));
 
         Map<String, String> properties = loadAndMergePropertiesWith(emptyMap());
 
@@ -97,7 +94,7 @@ public class DefaultGradlePropertiesLoaderTest {
 
     @Test
     public void mergeAddsPropertiesFromEnvironmentVariablesWithPrefix() {
-        envProperties = Cast.uncheckedNonnullCast(GUtil.map(
+        envProperties = uncheckedNonnullCast(GUtil.map(
             ENV_PROJECT_PROPERTIES_PREFIX + "envProp", "env value",
             "ignoreMe", "ignored"));
 
@@ -108,7 +105,7 @@ public class DefaultGradlePropertiesLoaderTest {
 
     @Test
     public void mergeAddsPropertiesFromSystemPropertiesWithPrefix() {
-        systemProperties = Cast.uncheckedNonnullCast(GUtil.map(
+        systemProperties = uncheckedNonnullCast(GUtil.map(
             SYSTEM_PROJECT_PROPERTIES_PREFIX + "systemProp", "system value",
             "ignoreMe", "ignored"));
 
@@ -119,7 +116,7 @@ public class DefaultGradlePropertiesLoaderTest {
 
     @Test
     public void mergeAddsPropertiesFromStartParameter() {
-        startParameter.setProjectProperties(Cast.uncheckedNonnullCast(GUtil.map("paramProp", "param value")));
+        startParameter.setProjectProperties(uncheckedNonnullCast(GUtil.map("paramProp", "param value")));
 
         Map<String, String> properties = loadAndMergePropertiesWith(emptyMap());
 
@@ -128,8 +125,8 @@ public class DefaultGradlePropertiesLoaderTest {
 
     @Test
     public void projectPropertiesHavePrecedenceOverInstallationPropertiesFile() {
-        writePropertyFile(gradleInstallationHomeDir, Cast.uncheckedNonnullCast(GUtil.map("prop", "settings value")));
-        Map<String, String> projectProperties = Cast.uncheckedNonnullCast(GUtil.map("prop", "project value"));
+        writePropertyFile(gradleInstallationHomeDir, uncheckedNonnullCast(GUtil.map("prop", "settings value")));
+        Map<String, String> projectProperties = uncheckedNonnullCast(GUtil.map("prop", "project value"));
 
         Map<String, String> properties = loadAndMergePropertiesWith(projectProperties);
 
@@ -138,8 +135,8 @@ public class DefaultGradlePropertiesLoaderTest {
 
     @Test
     public void projectPropertiesHavePrecedenceOverSettingsPropertiesFile() {
-        writePropertyFile(settingsDir, Cast.uncheckedNonnullCast(GUtil.map("prop", "settings value")));
-        Map<String, String> projectProperties = Cast.uncheckedNonnullCast(GUtil.map("prop", "project value"));
+        writePropertyFile(settingsDir, uncheckedNonnullCast(GUtil.map("prop", "settings value")));
+        Map<String, String> projectProperties = uncheckedNonnullCast(GUtil.map("prop", "project value"));
 
         Map<String, String> properties = loadAndMergePropertiesWith(projectProperties);
 
@@ -148,8 +145,8 @@ public class DefaultGradlePropertiesLoaderTest {
 
     @Test
     public void userPropertiesFileHasPrecedenceOverSettingsPropertiesFile() {
-        writePropertyFile(gradleUserHomeDir, Cast.uncheckedNonnullCast(GUtil.map("prop", "user value")));
-        writePropertyFile(settingsDir, Cast.uncheckedNonnullCast(GUtil.map("prop", "settings value")));
+        writePropertyFile(gradleUserHomeDir, uncheckedNonnullCast(GUtil.map("prop", "user value")));
+        writePropertyFile(settingsDir, uncheckedNonnullCast(GUtil.map("prop", "settings value")));
 
         Map<String, String> properties = loadAndMergePropertiesWith(emptyMap());
 
@@ -158,9 +155,9 @@ public class DefaultGradlePropertiesLoaderTest {
 
     @Test
     public void userPropertiesFileHasPrecedenceOverProjectProperties() {
-        writePropertyFile(gradleUserHomeDir, Cast.uncheckedNonnullCast(GUtil.map("prop", "user value")));
-        writePropertyFile(settingsDir, Cast.uncheckedNonnullCast(GUtil.map("prop", "settings value")));
-        Map<String, String> projectProperties = Cast.uncheckedNonnullCast(GUtil.map("prop", "project value"));
+        writePropertyFile(gradleUserHomeDir, uncheckedNonnullCast(GUtil.map("prop", "user value")));
+        writePropertyFile(settingsDir, uncheckedNonnullCast(GUtil.map("prop", "settings value")));
+        Map<String, String> projectProperties = uncheckedNonnullCast(GUtil.map("prop", "project value"));
 
         Map<String, String> properties = loadAndMergePropertiesWith(projectProperties);
 
@@ -169,10 +166,10 @@ public class DefaultGradlePropertiesLoaderTest {
 
     @Test
     public void environmentVariablesHavePrecedenceOverProjectProperties() {
-        writePropertyFile(gradleUserHomeDir, Cast.uncheckedNonnullCast(GUtil.map("prop", "user value")));
-        writePropertyFile(settingsDir, Cast.uncheckedNonnullCast(GUtil.map("prop", "settings value")));
-        Map<String, String> projectProperties = Cast.uncheckedNonnullCast(GUtil.map("prop", "project value"));
-        envProperties = Cast.uncheckedNonnullCast(GUtil.map(ENV_PROJECT_PROPERTIES_PREFIX + "prop", "env value"));
+        writePropertyFile(gradleUserHomeDir, uncheckedNonnullCast(GUtil.map("prop", "user value")));
+        writePropertyFile(settingsDir, uncheckedNonnullCast(GUtil.map("prop", "settings value")));
+        Map<String, String> projectProperties = uncheckedNonnullCast(GUtil.map("prop", "project value"));
+        envProperties = uncheckedNonnullCast(GUtil.map(ENV_PROJECT_PROPERTIES_PREFIX + "prop", "env value"));
 
         Map<String, String> properties = loadAndMergePropertiesWith(projectProperties);
 
@@ -181,11 +178,11 @@ public class DefaultGradlePropertiesLoaderTest {
 
     @Test
     public void systemPropertiesHavePrecedenceOverEnvironmentVariables() {
-        writePropertyFile(gradleUserHomeDir, Cast.uncheckedNonnullCast(GUtil.map("prop", "user value")));
-        writePropertyFile(settingsDir, Cast.uncheckedNonnullCast(GUtil.map("prop", "settings value")));
-        Map<String, String> projectProperties = Cast.uncheckedNonnullCast(GUtil.map("prop", "project value"));
-        envProperties = Cast.uncheckedNonnullCast(GUtil.map(ENV_PROJECT_PROPERTIES_PREFIX + "prop", "env value"));
-        systemProperties = Cast.uncheckedNonnullCast(GUtil.map(SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop", "system value"));
+        writePropertyFile(gradleUserHomeDir, uncheckedNonnullCast(GUtil.map("prop", "user value")));
+        writePropertyFile(settingsDir, uncheckedNonnullCast(GUtil.map("prop", "settings value")));
+        Map<String, String> projectProperties = uncheckedNonnullCast(GUtil.map("prop", "project value"));
+        envProperties = uncheckedNonnullCast(GUtil.map(ENV_PROJECT_PROPERTIES_PREFIX + "prop", "env value"));
+        systemProperties = uncheckedNonnullCast(GUtil.map(SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop", "system value"));
 
         Map<String, String> properties = loadAndMergePropertiesWith(projectProperties);
 
@@ -194,12 +191,12 @@ public class DefaultGradlePropertiesLoaderTest {
 
     @Test
     public void startParameterPropertiesHavePrecedenceOverSystemProperties() {
-        writePropertyFile(gradleUserHomeDir, Cast.uncheckedNonnullCast(GUtil.map("prop", "user value")));
-        writePropertyFile(settingsDir, Cast.uncheckedNonnullCast(GUtil.map("prop", "settings value")));
-        Map<String, String> projectProperties = Cast.uncheckedNonnullCast(GUtil.map("prop", "project value"));
-        envProperties = Cast.uncheckedNonnullCast(GUtil.map(ENV_PROJECT_PROPERTIES_PREFIX + "prop", "env value"));
-        systemProperties = Cast.uncheckedNonnullCast(GUtil.map(SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop", "system value"));
-        startParameter.setProjectProperties(Cast.uncheckedNonnullCast(GUtil.map("prop", "param value")));
+        writePropertyFile(gradleUserHomeDir, uncheckedNonnullCast(GUtil.map("prop", "user value")));
+        writePropertyFile(settingsDir, uncheckedNonnullCast(GUtil.map("prop", "settings value")));
+        Map<String, String> projectProperties = uncheckedNonnullCast(GUtil.map("prop", "project value"));
+        envProperties = uncheckedNonnullCast(GUtil.map(ENV_PROJECT_PROPERTIES_PREFIX + "prop", "env value"));
+        systemProperties = uncheckedNonnullCast(GUtil.map(SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop", "system value"));
+        startParameter.setProjectProperties(uncheckedNonnullCast(GUtil.map("prop", "param value")));
 
         Map<String, String> properties = loadAndMergePropertiesWith(projectProperties);
 
@@ -207,18 +204,18 @@ public class DefaultGradlePropertiesLoaderTest {
     }
 
     @Test
-    public void loadSetsSystemProperties() {
+    public void loadDoesNotSetSystemProperties() {
         startParameter.setSystemPropertiesArgs(WrapUtil.toMap("systemPropArgKey", "systemPropArgValue"));
-        writePropertyFile(gradleUserHomeDir, Cast.uncheckedNonnullCast(GUtil.map(SYSTEM_PROP_PREFIX + ".userSystemProp", "userSystemValue")));
-        writePropertyFile(settingsDir, Cast.uncheckedNonnullCast(GUtil.map(
+        writePropertyFile(gradleUserHomeDir, uncheckedNonnullCast(GUtil.map(SYSTEM_PROP_PREFIX + ".userSystemProp", "userSystemValue")));
+        writePropertyFile(settingsDir, uncheckedNonnullCast(GUtil.map(
             SYSTEM_PROP_PREFIX + ".userSystemProp", "settingsSystemValue",
             SYSTEM_PROP_PREFIX + ".settingsSystemProp2", "settingsSystemValue2")));
 
         loadProperties();
 
-        assertEquals("userSystemValue", System.getProperty("userSystemProp"));
-        assertEquals("settingsSystemValue2", System.getProperty("settingsSystemProp2"));
-        assertEquals("systemPropArgValue", System.getProperty("systemPropArgKey"));
+        assertNull(System.getProperty("userSystemProp"));
+        assertNull(System.getProperty("settingsSystemProp2"));
+        assertNull(System.getProperty("systemPropArgKey"));
     }
 
     @Test
@@ -235,10 +232,10 @@ public class DefaultGradlePropertiesLoaderTest {
 
     @Test
     public void reloadsProperties() {
-        writePropertyFile(settingsDir, Cast.uncheckedNonnullCast(GUtil.map("prop1", "value", "prop2", "value")));
+        writePropertyFile(settingsDir, uncheckedNonnullCast(GUtil.map("prop1", "value", "prop2", "value")));
 
         File otherSettingsDir = tmpDir.createDir("otherSettingsDir");
-        writePropertyFile(otherSettingsDir, Cast.uncheckedNonnullCast(GUtil.map("prop1", "otherValue")));
+        writePropertyFile(otherSettingsDir, uncheckedNonnullCast(GUtil.map("prop1", "otherValue")));
 
         Map<String, String> properties = loadAndMergePropertiesWith(emptyMap());
         assertEquals("value", properties.get("prop1"));
@@ -258,14 +255,27 @@ public class DefaultGradlePropertiesLoaderTest {
 
     @Test
     public void startParameterSystemPropertiesHavePrecedenceOverPropertiesFiles() {
-        writePropertyFile(gradleUserHomeDir, Cast.uncheckedNonnullCast(GUtil.map("systemProp.prop", "user value")));
-        writePropertyFile(settingsDir, Cast.uncheckedNonnullCast(GUtil.map("systemProp.prop", "settings value")));
-        systemProperties = Cast.uncheckedNonnullCast(GUtil.map("prop", "system value"));
-        startParameter.setSystemPropertiesArgs(WrapUtil.toMap("prop", "commandline value"));
+        writePropertyFile(gradleUserHomeDir, uncheckedNonnullCast(GUtil.map(
+            "systemProp.prop", "user value",
+            "property", "user val"
+        )));
+        writePropertyFile(settingsDir, uncheckedNonnullCast(GUtil.map(
+            "systemProp.prop", "settings value",
+            "property", "settings val"
+        )));
+        systemProperties = uncheckedNonnullCast(GUtil.map(
+            "prop", "system value",
+            "property", "system val"
+        ));
+        startParameter.setSystemPropertiesArgs(uncheckedNonnullCast(GUtil.map(
+            "prop", "commandline value",
+            "org.gradle.project.property", "commandline val"
+        )));
 
-        loadProperties();
+        GradleProperties loaded = loadProperties();
 
-        assertEquals("commandline value", System.getProperty("prop"));
+        assertEquals("commandline value", loaded.find("systemProp.prop"));
+        assertEquals("commandline val", loaded.find("property"));
     }
 
     private Map<String, String> loadAndMergePropertiesWith(Map<String, String> properties) {

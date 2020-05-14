@@ -25,9 +25,13 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.initialization.SettingsLocation;
+import org.gradle.initialization.layout.BuildLayoutConfiguration;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.concurrent.Stoppable;
@@ -75,6 +79,7 @@ class DefaultRootBuildState extends AbstractBuildState implements RootBuildState
         final GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
         GradleInternal gradle = buildController.getGradle();
+        loadGradleProperties();
         buildLifecycleListener.afterStart(gradle);
         try {
             return buildAction.transform(buildController);
@@ -106,5 +111,19 @@ class DefaultRootBuildState extends AbstractBuildState implements RootBuildState
     @Override
     public Path getIdentityPathForProject(Path path) {
         return path;
+    }
+
+    private void loadGradleProperties() {
+        BuildLayoutConfiguration layoutConfiguration = new BuildLayoutConfiguration(getStartParameter());
+        SettingsLocation settingsLocation = getBuildLayoutFactory().getLayoutFor(layoutConfiguration);
+        getGradlePropertiesController().loadGradlePropertiesFrom(settingsLocation.getSettingsDir());
+    }
+
+    private BuildLayoutFactory getBuildLayoutFactory() {
+        return gradleLauncher.getGradle().getServices().get(BuildLayoutFactory.class);
+    }
+
+    private GradlePropertiesController getGradlePropertiesController() {
+        return gradleLauncher.getGradle().getServices().get(GradlePropertiesController.class);
     }
 }

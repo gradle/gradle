@@ -268,7 +268,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun checkFingerprint(): InvalidationReason? {
-        loadGradleProperties()
+        applyGradlePropertiesToSystemProperties()
         return checkInstantExecutionFingerprintFile()
     }
 
@@ -283,8 +283,8 @@ class DefaultInstantExecution internal constructor(
         }
 
     private
-    fun loadGradleProperties() {
-        gradlePropertiesController.loadGradlePropertiesFrom(
+    fun applyGradlePropertiesToSystemProperties() {
+        gradlePropertiesController.applyToSystemProperties(
             startParameter.settingsDirectory
         )
     }

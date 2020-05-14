@@ -21,8 +21,8 @@ import org.gradle.api.internal.properties.GradleProperties;
 import java.io.File;
 
 /**
- * Controls the state (not loaded / loaded) of the attached {@link GradleProperties} instance
- * so that the set of Gradle properties is deterministically loaded only once per build.
+ * Controls the state (not loaded / loaded / applied) of the attached {@link GradleProperties} instance
+ * so that the set of Gradle properties is deterministically loaded/applied only once per build.
  */
 public interface GradlePropertiesController {
 
@@ -42,4 +42,15 @@ public interface GradlePropertiesController {
      * @throws IllegalStateException if called with a different argument in the same build
      */
     void loadGradlePropertiesFrom(File settingsDir);
+
+    /**
+     * Applies system properties from gradle properties, mutating <code>System.properties</code>.
+     *
+     * This method should be called only once per build but multiple calls with the
+     * same argument are allowed.
+
+     * @param settingsDir directory where from which the {@code gradle.properties} files must have been loaded
+     * @throws IllegalStateException if called with a different argument in the same build
+     */
+    void applyToSystemProperties(File settingsDir);
 }

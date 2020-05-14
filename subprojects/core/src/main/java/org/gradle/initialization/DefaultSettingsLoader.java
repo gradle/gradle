@@ -34,7 +34,7 @@ import org.gradle.util.Path;
  */
 public class DefaultSettingsLoader implements SettingsLoader {
     public static final String BUILD_SRC_PROJECT_PATH = ":" + SettingsInternal.BUILD_SRC;
-    private SettingsProcessor settingsProcessor;
+    private final SettingsProcessor settingsProcessor;
     private final BuildLayoutFactory buildLayoutFactory;
     private final GradlePropertiesController gradlePropertiesController;
 
@@ -53,7 +53,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
         StartParameter startParameter = gradle.getStartParameter();
 
         SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
-        loadGradlePropertiesFrom(settingsLocation);
+        applyGradlePropertiesToSystemProperties(settingsLocation);
 
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, startParameter, settingsLocation, gradle.getClassLoaderScope());
         ProjectSpec spec = ProjectSpecs.forStartParameter(startParameter, settings);
@@ -65,8 +65,8 @@ public class DefaultSettingsLoader implements SettingsLoader {
         return settings;
     }
 
-    private void loadGradlePropertiesFrom(SettingsLocation settingsLocation) {
-        gradlePropertiesController.loadGradlePropertiesFrom(
+    private void applyGradlePropertiesToSystemProperties(SettingsLocation settingsLocation) {
+        gradlePropertiesController.applyToSystemProperties(
             settingsLocation.getSettingsDir()
         );
     }

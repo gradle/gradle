@@ -19,11 +19,14 @@ package org.gradle.composite.internal
 import org.gradle.api.Transformer
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
+import org.gradle.initialization.GradlePropertiesController
 import org.gradle.initialization.RootBuildLifecycleListener
+import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -50,8 +53,11 @@ class DefaultRootBuildStateTest extends Specification {
         _ * sessionServices.get(ProjectStateRegistry) >> projectStateRegistry
         _ * sessionServices.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
         _ * sessionServices.get(WorkerLeaseService) >> new TestWorkerLeaseService()
+        _ * sessionServices.get(BuildLayoutFactory) >> Stub(BuildLayoutFactory)
+        _ * sessionServices.get(GradlePropertiesController) >> Stub(GradlePropertiesController)
         _ * launcher.gradle >> gradle
         _ * gradle.services >> sessionServices
+        _ * gradle.startParameter >> Stub(StartParameterInternal)
         _ * projectStateRegistry.withLenientState(_) >> { args -> return args[0].create() }
 
         build = new DefaultRootBuildState(buildDefinition, factory, listenerManager, sessionServices)
