@@ -70,10 +70,8 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             .map(File::toPath)
             .map(Path::toAbsolutePath)
             .collect(Collectors.toSet());
-        Multisets.removeOccurrences(shouldWatchDirectories, mustWatchDirectories);
         mustWatchDirectories.clear();
         mustWatchDirectories.addAll(WatchRootUtil.resolveRootsToWatch(rootPaths));
-        shouldWatchDirectories.addAll(mustWatchDirectories);
         updateWatchedDirectories();
     }
 
@@ -86,7 +84,10 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         Set<Path> directoriesToWatch = shouldWatchDirectories.elementSet().stream()
             .filter(path -> !startsWithAnyPrefix(path.toString(), mustWatchDirectoryPrefixes))
             .collect(Collectors.toSet());
-        directoriesToWatch.addAll(mustWatchDirectories);
+        if (directoriesToWatch.size() < shouldWatchDirectories.size()) {
+            // Only watch mustWatchDirectories if we are interested in anything inside
+            directoriesToWatch.addAll(mustWatchDirectories);
+        }
 
         updateWatchedDirectories(WatchRootUtil.resolveRootsToWatch(directoriesToWatch));
     }

@@ -62,52 +62,6 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     abstract FileWatcherUpdater createUpdater(FileWatcher watcher)
 
-    def "starts and stops watching must watch directories"() {
-        def mustWatchDirectories = ["first", "second", "third"].collect { file(it).createDir() }
-
-        when:
-        updater.updateMustWatchDirectories(mustWatchDirectories)
-        then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, mustWatchDirectories) })
-        0 * _
-
-        when:
-        updater.updateMustWatchDirectories([])
-        then:
-        1 * watcher.stopWatching({ equalIgnoringOrder(it, mustWatchDirectories) })
-        0 * _
-    }
-
-    def "does not watch non-existing must watch directories"() {
-        def existingMustWatchDirectories = ["first", "second"].collect { file(it).createDir() }
-        def nonExistingMustWatchDirectory = file("non-existing")
-
-        when:
-        updater.updateMustWatchDirectories(existingMustWatchDirectories + nonExistingMustWatchDirectory)
-        then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, existingMustWatchDirectories) })
-        0 * _
-    }
-
-    def "can change the must watch directories"() {
-        def firstMustWatchDirectories = ["first", "second"].collect { file(it).createDir() }
-        def secondMustWatchDirectories = ["second", "third"].collect { file(it).createDir() }
-
-        when:
-        updater.updateMustWatchDirectories(firstMustWatchDirectories)
-        then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, firstMustWatchDirectories) })
-        0 * _
-
-        when:
-        updater.updateMustWatchDirectories(secondMustWatchDirectories)
-        then:
-        1 * watcher.stopWatching({ equalIgnoringOrder(it, [file("first")]) })
-        then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [file("third")]) })
-        0 * _
-    }
-
     TestFile file(Object... path) {
         temporaryFolder.testDirectory.file(path)
     }
