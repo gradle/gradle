@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution.serialization.codecs
+package org.gradle.instantexecution.serialization.codecs.transform
 
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
 import org.gradle.api.internal.artifacts.transform.DefaultTransformer
-import org.gradle.api.internal.artifacts.transform.LegacyTransformer
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
@@ -38,7 +37,6 @@ import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.snapshot.ValueSnapshotter
-import org.gradle.internal.snapshot.impl.IsolatedArray
 
 
 internal
@@ -53,6 +51,7 @@ class DefaultTransformerCodec(
     private val parameterScheme: ArtifactTransformParameterScheme,
     private val actionScheme: ArtifactTransformActionScheme
 ) : Codec<DefaultTransformer> {
+
     override suspend fun WriteContext.encode(value: DefaultTransformer) {
         writeClass(value.implementationClass)
 
@@ -102,31 +101,6 @@ class DefaultTransformerCodec(
             parameterScheme.inspectionScheme.propertyWalker,
             actionScheme.instantiationScheme,
             isolate.owner.service(ServiceRegistry::class.java)
-        )
-    }
-}
-
-
-internal
-class LegacyTransformerCodec(
-    private val actionScheme: ArtifactTransformActionScheme
-) : Codec<LegacyTransformer> {
-    override suspend fun WriteContext.encode(value: LegacyTransformer) {
-        writeClass(value.implementationClass)
-        writeBinary(value.secondaryInputsHash.toByteArray())
-        // TODO - write more state, eg parameters
-    }
-
-    override suspend fun ReadContext.decode(): LegacyTransformer? {
-        @Suppress("deprecation")
-        val implementationClass = readClass().asSubclass(org.gradle.api.artifacts.transform.ArtifactTransform::class.java)
-        val secondaryInputsHash = HashCode.fromBytes(readBinary())
-        return LegacyTransformer(
-            implementationClass,
-            IsolatedArray.EMPTY,
-            secondaryInputsHash,
-            actionScheme.instantiationScheme,
-            ImmutableAttributes.EMPTY
         )
     }
 }
