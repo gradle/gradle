@@ -33,10 +33,7 @@ import sbt.internal.inc.AnalyzingCompiler$;
 import sbt.internal.inc.RawCompiler;
 import sbt.internal.inc.ScalaInstance;
 import sbt.internal.inc.ZincUtil;
-import sbt.internal.inc.classpath.AbstractClassLoaderCache;
 import sbt.internal.inc.classpath.ClassLoaderCache;
-import sbt.io.IO;
-import scala.Function0;
 import scala.Option;
 import scala.collection.JavaConverters;
 import xsbti.ArtifactInfo;
@@ -46,17 +43,15 @@ import xsbti.compile.ZincCompilerUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -65,89 +60,30 @@ public class ZincScalaCompilerFactory {
     private static final int CLASSLOADER_CACHE_SIZE = 4;
     private static final int COMPILER_CLASSLOADER_CACHE_SIZE = 4;
     private static final GuavaBackedClassLoaderCache<HashCode> CLASSLOADER_CACHE = new GuavaBackedClassLoaderCache<HashCode>(CLASSLOADER_CACHE_SIZE);
-    private static final TimeCheckingClassLoaderCache COMPILER_CLASSLOADER_CACHE = new TimeCheckingClassLoaderCache(COMPILER_CLASSLOADER_CACHE_SIZE);
+    private static final ClassLoaderCache COMPILER_CLASSLOADER_CACHE;
 
-    static class TimestampedFile {
-        private final File file;
-        private final long timestamp;
-
-        public TimestampedFile(File file) {
-            this.file = file;
-            this.timestamp = IO.getModifiedTimeOrZero(file);
+    static {
+        // Load TimeCheckingClassLoaderCache and use it to create cache via reflection
+        // If we detect that we are using zinc 1.2.x, we fallback to default cache
+        Class<?> abstractCacheClass;
+        Class<?> checkingClass;
+        try {
+            abstractCacheClass = ZincScalaCompilerFactory.class.getClassLoader().loadClass("sbt.internal.classpath.inc.AbstractClassLoaderCache");
+            checkingClass = ZincScalaCompilerFactory.class.getClassLoader().loadClass("org.gradle.api.internal.tasks.scala.TimeCheckingClassLoaderCache");
+        } catch (ClassNotFoundException ex) {
+            abstractCacheClass = null;
+            checkingClass = null;
         }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            TimestampedFile that = (TimestampedFile) o;
-            return timestamp == that.timestamp &&
-                Objects.equals(file, that.file);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(file, timestamp);
-        }
-    }
-
-    /**
-     * This class implements AbstractClassLoaderCache in a way that allows safe
-     * resource release when entries are evicted.
-     *
-     * Cache is based on file timestamps, because this method is used in sbt implementation.
-     */
-    static class TimeCheckingClassLoaderCache implements AbstractClassLoaderCache {
-        private final URLClassLoader commonParent;
-        private final GuavaBackedClassLoaderCache<Set<TimestampedFile>> cache;
-
-        public TimeCheckingClassLoaderCache(int maxSize) {
-            commonParent = new URLClassLoader(new URL[0]);
-            cache = new GuavaBackedClassLoaderCache<>(maxSize);
-        }
-
-        @Override
-        public ClassLoader commonParent() {
-            return commonParent;
-        }
-
-        @Override
-        public ClassLoader apply(scala.collection.immutable.List<File> files) {
+        if (checkingClass != null) {
             try {
-                List<File> jFiles = JavaConverters.seqAsJavaList(files);
-                return cache.get(getTimestampedFiles(jFiles), () -> {
-                    ArrayList<URL> urls = new ArrayList<>(jFiles.size());
-                    for (File f: jFiles) {
-                        urls.add(f.toURI().toURL());
-                    }
-                    return new URLClassLoader(urls.toArray(new URL[0]), commonParent);
-                });
+                Constructor<ClassLoaderCache> constructor = ClassLoaderCache.class.getConstructor(abstractCacheClass);
+                Object cache = checkingClass.getConstructors()[0].newInstance(COMPILER_CLASSLOADER_CACHE_SIZE);
+                COMPILER_CLASSLOADER_CACHE = constructor.newInstance(cache);
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("Failed to instantiate ClassLoaderCache", e);
             }
-        }
-
-        @Override
-        public ClassLoader cachedCustomClassloader(scala.collection.immutable.List<File> files, Function0<ClassLoader> mkLoader) {
-            try {
-                return cache.get(getTimestampedFiles(JavaConverters.seqAsJavaList(files)), () -> mkLoader.apply());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        private Set<TimestampedFile> getTimestampedFiles(List<File> fs) {
-            return fs.stream().map(TimestampedFile::new).collect(Collectors.toSet());
-        }
-
-        @Override
-        public void close() throws IOException {
-            cache.clear();
-            commonParent.close();
+        } else {
+            COMPILER_CLASSLOADER_CACHE = new ClassLoaderCache(new URLClassLoader(new URL[]{}));
         }
     }
 
@@ -159,18 +95,19 @@ public class ZincScalaCompilerFactory {
         String zincCacheKey = String.format("zinc-%s_%s_%s", zincVersion, scalaVersion, javaVersion);
         String zincCacheName = String.format("%s compiler cache", zincCacheKey);
         final PersistentCache zincCache = cacheRepository.cache(zincCacheKey)
-                .withDisplayName(zincCacheName)
-                .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
-                .open();
+            .withDisplayName(zincCacheName)
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
+            .open();
 
         File compilerBridgeSourceJar = findFile("compiler-bridge", hashedScalaClasspath.getClasspath());
         File bridgeJar = getBridgeJar(zincCache, scalaInstance, compilerBridgeSourceJar, sbt.util.Logger.xlog2Log(new SbtLoggerAdapter()));
+
         ScalaCompiler scalaCompiler = new AnalyzingCompiler(
             scalaInstance,
             ZincUtil.constantBridgeProvider(scalaInstance, bridgeJar),
             ClasspathOptionsUtil.auto(),
             k -> scala.runtime.BoxedUnit.UNIT,
-            Option.apply(new ClassLoaderCache(COMPILER_CLASSLOADER_CACHE))
+            Option.apply(COMPILER_CLASSLOADER_CACHE)
         );
 
         return new ZincScalaCompiler(scalaInstance, scalaCompiler, new AnalysisStoreProvider());
@@ -210,13 +147,13 @@ public class ZincScalaCompilerFactory {
         File compilerJar = findFile(ArtifactInfo.ScalaCompilerID, scalaClasspath);
 
         return new ScalaInstance(
-                scalaVersion,
-                scalaClassLoader,
-                getClassLoader(DefaultClassPath.of(libraryJar)),
-                libraryJar,
-                compilerJar,
-                Iterables.toArray(scalaClasspath.getAsFiles(), File.class),
-                Option.empty()
+            scalaVersion,
+            scalaClassLoader,
+            getClassLoader(DefaultClassPath.of(libraryJar)),
+            libraryJar,
+            compilerJar,
+            Iterables.toArray(scalaClasspath.getAsFiles(), File.class),
+            Option.empty()
         );
     }
 
