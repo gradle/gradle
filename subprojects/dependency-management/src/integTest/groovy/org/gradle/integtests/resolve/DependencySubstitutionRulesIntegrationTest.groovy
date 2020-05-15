@@ -1499,4 +1499,127 @@ configurations.all {
         failure.assertHasCause("Substitution exception")
 
     }
+
+    @Unroll
+    def "can substitute a classified dependency with a non classified version"() {
+        def v1 = mavenRepo.module("org", "lib", "1.0")
+            .artifact(classifier: 'classy')
+            .publish()
+        // classifier doesn't exist anymore
+        def v2 = mavenRepo.module("org", "lib", "1.1").publish()
+        def trigger = mavenRepo.module("org", "other", "1.0")
+            .dependsOn(v2)
+            .publish()
+
+        buildFile << """
+
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf {
+                    resolutionStrategy.$notation
+                }
+            }
+
+
+            dependencies {
+                conf 'org:lib:1.0:classy'
+                conf 'org:other:1.0'
+            }
+
+            checkDeps {
+               doLast {
+                  // additional check on top of what the test fixture allows
+                  assert configurations.conf.files.name as Set == ['lib-1.1.jar', 'other-1.0.jar'] as Set
+               }
+            }
+        """
+
+        when:
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":depsub:") {
+                edge('org:lib:1.0', 'org:lib:1.1') {
+                    selectedByRule()
+                }
+                module('org:other:1.0') {
+                    module('org:lib:1.1')
+                }
+            }
+        }
+
+        where:
+        notation << [
+            """dependencySubstitution {
+                  substitute module('org:lib:1.0') to module('org:lib:1.0') withoutClassifier()
+               }""",
+            """dependencySubstitution.all { DependencySubstitution dependency ->
+                  if (dependency.requested instanceof ModuleComponentSelector && dependency.requested.module == 'lib') {
+                     dependency.artifactSelection {
+                        selectArtifact('jar', 'jar', null)
+                     }
+                  }
+               }"""
+        ]
+    }
+
+    def "can substitute a non classified dependency with a classified version"() {
+        def v1 = mavenRepo.module("org", "lib", "1.0")
+            .publish()
+        // classifier doesn't exist anymore
+        def v2 = mavenRepo.module("org", "lib", "1.1")
+            .artifact(classifier: 'classy')
+            .publish()
+        def trigger = mavenRepo.module("org", "other", "1.0")
+            .dependsOn(v2)
+            .publish()
+
+        buildFile << """
+
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf {
+                    resolutionStrategy.dependencySubstitution {
+                        substitute module('org:lib') to module('org:lib:1.1') usingClassifier('classy')
+                    }
+                }
+            }
+
+            dependencies {
+                conf 'org:lib:1.0'
+                conf 'org:other:1.0'
+            }
+
+            checkDeps {
+               doLast {
+                  // additional check on top of what the test fixture allows
+                  assert configurations.conf.files.name as Set == ['lib-1.1-classy.jar', 'other-1.0.jar'] as Set
+               }
+            }
+        """
+
+        when:
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":depsub:") {
+                edge('org:lib:1.0', 'org:lib:1.1') {
+                    artifact(classifier: 'classy')
+                    selectedByRule()
+                }
+                module('org:other:1.0') {
+                    module('org:lib:1.1')
+                }
+            }
+        }
+
+    }
 }

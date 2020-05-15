@@ -17,7 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ArtifactSelectionDetails;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
@@ -26,7 +28,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultComponentSelectionDescriptor;
 import org.gradle.internal.Describables;
+import org.gradle.internal.component.model.IvyArtifactName;
 
+import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 
@@ -36,10 +40,13 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
     private final ComponentSelector requested;
     private List<ComponentSelectionDescriptorInternal> ruleDescriptors;
     private ComponentSelector target;
+    private final ArtifactSelectionDetailsInternal artifactSelectionDetails;
 
-    public DefaultDependencySubstitution(ComponentSelector requested) {
+    @Inject
+    public DefaultDependencySubstitution(ComponentSelector requested, List<IvyArtifactName> artifacts) {
         this.requested = requested;
         this.target = requested;
+        this.artifactSelectionDetails = new DefaultArtifactSelectionDetails(this, artifacts);
     }
 
     @Override
@@ -58,13 +65,22 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
     }
 
     @Override
+    public void artifactSelection(Action<? super ArtifactSelectionDetails> action) {
+        action.execute(artifactSelectionDetails);
+    }
+
+    @Override
     public void useTarget(Object notation, ComponentSelectionDescriptor ruleDescriptor) {
         this.target = ComponentSelectorParsers.parser().parseNotation(notation);
+        addRuleDescriptor((ComponentSelectionDescriptorInternal) ruleDescriptor);
+        validateTarget(target);
+    }
+
+    void addRuleDescriptor(ComponentSelectionDescriptorInternal ruleDescriptor) {
         if (this.ruleDescriptors == null) {
             this.ruleDescriptors = Lists.newArrayList();
         }
-        this.ruleDescriptors.add((ComponentSelectionDescriptorInternal) ruleDescriptor);
-        validateTarget(target);
+        this.ruleDescriptors.add(ruleDescriptor);
     }
 
     @Override
@@ -80,6 +96,11 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
     @Override
     public boolean isUpdated() {
         return ruleDescriptors != null;
+    }
+
+    @Override
+    public ArtifactSelectionDetailsInternal getArtifactSelectionDetails() {
+        return artifactSelectionDetails;
     }
 
     public static void validateTarget(ComponentSelector componentSelector) {

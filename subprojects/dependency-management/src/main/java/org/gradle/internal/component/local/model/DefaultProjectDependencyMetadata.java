@@ -61,6 +61,14 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
+    public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
+        if (target.equals(selector) && delegate.getArtifacts().equals(artifacts)) {
+            return this;
+        }
+        return delegate.withTargetAndArtifacts(target, artifacts);
+    }
+
+    @Override
     public boolean isChanging() {
         return delegate.isChanging();
     }

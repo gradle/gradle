@@ -19,17 +19,22 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultDependencySubstitutionApplicator implements DependencySubstitutionApplicator {
     private final Action<DependencySubstitution> rule;
+    private final Instantiator instantiator;
 
-    public DefaultDependencySubstitutionApplicator(Action<DependencySubstitution> rule) {
+    public DefaultDependencySubstitutionApplicator(Action<DependencySubstitution> rule, Instantiator instantiator) {
         this.rule = rule;
+        this.instantiator = instantiator;
     }
 
     @Override
     public SubstitutionResult apply(DependencyMetadata dependency) {
-        DependencySubstitutionInternal details = new DefaultDependencySubstitution(dependency.getSelector());
+        DependencySubstitutionInternal details = instantiator.newInstance(DefaultDependencySubstitution.class,
+            dependency.getSelector(),
+            dependency.getArtifacts());
         try {
             rule.execute(details);
         } catch (Exception e) {

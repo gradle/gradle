@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import spock.lang.Specification
@@ -104,6 +105,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         1 * action.execute({ DefaultDependencyResolveDetails details ->
             details.requested == moduleOldRequested
         })
+        1 * moduleDetails.artifactSelection(Actions.doNothing())
         0 * _
 
         def projectOldRequested = DefaultModuleVersionSelector.newSelector(mid, "1.5")
@@ -120,6 +122,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         1 * action.execute({ DefaultDependencyResolveDetails details ->
             details.requested == projectOldRequested
         })
+        1 * projectDetails.artifactSelection(Actions.doNothing())
         0 * _
     }
 
@@ -143,6 +146,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         then:
         _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector(mid, new DefaultMutableVersionConstraint("1.5"))
         1 * moduleDetails.useTarget(matchingSubstitute, SELECTED_BY_RULE)
+        1 * moduleDetails.artifactSelection(Actions.doNothing())
         0 * _
 
         when:
@@ -191,6 +195,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         then:
         _ * projectDetails.requested >> TestComponentIdentifiers.newSelector(":api")
         1 * projectDetails.useTarget(matchingSubstitute, SELECTED_BY_RULE)
+        1 * projectDetails.artifactSelection(Actions.doNothing())
         0 * _
 
         when:

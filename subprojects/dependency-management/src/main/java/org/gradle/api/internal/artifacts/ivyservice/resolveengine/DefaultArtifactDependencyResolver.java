@@ -59,7 +59,9 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -86,6 +88,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionParser versionParser;
     private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
+    private final Instantiator instantiator;
 
     public DefaultArtifactDependencyResolver(BuildOperationExecutor buildOperationExecutor,
                                              List<ResolverProviderFactory> resolverFactories,
@@ -98,7 +101,8 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
                                              ImmutableAttributesFactory attributesFactory,
                                              VersionSelectorScheme versionSelectorScheme,
                                              VersionParser versionParser,
-                                             ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor) {
+                                             ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
+                                             InstantiatorFactory instantiatorFactory) {
         this.resolverFactories = resolverFactories;
         this.projectDependencyResolver = projectDependencyResolver;
         this.ivyFactory = ivyFactory;
@@ -111,6 +115,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionParser = versionParser;
         this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
+        this.instantiator = instantiatorFactory.decorateScheme().instantiator();
     }
 
     @Override
@@ -162,7 +167,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         if (Actions.<DependencySubstitution>doNothing() == rule) {
             applicator = NO_OP;
         } else {
-            applicator = new CachingDependencySubstitutionApplicator(new DefaultDependencySubstitutionApplicator(rule));
+            applicator = new CachingDependencySubstitutionApplicator(new DefaultDependencySubstitutionApplicator(rule, instantiator));
         }
         return applicator;
     }

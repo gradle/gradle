@@ -17,6 +17,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -103,8 +104,40 @@ public interface DependencySubstitutions {
         Substitution because(String reason);
 
         /**
+         * Specifies that the substituted target dependency should use the specified classifier.
+         *
+         * This method assumes that the target dependency is a jar (type jar, extension jar).
+         *
+         * @since 6.6
+         */
+        @Incubating
+        Substitution usingClassifier(String classifier);
+
+        /**
+         * Specifies that the substituted dependency mustn't have any classifier.
+         * It can be used whenever you need to substitute a dependency which uses a classifier into
+         * a dependency which doesn't.
+         *
+         * This method assumes that the target dependency is a jar (type jar, extension jar).
+         *
+         * @since 6.6
+         */
+        @Incubating
+        Substitution withoutClassifier();
+
+        /**
          * Specify the target of the substitution.
          */
         void with(ComponentSelector notation);
+
+
+        /**
+         * Specify the target of the substitution. This is a replacement for the {@link #with(ComponentSelector)}
+         * method which supports chaining.
+         *
+         * @since 6.6
+         */
+        @Incubating
+        Substitution to(ComponentSelector notation);
     }
 }
