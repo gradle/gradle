@@ -182,8 +182,8 @@ Similarly, if an external library with feature variants was published with {meta
 
 .Consuming specific features from an external repository
 ====
-include::sample[dir="snippets/java-feature-variant/requiring-features-external/groovy",files="build.gradle[tags=consumer]"]
-include::sample[dir="snippets/java-feature-variant/requiring-features-external/kotlin",files="build.gradle.kts[tags=consumer]"]
+include::sample[dir="snippets/java-feature-variant/requiring-features-external/groovy/project",files="build.gradle[tags=consumer]"]
+include::sample[dir="snippets/java-feature-variant/requiring-features-external/kotlin/project",files="build.gradle.kts[tags=consumer]"]
 ====
 
 

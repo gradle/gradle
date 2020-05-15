@@ -120,7 +120,7 @@ include::sample[dir="snippets/tasks/accessUsingPath/kotlin",files="build.gradle.
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{snippetsPath}/tasks/accessUsingPath/accessUsingPath.out[]
+include::{snippetsPath}/tasks/accessUsingPath/tests/accessUsingPath.out
 ----
 ====
 
@@ -233,7 +233,7 @@ include::sample[dir="snippets/tasks/addDependencyUsingPath/kotlin",files="build.
 .Output of **`gradle -q taskX`**
 ----
 > gradle -q taskX
-include::{snippetsPath}/tasks/addDependencyUsingPath/addDependencyUsingPath.out[]
+include::{snippetsPath}/tasks/addDependencyUsingPath/tests/addDependencyUsingPath.out
 ----
 ====
 
@@ -247,7 +247,7 @@ include::sample[dir="snippets/tasks/addDependencyUsingTask/kotlin",files="build.
 .Output of **`gradle -q taskX`**
 ----
 > gradle -q taskX
-include::{snippetsPath}/tasks/addDependencyUsingTask/addDependencyUsingTask.out[]
+include::{snippetsPath}/tasks/addDependencyUsingTask/tests/addDependencyUsingTask.out
 ----
 ====
 
@@ -261,7 +261,7 @@ include::sample[dir="snippets/tasks/addDependencyUsingClosure/kotlin",files="bui
 .Output of **`gradle -q taskX`**
 ----
 > gradle -q taskX
-include::{snippetsPath}/tasks/addDependencyUsingClosure/addDependencyUsingClosure.out[]
+include::{snippetsPath}/tasks/addDependencyUsingClosure/tests/addDependencyUsingClosure.out
 ----
 ====
 
@@ -293,7 +293,7 @@ include::sample[dir="snippets/tasks/mustRunAfter/kotlin",files="build.gradle.kts
 .Output of **`gradle -q taskY taskX`**
 ----
 > gradle -q taskY taskX
-include::{snippetsPath}/tasks/mustRunAfter/mustRunAfter.out[]
+include::{snippetsPath}/tasks/mustRunAfter/tests/mustRunAfter.out
 ----
 ====
 
@@ -305,7 +305,7 @@ include::sample[dir="snippets/tasks/shouldRunAfter/kotlin",files="build.gradle.k
 .Output of **`gradle -q taskY taskX`**
 ----
 > gradle -q taskY taskX
-include::{snippetsPath}/tasks/shouldRunAfter/shouldRunAfter.out[]
+include::{snippetsPath}/tasks/shouldRunAfter/tests/shouldRunAfter.out
 ----
 ====
 
@@ -316,7 +316,7 @@ In the examples above, it is still possible to execute `taskY` without causing `
 .Output of **`gradle -q taskY`**
 ----
 > gradle -q taskY
-include::{snippetsPath}/tasks/mustRunAfter/mustRunAfterSingleTask.out[]
+include::{snippetsPath}/tasks/mustRunAfter/tests/mustRunAfterSingleTask.out
 ----
 ====
 
@@ -338,7 +338,7 @@ include::sample[dir="snippets/tasks/shouldRunAfterWithCycle/kotlin",files="build
 .Output of **`gradle -q taskX`**
 ----
 > gradle -q taskX
-include::{snippetsPath}/tasks/shouldRunAfterWithCycle/shouldRunAfterWithCycle.out[]
+include::{snippetsPath}/tasks/shouldRunAfterWithCycle/tests/shouldRunAfterWithCycle.out
 ----
 ====
 
@@ -372,7 +372,7 @@ include::sample[dir="snippets/tutorial/taskOnlyIf/kotlin",files="build.gradle.kt
 .Output of **`gradle hello -PskipHello`**
 ----
 > gradle hello -PskipHello
-include::{snippetsPath}/tutorial/taskOnlyIf/taskOnlyIf.out[]
+include::{snippetsPath}/tutorial/taskOnlyIf/tests/taskOnlyIf.out
 ----
 ====
 
@@ -390,7 +390,7 @@ include::sample[dir="snippets/tutorial/stopExecutionException/kotlin",files="bui
 .Output of **`gradle -q myTask`**
 ----
 > gradle -q myTask
-include::{snippetsPath}/tutorial/stopExecutionException/stopExecutionException.out[]
+include::{snippetsPath}/tutorial/stopExecutionException/tests/stopExecutionException.out
 ----
 ====
 
@@ -409,7 +409,7 @@ include::sample[dir="snippets/tutorial/disableTask/kotlin",files="build.gradle.k
 .Output of **`gradle disableMe`**
 ----
 > gradle disableMe
-include::{snippetsPath}/tutorial/disableTask/disableTask.out[]
+include::{snippetsPath}/tutorial/disableTask/tests/disableTask.out
 ----
 ====
 
@@ -510,13 +510,13 @@ include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/groovy/buildSrc/s
 .Output of `gradle processTemplates`
 ----
 > gradle processTemplates
-include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/customTaskClassWithInputOutputAnnotations.out[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskClassWithInputOutputAnnotations.out
 ----
 
 .Output of `gradle processTemplates` (run again)
 ----
 > gradle processTemplates
-include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/customTaskClassWithInputOutputAnnotationsUpToDate.out[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskClassWithInputOutputAnnotationsUpToDate.out
 ----
 ====
 
@@ -762,7 +762,7 @@ These problems are then turned into deprecation warnings when the task is execut
 .Example output with a task having undeclared inputs and outputs
 ----
 > gradle processTemplatesRuntime
-include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/customTaskClassWithoutInputOutputAnnotations.out[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskClassWithoutInputOutputAnnotations.out
 ----
 
 [[sec:task_input_output_runtime_api]]
@@ -796,7 +796,7 @@ include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",fil
 .Output of **`gradle processTemplatesAdHoc`**
 ----
 > gradle processTemplatesAdHoc
-include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/incrementalAdHocTask.out[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/incrementalAdHocTask.out
 ----
 ====
 
@@ -833,7 +833,7 @@ include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",fil
 .Output of **`gradle clean processTemplatesAdHocSkipWhenEmpty`**
 ----
 > gradle clean processTemplatesAdHocSkipWhenEmpty
-include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/incrementalAdHocTaskNoSource.out[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/incrementalAdHocTaskNoSource.out
 ----
 ====
 
@@ -883,7 +883,7 @@ include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",fil
 .Output of **`gradle clean packageFiles`**
 ----
 > gradle clean packageFiles
-include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/inferredTaskDep.out[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/inferredTaskDep.out
 ----
 ====
 
@@ -899,7 +899,7 @@ include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",fil
 .Output of **`gradle clean packageFiles2`**
 ----
 > gradle clean packageFiles2
-include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/inferredTaskDep2.out[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/inferredTaskDep2.out
 ----
 ====
 
@@ -1002,7 +1002,7 @@ include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/groovy/b
 .Output of `gradle processTemplates`
 ----
 > gradle processTemplates
-include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/incrementalBuildCustomMethods.out[]
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildCustomMethods.out
 ----
 ====
 
@@ -1024,7 +1024,7 @@ include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/groovy/b
 .Output of `gradle processTemplates2`
 ----
 > gradle processTemplates2
-include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/incrementalBuildCustomMethodsWithTaskArg.out[]
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildCustomMethodsWithTaskArg.out
 ----
 ====
 
@@ -1050,7 +1050,7 @@ include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/ko
 .Output of **`gradle clean badInstrumentClasses`**
 ----
 > gradle clean badInstrumentClasses
-include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/incrementalBuildBadInputFilesConfig.out[]
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildBadInputFilesConfig.out
 ----
 ====
 
@@ -1066,7 +1066,7 @@ include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/ko
 .Output of **`gradle clean instrumentClasses`**
 ----
 > gradle clean instrumentClasses
-include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/incrementalBuildInputFilesConfig.out[]
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildInputFilesConfig.out
 ----
 ====
 
@@ -1080,7 +1080,7 @@ include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/ko
 .Output of **`gradle clean instrumentClasses2`**
 ----
 > gradle clean instrumentClasses2
-include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/incrementalBuildInputFilesConfigUsingTask.out[]
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildInputFilesConfigUsingTask.out
 ----
 ====
 
@@ -1096,7 +1096,7 @@ include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/ko
 .Output of **`gradle clean instrumentClassesBuiltBy`**
 ----
 > gradle clean instrumentClassesBuiltBy
-include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/inferredTaskDependencyWithBuiltBy.out[]
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/inferredTaskDependencyWithBuiltBy.out
 ----
 ====
 
@@ -1117,13 +1117,13 @@ include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/ko
 .Output of `gradle clean alwaysInstrumentClasses`
 ----
 > gradle clean alwaysInstrumentClasses
-include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/incrementalBuildUpToDateWhen.out[]
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildUpToDateWhen.out
 ----
 
 .Output of `gradle alwaysInstrumentClasses`
 ----
 > gradle alwaysInstrumentClasses
-include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/incrementalBuildUpToDateWhenAgain.out[]
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildUpToDateWhenAgain.out
 ----
 ====
 
@@ -1183,7 +1183,7 @@ include::sample[dir="snippets/tasks/addRules/kotlin",files="build.gradle.kts[tag
 .Output of **`gradle -q pingServer1`**
 ----
 > gradle -q pingServer1
-include::{snippetsPath}/tasks/addRules/taskRule.out[]
+include::{snippetsPath}/tasks/addRules/tests/taskRule.out
 ----
 ====
 
@@ -1199,7 +1199,7 @@ include::sample[dir="snippets/tasks/addRules/kotlin",files="build.gradle.kts[tag
 .Output of **`gradle -q groupPing`**
 ----
 > gradle -q groupPing
-include::{snippetsPath}/tasks/addRules/taskRuleDependsOn.out[]
+include::{snippetsPath}/tasks/addRules/tests/taskRuleDependsOn.out
 ----
 ====
 
@@ -1218,7 +1218,7 @@ include::sample[dir="snippets/tasks/finalizers/kotlin",files="build.gradle.kts[]
 .Output of **`gradle -q taskX`**
 ----
 > gradle -q taskX
-include::{snippetsPath}/tasks/finalizers/taskFinalizers.out[]
+include::{snippetsPath}/tasks/finalizers/tests/taskFinalizers.out
 ----
 ====
 
@@ -1232,7 +1232,7 @@ include::sample[dir="snippets/tasks/finalizersWithFailure/kotlin",files="build.g
 .Output of **`gradle -q taskX`**
 ----
 > gradle -q taskX
-include::{snippetsPath}/tasks/finalizersWithFailure/taskFinalizersWithFailureGroovy.out[]
+include::{snippetsPath}/tasks/finalizersWithFailure/tests/taskFinalizersWithFailureGroovy.out
 ----
 ====
 
