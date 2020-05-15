@@ -21,6 +21,4 @@ internal
 object SystemProperties {
 
     const val isQuiet = "org.gradle.unsafe.instant-execution.quiet"
-
-    const val recreateCache = "org.gradle.unsafe.instant-execution.recreate-cache"
 }

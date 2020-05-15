@@ -73,6 +73,7 @@ public class StartParameterBuildOptions {
         options.add(new ConfigurationCacheOption());
         options.add(new ConfigurationCacheFailOnProblemsOption());
         options.add(new ConfigurationCacheMaxProblemsOption());
+        options.add(new ConfigurationCacheRecreateOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -466,6 +467,24 @@ public class StartParameterBuildOptions {
         @Override
         public void applyTo(int value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheMaxProblems(value);
+        }
+    }
+
+    public static class ConfigurationCacheRecreateOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.unsafe.configuration-cache.recreate-cache";
+        public static final String LONG_OPTION = "configuration-cache-recreate-cache";
+
+        public ConfigurationCacheRecreateOption() {
+            super(PROPERTY_NAME, CommandLineOptionConfiguration.create(
+                LONG_OPTION,
+                "Recreates the configuration cache."
+            ).incubating());
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheRecreateCache(true);
         }
     }
 }

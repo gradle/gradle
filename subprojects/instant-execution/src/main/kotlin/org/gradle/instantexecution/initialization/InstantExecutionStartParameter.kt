@@ -44,7 +44,7 @@ class InstantExecutionStartParameter(
         get() = (startParameter as StartParameterInternal).isConfigurationCacheFailOnProblems
 
     val recreateCache: Boolean
-        get() = systemPropertyFlag(SystemProperties.recreateCache)
+        get() = (startParameter as StartParameterInternal).isConfigurationCacheRecreateCache
 
     val settingsDirectory: File
         get() = buildLayout.settingsDir

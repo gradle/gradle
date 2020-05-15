@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSet
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.model.ObjectFactory
 import org.gradle.initialization.LoadProjectsBuildOperationType
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.event.ListenerManager
 import org.gradle.jvm.toolchain.JavaInstallationRegistry
@@ -84,6 +85,24 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             .replaceAll(/Watching \d+ (directory hierarchies to track changes between builds in \d+ directories|directories to track changes between builds)\n/, '')
             .replaceAll(/Spent \d+ ms registering watches for file system events\n/, '')
             .replaceAll(/Virtual file system .*\n/, '')
+    }
+
+    def "can request to recreate the cache"() {
+        given:
+        def fixture = newInstantExecutionFixture()
+
+        when:
+        instantRun "help", "--${ConfigurationCacheRecreateOption.LONG_OPTION}"
+
+        then:
+        fixture.assertStateStored()
+
+        when:
+        instantRun "help", "--${ConfigurationCacheRecreateOption.LONG_OPTION}"
+
+        then:
+        fixture.assertStateStored()
+        outputContains("Recreating configuration cache")
     }
 
     def "restores some details of the project structure"() {
