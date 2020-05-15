@@ -16,6 +16,7 @@
 
 package org.gradle.internal.watch
 
+import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
@@ -721,6 +722,29 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
         where:
         buildDir << ["build", "build/myProject"]
+    }
+
+    def "can remove watched directory after all files inside have been removed"() {
+        def projectDir = file("projectDir")
+        projectDir.file("build.gradle") << """
+            apply plugin: "java-library"
+        """
+        projectDir.file("settings.gradle").createFile()
+
+        def mainSourceFile = projectDir.file("src/main/java/Main.java")
+        mainSourceFile.text = sourceFileWithGreeting("Hello World!")
+
+        when:
+        inDirectory(projectDir)
+        withRetention().run "assemble"
+        then:
+        executedAndNotSkipped ":assemble"
+
+        when:
+        FileUtils.cleanDirectory(projectDir)
+        waitForChangesToBePickedUp()
+        then:
+        projectDir.delete()
     }
 
     // This makes sure the next Gradle run starts with a clean BuildOutputCleanupRegistry
