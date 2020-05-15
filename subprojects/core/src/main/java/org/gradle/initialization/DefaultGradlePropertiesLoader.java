@@ -39,24 +39,51 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     }
 
     @Override
-    public GradleProperties loadGradleProperties(File rootDir) {
+    public LoadedGradleProperties loadGradleProperties(File rootDir) {
         return loadProperties(rootDir, startParameter, getAllSystemProperties(), getAllEnvProperties());
     }
 
-    GradleProperties loadProperties(File rootDir, StartParameterInternal startParameter, Map<String, String> systemProperties, Map<String, String> envProperties) {
+    LoadedGradleProperties loadProperties(File rootDir, StartParameterInternal startParameter, Map<String, String> allSystemProperties, Map<String, String> envProperties) {
         Map<String, String> defaultProperties = new HashMap<>();
         Map<String, String> overrideProperties = new HashMap<>();
+        Map<String, String> systemProperties = new HashMap<>();
 
-        addGradleProperties(defaultProperties, new File(startParameter.getGradleHomeDir(), GRADLE_PROPERTIES));
-        addGradleProperties(defaultProperties, new File(rootDir, GRADLE_PROPERTIES));
-        addGradleProperties(overrideProperties, new File(startParameter.getGradleUserHomeDir(), GRADLE_PROPERTIES));
+        loadPropertiesFiles(defaultProperties, systemProperties, new File(startParameter.getGradleHomeDir(), GRADLE_PROPERTIES));
+        loadPropertiesFiles(defaultProperties, systemProperties, new File(rootDir, GRADLE_PROPERTIES));
+        loadPropertiesFiles(overrideProperties, systemProperties, new File(startParameter.getGradleUserHomeDir(), GRADLE_PROPERTIES));
 
-        overrideProperties.putAll(getPropertiesFromSystemPropertiesArgs(startParameter));
         overrideProperties.putAll(getEnvProjectProperties(envProperties));
-        overrideProperties.putAll(getSystemProjectProperties(systemProperties));
+        overrideProperties.putAll(getSystemProjectProperties(allSystemProperties));
+        overrideProperties.putAll(getSystemProjectProperties(startParameter.getSystemPropertiesArgs()));
         overrideProperties.putAll(startParameter.getProjectProperties());
 
-        return new DefaultGradleProperties(defaultProperties, overrideProperties);
+        systemProperties.putAll(getNonProjectSystemPropertiesFrom(startParameter));
+
+        return new DefaultLoadedGradleProperties(
+            new DefaultGradleProperties(defaultProperties, overrideProperties),
+            systemProperties
+        );
+    }
+
+    private static class DefaultLoadedGradleProperties implements LoadedGradleProperties {
+
+        private final GradleProperties gradleProperties;
+        private final Map<String, String> systemProperties;
+
+        private DefaultLoadedGradleProperties(GradleProperties gradleProperties, Map<String, String> systemProperties) {
+            this.gradleProperties = gradleProperties;
+            this.systemProperties = systemProperties;
+        }
+
+        @Override
+        public GradleProperties getGradleProperties() {
+            return gradleProperties;
+        }
+
+        @Override
+        public Map<String, String> getSystemProperties() {
+            return systemProperties;
+        }
     }
 
     Map getAllSystemProperties() {
@@ -67,27 +94,20 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         return System.getenv();
     }
 
-    private void addGradleProperties(Map<String, String> target, File... files) {
+    private void loadPropertiesFiles(Map<String, String> gradleProperties, Map<String, String> systemProperties, File... files) {
+        String systemPropPrefix = Project.SYSTEM_PROP_PREFIX + '.';
         for (File propertyFile : files) {
             if (propertyFile != null && propertyFile.isFile()) {
                 Properties properties = GUtil.loadProperties(propertyFile);
-                target.putAll(new HashMap(properties));
+                for (String name : properties.stringPropertyNames()) {
+                    if (name.startsWith(systemPropPrefix)) {
+                        systemProperties.put(name.substring(systemPropPrefix.length()), properties.getProperty(name));
+                    } else {
+                        gradleProperties.put(name, properties.getProperty(name));
+                    }
+                }
             }
         }
-    }
-
-    private Map<String, String> getPropertiesFromSystemPropertiesArgs(StartParameterInternal startParameter) {
-        Map<String, String> properties = new HashMap<>();
-        for (Map.Entry<String, String> entry : startParameter.getSystemPropertiesArgs().entrySet()) {
-            String key = entry.getKey();
-            if (key.startsWith(SYSTEM_PROJECT_PROPERTIES_PREFIX) && key.length() > SYSTEM_PROJECT_PROPERTIES_PREFIX.length()) {
-                properties.put(key.substring(SYSTEM_PROJECT_PROPERTIES_PREFIX.length()), entry.getValue());
-            } else {
-                properties.put(Project.SYSTEM_PROP_PREFIX + '.' + key, entry.getValue());
-            }
-        }
-        LOGGER.debug("Found start parameter system properties: {}", properties.keySet());
-        return properties;
     }
 
     private Map<String, String> getSystemProjectProperties(Map<String, String> systemProperties) {
@@ -110,5 +130,15 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         }
         LOGGER.debug("Found env project properties: {}", envProjectProperties.keySet());
         return envProjectProperties;
+    }
+
+    private Map<String, String> getNonProjectSystemPropertiesFrom(StartParameterInternal startParameter) {
+        Map<String, String> properties = new HashMap<>();
+        for (Map.Entry<String, String> entry : startParameter.getSystemPropertiesArgs().entrySet()) {
+            if (!entry.getKey().startsWith(SYSTEM_PROJECT_PROPERTIES_PREFIX)) {
+                properties.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return properties;
     }
 }

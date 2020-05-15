@@ -59,10 +59,13 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         def propertiesLoader = Mock(IGradlePropertiesLoader)
         def subject = new DefaultGradlePropertiesController(propertiesLoader)
         def properties = subject.gradleProperties
-        def loadedProperties = Mock(GradleProperties)
+        def gradleProperties = Mock(GradleProperties)
+        def loadedProperties = Mock(LoadedGradleProperties)
         1 * propertiesLoader.loadGradleProperties(settingsDir) >> loadedProperties
-        1 * loadedProperties.mergeProperties(_) >> [property: '42']
-        1 * loadedProperties.find(_) >> '42'
+        2 * loadedProperties.gradleProperties >> gradleProperties
+        0 * loadedProperties.systemProperties >> [:]
+        1 * gradleProperties.mergeProperties(_) >> [property: '42']
+        1 * gradleProperties.find(_) >> '42'
 
         when:
         subject.loadGradlePropertiesFrom(settingsDir)
@@ -79,10 +82,13 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         def propertiesLoader = Mock(IGradlePropertiesLoader)
         def subject = new DefaultGradlePropertiesController(propertiesLoader)
         def properties = subject.gradleProperties
-        def loadedProperties = Mock(GradleProperties)
+        def gradleProperties = Mock(GradleProperties)
+        def loadedProperties = Mock(LoadedGradleProperties)
         1 * propertiesLoader.loadGradleProperties(settingsDir) >> loadedProperties
-        2 * loadedProperties.mergeProperties(_) >> [property: '42']
-        1 * loadedProperties.find(_) >> '42'
+        1 * loadedProperties.gradleProperties >> gradleProperties
+        1 * loadedProperties.systemProperties >> [:]
+        1 * gradleProperties.mergeProperties(_) >> [property: '42']
+        1 * gradleProperties.find(_) >> '42'
 
         when:
         subject.applyToSystemProperties(settingsDir)
@@ -99,7 +105,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         def currentDir = { new File('.') }
         def propertiesLoader = Mock(IGradlePropertiesLoader)
         def subject = new DefaultGradlePropertiesController(propertiesLoader)
-        def loadedProperties = Mock(GradleProperties)
+        def loadedProperties = Mock(LoadedGradleProperties)
 
         when: "calling the method multiple times with the same value"
         subject.loadGradlePropertiesFrom(currentDir())
@@ -117,9 +123,11 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         def propertiesLoader = Mock(IGradlePropertiesLoader)
         def systemPropertySetter = Mock(BiConsumer)
         def subject = new DefaultGradlePropertiesController(propertiesLoader, systemPropertySetter)
-        def loadedProperties = Mock(GradleProperties)
+        def gradleProperties = Mock(GradleProperties)
+        def loadedProperties = Mock(LoadedGradleProperties)
         1 * propertiesLoader.loadGradleProperties(currentDir()) >> loadedProperties
-        1 * loadedProperties.mergeProperties(_) >> ['systemProp.property': '42']
+        1 * loadedProperties.gradleProperties >> gradleProperties
+        1 * loadedProperties.systemProperties >> [property: '42']
 
         when: "calling the method multiple times with the same value"
         subject.applyToSystemProperties(currentDir())
@@ -135,7 +143,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         def settingsDir = new File('a')
         def propertiesLoader = Mock(IGradlePropertiesLoader)
         def subject = new DefaultGradlePropertiesController(propertiesLoader)
-        def loadedProperties = Mock(GradleProperties)
+        def loadedProperties = Mock(LoadedGradleProperties)
         1 * propertiesLoader.loadGradleProperties(settingsDir) >> loadedProperties
 
         when:
@@ -152,7 +160,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         def settingsDir = new File('a')
         def propertiesLoader = Mock(IGradlePropertiesLoader)
         def subject = new DefaultGradlePropertiesController(propertiesLoader)
-        def loadedProperties = Mock(GradleProperties)
+        def loadedProperties = Mock(LoadedGradleProperties)
         1 * propertiesLoader.loadGradleProperties(settingsDir) >> loadedProperties
 
         when:

@@ -17,15 +17,12 @@
 package org.gradle.initialization;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.Project;
 import org.gradle.api.internal.properties.GradleProperties;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 import java.util.function.BiConsumer;
-
-import static java.util.Collections.emptyMap;
 
 public class DefaultGradlePropertiesController implements GradlePropertiesController {
 
@@ -113,17 +110,17 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
     private class Loaded implements State {
 
-        private final GradleProperties gradleProperties;
+        private final LoadedGradleProperties loadedProperties;
         private final File propertiesDir;
 
-        public Loaded(GradleProperties gradleProperties, File propertiesDir) {
-            this.gradleProperties = gradleProperties;
+        public Loaded(LoadedGradleProperties loadedProperties, File propertiesDir) {
+            this.loadedProperties = loadedProperties;
             this.propertiesDir = propertiesDir;
         }
 
         @Override
         public GradleProperties gradleProperties() {
-            return gradleProperties;
+            return loadedProperties.getGradleProperties();
         }
 
         @Override
@@ -136,16 +133,12 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         public State applyToSystemProperties(File settingsDir) {
             validatePropertiesDir(propertiesDir, settingsDir);
             applyToSystemProperties();
-            return new Applied(gradleProperties, propertiesDir);
+            return new Applied(loadedProperties.getGradleProperties(), propertiesDir);
         }
 
         private void applyToSystemProperties() {
-            String prefix = Project.SYSTEM_PROP_PREFIX + '.';
-            for (Map.Entry<String, String> entry : gradleProperties.mergeProperties(emptyMap()).entrySet()) {
-                String key = entry.getKey();
-                if (key.startsWith(prefix)) {
-                    systemPropertySetter.accept(key.substring(prefix.length()), entry.getValue());
-                }
+            for (Map.Entry<String, String> entry : loadedProperties.getSystemProperties().entrySet()) {
+                systemPropertySetter.accept(entry.getKey(), entry.getValue());
             }
         }
     }
@@ -155,8 +148,8 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         private final GradleProperties gradleProperties;
         private final File propertiesDir;
 
-        private Applied(GradleProperties gradleProperties, File propertiesDir) {
-            this.gradleProperties = gradleProperties;
+        private Applied(GradleProperties loadedProperties, File propertiesDir) {
+            this.gradleProperties = loadedProperties;
             this.propertiesDir = propertiesDir;
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.initialization;
 
-import java.io.File;
+import org.gradle.api.internal.properties.GradleProperties;
 
-public interface IGradlePropertiesLoader {
+import java.util.Map;
 
-    String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";
-
-    String ENV_PROJECT_PROPERTIES_PREFIX = "ORG_GRADLE_PROJECT_";
+public interface LoadedGradleProperties {
 
     /**
-     * Loads the immutable set of Gradle properties.
-     *
-     * @since 6.2
+     * Immutable set of gradle properties.
      */
-    LoadedGradleProperties loadGradleProperties(File rootDir);
+    GradleProperties getGradleProperties();
+
+    /**
+     * Immutable set of system properties defined from gradle properties.
+     */
+    Map<String, String> getSystemProperties();
 }

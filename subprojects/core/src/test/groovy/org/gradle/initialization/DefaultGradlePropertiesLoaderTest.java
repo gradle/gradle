@@ -17,7 +17,6 @@ package org.gradle.initialization;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
@@ -241,7 +240,7 @@ public class DefaultGradlePropertiesLoaderTest {
         assertEquals("value", properties.get("prop1"));
         assertEquals("value", properties.get("prop2"));
 
-        properties = loadPropertiesFrom(otherSettingsDir).mergeProperties(emptyMap());
+        properties = loadPropertiesFrom(otherSettingsDir).getGradleProperties().mergeProperties(emptyMap());
         assertEquals("otherValue", properties.get("prop1"));
         assertNull(properties.get("prop2"));
     }
@@ -272,21 +271,23 @@ public class DefaultGradlePropertiesLoaderTest {
             "org.gradle.project.property", "commandline val"
         )));
 
-        GradleProperties loaded = loadProperties();
+        LoadedGradleProperties loaded = loadProperties();
 
-        assertEquals("commandline value", loaded.find("systemProp.prop"));
-        assertEquals("commandline val", loaded.find("property"));
+        assertEquals("commandline value", loaded.getSystemProperties().get("prop"));
+        assertNull(loaded.getGradleProperties().find("systemProp.prop"));
+
+        assertEquals("commandline val", loaded.getGradleProperties().find("property"));
     }
 
     private Map<String, String> loadAndMergePropertiesWith(Map<String, String> properties) {
-        return loadProperties().mergeProperties(properties);
+        return loadProperties().getGradleProperties().mergeProperties(properties);
     }
 
-    private GradleProperties loadProperties() {
+    private LoadedGradleProperties loadProperties() {
         return loadPropertiesFrom(settingsDir);
     }
 
-    private GradleProperties loadPropertiesFrom(File settingsDir) {
+    private LoadedGradleProperties loadPropertiesFrom(File settingsDir) {
         return gradlePropertiesLoader.loadProperties(
             settingsDir,
             startParameter,
