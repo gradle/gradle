@@ -16,29 +16,51 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Task;
 import org.gradle.api.credentials.PasswordCredentials;
+import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.TaskInputs;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.credentials.DefaultPasswordCredentials;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class GradlePropertiesCredentialsProviderFactory implements CredentialsProviderFactory {
 
     private final GradleProperties gradleProperties;
+    private final TaskExecutionGraph taskExecutionGraph;
 
-    public GradlePropertiesCredentialsProviderFactory(GradleProperties gradleProperties) {
+    private boolean credentialsBeingEvaluated = false;
+
+    private final Map<String, PasswordCredentialsProvider> passwordProviders = new HashMap<>();
+
+    public GradlePropertiesCredentialsProviderFactory(GradleProperties gradleProperties, TaskExecutionGraph taskExecutionGraph) {
         this.gradleProperties = gradleProperties;
+        this.taskExecutionGraph = taskExecutionGraph;
     }
 
     @Override
     public Provider<PasswordCredentials> usernameAndPassword(String identity) {
         validateIdentity(identity);
-        return new PasswordCredentialsProvider(identity);
+        registerCredentialsEvaluator();
+        return passwordProviders.computeIfAbsent(identity, PasswordCredentialsProvider::new);
+    }
+
+    private void registerCredentialsEvaluator() {
+        if (!credentialsBeingEvaluated) {
+            taskExecutionGraph.whenReady(graph -> {
+                graph.getAllTasks().stream().map(Task::getInputs).forEach(TaskInputs::getProperties);
+                passwordProviders.values().stream().filter(p -> p.valueRequested).forEach(AbstractMinimalProvider::get);
+            });
+            credentialsBeingEvaluated = true;
+        }
     }
 
     private void validateIdentity(@Nullable String identity) {
@@ -52,6 +74,8 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
         private final String usernameProperty;
         private final String passwordProperty;
 
+        private boolean valueRequested = false;
+
         public PasswordCredentialsProvider(String identity) {
             this.usernameProperty = identity + "Username";
             this.passwordProperty = identity + "Password";
@@ -64,6 +88,7 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
 
         @Override
         protected Value<? extends PasswordCredentials> calculateOwnValue(ValueConsumer consumer) {
+            this.valueRequested = true;
             String username = gradleProperties.find(usernameProperty);
             String password = gradleProperties.find(passwordProperty);
             List<DisplayName> missingProperties = new ArrayList<>();
@@ -95,5 +120,6 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
             return Describables.of(String.format("Gradle property '%s'", property));
         }
     }
+
 }
 

@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.MutationGuards;
@@ -339,7 +340,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected CredentialsProviderFactory createCredentialsProviderFactory(GradleProperties gradleProperties) {
-        return new GradlePropertiesCredentialsProviderFactory(gradleProperties);
+    protected CredentialsProviderFactory createCredentialsProviderFactory(GradleProperties gradleProperties, TaskExecutionGraph taskExecutionGraph) {
+        return new GradlePropertiesCredentialsProviderFactory(gradleProperties, taskExecutionGraph);
     }
 }

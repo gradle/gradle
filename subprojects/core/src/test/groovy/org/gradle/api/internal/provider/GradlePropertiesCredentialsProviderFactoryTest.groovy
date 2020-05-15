@@ -16,14 +16,17 @@
 
 package org.gradle.api.internal.provider
 
+
 import org.gradle.api.credentials.PasswordCredentials
+import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.internal.properties.GradleProperties
 import spock.lang.Specification
 
 class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
 
     def gradleProperties = Mock(GradleProperties)
-    def factory = new GradlePropertiesCredentialsProviderFactory(gradleProperties)
+    def taskExecutionGraph = Mock(TaskExecutionGraph)
+    def factory = new GradlePropertiesCredentialsProviderFactory(gradleProperties, taskExecutionGraph)
 
     def "does not allow non-letters and non-digits for identity"() {
         when:
@@ -82,4 +85,15 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
         credentials['username'] == 'admin'
         credentials['password'] == 'secret'
     }
+
+    def "reuses username and password provider with same identity"() {
+        expect:
+        factory.usernameAndPassword('id') == factory.usernameAndPassword('id')
+    }
+
+    def "creates distinct username and password providers for different identities"() {
+        expect:
+        factory.usernameAndPassword('id') != factory.usernameAndPassword('id2')
+    }
+
 }
