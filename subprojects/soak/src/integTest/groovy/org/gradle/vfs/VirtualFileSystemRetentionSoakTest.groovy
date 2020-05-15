@@ -90,9 +90,9 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
             daemon.assertIdle()
             assertWatchingSucceeded()
             boolean overflowDetected = detectOverflow(daemon, endOfDaemonLog)
-            int expectedNumberOfRetainedFiles = retainedFilesInLastBuild - numberOfChangesBetweenBuilds
-            int retainedFilesAtTheBeginningOfTheCurrentBuild = retainedFilesSinceLastBuild
             if (!overflowDetected) {
+                int expectedNumberOfRetainedFiles = retainedFilesInLastBuild - numberOfChangesBetweenBuilds
+                int retainedFilesAtTheBeginningOfTheCurrentBuild = retainedFilesSinceLastBuild
                 assert retainedFilesAtTheBeginningOfTheCurrentBuild <= expectedNumberOfRetainedFiles
                 assert expectedNumberOfRetainedFiles - 100 <= retainedFilesAtTheBeginningOfTheCurrentBuild
             }
@@ -122,7 +122,6 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
             waitBetweenChangesToAvoidOverflow()
         }
         boolean overflowDetected = detectOverflow(daemon, 0)
-        int expectedNumberOfRetainedFiles = retainedFilesInCurrentBuild - numberOfChangedSourcesFilesPerBatch
         then:
         succeeds("assemble")
         daemons.daemon.logFile == daemon.logFile
@@ -130,6 +129,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
         assertWatchingSucceeded()
         receivedFileSystemEventsSinceLastBuild >= minimumExpectedFileSystemEvents(numberOfChangedSourcesFilesPerBatch, numberOfChangeBatches)
         if (!overflowDetected) {
+            int expectedNumberOfRetainedFiles = retainedFilesInCurrentBuild - numberOfChangedSourcesFilesPerBatch
             assert retainedFilesSinceLastBuild == expectedNumberOfRetainedFiles
         }
     }
