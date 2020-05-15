@@ -49,8 +49,6 @@ class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListe
             if (VirtualFileSystemServices.isDropVfs(startParameter)) {
                 virtualFileSystem.invalidateAll();
             }
-        } else if (VirtualFileSystemServices.isPartialInvalidationEnabled(startParameter)) {
-            IncubationLogger.incubatingFeatureUsed("Partial virtual file system invalidation");
         }
         virtualFileSystem.afterBuildStarted(watchFileSystem);
         gradle.settingsEvaluated(settings -> virtualFileSystem.updateMustWatchDirectories(ImmutableList.of(settings.getRootDir())));
