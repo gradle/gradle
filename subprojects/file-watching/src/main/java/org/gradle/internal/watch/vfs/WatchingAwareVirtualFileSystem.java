@@ -32,7 +32,11 @@ public interface WatchingAwareVirtualFileSystem extends VirtualFileSystem {
      */
     void afterBuildStarted(boolean watchingEnabled);
 
-    void updateMustWatchDirectories(Collection<File> mustWatchDirectories);
+    /**
+     * Called when there is a change to project root directories,
+     * normally when settings have been evaluated.
+     */
+    void updateProjectRootDirectories(Collection<File> projectRootDirectories);
 
     /**
      * Called when the build is finished.

@@ -42,7 +42,7 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private final Map<String, ImmutableList<Path>> watchedRootsForSnapshot = new HashMap<>();
     private final Multiset<Path> shouldWatchDirectories = HashMultiset.create();
     private final Set<Path> watchedRoots = new HashSet<>();
-    private final Set<Path> mustWatchDirectories = new HashSet<>();
+    private final Set<Path> projectRootDirectories = new HashSet<>();
     private final FileWatcher watcher;
 
     public HierarchicalFileWatcherUpdater(FileWatcher watcher) {
@@ -64,29 +64,29 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void updateMustWatchDirectories(Collection<File> updatedWatchDirectories) {
-        Set<Path> rootPaths = updatedWatchDirectories.stream()
+    public void updateProjectRootDirectories(Collection<File> updatedProjectRootDirectories) {
+        Set<Path> rootPaths = updatedProjectRootDirectories.stream()
             .filter(File::isDirectory)
             .map(File::toPath)
             .map(Path::toAbsolutePath)
             .collect(Collectors.toSet());
-        mustWatchDirectories.clear();
-        mustWatchDirectories.addAll(WatchRootUtil.resolveRootsToWatch(rootPaths));
+        projectRootDirectories.clear();
+        projectRootDirectories.addAll(WatchRootUtil.resolveRootsToWatch(rootPaths));
         updateWatchedDirectories();
     }
 
     private void updateWatchedDirectories() {
-        Set<String> mustWatchDirectoryPrefixes = ImmutableSet.copyOf(
-            mustWatchDirectories.stream()
+        Set<String> projectRootDirectoryPrefixes = ImmutableSet.copyOf(
+            projectRootDirectories.stream()
                 .map(path -> path.toString() + File.separator)
                 ::iterator
         );
         Set<Path> directoriesToWatch = shouldWatchDirectories.elementSet().stream()
-            .filter(path -> !startsWithAnyPrefix(path.toString(), mustWatchDirectoryPrefixes))
+            .filter(path -> !startsWithAnyPrefix(path.toString(), projectRootDirectoryPrefixes))
             .collect(Collectors.toSet());
         if (directoriesToWatch.size() < shouldWatchDirectories.size()) {
-            // Only watch mustWatchDirectories if we are interested in anything inside
-            directoriesToWatch.addAll(mustWatchDirectories);
+            // Only watch projectRootDirectories if we are interested in anything inside
+            directoriesToWatch.addAll(projectRootDirectories);
         }
 
         updateWatchedDirectories(WatchRootUtil.resolveRootsToWatch(directoriesToWatch));

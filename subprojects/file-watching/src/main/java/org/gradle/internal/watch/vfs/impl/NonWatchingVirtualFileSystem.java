@@ -44,7 +44,7 @@ public class NonWatchingVirtualFileSystem extends AbstractDelegatingVirtualFileS
     }
 
     @Override
-    public void updateMustWatchDirectories(Collection<File> mustWatchDirectories) {
+    public void updateProjectRootDirectories(Collection<File> projectRootDirectories) {
     }
 
     @Override
