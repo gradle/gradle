@@ -19,6 +19,9 @@ package org.gradle.internal.locking;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.ArtifactSelectionDetails;
+import org.gradle.api.artifacts.ArtifactVariantSelector;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -32,6 +35,7 @@ import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ArtifactSelectionDetailsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -246,6 +250,11 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             didSubstitute = true;
         }
 
+        @Override
+        public void artifactSelection(Action<? super ArtifactSelectionDetails> action) {
+            throw new UnsupportedOperationException();
+        }
+
         boolean didSubstitute() {
             return didSubstitute;
         }
@@ -268,6 +277,43 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         @Override
         public boolean isUpdated() {
             return false;
+        }
+
+        @Override
+        public ArtifactSelectionDetailsInternal getArtifactSelectionDetails() {
+            return new NoOpArtifactSelectionDetails();
+        }
+
+        private static class NoOpArtifactSelectionDetails implements ArtifactSelectionDetailsInternal {
+            @Override
+            public boolean isUpdated() {
+                return false;
+            }
+
+            @Override
+            public List<ArtifactVariantSelector> getTargetSelectors() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public boolean hasSelectors() {
+                return false;
+            }
+
+            @Override
+            public List<ArtifactVariantSelector> getRequestedSelectors() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public void selectArtifact(String type, @Nullable String extension, @Nullable String classifier) {
+
+            }
+
+            @Override
+            public void selectArtifact(ArtifactVariantSelector selector) {
+
+            }
         }
     }
 }

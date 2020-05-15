@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ArtifactSelectionDetails;
 import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.DependencySubstitutions;
@@ -47,6 +48,7 @@ import org.gradle.util.Path;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class DefaultDependencySubstitutions implements DependencySubstitutionsInternal {
     private final Set<Action<? super DependencySubstitution>> substitutionRules;
@@ -125,7 +127,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
 
     @Override
     public DependencySubstitutions allWithDependencyResolveDetails(Action<? super DependencyResolveDetails> rule, ComponentSelectorConverter componentSelectorConverter) {
-        addRule(new DependencyResolveDetailsWrapperAction(rule, componentSelectorConverter));
+        addRule(new DependencyResolveDetailsWrapperAction(rule, componentSelectorConverter, Actions::doNothing));
         return this;
     }
 
@@ -142,10 +144,30 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     @Override
     public Substitution substitute(final ComponentSelector substituted) {
         return new Substitution() {
+            Action<? super ArtifactSelectionDetails> artifactAction = Actions.doNothing();
+
             ComponentSelectionDescriptorInternal substitutionReason = (ComponentSelectionDescriptorInternal) reason;
             @Override
             public Substitution because(String description) {
                 substitutionReason = substitutionReason.withDescription(Describables.of(description));
+                return this;
+            }
+
+            @Override
+            public Substitution usingClassifier(String classifier) {
+                artifactAction = Actions.composite(artifactAction, new SetClassifier(classifier));
+                return this;
+            }
+
+            @Override
+            public Substitution withoutClassifier() {
+                artifactAction = Actions.composite(artifactAction, NoClassifier.INSTANCE);
+                return this;
+            }
+
+            @Override
+            public Substitution to(ComponentSelector notation) {
+                with(notation);
                 return this;
             }
 
@@ -167,9 +189,9 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
                             substitutionReason = substitutionReason.markAsEquivalentToForce();
                         }
                     }
-                    addSubstitution(new ModuleMatchDependencySubstitutionAction(substitutionReason, moduleId, substitute), projectInvolved);
+                    addSubstitution(new ModuleMatchDependencySubstitutionAction(substitutionReason, moduleId, substitute, () -> artifactAction), projectInvolved);
                 } else {
-                    addSubstitution(new ExactMatchDependencySubstitutionAction(substitutionReason, substituted, substitute), projectInvolved);
+                    addSubstitution(new ExactMatchDependencySubstitutionAction(substitutionReason, substituted, substitute, () -> artifactAction), projectInvolved);
                 }
             }
         };
@@ -225,12 +247,26 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         }
     }
 
-    private static class ExactMatchDependencySubstitutionAction implements Action<DependencySubstitution> {
+    private abstract static class AbstractDependencySubstitutionAction implements Action<DependencySubstitution> {
+        private final Supplier<Action<? super ArtifactSelectionDetails>> artifactSelectionAction;
+
+        protected AbstractDependencySubstitutionAction(Supplier<Action<? super ArtifactSelectionDetails>> artifactSelectionAction) {
+            this.artifactSelectionAction = artifactSelectionAction;
+        }
+
+        @Override
+        public void execute(DependencySubstitution dependencySubstitution) {
+            dependencySubstitution.artifactSelection(artifactSelectionAction.get());
+        }
+    }
+
+    private static class ExactMatchDependencySubstitutionAction extends AbstractDependencySubstitutionAction {
         private final ComponentSelectionDescriptorInternal selectionReason;
         private final ComponentSelector substituted;
         private final ComponentSelector substitute;
 
-        public ExactMatchDependencySubstitutionAction(ComponentSelectionDescriptorInternal selectionReason, ComponentSelector substituted, ComponentSelector substitute) {
+        public ExactMatchDependencySubstitutionAction(ComponentSelectionDescriptorInternal selectionReason, ComponentSelector substituted, ComponentSelector substitute, Supplier<Action<? super ArtifactSelectionDetails>> artifactSelectionAction) {
+            super(artifactSelectionAction);
             this.selectionReason = selectionReason;
             this.substituted = substituted;
             this.substitute = substitute;
@@ -239,17 +275,20 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         @Override
         public void execute(DependencySubstitution dependencySubstitution) {
             if (substituted.equals(dependencySubstitution.getRequested())) {
+                super.execute(dependencySubstitution);
                 ((DependencySubstitutionInternal) dependencySubstitution).useTarget(substitute, selectionReason);
             }
         }
+
     }
 
-    private static class ModuleMatchDependencySubstitutionAction implements Action<DependencySubstitution> {
+    private static class ModuleMatchDependencySubstitutionAction extends AbstractDependencySubstitutionAction {
         private final ComponentSelectionDescriptorInternal selectionReason;
         private final ModuleIdentifier moduleId;
         private final ComponentSelector substitute;
 
-        public ModuleMatchDependencySubstitutionAction(ComponentSelectionDescriptorInternal selectionReason, ModuleIdentifier moduleId, ComponentSelector substitute) {
+        public ModuleMatchDependencySubstitutionAction(ComponentSelectionDescriptorInternal selectionReason, ModuleIdentifier moduleId, ComponentSelector substitute, Supplier<Action<? super ArtifactSelectionDetails>> artifactSelectionAction) {
+            super(artifactSelectionAction);
             this.selectionReason = selectionReason;
             this.moduleId = moduleId;
             this.substitute = substitute;
@@ -260,27 +299,52 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             if (dependencySubstitution.getRequested() instanceof ModuleComponentSelector) {
                 ModuleComponentSelector requested = (ModuleComponentSelector) dependencySubstitution.getRequested();
                 if (moduleId.equals(requested.getModuleIdentifier())) {
+                    super.execute(dependencySubstitution);
                     ((DependencySubstitutionInternal) dependencySubstitution).useTarget(substitute, selectionReason);
                 }
             }
         }
     }
 
-    private static class DependencyResolveDetailsWrapperAction implements Action<DependencySubstitution> {
+    private static class DependencyResolveDetailsWrapperAction extends AbstractDependencySubstitutionAction {
         private final Action<? super DependencyResolveDetails> delegate;
         private final ComponentSelectorConverter componentSelectorConverter;
 
-        public DependencyResolveDetailsWrapperAction(Action<? super DependencyResolveDetails> delegate, ComponentSelectorConverter componentSelectorConverter) {
+        public DependencyResolveDetailsWrapperAction(Action<? super DependencyResolveDetails> delegate, ComponentSelectorConverter componentSelectorConverter, Supplier<Action<? super ArtifactSelectionDetails>> artifactSelectionAction) {
+            super(artifactSelectionAction);
             this.delegate = delegate;
             this.componentSelectorConverter = componentSelectorConverter;
         }
 
         @Override
         public void execute(DependencySubstitution substitution) {
+            super.execute(substitution);
             ModuleVersionSelector requested = componentSelectorConverter.getSelector(substitution.getRequested());
             DefaultDependencyResolveDetails details = new DefaultDependencyResolveDetails((DependencySubstitutionInternal) substitution, requested);
             delegate.execute(details);
             details.complete();
+        }
+    }
+
+    private static class SetClassifier implements Action<ArtifactSelectionDetails> {
+        private final String classifier;
+
+        public SetClassifier(String classifier) {
+            this.classifier = classifier;
+        }
+
+        @Override
+        public void execute(ArtifactSelectionDetails artifactSelectionDetails) {
+            artifactSelectionDetails.selectArtifact("jar", null, classifier);
+        }
+    }
+
+    private static class NoClassifier implements Action<ArtifactSelectionDetails> {
+        private static final NoClassifier INSTANCE = new NoClassifier();
+
+        @Override
+        public void execute(ArtifactSelectionDetails artifactSelectionDetails) {
+            artifactSelectionDetails.selectArtifact("jar", null, null);
         }
     }
 }
