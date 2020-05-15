@@ -324,7 +324,7 @@ class DefaultInstantExecution internal constructor(
         encoder,
         scopeRegistryListener,
         logger,
-        problems::onProblem
+        problems
     )
 
     private
@@ -334,7 +334,7 @@ class DefaultInstantExecution internal constructor(
         service(),
         beanConstructors,
         logger,
-        problems::onProblem
+        problems
     )
 
     private

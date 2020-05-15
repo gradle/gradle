@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.instantexecution.ClassLoaderScopeSpec
+import org.gradle.instantexecution.problems.ProblemsListener
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
@@ -47,7 +48,7 @@ class DefaultWriteContext(
     override val logger: Logger,
 
     private
-    val problemHandler: (PropertyProblem) -> Unit
+    val problemsListener: ProblemsListener
 
 ) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, Encoder by encoder, AutoCloseable {
 
@@ -139,7 +140,7 @@ class DefaultWriteContext(
         DefaultWriteIsolate(owner)
 
     override fun onProblem(problem: PropertyProblem) {
-        problemHandler(problem)
+        problemsListener.onProblem(problem)
     }
 }
 
@@ -175,7 +176,7 @@ class DefaultReadContext(
     override val logger: Logger,
 
     private
-    val problemHandler: (PropertyProblem) -> Unit
+    val problemsListener: ProblemsListener
 
 ) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder {
 
@@ -278,7 +279,7 @@ class DefaultReadContext(
         DefaultReadIsolate(owner)
 
     override fun onProblem(problem: PropertyProblem) {
-        problemHandler(problem)
+        problemsListener.onProblem(problem)
     }
 }
 
