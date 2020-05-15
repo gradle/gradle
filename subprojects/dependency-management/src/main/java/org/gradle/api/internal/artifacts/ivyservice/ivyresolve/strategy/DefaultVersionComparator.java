@@ -28,6 +28,11 @@ public class DefaultVersionComparator implements VersionComparator {
     private Comparator<Version> baseComparator;
     private final FeaturePreviews featurePreviews;
 
+    public DefaultVersionComparator() {
+        // We preserve the no-arg constructor since this change is temporary
+        // and there is a chance this class is used in plugins out there
+        this(null);
+    }
     public DefaultVersionComparator(FeaturePreviews featurePreviews) {
         this.featurePreviews = featurePreviews;
         computeBaseComparator();
@@ -51,7 +56,7 @@ public class DefaultVersionComparator implements VersionComparator {
 
     // To be removed once the feature preview disappears
     private void computeBaseComparator() {
-        if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.DEPENDENCY_VERSION_SORTING)) {
+        if (featurePreviews != null && featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.DEPENDENCY_VERSION_SORTING)) {
             baseComparator = new StaticVersionComparator(StaticVersionComparator.UPDATED_SPECIAL_MEANINGS);
         } else {
             baseComparator = new StaticVersionComparator(StaticVersionComparator.SPECIAL_MEANINGS);
