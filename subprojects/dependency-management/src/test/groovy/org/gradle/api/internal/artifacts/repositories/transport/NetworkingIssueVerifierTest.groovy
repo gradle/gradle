@@ -33,6 +33,7 @@ class NetworkingIssueVerifierTest extends Specification {
 
         where:
         description                                                 | failure
+        "SocketException"                                           | new SocketException()
         "SocketTimeoutException"                                    | new SocketTimeoutException()
         "HttpHostConnectException"                                  | new HttpHostConnectException(new IOException("something went wrong"), null, null)
         "DefaultMultiCauseException"                                | new DefaultMultiCauseException("something went wrong", new SocketTimeoutException())
