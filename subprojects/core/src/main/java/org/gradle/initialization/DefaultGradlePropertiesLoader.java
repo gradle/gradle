@@ -100,10 +100,9 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
             if (propertyFile != null && propertyFile.isFile()) {
                 Properties properties = GUtil.loadProperties(propertyFile);
                 for (String name : properties.stringPropertyNames()) {
+                    gradleProperties.put(name, properties.getProperty(name));
                     if (name.startsWith(systemPropPrefix)) {
                         systemProperties.put(name.substring(systemPropPrefix.length()), properties.getProperty(name));
-                    } else {
-                        gradleProperties.put(name, properties.getProperty(name));
                     }
                 }
             }

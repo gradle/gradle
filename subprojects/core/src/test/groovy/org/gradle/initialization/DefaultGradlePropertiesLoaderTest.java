@@ -274,8 +274,6 @@ public class DefaultGradlePropertiesLoaderTest {
         LoadedGradleProperties loaded = loadProperties();
 
         assertEquals("commandline value", loaded.getSystemProperties().get("prop"));
-        assertNull(loaded.getGradleProperties().find("systemProp.prop"));
-
         assertEquals("commandline val", loaded.getGradleProperties().find("property"));
     }
 
