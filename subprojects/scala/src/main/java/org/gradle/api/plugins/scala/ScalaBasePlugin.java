@@ -35,7 +35,6 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.tasks.DefaultScalaSourceSet;
@@ -63,6 +62,7 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Scala sources.</p>
@@ -173,8 +173,12 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 scalaDirectorySet.srcDir(project.file("src/" + sourceSet.getName() + "/scala"));
                 sourceSet.getAllJava().source(scalaDirectorySet);
                 sourceSet.getAllSource().source(scalaDirectorySet);
+
+                // Explicitly capture only a FileCollection in the lambda below for compatibility with instant-execution.
                 FileCollection scalaSource = scalaDirectorySet;
-                sourceSet.getResources().getFilter().exclude(new IsScalaSourceSpec(scalaSource));
+                sourceSet.getResources().getFilter().exclude(
+                    spec(element -> scalaSource.contains(element.getFile()))
+                );
 
                 Configuration classpath = project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName());
                 Configuration incrementalAnalysis = project.getConfigurations().create("incrementalScalaAnalysisFor" + sourceSet.getName());
@@ -313,19 +317,6 @@ public class ScalaBasePlugin implements Plugin<Project> {
                     details.closestMatch(javaRuntime);
                 }
             }
-        }
-    }
-
-    private static class IsScalaSourceSpec implements Spec<FileTreeElement> {
-        private final FileCollection scalaSource;
-
-        public IsScalaSourceSpec(FileCollection scalaSource) {
-            this.scalaSource = scalaSource;
-        }
-
-        @Override
-        public boolean isSatisfiedBy(FileTreeElement element) {
-            return scalaSource.contains(element.getFile());
         }
     }
 }

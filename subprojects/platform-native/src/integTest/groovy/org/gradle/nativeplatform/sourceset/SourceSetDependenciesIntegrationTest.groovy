@@ -115,7 +115,6 @@ model {
         executable("build/exe/main/main").exec().out == app.englishOutput
     }
 
-    @ToBeFixedForInstantExecution
     def "source files in depended-on source set are not included"() {
         given:
         def app = new CHelloWorldApp()
@@ -143,7 +142,6 @@ model {
         succeeds "mainExecutable"
     }
 
-    @ToBeFixedForInstantExecution
     def "binary depending on source set has no effect"() {
         given:
         def app = new CHelloWorldApp()

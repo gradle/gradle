@@ -68,8 +68,11 @@ open class BuildScanPlugin : Plugin<Project> {
         extractCiOrLocalData()
         extractVcsData()
 
+        // TODO: Background build scan upload when running user code is current broken
+        // with Gradle 6.5 and gradle enterprise plugin 3.3.
+        // As soon as this is fixed, we should enable upload in the background for non-CI builds again.
+        doNotUploadInBackground()
         if (isCiServer) {
-            doNotUploadInBackground()
             if (!isTravis && !isJenkins) {
                 extractAllReportsFromCI()
                 monitorUnexpectedCacheMisses()

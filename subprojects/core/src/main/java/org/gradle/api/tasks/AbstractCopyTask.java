@@ -50,6 +50,8 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
+
 /**
  * {@code AbstractCopyTask} is the base class for all copy tasks.
  */
@@ -86,7 +88,10 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
                 .optional(true);
             getInputs().property(specPropertyName + ".filteringCharset", (Callable<String>) spec::getFilteringCharset);
         });
-        this.getOutputs().doNotCacheIf("Has custom actions", task -> rootSpec.hasCustomActions());
+        this.getOutputs().doNotCacheIf(
+            "Has custom actions",
+            spec(task -> rootSpec.hasCustomActions())
+        );
         this.mainSpec = rootSpec.addChild();
     }
 
@@ -138,6 +143,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
 
     /**
      * Returns the source files for this task.
+     *
      * @return The source files. Never returns null.
      */
     @Internal

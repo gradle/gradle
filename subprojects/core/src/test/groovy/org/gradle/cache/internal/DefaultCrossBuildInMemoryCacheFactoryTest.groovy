@@ -19,12 +19,13 @@ package org.gradle.cache.internal
 import org.gradle.api.Transformer
 import org.gradle.initialization.SessionLifecycleListener
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.service.scopes.Scopes
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.CopyOnWriteArrayList
 
 class DefaultCrossBuildInMemoryCacheFactoryTest extends ConcurrentSpec {
-    def listenerManager = new DefaultListenerManager()
+    def listenerManager = new DefaultListenerManager(Scopes.BuildSession)
     def factory = new DefaultCrossBuildInMemoryCacheFactory(listenerManager)
 
     def "creates a cache that uses the given transformer to create entries"() {

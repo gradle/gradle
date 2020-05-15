@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.file.FileWatcher;
-import org.gradle.internal.file.FileMetadataSnapshot.AccessType;
+import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
@@ -109,7 +109,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         if (watchedRoots.isEmpty()) {
             LOGGER.info("Not watching anything anymore");
         }
-        LOGGER.info("Watching {} directory hierarchies to track changes", watchedRoots.entrySet().size());
+        LOGGER.info("Watching {} directories to track changes", watchedRoots.entrySet().size());
         try {
             if (!watchRootsToRemove.isEmpty()) {
                 fileWatcher.stopWatching(watchRootsToRemove);

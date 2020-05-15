@@ -16,25 +16,25 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
-import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.file.FileMetadataSnapshot.AccessType;
-import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadata;
+import org.gradle.internal.file.FileMetadata.AccessType;
+import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 
 import java.io.File;
 
 public class FallbackFileMetadataAccessor implements FileMetadataAccessor {
     @Override
-    public FileMetadataSnapshot stat(File f) {
+    public FileMetadata stat(File f) {
         if (!f.exists()) {
-            return DefaultFileMetadataSnapshot.missing(AccessType.DIRECT);
+            return DefaultFileMetadata.missing(AccessType.DIRECT);
         }
         if (f.isDirectory()) {
-            return DefaultFileMetadataSnapshot.directory(AccessType.DIRECT);
+            return DefaultFileMetadata.directory(AccessType.DIRECT);
         }
         if (f.isFile()) {
-            return DefaultFileMetadataSnapshot.file(f.lastModified(), f.length(), AccessType.DIRECT);
+            return DefaultFileMetadata.file(f.lastModified(), f.length(), AccessType.DIRECT);
         }
-        return DefaultFileMetadataSnapshot.missing(AccessType.DIRECT);
+        return DefaultFileMetadata.missing(AccessType.DIRECT);
     }
 }

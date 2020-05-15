@@ -46,6 +46,7 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.scan.config.BuildScanConfigInit
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.GradleVersion
@@ -55,7 +56,7 @@ import spock.lang.Specification
 
 class DefaultGradleSpec extends Specification {
     ServiceRegistryFactory serviceRegistryFactory = Stub(ServiceRegistryFactory)
-    ListenerManager listenerManager = Spy(DefaultListenerManager)
+    ListenerManager listenerManager = Spy(TestListenerManager)
 
     StartParameter parameter = new StartParameter()
     CurrentGradleInstallation currentGradleInstallation = Mock(CurrentGradleInstallation)
@@ -432,5 +433,11 @@ class DefaultGradleSpec extends Specification {
         _ * project.getMutationState() >> projectState
         _ * projectState.withMutableState(_) >> { Runnable runnable -> runnable.run() }
         return project
+    }
+
+    static class TestListenerManager extends DefaultListenerManager {
+        TestListenerManager() {
+            super(Scopes.Build)
+        }
     }
 }

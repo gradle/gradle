@@ -51,7 +51,7 @@ classycle {
 tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
     // TestKit multi version tests are not using JUnit categories
-    (options as JUnitPlatformOptions).includeTags.clear()
+    (options as JUnitOptions).includeCategories.clear()
 }
 
 testFilesCleanup {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution.serialization.codecs
+package org.gradle.instantexecution.serialization.codecs.transform
 
 import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.instantexecution.serialization.Codec

@@ -137,7 +137,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
     def "can build debug and release variant of the executable"() {
         given:
         def app = new SwiftAppWithOptionalFeature()
@@ -173,7 +172,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         debugBinary.assertHasDebugSymbolsFor(app.sourceFileNames)
     }
 
-    @ToBeFixedForInstantExecution
     def "can use executable file as task dependency"() {
         given:
         def app = new SwiftApp()
@@ -195,7 +193,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         executable("build/exe/main/debug/App").assertExists()
     }
 
-    @ToBeFixedForInstantExecution
     def "can use objects as task dependency"() {
         given:
         def app = new SwiftApp()
@@ -218,7 +215,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         objectFiles(app.main)*.assertExists()
     }
 
-    @ToBeFixedForInstantExecution
     def "can use installDirectory as task dependency"() {
         given:
         def app = new SwiftApp()
@@ -240,7 +236,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
     def "ignores non-Swift source files in source directory"() {
         given:
         def app = new SwiftApp()
@@ -266,7 +261,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
     def "build logic can change source layout convention"() {
         given:
         def app = new SwiftApp()
@@ -292,7 +286,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
     def "build logic can add individual source files"() {
         given:
         def app = new SwiftApp()
@@ -325,7 +318,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
     def "build logic can change buildDir"() {
         given:
         def app = new SwiftApp()
@@ -349,7 +341,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("output/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
     def "build logic can define the module name"() {
         given:
         def app = new SwiftApp()
@@ -371,7 +362,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
     def "build logic can change task output locations"() {
         given:
         def app = new SwiftApp()
@@ -400,7 +390,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("build/some-app").exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
     def "can compile and link against a library"() {
         settingsFile << "include 'app', 'greeter'"
         def app = new SwiftAppWithLibrary()
@@ -431,7 +420,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation.assertIncludesLibraries("Greeter")
     }
 
-    @ToBeFixedForInstantExecution
     def "can compile and link against a library specifying target machines"() {
         settingsFile << "include 'app', 'greeter'"
         def app = new SwiftAppWithLibrary()
@@ -501,7 +489,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         failure.assertHasCause("No matching configuration of project :greeter was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'native-runtime', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName}', attribute 'org.gradle.native.architecture' with value '${currentArchitecture}' but:")
     }
 
-    @ToBeFixedForInstantExecution
     def "can compile and link against a static library"() {
         settingsFile << "include 'app', 'greeter'"
         def app = new SwiftAppWithLibrary()
@@ -534,7 +521,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation.assertIncludesLibraries()
     }
 
-    @ToBeFixedForInstantExecution
     def "can compile and link against a library with both linkage defined"() {
         settingsFile << "include 'app', 'greeter'"
         def app = new SwiftAppWithLibrary()
@@ -567,7 +553,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation.assertIncludesLibraries("Greeter")
     }
 
-    @ToBeFixedForInstantExecution
     def "can compile and link against library with API dependencies"() {
         settingsFile << "include 'app', 'hello', 'log'"
         def app = new SwiftAppWithLibraries()
@@ -619,7 +604,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("app/build/install/main/release").exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
     def "can compile and link against static library with API dependencies"() {
         settingsFile << "include 'app', 'hello', 'log'"
         def app = new SwiftAppWithLibraries()
@@ -674,7 +658,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("app/build/install/main/release").exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
     def "can compile and link against static library with API dependencies to shared library"() {
         settingsFile << "include 'app', 'hello', 'log'"
         def app = new SwiftAppWithLibraries()
@@ -729,7 +712,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("app/build/install/main/release").exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
     def "can compile and link against shared library with API dependencies to static library"() {
         settingsFile << "include 'app', 'hello', 'log'"
         def app = new SwiftAppWithLibraries()
@@ -784,7 +766,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("app/build/install/main/release").exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
     def "can compile and link against a library with debug and release variants"() {
         settingsFile << "include 'app', 'hello'"
         def app = new SwiftAppWithLibraryAndOptionalFeature()
@@ -831,7 +812,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         executable("app/build/exe/main/debug/App").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
     def "can compile and link against a static library with debug and release variants"() {
         settingsFile << "include 'app', 'hello'"
         def app = new SwiftAppWithLibraryAndOptionalFeature()
@@ -877,7 +857,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         executable("app/build/exe/main/debug/App").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
     def "honors changes to library buildDir"() {
         settingsFile << "include 'app', 'hello', 'log'"
         def app = new SwiftAppWithLibraries()
@@ -918,7 +897,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         sharedLibrary("app/build/install/main/debug/lib/Log").file.assertExists()
     }
 
-    @ToBeFixedForInstantExecution
     def "multiple components can share the same source directory"() {
         settingsFile << "include 'app', 'hello', 'log'"
         def app = new SwiftAppWithLibraries()
@@ -1012,7 +990,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         sharedLibrary("build/install/main/debug/lib/Log").file.assertExists()
     }
 
-    @ToBeFixedForInstantExecution
     def "can detect Swift compiler version"() {
         def app = new SwiftCompilerDetectingApp(toolChain.version.major)
 

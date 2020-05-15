@@ -18,9 +18,9 @@ package org.gradle.internal.nativeintegration.filesystem;
 import com.google.common.collect.ImmutableMap;
 import net.rubygrapefruit.platform.file.Files;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.file.FileMetadataSnapshot.AccessType;
-import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadata;
+import org.gradle.internal.file.FileMetadata.AccessType;
+import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.nativeintegration.filesystem.jdk7.NioFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.FallbackFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.NativePlatformBackedFileMetadataAccessor;
@@ -116,19 +116,19 @@ public class FileMetadataAccessorBenchmark {
 
     private static class Jdk7FileMetadataAccessor implements FileMetadataAccessor {
         @Override
-        public FileMetadataSnapshot stat(File f) {
+        public FileMetadata stat(File f) {
             if (!f.exists()) {
                 // This is really not cool, but we cannot rely on `readAttributes` because it will
                 // THROW AN EXCEPTION if the file is missing, which is really incredibly slow just
                 // to determine if a file exists or not.
-                return DefaultFileMetadataSnapshot.missing(AccessType.DIRECT);
+                return DefaultFileMetadata.missing(AccessType.DIRECT);
             }
             try {
                 BasicFileAttributes bfa = java.nio.file.Files.readAttributes(f.toPath(), BasicFileAttributes.class);
                 if (bfa.isDirectory()) {
-                    return DefaultFileMetadataSnapshot.directory(AccessType.DIRECT);
+                    return DefaultFileMetadata.directory(AccessType.DIRECT);
                 }
-                return DefaultFileMetadataSnapshot.file(bfa.lastModifiedTime().toMillis(), bfa.size(), AccessType.DIRECT);
+                return DefaultFileMetadata.file(bfa.lastModifiedTime().toMillis(), bfa.size(), AccessType.DIRECT);
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }

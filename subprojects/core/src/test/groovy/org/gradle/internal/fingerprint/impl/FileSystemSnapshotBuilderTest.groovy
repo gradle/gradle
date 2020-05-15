@@ -17,9 +17,9 @@
 package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.internal.file.FileMetadataSnapshot
-import org.gradle.internal.file.FileMetadataSnapshot.AccessType
-import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot
+import org.gradle.internal.file.FileMetadata
+import org.gradle.internal.file.FileMetadata.AccessType
+import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
@@ -184,7 +184,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
         subDirSnapshot.absolutePath == subDir.absolutePath
     }
 
-    private static FileMetadataSnapshot fileMetadata(AccessType accessType = AccessType.DIRECT) {
-        DefaultFileMetadataSnapshot.file(0, 5, accessType)
+    private static FileMetadata fileMetadata(AccessType accessType = AccessType.DIRECT) {
+        DefaultFileMetadata.file(0, 5, accessType)
     }
 }

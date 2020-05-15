@@ -17,8 +17,11 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
 
 
+@EventScope(Scopes.Build)
 public interface TaskExecutionAccessListener {
 
     /**

@@ -32,6 +32,7 @@ import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
 import org.gradle.launcher.exec.BuildActionExecuter
@@ -58,7 +59,7 @@ class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
     def actionParameters = Stub(BuildActionParameters)
     def waiterFactory = Mock(FileSystemChangeWaiterFactory)
     def waiter = Mock(FileSystemChangeWaiter)
-    def listenerManager = new DefaultListenerManager()
+    def listenerManager = new DefaultListenerManager(Scopes.Global)
     def inputsListeners = new DefaultTaskInputsListeners(listenerManager)
     def buildSessionScopeServices = Stub(ServiceRegistry)
     def deploymentRegistry = Mock(DeploymentRegistryInternal)
@@ -67,7 +68,7 @@ class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
     private File file = new File('file')
 
     def setup() {
-        buildSessionScopeServices.get(ListenerManager) >> listenerManager
+        buildSessionScopeServices.get(ListenerManager) >> listenerManager.createChild(Scopes.BuildSession)
         buildSessionScopeServices.get(BuildStartedTime) >> buildExecutionTimer
         buildSessionScopeServices.get(Clock) >> Time.clock()
         waiterFactory.createChangeWaiter(_, _, _) >> waiter

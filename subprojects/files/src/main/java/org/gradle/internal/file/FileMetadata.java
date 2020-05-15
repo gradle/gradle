@@ -17,9 +17,9 @@
 package org.gradle.internal.file;
 
 /**
- * An immutable snapshot of the metadata of a file.
+ * The metadata of a file.
  */
-public interface FileMetadataSnapshot {
+public interface FileMetadata {
     FileType getType();
 
     /**
@@ -43,11 +43,11 @@ public interface FileMetadataSnapshot {
      * {@link AccessType} only gives information about the queried path, not about parents of the queried path.
      *
      * If we have a symlink situation like `symlink1` -> `symlink2` -> `target`,
-     * then the metadata snapshot for `symlink1` will have an access type {@link AccessType#VIA_SYMLINK}
+     * then the metadata for `symlink1` will have an access type {@link AccessType#VIA_SYMLINK}
      * and the metadata of `target`, i.e. the accessor will resolve transitive symlinks.
      *
      * If the directory `symlinkedDir` -> `targetDir` is a symlink, then the
-     * metadata snapshot of `symlinkedDir/fileInDir` will be {@link AccessType#DIRECT},
+     * metadata of `symlinkedDir/fileInDir` will be {@link AccessType#DIRECT},
      * given the file `targetDir/fileInDir` exists.
      */
     enum AccessType {

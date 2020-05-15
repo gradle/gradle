@@ -30,7 +30,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     def setup() {
         // Useful for diagnosing swiftc incremental compile failures
         buildFile << """
-            allprojects {            
+            allprojects {
                 tasks.withType(SwiftCompile) {
                     compilerArgs.add('-driver-show-incremental')
                 }
@@ -41,7 +41,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     @ToBeFixedForInstantExecution
     def 'recompiles only the Swift source files that have changed'() {
         given:
-        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
         def app = new SwiftApp()
         settingsFile << "rootProject.name = 'app'"
         app.writeToProject(testDirectory)
@@ -72,7 +72,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     @ToBeFixedForInstantExecution
     def 'adding a new file only compiles new file'() {
         given:
-        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
         def app = new SwiftApp()
         settingsFile << "rootProject.name = 'app'"
         app.writeToProject(testDirectory)
@@ -117,7 +117,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     @ToBeFixedForInstantExecution
     def 'removing a file rebuilds everything'() {
         given:
-        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
         def app = new SwiftApp()
         settingsFile << "rootProject.name = 'app'"
         app.writeToProject(testDirectory)
@@ -138,7 +138,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     @ToBeFixedForInstantExecution
     def 'removing an isolated file does not rebuild anything'() {
         given:
-        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
         def app = new SwiftApp()
         settingsFile << "rootProject.name = 'app'"
         app.writeToProject(testDirectory)
@@ -155,10 +155,9 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.deletedClasses("multiply")
     }
 
-    @ToBeFixedForInstantExecution
     def 'changing compiler arguments rebuilds everything'() {
         given:
-        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
         def app = new SwiftApp()
         settingsFile << "rootProject.name = 'app'"
         app.writeToProject(testDirectory)
@@ -179,10 +178,9 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
     }
 
-    @ToBeFixedForInstantExecution
     def 'changing macros rebuilds everything'() {
         given:
-        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
         def app = new SwiftApp()
         settingsFile << "rootProject.name = 'app'"
         app.writeToProject(testDirectory)
@@ -206,7 +204,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     @ToBeFixedForInstantExecution
     def 'changes to an unused dependency rebuilds everything'() {
         given:
-        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
         def app = new SwiftApp()
         settingsFile << """
             rootProject.name = 'app'
@@ -214,7 +212,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         """
         buildFile << """
             apply plugin: 'swift-application'
-            
+
             project(":unused") {
                 apply plugin: 'swift-library'
             }
@@ -252,10 +250,9 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
-    @ToBeFixedForInstantExecution
     def 'changing Swift language level rebuilds everything'() {
         given:
-        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
         def app = new SwiftApp()
         settingsFile << "rootProject.name = 'app'"
         app.writeToProject(testDirectory)
@@ -285,7 +282,6 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
     // This isn't quite right, we really want to assert something like "has both swiftc3 and swiftc4"
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
-    @ToBeFixedForInstantExecution
     def 'changing Swift tool chain rebuilds everything'() {
         given:
         def swiftc3 = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_3)
@@ -304,7 +300,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
             }
         """
 
-        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
         def app = new SwiftApp()
         settingsFile << "rootProject.name = 'app'"
         app.writeToProject(testDirectory)

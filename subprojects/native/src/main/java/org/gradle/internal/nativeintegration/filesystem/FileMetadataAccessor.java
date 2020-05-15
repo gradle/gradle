@@ -16,18 +16,18 @@
 
 package org.gradle.internal.nativeintegration.filesystem;
 
-import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadata;
 
 import java.io.File;
 
 public interface FileMetadataAccessor {
     /**
-     * Takes a file metadata snapshot of a {@link File}.
+     * Gets the file metadata of a {@link File}.
      * <p>
      * If the type of the file cannot be determined, or is
      * neither {@link org.gradle.internal.file.FileType#RegularFile}
      * nor {@link org.gradle.internal.file.FileType#Directory},
-     * then the file type of the returned snapshot is of type
+     * then the file type of the file metadata is of type
      * {@link org.gradle.internal.file.FileType#Missing}.
      * <p>
      * Such cases include:
@@ -38,5 +38,5 @@ public interface FileMetadataAccessor {
      *     <li>named pipes</li>
      * </ul>
      */
-    FileMetadataSnapshot stat(File f);
+    FileMetadata stat(File f);
 }

@@ -20,8 +20,8 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.CachingFileHasher.FileInfo
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.PersistentIndexedCache
-import org.gradle.internal.file.FileMetadataSnapshot.AccessType
-import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot
+import org.gradle.internal.file.FileMetadata.AccessType
+import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -148,10 +148,10 @@ class CachingFileHasherTest extends Specification {
     def hashesGivenFileLengthAndLastModified() {
         long lastModified = 123l
         long length = 321l
-        def fileDetails = DefaultFileMetadataSnapshot.file(lastModified, length, AccessType.DIRECT)
+        def fileMetadata = DefaultFileMetadata.file(lastModified, length, AccessType.DIRECT)
 
         when:
-        def result = hasher.hash(file, fileDetails.length, fileDetails.lastModified)
+        def result = hasher.hash(file, fileMetadata.length, fileMetadata.lastModified)
 
         then:
         result == hash

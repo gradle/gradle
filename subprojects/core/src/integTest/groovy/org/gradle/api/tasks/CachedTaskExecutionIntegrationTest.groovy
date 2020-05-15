@@ -307,7 +307,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         skipped ':compileJava'
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.cacheIf")
     def "outputs loaded from the cache are snapshotted as outputs"() {
         buildFile << """
             apply plugin: 'base'

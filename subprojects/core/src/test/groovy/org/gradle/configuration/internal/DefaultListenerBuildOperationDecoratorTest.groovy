@@ -34,6 +34,7 @@ import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.InternalListener
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.service.scopes.Scopes
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -543,7 +544,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
 
     def 'decorated listeners can be removed from listener manager'() {
         given:
-        def listenerManager = new DefaultListenerManager()
+        def listenerManager = new DefaultListenerManager(Scopes.Build)
         def gradle = Mock(Gradle)
         boolean called = false
         def undecorated = new BuildAdapter() {

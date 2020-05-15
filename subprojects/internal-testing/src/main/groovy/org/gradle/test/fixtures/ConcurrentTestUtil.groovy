@@ -496,11 +496,6 @@ class ManagedExecutorStub extends AbstractExecutorService implements ManagedExec
     }
 
     @Override
-    void setFixedPoolSize(int numThreads) {
-        throw new UnsupportedOperationException()
-    }
-
-    @Override
     void setKeepAlive(int timeout, TimeUnit timeUnit) {
         throw new UnsupportedOperationException()
     }

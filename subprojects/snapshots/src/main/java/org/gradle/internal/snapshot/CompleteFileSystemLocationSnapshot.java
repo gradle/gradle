@@ -16,7 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Comparator;
@@ -71,5 +71,5 @@ public interface CompleteFileSystemLocationSnapshot extends FileSystemSnapshot, 
     /**
      * Whether the file system location represented by this snapshot is a symlink or not.
      */
-    FileMetadataSnapshot.AccessType getAccessType();
+    FileMetadata.AccessType getAccessType();
 }

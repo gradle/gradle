@@ -55,7 +55,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         "PmdPluginIntegrationTest",
         "CppLibraryPluginIntegrationTest",
         "CppApplicationPluginIntegrationTest",
-        "SwiftApplicationPluginIntegrationTest",
         "XcodePluginIntegrationTest",
         "IdeaPluginGoodBehaviourTest"
     ])
@@ -93,7 +92,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         "PmdPluginIntegrationTest",
         "CppLibraryPluginIntegrationTest",
         "CppApplicationPluginIntegrationTest",
-        "SwiftApplicationPluginIntegrationTest",
         "XcodePluginIntegrationTest",
         "IdeaPluginGoodBehaviourTest"
     ])

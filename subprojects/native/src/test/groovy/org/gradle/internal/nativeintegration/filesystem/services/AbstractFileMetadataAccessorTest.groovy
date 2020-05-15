@@ -16,8 +16,8 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services
 
-import org.gradle.internal.file.FileMetadataSnapshot
-import org.gradle.internal.file.FileMetadataSnapshot.AccessType
+import org.gradle.internal.file.FileMetadata
+import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.FileType
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -27,8 +27,8 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.internal.file.FileMetadataSnapshot.AccessType.DIRECT
-import static org.gradle.internal.file.FileMetadataSnapshot.AccessType.VIA_SYMLINK
+import static org.gradle.internal.file.FileMetadata.AccessType.DIRECT
+import static org.gradle.internal.file.FileMetadata.AccessType.VIA_SYMLINK
 
 @UsesNativeServices
 abstract class AbstractFileMetadataAccessorTest extends Specification {
@@ -36,10 +36,10 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     abstract FileMetadataAccessor getAccessor()
 
-    abstract void assertSameLastModified(FileMetadataSnapshot metadataSnapshot, File file)
+    abstract void assertSameLastModified(FileMetadata fileMetadata, File file)
 
-    void assertSameAccessType(FileMetadataSnapshot metadataSnapshot, AccessType accessType) {
-        assert metadataSnapshot.accessType == accessType
+    void assertSameAccessType(FileMetadata fileMetadata, AccessType accessType) {
+        assert fileMetadata.accessType == accessType
     }
 
     def "stats missing file"() {

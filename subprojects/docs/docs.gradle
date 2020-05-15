@@ -72,8 +72,6 @@ dependencies {
     testImplementation('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
     testImplementation libraries.commons_httpclient.coordinates
     testImplementation "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
-    docsTestImplementation "${libraries.junit5_vintage.coordinates}:${libraries.junit5_vintage.version}"
-    docsTestImplementation "${libraries.junit.coordinates}:${libraries.junit.version}"
 }
 
 configurations.testImplementation {
@@ -402,6 +400,16 @@ samples {
                 from(sampleDirectory.dir("common"))
             }
             // TODO (donat) sanity checks probably don't do anything for samples located one level down in the gradle/kotlin directories
+        }
+
+        credentialsForExternalToolViaStdin {
+            sampleDirectory = samplesRoot.dir("credentials-handling/pass-credentials-to-external-tool-via-stdin")
+            displayName = "Supply credentials to external tool"
+            description = "Pass credentials to an external tool via stdin using Gradle properties."
+            category = "Credentials handling"
+            common {
+                from(sampleDirectory.dir("common"))
+            }
         }
     }
 }

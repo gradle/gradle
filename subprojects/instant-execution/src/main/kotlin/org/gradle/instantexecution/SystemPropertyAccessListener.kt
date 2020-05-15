@@ -64,10 +64,10 @@ class SystemPropertyAccessListener(
         val message = StructuredMessage.build {
             text("read system property '")
             text(key)
-            text("' from ")
+            text("' from class ")
             reference(consumer)
         }
         val exception = InvalidUserCodeException(message.toString().capitalize())
-        problems.onProblem(PropertyProblem(PropertyTrace.Unknown, message, exception))
+        problems.onProblem(PropertyProblem(PropertyTrace.Unknown, message, exception, "undeclared_sys_prop_reads"))
     }
 }

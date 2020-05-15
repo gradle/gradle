@@ -51,6 +51,7 @@ import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.instantexecution.serialization.beans.readPropertyValue
 import org.gradle.instantexecution.serialization.beans.writeNextProperty
 import org.gradle.instantexecution.serialization.readCollection
+import org.gradle.instantexecution.serialization.readCollectionInto
 import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withIsolate
@@ -89,6 +90,8 @@ class TaskNodeCodec(
 
         withTaskOf(taskType, task, userTypesCodec) {
             writeUpToDateSpec(task)
+            writeCollection(task.outputs.cacheIfSpecs)
+            writeCollection(task.outputs.doNotCacheIfSpecs)
             beanStateWriterFor(task.javaClass).run {
                 writeStateOf(task)
                 writeRegisteredPropertiesOf(task, this as BeanPropertyWriter)
@@ -109,6 +112,8 @@ class TaskNodeCodec(
 
         withTaskOf(taskType, task, userTypesCodec) {
             readUpToDateSpec(task)
+            readCollectionInto { task.outputs.cacheIfSpecs.uncheckedCast() }
+            readCollectionInto { task.outputs.doNotCacheIfSpecs.uncheckedCast() }
             beanStateReaderFor(task.javaClass).run {
                 readStateOf(task)
                 readRegisteredPropertiesOf(task)

@@ -17,6 +17,8 @@
 package org.gradle.internal.event
 
 import com.google.common.reflect.ClassPath
+import org.gradle.internal.service.scopes.EventScope
+import org.gradle.internal.service.scopes.Scopes
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -26,7 +28,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 @Timeout(60)
 class DefaultListenerManagerTest extends ConcurrentSpec {
-    def manager = new DefaultListenerManager();
+    def manager = new DefaultListenerManager(Scopes.BuildTree)
 
     def fooListener1 = Mock(TestFooListener.class)
     def fooListener2 = Mock(TestFooListener.class)
@@ -36,8 +38,8 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
     def broadcasterDoesNothingWhenNoListenersRegistered() {
         when:
         manager.getBroadcaster(TestFooListener.class).foo("param")
-        manager.createChild().getBroadcaster(TestFooListener.class).foo("param")
-        manager.createChild().createAnonymousBroadcaster(TestFooListener.class).source.foo("param")
+        manager.createChild(Scopes.Build).getBroadcaster(BuildScopeListener.class).foo("param")
+        manager.createChild(Scopes.Build).createAnonymousBroadcaster(BuildScopeListener.class).source.foo("param")
 
         then:
         0 * _
@@ -50,11 +52,11 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
 
     def canAddListenerBeforeObtainingBroadcaster() {
         given:
-        manager.addListener(fooListener1);
+        manager.addListener(fooListener1)
         def broadcaster = manager.getBroadcaster(TestFooListener.class)
 
         when:
-        broadcaster.foo("param");
+        broadcaster.foo("param")
 
         then:
         1 * fooListener1.foo("param")
@@ -64,10 +66,10 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
     def canAddListenerAfterObtainingBroadcaster() {
         given:
         def broadcaster = manager.getBroadcaster(TestFooListener.class)
-        manager.addListener(fooListener1);
+        manager.addListener(fooListener1)
 
         when:
-        broadcaster.foo("param");
+        broadcaster.foo("param")
 
         then:
         1 * fooListener1.foo("param")
@@ -80,11 +82,29 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         def broadcaster = manager.getBroadcaster(TestFooListener.class)
 
         when:
-        broadcaster.foo("param");
+        broadcaster.foo("param")
 
         then:
         1 * fooListener1.foo("param")
         0 * _
+    }
+
+    def "cannot use listener type that does not have @EventScope annotation"() {
+        when:
+        manager.getBroadcaster(Runnable.class)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == 'Listener type java.lang.Runnable is not annotated with @EventScope.'
+    }
+
+    def "cannot use listener type with mismatched scope"() {
+        when:
+        manager.getBroadcaster(TestListenerWithWrongScope.class)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Listener type ${TestListenerWithWrongScope.name} with scope Global cannot be used to generate events in scope BuildTree."
     }
 
     def canAddLoggerAfterObtainingBroadcaster() {
@@ -93,7 +113,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         def broadcaster = manager.getBroadcaster(TestFooListener.class)
 
         when:
-        broadcaster.foo("param");
+        broadcaster.foo("param")
 
         then:
         1 * fooListener1.foo("param")
@@ -299,9 +319,9 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
             thread.block()
             instant.aHandled
         },
-        bar: { int i ->
-            instant.bReceived
-        }
+                        bar: { int i ->
+                            instant.bReceived
+                        }
         ] as BothListener
 
         manager.addListener(listener)
@@ -399,19 +419,22 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         def failure1 = new RuntimeException()
         def failure2 = new RuntimeException()
         def failure3 = new RuntimeException()
-        manager.addListener(fooListener1)
-        manager.addListener(fooListener2)
-        def child = manager.createChild()
-        child.addListener(fooListener3)
-        def testFooListener = child.getBroadcaster(TestFooListener.class)
+        def listener1 = Mock(BuildScopeListener)
+        def listener2 = Mock(BuildScopeListener)
+        def listener3 = Mock(BuildScopeListener)
+        manager.addListener(listener1)
+        manager.addListener(listener2)
+        def child = manager.createChild(Scopes.Build)
+        child.addListener(listener3)
+        def broadcast = child.getBroadcaster(BuildScopeListener.class)
 
         when:
-        testFooListener.foo("param")
+        broadcast.foo("param")
 
         then:
-        1 * fooListener1.foo("param") >> { throw failure1 }
-        1 * fooListener2.foo("param") >> { throw failure2 }
-        1 * fooListener3.foo("param") >> { throw failure3 }
+        1 * listener1.foo("param") >> { throw failure1 }
+        1 * listener2.foo("param") >> { throw failure2 }
+        1 * listener3.foo("param") >> { throw failure3 }
         0 * _
 
         and:
@@ -448,20 +471,23 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         def failure1 = new RuntimeException()
         def failure2 = new RuntimeException()
         def failure3 = new RuntimeException()
-        manager.addListener(fooListener1)
-        def child = manager.createChild()
-        child.addListener(fooListener2)
-        def broadcast = child.createAnonymousBroadcaster(TestFooListener.class)
-        broadcast.add(fooListener3)
-        def testFooListener = broadcast.getSource()
+        def listener1 = Mock(BuildScopeListener)
+        def listener2 = Mock(BuildScopeListener)
+        def listener3 = Mock(BuildScopeListener)
+        manager.addListener(listener1)
+        def child = manager.createChild(Scopes.Build)
+        child.addListener(listener2)
+        def broadcast = child.createAnonymousBroadcaster(BuildScopeListener.class)
+        broadcast.add(listener3)
+        def broadcaster = broadcast.getSource()
 
         when:
-        testFooListener.foo("param")
+        broadcaster.foo("param")
 
         then:
-        1 * fooListener1.foo("param") >> { throw failure1 }
-        1 * fooListener2.foo("param") >> { throw failure2 }
-        1 * fooListener3.foo("param") >> { throw failure3 }
+        1 * listener1.foo("param") >> { throw failure1 }
+        1 * listener2.foo("param") >> { throw failure2 }
+        1 * listener3.foo("param") >> { throw failure3 }
         0 * _
 
         and:
@@ -471,19 +497,22 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
 
     def listenerReceivesEventsFromChildren() {
         given:
-        manager.addListener(fooListener1)
-        def child = manager.createChild()
-        child.addListener(fooListener2)
-        def broadcaster = child.getBroadcaster(TestFooListener.class)
-        manager.addListener(fooListener3)
+        def listener1 = Mock(BuildScopeListener)
+        def listener2 = Mock(BuildScopeListener)
+        def listener3 = Mock(BuildScopeListener)
+        manager.addListener(listener1)
+        def child = manager.createChild(Scopes.Build)
+        child.addListener(listener2)
+        def broadcaster = child.getBroadcaster(BuildScopeListener.class)
+        manager.addListener(listener3)
 
         when:
         broadcaster.foo("param")
 
         then:
-        1 * fooListener1.foo("param")
-        1 * fooListener2.foo("param")
-        1 * fooListener3.foo("param")
+        1 * listener1.foo("param")
+        1 * listener2.foo("param")
+        1 * listener3.foo("param")
         0 * _
     }
 
@@ -500,23 +529,25 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
 
     def loggerReceivesEventsFromChildren() {
         given:
-        manager.useLogger(fooListener1)
-        def child = manager.createChild();
-        def broadcaster = child.getBroadcaster(TestFooListener.class)
+        def listener1 = Mock(BuildScopeListener)
+        def listener2 = Mock(BuildScopeListener)
+        manager.useLogger(listener1)
+        def child = manager.createChild(Scopes.Build)
+        def broadcaster = child.getBroadcaster(BuildScopeListener.class)
 
         when:
         broadcaster.foo("param")
 
         then:
-        1 * fooListener1.foo("param")
+        1 * listener1.foo("param")
         0 * _
 
         when:
-        manager.useLogger(fooListener2) // replace listener
+        manager.useLogger(listener2) // replace listener
         broadcaster.foo("param")
 
         then:
-        1 * fooListener2.foo("param")
+        1 * listener2.foo("param")
         0 * _
     }
 
@@ -533,24 +564,27 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
 
     def loggerInChildHasPrecedenceOverLoggerInParent() {
         given:
-        manager.useLogger(fooListener1)
-        def child = manager.createChild()
-        def broadcaster = child.getBroadcaster(TestFooListener.class)
-        child.useLogger(fooListener2)
+        def listener1 = Mock(BuildScopeListener)
+        def listener2 = Mock(BuildScopeListener)
+        def listener3 = Mock(BuildScopeListener)
+        manager.useLogger(listener1)
+        def child = manager.createChild(Scopes.Build)
+        def broadcaster = child.getBroadcaster(BuildScopeListener.class)
+        child.useLogger(listener2)
 
         when:
         broadcaster.foo("param")
 
         then:
-        1 * fooListener2.foo("param")
+        1 * listener2.foo("param")
         0 * _
 
         when:
-        child.useLogger(fooListener3)
+        child.useLogger(listener3)
         broadcaster.foo("param2")
 
         then:
-        1 * fooListener3.foo("param2")
+        1 * listener3.foo("param2")
         0 * _
     }
 
@@ -942,18 +976,32 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         manager.hasListeners(TestBarListener)
     }
 
-    public interface TestFooListener {
+    @EventScope(Scopes.BuildTree)
+    interface TestFooListener {
         void foo(String param);
     }
 
-    public interface TestBarListener {
+    @EventScope(Scopes.Build)
+    interface BuildScopeListener {
+        void foo(String param);
+    }
+
+    @EventScope(Scopes.BuildTree)
+    interface TestBarListener {
         void bar(int value);
     }
 
-    public interface BothListener extends TestFooListener, TestBarListener {
+    @EventScope(Scopes.BuildTree)
+    interface BothListener extends TestFooListener, TestBarListener {
     }
 
-    public interface TestBazListener {
+    @EventScope(Scopes.BuildTree)
+    interface TestBazListener {
         void baz()
+    }
+
+    @EventScope(Scopes.Global)
+    public interface TestListenerWithWrongScope {
+        void foo(String param);
     }
 }

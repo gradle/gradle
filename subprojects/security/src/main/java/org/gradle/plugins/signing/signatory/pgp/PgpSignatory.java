@@ -94,7 +94,7 @@ public class PgpSignatory extends SignatorySupport {
         }
     }
 
-    private void writeSignatureTo(OutputStream signatureDestination, PGPSignature pgpSignature) throws PGPException, IOException {
+    private void writeSignatureTo(OutputStream signatureDestination, PGPSignature pgpSignature) throws IOException {
         // BCPGOutputStream seems to do some internal buffering, it's unclear whether it's strictly required here though
         BCPGOutputStream bufferedOutput = new BCPGOutputStream(signatureDestination);
         pgpSignature.encode(bufferedOutput);

@@ -18,11 +18,10 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Interner;
-import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.file.FileMetadataSnapshot.AccessType;
+import org.gradle.internal.file.FileMetadata;
+import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
@@ -54,10 +53,10 @@ public class FileSystemSnapshotBuilder {
         rootBuilder.addDir(segments, 0);
     }
 
-    public void addFile(File file, String[] segments, String fileName, FileMetadataSnapshot metadataSnapshot) {
+    public void addFile(File file, String[] segments, String fileName, FileMetadata metadata) {
         checkNoRootFileSnapshot("another root file", file);
-        HashCode contentHash = fileHasher.hash(file, metadataSnapshot.getLength(), metadataSnapshot.getLastModified());
-        RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(stringInterner.intern(file.getAbsolutePath()), fileName, contentHash, FileMetadata.from(metadataSnapshot), metadataSnapshot.getAccessType());
+        HashCode contentHash = fileHasher.hash(file, metadata.getLength(), metadata.getLastModified());
+        RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(stringInterner.intern(file.getAbsolutePath()), fileName, contentHash, metadata);
         if (segments.length == 0) {
             rootFileSnapshot = fileSnapshot;
         } else {
