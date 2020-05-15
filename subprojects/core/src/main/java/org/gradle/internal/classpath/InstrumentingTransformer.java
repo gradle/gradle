@@ -17,24 +17,41 @@
 package org.gradle.internal.classpath;
 
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
+import org.gradle.api.Action;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import java.lang.invoke.CallSite;
+import java.lang.invoke.LambdaMetafactory;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.invoke.SerializedLambda;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 
 class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final Type SYSTEM_TYPE = Type.getType(System.class);
     private static final Type STRING_TYPE = Type.getType(String.class);
-    private static final Type INSTRUMENTED_TYPE = Type.getType(Instrumented.class);
     private static final Type INTEGER_TYPE = Type.getType(Integer.class);
+    private static final Type INSTRUMENTED_TYPE = Type.getType(Instrumented.class);
+    private static final Type OBJECT_TYPE = Type.getType(Object.class);
+    private static final Type SERIALIZED_LAMBDA_TYPE = Type.getType(SerializedLambda.class);
     private static final Type LONG_TYPE = Type.getType(Long.class);
     private static final Type BOOLEAN_TYPE = Type.getType(Boolean.class);
 
+    private static final String RETURN_PRIMITIVE_BOOLEAN = Type.getMethodDescriptor(Type.BOOLEAN_TYPE);
+    private static final String RETURN_INT = Type.getMethodDescriptor(Type.INT_TYPE);
+    private static final String RETURN_STRING = Type.getMethodDescriptor(STRING_TYPE);
     private static final String RETURN_STRING_FROM_STRING = Type.getMethodDescriptor(STRING_TYPE, STRING_TYPE);
     private static final String RETURN_STRING_FROM_STRING_STRING = Type.getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE);
     private static final String RETURN_STRING_FROM_STRING_STRING_STRING = Type.getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE, STRING_TYPE);
@@ -52,10 +69,13 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final String RETURN_LONG_FROM_STRING_LONG_STRING = Type.getMethodDescriptor(LONG_TYPE, STRING_TYPE, LONG_TYPE, STRING_TYPE);
     private static final String RETURN_PRIMITIVE_BOOLEAN_FROM_STRING = Type.getMethodDescriptor(Type.BOOLEAN_TYPE, STRING_TYPE);
     private static final String RETURN_PRIMITIVE_BOOLEAN_FROM_STRING_STRING = Type.getMethodDescriptor(Type.BOOLEAN_TYPE, STRING_TYPE, STRING_TYPE);
+    private static final String RETURN_OBJECT_FROM_INT = Type.getMethodDescriptor(OBJECT_TYPE, Type.INT_TYPE);
+    private static final String RETURN_BOOLEAN_FROM_OBJECT = Type.getMethodDescriptor(Type.BOOLEAN_TYPE, OBJECT_TYPE);
     private static final String RETURN_PROPERTIES = Type.getMethodDescriptor(Type.getType(Properties.class));
     private static final String RETURN_PROPERTIES_FROM_STRING = Type.getMethodDescriptor(Type.getType(Properties.class), STRING_TYPE);
     private static final String RETURN_CALL_SITE_ARRAY = Type.getMethodDescriptor(Type.getType(CallSiteArray.class));
     private static final String RETURN_VOID_FROM_CALL_SITE_ARRAY = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(CallSiteArray.class));
+    private static final String RETURN_OBJECT_FROM_SERIALIZED_LAMBDA = Type.getMethodDescriptor(OBJECT_TYPE, SERIALIZED_LAMBDA_TYPE);
 
     private static final String INSTRUMENTED_CALL_SITE_METHOD = "$instrumentedCallSiteArray";
     private static final String CREATE_CALL_SITE_ARRAY_METHOD = "$createCallSiteArray";
@@ -65,7 +85,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     @Override
     public void applyConfigurationTo(Hasher hasher) {
         hasher.putString(InstrumentingTransformer.class.getSimpleName());
-        hasher.putInt(6); // decoration format, increment this when making changes
+        hasher.putInt(8); // decoration format, increment this when making changes
     }
 
     @Override
@@ -74,11 +94,16 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
-        private String className;
-        private boolean hasCallSites;
+        String className;
+        private boolean hasGroovyCallSites;
+        private final List<LambdaFactoryDetails> lambdaFactories = new ArrayList<>();
 
         public InstrumentingVisitor(ClassVisitor visitor) {
             super(Opcodes.ASM7, visitor);
+        }
+
+        public void addSerializedLambda(LambdaFactoryDetails lambdaFactoryDetails) {
+            lambdaFactories.add(lambdaFactoryDetails);
         }
 
         @Override
@@ -91,33 +116,78 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
             MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
             if (name.equals(CREATE_CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
-                hasCallSites = true;
+                hasGroovyCallSites = true;
             }
-            return new InstrumentingMethodVisitor(className, methodVisitor);
+            return new InstrumentingMethodVisitor(this, methodVisitor);
         }
 
         @Override
         public void visitEnd() {
-            if (hasCallSites) {
-                MethodVisitor methodVisitor = super.visitMethod(Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC | Opcodes.ACC_PRIVATE, INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY, null, NO_EXCEPTIONS);
-                methodVisitor.visitCode();
-                methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY, false);
-                methodVisitor.visitInsn(Opcodes.DUP);
-                methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, INSTRUMENTED_TYPE.getInternalName(), "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY, false);
-                methodVisitor.visitInsn(Opcodes.ARETURN);
-                methodVisitor.visitMaxs(2, 0);
-                methodVisitor.visitEnd();
+            if (hasGroovyCallSites) {
+                generateCallSiteFactoryMethod();
+            }
+            if (!lambdaFactories.isEmpty()) {
+                generateLambdaDeserializeMethod();
             }
             super.visitEnd();
+        }
+
+        private void generateLambdaDeserializeMethod() {
+            MethodVisitor methodVisitor = super.visitMethod(Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC | Opcodes.ACC_PRIVATE, "$deserializeLambda$", RETURN_OBJECT_FROM_SERIALIZED_LAMBDA, null, NO_EXCEPTIONS);
+            methodVisitor.visitCode();
+
+            Label next = null;
+            for (LambdaFactoryDetails factory : lambdaFactories) {
+                if (next != null) {
+                    methodVisitor.visitLabel(next);
+                    methodVisitor.visitFrame(Opcodes.F_SAME, 0, new Object[0], 0, new Object[0]);
+                }
+                next = new Label();
+                methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, SERIALIZED_LAMBDA_TYPE.getInternalName(), "getImplMethodName", RETURN_STRING, false);
+                String implementationName = ((Handle) factory.bootstrapMethodArguments.get(1)).getName();
+                methodVisitor.visitLdcInsn(implementationName);
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, OBJECT_TYPE.getInternalName(), "equals", RETURN_BOOLEAN_FROM_OBJECT, false);
+                methodVisitor.visitJumpInsn(Opcodes.IFEQ, next);
+                Type[] argumentTypes = Type.getArgumentTypes(factory.descriptor);
+                for (int i = 0; i < argumentTypes.length; i++) {
+                    Type argumentType = argumentTypes[i];
+                    methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+                    methodVisitor.visitLdcInsn(i);
+                    methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, SERIALIZED_LAMBDA_TYPE.getInternalName(), "getCapturedArg", RETURN_OBJECT_FROM_INT, false);
+                    AsmClassGeneratorUtils.unboxOrCast(methodVisitor, argumentType);
+                }
+                methodVisitor.visitInvokeDynamicInsn(factory.name, factory.descriptor, factory.bootstrapMethodHandle, factory.bootstrapMethodArguments.toArray());
+                methodVisitor.visitInsn(Opcodes.ARETURN);
+            }
+            methodVisitor.visitLabel(next);
+            methodVisitor.visitFrame(Opcodes.F_SAME, 0, new Object[0], 0, new Object[0]);
+            methodVisitor.visitInsn(Opcodes.ACONST_NULL);
+            methodVisitor.visitInsn(Opcodes.ARETURN);
+            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitEnd();
+        }
+
+        private void generateCallSiteFactoryMethod() {
+            MethodVisitor methodVisitor = super.visitMethod(Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC | Opcodes.ACC_PRIVATE, INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY, null, NO_EXCEPTIONS);
+            methodVisitor.visitCode();
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY, false);
+            methodVisitor.visitInsn(Opcodes.DUP);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, INSTRUMENTED_TYPE.getInternalName(), "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY, false);
+            methodVisitor.visitInsn(Opcodes.ARETURN);
+            methodVisitor.visitMaxs(2, 0);
+            methodVisitor.visitEnd();
         }
     }
 
     private static class InstrumentingMethodVisitor extends MethodVisitor {
+        private final InstrumentingVisitor owner;
         private final String className;
 
-        public InstrumentingMethodVisitor(String className, MethodVisitor methodVisitor) {
+        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor) {
             super(Opcodes.ASM7, methodVisitor);
-            this.className = className;
+            this.owner = owner;
+            this.className = owner.className;
         }
 
         @Override
@@ -183,6 +253,38 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 }
             }
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+        }
+
+        @Override
+        public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
+            if (descriptor.endsWith(")" + Type.getType(Action.class).getDescriptor()) && bootstrapMethodHandle.getOwner().equals(Type.getType(LambdaMetafactory.class).getInternalName()) && bootstrapMethodHandle.getName().equals("metafactory")) {
+                Handle altMethod = new Handle(Opcodes.H_INVOKESTATIC,
+                    Type.getType(LambdaMetafactory.class).getInternalName(),
+                    "altMetafactory",
+                    Type.getMethodDescriptor(Type.getType(CallSite.class), Type.getType(MethodHandles.Lookup.class), STRING_TYPE, Type.getType(MethodType.class), Type.getType(Object[].class)),
+                    false);
+                List<Object> args = new ArrayList<>(bootstrapMethodArguments.length + 1);
+                Collections.addAll(args, bootstrapMethodArguments);
+                args.add(LambdaMetafactory.FLAG_SERIALIZABLE);
+                super.visitInvokeDynamicInsn(name, descriptor, altMethod, args.toArray());
+                owner.addSerializedLambda(new LambdaFactoryDetails(name, descriptor, altMethod, args));
+            } else {
+                super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+            }
+        }
+    }
+
+    private static class LambdaFactoryDetails {
+        final String name;
+        final String descriptor;
+        final Handle bootstrapMethodHandle;
+        final List<?> bootstrapMethodArguments;
+
+        public LambdaFactoryDetails(String name, String descriptor, Handle bootstrapMethodHandle, List<?> bootstrapMethodArguments) {
+            this.name = name;
+            this.descriptor = descriptor;
+            this.bootstrapMethodHandle = bootstrapMethodHandle;
+            this.bootstrapMethodArguments = bootstrapMethodArguments;
         }
     }
 }

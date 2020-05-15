@@ -16,8 +16,12 @@
 
 package org.gradle.internal.classpath;
 
-public class SystemPropertyAccessingThing {
-    public static String readProperty() {
-        return System.getProperty("prop");
+import org.gradle.api.Action;
+
+public class TestLambdas {
+    public static Action<StringBuilder> action(int value) {
+        return s -> {
+            s.append(value);
+        };
     }
 }
