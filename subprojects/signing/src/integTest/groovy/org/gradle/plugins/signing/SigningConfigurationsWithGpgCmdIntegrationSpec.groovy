@@ -48,7 +48,7 @@ class SigningConfigurationsWithGpgCmdIntegrationSpec extends SigningConfiguratio
     }
 
     private void assertDoesNotLeakPassphrase() {
-        result.assertOutputContains("--passphrase-fd 0")
+        outputContains("--passphrase-fd 0")
         result.assertNotOutput("--passphrase ")
     }
 }
