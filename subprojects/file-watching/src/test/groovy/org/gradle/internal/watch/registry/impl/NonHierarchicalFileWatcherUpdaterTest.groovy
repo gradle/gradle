@@ -26,60 +26,25 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         new NonHierarchicalFileWatcherUpdater(watcher)
     }
 
-    def "starts and stops watching must watch directories"() {
-        def mustWatchDirectories = ["first", "second", "third"].collect { file(it).createDir() }
+    def "ignores project root directories"() {
+        def projectRootDirectories = ["first", "second", "third"].collect { file(it).createDir() }
+        def fileInProjectRootDirectory = file("first/inside/root/dir/file.txt")
 
         when:
-        updater.updateProjectRootDirectories(mustWatchDirectories)
+        updater.updateProjectRootDirectories(projectRootDirectories)
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, mustWatchDirectories) })
+        0 * _
+
+        when:
+        fileInProjectRootDirectory.createFile()
+        addSnapshot(snapshotRegularFile(fileInProjectRootDirectory))
+        then:
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [fileInProjectRootDirectory.parentFile]) })
         0 * _
 
         when:
         updater.updateProjectRootDirectories([])
         then:
-        1 * watcher.stopWatching({ equalIgnoringOrder(it, mustWatchDirectories) })
-        0 * _
-    }
-
-    def "does not watch non-existing must watch directories"() {
-        def existingMustWatchDirectories = ["first", "second"].collect { file(it).createDir() }
-        def nonExistingMustWatchDirectory = file("non-existing")
-
-        when:
-        updater.updateProjectRootDirectories(existingMustWatchDirectories + nonExistingMustWatchDirectory)
-        then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, existingMustWatchDirectories) })
-        0 * _
-    }
-
-    def "can change the must watch directories"() {
-        def firstMustWatchDirectories = ["first", "second"].collect { file(it).createDir() }
-        def secondMustWatchDirectories = ["second", "third"].collect { file(it).createDir() }
-
-        when:
-        updater.updateProjectRootDirectories(firstMustWatchDirectories)
-        then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, firstMustWatchDirectories) })
-        0 * _
-
-        when:
-        updater.updateProjectRootDirectories(secondMustWatchDirectories)
-        then:
-        1 * watcher.stopWatching({ equalIgnoringOrder(it, [file("first")]) })
-        then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [file("third")]) })
-        0 * _
-    }
-
-    def "adds watches for all must watch directories"() {
-        def mustWatchDirectoryRoots = ["first", "second"].collect { file(it).createDir()}
-        def mustWatchDirectories = mustWatchDirectoryRoots + file("first/within").createDir()
-
-        when:
-        updater.updateProjectRootDirectories(mustWatchDirectories)
-        then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, mustWatchDirectories) })
         0 * _
     }
 
