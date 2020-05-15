@@ -31,10 +31,11 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
 
     def "does not watch project root directory if no snapshot is inside"() {
         def projectRootDirectory = file("rootDir").createDir()
+        def secondProjectRootDirectory = file("rootDir2").createDir()
         def fileInProjectRootDirectory = projectRootDirectory.file("some/path/file.txt").createFile()
 
         when:
-        updater.updateProjectRootDirectories([projectRootDirectory])
+        updater.updateProjectRootDirectories([projectRootDirectory, secondProjectRootDirectory])
         then:
         0 * _
 
@@ -66,17 +67,17 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
     }
 
     def "does not watch non-existing project root directories"() {
-        def projectRootDirectory = ["first", "second"].collect { file(it).createDir() }
+        def projectRootDirectories = ["first", "second"].collect { file(it).createDir() }
         def nonExistingProjectRootDirectory = file("third/non-existing")
         file("third").createDir()
-        def watchedDirsInsideProjectRootDirectories = addSnapshotsInProjectRootDirectories(projectRootDirectory)
+        def watchedDirsInsideProjectRootDirectories = addSnapshotsInProjectRootDirectories(projectRootDirectories)
 
         when:
-        updater.updateProjectRootDirectories(projectRootDirectory + nonExistingProjectRootDirectory)
+        updater.updateProjectRootDirectories(projectRootDirectories + nonExistingProjectRootDirectory)
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, watchedDirsInsideProjectRootDirectories) })
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, projectRootDirectory) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, projectRootDirectories) })
         0 * _
 
         when:
