@@ -17,6 +17,7 @@
 package org.gradle.instantexecution.initialization
 
 import org.gradle.StartParameter
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.instantexecution.SystemProperties
 import org.gradle.instantexecution.extensions.unsafeLazy
@@ -30,22 +31,17 @@ class InstantExecutionStartParameter(
     private val startParameter: StartParameter
 ) {
 
-    val isEnabled: Boolean by unsafeLazy {
-        systemPropertyFlag(SystemProperties.isEnabled)
-    }
+    val isEnabled: Boolean
+        get() = (startParameter as StartParameterInternal).isConfigurationCacheEnabled
 
     val isQuiet: Boolean
         get() = systemPropertyFlag(SystemProperties.isQuiet)
 
-    val maxProblems: Int by unsafeLazy {
-        systemProperty(SystemProperties.maxProblems)
-            ?.let(Integer::valueOf)
-            ?: 512
-    }
+    val maxProblems: Int
+        get() = (startParameter as StartParameterInternal).configurationCacheMaxProblems
 
-    val failOnProblems: Boolean by unsafeLazy {
-        systemPropertyFlag(SystemProperties.failOnProblems, true)
-    }
+    val failOnProblems: Boolean
+        get() = (startParameter as StartParameterInternal).isConfigurationCacheFailOnProblems
 
     val recreateCache: Boolean
         get() = systemPropertyFlag(SystemProperties.recreateCache)
@@ -105,5 +101,5 @@ class InstantExecutionStartParameter(
 
     private
     fun systemProperty(propertyName: String) =
-        startParameter.systemPropertiesArgs[propertyName] ?: System.getProperty(propertyName)
+        startParameter.systemPropertiesArgs[propertyName]
 }

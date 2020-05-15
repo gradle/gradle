@@ -20,13 +20,7 @@ package org.gradle.instantexecution
 internal
 object SystemProperties {
 
-    const val isEnabled = "org.gradle.unsafe.instant-execution"
-
     const val isQuiet = "org.gradle.unsafe.instant-execution.quiet"
-
-    const val maxProblems = "org.gradle.unsafe.instant-execution.max-problems"
-
-    const val failOnProblems = "org.gradle.unsafe.instant-execution.fail-on-problems"
 
     const val recreateCache = "org.gradle.unsafe.instant-execution.recreate-cache"
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.performance.regression.java
 
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
 import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
@@ -35,8 +36,6 @@ import static org.junit.Assert.assertTrue
 @Category(PerformanceRegressionTest)
 class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
-    public static final String INSTANT_EXECUTION_ENABLED_PROPERTY = "org.gradle.unsafe.instant-execution"
-
     private TestFile instantExecutionStateDir
 
     def setup() {
@@ -51,7 +50,10 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
         runner.minimumBaseVersion = "5.6"
         runner.testProject = testProject.projectName
         runner.tasksToRun = ["assemble"]
-        runner.args = ["-D${INSTANT_EXECUTION_ENABLED_PROPERTY}=true"]
+        runner.args = [
+            "-Dorg.gradle.unsafe.instant-execution=true", // TODO remove on rebaseline
+            "-D${ConfigurationCacheOption.PROPERTY_NAME}=true"
+        ]
 
         and:
         runner.useDaemon = daemon == hot

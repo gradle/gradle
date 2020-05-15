@@ -29,6 +29,7 @@ import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InstantExecutionRunner
 import org.gradle.integtests.fixtures.RequiredFeature
@@ -189,7 +190,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputContains("service: closed with value 12")
     }
 
-    @RequiredFeature(feature = "org.gradle.unsafe.instant-execution", value = "false")
+    @RequiredFeature(feature = ConfigurationCacheOption.PROPERTY_NAME, value = "false")
     @UnsupportedWithInstantExecution
     def "service can be used at configuration and execution time"() {
         serviceImplementation()
@@ -237,7 +238,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputContains("service: closed with value 11")
     }
 
-    @RequiredFeature(feature = "org.gradle.unsafe.instant-execution", value = "true")
+    @RequiredFeature(feature = ConfigurationCacheOption.PROPERTY_NAME, value = "true")
     def "service used at configuration and execution time can be used with instant execution"() {
         serviceImplementation()
         buildFile << """

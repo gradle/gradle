@@ -55,6 +55,7 @@ dependencies {
     implementation(project(":toolingApi"))
     implementation(project(":buildEvents"))
     implementation(project(":native"))
+    implementation(project(":buildOption"))
 
     implementation(library("groovy"))
     implementation(library("slf4j_api"))

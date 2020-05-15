@@ -61,6 +61,7 @@ import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.util.GradleVersion
+import org.gradle.util.IncubationLogger
 import java.io.File
 import java.io.OutputStream
 import java.nio.file.Files
@@ -93,19 +94,19 @@ class DefaultInstantExecution internal constructor(
             false
         }
         startParameter.recreateCache -> {
-            log("Recreating instant execution cache")
+            logBootstrapSummary("Recreating configuration cache")
             false
         }
         startParameter.isRefreshDependencies -> {
-            log(
-                "Calculating task graph as instant execution cache cannot be reused due to {}",
+            logBootstrapSummary(
+                "Calculating task graph as configuration cache cannot be reused due to {}",
                 "--refresh-dependencies"
             )
             false
         }
         !instantExecutionFingerprintFile.isFile -> {
-            log(
-                "Calculating task graph as no instant execution cache is available for tasks: {}",
+            logBootstrapSummary(
+                "Calculating task graph as no configuration cache is available for tasks: {}",
                 startParameter.requestedTaskNames.joinToString(" ")
             )
             false
@@ -114,16 +115,14 @@ class DefaultInstantExecution internal constructor(
             val fingerprintChangedReason = checkFingerprint()
             when {
                 fingerprintChangedReason != null -> {
-                    log(
-                        "Calculating task graph as instant execution cache cannot be reused because {}.",
+                    logBootstrapSummary(
+                        "Calculating task graph as configuration cache cannot be reused because {}.",
                         fingerprintChangedReason
                     )
                     false
                 }
                 else -> {
-                    log(
-                        "Reusing instant execution cache. This is not guaranteed to work in any way."
-                    )
+                    logBootstrapSummary("Reusing configuration cache.")
                     true
                 }
             }
@@ -442,6 +441,12 @@ class DefaultInstantExecution internal constructor(
             node.owningProject
                 ?.takeIf { it.parent != null }
         }
+
+    private
+    fun logBootstrapSummary(message: String, vararg args: Any?) {
+        IncubationLogger.incubatingFeatureUsed("Configuration cache")
+        log(message, *args)
+    }
 
     private
     fun log(message: String, vararg args: Any?) {
