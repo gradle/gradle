@@ -101,14 +101,15 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
                 if (invocationInfo.iterationNumber > 1) {
-                    def tag = action == storing
-                        ? "Calculating task graph as no instant execution cache is available"
-                        : "Reusing instant execution cache"
+                    // TODO dedupe on rebaseline
+                    def tags = action == storing
+                        ? ["Calculating task graph as no instant execution cache is available", "Calculating task graph as no configuration cache is available"]
+                        : ["Reusing instant execution cache", "Reusing configuration cache"]
                     def found = Files.lines(invocationInfo.buildLog.toPath()).withCloseable { lines ->
-                        lines.anyMatch { line -> line.contains(tag) }
+                        lines.anyMatch { line -> tags.any { line.contains(it) } }
                     }
                     if (!found) {
-                        assertTrue("Instant Execution log '$tag' not found in '$invocationInfo.buildLog'\n\n$invocationInfo.buildLog.text", found)
+                        assertTrue("Configuration cache log '$tags' not found in '$invocationInfo.buildLog'\n\n$invocationInfo.buildLog.text", found)
                     }
                 }
             }
