@@ -777,7 +777,6 @@ dependencies { implementation 'com.ibm.icu:icu4j:2.6.1' }
     }
 
     @Issue("GRADLE-3426")
-    @ToBeFixedForInstantExecution
     def "fully recompiles when a non-analyzable jar is changed"() {
         def a = source """
             import com.ibm.icu.util.Calendar;
@@ -788,7 +787,7 @@ dependencies { implementation 'com.ibm.icu:icu4j:2.6.1' }
 
         buildFile << """
             ${jcenterRepository()}
-            if (hasProperty("withIcu")) {
+            if (providers.gradleProperty("withIcu").forUseAtConfigurationTime().isPresent()) {
                 dependencies { implementation 'com.ibm.icu:icu4j:2.6.1' }
             }
 
@@ -1099,7 +1098,7 @@ dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
         outputs.recompiledClasses("A", "B", "E", "package-info")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "A not recompiled")
     def "recompiles all dependents when no jar analysis is present"() {
         given:
         source """class A {

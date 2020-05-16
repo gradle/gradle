@@ -118,7 +118,7 @@ public class ThingTest {
         succeeds 'test'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "JavaExec")
     def "can build and run application using target Java version"() {
         given:
         buildFile << """

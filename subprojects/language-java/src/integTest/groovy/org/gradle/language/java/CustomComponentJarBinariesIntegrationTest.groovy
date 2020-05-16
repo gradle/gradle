@@ -17,9 +17,10 @@
 package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.test.fixtures.archive.JarTestFixture
 
+@UnsupportedWithInstantExecution(because = "software model")
 class CustomComponentJarBinariesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -31,7 +32,6 @@ class CustomComponentJarBinariesIntegrationTest extends AbstractIntegrationSpec 
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
     }
 
-    @ToBeFixedForInstantExecution
     def "custom component defined by plugin is built from Java source using JVM component plugin" () {
         given:
         file("src/lib1/java/Lib1.java") << "public class Lib1 {}"
