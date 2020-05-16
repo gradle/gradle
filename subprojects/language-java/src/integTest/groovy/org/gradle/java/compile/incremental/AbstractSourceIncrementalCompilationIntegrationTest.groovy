@@ -1099,7 +1099,7 @@ dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
         outputs.recompiledClasses("A", "B", "E", "package-info")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "A not recompiled")
     def "recompiles all dependents when no jar analysis is present"() {
         given:
         source """class A {

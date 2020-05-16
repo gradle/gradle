@@ -92,7 +92,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
      * of the daemon is different than the session id of the client.
      */
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "fixture uses the software model")
     def "session id of daemon is different from daemon client"() {
         given:
         withGetSidProject()

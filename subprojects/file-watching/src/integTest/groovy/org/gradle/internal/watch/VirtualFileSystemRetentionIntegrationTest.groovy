@@ -218,7 +218,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         executedAndNotSkipped ":compileJava", ":classes", ":run"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "2 more files retained")
     def "detects input file change just before the task is executed"() {
         executer.requireDaemon()
         server.start()
@@ -265,7 +265,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         retainedFilesInCurrentBuild == 10 // 8 build script class files + 2 task files
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "2 more files retained")
     def "detects input file change after the task has been executed"() {
         executer.requireDaemon()
         server.start()
@@ -498,7 +498,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         file("build/output1").assertExists()
     }
 
-    @ToBeFixedForInstantExecution(because = "https://github.com/gradle/gradle/issues/11818")
+    @ToBeFixedForInstantExecution(because = "https://github.com/gradle/instant-execution/issues/168")
     def "detects changes to manifest"() {
         buildFile << """
             plugins {
