@@ -442,7 +442,7 @@ public class StartParameterBuildOptions {
             super(PROPERTY_NAME, BooleanCommandLineOptionConfiguration.create(
                 LONG_OPTION,
                 "Lets the configuration cache fail on problems. This is the default.",
-                "Lets the configuration cache do not fail on problems."
+                "Lets the configuration cache not fail on problems."
             ).incubating());
         }
 
