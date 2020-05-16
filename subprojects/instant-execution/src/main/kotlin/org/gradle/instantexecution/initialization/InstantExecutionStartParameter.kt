@@ -28,23 +28,26 @@ import java.io.File
 
 class InstantExecutionStartParameter(
     private val buildLayout: BuildLayout,
-    private val startParameter: StartParameter
+    startParameter: StartParameter
 ) {
 
+    private
+    val startParameter = startParameter as StartParameterInternal
+
     val isEnabled: Boolean
-        get() = (startParameter as StartParameterInternal).isConfigurationCacheEnabled
+        get() = startParameter.isConfigurationCacheEnabled
 
     val isQuiet: Boolean
         get() = systemPropertyFlag(SystemProperties.isQuiet)
 
     val maxProblems: Int
-        get() = (startParameter as StartParameterInternal).configurationCacheMaxProblems
+        get() = startParameter.configurationCacheMaxProblems
 
     val failOnProblems: Boolean
-        get() = (startParameter as StartParameterInternal).isConfigurationCacheFailOnProblems
+        get() = startParameter.isConfigurationCacheFailOnProblems
 
     val recreateCache: Boolean
-        get() = (startParameter as StartParameterInternal).isConfigurationCacheRecreateCache
+        get() = startParameter.isConfigurationCacheRecreateCache
 
     val settingsDirectory: File
         get() = buildLayout.settingsDir
