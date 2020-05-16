@@ -98,60 +98,6 @@ tasks.named("stageDocs") {
     }
 }
 
-tasks.withType(org.gradle.docs.samples.internal.tasks.GenerateTestSource) { t ->
-    doLast {
-        File f = t.outputDirectory.file("org/gradle/docs/samples/ExemplarExternalSamplesFunctionalTest.java").get().asFile
-        f.text = """//CHECKSTYLE:OFF
-package org.gradle.docs.samples;
-
-import org.gradle.integtests.fixtures.FailOnDeprecationSampleModifier;
-import org.gradle.integtests.fixtures.executer.MoreMemorySampleModifier;
-import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer;
-import org.gradle.integtests.fixtures.logging.DependencyInsightOutputNormalizer;
-import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer;
-import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer;
-import org.gradle.integtests.fixtures.logging.PlayComponentReportOutputNormalizer;
-import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
-import org.gradle.samples.test.normalizer.FileSeparatorOutputNormalizer;
-import org.gradle.samples.test.normalizer.JavaObjectSerializationOutputNormalizer;
-import org.gradle.samples.test.normalizer.GradleOutputNormalizer;
-import org.gradle.samples.test.runner.GradleSamplesRunner;
-import org.gradle.samples.test.runner.SampleModifiers;
-import org.gradle.samples.test.runner.SamplesOutputNormalizers;
-import org.gradle.samples.test.runner.SamplesRoot;
-import org.junit.runner.RunWith;
-
-@RunWith(GradleSamplesRunner.class)
-@SamplesOutputNormalizers({
-    SampleOutputNormalizer.class,
-    JavaObjectSerializationOutputNormalizer.class,
-    FileSeparatorOutputNormalizer.class,
-    GradleOutputNormalizer.class,
-    ArtifactResolutionOmittingOutputNormalizer.class,
-    NativeComponentReportOutputNormalizer.class,
-    PlayComponentReportOutputNormalizer.class,
-    DependencyInsightOutputNormalizer.class
-})
-@SampleModifiers({
-    SetMirrorsSampleModifier.class,
-    MoreMemorySampleModifier.class,
-    FailOnDeprecationSampleModifier.class
-})
-public class ExemplarExternalSamplesFunctionalTest {}
-"""
-    }
-}
-
-// iterate through each snippets and record their names and locations
-FileFilter directoriesOnly = { it.directory }
-Map<String, File> snippets = file('src/snippets').listFiles(directoriesOnly)*.listFiles(directoriesOnly).flatten().collectEntries { File snippetDir -> [snippetId(snippetDir), snippetDir] }
-
-String snippetId(File snippetLocation) {
-    String snippetName = snippetLocation.name.tokenize("-")*.capitalize().join("")
-    String categoryName = snippetLocation.parentFile.name.tokenize("-")*.capitalize().join("")
-    "$categoryName$snippetName"
-}
-
 samples {
     templates {
         javaAndroidApplication
@@ -257,24 +203,23 @@ samples {
         }
     }
 
-    snippets.each { String id, File location ->
+
+    // TODO: Do this lazily so we don't need to walk the filesystem during configuration
+    // iterate through each snippets and record their names and locations
+    FileFilter directoriesOnly = { it.directory }
+    def topLevelDirs = file('src/snippets').listFiles(directoriesOnly)
+    def snippetDirs = topLevelDirs*.listFiles(directoriesOnly).flatten()
+    
+    snippetDirs.each { File snippetDir -> 
+        String snippetName = snippetDir.name
+        String categoryName = snippetDir.parentFile.name
+        def id = org.gradle.docs.internal.StringUtils.toLowerCamelCase(categoryName + snippetName)
         publishedSamples.create(id) {
-            File readme = new File(location, "README.adoc")
-            if (readme.exists()) {
-                readmeFile = readme
-            } else {
-                readmeFile = file('src/main/resources/default-readme.adoc')
-            }
-
-            description = "Snippet from $location.name"
+            description = "Snippet from $snippetDir"
             category = "Other"
-            sampleDirectory = location
+            readmeFile = file("src/snippets/default-readme.adoc")
+            sampleDirectory = snippetDir
             promoted = false
-
-            File common = new File(location, 'common')
-            if (common.exists()) {
-                commonContent.from(common)
-            }
         }
     }
 
@@ -397,9 +342,6 @@ samples {
             sampleDirectory = samplesRoot.dir("build-organization/task-with-arguments")
             description = "Pass command-line arguments to a custom task."
             category = "Build organization"
-            common {
-                from(sampleDirectory.dir("common"))
-            }
             // TODO (donat) sanity checks probably don't do anything for samples located one level down in the gradle/kotlin directories
         }
 
@@ -408,26 +350,13 @@ samples {
             displayName = "Supply credentials to external tool"
             description = "Pass credentials to an external tool via stdin using Gradle properties."
             category = "Credentials handling"
-            common {
-                from(sampleDirectory.dir("common"))
-            }
         }
     }
 }
 
-// The org.gradle.samples plugin uses Exemplar to execute integration tests on the samples.
-// Exemplar doesn't know about that it's running in the context of the gradle/gradle build
-// so it uses the Gradle distribution from the running build. This is not correct, because
-// we want to verify that the samples work with the Gradle distribution being built.
-tasks.named('docsTest').configure() { task ->
-    task.dependsOn(tasks.named('intTestImage'))
-    // TODO we use an absolute path here which makes the task not cacheable
-    task.systemProperty("integTest.gradleHomeDir", new File(project.buildDir, "integ test").absolutePath)
-}
-
-// TODO: Fix upstream plugin to disable Checkstyle checks for the generated sources
-tasks.named("checkstyleDocsTest") {
-    enabled = false
+// Use the version of Gradle being built, not the version of Gradle used to build
+tasks.named("generateWrapperForSamples") {
+    gradleVersion = project.version
 }
 
 // TODO: The rich console to plain text is flaky
@@ -435,12 +364,17 @@ tasks.named("checkAsciidoctorSampleContents") {
     enabled = false
 }
 
-tasks.named("generateWrapperForSamples") {
-    gradleVersion = project.version
-}
-
 // TODO add some kind of test precondition support in sample test conf
-tasks.named("docsTest") {
+tasks.named("docsTest") { task ->
+    // The org.gradle.samples plugin uses Exemplar to execute integration tests on the samples.
+    // Exemplar doesn't know about that it's running in the context of the gradle/gradle build
+    // so it uses the Gradle distribution from the running build. This is not correct, because
+    // we want to verify that the samples work with the Gradle distribution being built.
+
+    task.dependsOn(tasks.named('intTestImage'))
+    // TODO we use an absolute path here which makes the task not cacheable
+    task.systemProperty("integTest.gradleHomeDir", new File(project.buildDir, "integ test").absolutePath)
+
     // Do not execute Java Module tests on JVM < 9
     if (!buildJvms.testJvm.get().javaVersion.java9Compatible) {
         filter {
