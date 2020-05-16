@@ -64,9 +64,10 @@ dependencies {
 
     testImplementation project(":baseServices")
     testImplementation project(":core")
-    docsTestImplementation(project(":internalIntegTesting")) {
-        exclude module : 'groovy-all' // otherwise we get groovy.lang.GroovyRuntimeException: Conflicting module versions. Module [groovy-all is loaded in version 2.5.10 and you are trying to load version 2.5.11
-    }
+    
+    docsTestImplementation(project(":internalIntegTesting"))
+    docsTestImplementation(project(":testKit"))
+
     testImplementation testLibraries.jsoup
     testImplementation("org.gebish:geb-spock:2.2")
     testImplementation('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
