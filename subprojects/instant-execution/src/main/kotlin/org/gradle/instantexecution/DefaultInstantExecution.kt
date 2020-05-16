@@ -444,7 +444,9 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun logBootstrapSummary(message: String, vararg args: Any?) {
-        IncubationLogger.incubatingFeatureUsed("Configuration cache")
+        if (!startParameter.isQuiet) {
+            IncubationLogger.incubatingFeatureUsed("Configuration cache")
+        }
         log(message, *args)
     }
 

@@ -427,11 +427,8 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 
         then:
         def progressOutputEvents = operations.all(Pattern.compile('.*')).collect { it.progress }.flatten()
-        def expectedEventCount = 14 // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
-        if (GradleContextualExecuter.isInstant()) {
-            expectedEventCount++ // + incubating feature message
-        }
-        assert progressOutputEvents.size() == expectedEventCount
+        assert progressOutputEvents
+            .size() == 14 // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
     }
 
     private void assertNestedTaskOutputTracked(String projectPath = ':nested') {
