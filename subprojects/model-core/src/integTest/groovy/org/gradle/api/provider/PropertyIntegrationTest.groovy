@@ -24,14 +24,13 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeFixedForInstantExecution
     def "can use property as task input"() {
         given:
         taskTypeWritesPropertyValueToFile()
         buildFile << """
 
 task thing(type: SomeTask) {
-    prop = System.getProperty('prop')
+    prop = providers.systemProperty('prop')
     outputFile = layout.buildDirectory.file("out.txt")
 }
 
