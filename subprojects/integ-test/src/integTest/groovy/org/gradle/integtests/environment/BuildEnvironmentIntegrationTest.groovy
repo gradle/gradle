@@ -71,9 +71,8 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-1762")
-    @ToBeFixedForInstantExecution
     def "build uses environment variables from where the build was launched"() {
-        file('build.gradle') << "println System.getenv('foo')"
+        file('build.gradle') << "println providers.environmentVariable('foo').forUseAtConfigurationTime().orNull"
 
         when:
         def out = executer.withEnvironmentVars(foo: "gradle rocks!").run().output
