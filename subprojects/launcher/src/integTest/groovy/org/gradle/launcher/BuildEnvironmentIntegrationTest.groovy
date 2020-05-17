@@ -170,7 +170,7 @@ task check {
     }
 
     @Unroll("forked java processes inherit default encoding - input = #inputEncoding, expectedEncoding: #expectedEncoding")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "JavaExec")
     def "forked java processes inherit default encoding"() {
         given:
         executerEncoding inputEncoding
