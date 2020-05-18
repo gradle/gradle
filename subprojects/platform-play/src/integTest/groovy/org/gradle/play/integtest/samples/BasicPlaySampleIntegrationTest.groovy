@@ -18,7 +18,9 @@ package org.gradle.play.integtest.samples
 
 import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
+import spock.lang.Ignore
 
+@Ignore
 class BasicPlaySampleIntegrationTest extends AbstractPlaySampleIntegrationTest {
     @Rule
     Sample basicPlaySample = new Sample(temporaryFolder, "play/basic/groovy")
