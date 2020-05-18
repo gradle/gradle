@@ -125,8 +125,6 @@ fun IntegrationTest.addDebugProperties() {
 internal
 fun Project.configureIde(testType: TestType) {
     val prefix = testType.prefix
-    val compile = configurations.getByName("${prefix}TestCompileClasspath")
-    val runtime = configurations.getByName("${prefix}TestRuntimeClasspath")
     val sourceSet = java.sourceSets.getByName("${prefix}Test")
 
     // We apply lazy as we don't want to depend on the order
@@ -136,10 +134,6 @@ fun Project.configureIde(testType: TestType) {
                 testSourceDirs = testSourceDirs + sourceSet.java.srcDirs
                 testSourceDirs = testSourceDirs + sourceSet.groovy.srcDirs
                 testResourceDirs = testResourceDirs + sourceSet.resources.srcDirs
-                scopes["TEST"]!!["plus"]!!.apply {
-                    add(compile)
-                    add(runtime)
-                }
             }
         }
     }
