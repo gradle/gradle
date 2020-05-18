@@ -23,6 +23,7 @@ import org.gradle.api.Incubating;
  *
  * @since 6.5
  */
+@Incubating
 public interface MetaInfNormalization {
     /**
      * Ignore all files and subdirectories in the {@code META-INF} directory within archives.
