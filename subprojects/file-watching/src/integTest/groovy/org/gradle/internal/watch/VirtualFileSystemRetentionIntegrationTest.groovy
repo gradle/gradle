@@ -767,7 +767,10 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         buildDir << ["build", "build/myProject"]
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/12614")
     def "can remove watched directory after all files inside have been removed"() {
+        // This test targets Windows, where watched directories can't be deleted.
+
         def projectDir = file("projectDir")
         projectDir.file("build.gradle") << """
             apply plugin: "java-library"
