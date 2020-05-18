@@ -562,7 +562,7 @@ tasks.named("docsTest") { task ->
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-tutorial-archive-content_*.sample'  // seems like a legit failure
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-tutorial-select-project_*.sample' // emits deprecation warning
 
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-java-cross-compilation-*.sample' // fails to find javadoc
+        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-java-cross-compilation_*.sample' // fails to find javadoc
         if (org.gradle.internal.os.OperatingSystem.current().windows) {
             excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.groovy-*.sample' // fails to compile Groovy
             excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.precompiled-script-plugin-in-build-src*.sample' // fails in tests in buildSrc
