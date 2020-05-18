@@ -490,7 +490,7 @@ public class StartParameterBuildOptions {
 
     public static class ConfigurationCacheQuietOption extends BooleanBuildOption<StartParameterInternal> {
 
-        public static final String PROPERTY_NAME = "org.gradle.unsafe.configuration-cache-quiet";
+        public static final String PROPERTY_NAME = "org.gradle.unsafe.configuration-cache.quiet";
 
         public ConfigurationCacheQuietOption() {
             super(PROPERTY_NAME);
