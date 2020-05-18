@@ -28,10 +28,10 @@ public class StartParameterInternal extends StartParameter implements Deprecatab
 
     private final Deprecatable deprecationHandler = new LoggingDeprecatable();
 
-    protected ConfigurationCacheOption.Value configurationCache = ConfigurationCacheOption.Value.OFF;
-    protected int configurationCacheMaxProblems = 512;
-    protected boolean configurationCacheRecreateCache;
-    protected boolean configurationCacheQuiet;
+    private ConfigurationCacheOption.Value configurationCache = ConfigurationCacheOption.Value.OFF;
+    private int configurationCacheMaxProblems = 512;
+    private boolean configurationCacheRecreateCache;
+    private boolean configurationCacheQuiet;
 
     @Override
     public StartParameter newInstance() {
