@@ -55,7 +55,6 @@ dependencies {
     implementation(library("slf4j_api"))
     implementation(library("joda"))
     implementation(library("jatl"))
-    implementation(library("jgit"))
     implementation(library("commons_httpclient"))
     implementation(library("jsch"))
     implementation(library("commons_math"))

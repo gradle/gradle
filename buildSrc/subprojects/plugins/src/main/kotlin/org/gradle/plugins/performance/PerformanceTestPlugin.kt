@@ -32,6 +32,7 @@ import org.w3c.dom.Document
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.reflect.KClass
+import ext
 
 
 object PropertyNames {
@@ -62,7 +63,7 @@ object Config {
 }
 
 
-fun Project.determineCurrentBranch() = System.getenv("BUILD_BRANCH") ?: execAndGetStdout("git", "rev-parse", "--abbrev-ref", "HEAD")
+fun Project.determineCurrentBranch() = ext["gradleBuildBranch"] as String
 
 
 private

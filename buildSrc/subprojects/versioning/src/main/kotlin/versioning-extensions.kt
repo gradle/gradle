@@ -15,8 +15,14 @@
  */
 
 import org.gradle.api.Project
+import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.build.ReleasedVersionsFromVersionControl
+import org.gradle.kotlin.dsl.*
 import java.io.File
+
+
+val Project.ext
+    get() = rootProject.extensions.getByName<ExtraPropertiesExtension>("ext")
 
 
 val Project.releasedVersions

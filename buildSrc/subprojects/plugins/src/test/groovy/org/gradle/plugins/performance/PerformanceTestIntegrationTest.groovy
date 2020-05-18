@@ -5,11 +5,16 @@ class PerformanceTestIntegrationTest extends AbstractIntegrationTest {
         buildFile << """
             plugins {
                 id 'java-library'
-                id 'gradlebuild.performance-test'
+                id 'gradlebuild.performance-test' apply false
             }
             subprojects {
                 apply plugin: 'java'
             }
+
+            rootProject.ext.gradleBuildBranch = 'myBranch'
+
+            apply plugin: 'gradlebuild.performance-test'
+
             def distributedPerformanceTests = tasks.withType(org.gradle.testing.DistributedPerformanceTest)
             distributedPerformanceTests.all {
                 // resolve these tasks

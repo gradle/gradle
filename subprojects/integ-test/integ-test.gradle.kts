@@ -43,6 +43,7 @@ dependencies {
     integTestImplementation(testFixtures(project(":core")))
     integTestImplementation(testFixtures(project(":diagnostics")))
     integTestImplementation(testFixtures(project(":platformNative")))
+    integTestImplementation(library("jgit"))
 }
 configurations.integTestRuntimeClasspath {
     extendsFrom(configurations.fullGradleRuntime.get())
