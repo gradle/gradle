@@ -511,7 +511,7 @@ samples {
 
         compositeBuildsHierarchicalMultiRepo {
             sampleDirectory = samplesRoot.dir("build-organization/composite-builds/hierarchical-multirepo")
-            description = "Using composite builds in a hierarchical multirepo project"
+            description = "Defining and using a composite build to combine multiple independent builds."
             category = "Build organization"
         }
 
