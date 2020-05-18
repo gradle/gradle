@@ -99,7 +99,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     public static final String VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.partial-invalidation";
 
     /**
-     * The old system property used to enable watching the file system.
+     * Deprecated system property used to enable watching the file system.
      *
      * Using this property causes Gradle to emit a deprecation warning.
      */
