@@ -505,7 +505,7 @@ samples {
 
         compositeBuildsDeclaredSubstitutions {
             sampleDirectory = samplesRoot.dir("build-organization/composite-builds/declared-substitution")
-            description = "Declaring the dependencies substituted by an included build"
+            description = "Applying and testing changes in downstream dependencies without publishing."
             category = "Build organization"
         }
 
