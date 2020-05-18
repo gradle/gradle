@@ -52,7 +52,7 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
         runner.tasksToRun = ["assemble"]
         runner.args = [
             "-Dorg.gradle.unsafe.instant-execution=true", // TODO remove on rebaseline
-            "-D${ConfigurationCacheOption.PROPERTY_NAME}=true"
+            "-D${ConfigurationCacheOption.PROPERTY_NAME}=on"
         ]
 
         and:
