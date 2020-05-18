@@ -48,6 +48,7 @@ class SystemPropertyAccessListener(
 ) : Instrumented.Listener {
     private
     val broadcast = listenerManager.getBroadcaster(UndeclaredBuildInputListener::class.java)
+
     private
     val nullProperties = mutableSetOf<String>()
 
@@ -62,12 +63,12 @@ class SystemPropertyAccessListener(
             return
         }
         val message = StructuredMessage.build {
-            text("read system property '")
-            text(key)
-            text("' from ")
+            text("read system property ")
+            reference(key)
+            text(" from class ")
             reference(consumer)
         }
         val exception = InvalidUserCodeException(message.toString().capitalize())
-        problems.onProblem(PropertyProblem(PropertyTrace.Unknown, message, exception))
+        problems.onProblem(PropertyProblem(PropertyTrace.Unknown, message, exception, "undeclared_sys_prop_reads"))
     }
 }

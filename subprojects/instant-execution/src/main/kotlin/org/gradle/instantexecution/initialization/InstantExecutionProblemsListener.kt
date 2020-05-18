@@ -70,7 +70,8 @@ class DefaultInstantExecutionProblemsListener internal constructor(
                 reference(invocationDescription)
                 text(" at execution time is unsupported.")
             },
-            exception
+            exception,
+            "use_project_during_execution"
         )
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
@@ -99,7 +100,8 @@ class DefaultInstantExecutionProblemsListener internal constructor(
                 reference(invocationDescription)
                 text(" is unsupported")
             },
-            exception
+            exception,
+            "build_listeners"
         )
 }
 

@@ -20,7 +20,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
@@ -28,6 +27,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.ZipEntry;
@@ -46,21 +46,18 @@ public class ClasspathBuilder {
     }
 
     private void buildJar(File jarFile, Action action) throws IOException {
-        File tmpFile = tempFileFor(jarFile);
+        File parentDir = jarFile.getParentFile();
+        File tmpFile = new File(parentDir, jarFile.getName() + ".tmp");
         try {
+            Files.createDirectories(parentDir.toPath());
             try (ZipOutputStream outputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(tmpFile), BUFFER_SIZE))) {
                 outputStream.setLevel(0);
                 action.execute(new ZipEntryBuilder(outputStream));
             }
-            Files.deleteIfExists(jarFile.toPath());
-            GFileUtils.moveFile(tmpFile, jarFile);
+            Files.move(tmpFile.toPath(), jarFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
         } finally {
             Files.deleteIfExists(tmpFile.toPath());
         }
-    }
-
-    private File tempFileFor(File outputJar) throws IOException {
-        return File.createTempFile(outputJar.getName(), ".tmp");
     }
 
     public interface Action {

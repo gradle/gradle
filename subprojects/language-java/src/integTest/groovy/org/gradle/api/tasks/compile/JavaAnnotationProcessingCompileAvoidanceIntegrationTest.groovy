@@ -64,7 +64,7 @@ class JavaAnnotationProcessingCompileAvoidanceIntegrationTest extends AbstractIn
         '''
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "incremental build bug")
     def "does not rebuild project when upstream project has not changed, only rebuilt"() {
         given:
         succeeds(":a:assemble")

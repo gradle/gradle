@@ -124,8 +124,7 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.initialization.InternalBuildFinishedListener;
 import org.gradle.initialization.ProjectAccessListener;
-import org.gradle.initialization.layout.BuildLayoutConfiguration;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -452,8 +451,8 @@ class DependencyManagementBuildScopeServices {
         return new ConnectionFailureRepositoryBlacklister();
     }
 
-    StartParameterResolutionOverride createStartParameterResolutionOverride(StartParameter startParameter, BuildLayoutFactory buildLayoutFactory) {
-        File rootDirectory = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter)).getRootDirectory();
+    StartParameterResolutionOverride createStartParameterResolutionOverride(StartParameter startParameter, BuildLayout buildLayout) {
+        File rootDirectory = buildLayout.getRootDirectory();
         File gradleDir = new File(rootDirectory, "gradle");
         return new StartParameterResolutionOverride(startParameter, gradleDir);
     }

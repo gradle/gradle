@@ -34,7 +34,7 @@ import org.gradle.util.Path;
  */
 public class DefaultSettingsLoader implements SettingsLoader {
     public static final String BUILD_SRC_PROJECT_PATH = ":" + SettingsInternal.BUILD_SRC;
-    private SettingsProcessor settingsProcessor;
+    private final SettingsProcessor settingsProcessor;
     private final BuildLayoutFactory buildLayoutFactory;
     private final GradlePropertiesController gradlePropertiesController;
 

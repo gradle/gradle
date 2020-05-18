@@ -223,14 +223,18 @@ The following practices should be avoided:
 * Declaring unnecessary <<declaring_dependencies.adoc#sub:project_dependencies,project dependencies>>.
 
 [[sec:avoiding_passwords_in_plain_text]]
-== Avoid storing passwords in plain text
+== Externalize and encrypt your passwords
 
 Most builds need to consume one or many passwords.
 The reasons for this need may vary.
 Some builds need a password for publishing artifacts to a secured binary repository, other builds need a password for downloading binary files.
 Passwords should always kept safe to prevent fraud.
-Under no circumstance should you add the password to the build script in plain text or declare it in a `gradle.properties` file.
+Under no circumstance should you add the password to the build script in plain text or declare it in `gradle.properties` file in the project's directory.
 Those files usually live in a version control repository and can be viewed by anyone that has access to it.
 
-Passwords should be stored in encrypted fashion. At the moment Gradle does not provide a built-in mechanism for encrypting, storing and accessing passwords.
+Passwords together with any other sensitive data should be kept external from the version controlled project files.
+Gradle allows credentials to be externalized via <<build_environment.html#sec:gradle_configuration_properties,Gradle properties>> - they can be stored in the `gradle.properties` file that
+resides in the user's home directory or injected to the build using environment variables.
+
+Even better - consider encrypting your passwords. At the moment Gradle does not provide a built-in mechanism for encrypting, storing and accessing passwords.
 A good solution for solving this problem is the link:https://github.com/etiennestuder/gradle-credentials-plugin[Gradle Credentials plugin].

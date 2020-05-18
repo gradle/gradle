@@ -17,9 +17,10 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.test.fixtures.archive.JarTestFixture
 
+@UnsupportedWithInstantExecution(because = "software model")
 class MixedLegacyAndComponentJvmPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -31,7 +32,6 @@ class MixedLegacyAndComponentJvmPluginIntegrationTest extends AbstractIntegratio
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
     }
 
-    @ToBeFixedForInstantExecution
     def "can combine legacy java and jvm-component plugins in a single project"() {
         settingsFile << "rootProject.name = 'test'"
         buildFile << '''
@@ -64,7 +64,6 @@ class MixedLegacyAndComponentJvmPluginIntegrationTest extends AbstractIntegratio
         succeeds "checkModel"
     }
 
-    @ToBeFixedForInstantExecution
     def "can build legacy java and jvm-component plugins in a single project"() {
         given:
         file("src/main/java/org/gradle/test/Legacy.java") << """

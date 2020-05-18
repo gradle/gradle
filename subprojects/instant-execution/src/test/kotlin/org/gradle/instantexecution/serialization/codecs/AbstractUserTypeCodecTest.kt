@@ -20,6 +20,7 @@ import com.nhaarman.mockitokotlin2.mock
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.extensions.uncheckedCast
+import org.gradle.instantexecution.problems.ProblemsListener
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.DefaultReadContext
@@ -49,8 +50,13 @@ abstract class AbstractUserTypeCodecTest {
             writeTo(
                 NullOutputStream.INSTANCE,
                 bean,
-                codec
-            ) { problems += it }
+                codec,
+                object : ProblemsListener {
+                    override fun onProblem(problem: PropertyProblem) {
+                        problems += problem
+                    }
+                }
+            )
         }
 
     protected
@@ -77,9 +83,9 @@ abstract class AbstractUserTypeCodecTest {
         outputStream: OutputStream,
         graph: Any,
         codec: Codec<Any?>,
-        problemHandler: (PropertyProblem) -> Unit = mock()
+        problemsListener: ProblemsListener = mock()
     ) {
-        writeContextFor(KryoBackedEncoder(outputStream), codec, problemHandler).useToRun {
+        writeContextFor(KryoBackedEncoder(outputStream), codec, problemsListener).useToRun {
             withIsolateMock(codec) {
                 runToCompletion {
                     write(graph)
@@ -110,13 +116,13 @@ abstract class AbstractUserTypeCodecTest {
         }
 
     private
-    fun writeContextFor(encoder: Encoder, codec: Codec<Any?>, problemHandler: (PropertyProblem) -> Unit) =
+    fun writeContextFor(encoder: Encoder, codec: Codec<Any?>, problemHandler: ProblemsListener) =
         DefaultWriteContext(
             codec = codec,
             encoder = encoder,
             scopeLookup = mock(),
             logger = mock(),
-            problemHandler = problemHandler
+            problemsListener = problemHandler
         )
 
     private
@@ -127,7 +133,7 @@ abstract class AbstractUserTypeCodecTest {
             instantiatorFactory = TestUtil.instantiatorFactory(),
             constructors = BeanConstructors(TestCrossBuildInMemoryCacheFactory()),
             logger = mock(),
-            problemHandler = {}
+            problemsListener = mock()
         )
 
     protected

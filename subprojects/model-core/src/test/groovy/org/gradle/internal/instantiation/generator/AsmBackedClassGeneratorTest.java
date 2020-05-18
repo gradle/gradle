@@ -99,12 +99,12 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.sameInstance;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -1484,6 +1484,10 @@ public class AsmBackedClassGeneratorTest {
             return 12L;
         }
 
+        public int[] getIntsProperty() {
+            return new int[0];
+        }
+
         public String getReturnValueProperty() {
             return "value";
         }
@@ -1847,6 +1851,14 @@ public class AsmBackedClassGeneratorTest {
         double getProp6();
 
         void setProp6(double value);
+
+        float getProp7();
+
+        void setProp7(float value);
+
+        char getProp8();
+
+        void setProp8(char value);
     }
 
     public interface InterfaceFileCollectionBean {

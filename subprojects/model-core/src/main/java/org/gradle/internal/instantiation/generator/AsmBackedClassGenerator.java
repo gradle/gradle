@@ -87,6 +87,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.model.internal.asm.AsmClassGeneratorUtils.getterSignature;
 import static org.gradle.model.internal.asm.AsmClassGeneratorUtils.signature;
+import static org.gradle.model.internal.asm.AsmClassGeneratorUtils.unboxOrCast;
 import static org.objectweb.asm.Opcodes.AALOAD;
 import static org.objectweb.asm.Opcodes.AASTORE;
 import static org.objectweb.asm.Opcodes.ACC_FINAL;
@@ -1292,7 +1293,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodVisitor.visitVarInsn(ALOAD, 1);
                 methodVisitor.visitLdcInsn(propertyIndex);
                 methodVisitor.visitInsn(AALOAD);
-                unboxOrCast(methodVisitor, propertyMetaData.getType(), Type.getType(propertyMetaData.getType()));
+                unboxOrCast(methodVisitor, Type.getType(propertyMetaData.getType()));
                 String propFieldName = propFieldName(propertyMetaData);
                 methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), propFieldName, Type.getType(propertyMetaData.getType()).getDescriptor());
                 propertyIndex++;
@@ -1304,7 +1305,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodVisitor.visitVarInsn(ALOAD, 1);
                 methodVisitor.visitLdcInsn(propertyIndex + mutablePropertySize);
                 methodVisitor.visitInsn(AALOAD);
-                unboxOrCast(methodVisitor, propertyMetaData.getType(), Type.getType(propertyMetaData.getType()));
+                unboxOrCast(methodVisitor, Type.getType(propertyMetaData.getType()));
                 String propFieldName = propFieldName(propertyMetaData);
                 methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), propFieldName, Type.getType(propertyMetaData.getType()).getDescriptor());
                 propertyIndex++;
@@ -1422,7 +1423,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
                 methodVisitor.visitMethodInsn(INVOKEINTERFACE, CONVENTION_MAPPING_TYPE.getInternalName(), "getConventionValue", RETURN_OBJECT_FROM_STRING_OBJECT_BOOLEAN, true);
 
-                unboxOrCast(methodVisitor, getter.getReturnType(), returnType);
+                unboxOrCast(methodVisitor, returnType);
 
                 methodVisitor.visitLabel(finish);
             } else {
@@ -1448,24 +1449,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitInsn(returnType.getOpcode(IRETURN));
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
-        }
-
-        /**
-         * Unboxes or casts the value at the top of the stack.
-         */
-        private void unboxOrCast(MethodVisitor methodVisitor, Class<?> targetClass, Type targetType) {
-            if (targetClass.isPrimitive()) {
-                // Unbox value
-                Type boxedType = Type.getType(JavaReflectionUtil.getWrapperTypeForPrimitiveType(targetClass));
-                methodVisitor.visitTypeInsn(CHECKCAST, boxedType.getInternalName());
-                String valueMethodDescriptor = Type.getMethodDescriptor(targetType);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, boxedType.getInternalName(), targetClass.getName() + "Value", valueMethodDescriptor, false);
-            } else {
-                // Cast to return type
-                methodVisitor.visitTypeInsn(CHECKCAST,
-                    targetClass.isArray() ? "[" + targetType.getElementType().getDescriptor()
-                        : targetType.getInternalName());
-            }
         }
 
         /**
