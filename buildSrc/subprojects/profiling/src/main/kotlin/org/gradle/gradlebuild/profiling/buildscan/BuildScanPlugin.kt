@@ -28,7 +28,6 @@ import org.gradle.build.ClasspathManifest
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
 import org.gradle.gradlebuild.BuildEnvironment.isJenkins
 import org.gradle.gradlebuild.BuildEnvironment.isTravis
-import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.kotlin.dsl.*
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
@@ -68,11 +67,8 @@ open class BuildScanPlugin : Plugin<Project> {
         extractCiOrLocalData()
         extractVcsData()
 
-        // TODO: Background build scan upload when running user code is current broken
-        // with Gradle 6.5 and gradle enterprise plugin 3.3.
-        // As soon as this is fixed, we should enable upload in the background for non-CI builds again.
-        doNotUploadInBackground()
         if (isCiServer) {
+            doNotUploadInBackground()
             if (!isTravis && !isJenkins) {
                 extractAllReportsFromCI()
                 monitorUnexpectedCacheMisses()
@@ -273,8 +269,7 @@ open class BuildScanPlugin : Plugin<Project> {
 
     private
     fun Project.extractVfsRetentionData() {
-        val vfsRetentionEnabled = VirtualFileSystemServices.isRetentionEnabled(gradle.startParameter.systemPropertiesArgs)
-        buildScan.value(vfsRetentionEnabledName, vfsRetentionEnabled.toString())
+        // TODO: Capture watching the file system flag from start parameter after bumping the wrapper
     }
 
     private

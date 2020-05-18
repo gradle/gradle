@@ -47,6 +47,7 @@ external interface JsProblem {
     val trace: Array<JsTrace>
     val message: Array<JsMessageFragment>
     val error: String?
+    val documentationLink: String?
 }
 
 
@@ -128,7 +129,8 @@ fun problemNodesByMessage(problems: List<ImportedProblem>): Sequence<MutableList
             add(
                 errorOrWarningNodeFor(
                     imported.problem,
-                    messageNodeFor(imported)
+                    messageNodeFor(imported),
+                    docLinkFor(imported.problem)
                 )
             )
             imported.trace.forEach { part ->
@@ -146,7 +148,7 @@ fun problemNodesByTask(problems: List<ImportedProblem>): Sequence<List<ProblemNo
     problems.asSequence().map { imported ->
         imported.trace.asReversed().mapIndexed { index, node ->
             when (index) {
-                0 -> errorOrWarningNodeFor(imported.problem, node)
+                0 -> errorOrWarningNodeFor(imported.problem, node, null)
                 else -> node
             }
         } + exceptionOrMessageNodeFor(imported)
@@ -184,10 +186,10 @@ fun toProblemNode(trace: JsTrace): ProblemNode = when (trace.kind) {
 
 
 private
-fun errorOrWarningNodeFor(problem: JsProblem, label: ProblemNode): ProblemNode =
+fun errorOrWarningNodeFor(problem: JsProblem, label: ProblemNode, docLink: ProblemNode?): ProblemNode =
     problem.error?.let {
-        ProblemNode.Error(label)
-    } ?: ProblemNode.Warning(label)
+        ProblemNode.Error(label, docLink)
+    } ?: ProblemNode.Warning(label, docLink)
 
 
 private
@@ -204,6 +206,11 @@ fun messageNodeFor(importedProblem: ImportedProblem) =
 private
 fun exceptionNodeFor(it: JsProblem): ProblemNode? =
     it.error?.let(ProblemNode::Exception)
+
+
+private
+fun docLinkFor(it: JsProblem): ProblemNode? =
+    it.documentationLink?.let { ProblemNode.Link(it, "more info") }
 
 
 private

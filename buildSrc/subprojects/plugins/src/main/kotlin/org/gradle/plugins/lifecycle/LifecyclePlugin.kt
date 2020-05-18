@@ -171,7 +171,7 @@ class LifecyclePlugin : Plugin<Project> {
             description = "Build production distros and smoke test them"
             group = "build"
             dependsOn(":distributions:verifyIsProductionBuildEnvironment", ":distributions:buildDists",
-                ":distributions:integTest", ":docs:releaseNotes", ":docs:checkSamples")
+                ":distributions:integTest", ":docs:releaseNotes")
         }
     }
 

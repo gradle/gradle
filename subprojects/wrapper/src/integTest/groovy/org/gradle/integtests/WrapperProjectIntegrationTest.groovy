@@ -16,7 +16,6 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 
@@ -33,8 +32,9 @@ class WrapperProjectIntegrationTest extends AbstractWrapperIntegrationSpec {
     }
 
     task echoProperty {
+        def food = providers.gradleProperty('fooD')
         doLast {
-            println "fooD=" + project.properties["fooD"]
+            println "fooD=" + food.get()
         }
     }
 """
@@ -52,7 +52,6 @@ class WrapperProjectIntegrationTest extends AbstractWrapperIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1871")
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     void "can specify project properties containing D"() {
         given:
         prepareWrapper()

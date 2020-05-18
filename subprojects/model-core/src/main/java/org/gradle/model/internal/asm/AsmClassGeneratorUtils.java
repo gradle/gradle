@@ -16,8 +16,11 @@
 
 package org.gradle.model.internal.asm;
 
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
@@ -26,6 +29,65 @@ import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 
 public class AsmClassGeneratorUtils {
+    private static final Type BOOLEAN_TYPE = Type.getType(Boolean.class);
+    private static final Type CHARACTER_TYPE = Type.getType(Character.class);
+    private static final Type BYTE_TYPE = Type.getType(ByteArrayOutputStream.class);
+    private static final Type SHORT_TYPE = Type.getType(Short.class);
+    private static final Type INTEGER_TYPE = Type.getType(Integer.class);
+    private static final Type LONG_TYPE = Type.getType(Long.class);
+    private static final Type FLOAT_TYPE = Type.getType(Float.class);
+    private static final Type DOUBLE_TYPE = Type.getType(Double.class);
+
+    private static final String RETURN_PRIMITIVE_BOOLEAN = Type.getMethodDescriptor(Type.BOOLEAN_TYPE);
+    private static final String RETURN_CHAR = Type.getMethodDescriptor(Type.CHAR_TYPE);
+    private static final String RETURN_PRIMITIVE_BYTE = Type.getMethodDescriptor(Type.BYTE_TYPE);
+    private static final String RETURN_PRIMITIVE_SHORT = Type.getMethodDescriptor(Type.SHORT_TYPE);
+    private static final String RETURN_INT = Type.getMethodDescriptor(Type.INT_TYPE);
+    private static final String RETURN_PRIMITIVE_LONG = Type.getMethodDescriptor(Type.LONG_TYPE);
+    private static final String RETURN_PRIMITIVE_FLOAT = Type.getMethodDescriptor(Type.FLOAT_TYPE);
+    private static final String RETURN_PRIMITIVE_DOUBLE = Type.getMethodDescriptor(Type.DOUBLE_TYPE);
+
+    /**
+     * Unboxes or casts the value at the top of the stack.
+     */
+    public static void unboxOrCast(MethodVisitor methodVisitor, Type targetType) {
+        switch (targetType.getSort()) {
+            case Type.BOOLEAN:
+                methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, BOOLEAN_TYPE.getInternalName());
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, BOOLEAN_TYPE.getInternalName(), "booleanValue", RETURN_PRIMITIVE_BOOLEAN, false);
+                return;
+            case Type.CHAR:
+                methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, CHARACTER_TYPE.getInternalName());
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, CHARACTER_TYPE.getInternalName(), "charValue", RETURN_CHAR, false);
+                return;
+            case Type.BYTE:
+                methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, BYTE_TYPE.getInternalName());
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, BYTE_TYPE.getInternalName(), "byteValue", RETURN_PRIMITIVE_BYTE, false);
+                break;
+            case Type.SHORT:
+                methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, SHORT_TYPE.getInternalName());
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, SHORT_TYPE.getInternalName(), "shortValue", RETURN_PRIMITIVE_SHORT, false);
+                break;
+            case Type.INT:
+                methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, INTEGER_TYPE.getInternalName());
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, INTEGER_TYPE.getInternalName(), "intValue", RETURN_INT, false);
+                return;
+            case Type.LONG:
+                methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, LONG_TYPE.getInternalName());
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, LONG_TYPE.getInternalName(), "longValue", RETURN_PRIMITIVE_LONG, false);
+                return;
+            case Type.FLOAT:
+                methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, FLOAT_TYPE.getInternalName());
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, FLOAT_TYPE.getInternalName(), "floatValue", RETURN_PRIMITIVE_FLOAT, false);
+                return;
+            case Type.DOUBLE:
+                methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, DOUBLE_TYPE.getInternalName());
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, DOUBLE_TYPE.getInternalName(), "doubleValue", RETURN_PRIMITIVE_DOUBLE, false);
+                return;
+            default:
+                methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, targetType.getInternalName());
+        }
+    }
 
     /**
      * Generates the signature for the given constructor

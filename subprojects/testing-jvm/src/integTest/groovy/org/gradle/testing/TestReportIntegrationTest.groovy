@@ -42,12 +42,14 @@ class TestReportIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Rule
     Sample sample = new Sample(temporaryFolder)
 
-    @ToBeFixedForInstantExecution
     def "report includes results of most recent invocation"() {
         given:
         buildFile << """
 $junitSetup
-test { systemProperty 'LogLessStuff', System.getProperty('LogLessStuff') }
+test {
+    def logLessStuff = providers.systemProperty('LogLessStuff').forUseAtConfigurationTime()
+    systemProperty 'LogLessStuff', logLessStuff.orNull
+}
 """
 
         and:
