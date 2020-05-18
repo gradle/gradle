@@ -320,21 +320,6 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @ToBeFixedForInstantExecution
-    def "can publish to authenticated repository using Provider to supply credentials"() {
-        given:
-        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, "credentials(project.credentials.usernameAndPassword('mavenRepo'))")
-        server.authenticationScheme = AuthScheme.BASIC
-        PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
-        expectPublishModuleWithCredentials(module, credentials)
-
-        when:
-        executer.withArguments("-PmavenRepoUsername=${credentials.username}", "-PmavenRepoPassword=${credentials.password}")
-
-        then:
-        succeeds 'publish'
-    }
-
-    @ToBeFixedForInstantExecution
     def "can publish to authenticated repository using credentials Provider with inferred identity"() {
         given:
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, "credentials(PasswordCredentials)")
@@ -352,7 +337,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     @ToBeFixedForInstantExecution
     def "fails at configuration time with helpful error message when username and password provider has no value"() {
         given:
-        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, "credentials(project.credentials.usernameAndPassword('mavenRepo'))")
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, "credentials(PasswordCredentials)")
 
         when:
         succeeds 'jar'
@@ -365,10 +350,11 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         notExecuted(':jar', ':publishMavenPublicationToMavenRepository')
-        failure.assertHasDescription("Cannot query the value of username and password provider because it has no value available.")
-        failure.assertHasErrorOutput("The value of this provider is derived from")
-        failure.assertHasErrorOutput("- Gradle property 'mavenRepoUsername'")
-        failure.assertHasErrorOutput("- Gradle property 'mavenRepoPassword'")
+        failure.assertHasDescription("Could not determine the dependencies of task ':publishMavenPublicationToMavenRepository'")
+        failure.assertHasCause("Cannot query the value of this property because it has no value available.")
+        failure.assertHasErrorOutput("The value of this property is derived from")
+        failure.assertHasErrorOutput("- Gradle property 'mavenUsername'")
+        failure.assertHasErrorOutput("- Gradle property 'mavenPassword'")
     }
 
     private static String publicationBuild(String version, String group, URI uri, PasswordCredentials credentials = null) {

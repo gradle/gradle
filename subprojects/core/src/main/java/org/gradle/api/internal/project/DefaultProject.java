@@ -69,7 +69,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.internal.provider.CredentialsProviderFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
@@ -863,12 +862,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     @Inject
     public ProviderFactory getProviders() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    public CredentialsProviderFactory getCredentials() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }

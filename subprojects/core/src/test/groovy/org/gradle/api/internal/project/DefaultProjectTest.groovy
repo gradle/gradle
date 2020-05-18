@@ -56,7 +56,6 @@ import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.api.internal.provider.CredentialsProviderFactory
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.resources.ApiTextResourceAdapter
 import org.gradle.api.internal.tasks.TaskContainerInternal
@@ -138,7 +137,6 @@ class DefaultProjectTest extends Specification {
     ConfigurationTargetIdentifier configurationTargetIdentifier = Stub(ConfigurationTargetIdentifier)
     FileOperations fileOperationsMock = Stub(FileOperations)
     ProviderFactory propertyStateFactoryMock = Stub(ProviderFactory)
-    CredentialsProviderFactory credentialsProviderFactoryMock = Stub(CredentialsProviderFactory)
     ProcessOperations processOperationsMock = Stub(ProcessOperations)
     LoggingManagerInternal loggingManagerMock = Stub(LoggingManagerInternal)
     Instantiator instantiatorMock = Stub(Instantiator)
@@ -202,7 +200,6 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(InstantiatorFactory) >> TestUtil.instantiatorFactory()
         serviceRegistryMock.get((Type) FileOperations) >> fileOperationsMock
         serviceRegistryMock.get((Type) ProviderFactory) >> propertyStateFactoryMock
-        serviceRegistryMock.get((Type) CredentialsProviderFactory) >> credentialsProviderFactoryMock
         serviceRegistryMock.get((Type) ProcessOperations) >> processOperationsMock
         serviceRegistryMock.get((Type) ScriptPluginFactory) >> Stub(ScriptPluginFactory)
         serviceRegistryMock.get((Type) ScriptHandlerFactory) >> Stub(ScriptHandlerFactory)

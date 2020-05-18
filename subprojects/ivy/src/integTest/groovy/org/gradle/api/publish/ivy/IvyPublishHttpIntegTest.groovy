@@ -554,9 +554,7 @@ credentials {
     @ToBeFixedForInstantExecution
     void "can publish artifact to authenticated repository using credentials provider"() {
         given:
-        String credentialsBlock = """
-            credentials(project.credentials.usernameAndPassword('ivyRepo'))
-        """
+        String credentialsBlock = "credentials(PasswordCredentials)"
         buildFile << publicationBuild('2', 'org.gradle', ivyHttpRepo.uri, credentialsBlock)
 
         and:
@@ -576,7 +574,7 @@ credentials {
         module.moduleMetadata.sha512.expectPut(credentials)
 
         when:
-        executer.withArguments("-PivyRepoUsername=${credentials.username}", "-PivyRepoPassword=${credentials.password}")
+        executer.withArguments("-PivyUsername=${credentials.username}", "-PivyPassword=${credentials.password}")
         succeeds 'publish'
 
         then:
@@ -587,9 +585,7 @@ credentials {
     @ToBeFixedForInstantExecution
     def "fails at configuration time with helpful error message when username and password provider has no value"() {
         given:
-        String credentialsBlock = """
-            credentials(project.credentials.usernameAndPassword('ivyRepo'))
-        """
+        String credentialsBlock = "credentials(PasswordCredentials)"
         buildFile << publicationBuild('2', 'org.gradle', ivyHttpRepo.uri, credentialsBlock)
 
         when:
@@ -603,10 +599,11 @@ credentials {
 
         then:
         notExecuted(':jar', ':publishIvyPublicationToIvyRepository')
-        failure.assertHasErrorOutput("Cannot query the value of username and password provider because it has no value available.")
-        failure.assertHasErrorOutput("The value of this provider is derived from")
-        failure.assertHasErrorOutput("- Gradle property 'ivyRepoUsername'")
-        failure.assertHasErrorOutput("- Gradle property 'ivyRepoPassword'")
+        failure.assertHasDescription("Could not determine the dependencies of task ':publishIvyPublicationToIvyRepository'.")
+        failure.assertHasCause("Cannot query the value of this property because it has no value available.")
+        failure.assertHasErrorOutput("The value of this property is derived from")
+        failure.assertHasErrorOutput("- Gradle property 'ivyUsername'")
+        failure.assertHasErrorOutput("- Gradle property 'ivyPassword'")
     }
 
     private static String publicationBuild(String version, String group, URI uri, String credentialsBlock) {
