@@ -23,7 +23,6 @@ import org.gradle.api.internal.provider.CredentialsProviderFactory;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
@@ -79,18 +78,9 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
         delegate.credentials(credentialsType, action);
     }
 
-    public void credentials(Provider<? extends Credentials> credentials) {
+    public void credentials(Class<? extends Credentials> credentialsType) {
         invalidateDescriptor();
-        delegate.credentials(credentials);
-    }
-
-    public Provider<Credentials> credentials(Class<? extends Credentials> credentialsType) {
-        invalidateDescriptor();
-        delegate.credentials(new DefaultProvider<>(() -> {
-            delegate.setIdentity(getName());
-            return delegate.credentials(credentialsType).get();
-        }));
-        return delegate.getConfiguredCredentials();
+        delegate.credentials(new DefaultProvider<>(() -> delegate.credentials(credentialsType, getName()).get()));
     }
 
     @Override

@@ -46,7 +46,6 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
 
     private final Property<Credentials> credentials;
     private boolean usesCredentials = false;
-    private String identity;
 
     public AuthenticationSupporter(Instantiator instantiator, ObjectFactory objectFactory, AuthenticationContainer authenticationContainer, CredentialsProviderFactory credentialsProviderFactory) {
         this.instantiator = instantiator;
@@ -90,15 +89,7 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
         action.execute(getCredentials(credentialsType));
     }
 
-    public void credentials(Provider<? extends Credentials> credentials) {
-        this.usesCredentials = true;
-        this.credentials.set(credentials);
-    }
-
-    public Provider<Credentials> credentials(Class<? extends Credentials> credentialsType) {
-        if (identity == null) {
-            throw new IllegalStateException("Identity can not be null!");
-        }
+    public Provider<Credentials> credentials(Class<? extends Credentials> credentialsType, String identity) {
         if (credentialsType == PasswordCredentials.class) {
             credentials(credentialsProviderFactory.usernameAndPassword(identity));
             return getConfiguredCredentials();
@@ -108,6 +99,11 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
 
     @Override
     public void setConfiguredCredentials(Credentials credentials) {
+        this.usesCredentials = true;
+        this.credentials.set(credentials);
+    }
+
+    void credentials(Provider<? extends Credentials> credentials) {
         this.usesCredentials = true;
         this.credentials.set(credentials);
     }
@@ -146,10 +142,6 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
         } else {
             return getAuthentication();
         }
-    }
-
-    void setIdentity(String identity) {
-        this.identity = identity;
     }
 
     boolean usesCredentials() {
