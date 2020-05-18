@@ -39,26 +39,28 @@ fun IsolateContext.logPropertyInfo(action: String, value: Any?) {
 
 
 fun IsolateContext.logUnsupported(action: String, baseType: KClass<*>, actualType: Class<*>) {
-    logPropertyProblem {
-        text("cannot ")
-        text(action)
-        text(" object of type ")
-        reference(GeneratedSubclasses.unpack(actualType))
-        text(", a subtype of ")
-        reference(baseType)
-        text(", as these are not supported with instant execution.")
-    }
+    logPropertyProblem(action, PropertyProblem(trace,
+        build {
+            text("cannot ")
+            text(action)
+            text(" object of type ")
+            reference(GeneratedSubclasses.unpack(actualType))
+            text(", a subtype of ")
+            reference(baseType)
+            text(", as these are not supported with instant execution.")
+        }, null, "disallowed_types"))
 }
 
 
 fun IsolateContext.logUnsupported(action: String, baseType: KClass<*>) {
-    logPropertyProblem {
-        text("cannot ")
-        text(action)
-        text(" object of type ")
-        reference(baseType)
-        text(" as these are not supported with instant execution.")
-    }
+    logPropertyProblem(action, PropertyProblem(trace,
+        build {
+            text("cannot ")
+            text(action)
+            text(" object of type ")
+            reference(baseType)
+            text(" as these are not supported with instant execution.")
+        }, null, "disallowed_types"))
 }
 
 
@@ -72,15 +74,15 @@ fun IsolateContext.logNotImplemented(baseType: Class<*>) {
 
 
 fun IsolateContext.logNotImplemented(feature: String) {
-    logPropertyProblem {
+    onProblem(PropertyProblem(trace, build {
         text("support for $feature is not yet implemented with instant execution.")
-    }
+    }, null, "not_yet_implemented"))
 }
 
 
 private
-fun IsolateContext.logPropertyProblem(message: StructuredMessageBuilder) {
-    val problem = PropertyProblem(trace, build(message))
+fun IsolateContext.logPropertyProblem(documentationSection: String? = null, message: StructuredMessageBuilder) {
+    val problem = PropertyProblem(trace, build(message), null, documentationSection)
     logPropertyProblem("serialize", problem)
 }
 
