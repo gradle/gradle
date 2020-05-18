@@ -19,7 +19,6 @@ package org.gradle.instantexecution.initialization
 import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.initialization.layout.BuildLayout
-import org.gradle.instantexecution.SystemProperties
 import org.gradle.instantexecution.extensions.unsafeLazy
 import org.gradle.internal.hash.HashUtil.createCompactMD5
 import org.gradle.util.GFileUtils
@@ -38,7 +37,7 @@ class InstantExecutionStartParameter(
         get() = startParameter.isConfigurationCacheEnabled
 
     val isQuiet: Boolean
-        get() = systemPropertyFlag(SystemProperties.isQuiet)
+        get() = startParameter.isConfigurationCacheQuiet
 
     val maxProblems: Int
         get() = startParameter.configurationCacheMaxProblems
@@ -97,12 +96,4 @@ class InstantExecutionStartParameter(
     fun relativeChildPathOrNull(target: File, base: File): String? =
         GFileUtils.relativePathOf(target, base)
             .takeIf { !it.startsWith('.') }
-
-    private
-    fun systemPropertyFlag(propertyName: String, defaultValue: Boolean = false): Boolean =
-        systemProperty(propertyName)?.toBoolean() ?: defaultValue
-
-    private
-    fun systemProperty(propertyName: String) =
-        startParameter.systemPropertiesArgs[propertyName]
 }

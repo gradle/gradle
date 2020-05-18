@@ -74,6 +74,7 @@ public class StartParameterBuildOptions {
         options.add(new ConfigurationCacheFailOnProblemsOption());
         options.add(new ConfigurationCacheMaxProblemsOption());
         options.add(new ConfigurationCacheRecreateOption());
+        options.add(new ConfigurationCacheQuietOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -481,6 +482,20 @@ public class StartParameterBuildOptions {
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheRecreateCache(value);
+        }
+    }
+
+    public static class ConfigurationCacheQuietOption extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.unsafe.configuration-cache-quiet";
+
+        public ConfigurationCacheQuietOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheQuiet(value);
         }
     }
 }
