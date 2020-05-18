@@ -28,27 +28,22 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
         def fixture = newInstantExecutionFixture()
 
         when:
-        run("thing", "-DCI=$value")
-
-        then:
-        outputContains("apply = $value")
-        outputContains("task = $value")
-
-        when:
         instantFails("thing", "-DCI=$value")
 
         then:
+        fixture.assertStateStored()
         // TODO - use problems fixture, need to be able to tweak the problem matching as build script class name is included in the message and this is generated
         failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from class '"))
+        outputContains("apply = $value")
+        outputContains("task = $value")
 
         when:
         instantRunLenient("thing", "-DCI=$value")
 
         then:
-        fixture.assertStateStored()
-        // TODO - use problems fixture, need to be able to tweak the problem matching as build script class name is included in the message and this is generated
-        outputContains("- unknown location: read system property 'CI' from class '")
-        outputContains("apply = $value")
+        fixture.assertStateLoaded()
+        problems.assertResultHasProblems(result)
+        outputDoesNotContain("apply =")
         outputContains("task = $value")
 
         when:
@@ -57,6 +52,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
         then:
         fixture.assertStateLoaded() // undeclared properties are not considered build inputs, but probably should be
         problems.assertResultHasProblems(result)
+        outputDoesNotContain("apply =")
         outputContains("task = $newValue")
 
         where:

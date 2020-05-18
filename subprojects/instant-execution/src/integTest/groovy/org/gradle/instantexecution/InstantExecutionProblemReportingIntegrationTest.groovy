@@ -25,7 +25,7 @@ import spock.lang.Unroll
 
 class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    def "state serialization errors always halt the build"() {
+    def "state serialization errors always halt the build and invalidate the cache"() {
         given:
         def instant = newInstantExecutionFixture()
 
@@ -76,7 +76,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         }
     }
 
-    def "state serialization errors always halt the build and other problems reported"() {
+    def "state serialization errors always halt the build and earlier problems reported"() {
         given:
         def instant = newInstantExecutionFixture()
 
@@ -136,44 +136,168 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         }
     }
 
-    def "problems are reported and fail the build by default"() {
-
+    def "serialization problems are reported and fail the build by default and do not invalidate cache"() {
         given:
         def instantExecution = newInstantExecutionFixture()
-        def stateSerializationProblems = withStateSerializationProblems()
-        def taskExecutionProblems = withTaskExecutionProblems()
+
+        buildFile << """
+            class BrokenTaskType extends DefaultTask {
+                final prop = project
+                final anotherProp = project.configurations
+            }
+
+            task problems {
+                inputs.property 'brokenProperty', project
+                inputs.property 'otherBrokenProperty', project
+            }
+
+            task moreProblems(type: BrokenTaskType)
+
+            task ok
+
+            task all {
+                dependsOn 'problems', 'moreProblems', 'ok'
+            }
+        """
 
         when:
-        instantFails 'taskWithStateSerializationProblems', 'a', 'b'
+        instantFails 'all'
 
         then:
-        executed(':taskWithStateSerializationProblems', ':a', ':b')
+        executed(':problems', ':moreProblems', ':ok', ':all')
+        instantExecution.assertStateStored() // does not fail
         problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(taskExecutionProblems + stateSerializationProblems.store)
-            withProblemsWithStackTraceCount(2)
+            withProblem("field 'anotherProp' from type 'BrokenTaskType': cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with instant execution.")
+            withProblem("field 'prop' from type 'BrokenTaskType': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.")
+            withProblem("input property 'brokenProperty' of ':problems': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.")
+            withProblem("input property 'otherBrokenProperty' of ':problems': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.")
         }
         failure.assertHasFailures(1)
 
         when:
-        instantRunLenient 'taskWithStateSerializationProblems', 'a', 'b'
+        instantRunLenient 'all'
 
         then:
-        executed(':taskWithStateSerializationProblems', ':a', ':b')
-        instantExecution.assertStateStored()
+        executed(':problems', ':moreProblems', ':ok', ':all')
+        instantExecution.assertStateLoaded()
         problems.assertResultHasProblems(result) {
-            withUniqueProblems(taskExecutionProblems + stateSerializationProblems.store)
-            withProblemsWithStackTraceCount(2)
+            withProblem("field 'anotherProp' from type 'BrokenTaskType': cannot deserialize object of type 'org.gradle.api.artifacts.ConfigurationContainer' as these are not supported with instant execution.")
+            withProblem("field 'prop' from type 'BrokenTaskType': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with instant execution.")
+            withProblem("input property 'brokenProperty' of ':problems': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with instant execution.")
+            withProblem("input property 'otherBrokenProperty' of ':problems': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with instant execution.")
         }
 
         when:
-        instantFails 'taskWithStateSerializationProblems', 'a', 'b'
+        instantFails 'all'
 
         then:
-        executed(':taskWithStateSerializationProblems', ':a', ':b')
+        executed(':problems', ':moreProblems', ':ok', ':all')
         instantExecution.assertStateLoaded()
         problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(taskExecutionProblems + stateSerializationProblems.load)
-            withProblemsWithStackTraceCount(2)
+            withProblem("field 'anotherProp' from type 'BrokenTaskType': cannot deserialize object of type 'org.gradle.api.artifacts.ConfigurationContainer' as these are not supported with instant execution.")
+            withProblem("field 'prop' from type 'BrokenTaskType': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with instant execution.")
+            withProblem("input property 'brokenProperty' of ':problems': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with instant execution.")
+            withProblem("input property 'otherBrokenProperty' of ':problems': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with instant execution.")
+        }
+    }
+
+    def "configuration time problems are reported and fail the build by default only when configuration is executed and do not invalidate the cache"() {
+        given:
+        def instantExecution = newInstantExecutionFixture()
+
+        buildFile << """
+            gradle.buildFinished { }
+            gradle.buildFinished { }
+
+            task all
+        """
+
+        when:
+        instantFails 'all'
+
+        then:
+        executed(':all')
+        instantExecution.assertStateStored() // does not fail
+        problems.assertFailureHasProblems(failure) {
+            withProblem("unknown location: registration of listener on 'Gradle.buildFinished' is unsupported")
+            withTotalProblemsCount(2)
+        }
+        failure.assertHasFailures(1)
+
+        when:
+        instantRunLenient 'all'
+
+        then:
+        executed(':all')
+        instantExecution.assertStateLoaded()
+        problems.assertResultHasProblems(result) {
+            // TODO - should give some indication to the user that the build may not work correctly
+        }
+
+        when:
+        instantRun 'all'
+
+        then:
+        executed(':all')
+        instantExecution.assertStateLoaded()
+        problems.assertResultHasProblems(result) {
+            // TODO - should fail and give some indication to the user why
+        }
+    }
+
+    def "task execution problems are reported and fail the build by default and do not invalidate cache"() {
+        given:
+        def instantExecution = newInstantExecutionFixture()
+
+        buildFile << """
+            task broken {
+                doLast {
+                    println("project = " + project.name)
+                }
+            }
+            task anotherBroken {
+                doLast {
+                    println("configurations = " + project.configurations.all)
+                }
+            }
+
+            task all {
+                dependsOn 'broken', 'anotherBroken'
+            }
+        """
+
+        when:
+        instantFails 'all'
+
+        then:
+        executed(':all')
+        instantExecution.assertStateStored() // does not fail
+        problems.assertFailureHasProblems(failure) {
+            withProblem("task `:anotherBroken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("task `:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+        }
+        failure.assertHasFailures(1)
+
+        when:
+        instantRunLenient 'all'
+
+        then:
+        executed(':all')
+        instantExecution.assertStateLoaded()
+        problems.assertResultHasProblems(result) {
+            withProblem("task `:anotherBroken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("task `:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+        }
+
+        when:
+        instantFails 'all'
+
+        then:
+        executed(':all')
+        instantExecution.assertStateLoaded()
+        problems.assertFailureHasProblems(failure) {
+            withProblem("task `:anotherBroken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("task `:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
         }
     }
 
@@ -256,8 +380,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         then:
         problems.assertResultHasProblems(result) {
-            withProblem("input property 'p' of ':broken': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("unknown location: registration of listener on 'Gradle.addListener' is unsupported")
+            withProblem("input property 'p' of ':broken': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with instant execution.")
         }
     }
 

@@ -74,10 +74,6 @@ class InstantExecutionProblems(
     private
     var isFailOnProblems = startParameter.failOnProblems
 
-    fun runIfBuildWillFail(action: () -> Unit) {
-        if (isFailOnProblems && problems.isNotEmpty()) action()
-    }
-
     fun failingBuildDueToSerializationError() {
         isFailOnProblems = false
     }

@@ -146,13 +146,15 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         instantFails("-DCI=$defaultValue") // use the default value
 
         then:
+        fixture.assertStateStored()
         failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from class '"))
 
         when:
-        instantFails("-DCI=$newValue")
+        instantRun("-DCI=$newValue") // undeclared inputs are not treated as inputs, but probably should be
 
         then:
-        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from class '"))
+        fixture.assertStateLoaded()
+        noExceptionThrown()
 
         where:
         read                                                                        | defaultValue | newValue
