@@ -115,6 +115,7 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isRefreshDependencies());
             encoder.writeBoolean(startParameter.isBuildCacheEnabled());
             encoder.writeBoolean(startParameter.isBuildCacheDebugLogging());
+            encoder.writeBoolean(startParameter.isWatchFileSystem());
             encoder.writeString(startParameter.getConfigurationCache().name());
             encoder.writeSmallInt(startParameter.getConfigurationCacheMaxProblems());
             encoder.writeBoolean(startParameter.isConfigurationCacheRecreateCache());
@@ -193,6 +194,7 @@ public class BuildActionSerializer {
             startParameter.setRefreshDependencies(decoder.readBoolean());
             startParameter.setBuildCacheEnabled(decoder.readBoolean());
             startParameter.setBuildCacheDebugLogging(decoder.readBoolean());
+            startParameter.setWatchFileSystem(decoder.readBoolean());
             startParameter.setConfigurationCache(ConfigurationCacheOption.Value.valueOf(decoder.readString()));
             startParameter.setConfigurationCacheMaxProblems(decoder.readSmallInt());
             startParameter.setConfigurationCacheRecreateCache(decoder.readBoolean());

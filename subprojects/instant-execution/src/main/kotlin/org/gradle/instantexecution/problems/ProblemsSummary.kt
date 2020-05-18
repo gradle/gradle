@@ -16,25 +16,30 @@
 
 package org.gradle.instantexecution.problems
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.internal.logging.ConsoleRenderer
 import java.io.File
 
 
 private
-typealias UniquePropertyProblem = Pair<String, StructuredMessage>
+data class UniquePropertyProblem(val property: String, val message: StructuredMessage, val documentationSection: String?)
 
 
 internal
 fun buildConsoleSummary(problems: List<PropertyProblem>, reportFile: File): String {
+    val documentationRegistry = DocumentationRegistry()
     val uniquePropertyProblems = uniquePropertyProblems(problems)
     return StringBuilder().apply {
         appendln()
         appendln(buildSummaryHeader(problems.size, uniquePropertyProblems))
-        uniquePropertyProblems.forEach { (property, message) ->
+        uniquePropertyProblems.forEach { problem ->
             append("- ")
-            append(property)
+            append(problem.property)
             append(": ")
-            appendln(message)
+            appendln(problem.message)
+            if (problem.documentationSection != null) {
+                appendln("  See ${documentationRegistry.getDocumentationFor("configuration_cache", problem.documentationSection)}")
+            }
         }
         appendln()
         append(buildSummaryReportLink(reportFile))
@@ -45,7 +50,7 @@ fun buildConsoleSummary(problems: List<PropertyProblem>, reportFile: File): Stri
 private
 fun uniquePropertyProblems(problems: List<PropertyProblem>): Set<UniquePropertyProblem> =
     problems.sortedBy { it.trace.sequence.toList().reversed().joinToString(".") }
-        .groupBy { propertyDescriptionFor(it.trace) to it.message }
+        .groupBy { UniquePropertyProblem(propertyDescriptionFor(it.trace), it.message, it.documentationSection) }
         .keys
 
 

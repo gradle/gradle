@@ -16,10 +16,10 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginSettingsFixture
-import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.BuildExperimentSpec
@@ -79,14 +79,13 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     private void buildSpecForSupportedOptimizations(IncrementalAndroidTestProject testProject, @DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure scenarioConfiguration) {
         supportedOptimizations(testProject).each { name, Set<Optimization> enabledOptimizations ->
             runner.buildSpec {
-                passChangedFile(delegate, testProject)
                 invocation.args(*enabledOptimizations*.argument)
                 testProject.configureForLatestAgpVersionOfMinor(delegate, AGP_TARGET_VERSION)
                 displayName(name)
 
-                final Closure clonedClosure = scenarioConfiguration.clone() as Closure;
-                clonedClosure.setResolveStrategy(Closure.DELEGATE_FIRST);
-                clonedClosure.setDelegate(delegate);
+                final Closure clonedClosure = scenarioConfiguration.clone() as Closure
+                clonedClosure.setResolveStrategy(Closure.DELEGATE_FIRST)
+                clonedClosure.setDelegate(delegate)
                 clonedClosure.call()
             }
         }
@@ -129,13 +128,9 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         }
     }
 
-    static void passChangedFile(GradleBuildExperimentSpec.GradleBuilder builder, IncrementalAndroidTestProject testProject) {
-        builder.invocation.args("-D${VirtualFileSystemServices.VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY}=${testProject.pathToChange}")
-    }
-
     enum Optimization {
         INSTANT_EXECUTION("--${ConfigurationCacheOption.LONG_OPTION}=warn"), // TODO on
-        VFS_RETENTION("-D${VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY}=true")
+        VFS_RETENTION("-D${StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY}=true")
 
         Optimization(String argument) {
             this.argument = argument

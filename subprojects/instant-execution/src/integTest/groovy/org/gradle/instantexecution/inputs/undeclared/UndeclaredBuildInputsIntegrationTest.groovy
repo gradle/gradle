@@ -36,10 +36,10 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
 
         then:
         // TODO - use problems fixture, however build script class is generated
-        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from 'build_"))
+        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from class 'build_"))
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(3)
-        failure.assertThatCause(containsNormalizedString("Read system property 'CI' from 'build_"))
+        failure.assertThatCause(containsNormalizedString("Read system property 'CI' from class 'build_"))
 
         where:
         mechanism << SystemPropertyInjection.all("CI", "false")
@@ -60,11 +60,11 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
 
         then:
         // TODO - use problems fixture, however build script class is generated
-        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from 'build_"))
+        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from class 'build_"))
         failure.assertHasFileName("Build file '${file("buildSrc/build.gradle").absolutePath}'")
         failure.assertHasLineNumber(2)
-        failure.assertThatCause(containsNormalizedString("Read system property 'CI' from 'build_"))
-        failure.assertThatCause(containsNormalizedString("Read system property 'CI2' from 'build_"))
+        failure.assertThatCause(containsNormalizedString("Read system property 'CI' from class 'build_"))
+        failure.assertThatCause(containsNormalizedString("Read system property 'CI2' from class 'build_"))
 
         where:
         mechanism << SystemPropertyInjection.all("CI", "false")
@@ -105,7 +105,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         instantFails(*mechanism.gradleArgs)
 
         then:
-        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from '"))
+        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from class '"))
 
         where:
         mechanism << SystemPropertyInjection.all("CI", "false")
@@ -145,13 +145,13 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         instantFails("-DCI=$defaultValue") // use the default value
 
         then:
-        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from '"))
+        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from class '"))
 
         when:
         instantFails("-DCI=$newValue")
 
         then:
-        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from '"))
+        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from class '"))
 
         where:
         read                                                                        | defaultValue | newValue

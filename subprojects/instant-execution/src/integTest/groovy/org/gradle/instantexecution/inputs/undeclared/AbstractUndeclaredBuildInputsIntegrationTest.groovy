@@ -39,7 +39,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
 
         then:
         // TODO - use problems fixture, need to be able to tweak the problem matching as build script class name is included in the message and this is generated
-        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from '"))
+        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from class '"))
 
         when:
         instantRunLenient("thing", "-DCI=$value")
@@ -47,7 +47,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
         then:
         fixture.assertStateStored()
         // TODO - use problems fixture, need to be able to tweak the problem matching as build script class name is included in the message and this is generated
-        outputContains("- unknown location: read system property 'CI' from '")
+        outputContains("- unknown location: read system property 'CI' from class '")
         outputContains("apply = $value")
         outputContains("task = $value")
 

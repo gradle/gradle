@@ -1,5 +1,6 @@
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 plugins {
     gradlebuild.distribution.`plugins-api-java`
@@ -114,3 +115,5 @@ tasks.withType<IntegrationTest>().configureEach {
         classpath = integTestRuntimeResourcesClasspath + classpath
     }
 }
+
+integrationTestUsesSampleDir("subprojects/platform-play/src/main")

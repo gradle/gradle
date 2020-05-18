@@ -17,6 +17,7 @@
 package org.gradle.instantexecution
 
 import groovy.json.JsonOutput
+import org.gradle.api.internal.DocumentationRegistry
 
 import org.gradle.api.logging.Logging
 
@@ -99,6 +100,7 @@ class InstantExecutionReport(
 
     private
     fun writeJsReportData(problems: List<PropertyProblem>, outputDirectory: File) {
+        val documentationRegistry = DocumentationRegistry()
         outputDirectory.resolve("instant-execution-report-data.js").bufferedWriter().use { writer ->
             writer.run {
                 appendln("function instantExecutionProblems() { return [")
@@ -108,6 +110,7 @@ class InstantExecutionReport(
                             mapOf(
                                 "trace" to traceListOf(it),
                                 "message" to it.message.fragments,
+                                "documentationLink" to it.documentationSection?.let { documentationRegistry.getDocumentationFor("configuration_cache", it) },
                                 "error" to stackTraceStringOf(it)
                             )
                         )

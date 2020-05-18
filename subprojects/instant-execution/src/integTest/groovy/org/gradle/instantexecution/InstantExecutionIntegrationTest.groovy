@@ -932,6 +932,48 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     }
 
     @Unroll
+    def "restores task with action that is Java lambda"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaPlugin.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import org.gradle.api.*;
+                import org.gradle.api.tasks.*;
+
+                public class LambdaPlugin implements Plugin<Project> {
+                    public void apply(Project project) {
+                        $type value = $expression;
+                        project.getTasks().register("ok", task -> {
+                            task.doLast(t -> {
+                                System.out.println(task.getName() + " value is " + value);
+                            });
+                        });
+                    }
+                }
+            """
+        }
+
+        buildFile << """
+            apply plugin: my.LambdaPlugin
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("ok value is ${value}")
+
+        where:
+        type      | expression | value
+        "String"  | '"value"'  | "value"
+        "int"     | "12"       | "12"
+        "boolean" | "true"     | "true"
+    }
+
+    @Unroll
     def "restores task fields whose value is #kind TextResource"() {
 
         given:

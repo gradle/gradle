@@ -60,7 +60,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         '''
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "incremental build bug")
     def "does not regenerate javadoc when the upstream jar is just rebuilt without changes"() {
         given:
         succeeds(":a:javadoc")
