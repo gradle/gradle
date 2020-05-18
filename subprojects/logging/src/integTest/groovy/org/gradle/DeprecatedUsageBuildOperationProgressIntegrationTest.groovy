@@ -178,7 +178,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         buildSrcDeprecations.details.stackTrace[0].lineNumber == 2
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "emits deprecation warnings as build operation progress events for composite builds"() {
         file('included/settings.gradle') << "rootProject.name = 'included'"
         file('included/build.gradle') << """

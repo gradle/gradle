@@ -68,7 +68,7 @@ abstract class AbstractConsoleConfigurationProgressFunctionalTest extends Abstra
         gradle.waitForFinish()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "shows work in progress with included build"() {
         settingsFile << """
             includeBuild "child"

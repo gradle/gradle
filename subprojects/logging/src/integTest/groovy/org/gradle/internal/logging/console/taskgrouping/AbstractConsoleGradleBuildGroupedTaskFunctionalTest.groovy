@@ -26,7 +26,7 @@ abstract class AbstractConsoleGradleBuildGroupedTaskFunctionalTest extends Abstr
     private static final String BYE_WORLD_MESSAGE = 'Bye world'
     private static final String AGGREGATE_TASK_NAME = 'all'
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "GradleBuild")
     def "can group task output from external build invoked executed by GradleBuild in same directory"() {
         given:
         def externalBuildScriptPath = 'other.gradle'
@@ -42,7 +42,7 @@ abstract class AbstractConsoleGradleBuildGroupedTaskFunctionalTest extends Abstr
         result.groupedOutput.task(':byeWorld').output == BYE_WORLD_MESSAGE
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "GradleBuild")
     def "can group task output from external build invoked executed by GradleBuild in different directory"() {
         given:
         def externalBuildScriptPath = 'external/other.gradle'
