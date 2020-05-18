@@ -517,7 +517,7 @@ samples {
 
         compositeBuildsPluginDevelopment {
             sampleDirectory = samplesRoot.dir("build-organization/composite-builds/plugin-dev")
-            description = "Composite build to develop a Gradle plugin"
+            description = "Developing a Gradle plugin in a build without publishing."
             category = "Build organization"
         }
     }
