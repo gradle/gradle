@@ -28,7 +28,6 @@ import org.gradle.build.ClasspathManifest
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
 import org.gradle.gradlebuild.BuildEnvironment.isJenkins
 import org.gradle.gradlebuild.BuildEnvironment.isTravis
-import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.kotlin.dsl.*
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
@@ -270,8 +269,7 @@ open class BuildScanPlugin : Plugin<Project> {
 
     private
     fun Project.extractVfsRetentionData() {
-        val vfsRetentionEnabled = VirtualFileSystemServices.isRetentionEnabled(gradle.startParameter.systemPropertiesArgs)
-        buildScan.value(vfsRetentionEnabledName, vfsRetentionEnabled.toString())
+        // TODO: Capture watching the file system flag from start parameter after bumping the wrapper
     }
 
     private
