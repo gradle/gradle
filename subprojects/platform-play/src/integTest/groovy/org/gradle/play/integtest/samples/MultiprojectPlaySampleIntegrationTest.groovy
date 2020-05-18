@@ -20,13 +20,11 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.junit.Rule
-import spock.lang.Ignore
 
 import static org.gradle.integtests.fixtures.UrlValidator.assertBinaryUrlContent
 import static org.gradle.integtests.fixtures.UrlValidator.assertUrlContent
 import static org.gradle.integtests.fixtures.UrlValidator.assertUrlContentContains
 
-@Ignore
 class MultiprojectPlaySampleIntegrationTest extends AbstractPlaySampleIntegrationTest {
     @Rule
     Sample multiprojectSample = new Sample(temporaryFolder, "play/multiproject/groovy")
