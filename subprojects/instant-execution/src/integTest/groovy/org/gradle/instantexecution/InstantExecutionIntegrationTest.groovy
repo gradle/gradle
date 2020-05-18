@@ -92,13 +92,13 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         def fixture = newInstantExecutionFixture()
 
         when:
-        instantRun "help", "--${ConfigurationCacheRecreateOption.LONG_OPTION}"
+        instantRun "help" , "-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
 
         then:
         fixture.assertStateStored()
 
         when:
-        instantRun "help", "--${ConfigurationCacheRecreateOption.LONG_OPTION}"
+        instantRun "help", "-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
 
         then:
         fixture.assertStateStored()
