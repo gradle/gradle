@@ -39,6 +39,7 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -55,6 +56,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     private final NotationParser<Object, ComponentSelector> moduleSelectorNotationParser;
     private final NotationParser<Object, ComponentSelector> projectSelectorNotationParser;
     private final ComponentSelectionDescriptor reason;
+    private final Instantiator instantiator;
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
     private boolean hasDependencySubstitutionRule;
@@ -66,34 +68,43 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             .toComposite();
     }
 
-    public static DefaultDependencySubstitutions forResolutionStrategy(ComponentIdentifierFactory componentIdentifierFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public static DefaultDependencySubstitutions forResolutionStrategy(ComponentIdentifierFactory componentIdentifierFactory,
+                                                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                                       Instantiator instantiator) {
         NotationParser<Object, ComponentSelector> projectSelectorNotationParser = NotationParserBuilder
             .toType(ComponentSelector.class)
             .fromCharSequence(new ProjectPathConverter(componentIdentifierFactory))
             .toComposite();
-        return new DefaultDependencySubstitutions(ComponentSelectionReasons.SELECTED_BY_RULE, projectSelectorNotationParser, moduleIdentifierFactory);
+        return new DefaultDependencySubstitutions(ComponentSelectionReasons.SELECTED_BY_RULE, projectSelectorNotationParser, moduleIdentifierFactory, instantiator);
     }
 
-    public static DefaultDependencySubstitutions forIncludedBuild(IncludedBuildState build, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public static DefaultDependencySubstitutions forIncludedBuild(IncludedBuildState build,
+                                                                  ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                                  Instantiator instantiator) {
         NotationParser<Object, ComponentSelector> projectSelectorNotationParser = NotationParserBuilder
                 .toType(ComponentSelector.class)
                 .fromCharSequence(new CompositeProjectPathConverter(build))
                 .toComposite();
-        return new DefaultDependencySubstitutions(ComponentSelectionReasons.COMPOSITE_BUILD, projectSelectorNotationParser, moduleIdentifierFactory);
+        return new DefaultDependencySubstitutions(ComponentSelectionReasons.COMPOSITE_BUILD, projectSelectorNotationParser, moduleIdentifierFactory, instantiator);
     }
 
-    private DefaultDependencySubstitutions(ComponentSelectionDescriptor reason, NotationParser<Object, ComponentSelector> projectSelectorNotationParser, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        this(reason, new LinkedHashSet<>(), moduleSelectorNotationConverter(moduleIdentifierFactory), projectSelectorNotationParser);
+    private DefaultDependencySubstitutions(ComponentSelectionDescriptor reason,
+                                           NotationParser<Object, ComponentSelector> projectSelectorNotationParser,
+                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                           Instantiator instantiator) {
+        this(reason, new LinkedHashSet<>(), moduleSelectorNotationConverter(moduleIdentifierFactory), projectSelectorNotationParser, instantiator);
     }
 
     private DefaultDependencySubstitutions(ComponentSelectionDescriptor reason,
                                            Set<Action<? super DependencySubstitution>> substitutionRules,
                                            NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
-                                           NotationParser<Object, ComponentSelector> projectSelectorNotationParser) {
+                                           NotationParser<Object, ComponentSelector> projectSelectorNotationParser,
+                                           Instantiator instantiator) {
         this.reason = reason;
         this.substitutionRules = substitutionRules;
         this.moduleSelectorNotationParser = moduleSelectorNotationParser;
         this.projectSelectorNotationParser = projectSelectorNotationParser;
+        this.instantiator = instantiator;
     }
 
     @Override
@@ -127,7 +138,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
 
     @Override
     public DependencySubstitutions allWithDependencyResolveDetails(Action<? super DependencyResolveDetails> rule, ComponentSelectorConverter componentSelectorConverter) {
-        addRule(new DependencyResolveDetailsWrapperAction(rule, componentSelectorConverter, Actions::doNothing));
+        addRule(new DependencyResolveDetailsWrapperAction(rule, componentSelectorConverter, Actions::doNothing, instantiator));
         return this;
     }
 
@@ -208,7 +219,8 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             reason,
             new LinkedHashSet<>(substitutionRules),
             moduleSelectorNotationParser,
-            projectSelectorNotationParser);
+            projectSelectorNotationParser,
+            instantiator);
     }
 
     private static class ProjectPathConverter implements NotationConverter<String, ProjectComponentSelector> {
@@ -309,18 +321,20 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     private static class DependencyResolveDetailsWrapperAction extends AbstractDependencySubstitutionAction {
         private final Action<? super DependencyResolveDetails> delegate;
         private final ComponentSelectorConverter componentSelectorConverter;
+        private final Instantiator instantiator;
 
-        public DependencyResolveDetailsWrapperAction(Action<? super DependencyResolveDetails> delegate, ComponentSelectorConverter componentSelectorConverter, Supplier<Action<? super ArtifactSelectionDetails>> artifactSelectionAction) {
+        public DependencyResolveDetailsWrapperAction(Action<? super DependencyResolveDetails> delegate, ComponentSelectorConverter componentSelectorConverter, Supplier<Action<? super ArtifactSelectionDetails>> artifactSelectionAction, Instantiator instantiator) {
             super(artifactSelectionAction);
             this.delegate = delegate;
             this.componentSelectorConverter = componentSelectorConverter;
+            this.instantiator = instantiator;
         }
 
         @Override
         public void execute(DependencySubstitution substitution) {
             super.execute(substitution);
             ModuleVersionSelector requested = componentSelectorConverter.getSelector(substitution.getRequested());
-            DefaultDependencyResolveDetails details = new DefaultDependencyResolveDetails((DependencySubstitutionInternal) substitution, requested);
+            DefaultDependencyResolveDetails details = instantiator.newInstance(DefaultDependencyResolveDetails.class, substitution, requested);
             delegate.execute(details);
             details.complete();
         }

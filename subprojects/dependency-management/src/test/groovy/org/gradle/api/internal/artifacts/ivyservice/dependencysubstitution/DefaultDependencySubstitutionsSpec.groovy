@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -44,7 +45,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
     DependencySubstitutionsInternal substitutions;
 
     def setup() {
-        substitutions = DefaultDependencySubstitutions.forResolutionStrategy(componentIdentifierFactory, moduleIdentifierFactory)
+        substitutions = DefaultDependencySubstitutions.forResolutionStrategy(componentIdentifierFactory, moduleIdentifierFactory, TestUtil.instantiatorFactory().decorateScheme().instantiator())
     }
 
     def "provides no op resolve rule when no rules or forced modules configured"() {
