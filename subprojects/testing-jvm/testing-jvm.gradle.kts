@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
+
 plugins {
     gradlebuild.distribution.`plugins-api-java`
 }
@@ -78,3 +80,5 @@ tasks.named<Test>("test").configure {
     exclude("org/gradle/api/internal/tasks/testing/junit/ATestClass*.*")
     exclude("org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*")
 }
+
+integrationTestUsesSampleDir("subprojects/testing-jvm/src/main")
