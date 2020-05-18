@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -243,16 +244,28 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
 
     @Override
     public ExecutionFailure assertThatDescription(Matcher<? super String> matcher) {
+        assertHasFailure(matcher, f -> {
+        });
+        return this;
+    }
+
+    @Override
+    public ExecutionFailure assertHasFailure(String description, Consumer<? super Failure> action) {
+        assertHasFailure(startsWith(description), action);
+        return this;
+    }
+
+    private void assertHasFailure(Matcher<? super String> matcher, Consumer<? super Failure> action) {
         Set<String> seen = new LinkedHashSet<>();
         for (Problem problem : problems) {
             if (matcher.matches(problem.description)) {
                 problemsNotChecked.remove(problem);
-                return this;
+                action.accept(problem);
+                return;
             }
             seen.add(problem.description);
         }
         failureOnUnexpectedOutput(String.format("No matching failure description found in %s", seen));
-        return this;
     }
 
     @Override
@@ -275,13 +288,18 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         }
     }
 
-    private static class Problem {
+    private static class Problem implements Failure {
         final String description;
         final List<String> causes;
 
         private Problem(String description, List<String> causes) {
             this.description = description;
             this.causes = causes;
+        }
+
+        @Override
+        public void assertHasCauses(int count) {
+            assert causes.size() == count;
         }
     }
 }

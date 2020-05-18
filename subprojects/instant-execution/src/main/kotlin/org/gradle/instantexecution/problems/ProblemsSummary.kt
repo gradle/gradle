@@ -25,6 +25,10 @@ private
 data class UniquePropertyProblem(val property: String, val message: StructuredMessage, val documentationSection: String?)
 
 
+private
+const val maxConsoleProblems = 15
+
+
 internal
 fun buildConsoleSummary(problems: List<PropertyProblem>, reportFile: File): String {
     val documentationRegistry = DocumentationRegistry()
@@ -32,7 +36,7 @@ fun buildConsoleSummary(problems: List<PropertyProblem>, reportFile: File): Stri
     return StringBuilder().apply {
         appendln()
         appendln(buildSummaryHeader(problems.size, uniquePropertyProblems))
-        uniquePropertyProblems.forEach { problem ->
+        uniquePropertyProblems.take(maxConsoleProblems).forEach { problem ->
             append("- ")
             append(problem.property)
             append(": ")
@@ -40,6 +44,9 @@ fun buildConsoleSummary(problems: List<PropertyProblem>, reportFile: File): Stri
             if (problem.documentationSection != null) {
                 appendln("  See ${documentationRegistry.getDocumentationFor("configuration_cache", problem.documentationSection)}")
             }
+        }
+        if (uniquePropertyProblems.size > maxConsoleProblems) {
+            appendln("plus ${uniquePropertyProblems.size - maxConsoleProblems} more problems. Please see the report for details.")
         }
         appendln()
         append(buildSummaryReportLink(reportFile))

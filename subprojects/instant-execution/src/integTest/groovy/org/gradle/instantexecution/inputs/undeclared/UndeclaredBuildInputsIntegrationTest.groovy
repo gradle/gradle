@@ -36,8 +36,9 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         instantFails(*mechanism.gradleArgs)
 
         then:
-        // TODO - use problems fixture, however build script class is generated
-        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from class 'build_"))
+        problems.assertFailureHasProblems(failure) {
+            withProblem("unknown location: read system property 'CI' from class 'build_")
+        }
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(3)
         failure.assertThatCause(containsNormalizedString("Read system property 'CI' from class 'build_"))
@@ -60,8 +61,10 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         instantFails(*mechanism.gradleArgs, "-DCI2=true")
 
         then:
-        // TODO - use problems fixture, however build script class is generated
-        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from class 'build_"))
+        problems.assertFailureHasProblems(failure) {
+            withProblem("unknown location: read system property 'CI' from class 'build_")
+            withProblem("unknown location: read system property 'CI2' from class 'build_")
+        }
         failure.assertHasFileName("Build file '${file("buildSrc/build.gradle").absolutePath}'")
         failure.assertHasLineNumber(2)
         failure.assertThatCause(containsNormalizedString("Read system property 'CI' from class 'build_"))

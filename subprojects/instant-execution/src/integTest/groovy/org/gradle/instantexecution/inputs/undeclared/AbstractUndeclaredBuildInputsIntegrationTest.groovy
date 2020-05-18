@@ -32,7 +32,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
 
         then:
         fixture.assertStateStored()
-        // TODO - use problems fixture, need to be able to tweak the problem matching as build script class name is included in the message and this is generated
+        // TODO - use problems fixture, need to be able to ignore problems from the Kotlin plugin
         failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from class '"))
         outputContains("apply = $value")
         outputContains("task = $value")
@@ -62,7 +62,6 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
         SystemPropertyRead.systemGetPropertiesGet("CI")                               | "true" | "false"
         SystemPropertyRead.systemGetPropertiesGetProperty("CI")                       | "true" | "false"
         SystemPropertyRead.systemGetPropertiesGetPropertyWithDefault("CI", "default") | "true" | "false"
-        SystemPropertyRead.systemGetPropertiesFilterEntries("CI")                     | "true" | "false"
         SystemPropertyRead.integerGetInteger("CI")                                    | "12"   | "45"
         SystemPropertyRead.integerGetIntegerWithPrimitiveDefault("CI", 123)           | "12"   | "45"
         SystemPropertyRead.integerGetIntegerWithIntegerDefault("CI", 123)             | "12"   | "45"
@@ -70,5 +69,25 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
         SystemPropertyRead.longGetLongWithPrimitiveDefault("CI", 123)                 | "12"   | "45"
         SystemPropertyRead.longGetLongWithLongDefault("CI", 123)                      | "12"   | "45"
         SystemPropertyRead.booleanGetBoolean("CI")                                    | "true" | "false"
+    }
+
+    @Unroll
+    def "reports undeclared system property read using when iterating over system properties"() {
+        buildLogicApplication(propertyRead)
+        def fixture = newInstantExecutionFixture()
+
+        when:
+        instantFails("thing", "-DCI=$value")
+
+        then:
+        fixture.assertStateStored()
+        // TODO - use the fixture, need to be able to ignore other problems
+        failure.assertHasDescription("Configuration cache problems found in this build.")
+        outputContains("apply = $value")
+        outputContains("task = $value")
+
+        where:
+        propertyRead                                              | value  | newValue
+        SystemPropertyRead.systemGetPropertiesFilterEntries("CI") | "true" | "false"
     }
 }
