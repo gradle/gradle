@@ -23,46 +23,117 @@ import org.gradle.invocation.DefaultGradle
 import spock.lang.Unroll
 
 
-class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    def "state serialization errors are reported and fail the build"() {
-
+    def "state serialization errors always halt the build"() {
         given:
         def instant = newInstantExecutionFixture()
-        def stateSerializationProblems = withStateSerializationProblems().store
-        def stateSerializationErrors = withStateSerializationErrors()
-        def errorSpec = problems.newErrorSpec(stateSerializationErrors.first()) {
-            withUniqueProblems(stateSerializationProblems)
-            withProblemsWithStackTraceCount(0)
+
+        buildFile << """
+            class BrokenSerializable implements java.io.Serializable {
+                private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+                    throw new RuntimeException("BOOM")
+                }
+            }
+
+            class BrokenTaskType extends DefaultTask {
+                final prop = new BrokenSerializable()
+            }
+
+            task broken(type: BrokenTaskType)
+        """
+
+        when:
+        instantFails 'broken'
+
+        then:
+        failure.assertTasksExecuted()
+
+        and:
+        instant.assertStateStoreFailed()
+        failure.assertHasFailures(1)
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertHasLineNumber(4)
+        failure.assertHasDescription("Instant execution state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
+        failure.assertHasCause("BOOM")
+        problems.assertResultHasProblems(failure) {
         }
 
         when:
-        instantFails 'taskWithStateSerializationProblems', 'taskWithStateSerializationError'
+        instantFailsLenient 'broken'
 
         then:
-        notExecuted('taskWithStateSerializationProblems', 'taskWithStateSerializationError')
+        failure.assertTasksExecuted()
 
         and:
         instant.assertStateStoreFailed()
-        problems.assertFailureHasError(failure, errorSpec)
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
-        failure.assertHasLineNumber(9)
+        failure.assertHasLineNumber(4)
+        failure.assertHasDescription("Instant execution state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
+        problems.assertResultHasProblems(failure) {
+        }
+    }
+
+    def "state serialization errors always halt the build and other problems reported"() {
+        given:
+        def instant = newInstantExecutionFixture()
+
+        buildFile << """
+            class BrokenSerializable implements java.io.Serializable {
+                private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+                    throw new RuntimeException("BOOM")
+                }
+            }
+
+            class BrokenTaskType extends DefaultTask {
+                final prop = new BrokenSerializable()
+            }
+
+            task problems {
+                inputs.property 'brokenProperty', project
+                inputs.property 'otherBrokenProperty', project
+            }
+
+            task broken(type: BrokenTaskType)
+        """
 
         when:
-        instantFailsLenient 'taskWithStateSerializationProblems', 'taskWithStateSerializationError'
+        instantFails 'problems', 'broken'
 
         then:
-        notExecuted('taskWithStateSerializationProblems', 'taskWithStateSerializationError')
+        failure.assertTasksExecuted()
 
         and:
         instant.assertStateStoreFailed()
-        problems.assertFailureHasError(failure, errorSpec)
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
-        failure.assertHasLineNumber(9)
+        failure.assertHasLineNumber(4)
+        failure.assertHasDescription("Instant execution state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
+        problems.assertResultHasProblems(failure) {
+            withProblem("input property 'brokenProperty' of ':problems': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.")
+            withProblem("input property 'otherBrokenProperty' of ':problems': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.")
+        }
+
+        when:
+        instantFailsLenient 'problems', 'broken'
+
+        then:
+        failure.assertTasksExecuted()
+
+        and:
+        instant.assertStateStoreFailed()
+        failure.assertHasFailures(1)
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertHasLineNumber(4)
+        failure.assertHasDescription("Instant execution state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
+        failure.assertHasCause("BOOM")
+        problems.assertResultHasProblems(failure) {
+            withProblem("input property 'brokenProperty' of ':problems': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.")
+            withProblem("input property 'otherBrokenProperty' of ':problems': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.")
+        }
     }
 
     def "problems are reported and fail the build by default"() {
@@ -188,24 +259,6 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
             withProblem("input property 'p' of ':broken': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
             withProblem("unknown location: registration of listener on 'Gradle.addListener' is unsupported")
         }
-    }
-
-    private List<String> withStateSerializationErrors() {
-        buildFile << """
-            class BrokenSerializable implements java.io.Serializable {
-                private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-                    throw new RuntimeException("BOOM")
-                }
-            }
-
-            task taskWithStateSerializationError {
-                inputs.property 'brokenProperty', new BrokenSerializable()
-                inputs.property 'otherBrokenProperty', new BrokenSerializable()
-            }
-        """
-        return [
-            "input property 'brokenProperty' of ':taskWithStateSerializationError': error writing value of type 'BrokenSerializable'"
-        ]
     }
 
     private Map<String, List<String>> withStateSerializationProblems() {

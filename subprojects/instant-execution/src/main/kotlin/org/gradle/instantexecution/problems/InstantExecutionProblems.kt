@@ -69,15 +69,17 @@ class InstantExecutionProblems(
     }
 
     private
-    var isConsoleSummaryRequested = false
+    var isConsoleSummaryRequested = true
 
-    internal
-    fun requestConsoleSummary() {
-        isConsoleSummaryRequested = true
+    private
+    var isFailOnProblems = startParameter.failOnProblems
+
+    fun runIfBuildWillFail(action: () -> Unit) {
+        if (isFailOnProblems && problems.isNotEmpty()) action()
     }
 
-    fun runIfProblems(action: () -> Unit) {
-        if (problems.isNotEmpty()) action()
+    fun failingBuildDueToSerializationError() {
+        isFailOnProblems = false
     }
 
     private
@@ -88,10 +90,8 @@ class InstantExecutionProblems(
             when {
                 problems.size >= startParameter.maxProblems -> {
                     isConsoleSummaryRequested = false
+                    isFailOnProblems = false
                     throw TooManyInstantExecutionProblemsException(problems, report.htmlReportFile)
-                }
-                !startParameter.failOnProblems -> {
-                    requestConsoleSummary()
                 }
             }
         }
@@ -105,14 +105,13 @@ class InstantExecutionProblems(
                 return
             }
             report.writeReportFiles(problems)
-            when {
-                isConsoleSummaryRequested -> {
-                    report.logConsoleSummary(problems)
-                }
-                startParameter.failOnProblems -> {
-                    throw InstantExecutionProblemsException(problems, report.htmlReportFile)
-                }
+            if (isFailOnProblems) {
+                // TODO - always include this as a build failure
+                throw InstantExecutionProblemsException(problems, report.htmlReportFile)
+            } else if (isConsoleSummaryRequested) {
+                report.logConsoleSummary(problems)
             }
+            // Else, problems are already reported in an exception
         }
     }
 }

@@ -153,15 +153,11 @@ class DefaultInstantExecution internal constructor(
             try {
                 writeInstantExecutionFiles()
             } catch (error: InstantExecutionError) {
-                // Invalidate unusable state on errors
-                invalidateInstantExecutionState()
-                problems.requestConsoleSummary()
+                problems.failingBuildDueToSerializationError()
                 throw error
             } finally {
-                if (startParameter.failOnProblems) {
-                    // Invalidate state on problems that fail the build
-                    problems.runIfProblems { invalidateInstantExecutionState() }
-                }
+                // Invalidate state on problems that fail the build
+                problems.runIfBuildWillFail { invalidateInstantExecutionState() }
             }
         }
     }
