@@ -18,9 +18,10 @@ package org.gradle.integtests.fixtures
 
 class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
 
-     def util = new AutoTestedSamplesUtil()
+    def util = new AutoTestedSamplesUtil()
 
-     void runSamplesFrom(String dir) {
+    void runSamplesFrom(String dir) {
+        assert Boolean.getBoolean("autoTestedSamplesDeclared"): "Must declare samples dir as inputs!"
         util.findSamples(dir) { file, sample, tagSuffix ->
             println "Found sample: ${sample.split("\n")[0]} (...) in $file"
             def buildFile = testFile('build.gradle')

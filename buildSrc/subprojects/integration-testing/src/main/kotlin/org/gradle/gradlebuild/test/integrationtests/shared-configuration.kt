@@ -90,16 +90,19 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         extraConfig.execute(this)
     }
 
+
 /**
  * Distributed test requires all dependencies to be declared
  */
 fun Project.integrationTestUsesSampleDir(vararg sampleDirs: String) {
     tasks.withType<IntegrationTest>() {
-        inputs.files(rootProject.files(it))
+        systemProperty("autoTestedSamplesDeclared", "true")
+        inputs.files(rootProject.files(sampleDirs))
             .withPropertyName("autoTestedSamples")
             .withPathSensitivity(PathSensitivity.RELATIVE)
     }
 }
+
 
 private
 fun IntegrationTest.addDebugProperties() {
