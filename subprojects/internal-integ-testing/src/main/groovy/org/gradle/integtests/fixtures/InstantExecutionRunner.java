@@ -24,6 +24,9 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOp
  */
 public class InstantExecutionRunner extends BehindFlagFeatureRunner {
     public InstantExecutionRunner(Class<?> target) {
-        super(target, ImmutableMap.of(ConfigurationCacheOption.PROPERTY_NAME, booleanFeature("configuration cache")));
+        super(target, ImmutableMap.of(ConfigurationCacheOption.PROPERTY_NAME, new Feature(ImmutableMap.of(
+            "off", "without configuration cache",
+            "on", "with configuration cache"
+        ))));
     }
 }
