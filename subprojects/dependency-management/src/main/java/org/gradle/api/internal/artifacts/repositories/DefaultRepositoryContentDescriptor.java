@@ -31,6 +31,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorInternal {
@@ -42,16 +43,16 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     private boolean locked;
 
     private Action<? super ArtifactResolutionDetails> cachedAction;
-    private final String repositoryName;
+    private final Supplier<String> repositoryNameSupplier;
 
-    public DefaultRepositoryContentDescriptor(String repositoryName) {
-        this.repositoryName = repositoryName;
+    public DefaultRepositoryContentDescriptor(Supplier<String> repositoryNameSupplier) {
+        this.repositoryNameSupplier = repositoryNameSupplier;
     }
 
     private void assertMutable() {
         if (locked) {
             throw new IllegalStateException("Cannot mutate content repository descriptor '" +
-                repositoryName +
+                repositoryNameSupplier.get() +
                 "' after repository has been used");
         }
     }
