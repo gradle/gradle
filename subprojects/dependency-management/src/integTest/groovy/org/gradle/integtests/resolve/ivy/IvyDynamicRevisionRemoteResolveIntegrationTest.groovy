@@ -380,6 +380,7 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
     }
 
+    @ToBeFixedForInstantExecution
     def "fails on broken directory listing in subsequent resolution"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -953,6 +954,7 @@ configurations.all {
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "reports and recovers from no matching version for dynamic version"() {
         def repo2 = ivyHttpRepo("repo-2")
 
@@ -1042,6 +1044,7 @@ Required by:
         checkResolve "group:projectA:2.+": ["group:projectA:2.2", "didn't match versions 3.0, 1.2, 1.1, 4.4"]
     }
 
+    @ToBeFixedForInstantExecution
     def "reports and recovers from missing directory available for dynamic version"() {
         given:
         useRepository ivyHttpRepo
@@ -1087,6 +1090,7 @@ Required by:
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
     }
 
+    @ToBeFixedForInstantExecution
     def "reports and recovers from missing dynamic version when no repositories defined"() {
         given:
         buildFile << """
@@ -1109,6 +1113,7 @@ dependencies {
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
     }
 
+    @ToBeFixedForInstantExecution
     def "reports and recovers from broken directory available for dynamic version"() {
         given:
         useRepository ivyHttpRepo
@@ -1140,6 +1145,7 @@ dependencies {
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
     }
 
+    @ToBeFixedForInstantExecution
     def "reports and recovers from missing module for dynamic version that requires meta-data"() {
         given:
         useRepository ivyHttpRepo
@@ -1174,6 +1180,7 @@ Required by:
         checkResolve "group:projectA:latest.release": "group:projectA:1.2"
     }
 
+    @ToBeFixedForInstantExecution
     def "reports and recovers from broken module for dynamic version that requires meta-data"() {
         given:
         useRepository ivyHttpRepo

@@ -332,6 +332,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         outputContains("Transforming b.jar to b.jar.txt")
     }
 
+    @ToBeFixedForInstantExecution
     def "failures are collected from transformations applied parallel"() {
         given:
         buildFile << """

@@ -322,11 +322,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
     @Unroll
     @ToBeFixedForInstantExecution(
-        because = "broken file collection",
-        iterationMatchers = [
-            ".*artifactView \\{ componentFilter.*",
-            ".*using query.*"
-        ]
+        because = "broken file collection"
     )
     def "fails on the first access to an artifact (not at the end of the build) using #firstResolution"() {
         createMetadataFile {
@@ -936,6 +932,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         "sha512" | "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b" | "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
     }
 
+    @ToBeFixedForInstantExecution
     def "reasonable error message when the verification file can't be parsed"() {
         given:
         javaLibrary()
