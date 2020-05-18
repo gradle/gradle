@@ -80,5 +80,4 @@ testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
 
-
 integrationTestUsesSampleDir("subprojects/language-java/src/main")

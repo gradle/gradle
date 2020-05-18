@@ -83,5 +83,4 @@ classycle {
     excludePatterns.set(listOf("org/gradle/language/nativeplatform/internal/**"))
 }
 
-
 integrationTestUsesSampleDir("subprojects/language-native/src/main")
