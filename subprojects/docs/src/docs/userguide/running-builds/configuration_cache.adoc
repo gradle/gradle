@@ -11,10 +11,26 @@
 
 Constraints and how to change your build
 
+[[disallowed_types]]
+== Types that must not be referenced by tasks
+
+There are a number of types that task instances must not reference from their fields. Usually these types are used to carry some task input that should be explicitly
+declared instead.
+
+[[use_project_during_execution]]
+== Using the Project object
+
+A task must not use any `Project` objects at execution time. This includes calling `Task.getProject()` while the task is running.
+
+[[build_listeners]]
+== Using build listeners
+
+Plugins and build scripts must not register any build listeners.
+
 [[undeclared_sys_prop_reads]]
 === Reading system properties
 
-Plugins and build scripts should not read system properties directly using the Java APIs. Instead, these system properties should be declared as a potential build input by
+Plugins and build scripts should not read system properties directly using the Java APIs. Instead, these system properties must be declared as a potential build input by
 using the value supplier APIs.
 
 Before:
@@ -28,3 +44,10 @@ After:
 ```
 def enabled = providers.systemProperty("some-property").forUseAtConfigurationTime().present
 ```
+
+[[not_yet_implemented]]
+== Not yet implemented
+
+Support for using configuration caching with certain Gradle features is not yet implemented.
+
+- Composite builds

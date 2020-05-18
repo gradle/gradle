@@ -17,11 +17,13 @@
 package org.gradle.internal.watch
 
 import org.apache.commons.io.FileUtils
+import org.gradle.initialization.StartParameterBuildOptions.WatchFileSystemOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.VfsRetentionFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -34,6 +36,7 @@ import spock.lang.Unroll
 @IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.vfsRetention })
 @Unroll
 class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, VfsRetentionFixture {
+    private static final String INCUBATING_MESSAGE = "Watching the file system is an incubating feature"
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
@@ -333,21 +336,61 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         result = handle.waitForFinish()
     }
 
-    def "incubating message is shown for retention"() {
+    def "incubating message is shown for watching the file system"() {
         buildFile << """
             apply plugin: "java"
         """
-        def incubatingMessage = "Virtual file system retention is an incubating feature"
 
         when:
         withRetention().run("assemble")
         then:
-        outputContains(incubatingMessage)
+        outputContains(INCUBATING_MESSAGE)
 
         when:
         withoutRetention().run("assemble")
         then:
-        outputDoesNotContain(incubatingMessage)
+        outputDoesNotContain(INCUBATING_MESSAGE)
+    }
+
+    def "can be enabled via gradle.properties"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+
+        when:
+        file("gradle.properties") << "${WatchFileSystemOption.GRADLE_PROPERTY}=true"
+        run("assemble")
+        then:
+        outputContains(INCUBATING_MESSAGE)
+    }
+
+    def "can be enabled via #commandLineOption"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+
+        when:
+        run("assemble", commandLineOption)
+        then:
+        outputContains(INCUBATING_MESSAGE)
+
+        where:
+        commandLineOption << ["-D${WatchFileSystemOption.GRADLE_PROPERTY}=true", "--watch-fs"]
+    }
+
+    def "deprecation message is shown when using the old property to enable watching the file system"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+        executer.expectDocumentedDeprecationWarning(
+            "Using the system property org.gradle.unsafe.vfs.retention to enable watching the file system has been deprecated. " +
+                "This is scheduled to be removed in Gradle 7.0. " +
+                "Use the gradle property org.gradle.unsafe.watch-fs instead. " +
+                "See https://docs.gradle.org/current/userguide/gradle_daemon.html for more details."
+        )
+
+        expect:
+        succeeds("assemble", "-D${VirtualFileSystemServices.DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY}=true")
     }
 
     def "detects when outputs are removed for tasks without sources"() {

@@ -48,7 +48,6 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
-import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.process.internal.streams.SafeStreams;
@@ -156,7 +155,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected WarningMode warningMode = WarningMode.All;
     private boolean showStacktrace = true;
     private boolean renderWelcomeMessage;
-    private boolean usePartialVfsInvalidation;
 
     private int expectedGenericDeprecationWarnings;
     private final List<String> expectedDeprecationWarnings = new ArrayList<>();
@@ -241,7 +239,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         durationMeasurement = null;
         consoleType = null;
         warningMode = WarningMode.All;
-        usePartialVfsInvalidation = false;
         return this;
     }
 
@@ -404,8 +401,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         executer.withTestConsoleAttached(consoleAttachment);
-
-        executer.withPartialVfsInvalidation(usePartialVfsInvalidation);
 
         return executer;
     }
@@ -1033,10 +1028,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             properties.put(TestOverrideConsoleDetector.INTERACTIVE_TOGGLE, "true");
         }
 
-        if (usePartialVfsInvalidation) {
-            properties.put(VirtualFileSystemServices.VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, "true");
-        }
-
         properties.put(DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
 
         return properties;
@@ -1152,7 +1143,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     @Override
     public GradleExecuter withPartialVfsInvalidation(boolean enabled) {
-        this.usePartialVfsInvalidation = enabled;
         return this;
     }
 

@@ -49,7 +49,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     private final LogContent output;
     private final LogContent error;
-    private boolean includeBuildSrc;
+    private final boolean includeBuildSrc;
     private final LogContent mainContent;
     private final LogContent postBuild;
     private final LogContent errorContent;
