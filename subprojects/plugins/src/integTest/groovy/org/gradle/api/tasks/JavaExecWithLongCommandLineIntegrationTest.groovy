@@ -24,7 +24,7 @@ import org.gradle.process.internal.util.LongCommandLineDetectionUtil
 import static org.gradle.util.Matchers.containsText
 
 class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec {
-    def veryLongFileNames = getLongArgs()
+    def veryLongFileNames = getLongCommandLine()
 
     def setup() {
         file("src/main/java/Driver.java") << """
@@ -63,7 +63,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
     @ToBeFixedForInstantExecution
     def "still fail when classpath doesn't shorten the command line enough"() {
-        def veryLongCommandLineArgs = getLongArgs()
+        def veryLongCommandLineArgs = getLongCommandLine(getMaxArgs()*16)
         buildFile << """
             extraClasspath.from('${veryLongFileNames.join("','")}')
 
@@ -156,11 +156,8 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         outputContains("Shortening Java classpath")
     }
 
-    private static List<String> getLongArgs() {
+    private static List<String> getLongCommandLine(int maxCommandLength = getMaxArgs()) {
         final int maxIndividualArgLength = 65530
-
-
-        int maxCommandLength = getMaxArgs()
         List<String> result = new ArrayList<>()
         while (maxCommandLength > 0) {
             result.add('a' * maxIndividualArgLength)
@@ -174,13 +171,10 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         switch(OperatingSystem.current()) {
             case OperatingSystem.WINDOWS:
                 return LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_WINDOWS
-                break
             case OperatingSystem.MAC_OS:
                 return LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_OSX
-                break
             default:
                 return LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_NIX
-                break
         }
     }
 }
