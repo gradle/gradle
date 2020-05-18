@@ -28,7 +28,7 @@ class InstantExecutionGradleExecuter extends DaemonGradleExecuter {
     static final List<String> INSTANT_EXECUTION_ARGS = [
         "--${ConfigurationCacheOption.LONG_OPTION}",
         "-D${ConfigurationCacheQuietOption.PROPERTY_NAME}=true",
-        "--${ConfigurationCacheMaxProblemsOption.LONG_OPTION}=0"
+        "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0"
     ].collect { it.toString() }
 
     InstantExecutionGradleExecuter(

@@ -206,7 +206,7 @@ abstract class AbstractSmokeTest extends Specification {
                 "-Dorg.gradle.unsafe.instant-execution.quiet=true".toString()
             ]
             def maxProblems = maxInstantExecutionProblems()
-            parameters += ["--${ConfigurationCacheMaxProblemsOption.LONG_OPTION}=$maxProblems".toString()]
+            parameters += ["-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=$maxProblems".toString()]
             if (maxProblems > 0) {
                 parameters += ["--no-${ConfigurationCacheFailOnProblemsOption.LONG_OPTION}".toString()]
             }

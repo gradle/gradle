@@ -456,13 +456,9 @@ public class StartParameterBuildOptions {
     public static class ConfigurationCacheMaxProblemsOption extends IntegerBuildOption<StartParameterInternal> {
 
         public static final String PROPERTY_NAME = "org.gradle.unsafe.configuration-cache.max-problems";
-        public static final String LONG_OPTION = "configuration-cache-max-problems";
 
         public ConfigurationCacheMaxProblemsOption() {
-            super(PROPERTY_NAME, CommandLineOptionConfiguration.create(
-                LONG_OPTION,
-                "Sets the maximum configuration cache problems."
-            ).incubating());
+            super(PROPERTY_NAME);
         }
 
         @Override

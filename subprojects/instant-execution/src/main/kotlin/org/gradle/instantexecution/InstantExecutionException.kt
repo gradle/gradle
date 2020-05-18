@@ -84,7 +84,7 @@ class TooManyInstantExecutionProblemsException internal constructor(
     htmlReportFile: File
 ) : InstantExecutionProblemsException(
     "Maximum number of instant execution problems has been reached.\n" +
-        "This behavior can be adjusted via --${ConfigurationCacheMaxProblemsOption.LONG_OPTION}=<integer>.",
+        "This behavior can be adjusted via -D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=<integer>.",
     problems,
     htmlReportFile
 )

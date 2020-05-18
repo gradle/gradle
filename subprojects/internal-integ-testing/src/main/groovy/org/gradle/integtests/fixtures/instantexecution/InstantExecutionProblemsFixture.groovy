@@ -51,7 +51,7 @@ final class InstantExecutionProblemsFixture {
 
     static final String FAIL_ON_PROBLEMS_CLI_OPTION = "--${ConfigurationCacheFailOnProblemsOption.LONG_OPTION}"
     static final String DO_NOT_FAIL_ON_PROBLEMS_CLI_OPTION = "--no-${ConfigurationCacheFailOnProblemsOption.LONG_OPTION}"
-    static final String MAX_PROBLEMS_CLI_OPTION = "--${ConfigurationCacheMaxProblemsOption.LONG_OPTION}"
+    static final String MAX_PROBLEMS_CLI_OPTION = "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}"
 
     protected static final String PROBLEMS_REPORT_HTML_FILE_NAME = "instant-execution-report.html"
 
