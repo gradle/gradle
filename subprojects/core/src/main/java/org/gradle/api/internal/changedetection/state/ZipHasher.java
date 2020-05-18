@@ -252,7 +252,7 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
             .entrySet()
             .stream()
             .filter(entry -> !propertyResourceFilter.shouldBeIgnored(entry.getKey()))
-            .sorted()
+            .sorted(Map.Entry.comparingByKey())
             .forEach(entry -> {
                 hasher.putString(entry.getKey());
                 hasher.putString(entry.getValue());
