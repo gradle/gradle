@@ -297,7 +297,7 @@ public class StartParameterBuildOptions {
             super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create(
                 LONG_OPTION,
                 "Enables watching the file system for changes, allowing data about the file system to be re-used for the next build.",
-                "Disables re-using data about the file system for the next build."
+                "Disables watching the file system."
             ));
         }
 
