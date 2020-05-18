@@ -564,8 +564,13 @@ tasks.named("docsTest") { task ->
 
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-java-cross-compilation_*.sample' // fails to find javadoc
         if (org.gradle.internal.os.OperatingSystem.current().windows) {
+            excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.android-application_*.sample' // has build deprecations 
+            excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.java-multi-project-with-spock-tests_*.sample' // fails to compile Groovy
             excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.groovy-*.sample' // fails to compile Groovy
+            excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.java-modules-multi-project-with-integration-tests_*.sample' // fails to compile Groovy
             excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.precompiled-script-plugin-in-build-src*.sample' // fails in tests in buildSrc
+            excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-kotlin-dsl-interoperability-static-extensions*.sample' // Unresolved reference to jcenter
+            
         }
     }
 }
