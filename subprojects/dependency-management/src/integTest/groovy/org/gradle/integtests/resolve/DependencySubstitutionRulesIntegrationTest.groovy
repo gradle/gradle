@@ -1563,7 +1563,15 @@ configurations.all {
                         selectArtifact('jar', 'jar', null)
                      }
                   }
-               }"""
+               }""",
+            """eachDependency { dep ->
+                  if (dep.requested.name == 'lib') {
+                     dep.artifactSelection {
+                        selectArtifact('jar', 'jar', null)
+                     }
+                  }
+               }
+            """
         ]
     }
 

@@ -32,6 +32,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
 import org.gradle.internal.locking.NoOpDependencyLockingProvider;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.vcs.internal.VcsMappingsStore;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -63,7 +64,7 @@ public class JvmLibraryResolveContext implements ResolveContext {
         this.displayName = displayName;
         this.variants = variants;
         this.dependencies = dependencies;
-        this.resolutionStrategy = new DefaultResolutionStrategy(DependencySubstitutionRules.NO_OP, VcsMappingsStore.NO_OP, null, moduleIdentifierFactory, null, NoOpDependencyLockingProvider.getInstance(), new DefaultCapabilitiesResolution(new CapabilityNotationParserFactory(false).create(), new ComponentIdentifierParserFactory().create()));
+        this.resolutionStrategy = new DefaultResolutionStrategy(DependencySubstitutionRules.NO_OP, VcsMappingsStore.NO_OP, null, moduleIdentifierFactory, null, NoOpDependencyLockingProvider.getInstance(), new DefaultCapabilitiesResolution(new CapabilityNotationParserFactory(false).create(), new ComponentIdentifierParserFactory().create()), DirectInstantiator.INSTANCE);
     }
 
     @Override
