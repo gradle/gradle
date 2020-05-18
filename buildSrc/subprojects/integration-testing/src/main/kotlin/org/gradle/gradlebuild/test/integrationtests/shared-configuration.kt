@@ -95,7 +95,7 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
  */
 fun Project.integrationTestUsesSampleDir(vararg sampleDirs: String) {
     tasks.withType<IntegrationTest>() {
-        inputs.files(sampleDirs.map { rootProject.fileTree(it) }.toTypedArray())
+        inputs.files(rootProject.files(it))
             .withPropertyName("autoTestedSamples")
             .withPathSensitivity(PathSensitivity.RELATIVE)
     }
