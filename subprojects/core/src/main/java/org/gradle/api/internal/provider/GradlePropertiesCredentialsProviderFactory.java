@@ -16,20 +16,28 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Task;
 import org.gradle.api.credentials.PasswordCredentials;
+import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.TaskInputs;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.credentials.DefaultPasswordCredentials;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class GradlePropertiesCredentialsProviderFactory implements CredentialsProviderFactory {
+public class GradlePropertiesCredentialsProviderFactory implements CredentialsProviderFactory, TaskExecutionGraphListener {
 
     private final GradleProperties gradleProperties;
+
+    private final Map<String, PasswordCredentialsProvider> passwordProviders = new HashMap<>();
 
     public GradlePropertiesCredentialsProviderFactory(GradleProperties gradleProperties) {
         this.gradleProperties = gradleProperties;
@@ -38,7 +46,7 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
     @Override
     public Provider<PasswordCredentials> usernameAndPassword(String identity) {
         validateIdentity(identity);
-        return new PasswordCredentialsProvider(identity);
+        return passwordProviders.computeIfAbsent(identity, PasswordCredentialsProvider::new);
     }
 
     private void validateIdentity(@Nullable String identity) {
@@ -47,10 +55,20 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
         }
     }
 
+    @Override
+    public void graphPopulated(TaskExecutionGraph graph) {
+        if (!passwordProviders.isEmpty()) {
+            graph.getAllTasks().stream().map(Task::getInputs).forEach(TaskInputs::getProperties);
+            passwordProviders.values().stream().filter(p -> p.valueRequested).forEach(AbstractMinimalProvider::get);
+        }
+    }
+
     private class PasswordCredentialsProvider extends AbstractMinimalProvider<PasswordCredentials> {
 
         private final String usernameProperty;
         private final String passwordProperty;
+
+        private boolean valueRequested = false;
 
         public PasswordCredentialsProvider(String identity) {
             this.usernameProperty = identity + "Username";
@@ -64,6 +82,7 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
 
         @Override
         protected Value<? extends PasswordCredentials> calculateOwnValue(ValueConsumer consumer) {
+            this.valueRequested = true;
             String username = gradleProperties.find(usernameProperty);
             String password = gradleProperties.find(passwordProperty);
             List<DisplayName> missingProperties = new ArrayList<>();

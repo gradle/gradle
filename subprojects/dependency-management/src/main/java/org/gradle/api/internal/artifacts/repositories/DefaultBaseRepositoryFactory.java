@@ -101,7 +101,8 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         ObjectFactory objectFactory,
                                         CollectionCallbackActionDecorator callbackActionDecorator,
                                         DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
-                                        ChecksumService checksumService, CredentialsProviderFactory credentialsProviderFactory) {
+                                        ChecksumService checksumService,
+                                        CredentialsProviderFactory credentialsProviderFactory) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.fileCollectionFactory = fileCollectionFactory;

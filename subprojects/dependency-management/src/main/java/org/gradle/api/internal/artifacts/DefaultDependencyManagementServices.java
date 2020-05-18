@@ -454,7 +454,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           CollectionCallbackActionDecorator callbackDecorator,
                                                           NamedObjectInstantiator instantiator,
                                                           DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
-                                                          ChecksumService checksumService, CredentialsProviderFactory credentialsProviderFactory) {
+                                                          ChecksumService checksumService,
+                                                          CredentialsProviderFactory credentialsProviderFactory) {
             return new DefaultBaseRepositoryFactory(
                 localMavenRepositoryLocator,
                 fileResolver,

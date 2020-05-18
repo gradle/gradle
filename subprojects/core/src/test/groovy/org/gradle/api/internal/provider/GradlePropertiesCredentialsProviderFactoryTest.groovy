@@ -82,4 +82,15 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
         credentials['username'] == 'admin'
         credentials['password'] == 'secret'
     }
+
+    def "reuses username and password provider with same identity"() {
+        expect:
+        factory.usernameAndPassword('id') == factory.usernameAndPassword('id')
+    }
+
+    def "creates distinct username and password providers for different identities"() {
+        expect:
+        factory.usernameAndPassword('id') != factory.usernameAndPassword('id2')
+    }
+
 }

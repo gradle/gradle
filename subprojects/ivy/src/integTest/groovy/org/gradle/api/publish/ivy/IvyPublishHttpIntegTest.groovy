@@ -585,8 +585,7 @@ credentials {
     }
 
     @ToBeFixedForInstantExecution
-    // TODO replace execution with configuration once this behavior is implemented
-    def "fails at execution time with helpful error message when username and password provider has no value"() {
+    def "fails at configuration time with helpful error message when username and password provider has no value"() {
         given:
         String credentialsBlock = """
             credentials(project.credentials.usernameAndPassword('ivyRepo'))
@@ -603,14 +602,9 @@ credentials {
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':generateDescriptorFileForIvyPublication'.")
-
-        // TODO
-        //notExecuted(':jar', ':publishIvyPublicationToIvyRepository')
-        //failure.assertHasDescription("Could not determine the dependencies of task ':publish'.")
-        //failure.assertHasCause("Could not create task ':publishIvyPublicationToIvyRepository'.")
-        failure.assertHasCause("Cannot query the value of this property because it has no value available")
-        failure.assertHasErrorOutput("The value of this property is derived from")
+        notExecuted(':jar', ':publishIvyPublicationToIvyRepository')
+        failure.assertHasErrorOutput("Cannot query the value of username and password provider because it has no value available.")
+        failure.assertHasErrorOutput("The value of this provider is derived from")
         failure.assertHasErrorOutput("- Gradle property 'ivyRepoUsername'")
         failure.assertHasErrorOutput("- Gradle property 'ivyRepoPassword'")
     }
