@@ -19,7 +19,6 @@ package org.gradle.internal.watch.vfs;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.File;
-import java.util.Collection;
 
 /**
  * A {@link VirtualFileSystem} that can be instructed to try to maintain its
@@ -33,10 +32,10 @@ public interface WatchingAwareVirtualFileSystem extends VirtualFileSystem {
     void afterBuildStarted(boolean watchingEnabled);
 
     /**
-     * Called when there is a change to project root directories,
+     * Called when there is a change to project root directory,
      * normally when settings have been evaluated.
      */
-    void updateProjectRootDirectories(Collection<File> projectRootDirectories);
+    void updateProjectRootDirectory(File projectRootDirectory);
 
     /**
      * Called when the build is finished.

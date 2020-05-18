@@ -39,7 +39,6 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -109,8 +108,8 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     }
 
     @Override
-    public void updateProjectRootDirectories(Collection<File> projectRootDirectories) {
-        updateWatchRegistry(watchRegistry -> watchRegistry.getFileWatcherUpdater().updateProjectRootDirectories(projectRootDirectories));
+    public void updateProjectRootDirectory(File projectRootDirectory) {
+        updateWatchRegistry(watchRegistry -> watchRegistry.getFileWatcherUpdater().updateProjectRootDirectory(projectRootDirectory));
     }
 
     @Override
