@@ -521,15 +521,13 @@ tasks.named("docsTest") { task ->
     // TODO we use an absolute path here which makes the task not cacheable
     task.systemProperty("integTest.gradleHomeDir", new File(project.buildDir, "integ test").absolutePath)
 
-    // Do not execute Java Module tests on JVM < 9
-    if (!buildJvms.testJvm.get().javaVersion.java9Compatible) {
-        filter {
-            excludeTestsMatching "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.java-modules-*.sample"
-        }
-    }
-
     // // TODO (donat) investigate ignored snippets
     filter {
+        // Do not execute Java Module tests on JVM < 9
+        if (!buildJvms.testJvm.get().javaVersion.java9Compatible) {
+            excludeTestsMatching "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.java-modules-*.sample"
+            excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.android-application_*.sample' // has build deprecations 
+        }
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-best-practices-logic-during-configuration-dont_*.sample' // negative sanity check fails (= build succeeds) for Kotlin variant
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-scala-cross-compilation_groovy_sanityCheck.sample' // There is no java executable in /Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/bin. Expression: executable.exists()
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-artifacts-maven_*.sample' // // emits deprecation warning
@@ -563,6 +561,7 @@ tasks.named("docsTest") { task ->
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-tutorial-select-project_*.sample' // emits deprecation warning
 
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-java-cross-compilation_*.sample' // fails to find javadoc
+
         if (org.gradle.internal.os.OperatingSystem.current().windows) {
             excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.android-application_*.sample' // has build deprecations 
             excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.java-multi-project-with-spock-tests_*.sample' // fails to compile Groovy
@@ -570,7 +569,6 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.java-modules-multi-project-with-integration-tests_*.sample' // fails to compile Groovy
             excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.precompiled-script-plugin-in-build-src*.sample' // fails in tests in buildSrc
             excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-kotlin-dsl-interoperability-static-extensions*.sample' // Unresolved reference to jcenter
-            
         }
     }
 }
