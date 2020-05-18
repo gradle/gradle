@@ -498,25 +498,25 @@ samples {
         }
 
         compositeBuildsBasics {
-            sampleDirectory = file("src/samples/build-organization/compositeBuilds/basic")
+            sampleDirectory = file("src/samples/build-organization/composite-builds/basic")
             description = "Defining and using a composite build"
             category = "Build organization"
         }
 
         compositeBuildsDeclaredSubstitutions {
-            sampleDirectory = file("src/samples/build-organization/compositeBuilds/declared-substitution")
+            sampleDirectory = file("src/samples/build-organization/composite-builds/declared-substitution")
             description = "Declaring the dependencies substituted by an included build"
             category = "Build organization"
         }
 
         compositeBuildsHierarchicalMultiRepo {
-            sampleDirectory = file("src/samples/build-organization/compositeBuilds/hierarchical-multirepo")
+            sampleDirectory = file("src/samples/build-organization/composite-builds/hierarchical-multirepo")
             description = "Using composite builds in a hierarchical multirepo project"
             category = "Build organization"
         }
 
         compositeBuildsPluginDevelopment {
-            sampleDirectory = file("src/samples/build-organization/compositeBuilds/plugin-dev")
+            sampleDirectory = file("src/samples/build-organization/composite-builds/plugin-dev")
             description = "Composite build to develop a Gradle plugin"
             category = "Build organization"
         }
