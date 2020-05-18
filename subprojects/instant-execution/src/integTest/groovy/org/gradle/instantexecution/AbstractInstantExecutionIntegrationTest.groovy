@@ -29,9 +29,8 @@ import org.intellij.lang.annotations.Language
 
 class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    protected static final String CONFIGURATION_CACHE_CLI_OPTION = "--${ConfigurationCacheOption.LONG_OPTION}"
-    static final String FAIL_ON_PROBLEMS_CLI_OPTION = InstantExecutionProblemsFixture.FAIL_ON_PROBLEMS_CLI_OPTION
-    static final String DO_NOT_FAIL_ON_PROBLEMS_CLI_OPTION = InstantExecutionProblemsFixture.DO_NOT_FAIL_ON_PROBLEMS_CLI_OPTION
+    static final String STRICT_CLI_OPTION = InstantExecutionProblemsFixture.STRICT_CLI_OPTION
+    static final String LENIENT_CLI_OPTION = InstantExecutionProblemsFixture.LENIENT_CLI_OPTION
     static final String MAX_PROBLEMS_CLI_OPTION = InstantExecutionProblemsFixture.MAX_PROBLEMS_CLI_OPTION
 
     protected InstantExecutionProblemsFixture problems
@@ -53,11 +52,19 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void instantRun(String... tasks) {
-        run(CONFIGURATION_CACHE_CLI_OPTION, *tasks)
+        run(STRICT_CLI_OPTION, *tasks)
+    }
+
+    void instantRunLenient(String... tasks) {
+        run(LENIENT_CLI_OPTION, *tasks)
     }
 
     void instantFails(String... tasks) {
-        fails(CONFIGURATION_CACHE_CLI_OPTION, *tasks)
+        fails(STRICT_CLI_OPTION, *tasks)
+    }
+
+    void instantFailsLenient(String... tasks) {
+        fails(LENIENT_CLI_OPTION, *tasks)
     }
 
     protected InstantExecutionBuildOperationsFixture newInstantExecutionFixture() {

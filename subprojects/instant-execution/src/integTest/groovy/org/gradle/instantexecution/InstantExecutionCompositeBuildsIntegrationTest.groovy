@@ -38,8 +38,7 @@ class InstantExecutionCompositeBuildsIntegrationTest extends AbstractInstantExec
         }
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantRun("help")
+        instantRunLenient("help")
 
         then:
         instantExecution.assertStateStored()

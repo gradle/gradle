@@ -42,8 +42,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
         failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from '"))
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantRun("thing", "-DCI=$value")
+        instantRunLenient("thing", "-DCI=$value")
 
         then:
         fixture.assertStateStored()

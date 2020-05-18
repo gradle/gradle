@@ -44,8 +44,8 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
 
         where:
         origin            | argument
-        "long option"     | CONFIGURATION_CACHE_CLI_OPTION
-        "system property" | "-D${ConfigurationCacheOption.PROPERTY_NAME}=true"
+        "long option"     | STRICT_CLI_OPTION
+        "system property" | "-D${ConfigurationCacheOption.PROPERTY_NAME}=on"
     }
 
     def "can enable with a property in root directory gradle.properties"() {
@@ -53,7 +53,7 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
         given:
         def fixture = newInstantExecutionFixture()
         file('gradle.properties') << """
-            ${ConfigurationCacheOption.PROPERTY_NAME}=true
+            ${ConfigurationCacheOption.PROPERTY_NAME}=on
         """
 
         when:
@@ -77,7 +77,7 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
         def fixture = newInstantExecutionFixture()
         executer.requireOwnGradleUserHomeDir()
         executer.gradleUserHomeDir.file('gradle.properties') << """
-            ${ConfigurationCacheOption.PROPERTY_NAME}=true
+            ${ConfigurationCacheOption.PROPERTY_NAME}=on
         """
 
         when:
@@ -101,7 +101,7 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
         given:
         def fixture = newInstantExecutionFixture()
         file('gradle.properties') << """
-            ${ConfigurationCacheOption.PROPERTY_NAME}=true
+            ${ConfigurationCacheOption.PROPERTY_NAME}=on
         """
 
         when:
@@ -112,8 +112,8 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
 
         where:
         origin            | argument
-        "long option"     | "--no-${ConfigurationCacheOption.LONG_OPTION}"
-        "system property" | "-D${ConfigurationCacheOption.PROPERTY_NAME}=false"
+        "long option"     | "--${ConfigurationCacheOption.LONG_OPTION}=off"
+        "system property" | "-D${ConfigurationCacheOption.PROPERTY_NAME}=off"
     }
 
     private void outputContainsIncubatingFeatureUsage() {

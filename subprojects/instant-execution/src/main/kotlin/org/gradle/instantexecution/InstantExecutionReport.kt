@@ -76,7 +76,7 @@ class InstantExecutionReport(
     internal
     fun writeReportFiles(problems: List<PropertyProblem>) {
         require(outputDirectory.mkdirs()) {
-            "Could not create instant execution report directory '$outputDirectory'"
+            "Could not create configuration cache report directory '$outputDirectory'"
         }
         copyReportResources(outputDirectory)
         writeJsReportData(problems, outputDirectory)

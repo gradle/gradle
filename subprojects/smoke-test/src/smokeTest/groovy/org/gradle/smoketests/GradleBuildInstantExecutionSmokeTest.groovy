@@ -18,7 +18,6 @@ package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.specs.Spec
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheFailOnProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
@@ -101,8 +100,7 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
 
     private void instantRun(String... tasks) {
         result = run(
-            "--${ConfigurationCacheOption.LONG_OPTION}",
-            "--no-${ConfigurationCacheFailOnProblemsOption.LONG_OPTION}", // TODO remove
+            "--${ConfigurationCacheOption.LONG_OPTION}=warn", // TODO on
             *tasks
         )
     }

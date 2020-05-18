@@ -23,6 +23,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.serialize.BaseSerializerFactory;
@@ -114,8 +115,7 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isRefreshDependencies());
             encoder.writeBoolean(startParameter.isBuildCacheEnabled());
             encoder.writeBoolean(startParameter.isBuildCacheDebugLogging());
-            encoder.writeBoolean(startParameter.isConfigurationCacheEnabled());
-            encoder.writeBoolean(startParameter.isConfigurationCacheFailOnProblems());
+            encoder.writeString(startParameter.getConfigurationCache().name());
             encoder.writeSmallInt(startParameter.getConfigurationCacheMaxProblems());
             encoder.writeBoolean(startParameter.isConfigurationCacheRecreateCache());
             encoder.writeBoolean(startParameter.isConfigurationCacheQuiet());
@@ -193,8 +193,7 @@ public class BuildActionSerializer {
             startParameter.setRefreshDependencies(decoder.readBoolean());
             startParameter.setBuildCacheEnabled(decoder.readBoolean());
             startParameter.setBuildCacheDebugLogging(decoder.readBoolean());
-            startParameter.setConfigurationCacheEnabled(decoder.readBoolean());
-            startParameter.setConfigurationCacheFailOnProblems(decoder.readBoolean());
+            startParameter.setConfigurationCache(ConfigurationCacheOption.Value.valueOf(decoder.readString()));
             startParameter.setConfigurationCacheMaxProblems(decoder.readSmallInt());
             startParameter.setConfigurationCacheRecreateCache(decoder.readBoolean());
             startParameter.setConfigurationCacheQuiet(decoder.readBoolean());

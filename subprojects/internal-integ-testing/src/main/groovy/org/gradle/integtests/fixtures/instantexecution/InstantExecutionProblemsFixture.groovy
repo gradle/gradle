@@ -18,8 +18,8 @@ package org.gradle.integtests.fixtures.instantexecution
 
 import groovy.transform.PackageScope
 import org.gradle.api.Action
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheFailOnProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -49,8 +49,8 @@ import static org.junit.Assert.assertTrue
 
 final class InstantExecutionProblemsFixture {
 
-    static final String FAIL_ON_PROBLEMS_CLI_OPTION = "--${ConfigurationCacheFailOnProblemsOption.LONG_OPTION}"
-    static final String DO_NOT_FAIL_ON_PROBLEMS_CLI_OPTION = "--no-${ConfigurationCacheFailOnProblemsOption.LONG_OPTION}"
+    static final String STRICT_CLI_OPTION = "--${ConfigurationCacheOption.LONG_OPTION}=on"
+    static final String LENIENT_CLI_OPTION = "--${ConfigurationCacheOption.LONG_OPTION}=warn"
     static final String MAX_PROBLEMS_CLI_OPTION = "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}"
 
     protected static final String PROBLEMS_REPORT_HTML_FILE_NAME = "instant-execution-report.html"
@@ -61,14 +61,6 @@ final class InstantExecutionProblemsFixture {
     InstantExecutionProblemsFixture(GradleExecuter executer, File rootDir) {
         this.executer = executer
         this.rootDir = rootDir
-    }
-
-    void withFailOnProblems() {
-        executer.withArgument(FAIL_ON_PROBLEMS_CLI_OPTION)
-    }
-
-    void withDoNotFailOnProblems() {
-        executer.withArgument(DO_NOT_FAIL_ON_PROBLEMS_CLI_OPTION)
     }
 
     void assertFailureHasError(
@@ -207,20 +199,20 @@ final class InstantExecutionProblemsFixture {
     }
 
     private static Matcher<String> failureDescriptionMatcherForError(HasInstantExecutionErrorSpec spec) {
-        return equalTo("Instant execution state could not be cached: ${spec.error}".toString())
+        return equalTo("Configuration cache state could not be cached: ${spec.error}".toString())
     }
 
     private static Matcher<String> failureDescriptionMatcherForProblems(HasInstantExecutionProblemsSpec spec) {
         return buildMatcherForProblemsFailureDescription(
-            "Instant execution problems found in this build.\n" +
-                "This behavior can be changed via ${DO_NOT_FAIL_ON_PROBLEMS_CLI_OPTION}.",
+            "Configuration cache problems found in this build.\n" +
+                "Gradle can be made to ignore these problems via ${LENIENT_CLI_OPTION}.",
             spec
         )
     }
 
     private static Matcher<String> failureDescriptionMatcherForTooManyProblems(HasInstantExecutionProblemsSpec spec) {
         return buildMatcherForProblemsFailureDescription(
-            "Maximum number of instant execution problems has been reached.\n" +
+            "Maximum number of configuration cache problems has been reached.\n" +
                 "This behavior can be adjusted via ${MAX_PROBLEMS_CLI_OPTION}=<integer>.",
             spec
         )
@@ -253,7 +245,7 @@ ${problemsSummaryHeaderFor(totalCount, uniqueCount)}
     }
 
     private static void assertNoProblemsSummary(String text) {
-        assertThat(text, not(containsString("instant execution problem")))
+        assertThat(text, not(containsString("configuration cache problem")))
     }
 
     private static void assertFailureDescription(
@@ -277,7 +269,7 @@ ${problemsSummaryHeaderFor(totalCount, uniqueCount)}
     }
 
     protected static String problemsSummaryHeaderFor(int totalProblems, int uniqueProblems) {
-        def header = "${totalProblems} instant execution problem${totalProblems >= 2 ? 's were' : ' was'} found"
+        def header = "${totalProblems} configuration cache problem${totalProblems >= 2 ? 's were' : ' was'} found"
         if (totalProblems == uniqueProblems) {
             return "${header}."
         }

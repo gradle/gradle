@@ -17,6 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption;
 import org.gradle.internal.deprecation.Deprecatable;
 import org.gradle.internal.deprecation.LoggingDeprecatable;
 
@@ -27,8 +28,7 @@ public class StartParameterInternal extends StartParameter implements Deprecatab
 
     private final Deprecatable deprecationHandler = new LoggingDeprecatable();
 
-    protected boolean configurationCacheEnabled;
-    protected boolean configurationCacheFailOnProblems = true;
+    protected ConfigurationCacheOption.Value configurationCache = ConfigurationCacheOption.Value.OFF;
     protected int configurationCacheMaxProblems = 512;
     protected boolean configurationCacheRecreateCache;
     protected boolean configurationCacheQuiet;
@@ -46,8 +46,7 @@ public class StartParameterInternal extends StartParameter implements Deprecatab
     @Override
     protected StartParameter prepareNewBuild(StartParameter startParameter) {
         StartParameterInternal p = (StartParameterInternal) super.prepareNewBuild(startParameter);
-        p.configurationCacheEnabled = configurationCacheEnabled;
-        p.configurationCacheFailOnProblems = configurationCacheFailOnProblems;
+        p.configurationCache = configurationCache;
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
         p.configurationCacheQuiet = configurationCacheQuiet;
@@ -93,20 +92,12 @@ public class StartParameterInternal extends StartParameter implements Deprecatab
         super.searchUpwards = searchUpwards;
     }
 
-    public boolean isConfigurationCacheEnabled() {
-        return this.configurationCacheEnabled;
+    public ConfigurationCacheOption.Value getConfigurationCache() {
+        return configurationCache;
     }
 
-    public void setConfigurationCacheEnabled(boolean instantExecution) {
-        this.configurationCacheEnabled = instantExecution;
-    }
-
-    public boolean isConfigurationCacheFailOnProblems() {
-        return configurationCacheFailOnProblems;
-    }
-
-    public void setConfigurationCacheFailOnProblems(boolean configurationCacheFailOnProblems) {
-        this.configurationCacheFailOnProblems = configurationCacheFailOnProblems;
+    public void setConfigurationCache(ConfigurationCacheOption.Value configurationCache) {
+        this.configurationCache = configurationCache;
     }
 
     public int getConfigurationCacheMaxProblems() {

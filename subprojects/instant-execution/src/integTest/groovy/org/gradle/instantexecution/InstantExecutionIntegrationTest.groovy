@@ -686,8 +686,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         """
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantFails "broken"
+        instantFailsLenient "broken"
 
         then:
         problems.assertResultHasProblems(result) {

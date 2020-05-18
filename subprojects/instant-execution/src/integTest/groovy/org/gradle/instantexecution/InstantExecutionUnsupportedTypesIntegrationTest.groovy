@@ -136,8 +136,7 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         """
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantRun "broken"
+        instantRunLenient "broken"
 
         then:
         problems.assertResultHasProblems(result) {
@@ -149,8 +148,7 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         }
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantRun "broken"
+        instantRunLenient "broken"
 
         then:
         problems.assertResultHasProblems(result) {
@@ -254,8 +252,7 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         """
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantRun "broken"
+        instantRunLenient "broken"
 
         then:
         problems.assertResultHasProblems(result) {
@@ -267,8 +264,7 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         }
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantRun "broken"
+        instantRunLenient "broken"
 
         then:
         problems.assertResultHasProblems(result) {

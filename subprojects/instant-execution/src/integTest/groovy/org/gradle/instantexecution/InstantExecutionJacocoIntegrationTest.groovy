@@ -56,8 +56,7 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
         }
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantRun 'test', 'jacocoTestReport'
+        instantRunLenient 'test', 'jacocoTestReport'
 
         then:
         instantExecution.assertStateStored()
@@ -82,8 +81,7 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
         }
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantRun 'test', 'jacocoTestReport'
+        instantRunLenient 'test', 'jacocoTestReport'
 
         then:
         instantExecution.assertStateLoaded()

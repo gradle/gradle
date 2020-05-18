@@ -18,6 +18,7 @@ package org.gradle.instantexecution.initialization
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.instantexecution.extensions.unsafeLazy
 import org.gradle.internal.hash.HashUtil.createCompactMD5
@@ -34,7 +35,7 @@ class InstantExecutionStartParameter(
     val startParameter = startParameter as StartParameterInternal
 
     val isEnabled: Boolean
-        get() = startParameter.isConfigurationCacheEnabled
+        get() = startParameter.configurationCache != ConfigurationCacheOption.Value.OFF
 
     val isQuiet: Boolean
         get() = startParameter.isConfigurationCacheQuiet
@@ -43,7 +44,7 @@ class InstantExecutionStartParameter(
         get() = startParameter.configurationCacheMaxProblems
 
     val failOnProblems: Boolean
-        get() = startParameter.isConfigurationCacheFailOnProblems
+        get() = startParameter.configurationCache == ConfigurationCacheOption.Value.ON
 
     val recreateCache: Boolean
         get() = startParameter.isConfigurationCacheRecreateCache

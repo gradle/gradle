@@ -16,8 +16,8 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheFailOnProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.buildConsoleSummary
 
@@ -42,7 +42,7 @@ class InstantExecutionError internal constructor(
     error: String,
     cause: Throwable? = null
 ) : Exception(
-    "Instant execution state could not be cached: $error",
+    "Configuration cache state could not be cached: $error",
     cause
 ), InstantExecutionThrowable
 
@@ -71,8 +71,8 @@ open class InstantExecutionProblemsException : InstantExecutionException {
         problems: List<PropertyProblem>,
         htmlReportFile: File
     ) : this(
-        "Instant execution problems found in this build.\n" +
-            "This behavior can be changed via --no-${ConfigurationCacheFailOnProblemsOption.LONG_OPTION}.",
+        "Configuration cache problems found in this build.\n" +
+            "Gradle can be made to ignore these problems via --${ConfigurationCacheOption.LONG_OPTION}=warn.",
         problems,
         htmlReportFile
     )
@@ -83,7 +83,7 @@ class TooManyInstantExecutionProblemsException internal constructor(
     problems: List<PropertyProblem>,
     htmlReportFile: File
 ) : InstantExecutionProblemsException(
-    "Maximum number of instant execution problems has been reached.\n" +
+    "Maximum number of configuration cache problems has been reached.\n" +
         "This behavior can be adjusted via -D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=<integer>.",
     problems,
     htmlReportFile

@@ -74,7 +74,7 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
                         return "system property '$key' has changed"
                     }
                 }
-                else -> throw IllegalStateException("Unexpected instant execution cache fingerprint: $input")
+                else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
             }
         }
     }

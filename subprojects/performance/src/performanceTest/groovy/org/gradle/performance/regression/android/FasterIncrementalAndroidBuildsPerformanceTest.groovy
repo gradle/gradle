@@ -16,7 +16,6 @@
 
 package org.gradle.performance.regression.android
 
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheFailOnProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginSettingsFixture
@@ -78,7 +77,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     }
 
     private void buildSpecForSupportedOptimizations(IncrementalAndroidTestProject testProject, @DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure scenarioConfiguration) {
-        supportedOptimizations(testProject).each {name, Set<Optimization> enabledOptimizations ->
+        supportedOptimizations(testProject).each { name, Set<Optimization> enabledOptimizations ->
             runner.buildSpec {
                 passChangedFile(delegate, testProject)
                 invocation.args(*enabledOptimizations*.argument)
@@ -115,8 +114,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
             builder.invocation.args(
                 "-Dorg.gradle.workers.max=8",
                 "--no-build-cache",
-                "--no-scan",
-                "--no-${ConfigurationCacheFailOnProblemsOption.LONG_OPTION}" // TODO remove
+                "--no-scan"
             )
             builder.invocation.useToolingApi()
             builder.warmUpCount(1)
@@ -136,11 +134,11 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     }
 
     enum Optimization {
-        INSTANT_EXECUTION(ConfigurationCacheOption.PROPERTY_NAME),
-        VFS_RETENTION(VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY)
+        INSTANT_EXECUTION("--${ConfigurationCacheOption.LONG_OPTION}=warn"), // TODO on
+        VFS_RETENTION("-D${VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY}=true")
 
-        Optimization(String systemProperty) {
-            this.argument = "-D${systemProperty}=true"
+        Optimization(String argument) {
+            this.argument = argument
         }
 
         final String argument
