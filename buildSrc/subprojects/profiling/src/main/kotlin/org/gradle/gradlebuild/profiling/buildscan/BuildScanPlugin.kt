@@ -49,7 +49,7 @@ const val ciBuildTypeName = "CI Build Type"
 
 
 private
-const val vfsRetentionEnabledName = "vfsRetentionEnabled"
+const val watchFileSystemName = "watchFileSystem"
 
 
 @Suppress("unused") // consumed as plugin gradlebuild.buildscan
@@ -269,7 +269,8 @@ open class BuildScanPlugin : Plugin<Project> {
 
     private
     fun Project.extractVfsRetentionData() {
-        // TODO: Capture watching the file system flag from start parameter after bumping the wrapper
+        val watchFileSystem = project.gradle.startParameter.isWatchFileSystem
+        buildScan.value(watchFileSystemName, watchFileSystem.toString())
     }
 
     private
