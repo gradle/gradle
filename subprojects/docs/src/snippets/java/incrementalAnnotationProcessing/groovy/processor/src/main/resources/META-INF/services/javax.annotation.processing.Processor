@@ -1,2 +1,2 @@
-EntityProcessor
-ServiceRegistryProcessor
+org.gradle.EntityProcessor
+org.gradle.ServiceRegistryProcessor
