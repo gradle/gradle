@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Task;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskInputs;
@@ -32,40 +33,33 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GradlePropertiesCredentialsProviderFactory implements CredentialsProviderFactory {
+public class GradlePropertiesCredentialsProviderFactory implements CredentialsProviderFactory, TaskExecutionGraphListener {
 
     private final GradleProperties gradleProperties;
-    private final TaskExecutionGraph taskExecutionGraph;
-
-    private boolean credentialsBeingEvaluated = false;
 
     private final Map<String, PasswordCredentialsProvider> passwordProviders = new HashMap<>();
 
-    public GradlePropertiesCredentialsProviderFactory(GradleProperties gradleProperties, TaskExecutionGraph taskExecutionGraph) {
+    public GradlePropertiesCredentialsProviderFactory(GradleProperties gradleProperties) {
         this.gradleProperties = gradleProperties;
-        this.taskExecutionGraph = taskExecutionGraph;
     }
 
     @Override
     public Provider<PasswordCredentials> usernameAndPassword(String identity) {
         validateIdentity(identity);
-        registerCredentialsEvaluator();
         return passwordProviders.computeIfAbsent(identity, PasswordCredentialsProvider::new);
-    }
-
-    private void registerCredentialsEvaluator() {
-        if (!credentialsBeingEvaluated) {
-            taskExecutionGraph.whenReady(graph -> {
-                graph.getAllTasks().stream().map(Task::getInputs).forEach(TaskInputs::getProperties);
-                passwordProviders.values().stream().filter(p -> p.valueRequested).forEach(AbstractMinimalProvider::get);
-            });
-            credentialsBeingEvaluated = true;
-        }
     }
 
     private void validateIdentity(@Nullable String identity) {
         if (identity == null || identity.isEmpty() || !identity.chars().allMatch(Character::isLetterOrDigit)) {
             throw new IllegalArgumentException("Identity may contain only letters and digits, received: " + identity);
+        }
+    }
+
+    @Override
+    public void graphPopulated(TaskExecutionGraph graph) {
+        if (!passwordProviders.isEmpty()) {
+            graph.getAllTasks().stream().map(Task::getInputs).forEach(TaskInputs::getProperties);
+            passwordProviders.values().stream().filter(p -> p.valueRequested).forEach(AbstractMinimalProvider::get);
         }
     }
 
