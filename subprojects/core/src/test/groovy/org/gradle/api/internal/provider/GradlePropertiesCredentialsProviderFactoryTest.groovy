@@ -16,17 +16,14 @@
 
 package org.gradle.api.internal.provider
 
-
 import org.gradle.api.credentials.PasswordCredentials
-import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.internal.properties.GradleProperties
 import spock.lang.Specification
 
 class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
 
     def gradleProperties = Mock(GradleProperties)
-    def taskExecutionGraph = Mock(TaskExecutionGraph)
-    def factory = new GradlePropertiesCredentialsProviderFactory(gradleProperties, taskExecutionGraph)
+    def factory = new GradlePropertiesCredentialsProviderFactory(gradleProperties)
 
     def "does not allow non-letters and non-digits for identity"() {
         when:
