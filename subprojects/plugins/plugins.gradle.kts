@@ -1,5 +1,5 @@
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.test.integrationtests.makeIntegrationTestsDependOnSampleDir
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 /*
  * Copyright 2010 the original author or authors.
@@ -111,4 +111,4 @@ testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
 
-makeIntegrationTestsDependOnSampleDir("subprojects/plugins/src/main")
+integrationTestUsesSampleDir("subprojects/plugins/src/main")

@@ -15,7 +15,7 @@
  */
 
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.test.integrationtests.makeIntegrationTestsDependOnSampleDir
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 plugins {
     gradlebuild.distribution.`plugins-api-java`
@@ -80,4 +80,4 @@ testFilesCleanup {
 }
 
 
-makeIntegrationTestsDependOnSampleDir("subprojects/ivy/src/main")
+integrationTestUsesSampleDir("subprojects/ivy/src/main")

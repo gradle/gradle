@@ -1,4 +1,4 @@
-import org.gradle.gradlebuild.test.integrationtests.makeIntegrationTestsDependOnSampleDir
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 
 plugins {
@@ -44,4 +44,4 @@ strictCompile {
     ignoreDeprecations() // most of this project has been deprecated
 }
 
-makeIntegrationTestsDependOnSampleDir("subprojects/platform-jvm/src/main")
+integrationTestUsesSampleDir("subprojects/platform-jvm/src/main")

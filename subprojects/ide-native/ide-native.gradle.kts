@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.test.integrationtests.makeIntegrationTestsDependOnSampleDir
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 plugins {
     gradlebuild.distribution.`plugins-api-java`
 }
@@ -57,4 +57,4 @@ dependencies {
     testFixturesImplementation(testFixtures(project(":ide")))
 }
 
-makeIntegrationTestsDependOnSampleDir("subprojects/ide-native/src/main")
+integrationTestUsesSampleDir("subprojects/ide-native/src/main")

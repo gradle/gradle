@@ -1,6 +1,6 @@
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
-import org.gradle.gradlebuild.test.integrationtests.makeIntegrationTestsDependOnSampleDir
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 plugins {
     gradlebuild.distribution.`plugins-api-java`
@@ -116,4 +116,4 @@ tasks.withType<IntegrationTest>().configureEach {
     }
 }
 
-makeIntegrationTestsDependOnSampleDir("subprojects/platform-play/src/main")
+integrationTestUsesSampleDir("subprojects/platform-play/src/main")

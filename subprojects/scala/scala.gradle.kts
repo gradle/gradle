@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.test.integrationtests.makeIntegrationTestsDependOnSampleDir
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 plugins {
     gradlebuild.distribution.`plugins-api-java`
@@ -71,4 +71,4 @@ tasks.named<Test>("integTest") {
     jvmArgs("-XX:MaxPermSize=1500m") // AntInProcessScalaCompilerIntegrationTest needs lots of permgen
 }
 
-makeIntegrationTestsDependOnSampleDir("subprojects/scala/src/main")
+integrationTestUsesSampleDir("subprojects/scala/src/main")

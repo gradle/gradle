@@ -1,4 +1,4 @@
-import org.gradle.gradlebuild.test.integrationtests.makeIntegrationTestsDependOnSampleDir
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 plugins {
     gradlebuild.distribution.`plugins-api-java`
@@ -39,4 +39,4 @@ classycle {
     excludePatterns.set(listOf("org/gradle/**"))
 }
 
-makeIntegrationTestsDependOnSampleDir("subprojects/platform-base/src/main")
+integrationTestUsesSampleDir("subprojects/platform-base/src/main")
