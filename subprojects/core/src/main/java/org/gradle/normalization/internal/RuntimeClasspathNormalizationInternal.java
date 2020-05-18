@@ -16,8 +16,9 @@
 
 package org.gradle.normalization.internal;
 
+import org.gradle.internal.fingerprint.classpath.ClasspathResourceFilters;
 import org.gradle.normalization.RuntimeClasspathNormalization;
 
 public interface RuntimeClasspathNormalizationInternal extends RuntimeClasspathNormalization {
-    RuntimeClasspathResourceFilters getResourceFilters();
+    ClasspathResourceFilters getResourceFilters();
 }

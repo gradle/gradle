@@ -23,6 +23,7 @@ import org.gradle.api.internal.changedetection.state.IgnoringResourceEntryFilter
 import org.gradle.api.internal.changedetection.state.IgnoringResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
+import org.gradle.internal.fingerprint.classpath.ClasspathResourceFilters;
 import org.gradle.normalization.MetaInfNormalization;
 
 import java.util.Locale;
@@ -50,11 +51,11 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
     }
 
     @Override
-    public RuntimeClasspathResourceFilters getResourceFilters() {
+    public ClasspathResourceFilters getResourceFilters() {
         resourceFilter = maybeCreateFilter(resourceFilter, ignoresBuilder);
         attributeResourceFilter = maybeCreateEntryFilter(attributeResourceFilter, attributeIgnoresBuilder);
         propertyResourceFilter = maybeCreateEntryFilter(propertyResourceFilter, propertiesIgnoresBuilder);
-        return new RuntimeClasspathResourceFilters() {
+        return new ClasspathResourceFilters() {
             @Override
             public ResourceFilter getResourceFilter() {
                 return resourceFilter;

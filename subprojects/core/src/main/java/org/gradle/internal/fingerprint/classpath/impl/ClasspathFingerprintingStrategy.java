@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
@@ -44,7 +43,6 @@ import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker;
 import org.gradle.internal.snapshot.RelativePathStringTracker;
-import org.gradle.normalization.internal.RuntimeClasspathResourceFilters;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
@@ -82,12 +80,8 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         this.classpathResourceHasher = classpathResourceHasher;
         this.cacheService = cacheService;
         this.stringInterner = stringInterner;
-        if (classpathResourceFilters instanceof RuntimeClasspathResourceFilters) {
-            RuntimeClasspathResourceFilters runtimeClasspathResourceFilters = (RuntimeClasspathResourceFilters) classpathResourceFilters;
-            this.zipHasher = new ZipHasher(classpathResourceHasher, classpathResourceFilter, runtimeClasspathResourceFilters.getManifestAttributeEntryFilter(), runtimeClasspathResourceFilters.getManifestPropertyEntryFilter());
-        } else {
-            this.zipHasher = new ZipHasher(classpathResourceHasher, classpathResourceFilter, ResourceEntryFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING);
-        }
+        this.zipHasher = new ZipHasher(classpathResourceHasher, classpathResourceFilter, classpathResourceFilters.getManifestAttributeEntryFilter(), classpathResourceFilters.getManifestPropertyEntryFilter());
+
         Hasher hasher = Hashing.newHasher();
         zipHasher.appendConfigurationToHasher(hasher);
         this.zipHasherConfigurationHash = hasher.hash();

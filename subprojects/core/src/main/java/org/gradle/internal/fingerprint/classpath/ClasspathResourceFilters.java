@@ -16,10 +16,30 @@
 
 package org.gradle.internal.fingerprint.classpath;
 
+import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 
 public interface ClasspathResourceFilters {
-    public static ClasspathResourceFilters NONE = () -> ResourceFilter.FILTER_NOTHING;
-
     ResourceFilter getResourceFilter();
+
+    ResourceEntryFilter getManifestAttributeEntryFilter();
+
+    ResourceEntryFilter getManifestPropertyEntryFilter();
+
+    ClasspathResourceFilters NONE = new ClasspathResourceFilters() {
+        @Override
+        public ResourceFilter getResourceFilter() {
+            return ResourceFilter.FILTER_NOTHING;
+        }
+
+        @Override
+        public ResourceEntryFilter getManifestAttributeEntryFilter() {
+            return ResourceEntryFilter.FILTER_NOTHING;
+        }
+
+        @Override
+        public ResourceEntryFilter getManifestPropertyEntryFilter() {
+            return ResourceEntryFilter.FILTER_NOTHING;
+        }
+    };
 }
