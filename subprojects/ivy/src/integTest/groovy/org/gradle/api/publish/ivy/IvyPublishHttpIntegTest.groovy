@@ -585,8 +585,7 @@ credentials {
     }
 
     @ToBeFixedForInstantExecution
-    // TODO replace execution with configuration once this behavior is implemented
-    def "fails at execution time with helpful error message when username and password provider has no value"() {
+    def "fails at configuration time with helpful error message when username and password provider has no value"() {
         given:
         String credentialsBlock = """
             credentials(project.credentials.usernameAndPassword('ivyRepo'))

@@ -114,6 +114,5 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
             return Describables.of(String.format("Gradle property '%s'", property));
         }
     }
-
 }
 

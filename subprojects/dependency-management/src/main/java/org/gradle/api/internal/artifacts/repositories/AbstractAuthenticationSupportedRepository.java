@@ -19,6 +19,8 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.Credentials;
+import org.gradle.api.internal.provider.CredentialsProviderFactory;
+import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -37,9 +39,9 @@ import java.util.List;
 public abstract class AbstractAuthenticationSupportedRepository extends AbstractResolutionAwareArtifactRepository implements AuthenticationSupportedInternal {
     private final AuthenticationSupporter delegate;
 
-    AbstractAuthenticationSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer, ObjectFactory objectFactory) {
+    AbstractAuthenticationSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer, ObjectFactory objectFactory, CredentialsProviderFactory credentialsProviderFactory) {
         super(objectFactory);
-        this.delegate = new AuthenticationSupporter(instantiator, objectFactory, authenticationContainer);
+        this.delegate = new AuthenticationSupporter(instantiator, objectFactory, authenticationContainer, credentialsProviderFactory);
     }
 
     @Override
@@ -77,9 +79,18 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
         delegate.credentials(credentialsType, action);
     }
 
-    public void credentials(Provider<Credentials> credentials) {
+    public void credentials(Provider<? extends Credentials> credentials) {
         invalidateDescriptor();
         delegate.credentials(credentials);
+    }
+
+    public Provider<Credentials> credentials(Class<? extends Credentials> credentialsType) {
+        invalidateDescriptor();
+        delegate.credentials(new DefaultProvider<>(() -> {
+            delegate.setIdentity(getName());
+            return delegate.credentials(credentialsType).get();
+        }));
+        return delegate.getConfiguredCredentials();
     }
 
     @Override
