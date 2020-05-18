@@ -4,11 +4,11 @@ import accessors.groovy
 import accessors.java
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
-import java.io.File
 
 
 enum class TestType(val prefix: String, val executers: List<String>, val libRepoRequired: Boolean) {
@@ -90,14 +90,16 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         extraConfig.execute(this)
     }
 
-
-fun splitIntoBuckets(sourceFiles: List<File>, numberOfSplits: Int): List<List<File>> =
-    if (sourceFiles.size % numberOfSplits == 0) {
-        sourceFiles.chunked(sourceFiles.size / numberOfSplits)
-    } else {
-        sourceFiles.chunked(sourceFiles.size / numberOfSplits + 1)
+/**
+ * Distributed test requires all dependencies to be declared
+ */
+fun Project.makeIntegrationTestsDependOnSampleDir(vararg sampleDirs: String) {
+    tasks.withType<IntegrationTest>() {
+        inputs.files(sampleDirs.map { rootProject.fileTree(it) }.toTypedArray())
+            .withPropertyName("autoSampleTestFiles")
+            .withPathSensitivity(PathSensitivity.RELATIVE)
     }
-
+}
 
 private
 fun IntegrationTest.addDebugProperties() {

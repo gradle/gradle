@@ -15,6 +15,7 @@
  */
 
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import org.gradle.gradlebuild.test.integrationtests.makeIntegrationTestsDependOnSampleDir
 plugins {
     gradlebuild.distribution.`plugins-api-java`
 }
@@ -89,3 +90,5 @@ classycle {
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
+
+makeIntegrationTestsDependOnSampleDir("subprojects/maven/src/main")

@@ -17,6 +17,7 @@
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
+import org.gradle.gradlebuild.test.integrationtests.makeIntegrationTestsDependOnSampleDir
 
 plugins {
     gradlebuild.distribution.`core-api-java`
@@ -108,3 +109,4 @@ tasks.withType<IntegrationTest>().configureEach {
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
+makeIntegrationTestsDependOnSampleDir("subprojects/tooling-api/src/main")

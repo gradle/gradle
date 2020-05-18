@@ -1,5 +1,6 @@
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import org.gradle.gradlebuild.test.integrationtests.makeIntegrationTestsDependOnSampleDir
 
 plugins {
     gradlebuild.internal.java
@@ -31,3 +32,5 @@ tasks.withType<IntegrationTest>().configureEach {
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
+
+makeIntegrationTestsDependOnSampleDir("subprojects/core-api/src/main/java", "subprojects/core/src/main/java")

@@ -1,3 +1,6 @@
+import org.gradle.gradlebuild.test.integrationtests.makeIntegrationTestsDependOnSampleDir
+
+
 plugins {
     gradlebuild.distribution.`plugins-api-java`
 }
@@ -40,3 +43,5 @@ dependencies {
 strictCompile {
     ignoreDeprecations() // most of this project has been deprecated
 }
+
+makeIntegrationTestsDependOnSampleDir("subprojects/platform-jvm/src/main")

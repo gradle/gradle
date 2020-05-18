@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.gradlebuild.test.integrationtests.makeIntegrationTestsDependOnSampleDir
 
 plugins {
     gradlebuild.distribution.`plugins-api-java`
@@ -81,3 +82,6 @@ dependencies {
 classycle {
     excludePatterns.set(listOf("org/gradle/language/nativeplatform/internal/**"))
 }
+
+
+makeIntegrationTestsDependOnSampleDir("subprojects/language-native/src/main")
