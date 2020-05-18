@@ -83,13 +83,6 @@ class InstantExecutionProblems(
 
         override fun onProblem(problem: PropertyProblem) {
             problems.add(problem)
-            when {
-                problems.size >= startParameter.maxProblems -> {
-                    isConsoleSummaryRequested = false
-                    isFailOnProblems = false
-                    throw TooManyInstantExecutionProblemsException(problems, report.htmlReportFile)
-                }
-            }
         }
     }
 
@@ -102,12 +95,13 @@ class InstantExecutionProblems(
             }
             report.writeReportFiles(problems)
             if (isFailOnProblems) {
-                // TODO - always include this as a build failure
+                // TODO - always include this as a build failure, currently it is disabled when a serialization problem happens
                 throw InstantExecutionProblemsException(problems, report.htmlReportFile)
-            } else if (isConsoleSummaryRequested) {
+            } else if (problems.size > startParameter.maxProblems) {
+                throw TooManyInstantExecutionProblemsException(problems, report.htmlReportFile)
+            } else {
                 report.logConsoleSummary(problems)
             }
-            // Else, problems are already reported in an exception
         }
     }
 }

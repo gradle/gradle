@@ -54,7 +54,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
-        failure.assertHasDescription("Instant execution state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
+        failure.assertHasDescription("Configuration cache state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
         problems.assertResultHasProblems(failure) {
         }
@@ -70,7 +70,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
-        failure.assertHasDescription("Instant execution state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
+        failure.assertHasDescription("Configuration cache state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
         problems.assertResultHasProblems(failure) {
         }
@@ -110,11 +110,11 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
-        failure.assertHasDescription("Instant execution state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
+        failure.assertHasDescription("Configuration cache state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
         problems.assertResultHasProblems(failure) {
-            withProblem("input property 'brokenProperty' of ':problems': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.")
-            withProblem("input property 'otherBrokenProperty' of ':problems': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.")
+            withProblem("input property 'brokenProperty' of ':problems': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
+            withProblem("input property 'otherBrokenProperty' of ':problems': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
         }
 
         when:
@@ -128,11 +128,11 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
-        failure.assertHasDescription("Instant execution state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
+        failure.assertHasDescription("Configuration cache state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
         problems.assertResultHasProblems(failure) {
-            withProblem("input property 'brokenProperty' of ':problems': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.")
-            withProblem("input property 'otherBrokenProperty' of ':problems': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.")
+            withProblem("input property 'brokenProperty' of ':problems': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
+            withProblem("input property 'otherBrokenProperty' of ':problems': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
         }
     }
 
@@ -167,10 +167,10 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         executed(':problems', ':moreProblems', ':ok', ':all')
         instantExecution.assertStateStored() // does not fail
         problems.assertFailureHasProblems(failure) {
-            withProblem("field 'anotherProp' from type 'BrokenTaskType': cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with instant execution.")
-            withProblem("field 'prop' from type 'BrokenTaskType': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.")
-            withProblem("input property 'brokenProperty' of ':problems': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.")
-            withProblem("input property 'otherBrokenProperty' of ':problems': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.")
+            withProblem("field 'anotherProp' from type 'BrokenTaskType': cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
+            withProblem("field 'prop' from type 'BrokenTaskType': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
+            withProblem("input property 'brokenProperty' of ':problems': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
+            withProblem("input property 'otherBrokenProperty' of ':problems': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
         }
         failure.assertHasFailures(1)
 
@@ -181,10 +181,10 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         executed(':problems', ':moreProblems', ':ok', ':all')
         instantExecution.assertStateLoaded()
         problems.assertResultHasProblems(result) {
-            withProblem("field 'anotherProp' from type 'BrokenTaskType': cannot deserialize object of type 'org.gradle.api.artifacts.ConfigurationContainer' as these are not supported with instant execution.")
-            withProblem("field 'prop' from type 'BrokenTaskType': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with instant execution.")
-            withProblem("input property 'brokenProperty' of ':problems': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with instant execution.")
-            withProblem("input property 'otherBrokenProperty' of ':problems': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with instant execution.")
+            withProblem("field 'anotherProp' from type 'BrokenTaskType': cannot deserialize object of type 'org.gradle.api.artifacts.ConfigurationContainer' as these are not supported with the configuration cache.")
+            withProblem("field 'prop' from type 'BrokenTaskType': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
+            withProblem("input property 'brokenProperty' of ':problems': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
+            withProblem("input property 'otherBrokenProperty' of ':problems': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
         }
 
         when:
@@ -194,10 +194,10 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         executed(':problems', ':moreProblems', ':ok', ':all')
         instantExecution.assertStateLoaded()
         problems.assertFailureHasProblems(failure) {
-            withProblem("field 'anotherProp' from type 'BrokenTaskType': cannot deserialize object of type 'org.gradle.api.artifacts.ConfigurationContainer' as these are not supported with instant execution.")
-            withProblem("field 'prop' from type 'BrokenTaskType': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with instant execution.")
-            withProblem("input property 'brokenProperty' of ':problems': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with instant execution.")
-            withProblem("input property 'otherBrokenProperty' of ':problems': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with instant execution.")
+            withProblem("field 'anotherProp' from type 'BrokenTaskType': cannot deserialize object of type 'org.gradle.api.artifacts.ConfigurationContainer' as these are not supported with the configuration cache.")
+            withProblem("field 'prop' from type 'BrokenTaskType': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
+            withProblem("input property 'brokenProperty' of ':problems': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
+            withProblem("input property 'otherBrokenProperty' of ':problems': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
         }
     }
 
@@ -302,54 +302,136 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
     }
 
     def "problems are reported and fail the build when failOnProblems is false but maxProblems is reached"() {
-
         given:
-        def stateSerializationProblems = withStateSerializationProblems().store
-        def taskExecutionProblems = withTaskExecutionProblems()
+        def instantExecution = newInstantExecutionFixture()
 
-        when:
-        instantFailsLenient 'taskWithStateSerializationProblems', 'a', 'b', "${MAX_PROBLEMS_CLI_OPTION}=2"
-
-        then:
-        notExecuted(':taskWithStateSerializationProblems', ':a', ':b')
-        problems.assertFailureHasTooManyProblems(failure) {
-            withUniqueProblems(stateSerializationProblems)
-            withProblemsWithStackTraceCount(0)
-        }
-
-        when:
-        instantFailsLenient 'taskWithStateSerializationProblems', 'a', 'b', "${MAX_PROBLEMS_CLI_OPTION}=4"
-
-        then:
-        executed(':taskWithStateSerializationProblems', ':a', ':b')
-        problems.assertFailureHasTooManyProblems(failure) {
-            withRootCauseDescription("Execution failed for task ':b'.")
-            withUniqueProblems(taskExecutionProblems + stateSerializationProblems)
-            withProblemsWithStackTraceCount(2)
-        }
-    }
-
-    def "problems not causing build failure are reported"() {
-
-        given:
-        settingsFile << "rootProject.name = 'test'"
-        def expectedProblems = withStateSerializationProblems().store
         buildFile << """
-            taskWithStateSerializationProblems.doFirst { throw new Exception("BOOM") }
+            class BrokenTask extends DefaultTask {
+                @Internal
+                final broken = project
+
+                @TaskAction
+                def go() {
+                    try {
+                        println("project = " + project)
+                    } catch(Exception e) {
+                        // should not happen, problems are collected
+                        throw new RuntimeException("broken")
+                    }
+                }
+            }
+
+            task problems(type: BrokenTask)
+            task moreProblems(type: BrokenTask)
+
+            task all {
+                dependsOn('problems', 'moreProblems')
+            }
         """
 
         when:
-        instantFailsLenient 'taskWithStateSerializationProblems'
+        instantFailsLenient 'all', "${MAX_PROBLEMS_CLI_OPTION}=2"
 
         then:
-        problems.assertResultHasProblems(result) {
-            withUniqueProblems(expectedProblems)
-            withProblemsWithStackTraceCount(0)
+        executed(':problems', ':moreProblems', ':all')
+        instantExecution.assertStateStored() // does not fail
+        problems.assertFailureHasTooManyProblems(failure) {
+            withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("field 'broken' from type 'BrokenTask': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
+            withProblem("task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 4
         }
 
-        and:
-        failure.assertHasDescription("Execution failed for task ':taskWithStateSerializationProblems'.")
-        failure.assertHasCause("java.lang.Exception: BOOM")
+        when:
+        instantFailsLenient 'all', "${MAX_PROBLEMS_CLI_OPTION}=3"
+
+        then:
+        executed(':problems', ':moreProblems', ':all')
+        instantExecution.assertStateLoaded()
+        problems.assertFailureHasTooManyProblems(failure) {
+            withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("field 'broken' from type 'BrokenTask': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
+            withProblem("task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 4
+        }
+        failure.assertHasFailures(1)
+
+        when:
+        instantRunLenient 'all', "${MAX_PROBLEMS_CLI_OPTION}=4"
+
+        then:
+        executed(':problems', ':moreProblems', ':all')
+        instantExecution.assertStateLoaded()
+        problems.assertResultHasProblems(result) {
+            withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("field 'broken' from type 'BrokenTask': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
+            withProblem("task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 4
+        }
+    }
+
+    def "fails regardless of maxProblems when failOnProblems is true"() {
+        given:
+        def instantExecution = newInstantExecutionFixture()
+
+        buildFile << """
+            class BrokenTask extends DefaultTask {
+                @Internal
+                final broken = project
+
+                @TaskAction
+                def go() {
+                    println("project = " + project)
+                }
+            }
+
+            task problems(type: BrokenTask)
+            task moreProblems(type: BrokenTask)
+
+            task all {
+                dependsOn('problems', 'moreProblems')
+            }
+        """
+
+        when:
+        instantFails 'all', "${MAX_PROBLEMS_CLI_OPTION}=2"
+
+        then:
+        executed(':problems', ':moreProblems', ':all')
+        instantExecution.assertStateStored() // does not fail
+        problems.assertFailureHasProblems(failure) {
+            withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("field 'broken' from type 'BrokenTask': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
+            withProblem("task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 4
+        }
+
+        when:
+        instantFails 'all', "${MAX_PROBLEMS_CLI_OPTION}=2"
+
+        then:
+        executed(':problems', ':moreProblems', ':all')
+        instantExecution.assertStateLoaded()
+        problems.assertFailureHasProblems(failure) {
+            withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("field 'broken' from type 'BrokenTask': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
+            withProblem("task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 4
+        }
+        failure.assertHasFailures(1)
+
+        when:
+        instantFails 'all', "${MAX_PROBLEMS_CLI_OPTION}=2000"
+
+        then:
+        executed(':problems', ':moreProblems', ':all')
+        instantExecution.assertStateLoaded()
+        problems.assertFailureHasProblems(failure) {
+            withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("field 'broken' from type 'BrokenTask': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
+            withProblem("task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 4
+        }
     }
 
     def "report does not include configuration and runtime problems from buildSrc"() {
@@ -380,45 +462,8 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         then:
         problems.assertResultHasProblems(result) {
-            withProblem("input property 'p' of ':broken': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with instant execution.")
+            withProblem("input property 'p' of ':broken': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
         }
-    }
-
-    private Map<String, List<String>> withStateSerializationProblems() {
-        buildFile << """
-            task taskWithStateSerializationProblems {
-                inputs.property 'brokenProperty', project
-                inputs.property 'otherBrokenProperty', project
-            }
-        """
-        return [
-            store: [
-                "input property 'brokenProperty' of ':taskWithStateSerializationProblems': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with the configuration cache.",
-                "input property 'otherBrokenProperty' of ':taskWithStateSerializationProblems': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with the configuration cache.",
-            ],
-            load: [
-                "input property 'brokenProperty' of ':taskWithStateSerializationProblems': cannot deserialize object of type '${Project.name}' as these are not supported with the configuration cache.",
-                "input property 'otherBrokenProperty' of ':taskWithStateSerializationProblems': cannot deserialize object of type '${Project.name}' as these are not supported with the configuration cache."
-            ]
-        ]
-    }
-
-    private List<String> withTaskExecutionProblems() {
-        buildFile << """
-            abstract class MyTask extends DefaultTask {
-                @TaskAction
-                def action() {
-                    println("project:${'\$'}{project.name}")
-                }
-            }
-
-            tasks.register("a", MyTask)
-            tasks.register("b", MyTask)
-        """
-        return [
-            "task `:a` of type `MyTask`: invocation of 'Task.project' at execution time is unsupported.",
-            "task `:b` of type `MyTask`: invocation of 'Task.project' at execution time is unsupported."
-        ]
     }
 
     @Unroll
@@ -574,53 +619,6 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
             )
             withProblemsWithStackTraceCount(0)
         }
-    }
-
-    @Unroll
-    def "can limit the number of problems to #maxProblems"() {
-        given:
-        buildFile << """
-            class Bean {
-                Project p1
-                Project p2
-                Project p3
-            }
-
-            class FooTask extends DefaultTask {
-                private final bean = new Bean()
-
-                FooTask() {
-                    bean.with {
-                        p1 = project
-                        p2 = project
-                        p3 = project
-                    }
-                }
-
-                @TaskAction
-                void run() {
-                }
-            }
-
-            task foo(type: FooTask)
-        """
-
-        when:
-        instantFailsLenient "foo", "${MAX_PROBLEMS_CLI_OPTION}=$maxProblems"
-
-        then:
-        def expectedProblems = (1..expectedNumberOfProblems).collect {
-            "field 'p$it' from type 'Bean': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with the configuration cache."
-        }
-        problems.assertFailureHasTooManyProblems(failure) {
-            withTotalProblemsCount(expectedNumberOfProblems)
-            withUniqueProblems(expectedProblems)
-            withProblemsWithStackTraceCount(0)
-        }
-
-        where:
-        maxProblems << [0, 1, 2]
-        expectedNumberOfProblems = Math.max(1, maxProblems)
     }
 
     def "can request to not fail on problems"() {
