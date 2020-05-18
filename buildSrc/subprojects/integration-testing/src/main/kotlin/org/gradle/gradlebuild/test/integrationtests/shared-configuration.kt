@@ -93,7 +93,7 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
 /**
  * Distributed test requires all dependencies to be declared
  */
-fun Project.makeIntegrationTestsDependOnSampleDir(vararg sampleDirs: String) {
+fun Project.integrationTestUsesSampleDir(vararg sampleDirs: String) {
     tasks.withType<IntegrationTest>() {
         inputs.files(sampleDirs.map { rootProject.fileTree(it) }.toTypedArray())
             .withPropertyName("autoTestedSamples")
