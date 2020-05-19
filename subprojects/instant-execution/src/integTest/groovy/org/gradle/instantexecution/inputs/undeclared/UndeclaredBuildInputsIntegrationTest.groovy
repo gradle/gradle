@@ -20,6 +20,7 @@ package org.gradle.instantexecution.inputs.undeclared
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
@@ -205,5 +206,39 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
             "user.name",
             "user.home"
         ]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13155")
+    def "plugin can bundle multiple resources with the same name"() {
+        file("buildSrc/build.gradle") << """
+            jar.from('resources1')
+            jar.from('resources2')
+            jar.duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        """
+        file("buildSrc/src/main/groovy/SomePlugin.groovy") << """
+            import ${Project.name}
+            import ${Plugin.name}
+
+            class SomePlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    getClass().classLoader.getResources("file.txt").each { url ->
+                        println("resource = " + url.text)
+                    }
+                }
+            }
+        """
+        file("buildSrc/resources1/file.txt") << "one"
+        file("buildSrc/resources2/file.txt") << "two"
+        buildFile << """
+            apply plugin: SomePlugin
+        """
+
+        when:
+        run()
+
+        then:
+        // The JVM only exposes one of the resources
+        output.count("resource = ") == 1
+        outputContains("resource = two")
     }
 }
