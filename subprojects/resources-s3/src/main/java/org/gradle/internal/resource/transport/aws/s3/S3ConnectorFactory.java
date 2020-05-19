@@ -53,7 +53,7 @@ public class S3ConnectorFactory implements ResourceConnectorFactory {
             if (authentication instanceof AllSchemesAuthentication) {
                 // First things first, retro compatibility
                 AwsCredentials awsCredentials = connectionDetails.getCredentials(AwsCredentials.class);
-                if(awsCredentials == null) {
+                if (awsCredentials == null) {
                     throw new IllegalArgumentException("AwsCredentials must be set for S3 backed repository.");
                 }
                 return new S3ResourceConnector(new S3Client(awsCredentials, new S3ConnectionProperties()));
