@@ -236,7 +236,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         """
 
         when:
-        run()
+        instantRun()
 
         then:
         // The JVM only exposes one of the resources

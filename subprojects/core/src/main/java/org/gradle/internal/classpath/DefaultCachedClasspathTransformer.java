@@ -27,6 +27,7 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.vfs.AdditiveCache;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.Closeable;
@@ -48,6 +49,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
     private final VirtualFileSystem virtualFileSystem;
+    private final List<AdditiveCache> otherCaches;
     private final ManagedExecutor executor;
 
     public DefaultCachedClasspathTransformer(
@@ -57,11 +59,13 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         ClasspathWalker classpathWalker,
         ClasspathBuilder classpathBuilder,
         VirtualFileSystem virtualFileSystem,
-        ExecutorFactory executorFactory
+        ExecutorFactory executorFactory,
+        List<AdditiveCache> otherCaches
     ) {
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
         this.virtualFileSystem = virtualFileSystem;
+        this.otherCaches = otherCaches;
         this.cache = classpathTransformerCacheFactory.createCache(cacheRepository, fileAccessTimeJournal);
         this.fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(fileAccessTimeJournal);
         this.executor = executorFactory.create("jar transforms");
@@ -131,7 +135,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             case BuildLogic:
                 return new InstrumentingClasspathFileTransformer(classpathWalker, classpathBuilder, new InstrumentingTransformer());
             case None:
-                return new CopyingClasspathFileTransformer();
+                return new CopyingClasspathFileTransformer(otherCaches);
             default:
                 throw new IllegalArgumentException();
         }

@@ -27,6 +27,7 @@ import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.io.ClassLoaderObjectInputStream
+import org.gradle.internal.vfs.AdditiveCache
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -64,10 +65,11 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     def classpathWalker = new ClasspathWalker(TestFiles.fileSystem())
     def classpathBuilder = new ClasspathBuilder()
     def virtualFileSystem = TestFiles.virtualFileSystem()
+    def otherCache = Stub(AdditiveCache)
     URLClassLoader testClassLoader = null
 
     @Subject
-    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, cacheFactory, fileAccessTimeJournal, classpathWalker, classpathBuilder, virtualFileSystem, executorFactory)
+    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, cacheFactory, fileAccessTimeJournal, classpathWalker, classpathBuilder, virtualFileSystem, executorFactory, [otherCache])
 
     def cleanup() {
         testClassLoader?.close()
@@ -163,6 +165,24 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
 
         and:
         1 * fileAccessTimeJournal.setLastAccessTime(cachedFile.parentFile, _)
+        0 * fileAccessTimeJournal._
+    }
+
+    def "reuses file from its origin cache when transform is none"() {
+        given:
+        _ * otherCache.additiveCacheRoots >> [testDir.file("other")]
+        def file = testDir.file("other/thing.jar")
+        jar(file)
+        def classpath = DefaultClassPath.of(file)
+        transformer.transform(classpath, None)
+
+        when:
+        def cachedClasspath = transformer.transform(classpath, None)
+
+        then:
+        cachedClasspath.asFiles == [file]
+
+        and:
         0 * fileAccessTimeJournal._
     }
 
