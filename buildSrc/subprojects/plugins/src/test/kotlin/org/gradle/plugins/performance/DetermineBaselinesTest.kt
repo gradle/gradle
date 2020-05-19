@@ -24,25 +24,32 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkObject
 import io.mockk.unmockkStatic
 import org.gradle.api.Action
+import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.*
 import org.gradle.process.ExecResult
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import GitInformationExtension
+import gitInfo
 
 
 class DetermineBaselinesTest {
     private
     val project = ProjectBuilder.builder().build()
 
+    private
+    val provider = mockk<Provider<String>>()
+
+
     @Before
     fun setUp() {
         // mock project.execAndGetStdout
         mockkStatic("org.gradle.kotlin.dsl.Kotlin_dsl_upstream_candidatesKt")
 
-        // mock project.determineCurrentBranch
-        mockkStatic("org.gradle.plugins.performance.PerformanceTestPluginKt")
+        // mock project.gitInfo
+        mockkStatic("Versioning_extensionsKt")
 
         mockkObject(project)
     }
@@ -50,7 +57,7 @@ class DetermineBaselinesTest {
     @After
     fun cleanUp() {
         unmockkStatic("org.gradle.kotlin.dsl.Kotlin_dsl_upstream_candidatesKt")
-        unmockkStatic("org.gradle.plugins.performance.PerformanceTestPluginKt")
+        unmockkStatic("Versioning_extensionsKt")
         unmockkObject(project)
     }
 
@@ -139,8 +146,10 @@ class DetermineBaselinesTest {
         every { project.execAndGetStdout(*(args.toTypedArray())) } returns expectedOutput
 
     private
-    fun mockCurrentBranch(branch: String) =
-        every { project.determineCurrentBranch() } returns branch
+    fun mockCurrentBranch(branch: String) {
+        every { project.gitInfo } returns GitInformationExtension(provider, provider)
+        every { provider.get() } returns branch
+    }
 
     private
     fun verifyBaselineDetermination(isCoordinatorBuild: Boolean, configuredBaseline: String?, determinedBaseline: String) {

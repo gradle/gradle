@@ -5,13 +5,12 @@ class PerformanceTestIntegrationTest extends AbstractIntegrationTest {
         buildFile << """
             plugins {
                 id 'java-library'
-                id 'gradlebuild.performance-test' apply false
+                id 'gradlebuild.build-version'
+                id 'gradlebuild.performance-test'
             }
             subprojects {
                 apply plugin: 'java'
             }
-
-            rootProject.ext.gradleBuildBranch = 'myBranch'
 
             apply plugin: 'gradlebuild.performance-test'
 
@@ -28,6 +27,7 @@ class PerformanceTestIntegrationTest extends AbstractIntegrationTest {
             }
         """
 
+        file("version.txt") << '6.5'
         settingsFile << """
             include 'internalPerformanceTesting', 'docs', 'launcher', 'apiMetadata'
         """

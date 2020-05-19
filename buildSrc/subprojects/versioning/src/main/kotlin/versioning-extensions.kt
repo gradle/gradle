@@ -33,4 +33,3 @@ open class GitInformationExtension(
     val gradleBuildBranch: Provider<String>,
     val gradleBuildCommitId: Provider<String>
 )
-

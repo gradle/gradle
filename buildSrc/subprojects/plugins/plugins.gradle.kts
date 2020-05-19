@@ -47,3 +47,7 @@ gradlePlugin {
         }
     }
 }
+
+tasks.withType<Test> {
+    environment("BUILD_BRANCH", "myBranch")
+}
