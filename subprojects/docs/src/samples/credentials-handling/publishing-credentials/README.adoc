@@ -1,22 +1,23 @@
 NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
-This sample shows how credentials can be passed to a maven publish task using link:{userManualPath}/build_environment.html#sec:project_properties[project properties].
-This approach allows to externalize the sensitive configuration from the project source code and inject it only when needed.
+This sample shows how credentials can be used when publishing artifacts to a Maven repository using link:{userManualPath}/build_environment.html#sec:project_properties[project properties].
+This approach allows you to keep sensitive configuration out of your project's source code and inject it only when needed.
 
-The code in `maven-repository-stub` directory builds a plugin used to stub the Maven repository in order to demonstrate the authentication flow.
-To demonstrate the concept, we will be using the following hardcoded credentials on the server stub:
+The code in the `maven-repository-stub` directory builds a plugin used to stub the Maven repository in order to demonstrate the authentication flow. It expects the following hardcoded credentials on the server stub:
 ====
 include::sample[dir="groovy",files="maven-repository-stub/src/main/java/com/example/MavenRepositoryStub.java[tags=credentials]"]
 ====
 
-This project has some sample Java code to be compiled and published as a Java library.
-Gradle build file registers a publication to a maven repository:
+In a real project, your build would point to a private repository for your organization.
+
+The published project has some sample Java code to be compiled and distributed as a Java library.
+Gradle build file registers a publication to a Maven repository:
 ====
 include::sample[dir="groovy",files="build.gradle[tags=publication]"]
 include::sample[dir="kotlin",files="build.gradle.kts[tags=publication]"]
 ====
 
-Authentication credentials are configured and validated only if the publication task is going to be invoked in the current build:
+Authentication credentials are only configured and validated if the publication task is going to be invoked in the current build:
 ====
 include::sample[dir="groovy",files="build.gradle[tags=credentials]"]
 include::sample[dir="kotlin",files="build.gradle.kts[tags=credentials]"]
@@ -49,7 +50,6 @@ and running
 $ ./gradlew publish
 ----
 =====
-This way the sensitive data can be kept outside of the project sources - `gradle.properties` can reside in the user's `~/.gradle` directory.
-The values are also not echoed anywhere this way.
-For more information about using Gradle properties, see link:{userManualPath}/build_environment.html#sec:gradle_configuration_properties[Gradle Properties user manual chapter].
+The sensitive data is kept outside of the project sources since the `gradle.properties` file can reside in the user's `~/.gradle` directory.
 
+For more information about using Gradle properties, see link:{userManualPath}/build_environment.html#sec:gradle_configuration_properties[Gradle Properties user manual chapter].

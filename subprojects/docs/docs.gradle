@@ -487,16 +487,16 @@ samples {
 
         taskWithArguments {
             sampleDirectory = samplesRoot.dir("build-organization/task-with-arguments")
-            description = "Pass command-line arguments to a custom task."
+            displayName = "Task with command-line arguments"
+            description = "Pass arguments to a custom task."
             category = "Build organization"
         }
 
         publishingCredentials {
             sampleDirectory = samplesRoot.dir("credentials-handling/publishing-credentials")
-            description = "Provide credentials to a publishing task."
-            category = "Credentials handling"
+            description = "Publish to a password protected repository"
+            category = "Using Credentials"
             common {
-                from(sampleDirectory.dir("common"))
                 from(templates.javaListLibrary)
                 from(templates.javaUtilitiesLibrary)
             }
@@ -506,7 +506,7 @@ samples {
             sampleDirectory = samplesRoot.dir("credentials-handling/pass-credentials-to-external-tool-via-stdin")
             displayName = "Supply credentials to external tool"
             description = "Pass credentials to an external tool via stdin using Gradle properties."
-            category = "Credentials handling"
+            category = "Using Credentials"
         }
     }
 }
