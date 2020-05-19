@@ -3,7 +3,6 @@ dependencies {
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
 
-    implementation("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
     implementation("com.google.code.gson:gson:2.7")
 }
 

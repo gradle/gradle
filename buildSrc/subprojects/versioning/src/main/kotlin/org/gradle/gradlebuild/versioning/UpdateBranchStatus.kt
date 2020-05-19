@@ -17,7 +17,6 @@
 package org.gradle.gradlebuild.versioning
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.*
 import gitInfo
@@ -30,7 +29,7 @@ import gitInfo
 open class UpdateBranchStatus : DefaultTask() {
     @TaskAction
     fun publishBranchStatus() {
-        when (project.gitInfo.gradleBuildBranch) {
+        when (project.gitInfo.gradleBuildBranch.get()) {
             "master" -> publishBranchStatus("master")
             "release" -> publishBranchStatus("release")
         }

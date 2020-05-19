@@ -17,9 +17,9 @@
 import org.gradle.api.Project
 import org.gradle.build.ReleasedVersionsFromVersionControl
 import org.gradle.kotlin.dsl.*
-import org.gradle.gradlebuild.BuildEnvironment
 import java.io.File
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+import org.gradle.api.provider.Provider
+
 
 val Project.gitInfo
     get() = rootProject.extensions.getByName<GitInformationExtension>("gitInfo")
@@ -29,13 +29,8 @@ val Project.releasedVersions
     get() = ReleasedVersionsFromVersionControl(File(rootDir, "released-versions.json"), File(rootDir, "version.txt"))
 
 
-open class GitInformationExtension(val project: Project) {
-    val gradleBuildBranch: String
-    val gradleBuildCommitId: String
+open class GitInformationExtension(
+    val gradleBuildBranch: Provider<String>,
+    val gradleBuildCommitId: Provider<String>
+)
 
-    init {
-        val repository by lazy { FileRepositoryBuilder().setGitDir(project.rootProject.projectDir.resolve(".git")).build() }
-        gradleBuildBranch = System.getenv(BuildEnvironment.BUILD_BRANCH) ?: repository.branch
-        gradleBuildCommitId = System.getenv(BuildEnvironment.BUILD_COMMIT_ID) ?: repository.resolve(repository.fullBranch).name
-    }
-}

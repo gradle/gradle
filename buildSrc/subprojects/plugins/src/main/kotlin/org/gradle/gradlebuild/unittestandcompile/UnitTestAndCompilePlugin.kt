@@ -291,8 +291,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
      */
     private
     fun Test.configureGitInfo() {
-        systemProperty("gradleBuildBranch", project.gitInfo.gradleBuildBranch)
-        systemProperty("gradleBuildCommitId", project.gitInfo.gradleBuildCommitId)
+        systemProperty("gradleBuildBranch", project.gitInfo.gradleBuildBranch.get())
+        systemProperty("gradleBuildCommitId", project.gitInfo.gradleBuildCommitId.get())
     }
 
     private
