@@ -246,7 +246,7 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
     private HashCode hashProperties(byte[] entryBytes) throws IOException {
         Hasher hasher = Hashing.newHasher();
         Properties properties = new Properties();
-        properties.load(new InputStreamReader(new ByteArrayInputStream(entryBytes), new PropertyResourceBundleCharsetBackport(false)));
+        properties.load(new InputStreamReader(new ByteArrayInputStream(entryBytes), new Java8PropertyResourceBundleFallbackCharset()));
         Map<String, String> entries = Maps.fromProperties(properties);
         entries
             .entrySet()
