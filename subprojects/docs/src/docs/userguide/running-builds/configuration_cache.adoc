@@ -8,6 +8,12 @@
 - Diagnosing problems?
 
 
+[NOTE]
+====
+The configuration cache is an incubating feature: details are subject to change.
+====
+
+
 == Usage
 
 [[enable]]
