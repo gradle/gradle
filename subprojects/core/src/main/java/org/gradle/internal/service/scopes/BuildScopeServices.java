@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -212,7 +211,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         });
     }
 
-    protected BuildLayout createBuildLayout(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
+    protected BuildLayout createBuildLayout(BuildLayoutFactory buildLayoutFactory, StartParameterInternal startParameter) {
         return buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
     }
 
@@ -246,7 +245,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected DefaultProjectRegistry<ProjectInternal> createProjectRegistry() {
-        return new DefaultProjectRegistry<ProjectInternal>();
+        return new DefaultProjectRegistry<>();
     }
 
     protected IProjectFactory createProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry, BuildState owner, ProjectStateRegistry projectStateRegistry) {
@@ -285,7 +284,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected IGradlePropertiesLoader createGradlePropertiesLoader() {
-        return new DefaultGradlePropertiesLoader((StartParameterInternal) get(StartParameter.class));
+        return new DefaultGradlePropertiesLoader(get(StartParameterInternal.class));
     }
 
     protected ValueSourceProviderFactory createValueSourceProviderFactory(

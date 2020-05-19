@@ -50,7 +50,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
 
     @Override
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
-        StartParameter startParameter = gradle.getStartParameter();
+        StartParameterInternal startParameter = gradle.getStartParameter();
 
         SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
         loadGradlePropertiesFrom(settingsLocation);
@@ -88,9 +88,9 @@ public class DefaultSettingsLoader implements SettingsLoader {
         return false;
     }
 
-    private SettingsInternal createEmptySettings(GradleInternal gradle, StartParameter startParameter, ClassLoaderScope classLoaderScope) {
-        StartParameter noSearchParameter = startParameter.newInstance();
-        ((StartParameterInternal) noSearchParameter).useEmptySettingsWithoutDeprecationWarning();
+    private SettingsInternal createEmptySettings(GradleInternal gradle, StartParameterInternal startParameter, ClassLoaderScope classLoaderScope) {
+        StartParameterInternal noSearchParameter = startParameter.newInstance();
+        noSearchParameter.useEmptySettingsWithoutDeprecationWarning();
         BuildLayout layout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(noSearchParameter));
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, layout, classLoaderScope);
 

@@ -127,7 +127,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         OutputFilesRepository outputFilesRepository,
         PropertyWalker propertyWalker,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
-        StartParameter startParameter,
+        StartParameterInternal startParameter,
         TaskActionListener actionListener,
         TaskCacheabilityResolver taskCacheabilityResolver,
         TaskExecutionGraphInternal taskExecutionGraph,
@@ -137,15 +137,14 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         TaskSnapshotter taskSnapshotter,
         WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor
     ) {
-        StartParameterInternal startParameterInternal = (StartParameterInternal) startParameter;
-        ExecuteActionsTaskExecuter.VfsInvalidationStrategy vfsInvalidationStrategy = VirtualFileSystemServices.isPartialInvalidationEnabled(startParameterInternal)
+        ExecuteActionsTaskExecuter.VfsInvalidationStrategy vfsInvalidationStrategy = VirtualFileSystemServices.isPartialInvalidationEnabled(startParameter)
             ? ExecuteActionsTaskExecuter.VfsInvalidationStrategy.PARTIAL
             : ExecuteActionsTaskExecuter.VfsInvalidationStrategy.COMPLETE;
 
         // TODO: The incubation message should be printed in VirtualFileSystemServices.
         //   The problem is that `RootBuildLifecycleListener.afterStart` is called to early to have the system properties from gradle.properties available
         //   We log the message now here as a workaround.
-        if (vfsInvalidationStrategy == ExecuteActionsTaskExecuter.VfsInvalidationStrategy.PARTIAL && !startParameterInternal.isWatchFileSystem()) {
+        if (vfsInvalidationStrategy == ExecuteActionsTaskExecuter.VfsInvalidationStrategy.PARTIAL && !startParameter.isWatchFileSystem()) {
             IncubationLogger.incubatingFeatureUsed("Partial virtual file system invalidation");
         }
         TaskExecuter executer = new ExecuteActionsTaskExecuter(

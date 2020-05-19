@@ -32,11 +32,11 @@ public class BuildLayoutConfiguration {
     private final File settingsFile;
     private final boolean useEmptySettings;
 
-    public BuildLayoutConfiguration(StartParameter startParameter) {
+    public BuildLayoutConfiguration(StartParameterInternal startParameter) {
         currentDir = startParameter.getCurrentDir();
-        searchUpwards = ((StartParameterInternal)startParameter).isSearchUpwardsWithoutDeprecationWarning() && !isInitTaskRequested(startParameter);
+        searchUpwards = startParameter.isSearchUpwardsWithoutDeprecationWarning() && !isInitTaskRequested(startParameter);
         settingsFile = startParameter.getSettingsFile();
-        useEmptySettings = ((StartParameterInternal)startParameter).isUseEmptySettingsWithoutDeprecationWarning();
+        useEmptySettings = startParameter.isUseEmptySettingsWithoutDeprecationWarning();
     }
 
     private boolean isInitTaskRequested(StartParameter startParameter) {

@@ -253,12 +253,11 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             FileHasher hasher,
             FileSystem fileSystem,
             ListenerManager listenerManager,
-            StartParameter startParameter,
+            StartParameterInternal startParameter,
             Stat stat,
             StringInterner stringInterner,
             VirtualFileSystem gradleUserHomeVirtualFileSystem
         ) {
-            StartParameterInternal startParameterInternal = (StartParameterInternal) startParameter;
             VirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(
                 hasher,
                 stringInterner,
@@ -271,7 +270,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 additiveCacheLocations,
                 gradleUserHomeVirtualFileSystem,
                 buildSessionsScopedVirtualFileSystem,
-                startParameterInternal::isWatchFileSystem
+                startParameter::isWatchFileSystem
             );
 
             listenerManager.addListener(new RootBuildLifecycleListener() {

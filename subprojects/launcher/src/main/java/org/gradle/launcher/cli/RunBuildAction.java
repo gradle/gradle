@@ -39,8 +39,15 @@ public class RunBuildAction implements Runnable {
     private final ServiceRegistry sharedServices;
     private final Stoppable stoppable;
 
-    public RunBuildAction(BuildActionExecuter<BuildActionParameters> executer, StartParameterInternal startParameter, BuildClientMetaData clientMetaData, long startTime,
-                          BuildActionParameters buildActionParameters, ServiceRegistry sharedServices, Stoppable stoppable) {
+    public RunBuildAction(
+        BuildActionExecuter<BuildActionParameters> executer,
+        StartParameterInternal startParameter,
+        BuildClientMetaData clientMetaData,
+        long startTime,
+        BuildActionParameters buildActionParameters,
+        ServiceRegistry sharedServices,
+        Stoppable stoppable
+    ) {
         this.executer = executer;
         this.startParameter = startParameter;
         this.clientMetaData = clientMetaData;
