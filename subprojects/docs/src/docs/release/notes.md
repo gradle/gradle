@@ -3,15 +3,6 @@ The Gradle team is excited to announce Gradle @version@.
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
-[Daniil Popov](https://github.com/int02h),
-[Scott Robinson](https://github.com/quad),
-[Cristian Garcia](https://github.com/CristianGM),
-[fransflippo](https://github.com/fransflippo),
-[Victor Turansky](https://github.com/turansky),
-[Gregor Dschung](https://github.com/chkpnt),
-[Roberto Perez Alcolea](https://github.com/rpalcolea),
-[kerr](https://github.com/hepin1989),
-and [Erhard Pointl](https://github.com/epeee).
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -24,8 +15,6 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 `./gradlew wrapper --gradle-version=@version@`
 
 See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
-
-NOTE: Gradle 6.4 has had _one_ patch release, which fixed several issues from the original release. We recommend always using the latest patch release.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
@@ -43,51 +32,6 @@ details of 2
 
 ## n
 -->
-
-<a name="incremental-improvements"></a>
-## Incremental development improvements
-
-A large part of the day in the life of a software developer is typically spent making small changes to the code, then rebuilding it, checking the results, and then going back to make other small changes.
-We call this the _incremental development use case,_ and ensuring fast feedback for it is a critically important for great developer experience and productivity. 
-
-Starting with the current release we will embark on a mission focused on heavily decreasing the overhead Gradle puts on this use case.
-Each forthcoming release in the coming months will include new improvements that we hope will each significantly improve the developer experience.
-Taken together we are hoping to see a quantum leap in how developers work with Gradle, especially from inside an IDE.
-
-### File watching
-
-In Gradle 6.5 we introduce _file-system watching._
-This experimental feature allows Gradle to keep what it learned about the file-system in memory between builds.
-Doing so significantly reduces the amount of disk I/O needed to figure out what has changed since the previous build.
-
-You can enable this feature by supplying the experimental `--watch-fs` parameter on the command-line.
-
-Here's how enabling this feature reduces the time it takes to make small changes to the [Santa Tracker Android application](https://github.com/gradle/santa-tracker-performance):
-
-TBD image for the comparison
-
-Read more about this new feature and its impact [on the Gradle blog](https://blog.gradle.org)!
-
-<a name="lazy-dependencies"><a>
-## Derive dependencies from user configuration
-
-Gradle 6.5 now supports using a [`org.gradle.api.provider.Provider`](javadoc/org/gradle/api/provider/Provider.html) when adding dependencies. 
-
-For example:
-```groovy
-dependencies {
-    // Version of Guava defaults to 28.0-jre but can be changed via Gradle property (-PguavaVersion=...)
-    def guavaVersion = providers.gradleProperty("guavaVersion").orElse("28.0-jre")
-
-    api(guavaVersion.map { "com.google.guava:guava:" + it })
-}
-```
-
-This is useful for plugin authors that need to supply different dependencies based upon other configuration that may be set by the user.
-
-## Improvements for tooling providers
-
-Tooling API clients can now use a new method from [`GradleConnector`](javadoc/org/gradle/tooling/GradleConnector.html) to asynchronously cancel all Tooling API connections without waiting for the current build to finish. 
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
