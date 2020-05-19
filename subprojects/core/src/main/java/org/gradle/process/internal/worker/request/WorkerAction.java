@@ -19,6 +19,7 @@ package org.gradle.process.internal.worker.request;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.dispatch.StreamCompletion;
@@ -68,7 +69,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
             serviceRegistry.add(RequestArgumentSerializers.class, argumentSerializers);
             serviceRegistry.add(InstantiatorFactory.class, instantiatorFactory);
             Class<?> workerImplementation = Class.forName(workerImplementationName);
-            implementation = (RequestHandler) instantiatorFactory.inject(serviceRegistry).newInstance(workerImplementation);
+            implementation = Cast.uncheckedNonnullCast(instantiatorFactory.inject(serviceRegistry).newInstance(workerImplementation));
         } catch (Exception e) {
             failure = e;
         }

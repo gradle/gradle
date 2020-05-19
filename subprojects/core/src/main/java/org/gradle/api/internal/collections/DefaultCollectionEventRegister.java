@@ -177,7 +177,7 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
 
         @Override
         public <N extends S> CollectionEventRegister<N> filtered(CollectionFilter<N> filter) {
-            return new FilteredEventRegister<N>(filter, (CollectionEventRegister<T>) this);
+            return new FilteredEventRegister<N>(filter, Cast.uncheckedNonnullCast(this));
         }
     }
 

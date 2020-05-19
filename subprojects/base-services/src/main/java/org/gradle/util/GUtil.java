@@ -156,6 +156,21 @@ public class GUtil {
         return isTrue(object) ? object : defaultValue;
     }
 
+    public static <V, T extends Collection<? super V>> T addToCollection(T dest, boolean failOnNull, Iterable<? extends V> src) {
+        for (V v : src) {
+            if (failOnNull && v == null) {
+                throw new IllegalArgumentException("Illegal null value provided in this collection: " + src);
+            }
+            dest.add(v);
+        }
+        return dest;
+    }
+
+    public static <V, T extends Collection<? super V>> T addToCollection(T dest, Iterable<? extends V> src) {
+        return addToCollection(dest, false, src);
+    }
+
+    @Deprecated
     public static <V, T extends Collection<? super V>> T addToCollection(T dest, boolean failOnNull, Iterable<? extends V>... srcs) {
         for (Iterable<? extends V> src : srcs) {
             for (V v : src) {
@@ -168,6 +183,7 @@ public class GUtil {
         return dest;
     }
 
+    @Deprecated
     public static <V, T extends Collection<? super V>> T addToCollection(T dest, Iterable<? extends V>... srcs) {
         return addToCollection(dest, false, srcs);
     }

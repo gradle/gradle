@@ -184,8 +184,7 @@ public class DefaultTypeConverter implements TypeConverter {
         }
 
         if (type.isEnum()) {
-            Class<? extends Enum> enumType = Cast.uncheckedCast(type);
-            return convertEnum(enumType, notation);
+            return convertEnum(Cast.uncheckedCast(type), notation);
         }
 
         NotationParser<Object, ?> parser;

@@ -45,6 +45,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     private final CollectionCallbackActionDecorator callbackActionDecorator;
 
     @SafeVarargs
+    @SuppressWarnings("varargs")
     public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollection<? extends T>... collections) {
         return create(type, CollectionCallbackActionDecorator.NOOP, collections);
     }

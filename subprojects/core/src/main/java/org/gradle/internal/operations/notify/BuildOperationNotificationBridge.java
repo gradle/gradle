@@ -91,6 +91,7 @@ public class BuildOperationNotificationBridge {
     // This avoids buffering until the end of the build when no listener comes.
     private final BuildListener buildListener = new InternalBuildAdapter() {
         @Override
+        @SuppressWarnings("deprecation")
         public void buildStarted(Gradle gradle) {
             if (gradle.getParent() == null) {
                 gradle.projectsLoaded((InternalAction<Gradle>) project -> {
