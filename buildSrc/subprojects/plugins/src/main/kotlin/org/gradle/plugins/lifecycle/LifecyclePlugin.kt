@@ -172,7 +172,6 @@ class LifecyclePlugin : Plugin<Project> {
             group = "build"
             dependsOn(":distributions:verifyIsProductionBuildEnvironment", ":distributions:buildDists",
                 ":distributions:integTest", ":docs:releaseNotes", ":docs:incubationReport", "docs:checkDeadInternalLinks")
-
         }
     }
 
