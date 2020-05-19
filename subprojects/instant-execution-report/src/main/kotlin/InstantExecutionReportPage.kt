@@ -131,7 +131,7 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
             ),
             div(
                 attributes { className("left") },
-                h1("${model.totalProblems} instant execution problems were found"),
+                h1("${model.totalProblems} configuration cache problems were found"),
                 learnMore(),
                 viewTree(model.messageTree, Intent::MessageTreeIntent, model.displayFilter),
                 viewTree(model.taskTree, Intent::TaskTreeIntent, model.displayFilter)
@@ -153,10 +153,10 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
 
     private
     fun learnMore(): View<Intent> = div(
-        span("Learn more about "),
+        span("Learn more about the "),
         a(
             attributes { href("https://gradle.github.io/instant-execution/") },
-            "Gradle Instant Execution"
+            "Gradle Configuration Cache"
         ),
         span(".")
     )
