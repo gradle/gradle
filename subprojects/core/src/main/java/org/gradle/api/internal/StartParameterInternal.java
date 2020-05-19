@@ -26,6 +26,8 @@ import java.util.Set;
 public class StartParameterInternal extends StartParameter implements Deprecatable {
     private final Deprecatable deprecationHandler = new LoggingDeprecatable();
 
+    private boolean watchFileSystem;
+
     @Override
     public StartParameter newInstance() {
         return prepareNewInstance(new StartParameterInternal());
@@ -34,6 +36,13 @@ public class StartParameterInternal extends StartParameter implements Deprecatab
     @Override
     public StartParameter newBuild() {
         return prepareNewBuild(new StartParameterInternal());
+    }
+
+    @Override
+    protected StartParameter prepareNewBuild(StartParameter startParameter) {
+        StartParameterInternal p = (StartParameterInternal) super.prepareNewBuild(startParameter);
+        p.watchFileSystem = watchFileSystem;
+        return p;
     }
 
     @Override
@@ -73,5 +82,13 @@ public class StartParameterInternal extends StartParameter implements Deprecatab
 
     public void setSearchUpwardsWithoutDeprecationWarning(boolean searchUpwards) {
         super.searchUpwards = searchUpwards;
+    }
+
+    public boolean isWatchFileSystem() {
+        return watchFileSystem;
+    }
+
+    public void setWatchFileSystem(boolean watchFileSystem) {
+        this.watchFileSystem = watchFileSystem;
     }
 }

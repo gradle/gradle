@@ -20,6 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.Reporting
@@ -269,7 +270,7 @@ open class BuildScanPlugin : Plugin<Project> {
 
     private
     fun Project.extractVfsRetentionData() {
-        val watchFileSystem = project.gradle.startParameter.isWatchFileSystem
+        val watchFileSystem = (project.gradle.startParameter as StartParameterInternal).isWatchFileSystem
         buildScan.value(watchFileSystemName, watchFileSystem.toString())
     }
 

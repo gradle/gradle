@@ -16,8 +16,8 @@
 
 package org.gradle.internal.service.scopes
 
-import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.event.ListenerManager
@@ -36,7 +36,7 @@ class VirtualFileSystemServicesTest extends Specification {
     def fileHasher = Mock(FileHasher)
     def fileSystem = Mock(FileSystem)
     def listenerManager = Mock(ListenerManager)
-    def startParameter = Mock(StartParameter)
+    def startParameter = Mock(StartParameterInternal)
     def stringInterner = Mock(StringInterner)
     def gradle = Mock(GradleInternal)
 
