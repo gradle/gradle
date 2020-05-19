@@ -85,6 +85,28 @@ dependencies {
 
 This is useful for plugin authors that need to supply different dependencies based upon other configuration that may be set by the user.
 
+## Preview of changes in dependency version ordering
+
+There are multiple version ordering schemes used in the Java ecosystem.
+A number relies on `SNAPSHOT` versions, a concept from Maven.
+These versions are special cased in the way they are sorted by Maven, amongst a number of other special suffixes.
+With this version, Gradle provides an opt-in feature preview that does the following changes to version sorting:
+
+* Consider `SNAPSHOT` to be a special suffix and sort it after `RC` but before `FINAL` and `RELEASE`
+* Consider `GA` to be a special suffix and sort it alphabetically with `FINAL` and `RELEASE`
+* Consider `SP` to be a special suffix and sort it higher than `RELEASE`
+
+In addition, this feature preview will also cause version ranges to behave different when the upper bound is an exclusion.
+In a range like `[1.2, 2.0[`, versions like `2.0-SNAPSHOT` or `2.0-alpha1` are now excluded.
+
+Activating the feature preview `VERSION_SORTING_V2` in `settings.gradle(.kts)` enables these changes:
+```
+enableFeaturePreview("VERSION_SORTING_V2")
+```
+
+Have a look at the [full documentation on version sorting](userguide/single_versions.html) to understand all the implications.
+These changes will become the default in Gradle 7.0.  
+
 ## Improvements for tooling providers
 
 Tooling API clients can now use a new method from [`GradleConnector`](javadoc/org/gradle/tooling/GradleConnector.html) to asynchronously cancel all Tooling API connections without waiting for the current build to finish. 
