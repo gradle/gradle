@@ -18,7 +18,6 @@ package org.gradle.internal.watch.registry.impl;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Multisets;
 import net.rubygrapefruit.platform.file.FileWatcher;
@@ -42,8 +41,9 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private final Map<String, ImmutableList<Path>> watchedRootsForSnapshot = new HashMap<>();
     private final Multiset<Path> shouldWatchDirectories = HashMultiset.create();
     private final Set<Path> watchedRoots = new HashSet<>();
-    private final Set<Path> mustWatchDirectories = new HashSet<>();
     private final FileWatcher watcher;
+    private Path projectRootDirectory;
+    private String projectRootDirectoryPrefix;
 
     public HierarchicalFileWatcherUpdater(FileWatcher watcher) {
         this.watcher = watcher;
@@ -64,29 +64,19 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void updateMustWatchDirectories(Collection<File> updatedWatchDirectories) {
-        Set<Path> rootPaths = updatedWatchDirectories.stream()
-            .filter(File::isDirectory)
-            .map(File::toPath)
-            .map(Path::toAbsolutePath)
-            .collect(Collectors.toSet());
-        Multisets.removeOccurrences(shouldWatchDirectories, mustWatchDirectories);
-        mustWatchDirectories.clear();
-        mustWatchDirectories.addAll(WatchRootUtil.resolveRootsToWatch(rootPaths));
-        shouldWatchDirectories.addAll(mustWatchDirectories);
+    public void updateProjectRootDirectory(File projectRoot) {
+        projectRootDirectory = projectRoot.toPath().toAbsolutePath();
+        projectRootDirectoryPrefix = projectRootDirectory.toString() + File.separator;
+
         updateWatchedDirectories();
     }
 
     private void updateWatchedDirectories() {
-        Set<String> mustWatchDirectoryPrefixes = ImmutableSet.copyOf(
-            mustWatchDirectories.stream()
-                .map(path -> path.toString() + File.separator)
-                ::iterator
-        );
         Set<Path> directoriesToWatch = shouldWatchDirectories.elementSet().stream()
-            .filter(path -> !startsWithAnyPrefix(path.toString(), mustWatchDirectoryPrefixes))
+            .map(shouldWatchDirectory -> projectRootDirectoryPrefix != null && shouldWatchDirectory.toString().startsWith(projectRootDirectoryPrefix)
+                ? projectRootDirectory
+                : shouldWatchDirectory)
             .collect(Collectors.toSet());
-        directoriesToWatch.addAll(mustWatchDirectories);
 
         updateWatchedDirectories(WatchRootUtil.resolveRootsToWatch(directoriesToWatch));
     }
@@ -116,14 +106,5 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             );
             watchedRoots.addAll(newWatchRoots);
         }
-    }
-
-    private static boolean startsWithAnyPrefix(String path, Set<String> prefixes) {
-        for (String prefix : prefixes) {
-            if (path.startsWith(prefix)) {
-                return true;
-            }
-        }
-        return false;
     }
 }

@@ -33,7 +33,7 @@ public class VirtualPlatformState {
     private final ModuleResolveState platformModule;
     private final ResolveOptimizations resolveOptimizations;
 
-    private final Set<ModuleResolveState> participatingModules = Sets.newHashSet();
+    private final Set<ModuleResolveState> participatingModules = Sets.newLinkedHashSet();
     private final List<EdgeState> orphanEdges = Lists.newArrayListWithExpectedSize(2);
 
     private boolean hasForcedParticipatingModule;

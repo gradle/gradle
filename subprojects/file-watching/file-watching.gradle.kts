@@ -34,6 +34,7 @@ dependencies {
     testImplementation(project(":buildOption"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":fileCollections")))
+    testImplementation(library("commons_io"))
 
     integTestRuntimeOnly(project(":runtimeApiInfo"))
     integTestRuntimeOnly(project(":workers"))

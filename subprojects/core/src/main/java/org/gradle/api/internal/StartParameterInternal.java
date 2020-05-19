@@ -28,6 +28,8 @@ public class StartParameterInternal extends StartParameter implements Deprecatab
 
     private final Deprecatable deprecationHandler = new LoggingDeprecatable();
 
+    private boolean watchFileSystem;
+
     private ConfigurationCacheOption.Value configurationCache = ConfigurationCacheOption.Value.OFF;
     private int configurationCacheMaxProblems = 512;
     private boolean configurationCacheRecreateCache;
@@ -46,11 +48,12 @@ public class StartParameterInternal extends StartParameter implements Deprecatab
     @Override
     protected StartParameter prepareNewBuild(StartParameter startParameter) {
         StartParameterInternal p = (StartParameterInternal) super.prepareNewBuild(startParameter);
+        p.watchFileSystem = watchFileSystem;
         p.configurationCache = configurationCache;
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
         p.configurationCacheQuiet = configurationCacheQuiet;
-        return startParameter;
+        return p;
     }
 
     @Override
@@ -90,6 +93,14 @@ public class StartParameterInternal extends StartParameter implements Deprecatab
 
     public void setSearchUpwardsWithoutDeprecationWarning(boolean searchUpwards) {
         super.searchUpwards = searchUpwards;
+    }
+
+    public boolean isWatchFileSystem() {
+        return watchFileSystem;
+    }
+
+    public void setWatchFileSystem(boolean watchFileSystem) {
+        this.watchFileSystem = watchFileSystem;
     }
 
     public ConfigurationCacheOption.Value getConfigurationCache() {

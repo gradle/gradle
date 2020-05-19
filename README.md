@@ -31,7 +31,7 @@ Enjoy first-class Gradle support in your IDE of choice.
 * Ask on the [forum](https://discuss.gradle.org/) or [StackOverflow](https://stackoverflow.com/questions/tagged/gradle)
 * Have a look at the [Samples](https://docs.gradle.org/current/samples/index.html)
 * Checkout the [Community Resources](https://gradle.org/resources/) as well
-* Join our [Slack Channel](https://gradl.es/slack-invite-2019)
+* Join our [Slack Channel](https://gradle.com/slack-invite)
 
 
 ## Contributing

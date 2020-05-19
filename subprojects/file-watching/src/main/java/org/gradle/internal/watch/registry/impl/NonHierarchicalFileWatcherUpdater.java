@@ -44,7 +44,6 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(NonHierarchicalFileWatcherUpdater.class);
 
     private final Multiset<String> watchedRoots = HashMultiset.create();
-    private final Set<String> mustWatchDirectories = new HashSet<>();
     private final Map<String, ImmutableList<String>> watchedRootsForSnapshot = new HashMap<>();
     private final FileWatcher fileWatcher;
 
@@ -72,17 +71,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void updateMustWatchDirectories(Collection<File> updatedWatchDirectories) {
-        Map<String, Integer> changedDirectories = new HashMap<>();
-        mustWatchDirectories.forEach(path -> decrement(path, changedDirectories));
-        mustWatchDirectories.clear();
-        updatedWatchDirectories.stream()
-            .filter(File::isDirectory)
-            .map(File::getAbsolutePath)
-            .forEach(mustWatchDirectories::add);
-        mustWatchDirectories.forEach(path -> increment(path, changedDirectories));
-        updateWatchedDirectories(changedDirectories);
-
+    public void updateProjectRootDirectory(File projectRoot) {
     }
 
     private void updateWatchedDirectories(Map<String, Integer> changedWatchDirectories) {
