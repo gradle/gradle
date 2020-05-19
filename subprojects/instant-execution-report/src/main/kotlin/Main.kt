@@ -39,7 +39,10 @@ external val configurationCacheProblems: () -> JsModel
 
 
 private
-typealias JsModel = Array<JsProblem>
+external interface JsModel {
+    val documentationLink: String
+    val problems: Array<JsProblem>
+}
 
 
 private
@@ -100,8 +103,8 @@ data class ImportedProblem(
 
 
 private
-fun reportPageModelFromJsModel(jsProblems: JsModel): InstantExecutionReportPage.Model {
-    val problems = jsProblems.map { jsProblem ->
+fun reportPageModelFromJsModel(jsModel: JsModel): InstantExecutionReportPage.Model {
+    val problems = jsModel.problems.map { jsProblem ->
         ImportedProblem(
             jsProblem,
             jsProblem.message.let(::toPrettyText),
@@ -109,7 +112,8 @@ fun reportPageModelFromJsModel(jsProblems: JsModel): InstantExecutionReportPage.
         )
     }
     return InstantExecutionReportPage.Model(
-        totalProblems = jsProblems.size,
+        documentationLink = jsModel.documentationLink,
+        totalProblems = jsModel.problems.size,
         messageTree = treeModelFor(
             ProblemNode.Label("Problems grouped by message"),
             problemNodesByMessage(problems)

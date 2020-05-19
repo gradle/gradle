@@ -332,14 +332,14 @@ final class InstantExecutionProblemsFixture {
     private static int numberOfProblemsIn(File jsFile) {
         newJavaScriptEngine().with {
             eval(jsFile.text)
-            eval("configurationCacheProblems().length") as int
+            eval("configurationCacheProblems().problems.length") as int
         }
     }
 
     protected static int numberOfProblemsWithStacktraceIn(File jsFile) {
         newJavaScriptEngine().with {
             eval(jsFile.text)
-            eval("configurationCacheProblems().filter(function(problem) { return problem['error'] != null; }).length") as int
+            eval("configurationCacheProblems().problems.filter(function(problem) { return problem['error'] != null; }).length") as int
         }
     }
 

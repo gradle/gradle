@@ -103,7 +103,9 @@ class InstantExecutionReport(
         val documentationRegistry = DocumentationRegistry()
         outputDirectory.resolve("configuration-cache-report-data.js").bufferedWriter().use { writer ->
             writer.run {
-                appendln("function configurationCacheProblems() { return [")
+                appendln("function configurationCacheProblems() { return {")
+                appendln("documentationLink: \"${documentationRegistry.getDocumentationFor("configuration_cache")}\",")
+                appendln("problems: [")
                 problems.forEach {
                     append(
                         JsonOutput.toJson(
@@ -117,7 +119,8 @@ class InstantExecutionReport(
                     )
                     appendln(",")
                 }
-                appendln("];}")
+                appendln("]")
+                appendln("};}")
             }
         }
     }
