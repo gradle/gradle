@@ -655,7 +655,7 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         """
 
         expect:
-        succeeds("tasks")
+        succeeds("help")
     }
 
     static String checkConfIsUnresolved() {
