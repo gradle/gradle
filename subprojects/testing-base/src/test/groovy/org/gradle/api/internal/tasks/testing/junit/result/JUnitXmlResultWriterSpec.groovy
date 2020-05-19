@@ -57,7 +57,7 @@ class JUnitXmlResultWriterSpec extends Specification {
         def xml = getXml(result)
 
         then:
-        new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", TestResultOutputAssociation.WITH_SUITE)
+        new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", "com.foo.FooTest", false, TestResultOutputAssociation.WITH_SUITE)
                 .assertTestCount(4, 1, 1, 0)
                 .assertTestFailed("some failing test", equalTo('failure message'))
                 .assertTestsSkipped("some skipped test")
@@ -183,7 +183,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
     @Issue("gradle/gradle#11445")
     def "writes xml JUnit result displayName"() {
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest displayName", "com.foo.FooTest displayName", startTime)
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest displayName", startTime, true)
         result.add(new TestMethodResult(1, "some test", "some test displayName", SUCCESS, 15, startTime + 25))
         result.add(new TestMethodResult(2, "some test two", "some test two displayName", SUCCESS, 15, startTime + 30))
         result.add(new TestMethodResult(3, "some failing test", "some failing test displayName", FAILURE, 10, startTime + 40).addFailure("failure message", "[stack-trace]", "ExceptionType"))
@@ -196,7 +196,7 @@ class JUnitXmlResultWriterSpec extends Specification {
         def xml = getXml(result)
 
         then:
-        new JUnitTestClassExecutionResult(xml, "com.foo.FooTest displayName", TestResultOutputAssociation.WITH_SUITE)
+        new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", "com.foo.FooTest displayName", true, TestResultOutputAssociation.WITH_SUITE)
             .assertTestCount(4, 1, 1, 0)
             .assertTestFailed("some failing test displayName", equalTo('failure message'))
             .assertTestsSkipped("some skipped test displayName")
@@ -210,12 +210,12 @@ class JUnitXmlResultWriterSpec extends Specification {
         xml == """<?xml version="1.0" encoding="UTF-8"?>
 <testsuite name="com.foo.FooTest displayName" tests="4" skipped="1" failures="1" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.045">
   <properties/>
-  <testcase name="some test displayName" classname="com.foo.FooTest displayName" time="0.015"/>
-  <testcase name="some test two displayName" classname="com.foo.FooTest displayName" time="0.015"/>
-  <testcase name="some failing test displayName" classname="com.foo.FooTest displayName" time="0.01">
+  <testcase name="some test displayName" classname="com.foo.FooTest" time="0.015"/>
+  <testcase name="some test two displayName" classname="com.foo.FooTest" time="0.015"/>
+  <testcase name="some failing test displayName" classname="com.foo.FooTest" time="0.01">
     <failure message="failure message" type="ExceptionType">[stack-trace]</failure>
   </testcase>
-  <testcase name="some skipped test displayName" classname="com.foo.FooTest displayName" time="0.01">
+  <testcase name="some skipped test displayName" classname="com.foo.FooTest" time="0.01">
     <skipped/>
   </testcase>
   <system-out><![CDATA[1st output message

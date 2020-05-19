@@ -57,13 +57,13 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
 
     def 'should prompt user to add dependencies when they are not in test runtime classpath'() {
         given:
-        buildFile.text = """ 
+        buildFile.text = """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { 
+            dependencies {
                 testCompileOnly 'org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}'
             }
-            
+
             test { useJUnitPlatform() }
             """
         createSimpleJupiterTest()
@@ -105,9 +105,9 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
     @Unroll
     def 'can handle class-level error in #location method'() {
         given:
-        file('src/test/java/org/gradle/ClassErrorTest.java') << """ 
+        file('src/test/java/org/gradle/ClassErrorTest.java') << """
             package org.gradle;
-            
+
             import org.junit.jupiter.api.*;
             import static org.junit.jupiter.api.Assertions.*;
 
@@ -120,7 +120,7 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
                 public static void before() {
                     $beforeStatement;
                 }
-                
+
                 @AfterAll
                 public static void after() {
                     $afterStatement;
@@ -205,8 +205,8 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('org.gradle.RepeatTest')
-            .testClass('org.gradle.RepeatTest')
+            .assertTestClassesExecutedJudgementByHtml('org.gradle.RepeatTest')
+            .testClassByHtml('org.gradle.RepeatTest')
             .assertTestCount(9, 1, 0)
             .assertTestPassed('ok()[1]', 'ok 1/3')
             .assertTestPassed('ok()[2]', 'ok 2/3')
@@ -301,7 +301,7 @@ public class StaticInnerTest {
         @Test
         public void inside() {
         }
-        
+
         public static class Nested2 {
             @Test
             public void inside() {

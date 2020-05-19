@@ -29,6 +29,7 @@ dependencies {
 
     implementation(library("junit"))
     implementation(library("junit_platform"))
+    implementation(library("junit_api"))
 }
 
 gradlebuildJava {
