@@ -54,7 +54,7 @@ final class InstantExecutionProblemsFixture {
     static final String LENIENT_CLI_OPTION = "--${ConfigurationCacheOption.LONG_OPTION}=warn"
     static final String MAX_PROBLEMS_CLI_OPTION = "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}"
 
-    protected static final String PROBLEMS_REPORT_HTML_FILE_NAME = "instant-execution-report.html"
+    protected static final String PROBLEMS_REPORT_HTML_FILE_NAME = "configuration-cache-report.html"
 
     private final GradleExecuter executer
     private final File rootDir
@@ -294,7 +294,7 @@ final class InstantExecutionProblemsFixture {
             assertThat("HTML report URI not found", reportDir, notNullValue())
             assertTrue("HTML report directory not found '$reportDir'", reportDir.isDirectory())
             def htmlFile = reportDir.file(PROBLEMS_REPORT_HTML_FILE_NAME)
-            def jsFile = reportDir.file('instant-execution-report-data.js')
+            def jsFile = reportDir.file('configuration-cache-report-data.js')
             assertTrue("HTML report HTML file not found in '$reportDir'", htmlFile.isFile())
             assertTrue("HTML report JS model not found in '$reportDir'", jsFile.isFile())
             assertThat(
@@ -316,7 +316,7 @@ final class InstantExecutionProblemsFixture {
 
     @Nullable
     private static TestFile resolveInstantExecutionReportDirectory(File rootDir, String output) {
-        def baseDirUri = clickableUrlFor(new File(rootDir, "build/reports/instant-execution"))
+        def baseDirUri = clickableUrlFor(new File(rootDir, "build/reports/configuration-cache"))
         def pattern = Pattern.compile("See the complete report at (${baseDirUri}.*)$PROBLEMS_REPORT_HTML_FILE_NAME")
         def reportDirUri = output.readLines().findResult { line ->
             def matcher = pattern.matcher(line)
@@ -332,14 +332,14 @@ final class InstantExecutionProblemsFixture {
     private static int numberOfProblemsIn(File jsFile) {
         newJavaScriptEngine().with {
             eval(jsFile.text)
-            eval("instantExecutionProblems().length") as int
+            eval("configurationCacheProblems().length") as int
         }
     }
 
     protected static int numberOfProblemsWithStacktraceIn(File jsFile) {
         newJavaScriptEngine().with {
             eval(jsFile.text)
-            eval("instantExecutionProblems().filter(function(problem) { return problem['error'] != null; }).length") as int
+            eval("configurationCacheProblems().filter(function(problem) { return problem['error'] != null; }).length") as int
         }
     }
 
