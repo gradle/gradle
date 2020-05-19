@@ -233,7 +233,7 @@ Under no circumstance should you add the password to the build script in plain t
 Those files usually live in a version control repository and can be viewed by anyone that has access to it.
 
 Passwords together with any other sensitive data should be kept external from the version controlled project files.
-Gradle allows credentials to be externalized via <<build_environment.html#sec:gradle_configuration_properties,Gradle properties>> - they can be stored in the `gradle.properties` file that
+Gradle allows credentials to be externalized via <<build_environment#sec:gradle_configuration_properties,Gradle properties>> - they can be stored in the `gradle.properties` file that
 resides in the user's home directory or injected to the build using environment variables.
 
 Even better - consider encrypting your passwords. At the moment Gradle does not provide a built-in mechanism for encrypting, storing and accessing passwords.
