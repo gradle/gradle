@@ -66,16 +66,16 @@ One downside of the above approach is that it requires you to modify an existing
 
 .Declaring a separate composite
 ====
-include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="composite/settings.gradle[]"]
-include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="composite/settings.gradle.kts[]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="settings.gradle[]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="settings.gradle.kts[]"]
 ====
 
 In this scenario, the 'main' build that is executed is the composite, and it doesn't define any useful tasks to execute itself. In order to execute the 'run' task in the 'my-app' build, the composite build must define a delegating task.
 
 .Depending on task from included build
 ====
-include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="composite/build.gradle[tags=run]"]
-include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="composite/build.gradle.kts[tags=run]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="build.gradle[tags=run]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="build.gradle.kts[tags=run]"]
 ====
 
 More details about tasks that depend on included build tasks are below.
@@ -146,8 +146,8 @@ To use the unpublished library unmodified in a composite build, the composing bu
 
 .Declaring the substitutions for an included build
 ====
-include::sample[dir="samples/build-organization/composite-builds/declared-substitution/groovy/my-app",files="settings.gradle[]"]
-include::sample[dir="samples/build-organization/composite-builds/declared-substitution/kotlin/my-app",files="settings.gradle.kts[]"]
+include::sample[dir="samples/build-organization/composite-builds/declared-substitution/groovy",files="settings.gradle[]"]
+include::sample[dir="samples/build-organization/composite-builds/declared-substitution/kotlin",files="settings.gradle.kts[]"]
 ====
 
 With this configuration, the "my-app" composite build will substitute any dependency on `org.sample:number-utils` with a dependency on the root project of "anonymous-library".
@@ -187,8 +187,8 @@ Using these APIs, it is possible to declare a dependency on a task in a particul
 
 .Depending on a single task from an included build
 ====
-include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="composite/build.gradle[tags=run]"]
-include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="composite/build.gradle.kts[tags=run]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="build.gradle[tags=run]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="build.gradle.kts[tags=run]"]
 ====
 
 .Depending on a task with path in all included builds
