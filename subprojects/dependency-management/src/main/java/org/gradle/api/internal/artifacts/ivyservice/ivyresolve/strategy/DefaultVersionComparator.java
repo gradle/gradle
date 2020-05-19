@@ -56,7 +56,7 @@ public class DefaultVersionComparator implements VersionComparator {
 
     // To be removed once the feature preview disappears
     private void computeBaseComparator() {
-        if (featurePreviews != null && featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.DEPENDENCY_VERSION_SORTING)) {
+        if (featurePreviews != null && featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.VERSION_SORTING_V2)) {
             baseComparator = new StaticVersionComparator(StaticVersionComparator.UPDATED_SPECIAL_MEANINGS);
         } else {
             baseComparator = new StaticVersionComparator(StaticVersionComparator.SPECIAL_MEANINGS);
