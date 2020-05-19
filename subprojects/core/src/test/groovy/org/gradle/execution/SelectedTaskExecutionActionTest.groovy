@@ -15,8 +15,8 @@
  */
 package org.gradle.execution
 
-import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import spock.lang.Specification
 
@@ -25,7 +25,7 @@ class SelectedTaskExecutionActionTest extends Specification {
     final BuildExecutionContext context = Mock()
     final TaskExecutionGraphInternal taskGraph = Mock()
     final GradleInternal gradleInternal = Mock()
-    final StartParameter startParameter = Mock()
+    final StartParameterInternal startParameter = Mock()
 
     def setup() {
         _ * context.gradle >> gradleInternal

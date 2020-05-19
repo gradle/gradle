@@ -15,8 +15,8 @@
  */
 package org.gradle.execution
 
-import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.SystemProperties
@@ -26,12 +26,12 @@ import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toList
 
-public class DryRunBuildExecutionActionTest extends Specification {
+class DryRunBuildExecutionActionTest extends Specification {
     private static final String EOL = SystemProperties.instance.lineSeparator
     def executionContext = Mock(BuildExecutionContext.class)
     def gradle = Mock(GradleInternal.class)
     def taskGraph = Mock(TaskExecutionGraphInternal.class)
-    def startParameter = Mock(StartParameter.class)
+    def startParameter = Mock(StartParameterInternal.class)
     def textOutputFactory = new TestStyledTextOutputFactory()
     def action = new DryRunBuildExecutionAction(textOutputFactory)
 

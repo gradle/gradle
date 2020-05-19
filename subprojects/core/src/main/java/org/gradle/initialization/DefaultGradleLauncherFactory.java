@@ -18,10 +18,10 @@ package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.BuildResult;
-import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.ProjectsPreparer;
@@ -37,6 +37,7 @@ import org.gradle.internal.build.NestedRootBuild;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
@@ -52,7 +53,6 @@ import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.time.Time;
 import org.gradle.invocation.DefaultGradle;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -115,7 +115,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
         listenerManager.addListener(usageLocationReporter);
 
-        StartParameter startParameter = buildDefinition.getStartParameter();
+        StartParameterInternal startParameter = buildDefinition.getStartParameter();
         ShowStacktrace showStacktrace = startParameter.getShowStacktrace();
         switch (showStacktrace) {
             case ALWAYS:
@@ -174,7 +174,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         @Override
         public GradleLauncher nestedBuildTree(BuildDefinition buildDefinition, NestedRootBuild build) {
-            StartParameter startParameter = buildDefinition.getStartParameter();
+            StartParameterInternal startParameter = buildDefinition.getStartParameter();
             final ServiceRegistry userHomeServices = userHomeDirServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
             BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
             BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY, buildCancellationToken, buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());

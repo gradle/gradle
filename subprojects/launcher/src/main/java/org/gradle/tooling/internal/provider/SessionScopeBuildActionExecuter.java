@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -46,7 +46,7 @@ public class SessionScopeBuildActionExecuter implements BuildActionExecuter<Buil
 
     @Override
     public BuildActionResult execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
-        StartParameter startParameter = action.getStartParameter();
+        StartParameterInternal startParameter = action.getStartParameter();
         final ServiceRegistry userHomeServices = userHomeServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
         CrossBuildSessionScopeServices crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(contextServices, startParameter);
 

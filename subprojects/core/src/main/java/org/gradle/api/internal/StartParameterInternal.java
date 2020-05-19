@@ -36,17 +36,17 @@ public class StartParameterInternal extends StartParameter implements Deprecatab
     private boolean configurationCacheQuiet;
 
     @Override
-    public StartParameter newInstance() {
-        return prepareNewInstance(new StartParameterInternal());
+    public StartParameterInternal newInstance() {
+        return (StartParameterInternal) prepareNewInstance(new StartParameterInternal());
     }
 
     @Override
-    public StartParameter newBuild() {
+    public StartParameterInternal newBuild() {
         return prepareNewBuild(new StartParameterInternal());
     }
 
     @Override
-    protected StartParameter prepareNewBuild(StartParameter startParameter) {
+    protected StartParameterInternal prepareNewBuild(StartParameter startParameter) {
         StartParameterInternal p = (StartParameterInternal) super.prepareNewBuild(startParameter);
         p.watchFileSystem = watchFileSystem;
         p.configurationCache = configurationCache;

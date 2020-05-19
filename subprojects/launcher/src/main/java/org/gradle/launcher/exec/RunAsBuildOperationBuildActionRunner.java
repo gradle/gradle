@@ -45,7 +45,7 @@ public class RunAsBuildOperationBuildActionRunner implements BuildActionRunner {
         return buildOperationExecutor.call(new CallableBuildOperation<Result>() {
             @Override
             public Result call(BuildOperationContext context) {
-                checkDeprecations((StartParameterInternal)buildController.getGradle().getStartParameter());
+                checkDeprecations(buildController.getGradle().getStartParameter());
                 buildController.getGradle().getServices().get(IncludedBuildControllers.class).rootBuildOperationStarted();
                 buildController.getGradle().getServices().get(LoggingBuildOperationProgressBroadcaster.class).rootBuildOperationStarted();
                 Result result = delegate.run(action, buildController);

@@ -22,7 +22,6 @@ import groovy.lang.Closure;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
-import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
@@ -33,6 +32,7 @@ import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -73,7 +73,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private ProjectInternal rootProject;
     private ProjectInternal defaultProject;
     private final GradleInternal parent;
-    private final StartParameter startParameter;
+    private final StartParameterInternal startParameter;
     private final ServiceRegistry services;
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
@@ -86,7 +86,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private BuildType buildType = BuildType.NONE;
     private ClassLoaderScope baseProjectClassLoaderScope;
 
-    public DefaultGradle(GradleInternal parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
+    public DefaultGradle(GradleInternal parent, StartParameterInternal startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
         this.startParameter = startParameter;
         this.services = parentRegistry.createFor(this);
@@ -169,7 +169,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     @Override
-    public StartParameter getStartParameter() {
+    public StartParameterInternal getStartParameter() {
         return startParameter;
     }
 

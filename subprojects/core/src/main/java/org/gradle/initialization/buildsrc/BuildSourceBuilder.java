@@ -16,7 +16,6 @@
 
 package org.gradle.initialization.buildsrc;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -78,18 +77,18 @@ public class BuildSourceBuilder {
             .lock();
     }
 
-    private ClassPath createBuildSourceClasspath(File buildSrcDir, final StartParameter containingBuildParameters, ClassLoaderScope parentClassLoaderScope) {
+    private ClassPath createBuildSourceClasspath(File buildSrcDir, StartParameterInternal containingBuildParameters, ClassLoaderScope parentClassLoaderScope) {
         if (!buildSrcDir.isDirectory()) {
             LOGGER.debug("Gradle source dir does not exist. We leave.");
             return ClassPath.EMPTY;
         }
 
-        final StartParameter buildSrcStartParameter = containingBuildParameters.newBuild();
+        StartParameterInternal buildSrcStartParameter = containingBuildParameters.newBuild();
         buildSrcStartParameter.setCurrentDir(buildSrcDir);
         buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());
-        ((StartParameterInternal) buildSrcStartParameter).setSearchUpwardsWithoutDeprecationWarning(false);
+        buildSrcStartParameter.setSearchUpwardsWithoutDeprecationWarning(false);
         buildSrcStartParameter.setProfile(containingBuildParameters.isProfile());
-        final BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(
+        BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(
             buildSrcStartParameter,
             "buildSrc",
             buildSrcDir,
@@ -124,7 +123,7 @@ public class BuildSourceBuilder {
         });
     }
 
-    private ClassPath buildBuildSrc(final BuildDefinition buildDefinition, ClassLoaderScope parentClassLoaderScope) {
+    private ClassPath buildBuildSrc(BuildDefinition buildDefinition, ClassLoaderScope parentClassLoaderScope) {
         StandAloneNestedBuild nestedBuild = buildRegistry.addBuildSrcNestedBuild(buildDefinition, currentBuild);
         return nestedBuild.run(buildController -> {
             // Expose any contributions from the parent's settings

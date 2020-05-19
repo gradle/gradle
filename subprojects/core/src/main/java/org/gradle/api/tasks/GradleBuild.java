@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.NestedRootBuild;
@@ -186,7 +187,7 @@ public class GradleBuild extends ConventionTask {
     @TaskAction
     void build() {
         // TODO: Allow us to inject plugins into GradleBuild nested builds too.
-        BuildDefinition buildDefinition = BuildDefinition.fromStartParameter(getStartParameter(), getServices().get(PublicBuildPath.class));
+        BuildDefinition buildDefinition = BuildDefinition.fromStartParameter((StartParameterInternal) getStartParameter(), getServices().get(PublicBuildPath.class));
 
         NestedRootBuild nestedBuild;
 

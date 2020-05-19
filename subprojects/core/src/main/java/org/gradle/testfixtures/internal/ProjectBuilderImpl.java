@@ -16,7 +16,6 @@
 
 package org.gradle.testfixtures.internal;
 
-import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -96,7 +95,7 @@ public class ProjectBuilderImpl {
 
         final File homeDir = new File(projectDir, "gradleHome");
 
-        StartParameter startParameter = new StartParameterInternal();
+        StartParameterInternal startParameter = new StartParameterInternal();
 
         File userHomeDir = gradleUserHomeDir == null ? new File(projectDir, "userHome") : FileUtils.canonicalize(gradleUserHomeDir);
         startParameter.setGradleUserHomeDir(userHomeDir);
@@ -212,7 +211,7 @@ public class ProjectBuilderImpl {
         }
 
         @Override
-        public StartParameter getStartParameter() {
+        public StartParameterInternal getStartParameter() {
             throw new UnsupportedOperationException();
         }
 

@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildScopeFileTimeStampInspector;
@@ -82,11 +83,20 @@ import java.io.File;
  */
 public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
-    public BuildSessionScopeServices(final ServiceRegistry parent, CrossBuildSessionScopeServices crossBuildSessionScopeServices, final StartParameter startParameter, BuildRequestMetaData buildRequestMetaData, ClassPath injectedPluginClassPath, BuildCancellationToken buildCancellationToken, BuildClientMetaData buildClientMetaData, BuildEventConsumer buildEventConsumer) {
+    public BuildSessionScopeServices(
+        ServiceRegistry parent,
+        CrossBuildSessionScopeServices crossBuildSessionScopeServices,
+        StartParameterInternal startParameter,
+        BuildRequestMetaData buildRequestMetaData,
+        ClassPath injectedPluginClassPath,
+        BuildCancellationToken buildCancellationToken,
+        BuildClientMetaData buildClientMetaData,
+        BuildEventConsumer buildEventConsumer
+    ) {
         super(parent);
         addProvider(crossBuildSessionScopeServices);
         register(registration -> {
-            add(StartParameter.class, startParameter);
+            add(StartParameterInternal.class, startParameter);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerBuildSessionServices(registration);
             }

@@ -49,6 +49,9 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     @Nullable
     GradleInternal getParent();
 
+    @Override
+    StartParameterInternal getStartParameter();
+
     GradleInternal getRoot();
 
     /**

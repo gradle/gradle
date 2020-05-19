@@ -31,7 +31,7 @@ public class BuildDefinition {
     private final String name;
     @Nullable
     private final File buildRootDir;
-    private final StartParameter startParameter;
+    private final StartParameterInternal startParameter;
     private final PluginRequests injectedSettingsPlugins;
     private final Action<? super DependencySubstitutions> dependencySubstitutions;
     private final PublicBuildPath fromBuild;
@@ -39,10 +39,10 @@ public class BuildDefinition {
     private BuildDefinition(
         @Nullable String name,
         @Nullable File buildRootDir,
-        StartParameter startParameter,
+        StartParameterInternal startParameter,
         PluginRequests injectedSettingsPlugins,
         Action<? super DependencySubstitutions> dependencySubstitutions,
-        PublicBuildPath fromBuild
+        @Nullable PublicBuildPath fromBuild
     ) {
         this.name = name;
         this.buildRootDir = buildRootDir;
@@ -80,7 +80,7 @@ public class BuildDefinition {
         return fromBuild;
     }
 
-    public StartParameter getStartParameter() {
+    public StartParameterInternal getStartParameter() {
         return startParameter;
     }
 
@@ -92,18 +92,18 @@ public class BuildDefinition {
         return dependencySubstitutions;
     }
 
-    public static BuildDefinition fromStartParameterForBuild(StartParameter startParameter, String name, File buildRootDir, PluginRequests pluginRequests, Action<? super DependencySubstitutions> dependencySubstitutions, PublicBuildPath fromBuild) {
+    public static BuildDefinition fromStartParameterForBuild(StartParameterInternal startParameter, String name, File buildRootDir, PluginRequests pluginRequests, Action<? super DependencySubstitutions> dependencySubstitutions, PublicBuildPath fromBuild) {
         return new BuildDefinition(name, buildRootDir, configure(startParameter, buildRootDir), pluginRequests, dependencySubstitutions, fromBuild);
     }
 
-    public static BuildDefinition fromStartParameter(StartParameter startParameter, @Nullable PublicBuildPath fromBuild) {
+    public static BuildDefinition fromStartParameter(StartParameterInternal startParameter, @Nullable PublicBuildPath fromBuild) {
         return new BuildDefinition(null, null, startParameter, PluginRequests.EMPTY, Actions.doNothing(), fromBuild);
     }
 
-    private static StartParameter configure(StartParameter startParameter, File buildRootDir) {
-        StartParameter includedBuildStartParam = startParameter.newBuild();
+    private static StartParameterInternal configure(StartParameterInternal startParameter, File buildRootDir) {
+        StartParameterInternal includedBuildStartParam = startParameter.newBuild();
         includedBuildStartParam.setCurrentDir(buildRootDir);
-        ((StartParameterInternal) includedBuildStartParam).setSearchUpwardsWithoutDeprecationWarning(false);
+        includedBuildStartParam.setSearchUpwardsWithoutDeprecationWarning(false);
         includedBuildStartParam.setConfigureOnDemand(false);
         includedBuildStartParam.setInitScripts(startParameter.getInitScripts());
         return includedBuildStartParam;
