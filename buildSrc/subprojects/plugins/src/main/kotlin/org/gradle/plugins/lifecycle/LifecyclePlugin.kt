@@ -171,7 +171,7 @@ class LifecyclePlugin : Plugin<Project> {
             description = "Build production distros and smoke test them"
             group = "build"
             dependsOn(":distributions:verifyIsProductionBuildEnvironment", ":distributions:buildDists",
-                ":distributions:integTest", ":docs:releaseNotes", "docs:incubationReport", "docs:checkDeadInternalLinks")
+                ":distributions:integTest", ":docs:releaseNotes", ":docs:incubationReport", "docs:checkDeadInternalLinks")
 
         }
     }
@@ -185,7 +185,7 @@ class LifecyclePlugin : Plugin<Project> {
             description = "Build production distros, smoke test them and publish"
             group = "publishing"
             dependsOn(":distributions:verifyIsProductionBuildEnvironment", ":distributions:buildDists",
-                ":distributions:integTest", ":docs:releaseNotes", "publish", "docs:incubationReport", "docs:checkDeadInternalLinks")
+                ":distributions:integTest", ":docs:releaseNotes", "publish", ":docs:incubationReport", "docs:checkDeadInternalLinks")
         }
     }
 
