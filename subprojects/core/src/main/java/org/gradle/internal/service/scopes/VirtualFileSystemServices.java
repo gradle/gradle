@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
@@ -113,7 +114,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
      */
     public static final String VFS_DROP_PROPERTY = "org.gradle.unsafe.vfs.drop";
 
-    public static boolean isPartialInvalidationEnabled(StartParameter startParameter) {
+    public static boolean isPartialInvalidationEnabled(StartParameterInternal startParameter) {
         return startParameter.isWatchFileSystem()
             || isSystemPropertyEnabled(VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, startParameter.getSystemPropertiesArgs());
     }
@@ -257,6 +258,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             StringInterner stringInterner,
             VirtualFileSystem gradleUserHomeVirtualFileSystem
         ) {
+            StartParameterInternal startParameterInternal = (StartParameterInternal) startParameter;
             VirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(
                 hasher,
                 stringInterner,
@@ -269,7 +271,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 additiveCacheLocations,
                 gradleUserHomeVirtualFileSystem,
                 buildSessionsScopedVirtualFileSystem,
-                startParameter::isWatchFileSystem
+                startParameterInternal::isWatchFileSystem
             );
 
             listenerManager.addListener(new RootBuildLifecycleListener() {
