@@ -18,7 +18,6 @@ package org.gradle.integtests.fixtures
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
-import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -98,10 +97,6 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     def cleanup() {
-        if (GradleContextualExecuter.vfsRetention) {
-            new DaemonLogsAnalyzer(executer.daemonBaseDir)
-                .notifyAboutChangedFiles(temporaryFolder.testDirectory)
-        }
         executer.cleanup()
     }
 
