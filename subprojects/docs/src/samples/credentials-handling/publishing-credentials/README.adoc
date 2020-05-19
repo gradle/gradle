@@ -1,0 +1,55 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This sample shows how credentials can be passed to a maven publish task using link:{userManualPath}/build_environment.html#sec:project_properties[project properties].
+This approach allows to externalize the sensitive configuration from the project source code and inject it only when needed.
+
+The code in `maven-repository-stub` directory builds a plugin used to stub the Maven repository in order to demonstrate the authentication flow.
+To demonstrate the concept, we will be using the following hardcoded credentials on the server stub:
+====
+include::sample[dir="groovy",files="maven-repository-stub/src/main/java/com/example/MavenRepositoryStub.java[tags=credentials]"]
+====
+
+This project has some sample Java code to be compiled and published as a Java library.
+Gradle build file registers a publication to a maven repository:
+====
+include::sample[dir="groovy",files="build.gradle[tags=publication]"]
+include::sample[dir="kotlin",files="build.gradle.kts[tags=publication]"]
+====
+
+Authentication credentials are configured and validated only if the publication task is going to be invoked in the current build:
+====
+include::sample[dir="groovy",files="build.gradle[tags=credentials]"]
+include::sample[dir="kotlin",files="build.gradle.kts[tags=credentials]"]
+====
+
+Credential values are declared to be Gradle properties and can be passed to the publish task in multiple ways:
+
+* via command-line properties:
+=====
+----
+$ ./gradlew publish -PmavenUser=secret-user -PmavenPassword=secret-password
+----
+=====
+* via environment variables:
+=====
+----
+$ ORG_GRADLE_PROJECT_mavenUser=secret-user ORG_GRADLE_PROJECT_mavenPassword=secret-password ./gradlew publish
+----
+=====
+* by setting the properties in `gradle.properties` file:
+=====
+----
+mavenUser=secret-user
+mavenPassword=secret-password
+----
+=====
+and running
+=====
+----
+$ ./gradlew publish
+----
+=====
+This way the sensitive data can be kept outside of the project sources - `gradle.properties` can reside in the user's `~/.gradle` directory.
+The values are also not echoed anywhere this way.
+For more information about using Gradle properties, see link:{userManualPath}/build_environment.html#sec:gradle_configuration_properties[Gradle Properties user manual chapter].
+

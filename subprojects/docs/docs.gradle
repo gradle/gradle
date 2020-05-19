@@ -491,6 +491,17 @@ samples {
             category = "Build organization"
         }
 
+        publishingCredentials {
+            sampleDirectory = samplesRoot.dir("credentials-handling/publishing-credentials")
+            description = "Provide credentials to a publishing task."
+            category = "Credentials handling"
+            common {
+                from(sampleDirectory.dir("common"))
+                from(templates.javaListLibrary)
+                from(templates.javaUtilitiesLibrary)
+            }
+        }
+
         credentialsForExternalToolViaStdin {
             sampleDirectory = samplesRoot.dir("credentials-handling/pass-credentials-to-external-tool-via-stdin")
             displayName = "Supply credentials to external tool"
