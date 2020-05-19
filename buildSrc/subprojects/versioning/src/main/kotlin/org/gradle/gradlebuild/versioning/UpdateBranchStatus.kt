@@ -20,7 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.*
-import ext
+import gitInfo
 
 
 /**
@@ -30,7 +30,7 @@ import ext
 open class UpdateBranchStatus : DefaultTask() {
     @TaskAction
     fun publishBranchStatus() {
-        when (project.determineCurrentBranch()) {
+        when (project.gitInfo.gradleBuildBranch) {
             "master" -> publishBranchStatus("master")
             "release" -> publishBranchStatus("release")
         }
@@ -40,7 +40,4 @@ open class UpdateBranchStatus : DefaultTask() {
     fun publishBranchStatus(branch: String) {
         project.execAndGetStdout("git", "push", "origin", "$branch:green-$branch")
     }
-
-    private
-    fun Project.determineCurrentBranch() = ext["gradleBuildBranch"] as String
 }

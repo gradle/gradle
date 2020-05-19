@@ -58,7 +58,7 @@ import testLibrary
 import java.util.concurrent.Callable
 import java.util.jar.Attributes
 import org.gradle.testing.PerformanceTest
-import ext
+import gitInfo
 
 
 /**
@@ -291,8 +291,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
      */
     private
     fun Test.configureGitInfo() {
-        systemProperty("gradleBuildBranch", project.ext["gradleBuildBranch"]!!)
-        systemProperty("gradleBuildCommitId", project.ext["gradleBuildCommitId"]!!)
+        systemProperty("gradleBuildBranch", project.gitInfo.gradleBuildBranch)
+        systemProperty("gradleBuildCommitId", project.gitInfo.gradleBuildCommitId)
     }
 
     private

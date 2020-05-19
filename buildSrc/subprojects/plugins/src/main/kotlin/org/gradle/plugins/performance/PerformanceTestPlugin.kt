@@ -32,7 +32,7 @@ import org.w3c.dom.Document
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.reflect.KClass
-import ext
+import gitInfo
 
 
 object PropertyNames {
@@ -61,9 +61,6 @@ object Config {
 
     const val teamCityUrl = "https://builds.gradle.org/"
 }
-
-
-fun Project.determineCurrentBranch() = ext["gradleBuildBranch"] as String
 
 
 private
@@ -335,7 +332,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             scenarioList = buildDir / Config.performanceTestScenarioListFileName
             buildTypeId = stringPropertyOrNull(PropertyNames.buildTypeId)
             workerTestTaskName = stringPropertyOrNull(PropertyNames.workerTestTaskName) ?: "fullPerformanceTest"
-            branchName = determineCurrentBranch()
+            branchName = gitInfo.gradleBuildBranch
             teamCityUrl = Config.teamCityUrl
             teamCityToken = stringPropertyOrNull(PropertyNames.teamCityToken)
             distributedPerformanceReporter = createPerformanceReporter()
