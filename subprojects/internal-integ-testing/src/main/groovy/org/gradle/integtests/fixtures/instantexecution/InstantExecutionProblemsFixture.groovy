@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures.instantexecution
 import groovy.transform.PackageScope
 import junit.framework.AssertionFailedError
 import org.gradle.api.Action
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
@@ -205,7 +206,8 @@ final class InstantExecutionProblemsFixture {
     private static Matcher<String> failureDescriptionMatcherForProblems(HasInstantExecutionProblemsSpec spec) {
         return buildMatcherForProblemsFailureDescription(
             "Configuration cache problems found in this build.\n" +
-                "Gradle can be made to ignore these problems via ${LENIENT_CLI_OPTION}.",
+                "Gradle can be made to ignore these problems, " +
+                "see ${new DocumentationRegistry().getDocumentationFor("configuration_cache", "ignore_problems")}.",
             spec
         )
     }
@@ -213,7 +215,8 @@ final class InstantExecutionProblemsFixture {
     private static Matcher<String> failureDescriptionMatcherForTooManyProblems(HasInstantExecutionProblemsSpec spec) {
         return buildMatcherForProblemsFailureDescription(
             "Maximum number of configuration cache problems has been reached.\n" +
-                "This behavior can be adjusted via ${MAX_PROBLEMS_CLI_OPTION}=<integer>.",
+                "This behavior can be adjusted, " +
+                "see ${new DocumentationRegistry().getDocumentationFor("configuration_cache", "max_problems")}",
             spec
         )
     }
