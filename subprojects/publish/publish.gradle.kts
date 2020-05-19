@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
+
 plugins {
     gradlebuild.distribution.`plugins-api-java`
 }
@@ -42,3 +44,5 @@ dependencies {
     integTestRuntimeOnly(project(":ivy"))
     integTestRuntimeOnly(project(":maven"))
 }
+
+integrationTestUsesSampleDir("subprojects/publish/src/main")

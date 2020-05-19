@@ -4,11 +4,11 @@ import accessors.groovy
 import accessors.java
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
-import java.io.File
 
 
 enum class TestType(val prefix: String, val executers: List<String>, val libRepoRequired: Boolean) {
@@ -91,12 +91,17 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
     }
 
 
-fun splitIntoBuckets(sourceFiles: List<File>, numberOfSplits: Int): List<List<File>> =
-    if (sourceFiles.size % numberOfSplits == 0) {
-        sourceFiles.chunked(sourceFiles.size / numberOfSplits)
-    } else {
-        sourceFiles.chunked(sourceFiles.size / numberOfSplits + 1)
+/**
+ * Distributed test requires all dependencies to be declared
+ */
+fun Project.integrationTestUsesSampleDir(vararg sampleDirs: String) {
+    tasks.withType<IntegrationTest>() {
+        systemProperty("declaredSampleInputs", sampleDirs.joinToString(";"))
+        inputs.files(rootProject.files(sampleDirs))
+            .withPropertyName("autoTestedSamples")
+            .withPathSensitivity(PathSensitivity.RELATIVE)
     }
+}
 
 
 private
@@ -120,8 +125,6 @@ fun IntegrationTest.addDebugProperties() {
 internal
 fun Project.configureIde(testType: TestType) {
     val prefix = testType.prefix
-    val compile = configurations.getByName("${prefix}TestCompileClasspath")
-    val runtime = configurations.getByName("${prefix}TestRuntimeClasspath")
     val sourceSet = java.sourceSets.getByName("${prefix}Test")
 
     // We apply lazy as we don't want to depend on the order
@@ -131,10 +134,6 @@ fun Project.configureIde(testType: TestType) {
                 testSourceDirs = testSourceDirs + sourceSet.java.srcDirs
                 testSourceDirs = testSourceDirs + sourceSet.groovy.srcDirs
                 testResourceDirs = testResourceDirs + sourceSet.resources.srcDirs
-                scopes["TEST"]!!["plus"]!!.apply {
-                    add(compile)
-                    add(runtime)
-                }
             }
         }
     }

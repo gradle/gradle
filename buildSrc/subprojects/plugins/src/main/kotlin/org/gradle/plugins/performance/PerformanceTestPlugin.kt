@@ -316,10 +316,6 @@ class PerformanceTestPlugin : Plugin<Project> {
                 module {
                     testSourceDirs = testSourceDirs + performanceTestSourceSet.groovy.srcDirs
                     testResourceDirs = testResourceDirs + performanceTestSourceSet.resources.srcDirs
-                    scopes["TEST"]!!["plus"]!!.apply {
-                        add(performanceTestCompileClasspath)
-                        add(performanceTestRuntimeClasspath)
-                    }
                 }
             }
         }

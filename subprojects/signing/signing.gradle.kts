@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
+
 plugins {
     gradlebuild.distribution.`plugins-api-java`
 }
@@ -50,3 +52,5 @@ strictCompile {
 classycle {
     excludePatterns.set(listOf("org/gradle/plugins/signing/**"))
 }
+
+integrationTestUsesSampleDir("subprojects/signing/src/main")
