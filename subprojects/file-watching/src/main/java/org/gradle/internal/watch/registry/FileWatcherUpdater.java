@@ -25,11 +25,14 @@ import java.util.Collection;
 
 public interface FileWatcherUpdater extends SnapshotHierarchy.SnapshotDiffListener {
     /**
-     * Changes the must watch directories, e.g. when the same daemon is used on a different project.
+     * Changes the project root directory, e.g. when the same daemon is used on a different project.
+     *
+     * Hierarchical watchers use project root directory to minimize the number of watched roots
+     * by watching the project root instead of watching directories inside.
      *
      * @throws WatchingNotSupportedException when the native watchers can't be updated.
      */
-    void updateMustWatchDirectories(Collection<File> updatedWatchDirectories);
+    void updateProjectRootDirectory(File projectRoot);
 
     /**
      * {@inheritDoc}.

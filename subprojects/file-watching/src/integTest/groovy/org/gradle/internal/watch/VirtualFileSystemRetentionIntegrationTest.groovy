@@ -16,6 +16,7 @@
 
 package org.gradle.internal.watch
 
+import org.apache.commons.io.FileUtils
 import org.gradle.initialization.StartParameterBuildOptions.WatchFileSystemOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
@@ -764,6 +765,32 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
         where:
         buildDir << ["build", "build/myProject"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12614")
+    def "can remove watched directory after all files inside have been removed"() {
+        // This test targets Windows, where watched directories can't be deleted.
+
+        def projectDir = file("projectDir")
+        projectDir.file("build.gradle") << """
+            apply plugin: "java-library"
+        """
+        projectDir.file("settings.gradle").createFile()
+
+        def mainSourceFile = projectDir.file("src/main/java/Main.java")
+        mainSourceFile.text = sourceFileWithGreeting("Hello World!")
+
+        when:
+        inDirectory(projectDir)
+        withRetention().run "assemble"
+        then:
+        executedAndNotSkipped ":assemble"
+
+        when:
+        FileUtils.cleanDirectory(projectDir)
+        waitForChangesToBePickedUp()
+        then:
+        projectDir.delete()
     }
 
     // This makes sure the next Gradle run starts with a clean BuildOutputCleanupRegistry
