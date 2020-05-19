@@ -558,8 +558,19 @@ class DependencyManagementBuildScopeServices {
         return new VersionParser();
     }
 
-    VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {
-        return new CachingVersionSelectorScheme(new DefaultVersionSelectorScheme(versionComparator, versionParser));
+    VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser, FeaturePreviews featurePreviews, ListenerManager listenerManager) {
+        DefaultVersionSelectorScheme delegate = new DefaultVersionSelectorScheme(versionComparator, versionParser, featurePreviews);
+        CachingVersionSelectorScheme selectorScheme = new CachingVersionSelectorScheme(delegate, featurePreviews);
+        // This needs to be removed once the feature preview disappears
+        listenerManager.addListener(new BuildAdapter() {
+            @Override
+            public void settingsEvaluated(Settings settings) {
+                delegate.configure();
+                selectorScheme.configure();
+            }
+        });
+
+        return selectorScheme;
     }
 
     SimpleMapInterner createStringInterner() {
