@@ -16,32 +16,31 @@
 
 package org.gradle.internal.classpath;
 
+import org.apache.tools.zip.ZipEntry;
+import org.apache.tools.zip.ZipOutputStream;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 @ServiceScope(Scopes.UserHome)
 public class ClasspathBuilder {
-    private static final int BUFFER_SIZE = 8192;
-
+    /**
+     * Creates a Jar file using the given action to add entries to the file.
+     */
     public void jar(File jarFile, Action action) {
         try {
             buildJar(jarFile, action);
         } catch (Exception e) {
-            throw new GradleException(String.format("Failed to create %s.", jarFile), e);
+            throw new GradleException(String.format("Failed to create Jar file %s.", jarFile), e);
         }
     }
 
@@ -50,7 +49,7 @@ public class ClasspathBuilder {
         File tmpFile = new File(parentDir, jarFile.getName() + ".tmp");
         try {
             Files.createDirectories(parentDir.toPath());
-            try (ZipOutputStream outputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(tmpFile), BUFFER_SIZE))) {
+            try (ZipOutputStream outputStream = new ZipOutputStream(tmpFile)) {
                 outputStream.setLevel(0);
                 action.execute(new ZipEntryBuilder(outputStream));
             }
