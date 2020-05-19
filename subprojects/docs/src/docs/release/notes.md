@@ -66,7 +66,7 @@ Here's how enabling this feature reduces the time it takes to make small changes
 
 TBD image for the comparison
 
-Read more about this new feature and its impact [on the Gradle blog](#)!
+Read more about this new feature and its impact [on the Gradle blog](https://blog.gradle.org)!
 
 <a name="lazy-dependencies"><a>
 ## Derive dependencies from user configuration
