@@ -7,6 +7,70 @@
 - Limitations?
 - Diagnosing problems?
 
+
+== Usage
+
+[[enable]]
+=== Enabling the configuration cache
+
+The configuration cache can be enabled from the command line:
+
+[source,bash]
+----
+gradle --configuration-cache=on
+----
+
+It can also be enabled persistently in a `gradle.properties` file:
+
+[source,properties]
+----
+org.gradle.unsafe.configuration-cache=on
+----
+
+If it is enabled in a `gradle.properties` file, it can be disabled on the command line for one build invocation:
+
+[source,bash]
+----
+gradle --configuration-cache=off
+----
+
+[[ignore_problems]]
+=== Ignoring problems
+
+Configuration cache problems can be turned into warnings on the command line:
+
+[source,bash]
+----
+gradle --configuration-cache=warn
+----
+
+or in a `gradle.properties` file:
+
+[source,properties]
+----
+org.gradle.unsafe.configuration-cache=warn
+----
+
+[[max_problems]]
+=== Allowing a maximum number of problems
+
+When configuration cache problems are turned into warnings, Gradle will fail the build if `512` problems are found by default.
+
+This can be adjusted by specifying an allowed maximum number of problems on the command line:
+
+[source,bash]
+----
+gradle -Dorg.gradle.unsafe.configuration-cache.max-problems=1024
+----
+
+or in a `gradle.properties` file:
+
+[source,properties]
+----
+org.gradle.unsafe.configuration-cache.max-problems=1024
+----
+
+
 == Constraints
 
 Constraints and how to change your build

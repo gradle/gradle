@@ -17,8 +17,9 @@
 package org.gradle.instantexecution.initialization
 
 import org.gradle.StartParameter
+import org.gradle.api.internal.StartParameterInternal
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.layout.BuildLayout
-import org.gradle.instantexecution.SystemProperties
 import org.gradle.instantexecution.extensions.unsafeLazy
 import org.gradle.internal.hash.HashUtil.createCompactMD5
 import org.gradle.util.GFileUtils
@@ -27,28 +28,26 @@ import java.io.File
 
 class InstantExecutionStartParameter(
     private val buildLayout: BuildLayout,
-    private val startParameter: StartParameter
+    startParameter: StartParameter
 ) {
 
-    val isEnabled: Boolean by unsafeLazy {
-        systemPropertyFlag(SystemProperties.isEnabled)
-    }
+    private
+    val startParameter = startParameter as StartParameterInternal
+
+    val isEnabled: Boolean
+        get() = startParameter.configurationCache != ConfigurationCacheOption.Value.OFF
 
     val isQuiet: Boolean
-        get() = systemPropertyFlag(SystemProperties.isQuiet)
+        get() = startParameter.isConfigurationCacheQuiet
 
-    val maxProblems: Int by unsafeLazy {
-        systemProperty(SystemProperties.maxProblems)
-            ?.let(Integer::valueOf)
-            ?: 512
-    }
+    val maxProblems: Int
+        get() = startParameter.configurationCacheMaxProblems
 
-    val failOnProblems: Boolean by unsafeLazy {
-        systemPropertyFlag(SystemProperties.failOnProblems, true)
-    }
+    val failOnProblems: Boolean
+        get() = startParameter.configurationCache == ConfigurationCacheOption.Value.ON
 
     val recreateCache: Boolean
-        get() = systemPropertyFlag(SystemProperties.recreateCache)
+        get() = startParameter.isConfigurationCacheRecreateCache
 
     val settingsDirectory: File
         get() = buildLayout.settingsDir
@@ -98,12 +97,4 @@ class InstantExecutionStartParameter(
     fun relativeChildPathOrNull(target: File, base: File): String? =
         GFileUtils.relativePathOf(target, base)
             .takeIf { !it.startsWith('.') }
-
-    private
-    fun systemPropertyFlag(propertyName: String, defaultValue: Boolean = false): Boolean =
-        systemProperty(propertyName)?.toBoolean() ?: defaultValue
-
-    private
-    fun systemProperty(propertyName: String) =
-        startParameter.systemPropertiesArgs[propertyName] ?: System.getProperty(propertyName)
 }

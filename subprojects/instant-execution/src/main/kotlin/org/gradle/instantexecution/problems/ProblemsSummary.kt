@@ -58,7 +58,7 @@ private
 fun buildSummaryHeader(totalProblemCount: Int, uniquePropertyProblems: Set<UniquePropertyProblem>): String {
     val result = StringBuilder()
     result.append(totalProblemCount)
-    result.append(" instant execution ")
+    result.append(" configuration cache ")
     result.append(if (totalProblemCount == 1) "problem was found" else "problems were found")
     val uniqueProblemCount = uniquePropertyProblems.size
     if (totalProblemCount != uniquePropertyProblems.size) {

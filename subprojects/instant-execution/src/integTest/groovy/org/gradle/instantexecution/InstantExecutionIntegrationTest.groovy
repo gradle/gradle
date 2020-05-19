@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSet
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.model.ObjectFactory
 import org.gradle.initialization.LoadProjectsBuildOperationType
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.event.ListenerManager
 import org.gradle.jvm.toolchain.JavaInstallationRegistry
@@ -66,12 +67,12 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         given:
         instantRun "help"
         def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
-            .replaceAll(/Calculating task graph as no instant execution cache is available for tasks: help\n/, '')
+            .replaceAll(/Calculating task graph as no configuration cache is available for tasks: help\n/, '')
 
         when:
         instantRun "help"
         def secondRunOutput = removeVfsLogOutput(result.normalizedOutput)
-            .replaceAll(/Reusing instant execution cache. This is not guaranteed to work in any way.\n/, '')
+            .replaceAll(/Reusing configuration cache.\n/, '')
 
         then:
         firstRunOutput == secondRunOutput
@@ -84,6 +85,24 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             .replaceAll(/Watching \d+ (directory hierarchies to track changes between builds in \d+ directories|directories to track changes between builds)\n/, '')
             .replaceAll(/Spent \d+ ms registering watches for file system events\n/, '')
             .replaceAll(/Virtual file system .*\n/, '')
+    }
+
+    def "can request to recreate the cache"() {
+        given:
+        def fixture = newInstantExecutionFixture()
+
+        when:
+        instantRun "help" , "-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
+
+        then:
+        fixture.assertStateStored()
+
+        when:
+        instantRun "help", "-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
+
+        then:
+        fixture.assertStateStored()
+        outputContains("Recreating configuration cache")
     }
 
     def "restores some details of the project structure"() {
@@ -197,7 +216,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         instantExecution.assertStateStored()
-        outputContains("Calculating task graph as no instant execution cache is available for tasks: a")
+        outputContains("Calculating task graph as no configuration cache is available for tasks: a")
         outputContains("running build script")
         outputContains("create task")
         outputContains("configure task")
@@ -208,7 +227,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         instantExecution.assertStateLoaded()
-        outputContains("Reusing instant execution cache. This is not guaranteed to work in any way.")
+        outputContains("Reusing configuration cache.")
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")
@@ -219,7 +238,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         instantExecution.assertStateStored()
-        outputContains("Calculating task graph as no instant execution cache is available for tasks: b")
+        outputContains("Calculating task graph as no configuration cache is available for tasks: b")
         outputContains("running build script")
         outputContains("create task")
         outputContains("configure task")
@@ -230,7 +249,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         instantExecution.assertStateLoaded()
-        outputContains("Reusing instant execution cache. This is not guaranteed to work in any way.")
+        outputContains("Reusing configuration cache.")
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")
@@ -667,8 +686,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         """
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantFails "broken"
+        instantFailsLenient "broken"
 
         then:
         problems.assertResultHasProblems(result) {

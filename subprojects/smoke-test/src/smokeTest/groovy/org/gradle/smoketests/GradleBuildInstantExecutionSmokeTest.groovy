@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.specs.Spec
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -71,13 +72,13 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
         instantRun(*supportedTasks)
 
         then:
-        result.output.count("Calculating task graph as no instant execution cache is available") == 1
+        result.output.count("Calculating task graph as no configuration cache is available") == 1
 
         when:
         instantRun(*supportedTasks)
 
         then:
-        result.output.count("Reusing instant execution cache") == 1
+        result.output.count("Reusing configuration cache") == 1
         result.task(":distributions:binZip").outcome == TaskOutcome.UP_TO_DATE
         result.task(":core:integTest").outcome == TaskOutcome.UP_TO_DATE
 
@@ -88,7 +89,7 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
         instantRun(*supportedTasks)
 
         then:
-        result.output.count("Reusing instant execution cache") == 1
+        result.output.count("Reusing configuration cache") == 1
 
         and:
         file("build/distributions").allDescendants().count { it ==~ /gradle-.*-bin.zip/ } == 1
@@ -99,8 +100,7 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
 
     private void instantRun(String... tasks) {
         result = run(
-            "-Dorg.gradle.unsafe.instant-execution=true",
-            "-Dorg.gradle.unsafe.instant-execution.fail-on-problems=false", // TODO remove
+            "--${ConfigurationCacheOption.LONG_OPTION}=warn", // TODO on
             *tasks
         )
     }

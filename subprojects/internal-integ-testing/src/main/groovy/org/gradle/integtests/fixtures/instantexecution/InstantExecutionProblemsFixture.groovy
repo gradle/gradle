@@ -19,7 +19,9 @@ package org.gradle.integtests.fixtures.instantexecution
 import groovy.transform.PackageScope
 import junit.framework.AssertionFailedError
 import org.gradle.api.Action
-import org.gradle.instantexecution.SystemProperties
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -48,6 +50,10 @@ import static org.junit.Assert.assertTrue
 
 final class InstantExecutionProblemsFixture {
 
+    static final String STRICT_CLI_OPTION = "--${ConfigurationCacheOption.LONG_OPTION}=on"
+    static final String LENIENT_CLI_OPTION = "--${ConfigurationCacheOption.LONG_OPTION}=warn"
+    static final String MAX_PROBLEMS_CLI_OPTION = "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}"
+
     protected static final String PROBLEMS_REPORT_HTML_FILE_NAME = "instant-execution-report.html"
 
     private final GradleExecuter executer
@@ -56,14 +62,6 @@ final class InstantExecutionProblemsFixture {
     InstantExecutionProblemsFixture(GradleExecuter executer, File rootDir) {
         this.executer = executer
         this.rootDir = rootDir
-    }
-
-    void withFailOnProblems() {
-        executer.withArgument("-D${SystemProperties.failOnProblems}=true")
-    }
-
-    void withDoNotFailOnProblems() {
-        executer.withArgument("-D${SystemProperties.failOnProblems}=false")
     }
 
     void assertFailureHasError(
@@ -202,21 +200,23 @@ final class InstantExecutionProblemsFixture {
     }
 
     private static Matcher<String> failureDescriptionMatcherForError(HasInstantExecutionErrorSpec spec) {
-        return equalTo("Instant execution state could not be cached: ${spec.error}".toString())
+        return equalTo("Configuration cache state could not be cached: ${spec.error}".toString())
     }
 
     private static Matcher<String> failureDescriptionMatcherForProblems(HasInstantExecutionProblemsSpec spec) {
         return buildMatcherForProblemsFailureDescription(
-            "Instant execution problems found in this build.\n" +
-                "Failing because -D${SystemProperties.failOnProblems} is 'true'.",
+            "Configuration cache problems found in this build.\n" +
+                "Gradle can be made to ignore these problems, " +
+                "see ${new DocumentationRegistry().getDocumentationFor("configuration_cache", "ignore_problems")}.",
             spec
         )
     }
 
     private static Matcher<String> failureDescriptionMatcherForTooManyProblems(HasInstantExecutionProblemsSpec spec) {
         return buildMatcherForProblemsFailureDescription(
-            "Maximum number of instant execution problems has been reached.\n" +
-                "This behavior can be adjusted via -D${SystemProperties.maxProblems}=<integer>.",
+            "Maximum number of configuration cache problems has been reached.\n" +
+                "This behavior can be adjusted, " +
+                "see ${new DocumentationRegistry().getDocumentationFor("configuration_cache", "max_problems")}",
             spec
         )
     }
@@ -241,7 +241,7 @@ final class InstantExecutionProblemsFixture {
     }
 
     private static void assertNoProblemsSummary(String text) {
-        assertThat(text, not(containsString("instant execution problem")))
+        assertThat(text, not(containsString("configuration cache problem")))
     }
 
     private static void assertFailureDescription(
@@ -352,7 +352,7 @@ final class InstantExecutionProblemsFixture {
     }
 
     private static ProblemsSummary extractSummary(String text) {
-        def headerPattern = Pattern.compile("(\\d+) instant execution (problems were|problem was) found(, (\\d+) of which seem(s)? unique)?.*")
+        def headerPattern = Pattern.compile("(\\d+) configuration cache (problems were|problem was) found(, (\\d+) of which seem(s)? unique)?.*")
         def problemPattern = Pattern.compile("- (.*)")
         def docPattern = Pattern.compile(" {2}\\QSee https://docs.gradle.org\\E.*")
 

@@ -51,8 +51,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         failure.assertHasCause("BOOM")
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantFails 'taskWithStateSerializationProblems', 'taskWithStateSerializationError'
+        instantFailsLenient 'taskWithStateSerializationProblems', 'taskWithStateSerializationError'
 
         then:
         notExecuted('taskWithStateSerializationProblems', 'taskWithStateSerializationError')
@@ -85,8 +84,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         failure.assertHasFailures(1)
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantRun 'taskWithStateSerializationProblems', 'a', 'b'
+        instantRunLenient 'taskWithStateSerializationProblems', 'a', 'b'
 
         then:
         executed(':taskWithStateSerializationProblems', ':a', ':b')
@@ -115,8 +113,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         def taskExecutionProblems = withTaskExecutionProblems()
 
         when:
-        instantFails 'taskWithStateSerializationProblems', 'a', 'b',
-            "-D${SystemProperties.failOnProblems}=false", "-D${SystemProperties.maxProblems}=2"
+        instantFailsLenient 'taskWithStateSerializationProblems', 'a', 'b', "${MAX_PROBLEMS_CLI_OPTION}=2"
 
         then:
         notExecuted(':taskWithStateSerializationProblems', ':a', ':b')
@@ -126,8 +123,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         }
 
         when:
-        instantFails 'taskWithStateSerializationProblems', 'a', 'b',
-            "-D${SystemProperties.failOnProblems}=false", "-D${SystemProperties.maxProblems}=4"
+        instantFailsLenient 'taskWithStateSerializationProblems', 'a', 'b', "${MAX_PROBLEMS_CLI_OPTION}=4"
 
         then:
         executed(':taskWithStateSerializationProblems', ':a', ':b')
@@ -148,8 +144,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantFails 'taskWithStateSerializationProblems'
+        instantFailsLenient 'taskWithStateSerializationProblems'
 
         then:
         problems.assertResultHasProblems(result) {
@@ -186,8 +181,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         failure.assertHasFailures(1)
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantRun("broken")
+        instantRunLenient("broken")
 
         then:
         problems.assertResultHasProblems(result) {
@@ -287,8 +281,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         }
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantRun "a", "b"
+        instantRunLenient "a", "b"
 
         then:
         instantExecution.assertStateLoaded()
@@ -393,8 +386,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantRun "c"
+        instantRunLenient "c"
 
         then:
         problems.assertResultHasProblems(result) {
@@ -438,8 +430,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantFails "foo", "-D${SystemProperties.maxProblems}=$maxProblems"
+        instantFailsLenient "foo", "${MAX_PROBLEMS_CLI_OPTION}=$maxProblems"
 
         then:
         def expectedProblems = (1..expectedNumberOfProblems).collect {
@@ -471,7 +462,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
-        instantRun "foo", "-D${SystemProperties.failOnProblems}=false"
+        run "foo", LENIENT_CLI_OPTION
 
         then:
         problems.assertResultHasProblems(result) {
