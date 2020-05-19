@@ -38,6 +38,7 @@ import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.function.Supplier;
 
 public class AuthenticationSupporter implements AuthenticationSupportedInternal {
     private final Instantiator instantiator;
@@ -89,10 +90,10 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
         action.execute(getCredentials(credentialsType));
     }
 
-    public Provider<Credentials> credentials(Class<? extends Credentials> credentialsType, String identity) {
+    public void credentials(Class<? extends Credentials> credentialsType, Supplier<String> identity) {
         if (credentialsType == PasswordCredentials.class) {
             credentials(credentialsProviderFactory.usernameAndPassword(identity));
-            return getConfiguredCredentials();
+            return;
         }
         throw new IllegalArgumentException(String.format("Unsupported credentials type: %s", credentialsType));
     }

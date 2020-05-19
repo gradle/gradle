@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class GradlePropertiesCredentialsProviderFactory implements CredentialsProviderFactory, TaskExecutionGraphListener {
 
@@ -49,10 +50,9 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
         return passwordProviders.computeIfAbsent(identity, PasswordCredentialsProvider::new);
     }
 
-    private void validateIdentity(@Nullable String identity) {
-        if (identity == null || identity.isEmpty() || !identity.chars().allMatch(Character::isLetterOrDigit)) {
-            throw new IllegalArgumentException("Identity may contain only letters and digits, received: " + identity);
-        }
+    @Override
+    public Provider<PasswordCredentials> usernameAndPassword(Supplier<String> identity) {
+        return new DefaultProvider<>(() -> usernameAndPassword(identity.get()).get());
     }
 
     @Override
@@ -60,6 +60,12 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
         if (!passwordProviders.isEmpty()) {
             graph.getAllTasks().stream().map(Task::getInputs).forEach(TaskInputs::getProperties);
             passwordProviders.values().stream().filter(p -> p.valueRequested).forEach(AbstractMinimalProvider::get);
+        }
+    }
+
+    private void validateIdentity(@Nullable String identity) {
+        if (identity == null || identity.isEmpty() || !identity.chars().allMatch(Character::isLetterOrDigit)) {
+            throw new IllegalArgumentException("Identity may contain only letters and digits, received: " + identity);
         }
     }
 

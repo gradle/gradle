@@ -27,7 +27,7 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
 
     def "does not allow non-letters and non-digits for identity"() {
         when:
-        factory.usernameAndPassword(identity)
+        factory.usernameAndPassword((String)identity)
 
         then:
         def e = thrown(IllegalArgumentException)

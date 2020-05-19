@@ -351,8 +351,8 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         then:
         notExecuted(':jar', ':publishMavenPublicationToMavenRepository')
         failure.assertHasDescription("Could not determine the dependencies of task ':publishMavenPublicationToMavenRepository'")
-        failure.assertHasCause("Cannot query the value of this property because it has no value available.")
-        failure.assertHasErrorOutput("The value of this property is derived from")
+        failure.assertHasCause("Cannot query the value of username and password provider because it has no value available.")
+        failure.assertHasErrorOutput("The value of this provider is derived from")
         failure.assertHasErrorOutput("- Gradle property 'mavenUsername'")
         failure.assertHasErrorOutput("- Gradle property 'mavenPassword'")
     }

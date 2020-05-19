@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.provider.CredentialsProviderFactory;
-import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.authentication.Authentication;
@@ -80,7 +79,7 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
 
     public void credentials(Class<? extends Credentials> credentialsType) {
         invalidateDescriptor();
-        delegate.credentials(new DefaultProvider<>(() -> delegate.credentials(credentialsType, getName()).get()));
+        delegate.credentials(credentialsType, this::getName);
     }
 
     @Override
