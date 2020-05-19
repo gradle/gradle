@@ -25,7 +25,6 @@ import org.gradle.api.credentials.HttpHeaderCredentials;
 import org.gradle.api.internal.provider.CredentialsProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
@@ -91,20 +90,12 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
     }
 
     public void credentials(Class<? extends Credentials> credentialsType, Supplier<String> identity) {
-        if (credentialsType == PasswordCredentials.class) {
-            credentials(credentialsProviderFactory.usernameAndPassword(identity));
-            return;
-        }
-        throw new IllegalArgumentException(String.format("Unsupported credentials type: %s", credentialsType));
+        this.usesCredentials = true;
+        this.credentials.set(credentialsProviderFactory.provideCredentials(credentialsType, identity));
     }
 
     @Override
     public void setConfiguredCredentials(Credentials credentials) {
-        this.usesCredentials = true;
-        this.credentials.set(credentials);
-    }
-
-    void credentials(Provider<? extends Credentials> credentials) {
         this.usesCredentials = true;
         this.credentials.set(credentials);
     }

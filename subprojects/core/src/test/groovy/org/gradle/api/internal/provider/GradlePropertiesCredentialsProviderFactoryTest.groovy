@@ -27,7 +27,7 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
 
     def "does not allow non-letters and non-digits for identity"() {
         when:
-        factory.usernameAndPassword((String)identity)
+        factory.provideCredentials(PasswordCredentials, (String)identity)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -39,7 +39,7 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
 
     def "describes missing properties"() {
         given:
-        def provider = factory.usernameAndPassword('myService')
+        def provider = factory.provideCredentials(PasswordCredentials, 'myService')
 
         when:
         provider.get()
@@ -55,7 +55,7 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
     def "describes single missing property"() {
         given:
         gradleProperties.find('myServicePassword') >> 'secret'
-        def provider = factory.usernameAndPassword('myService')
+        def provider = factory.provideCredentials(PasswordCredentials, 'myService')
 
         when:
         provider.get()
@@ -72,7 +72,7 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
         given:
         gradleProperties.find('myServiceUsername') >> 'admin'
         gradleProperties.find('myServicePassword') >> 'secret'
-        def provider = factory.usernameAndPassword('myService')
+        def provider = factory.provideCredentials(PasswordCredentials, 'myService')
 
         when:
         def credentials = provider.get()
@@ -85,12 +85,12 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
 
     def "reuses username and password provider with same identity"() {
         expect:
-        factory.usernameAndPassword('id') == factory.usernameAndPassword('id')
+        factory.provideCredentials(PasswordCredentials, 'id') == factory.provideCredentials(PasswordCredentials, 'id')
     }
 
     def "creates distinct username and password providers for different identities"() {
         expect:
-        factory.usernameAndPassword('id') != factory.usernameAndPassword('id2')
+        factory.provideCredentials(PasswordCredentials, 'id') != factory.provideCredentials(PasswordCredentials, 'id2')
     }
 
 }

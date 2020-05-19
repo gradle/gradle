@@ -26,11 +26,11 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             class TaskWithCredentials extends DefaultTask {
 
-                private final Property<org.gradle.api.credentials.PasswordCredentials> credentials = project.objects.property(org.gradle.api.credentials.PasswordCredentials)
+                private final Property<PasswordCredentials> credentials = project.objects.property(org.gradle.api.credentials.PasswordCredentials)
 
                 @javax.inject.Inject
                 TaskWithCredentials(org.gradle.api.internal.provider.CredentialsProviderFactory credentialsProviderFactory) {
-                    credentials.set(credentialsProviderFactory.usernameAndPassword('testCredentials'))
+                    credentials.set(credentialsProviderFactory.provideCredentials(PasswordCredentials, 'testCredentials'))
                 }
 
                 @Input

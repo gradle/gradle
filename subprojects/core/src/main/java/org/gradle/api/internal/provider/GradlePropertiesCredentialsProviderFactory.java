@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Task;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
@@ -45,14 +46,19 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
     }
 
     @Override
-    public Provider<PasswordCredentials> usernameAndPassword(String identity) {
+    public <T extends Credentials> Provider<T> provideCredentials(Class<T> credentialsType, String identity) {
         validateIdentity(identity);
-        return passwordProviders.computeIfAbsent(identity, PasswordCredentialsProvider::new);
+
+        if (PasswordCredentials.class.isAssignableFrom(credentialsType)) {
+            return (Provider<T>) passwordProviders.computeIfAbsent(identity, PasswordCredentialsProvider::new);
+        }
+
+        throw new IllegalArgumentException(String.format("Unsupported credentials type: %s", credentialsType));
     }
 
     @Override
-    public Provider<PasswordCredentials> usernameAndPassword(Supplier<String> identity) {
-        return new DefaultProvider<>(() -> usernameAndPassword(identity.get()).get());
+    public <T extends Credentials> Provider<T> provideCredentials(Class<T> credentialsType, Supplier<String> identity) {
+        return new DefaultProvider<>(() -> provideCredentials(credentialsType, identity.get()).get());
     }
 
     @Override

@@ -16,15 +16,15 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.credentials.PasswordCredentials;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.api.provider.Provider;
 
 import java.util.function.Supplier;
 
 public interface CredentialsProviderFactory {
 
-    Provider<PasswordCredentials> usernameAndPassword(String identity);
+    <T extends Credentials> Provider<T> provideCredentials(Class<T> credentialsType, String identity);
 
-    Provider<PasswordCredentials> usernameAndPassword(Supplier<String> identity);
+    <T extends Credentials> Provider<T> provideCredentials(Class<T> credentialsType, Supplier<String> identity);
 
 }
