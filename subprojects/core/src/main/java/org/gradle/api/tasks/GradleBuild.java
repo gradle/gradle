@@ -196,12 +196,9 @@ public class GradleBuild extends ConventionTask {
             nestedBuild = buildStateRegistry.addNestedBuildTree(buildDefinition, currentBuild, buildName);
         }
 
-        nestedBuild.run(new Transformer<Void, BuildController>() {
-            @Override
-            public Void transform(BuildController buildController) {
-                buildController.run();
-                return null;
-            }
+        nestedBuild.run((Transformer<Void, BuildController>) buildController -> {
+            buildController.run();
+            return null;
         });
     }
 }

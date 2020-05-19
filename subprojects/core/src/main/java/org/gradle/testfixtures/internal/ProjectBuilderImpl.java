@@ -20,7 +20,6 @@ import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
@@ -113,7 +112,7 @@ public class ProjectBuilderImpl {
         buildServices.get(BuildStateRegistry.class).attachRootBuild(build);
 
         GradleInternal gradle = buildServices.get(InstantiatorFactory.class).decorateLenient().newInstance(DefaultGradle.class, null, startParameter, buildServices.get(ServiceRegistryFactory.class));
-        gradle.setIncludedBuilds(Collections.<IncludedBuild>emptyList());
+        gradle.setIncludedBuilds(Collections.emptyList());
 
         ProjectDescriptorRegistry projectDescriptorRegistry = buildServices.get(ProjectDescriptorRegistry.class);
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, projectDescriptorRegistry, buildServices.get(FileResolver.class));

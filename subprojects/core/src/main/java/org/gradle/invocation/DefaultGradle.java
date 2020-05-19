@@ -79,7 +79,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
     private final CrossProjectConfigurator crossProjectConfigurator;
     private Collection<IncludedBuild> includedBuilds;
-    private MutableActionSet<Project> rootProjectActions = new MutableActionSet<Project>();
+    private MutableActionSet<Project> rootProjectActions = new MutableActionSet<>();
     private boolean projectsLoaded;
     private Path identityPath;
     private ClassLoaderScope classLoaderScope;

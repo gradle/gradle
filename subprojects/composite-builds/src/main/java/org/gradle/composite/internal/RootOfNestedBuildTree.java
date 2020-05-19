@@ -116,7 +116,9 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
+                    //noinspection Convert2Lambda
                     return BuildOperationDescriptor.displayName("Run nested build")
+                        // Must not be a Lambda so that the class can be loaded from somewhere else.
                         .details(new RunNestedBuildBuildOperationType.Details() {
                             @Override
                             public String getBuildPath() {

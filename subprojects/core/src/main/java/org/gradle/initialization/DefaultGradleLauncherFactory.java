@@ -77,12 +77,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             throw new IllegalStateException("Cannot have a current root build");
         }
 
-        DefaultGradleLauncher launcher = doNewInstance(buildDefinition, build, null, parentRegistry, ImmutableList.of(new Stoppable() {
-            @Override
-            public void stop() {
-                rootBuild = null;
-            }
-        }));
+        DefaultGradleLauncher launcher = doNewInstance(buildDefinition, build, null, parentRegistry, ImmutableList.of(
+            (Stoppable) () -> rootBuild = null)
+        );
         rootBuild = launcher;
 
         final DefaultDeploymentRegistry deploymentRegistry = parentRegistry.get(DefaultDeploymentRegistry.class);
@@ -180,12 +177,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY, buildCancellationToken, buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
             BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(sessionScopeServices);
             buildTreeScopeServices.get(BuildStateRegistry.class).attachRootBuild(build);
-            return doNewInstance(buildDefinition, build, parent, buildTreeScopeServices, ImmutableList.of(buildTreeScopeServices, sessionScopeServices, new Stoppable() {
-                @Override
-                public void stop() {
-                    userHomeDirServiceRegistry.release(userHomeServices);
-                }
-            }));
+            return doNewInstance(buildDefinition, build, parent, buildTreeScopeServices, ImmutableList.of(
+                buildTreeScopeServices,
+                sessionScopeServices,
+                (Stoppable) () -> userHomeDirServiceRegistry.release(userHomeServices)
+            ));
         }
 
         private void setParent(DefaultGradleLauncher parent) {

@@ -73,12 +73,10 @@ public class SessionScopeBuildActionExecuter implements BuildActionExecuter<Buil
                 CompositeStoppable.stoppable(buildSessionScopeServices).stop();
             }
         } finally {
-            new CompositeStoppable().add(new Stoppable() {
-                @Override
-                public void stop() {
-                    userHomeServiceRegistry.release(userHomeServices);
-                }
-            }, crossBuildSessionScopeServices).stop();
+            new CompositeStoppable().add(
+                (Stoppable) () -> userHomeServiceRegistry.release(userHomeServices),
+                crossBuildSessionScopeServices
+            ).stop();
         }
     }
 }
