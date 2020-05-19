@@ -16,9 +16,8 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -35,7 +34,7 @@ class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListe
 
     @Override
     public void afterStart(GradleInternal gradle) {
-        StartParameter startParameter = gradle.getStartParameter();
+        StartParameterInternal startParameter = (StartParameterInternal) gradle.getStartParameter();
         if (VirtualFileSystemServices.isDeprecatedVfsRetentionPropertyPresent(startParameter)) {
             DeprecationLogger.deprecateIndirectUsage("Using the system property " + VirtualFileSystemServices.DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY + " to enable watching the file system")
                 .withAdvice("Use the gradle property " + StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY + " instead.")
@@ -51,11 +50,11 @@ class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListe
             }
         }
         virtualFileSystem.afterBuildStarted(watchFileSystem);
-        gradle.settingsEvaluated(settings -> virtualFileSystem.updateMustWatchDirectories(ImmutableList.of(settings.getRootDir())));
+        gradle.settingsEvaluated(settings -> virtualFileSystem.updateProjectRootDirectory(settings.getRootDir()));
     }
 
     @Override
     public void beforeComplete(GradleInternal gradle) {
-        virtualFileSystem.beforeBuildFinished(gradle.getStartParameter().isWatchFileSystem());
+        virtualFileSystem.beforeBuildFinished(((StartParameterInternal) gradle.getStartParameter()).isWatchFileSystem());
     }
 }

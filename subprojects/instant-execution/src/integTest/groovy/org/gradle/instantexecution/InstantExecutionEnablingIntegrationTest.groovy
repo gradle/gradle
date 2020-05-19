@@ -16,53 +16,107 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.util.ToBeImplemented
-import spock.lang.Ignore
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
+import spock.lang.Unroll
+
 
 class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    def "can enable instant execution from the command line"() {
+    @Unroll
+    def "can enable with a command line #origin"() {
 
         given:
         def fixture = newInstantExecutionFixture()
 
         when:
-        run 'help', "-D${SystemProperties.isEnabled}=true"
+        run 'help', argument
 
         then:
+        outputContainsIncubatingFeatureUsage()
         fixture.assertStateStored()
-    }
-
-    def "can enable instant execution from the client jvm"() {
-        setup:
-        executer.withCommandLineGradleOpts(INSTANT_EXECUTION_PROPERTY)
-        executer.requireGradleDistribution()
-
-        and:
-        def fixture = newInstantExecutionFixture()
 
         when:
-        run 'help'
+        run 'help', argument
 
         then:
-        fixture.assertStateStored()
+        outputContainsIncubatingFeatureUsage()
+        fixture.assertStateLoaded()
+
+        where:
+        origin            | argument
+        "long option"     | STRICT_CLI_OPTION
+        "system property" | "-D${ConfigurationCacheOption.PROPERTY_NAME}=on"
     }
 
-    @Ignore
-    @ToBeImplemented
-    def "can enable instant execution from gradle.properties"() {
-        setup:
+    def "can enable with a property in root directory gradle.properties"() {
+
+        given:
+        def fixture = newInstantExecutionFixture()
         file('gradle.properties') << """
-            systemProp.${SystemProperties.isEnabled}=true
+            ${ConfigurationCacheOption.PROPERTY_NAME}=on
         """
 
-        and:
-        def fixture = newInstantExecutionFixture()
+        when:
+        run 'help'
+
+        then:
+        outputContainsIncubatingFeatureUsage()
+        fixture.assertStateStored()
 
         when:
         run 'help'
 
-        then: 'instant execution is enabled'
+        then:
+        outputContainsIncubatingFeatureUsage()
+        fixture.assertStateLoaded()
+    }
+
+    def "can enable with a property in gradle user home gradle.properties"() {
+
+        given:
+        def fixture = newInstantExecutionFixture()
+        executer.requireOwnGradleUserHomeDir()
+        executer.gradleUserHomeDir.file('gradle.properties') << """
+            ${ConfigurationCacheOption.PROPERTY_NAME}=on
+        """
+
+        when:
+        run 'help'
+
+        then:
+        outputContainsIncubatingFeatureUsage()
         fixture.assertStateStored()
+
+        when:
+        run 'help'
+
+        then:
+        outputContainsIncubatingFeatureUsage()
+        fixture.assertStateLoaded()
+    }
+
+    @Unroll
+    def "can disable with a command line #origin when enabled in gradle.properties"() {
+
+        given:
+        def fixture = newInstantExecutionFixture()
+        file('gradle.properties') << """
+            ${ConfigurationCacheOption.PROPERTY_NAME}=on
+        """
+
+        when:
+        run 'help', argument
+
+        then:
+        fixture.assertNoInstantExecution()
+
+        where:
+        origin            | argument
+        "long option"     | "--${ConfigurationCacheOption.LONG_OPTION}=off"
+        "system property" | "-D${ConfigurationCacheOption.PROPERTY_NAME}=off"
+    }
+
+    private void outputContainsIncubatingFeatureUsage() {
+        outputContains("Configuration cache is an incubating feature.")
     }
 }

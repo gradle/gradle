@@ -16,6 +16,7 @@
 
 package org.gradle.performance.regression.java
 
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
 import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
@@ -35,8 +36,6 @@ import static org.junit.Assert.assertTrue
 @Category(PerformanceRegressionTest)
 class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
-    public static final String INSTANT_EXECUTION_ENABLED_PROPERTY = "org.gradle.unsafe.instant-execution"
-
     private TestFile instantExecutionStateDir
 
     def setup() {
@@ -51,7 +50,10 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
         runner.minimumBaseVersion = "5.6"
         runner.testProject = testProject.projectName
         runner.tasksToRun = ["assemble"]
-        runner.args = ["-D${INSTANT_EXECUTION_ENABLED_PROPERTY}=true"]
+        runner.args = [
+            "-Dorg.gradle.unsafe.instant-execution=true", // TODO remove on rebaseline
+            "-D${ConfigurationCacheOption.PROPERTY_NAME}=on"
+        ]
 
         and:
         runner.useDaemon = daemon == hot
@@ -99,14 +101,15 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
                 if (invocationInfo.iterationNumber > 1) {
-                    def tag = action == storing
-                        ? "Calculating task graph as no instant execution cache is available"
-                        : "Reusing instant execution cache"
+                    // TODO dedupe on rebaseline
+                    def tags = action == storing
+                        ? ["Calculating task graph as no instant execution cache is available", "Calculating task graph as no configuration cache is available"]
+                        : ["Reusing instant execution cache", "Reusing configuration cache"]
                     def found = Files.lines(invocationInfo.buildLog.toPath()).withCloseable { lines ->
-                        lines.anyMatch { line -> line.contains(tag) }
+                        lines.anyMatch { line -> tags.any { line.contains(it) } }
                     }
                     if (!found) {
-                        assertTrue("Instant Execution log '$tag' not found in '$invocationInfo.buildLog'\n\n$invocationInfo.buildLog.text", found)
+                        assertTrue("Configuration cache log '$tags' not found in '$invocationInfo.buildLog'\n\n$invocationInfo.buildLog.text", found)
                     }
                 }
             }

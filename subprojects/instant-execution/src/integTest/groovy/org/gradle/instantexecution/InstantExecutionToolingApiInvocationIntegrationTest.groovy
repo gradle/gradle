@@ -35,7 +35,7 @@ class InstantExecutionToolingApiInvocationIntegrationTest extends AbstractInstan
         runWithInstantExecutionViaToolingApi("assemble")
 
         then:
-        outputContains("Reusing instant execution cache. This is not guaranteed to work in any way.")
+        outputContains("Reusing configuration cache.")
     }
 
     ExecutionResult runWithInstantExecutionViaToolingApi(String... tasks) {
@@ -57,15 +57,12 @@ class InstantExecutionToolingApiInvocationIntegrationTest extends AbstractInstan
         try {
             connection.newBuild()
                 .forTasks(tasks)
-                .withArguments(INSTANT_EXECUTION_PROPERTY)
+                .withArguments(STRICT_CLI_OPTION)
                 .setStandardOutput(output)
                 .setStandardError(error)
                 .run()
         } finally {
             connection.close()
-            if (GradleContextualExecuter.embedded) {
-                System.clearProperty(SystemProperties.isEnabled)
-            }
         }
         result = OutputScrapingExecutionResult.from(output.toString(), error.toString())
         return result

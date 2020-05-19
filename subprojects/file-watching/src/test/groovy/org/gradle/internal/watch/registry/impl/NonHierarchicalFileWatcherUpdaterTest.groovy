@@ -26,14 +26,26 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         new NonHierarchicalFileWatcherUpdater(watcher)
     }
 
-    def "adds watches for all must watch directories"() {
-        def mustWatchDirectoryRoots = ["first", "second"].collect { file(it).createDir()}
-        def mustWatchDirectories = mustWatchDirectoryRoots + file("first/within").createDir()
+    def "ignores project root directory"() {
+        def projectRootDirectory = file("first").createDir()
+        def secondProjectRootDirectory = file("second").createDir()
+        def fileInProjectRootDirectory = projectRootDirectory.file("inside/root/dir/file.txt")
 
         when:
-        updater.updateMustWatchDirectories(mustWatchDirectories)
+        updater.updateProjectRootDirectory(projectRootDirectory)
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, mustWatchDirectories) })
+        0 * _
+
+        when:
+        fileInProjectRootDirectory.createFile()
+        addSnapshot(snapshotRegularFile(fileInProjectRootDirectory))
+        then:
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [fileInProjectRootDirectory.parentFile]) })
+        0 * _
+
+        when:
+        updater.updateProjectRootDirectory(secondProjectRootDirectory)
+        then:
         0 * _
     }
 

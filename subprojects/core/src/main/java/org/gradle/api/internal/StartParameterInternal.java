@@ -17,6 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption;
 import org.gradle.internal.deprecation.Deprecatable;
 import org.gradle.internal.deprecation.LoggingDeprecatable;
 
@@ -24,7 +25,15 @@ import java.io.File;
 import java.util.Set;
 
 public class StartParameterInternal extends StartParameter implements Deprecatable {
+
     private final Deprecatable deprecationHandler = new LoggingDeprecatable();
+
+    private boolean watchFileSystem;
+
+    private ConfigurationCacheOption.Value configurationCache = ConfigurationCacheOption.Value.OFF;
+    private int configurationCacheMaxProblems = 512;
+    private boolean configurationCacheRecreateCache;
+    private boolean configurationCacheQuiet;
 
     @Override
     public StartParameter newInstance() {
@@ -34,6 +43,17 @@ public class StartParameterInternal extends StartParameter implements Deprecatab
     @Override
     public StartParameter newBuild() {
         return prepareNewBuild(new StartParameterInternal());
+    }
+
+    @Override
+    protected StartParameter prepareNewBuild(StartParameter startParameter) {
+        StartParameterInternal p = (StartParameterInternal) super.prepareNewBuild(startParameter);
+        p.watchFileSystem = watchFileSystem;
+        p.configurationCache = configurationCache;
+        p.configurationCacheMaxProblems = configurationCacheMaxProblems;
+        p.configurationCacheRecreateCache = configurationCacheRecreateCache;
+        p.configurationCacheQuiet = configurationCacheQuiet;
+        return p;
     }
 
     @Override
@@ -73,5 +93,45 @@ public class StartParameterInternal extends StartParameter implements Deprecatab
 
     public void setSearchUpwardsWithoutDeprecationWarning(boolean searchUpwards) {
         super.searchUpwards = searchUpwards;
+    }
+
+    public boolean isWatchFileSystem() {
+        return watchFileSystem;
+    }
+
+    public void setWatchFileSystem(boolean watchFileSystem) {
+        this.watchFileSystem = watchFileSystem;
+    }
+
+    public ConfigurationCacheOption.Value getConfigurationCache() {
+        return configurationCache;
+    }
+
+    public void setConfigurationCache(ConfigurationCacheOption.Value configurationCache) {
+        this.configurationCache = configurationCache;
+    }
+
+    public int getConfigurationCacheMaxProblems() {
+        return configurationCacheMaxProblems;
+    }
+
+    public void setConfigurationCacheMaxProblems(int configurationCacheMaxProblems) {
+        this.configurationCacheMaxProblems = configurationCacheMaxProblems;
+    }
+
+    public boolean isConfigurationCacheRecreateCache() {
+        return configurationCacheRecreateCache;
+    }
+
+    public void setConfigurationCacheRecreateCache(boolean configurationCacheRecreateCache) {
+        this.configurationCacheRecreateCache = configurationCacheRecreateCache;
+    }
+
+    public boolean isConfigurationCacheQuiet() {
+        return configurationCacheQuiet;
+    }
+
+    public void setConfigurationCacheQuiet(boolean configurationCacheQuiet) {
+        this.configurationCacheQuiet = configurationCacheQuiet;
     }
 }

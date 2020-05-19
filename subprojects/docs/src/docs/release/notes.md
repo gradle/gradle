@@ -44,6 +44,30 @@ details of 2
 ## n
 -->
 
+<a name="incremental-improvements"></a>
+## Incremental development improvements
+
+A large part of the day in the life of a software developer is typically spent making small changes to the code, then rebuilding it, checking the results, and then going back to make other small changes.
+We call this the _incremental development use case,_ and ensuring fast feedback for it is a critically important for great developer experience and productivity. 
+
+Starting with the current release we will embark on a mission focused on heavily decreasing the overhead Gradle puts on this use case.
+Each forthcoming release in the coming months will include new improvements that we hope will each significantly improve the developer experience.
+Taken together we are hoping to see a quantum leap in how developers work with Gradle, especially from inside an IDE.
+
+### File watching
+
+In Gradle 6.5 we introduce _file-system watching._
+This experimental feature allows Gradle to keep what it learned about the file-system in memory between builds.
+Doing so significantly reduces the amount of disk I/O needed to figure out what has changed since the previous build.
+
+You can enable this feature by supplying the experimental `--watch-fs` parameter on the command-line.
+
+Here's how enabling this feature reduces the time it takes to make small changes to the [Santa Tracker Android application](https://github.com/gradle/santa-tracker-performance):
+
+TBD image for the comparison
+
+Read more about this new feature and its impact [on the Gradle blog](#)!
+
 <a name="lazy-dependencies"><a>
 ## Derive dependencies from user configuration
 

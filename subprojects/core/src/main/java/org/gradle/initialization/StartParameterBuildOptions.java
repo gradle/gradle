@@ -29,6 +29,7 @@ import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
 import org.gradle.internal.buildoption.EnumBuildOption;
+import org.gradle.internal.buildoption.IntegerBuildOption;
 import org.gradle.internal.buildoption.ListBuildOption;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
@@ -70,6 +71,10 @@ public class StartParameterBuildOptions {
         options.add(new DependencyLockingUpdateOption());
         options.add(new RefreshKeysOption());
         options.add(new ExportKeysOption());
+        options.add(new ConfigurationCacheOption());
+        options.add(new ConfigurationCacheMaxProblemsOption());
+        options.add(new ConfigurationCacheRecreateOption());
+        options.add(new ConfigurationCacheQuietOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -375,7 +380,7 @@ public class StartParameterBuildOptions {
                 DependencyVerificationMode.values(),
                 GRADLE_PROPERTY,
                 CommandLineOptionConfiguration.create(
-                LONG_OPTION, SHORT_OPTION, "Configures the dependency verification mode (strict, lenient or off)").incubating()
+                    LONG_OPTION, SHORT_OPTION, "Configures the dependency verification mode (strict, lenient or off)").incubating()
             );
         }
 
@@ -424,6 +429,76 @@ public class StartParameterBuildOptions {
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setExportKeys(true);
+        }
+    }
+
+    public static class ConfigurationCacheOption extends EnumBuildOption<ConfigurationCacheOption.Value, StartParameterInternal> {
+
+        public enum Value {
+            OFF, ON, WARN
+        }
+
+        public static final String PROPERTY_NAME = "org.gradle.unsafe.configuration-cache";
+        public static final String LONG_OPTION = "configuration-cache";
+
+        public ConfigurationCacheOption() {
+            super(
+                LONG_OPTION,
+                Value.class,
+                Value.values(),
+                PROPERTY_NAME,
+                CommandLineOptionConfiguration.create(
+                    LONG_OPTION,
+                    "Enables the configuration cache (off, on, or warn). Gradle will try to reuse the build configuration from previous builds."
+                ).incubating()
+            );
+        }
+
+        @Override
+        public void applyTo(Value value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCache(value);
+        }
+    }
+
+    public static class ConfigurationCacheMaxProblemsOption extends IntegerBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.unsafe.configuration-cache.max-problems";
+
+        public ConfigurationCacheMaxProblemsOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(int value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheMaxProblems(value);
+        }
+    }
+
+    public static class ConfigurationCacheRecreateOption extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.unsafe.configuration-cache.recreate-cache";
+
+        public ConfigurationCacheRecreateOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheRecreateCache(value);
+        }
+    }
+
+    public static class ConfigurationCacheQuietOption extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.unsafe.configuration-cache.quiet";
+
+        public ConfigurationCacheQuietOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheQuiet(value);
         }
     }
 }
