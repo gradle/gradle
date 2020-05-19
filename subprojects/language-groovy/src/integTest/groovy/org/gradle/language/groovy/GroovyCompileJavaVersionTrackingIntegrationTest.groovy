@@ -18,15 +18,14 @@ package org.gradle.language.groovy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import org.gradle.util.TextUtil
 
 import static org.gradle.api.JavaVersion.VERSION_1_8
-import static org.gradle.api.JavaVersion.VERSION_1_9
+import static org.gradle.api.JavaVersion.VERSION_11
 
-@Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_8) && AvailableJavaHomes.getJdk(VERSION_1_9) })
+@Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_8) && AvailableJavaHomes.getJdk(VERSION_11) })
 class GroovyCompileJavaVersionTrackingIntegrationTest extends AbstractIntegrationSpec {
 
     /**
@@ -46,18 +45,18 @@ class GroovyCompileJavaVersionTrackingIntegrationTest extends AbstractIntegratio
     def "tracks changes to the Groovy compiler JVM Java version"() {
         given:
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
-        def jdk9 = AvailableJavaHomes.getJdk(VERSION_1_9)
+        def jdk11 = AvailableJavaHomes.getJdk(VERSION_11)
 
         compileWithJavaJdk(jdk8)
 
         when:
-        executer.withJavaHome jdk9.javaHome
+        executer.withJavaHome jdk11.javaHome
         succeeds ":compileGroovy"
         then:
         executedAndNotSkipped ":compileGroovy"
 
         when:
-        executer.withJavaHome jdk9.javaHome
+        executer.withJavaHome jdk11.javaHome
         succeeds ":compileGroovy"
         then:
         skipped ":compileGroovy"
@@ -70,23 +69,22 @@ class GroovyCompileJavaVersionTrackingIntegrationTest extends AbstractIntegratio
         output.contains "Value of input property 'groovyCompilerJvmVersion' has changed for task ':compileGroovy'"
     }
 
-    @ToBeFixedForInstantExecution
     def "tracks changes to the Java toolchain used for cross compilation"() {
         given:
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
-        def jdk9 = AvailableJavaHomes.getJdk(VERSION_1_9)
+        def jdk11 = AvailableJavaHomes.getJdk(VERSION_11)
 
         compileWithJavaJdk(jdk8)
 
         when:
-        executer.withJavaHome jdk9.javaHome
+        executer.withJavaHome jdk11.javaHome
         succeeds "compileGroovy"
         then:
         executedAndNotSkipped ":compileGroovy"
 
         when:
-        compileWithJavaJdk(jdk9)
-        executer.withJavaHome jdk9.javaHome
+        compileWithJavaJdk(jdk11)
+        executer.withJavaHome jdk11.javaHome
         succeeds "compileGroovy", "--info"
         then:
         executedAndNotSkipped ":compileGroovy"

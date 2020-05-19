@@ -76,7 +76,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @GradleDsl
 abstract class KotlinSettingsScript(
     private val host: KotlinScriptHost<Settings>
-) : SettingsScriptApi(host.target) /* TODO:kotlin-dsl configure implicit receiver */ {
+) : @Suppress("deprecation") SettingsScriptApi(host.target) /* TODO:kotlin-dsl configure implicit receiver */ {
 
     /**
      * The [ScriptHandler] for this script.

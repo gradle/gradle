@@ -88,6 +88,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         failure.assertHasDescription("Execution failed for task ':buildB:broken'.")
     }
 
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "does not compile build script when build script classpath cannot be built"() {
         given:
         buildB.file("src/main/java/B.java") << """

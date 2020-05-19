@@ -104,7 +104,7 @@ The following class makes use of a couple of third-party libraries, one of which
 [source.multi-language-sample,java]
 .src/main/java/org/gradle/HttpClientWrapper.java
 ----
-include::{samplesPath}/java-library/quickstart/groovy/src/main/java/org/gradle/HttpClientWrapper.java[tag=sample]
+include::{snippetsPath}/java-library/quickstart/groovy/src/main/java/org/gradle/HttpClientWrapper.java[tag=sample]
 ----
 
 The _public_ constructor of `HttpClientWrapper` uses `HttpClient` as a parameter, so it is exposed to consumers and therefore belongs to the API. Note that `HttpGet` and `HttpEntity` are used in the signature of a _private_ method, and so they don't count towards making HttpClient an API dependency.
@@ -237,6 +237,155 @@ The role of each configuration is described in the following tables:
 | yes
 | This configuration contains the test runtime classpath of this library
 |===
+
+[[sec:java_library_modular]]
+== Building Modules for the Java Module System
+
+Since Java 9, Java itself offers a https://www.oracle.com/corporate/features/understanding-java-9-modules.html[module system] that allows for strict encapsulation during compile and runtime.
+You can turn a Java library into a _Java Module_ by creating a `module-info.java` file in the `main/java` source folder.
+
+```
+src
+└── main
+    └── java
+        └── module-info.java
+```
+
+In the module info file, you declare a _module name_, which packages of your module you want to _export_ and which other modules you _require_.
+
+[source,java,indent=0]
+.module-info.java file
+----
+include::{snippetsPath}/java-library/module/groovy/src/main/java/module-info.java[]
+----
+
+To tell the Java compiler that a Jar is a module, as opposed to a traditional Java library, Gradle needs to place it on the so called _module path_.
+It is an alternative to the _classpath_, which is the traditional way to tell the compiler about compiled dependencies.
+Gradle will automatically put a Jar of your dependencies on the module path, instead of the classpath, if these three things are true:
+
+* Module path inference is turned on via `java. modularity.inferModulePath.set(true)`
+* We are actually building a module (as opposed to a traditional library) which we expressed by adding the `module-info.java` file.
+  (Another option is to add the `Automatic-Module-Name` Jar manifest attribute as <<#sec:java_library_modular_auto,described further down>>.)
+* The Jar our module depends on is itself a module, which Gradles decides based on the presence of a `module-info.class` -- the compiled version of the module descriptor -- in the Jar.
+  (Or, alternatively, the presence of an `Automatic-Module-Name` attribute the Jar manifest)
+
+In the following, some more details about defining Java modules and how that interacts with Gradle's dependency management are described.
+You can also look at a link:../samples/sample_java_modules_multi_project.html[ready made example] to try out the Java Module support directly.
+
+[NOTE]
+====
+Java Module System support is an incubating feature and therefore you need to turn on _module path inference_ explicitly as shown below.
+====
+
+.Activate module path inference
+====
+include::sample[dir="snippets/java-library/module/groovy",files="build.gradle[tags=inferModulePath]"]
+include::sample[dir="snippets/java-library/module/kotlin",files="build.gradle.kts[tags=inferModulePath]"]
+====
+
+=== Declaring module dependencies
+
+There is a direct relationship to the dependencies you declare in the build file and the module dependencies you declare in the `module-info.java` file.
+Ideally the declarations should be in sync as seen in the following table.
+
+.Mapping between Java module directives and Gradle configurations to declare dependencies
+[%header%autowidth,compact]
+|===
+| Java Module Directive | Gradle Configuration | Purpose
+
+| `requires`
+| `implementation`
+| Declaring implementation dependencies
+
+| `requires transitive`
+| `api`
+| Declaring API dependencies
+
+| `requires static`
+| `compileOnly`
+| Declaring compile only dependencies
+|===
+
+Gradle currently does not automatically check if the dependency declarations are in sync.
+This may be added in future versions.
+
+For more details on declaring module dependencies, please refer to https://www.oracle.com/corporate/features/understanding-java-9-modules.html[documentation on the Java Module System].
+
+=== Declaring package visibility and services
+
+The Java module system supports additional more fine granular encapsulation concepts than Gradle itself currently does.
+For example, you explicitly need to declare which packages are part of your API and which are only visible inside your module.
+Some of these capabilities might be added to Gradle itself in future versions.
+For now, please refer to https://www.oracle.com/corporate/features/understanding-java-9-modules.html[documentation on the Java Module System] to learn how to use these features in Java Modules.
+
+=== Declaring module versions
+
+Java Modules also have a version that is encoded as part of the module identity in the `module-info.class` file.
+This version can be inspected when a module is running.
+
+.Declare the module version in the build script or directly as compile task option
+====
+include::sample[dir="snippets/java-library/module/groovy",files="build.gradle[tags=declareVersion]"]
+include::sample[dir="snippets/java-library/module/kotlin",files="build.gradle.kts[tags=declareVersion]"]
+====
+
+=== Using libraries that are not modules
+
+You probably want to use external libraries, like OSS libraries from Maven Central, in your modular Java project.
+Some libraries, in their newer versions, are already full modules with a module descriptor.
+For example, `com.google.code.gson:gson:2.8.6` that has the module name `com.google.gson`.
+
+Others, like `org.apache.commons:commons-lang3:3.10`, may not offer a full module descriptor but will at least contain an `Automatic-Module-Name` entry in their manifest file to define the module's name (`org.apache.commons.lang3` in the example).
+Such modules, that only have a name as module description, are called _automatic module_ that export **all** their packages and can read **all** modules on the module path.
+
+A third case are traditional libraries that provide no module information at all -- for example `commons-cli:commons-cli:1.4`.
+Gradle puts such libraries on the classpath instead of the module path.
+The classpath is then treated as one module (the so called _unnamed_ module) by Java.
+
+.Dependencies to modules and libraries declared in build file
+====
+include::sample[dir="snippets/java-library/module/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/java-library/module/kotlin",files="build.gradle.kts[tags=dependencies]"]
+====
+
+[source,java,indent=0]
+.Module dependencies declared in module-info.java file
+----
+include::{snippetsPath}/java-library/module/kotlin/src/main/java/module-info.java[]
+----
+
+While a real module cannot directly depend on the unnamed module (only by adding command line flags), automatic modules can also see the unnamed module.
+Thus, if you cannot avoid to rely on a library without module information, you can wrap that library in an automatic module as part of your project.
+How you do that is described in the next section.
+
+Another way to deal with non-modules is to enrich existing Jars with module descriptors yourself using <<artifact_transforms.adoc#,artifact transforms>>.
+link:../samples/sample_java_modules_with_transform.html[This sample] contains a small _buildSrc_ plugin registering such a transform which you may use and adjust to your needs.
+This can be interesting if you want to build a fully <<application_plugin.adoc#sec:application_modular,modular application>> and want the java runtime to treat everything as a real module.
+
+[[sec:java_library_modular_auto]]
+=== Building an automatic module
+
+If you can, you should always write complete `module-info.java` descriptors for your modules.
+Still, there are a few cases where you might consider to (initally) only provide a _module name_ for an automatic module:
+
+- You are working on a library that is **not** a module but you want to make it usable as such in the next release.
+  Adding an `Automatic-Module-Name` is a good first step (most popular OSS libraries on Maven central have done it by now).
+- As discussed in the previous section, an automatic module can be used as an adapter between your real modules and a traditional library on the classpath.
+
+To turn a normal Java project into an _automatic module_, just add the manifest entry with the module name:
+
+.Declare an automatic module name as Jar manifest attribute
+====
+include::sample[dir="snippets/java-library/module/groovy",files="build.gradle[tags=automaticModuleName]"]
+include::sample[dir="snippets/java-library/module/kotlin",files="build.gradle.kts[tags=automaticModuleName]"]
+====
+
+[NOTE]
+====
+You can define an automatic module as part of a multi-project that otherwise defines real modules (e.g. as an adapter to another library).
+While this works fine in the Gradle build, such automatic module projects are not correctly recognized by IDEA/Eclipse at the moment.
+You can work around it by manually adding the Jar built for the automatic module to the dependencies of the project that does not find it in the IDE's UI.
+====
 
 [[sec:java_library_classes_usage]]
 == Using classes instead of jar for compilation

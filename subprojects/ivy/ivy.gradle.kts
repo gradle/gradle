@@ -15,11 +15,10 @@
  */
 
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
@@ -76,10 +75,9 @@ dependencies {
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
-
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
+
+
+integrationTestUsesSampleDir("subprojects/ivy/src/main")

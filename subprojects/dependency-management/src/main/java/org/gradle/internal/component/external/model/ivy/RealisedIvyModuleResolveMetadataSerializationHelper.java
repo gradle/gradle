@@ -46,6 +46,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -57,6 +58,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class RealisedIvyModuleResolveMetadataSerializationHelper extends AbstractRealisedModuleResolveMetadataSerializationHelper {
+
     public RealisedIvyModuleResolveMetadataSerializationHelper(AttributeContainerSerializer attributeContainerSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         super(attributeContainerSerializer, moduleIdentifierFactory);
     }
@@ -96,31 +98,56 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
         }
     }
 
+    @Override
+    protected void writeConfiguration(Encoder encoder, ConfigurationMetadata configuration) throws IOException {
+        super.writeConfiguration(encoder, configuration);
+        if (configuration instanceof RealisedConfigurationMetadata) {
+            RealisedConfigurationMetadata realisedMetadata = (RealisedConfigurationMetadata) configuration;
+            if (realisedMetadata.isAddedByRule()) {
+                encoder.writeBoolean(true);
+                writeMavenExcludeRules(encoder, realisedMetadata.getExcludes());
+            } else {
+                encoder.writeBoolean(false);
+            }
+        } else {
+            encoder.writeBoolean(false);
+        }
+    }
+
     private Map<String, ConfigurationMetadata> readIvyConfigurations(Decoder decoder, DefaultIvyModuleResolveMetadata metadata) throws IOException {
         IvyConfigurationHelper configurationHelper = new IvyConfigurationHelper(metadata.getArtifactDefinitions(), new IdentityHashMap<>(), metadata.getExcludes(), metadata.getDependencies(), metadata.getId());
 
         ImmutableMap<String, Configuration> configurationDefinitions = metadata.getConfigurationDefinitions();
-
         int configurationsCount = decoder.readSmallInt();
         Map<String, ConfigurationMetadata> configurations = Maps.newHashMapWithExpectedSize(configurationsCount);
+
         for (int i = 0; i < configurationsCount; i++) {
             String configurationName = decoder.readString();
             boolean transitive = true;
             boolean visible = true;
             ImmutableSet<String> hierarchy = ImmutableSet.of(configurationName);
+            ImmutableList<ExcludeMetadata> excludes;
 
             Configuration configuration = configurationDefinitions.get(configurationName);
             if (configuration != null) { // if the configuration represents a variant added by a rule, it is not in the definition list
                 transitive = configuration.isTransitive();
                 visible = configuration.isVisible();
                 hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
+                excludes = configurationHelper.filterExcludes(hierarchy);
+            } else {
+                excludes = ImmutableList.of();
             }
+
             ImmutableAttributes attributes = getAttributeContainerSerializer().read(decoder);
             ImmutableCapabilities capabilities = readCapabilities(decoder);
+            boolean hasExplicitExcludes = decoder.readBoolean();
+            if (hasExplicitExcludes) {
+                excludes = ImmutableList.copyOf(readMavenExcludes(decoder));
+            }
             ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = readFiles(decoder, metadata.getId());
 
             RealisedConfigurationMetadata configurationMetadata = new RealisedConfigurationMetadata(metadata.getId(), configurationName, transitive, visible,
-                hierarchy, artifacts, configurationHelper.filterExcludes(hierarchy), attributes, capabilities, false, false);
+                hierarchy, artifacts, excludes, attributes, capabilities, false, false);
 
             ImmutableList.Builder<ModuleDependencyMetadata> builder = ImmutableList.builder();
             int dependenciesCount = decoder.readSmallInt();

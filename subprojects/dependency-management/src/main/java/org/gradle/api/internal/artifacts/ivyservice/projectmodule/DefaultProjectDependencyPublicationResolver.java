@@ -52,7 +52,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         // Ensure target project is configured
         projectConfigurer.configureFully(dependencyProject);
 
-        List<ProjectComponentPublication> publications = new ArrayList<ProjectComponentPublication>();
+        List<ProjectComponentPublication> publications = new ArrayList<>();
         for (ProjectComponentPublication publication : publicationRegistry.getPublications(ProjectComponentPublication.class, dependencyProject.getIdentityPath())) {
             if (!publication.isLegacy() && publication.getCoordinates(coordsType) != null) {
                 publications.add(publication);
@@ -68,15 +68,15 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         }
 
         // Select all entry points. An entry point is a publication that does not contain a component whose parent is also published
-        Set<SoftwareComponent> ignored = new HashSet<SoftwareComponent>();
+        Set<SoftwareComponent> ignored = new HashSet<>();
         for (ProjectComponentPublication publication : publications) {
             if (publication.getComponent() != null && publication.getComponent() instanceof ComponentWithVariants) {
                 ComponentWithVariants parent = (ComponentWithVariants) publication.getComponent();
                 ignored.addAll(parent.getVariants());
             }
         }
-        Set<ProjectComponentPublication> topLevel = new LinkedHashSet<ProjectComponentPublication>();
-        Set<ProjectComponentPublication> topLevelWithComponent = new LinkedHashSet<ProjectComponentPublication>();
+        Set<ProjectComponentPublication> topLevel = new LinkedHashSet<>();
+        Set<ProjectComponentPublication> topLevelWithComponent = new LinkedHashSet<>();
         for (ProjectComponentPublication publication : publications) {
             if (!publication.isAlias() && (publication.getComponent() == null || !ignored.contains(publication.getComponent()))) {
                 topLevel.add(publication);

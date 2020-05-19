@@ -37,7 +37,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.internal.GradleModuleMetadataWriter;
 import org.gradle.api.publish.internal.PublicationInternal;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -85,16 +84,13 @@ public class GenerateModuleMetadata extends DefaultTask {
     }
 
     private void mustHaveAttachedComponent() {
-        setOnlyIf(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                PublicationInternal publication = (PublicationInternal) GenerateModuleMetadata.this.publication.get();
-                if (publication.getComponent() == null) {
-                    getLogger().warn(publication.getDisplayName() + " isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)");
-                    return false;
-                }
-                return true;
+        setOnlyIf(element -> {
+            PublicationInternal<?> publication = Cast.uncheckedNonnullCast(GenerateModuleMetadata.this.publication.get());
+            if (publication.getComponent() == null) {
+                getLogger().warn(publication.getDisplayName() + " isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)");
+                return false;
             }
+            return true;
         });
     }
 
@@ -165,8 +161,8 @@ public class GenerateModuleMetadata extends DefaultTask {
     @TaskAction
     void run() {
         File file = outputFile.get().getAsFile();
-        PublicationInternal publication = (PublicationInternal) this.publication.get();
-        List<PublicationInternal> publications = Cast.uncheckedCast(this.publications.get());
+        PublicationInternal<?> publication = Cast.uncheckedNonnullCast(this.publication.get());
+        List<PublicationInternal<?>> publications = Cast.uncheckedCast(this.publications.get());
         try {
             Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf8"));
             try {
@@ -182,7 +178,7 @@ public class GenerateModuleMetadata extends DefaultTask {
     private class VariantFiles implements MinimalFileSet, Buildable {
         @Override
         public TaskDependency getBuildDependencies() {
-            PublicationInternal publication = (PublicationInternal) GenerateModuleMetadata.this.publication.get();
+            PublicationInternal<?> publication = Cast.uncheckedNonnullCast(GenerateModuleMetadata.this.publication.get());
             SoftwareComponentInternal component = publication.getComponent();
             DefaultTaskDependency dependency = new DefaultTaskDependency();
             if (component == null) {
@@ -198,7 +194,7 @@ public class GenerateModuleMetadata extends DefaultTask {
 
         @Override
         public Set<File> getFiles() {
-            PublicationInternal publication = (PublicationInternal) GenerateModuleMetadata.this.publication.get();
+            PublicationInternal<?> publication = Cast.uncheckedNonnullCast(GenerateModuleMetadata.this.publication.get());
             SoftwareComponentInternal component = publication.getComponent();
             if (component == null) {
                 return ImmutableSet.of();

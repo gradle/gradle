@@ -35,7 +35,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -151,12 +150,7 @@ public class PackageListGenerator extends DefaultTask {
             public void visitFile(FileVisitDetails fileDetails) {
                 try {
                     ZipEntry zipEntry = new ZipEntry(fileDetails.getPath());
-                    InputStream inputStream = fileDetails.open();
-                    try {
-                        processEntry(zipEntry, builder);
-                    } finally {
-                        inputStream.close();
-                    }
+                    processEntry(zipEntry, builder);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }

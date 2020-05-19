@@ -33,6 +33,7 @@ public class ModuleFactoryDelegate {
         this.dependencyFactory = dependencyFactory;
     }
 
+    @SuppressWarnings("rawtypes")
     public void prepareDelegation(Closure configureClosure) {
         ClientModuleConfigureDelegate delegate = new ClientModuleConfigureDelegate(clientModule, this);
         configureClosure.setDelegate(delegate);
@@ -43,6 +44,7 @@ public class ModuleFactoryDelegate {
         dependency(dependencyNotation, null);
     }
 
+    @SuppressWarnings("rawtypes")
     public void dependency(Object dependencyNotation, Closure configureClosure) {
         Dependency dependency = dependencyFactory.createDependency(dependencyNotation);
         clientModule.addDependency((ModuleDependency) dependency);
@@ -55,6 +57,7 @@ public class ModuleFactoryDelegate {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     public void module(Object dependencyNotation, Closure configureClosure) {
         clientModule.addDependency(dependencyFactory.createModule(dependencyNotation, configureClosure));
     }

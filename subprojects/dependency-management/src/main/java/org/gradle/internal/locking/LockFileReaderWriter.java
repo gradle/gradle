@@ -22,7 +22,10 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.provider.Property;
 
+import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -36,13 +39,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class LockFileReaderWriter {
 
     private static final Logger LOGGER = Logging.getLogger(LockFileReaderWriter.class);
     private static final DocumentationRegistry DOC_REG = new DocumentationRegistry();
 
-    static final String UNIQUE_LOCKFILE_NAME = "project.lockfile";
+    static final String UNIQUE_LOCKFILE_NAME = "gradle.lockfile";
     static final String FILE_SUFFIX = ".lockfile";
     static final String DEPENDENCY_LOCKING_FOLDER = "gradle/dependency-locks";
     static final Charset CHARSET = StandardCharsets.UTF_8;
@@ -52,12 +56,15 @@ public class LockFileReaderWriter {
 
     private final Path lockFilesRoot;
     private final DomainObjectContext context;
+    private final Property<File> lockFile;
 
-    public LockFileReaderWriter(FileResolver fileResolver, DomainObjectContext context) {
+    public LockFileReaderWriter(FileResolver fileResolver, DomainObjectContext context, Property<File> lockFile) {
         this.context = context;
+        this.lockFile = lockFile;
         Path resolve = null;
         if (fileResolver.canResolveRelativePath()) {
             resolve = fileResolver.resolve(DEPENDENCY_LOCKING_FOLDER).toPath();
+            lockFile.convention(fileResolver.resolve(decorate(UNIQUE_LOCKFILE_NAME)));
         }
         this.lockFilesRoot = resolve;
         LOGGER.debug("Lockfiles root: {}", lockFilesRoot);
@@ -87,6 +94,7 @@ public class LockFileReaderWriter {
         }
     }
 
+    @Nullable
     public List<String> readLockFile(String configurationName) {
         checkValidRoot(configurationName);
 
@@ -177,8 +185,7 @@ public class LockFileReaderWriter {
     }
 
     private Path getUniqueLockfilePath() {
-        String fileName = decorate(UNIQUE_LOCKFILE_NAME);
-        return lockFilesRoot.resolve(fileName);
+        return lockFile.map(File::toPath).get();
     }
 
     private void parseLine(String line, Map<String, List<String>> result) {
@@ -204,7 +211,6 @@ public class LockFileReaderWriter {
 
     public void writeUniqueLockfile(Map<String, List<String>> lockState) {
         checkValidRoot();
-        makeLockfilesRoot();
         Path lockfilePath = getUniqueLockfilePath();
 
         // Revert mapping
@@ -217,13 +223,14 @@ public class LockFileReaderWriter {
 
     private void writeUniqueLockfile(Path lockfilePath, Map<String, List<String>> dependencyToConfigurations, List<String> emptyConfigurations) {
         try {
+            Files.createDirectories(lockfilePath.getParent());
             List<String> content = new ArrayList<>(50);
             content.addAll(LOCKFILE_HEADER_LIST);
             for (Map.Entry<String, List<String>> entry : dependencyToConfigurations.entrySet()) {
-                String builder = entry.getKey() + "=" + String.join(",", entry.getValue());
+                String builder = entry.getKey() + "=" + entry.getValue().stream().sorted().collect(Collectors.joining(","));
                 content.add(builder);
             }
-            content.add("empty=" + String.join(",", emptyConfigurations));
+            content.add("empty=" + emptyConfigurations.stream().sorted().collect(Collectors.joining(",")));
             Files.write(lockfilePath, content, CHARSET);
         } catch (IOException e) {
             throw new RuntimeException("Unable to write unique lockfile", e);

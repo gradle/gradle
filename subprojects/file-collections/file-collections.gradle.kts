@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
-    // Some cycles have been inherited from the time these classes were in :core
-    // gradlebuild.classycle
+    gradlebuild.distribution.`core-api-java`
 }
 
 dependencies {
@@ -55,11 +51,16 @@ dependencies {
     testFixturesImplementation(project(":internalTesting"))
 
     testFixturesImplementation(library("guava"))
+
+    integTestRuntimeOnly(project(":apiMetadata"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 }
 
-java {
-    gradlebuildJava {
-        moduleType = ModuleType.CORE
-    }
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
 }
 
+classycle {
+    // Some cycles have been inherited from the time these classes were in :core
+    excludePatterns.set(listOf("org/gradle/api/internal/file/collections/"))
+}

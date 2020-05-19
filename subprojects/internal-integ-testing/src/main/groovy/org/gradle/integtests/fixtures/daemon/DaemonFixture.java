@@ -44,6 +44,15 @@ public interface DaemonFixture {
     boolean logContains(String searchString);
 
     /**
+     * Returns whether the log file contains a given String, starting from line `fromLine`
+     *
+     * The first line in the file is the line 0.
+     *
+     * Works without reading the whole log file into memory.
+     */
+    boolean logContains(long fromLine, String searchString);
+
+    /**
      * Returns the TCP port used by this daemon.
      */
     int getPort();

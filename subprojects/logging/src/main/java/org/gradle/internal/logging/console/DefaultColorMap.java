@@ -176,7 +176,7 @@ public class DefaultColorMap implements ColorMap {
 
         if (colorSpec.contains("-")) {
             String[] colors = colorSpec.split("-");
-            ArrayList<Color> colorList = new ArrayList(colors.length);
+            ArrayList<Color> colorList = new ArrayList<Color>(colors.length);
             for (String color : colors) {
                 colorList.add(createColorFromSpec(color));
             }

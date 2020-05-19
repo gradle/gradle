@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import java.util.*
+import org.gradle.internal.os.OperatingSystem
+import java.util.Properties
 
 plugins {
-    `java`
+    java
     `kotlin-dsl` apply false
-    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.4.1" apply false
+    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.5.0" apply false
 }
 
 subprojects {
@@ -141,6 +142,11 @@ if (isSkipBuildSrcVerification) {
 }
 
 if (isCiServer) {
+    println("Current machine has ${Runtime.getRuntime().availableProcessors()} CPU cores")
+
+    if (OperatingSystem.current().isWindows) {
+        require(Runtime.getRuntime().availableProcessors() >= 6) { "Windows CI machines must have at least 6 CPU cores!" }
+    }
     gradle.buildFinished {
         allprojects.forEach { project ->
             project.tasks.all {

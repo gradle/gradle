@@ -21,18 +21,14 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
-
-@Requires(KOTLIN_SCRIPT)
 class SamplesCustomPluginIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
     @Unroll
-    @UsesSample("customPlugin")
+    @UsesSample("plugins/customPlugin")
     def "can test plugin and task implementation with #dsl dsl"() {
         when:
         TestFile dslDir = sample.dir.file("$dsl/plugin")
@@ -48,7 +44,7 @@ class SamplesCustomPluginIntegrationTest extends AbstractSampleIntegrationTest {
 
     @ToBeFixedForInstantExecution
     @Unroll
-    @UsesSample("customPlugin")
+    @UsesSample("plugins/customPlugin")
     def "can publish and use plugin and test implementations for #producerName producer and #dsl dsl"() {
         given:
         TestFile dslDir = sample.dir.file(dsl)

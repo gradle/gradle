@@ -48,6 +48,13 @@ public class DefaultAsyncConsumerActionExecutor implements AsyncConsumerActionEx
     }
 
     @Override
+    public void disconnect() {
+        lifecycle.requestStop();
+        executor.requestStop();
+        actionExecutor.disconnect();
+    }
+
+    @Override
     public <T> void run(final ConsumerAction<? extends T> action, final ResultHandlerVersion1<? super T> handler) {
         lifecycle.use(() -> executor.execute(() -> {
             T result;

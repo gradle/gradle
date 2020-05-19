@@ -1,13 +1,12 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.distribution.`core-api-java`
 }
+
+gradlebuildJava.usedInWorkers()
 
 dependencies {
     implementation(project(":baseServices"))
-    
+
     implementation(library("fastutil"))
     implementation(library("slf4j_api"))
     implementation(library("guava"))
@@ -17,10 +16,6 @@ dependencies {
 
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(library("slf4j_api"))
-    
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
-}
 
-gradlebuildJava {
-    moduleType = ModuleType.WORKER
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }

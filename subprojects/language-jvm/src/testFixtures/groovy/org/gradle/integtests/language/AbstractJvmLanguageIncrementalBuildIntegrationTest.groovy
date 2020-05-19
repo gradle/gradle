@@ -212,11 +212,11 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
     }
 
     def assertOutputs(List<JvmSourceFile> expectedClasses, List<JvmSourceFile> expectedResources) {
-        String[] classes = expectedClasses.collect { it.fullPath }
-        String[] resources = expectedResources.collect { it.fullPath }
+        def classes = expectedClasses.collect { it.fullPath }
+        def resources = expectedResources.collect { it.fullPath }
         file("build/classes/main/jar").assertHasDescendants(classes)
-        file("build/resources/main/jar").assertHasDescendants(resources)
-        jarFile("build/jars/main/jar/main.jar").hasDescendants(classes + resources as String[])
+        file("build/resources/main/jar").assertHasDescendants(resources, true)
+        jarFile("build/jars/main/jar/main.jar").hasDescendants((classes + resources) as String[])
         return true
     }
 

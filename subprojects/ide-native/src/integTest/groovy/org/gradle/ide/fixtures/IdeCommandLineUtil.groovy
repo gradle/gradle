@@ -18,9 +18,7 @@ package org.gradle.ide.fixtures
 
 import com.google.common.collect.Maps
 import groovy.transform.CompileStatic
-import org.gradle.api.Transformer
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.CollectionUtils
 import org.gradle.util.GUtil
 
 @CompileStatic
@@ -58,18 +56,20 @@ Actual: \${actual[key]}
                         writer.close()
                     }
                 }
-                gradle.buildFinished {
-                    if (!gradleEnvironment.exists()) {
-                        throw new GradleException("could not determine if $ideCommandLineTool is using the correct environment, did $ideTaskName task run?")
-                    } else {
-                        def expectedEnvironment = new Properties()
-                        expectedEnvironment.load(gradleEnvironment.newInputStream())
+                gradle.taskGraph.whenReady { taskGraph ->
+                    taskGraph.allTasks.last().doLast {
+                        if (!gradleEnvironment.exists()) {
+                            throw new GradleException("could not determine if $ideCommandLineTool is using the correct environment, did $ideTaskName task run?")
+                        } else {
+                            def expectedEnvironment = new Properties()
+                            expectedEnvironment.load(gradleEnvironment.newInputStream())
 
-                        def actualEnvironment = gatherEnvironment()
+                            def actualEnvironment = gatherEnvironment()
 
-                        assertEquals('JAVA_HOME', expectedEnvironment, actualEnvironment)
-                        assertEquals('GRADLE_USER_HOME', expectedEnvironment, actualEnvironment)
-                        assertEquals('GRADLE_OPTS', expectedEnvironment, actualEnvironment)
+                            assertEquals('JAVA_HOME', expectedEnvironment, actualEnvironment)
+                            assertEquals('GRADLE_USER_HOME', expectedEnvironment, actualEnvironment)
+                            assertEquals('GRADLE_OPTS', expectedEnvironment, actualEnvironment)
+                        }
                     }
                 }
             }
@@ -84,23 +84,18 @@ Actual: \${actual[key]}
         assert !props.isEmpty()
 
         for (Map.Entry<Object, Object> entry : props.entrySet()) {
-            if (entry.getKey().toString().equals("GRADLE_OPTS")) {
+            if (entry.key == "GRADLE_OPTS") {
                 // macOS adds Xdock properties in a funky way that makes us duplicate them on the command-line
-                String value = entry.getValue().toString()
+                String value = entry.value.toString()
                 int lastIndex = value.lastIndexOf("\"-Xdock:name=Gradle\"")
                 if (lastIndex > 0) {
-                    envvars.put(entry.getKey().toString(), value.substring(0, lastIndex-1))
+                    envvars.put(entry.key.toString(), value.substring(0, lastIndex - 1))
                     continue
                 }
             }
-            envvars.put(entry.getKey().toString(), entry.getValue().toString())
+            envvars.put(entry.key.toString(), entry.value.toString())
         }
 
-        return CollectionUtils.toList(CollectionUtils.collect(envvars.entrySet(), new Transformer<String, Map.Entry<String, String>>() {
-            @Override
-            public String transform(Map.Entry<String, String> envvar) {
-                return envvar.getKey() + "=" + envvar.getValue()
-            }
-        }))
+        return envvars.entrySet().collect { "${it.key}=${it.value}".toString() }
     }
 }

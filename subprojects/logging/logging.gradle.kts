@@ -1,12 +1,10 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
-/**
- * Logging infrastructure.
- */
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.distribution.`core-api-java`
 }
+
+description = "Logging infrastructure"
+
+gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(library("slf4j_api"))
@@ -36,11 +34,8 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 
     testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(library("slf4j_api"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.WORKER
 }
 
 classycle {

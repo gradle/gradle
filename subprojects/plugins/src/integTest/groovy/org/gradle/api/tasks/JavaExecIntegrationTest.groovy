@@ -237,6 +237,47 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         outputFile.text == "different"
     }
 
+    @ToBeFixedForInstantExecution
+    def "main class can be configured through a convention mapping"() {
+        given:
+        buildFile.text = """
+            apply plugin: "java"
+
+            task run(type: JavaExec) {
+                classpath = project.layout.files(compileJava)
+                conventionMapping("main") { "driver.Driver" }
+            }
+        """
+
+        when:
+        run "run"
+
+        then:
+        executedAndNotSkipped ":run"
+    }
+
+
+    @ToBeFixedForInstantExecution
+    @Issue("https://github.com/gradle/gradle/issues/12832")
+    def "classpath can be replaced with a file collection including the replaced value"() {
+        given:
+        buildFile.text = """
+            apply plugin: "java"
+
+            task run(type: JavaExec) {
+                classpath = project.layout.files(compileJava)
+                classpath = files(classpath, "someOtherFile.jar").filter { true }
+                mainClass = "driver.Driver"
+            }
+        """
+
+        when:
+        run "run"
+
+        then:
+        executedAndNotSkipped ":run"
+    }
+
     private void assertOutputFileIs(String text) {
         assert file("out.txt").text == text
     }

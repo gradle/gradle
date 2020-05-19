@@ -222,7 +222,7 @@ The following project build script demonstrates how you can access various confi
 
 .Using type-safe model accessors
 ====
-include::sample[dir="snippets/kotlinDsl/accessors",files="build.gradle.kts[tags=accessors]"]
+include::sample[dir="snippets/kotlinDsl/accessors/kotlin",files="build.gradle.kts[tags=accessors]"]
 ====
 <1> Uses type-safe accessors for the `api`, `implementation` and `testImplementation` dependency configurations contributed by the <<java_library_plugin#java_library_plugin,Java Library Plugin>>
 <2> Uses an accessor to configure the `sourceSets` project extension
@@ -269,7 +269,7 @@ You have to use other techniques instead, as demonstrated here:
 
 .Configuring plugins without type-safe accessors
 ====
-include::sample[dir="snippets/kotlinDsl/noAccessors",files="build.gradle.kts[tags=no-accessors]"]
+include::sample[dir="snippets/kotlinDsl/noAccessors/kotlin",files="build.gradle.kts[tags=no-accessors]"]
 ====
 
 Type-safe accessors are unavailable for model elements contributed by the following:
@@ -291,7 +291,7 @@ The following sample demonstrates how to reference and configure artifact config
 
 .Artifact configurations
 ====
-include::sample[dir="snippets/kotlinDsl/noAccessors",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/kotlinDsl/noAccessors/kotlin",files="build.gradle.kts[tags=dependencies]"]
 ====
 
 The code looks similar to that for the type-safe accessors, except that the configuration names are string literals in this case.
@@ -306,7 +306,7 @@ As the following sample shows for the `sourceSets {}` and `java {}` blocks from 
 
 .Project extensions and conventions
 ====
-include::sample[dir="snippets/kotlinDsl/noAccessors",files="build.gradle.kts[tags=project-extension]"]
+include::sample[dir="snippets/kotlinDsl/noAccessors/kotlin",files="build.gradle.kts[tags=project-extension]"]
 ====
 
 Note that `sourceSets` is a Gradle extension on `Project` of type `SourceSetContainer` and `java` is an extension on `Project` of type `JavaPluginExtension`.
@@ -331,7 +331,7 @@ In our sample build script, we want to configure a source set named `main` withi
 
 .Elements of project extensions that are containers
 ====
-include::sample[dir="snippets/kotlinDsl/noAccessors",files="build.gradle.kts[tags=project-container-extension]"]
+include::sample[dir="snippets/kotlinDsl/noAccessors/kotlin",files="build.gradle.kts[tags=project-container-extension]"]
 ====
 
 All elements within a container-based project extension have a name, so you can use this technique in all such cases.
@@ -346,7 +346,7 @@ This means that you can configure tasks in the same way as you do for source set
 
 .Tasks
 ====
-include::sample[dir="snippets/kotlinDsl/noAccessors",files="build.gradle.kts[tags=tasks]"]
+include::sample[dir="snippets/kotlinDsl/noAccessors/kotlin",files="build.gradle.kts[tags=tasks]"]
 ====
 
 We are using the Gradle API to refer to the tasks by name and type, rather than using accessors.
@@ -380,7 +380,7 @@ The Kotlin DSL provides the `withConvention(T::class) {}` extension function to 
 
 .Configuring source set conventions
 ====
-include::sample[dir="snippets/kotlinDsl/sourceSetConvention",files="build.gradle.kts[tags=source-set-convention]"]
+include::sample[dir="snippets/kotlinDsl/sourceSetConvention/kotlin",files="build.gradle.kts[tags=source-set-convention]"]
 ====
 
 This technique is most commonly required for source sets that are added by language plugins other than the Java Plugin, e.g. the Groovy Plugin and the Scala Plugin. You can see which plugins add which properties to source sets in the link:{groovyDslPath}/org.gradle.api.tasks.SourceSet.html[SourceSet] reference documentation.
@@ -401,14 +401,14 @@ The <<plugins#sec:subprojects_plugins_dsl,Using Gradle plugins>> chapter explain
 [[ex:multi_project_ratpack]]
 .Declare plugin dependencies in the root build script using the `plugins {}` block
 ====
-include::sample[dir="snippets/kotlinDsl/multiProjectBuild",files="settings.gradle.kts[tags=base];build.gradle.kts[tags=root];domain/build.gradle.kts[];infra/build.gradle.kts[];http/build.gradle.kts[]"]
+include::sample[dir="snippets/kotlinDsl/multiProjectBuild/kotlin",files="settings.gradle.kts[tags=base];build.gradle.kts[tags=root];domain/build.gradle.kts[];infra/build.gradle.kts[];http/build.gradle.kts[]"]
 ====
 
 If your build requires additional plugin repositories on top of the Gradle Plugin Portal, you should declare them in the `pluginManagement {}` block in your `settings.gradle.kts` file, like so:
 
 .Declare additional plugin repositories
 ====
-include::sample[dir="snippets/kotlinDsl/multiProjectBuild",files="settings.gradle.kts[tags=repositories]"]
+include::sample[dir="snippets/kotlinDsl/multiProjectBuild/kotlin",files="settings.gradle.kts[tags=repositories]"]
 ====
 
 Plugins fetched from a source other than the link:https://plugins.gradle.org/[Gradle Plugin Portal] can only be declared via the `plugins {}` block if they are published with their <<plugins#sec:plugin_markers,plugin marker artifacts>>.
@@ -419,7 +419,7 @@ If those artifacts are missing, then you can't use the `plugins {}` block. You m
 
 .Declare plugin dependencies in the root build script using the `buildscript {}` block
 ====
-include::sample[dir="snippets/kotlinDsl/androidBuild",files="settings.gradle.kts[tags=android];build.gradle.kts[tags=android-buildscript];lib/build.gradle.kts[tags=android];app/build.gradle.kts[tags=android]"]
+include::sample[dir="snippets/kotlinDsl/androidBuild/kotlin",files="settings.gradle.kts[tags=android];build.gradle.kts[tags=android-buildscript];lib/build.gradle.kts[tags=android];app/build.gradle.kts[tags=android]"]
 ====
 
 This technique is not that different from what Android Studio produces when creating a new build.
@@ -438,7 +438,7 @@ As an example, let's modify the <<ex:multi_project_ratpack,Java/Ratpack sample b
 
 .Cross-configuring projects
 ====
-include::sample[dir="snippets/kotlinDsl/multiProjectBuild",files="settings.gradle.kts[tags=base];build.gradle.kts[tags=cross]"]
+include::sample[dir="snippets/kotlinDsl/multiProjectBuild/kotlin",files="settings.gradle.kts[tags=base];build.gradle.kts[tags=cross]"]
 ====
 
 Note how we're using the `apply()` method to apply the plugins since the `plugins {}` block doesn't work in this context.
@@ -473,7 +473,7 @@ To demonstrate, the following sample adds the `google()` repository — where th
 
 .Mapping plugin IDs to dependency coordinates
 ====
-include::sample[dir="snippets/kotlinDsl/androidSingleBuild",files="settings.gradle.kts[tags=android];build.gradle.kts[tags=android]"]
+include::sample[dir="snippets/kotlinDsl/androidSingleBuild/kotlin",files="settings.gradle.kts[tags=android];build.gradle.kts[tags=android]"]
 ====
 
 In fact, the above sample will work for all `com.android.*` plugins that are provided by the specified module. That's because the packaged module contains the details of which plugin ID maps to which plugin implementation class, using the properties-file mechanism described in the <<custom_plugins#sec:custom_plugins_standalone_project,Writing Custom Plugins>> chapter.
@@ -531,7 +531,7 @@ The following sample demonstrates how you can use the link:{groovyDslPath}/org.g
 
 .Using the container API
 ====
-include::sample[dir="snippets/kotlinDsl/containers/api",files="build.gradle.kts[tags=api]"]
+include::sample[dir="snippets/kotlinDsl/containers-api/kotlin",files="build.gradle.kts[tags=api]"]
 ====
 <1> Gets a reference of type `Task` to the existing task named `check`
 <2> Registers a new untyped task named `myTask1`
@@ -557,7 +557,7 @@ The following sample does the exact same things as the one in the previous secti
 
 .Using Kotlin delegated properties
 ====
-include::sample[dir="snippets/kotlinDsl/containers/delegated-properties",files="build.gradle.kts[tags=delegated-properties]"]
+include::sample[dir="snippets/kotlinDsl/containers-delegated-properties/kotlin",files="build.gradle.kts[tags=delegated-properties]"]
 ====
 <1> Uses the reference to the `myTask1` task rather than a task path
 
@@ -574,7 +574,7 @@ The following example uses a combination of type-safe accessors, the container A
 
 .Container scope
 ====
-include::sample[dir="snippets/kotlinDsl/containers/scope",files="build.gradle.kts[tags=scope]"]
+include::sample[dir="snippets/kotlinDsl/containers-scope/kotlin",files="build.gradle.kts[tags=scope]"]
 ====
 
 // TODO decide if we should document this given the current limitation
@@ -582,7 +582,7 @@ include::sample[dir="snippets/kotlinDsl/containers/scope",files="build.gradle.kt
 //
 // .The container scope string invoke extension
 // ====
-// include::sample[dir="snippets/kotlinDsl/containers/string-invoke",files="build.gradle.kts[tags=string-invoke]"]
+// include::sample[dir="snippets/kotlinDsl/containers-string-invoke/kotlin",files="build.gradle.kts[tags=string-invoke]"]
 // ====
 
 
@@ -714,7 +714,7 @@ The plugin achieves this by doing the following:
  * Applies the link:https://kotlinlang.org/docs/reference/using-gradle.html#targeting-the-jvm[Kotlin Plugin], which adds support for compiling Kotlin source files.
  * Adds the `kotlin-stdlib-jdk8`, `kotlin-reflect` and `gradleKotlinDsl()` dependencies to the `compileOnly` and `testImplementation` configurations, which allows you to make use of those Kotlin libraries and the Gradle API in your Kotlin code.
  * Configures the Kotlin compiler with the same settings that are used for Kotlin DSL scripts, ensuring consistency between your build logic and those scripts.
- * Enables support for <<kotdsl:precompiled_plugins,precompiled script plugins>>.
+ * Enables support for <<custom_plugins#sec:precompiled_plugins,precompiled script plugins>>.
 
 [CAUTION]
 .Avoid specifying a version for the `kotlin-dsl` plugin
@@ -726,7 +726,7 @@ This is the basic configuration you need to use the plugin:
 
 .Applying the Kotlin DSL Plugin to a `buildSrc` project
 ====
-include::sample[dir="snippets/kotlinDsl/kotlinDslPlugin",files="buildSrc/build.gradle.kts[tags=apply]"]
+include::sample[dir="snippets/kotlinDsl/kotlinDslPlugin/kotlin",files="buildSrc/build.gradle.kts[tags=apply]"]
 ====
 
 Be aware that the Kotlin DSL Plugin turns on experimental Kotlin compiler features.
@@ -737,56 +737,7 @@ You can silence the warning by setting the `experimentalWarning` property of the
 
 .Disabling the warning about the use of experimental Kotlin compiler features
 ====
-include::sample[dir="snippets/kotlinDsl/kotlinDslPlugin",files="buildSrc/build.gradle.kts[tags=disable-experimental-warning]"]
-====
-
-[[kotdsl:precompiled_plugins]]
-=== Precompiled script plugins
-
-In addition to normal Kotlin source files that go under `src/main/kotlin` by convention, the Kotlin DSL Plugin also allows you to provide your build logic as precompiled script plugins.
-You write these as `*.gradle.kts` files in that same `src/main/kotlin` directory.
-
-Precompiled script plugins are Kotlin DSL scripts that are compiled as part of a regular Kotlin source set and then placed on the build classpath or packaged in a binary plugin, depending on what type of project they're in.
-For all intents and purposes, they _are_ binary plugins, particularly as they can be applied by plugin ID, just like a normal plugin.
-In fact, the Kotlin DSL Plugin generates plugin metadata for them thanks to integration with the <<java_gradle_plugin#java_gradle_plugin,Gradle Plugin Development Plugin>>. 
-
-[NOTE]
-====
-Precompiled script plugins built with Gradle 6.0 cannot be used with earlier versions of Gradle. This limitation will be lifted in a future version of Gradle.
-====
-
-So, to apply a precompiled script plugin, you need to know its ID.
-That is derived from its filename (minus the `.gradle.kts` extension) and its (optional) package declaration.
-
-For example, the script `src/main/kotlin/java-library-convention.gradle.kts` would have a plugin ID of `java-library-convention` (assuming it has no package declaration).
-Likewise, `src/main/kotlin/my/java-library-convention.gradle.kts` would result in a plugin ID of `my.java-library-convention` as long as it has a package declaration of `my`.
-
-To demonstrate how you can implement and use a precompiled script plugin, let's walk through an example based on a `buildSrc` project.
-
-First, you need a `buildSrc/build.gradle.kts` file that applies the Kotlin DSL Plugin:
-
-.Applying the Kotlin DSL Plugin to the `buildSrc` project
-====
-include::sample[dir="snippets/kotlinDsl/precompiledScriptPlugins/inBuildSrc",files="buildSrc/build.gradle.kts[tags=apply]"]
-====
-
-We recommend that you also create a `buildSrc/settings.gradle.kts` file, which you may leave empty.
-
-Next, create a new `java-library-convention.gradle.kts` file in the `buildSrc/src/main/kotlin` directory and set its contents to the following:
-
-.Creating a simple script plugin
-====
-include::sample[dir="snippets/kotlinDsl/precompiledScriptPlugins/inBuildSrc",files="buildSrc/src/main/kotlin/java-library-convention.gradle.kts[]"]
-====
-
-This script plugin simply applies the Java Library and Checkstyle Plugins and configures them.
-Note that this will actually apply the plugins to the main project, i.e. the one that applies the precompiled script plugin
-
-Finally, apply the script plugin to the root project as follows:
-
-.Applying the precompiled script plugin to the main project
-====
-include::sample[dir="snippets/kotlinDsl/precompiledScriptPlugins/inBuildSrc",files="build.gradle.kts[]"]
+include::sample[dir="snippets/kotlinDsl/kotlinDslPlugin/kotlin",files="buildSrc/build.gradle.kts[tags=disable-experimental-warning]"]
 ====
 
 
@@ -880,7 +831,7 @@ To call a Kotlin extension function from Groovy, call it as a static function, p
 
 .Calling a Kotlin extension from Groovy
 ====
-include::sample[dir="snippets/kotlinDsl/interoperability/static-extensions",files="build.gradle[tags=kotlin-from-groovy]"]
+include::sample[dir="snippets/kotlinDsl/interoperability-static-extensions/kotlin",files="build.gradle[tags=kotlin-from-groovy]"]
 ====
 
 Kotlin extension functions are package-level functions and you can learn how to locate the name of the type declaring a given Kotlin extension in the link:{kotlin-reference}java-to-kotlin-interop.html#package-level-functions[Package-Level Functions] section of the Kotlin reference documentation.
@@ -890,7 +841,7 @@ Here's an example:
 
 .Calling a Groovy extension from Kotlin
 ====
-include::sample[dir="snippets/kotlinDsl/interoperability/static-extensions",files="build.gradle.kts[tags=groovy-from-kotlin]"]
+include::sample[dir="snippets/kotlinDsl/interoperability-static-extensions/kotlin",files="build.gradle.kts[tags=groovy-from-kotlin]"]
 ====
 
 === Named parameters and default arguments
@@ -947,14 +898,14 @@ Some plugins expect simple closures, as with the link:{plugin-portal}plugin/com.
 
 .Use `closureOf<T> {}`
 ====
-include::sample[dir="snippets/kotlinDsl/interoperability/closure-of",files="build.gradle.kts[tags=closureOf]"]
+include::sample[dir="snippets/kotlinDsl/interoperability-closure-of/kotlin",files="build.gradle.kts[tags=closureOf]"]
 ====
 
 In other cases, like with the link:{plugin-portal}plugin/org.gretty[Gretty Plugin] when configuring farms, the plugin expects a delegate closure:
 
 .Use `delegateClosureOf<T> {}`
 ====
-include::sample[dir="snippets/kotlinDsl/interoperability/delegate-closure-of",files="build.gradle.kts[tags=delegateClosureOf]"]
+include::sample[dir="snippets/kotlinDsl/interoperability-delegate-closure-of/kotlin",files="build.gradle.kts[tags=delegateClosureOf]"]
 ====
 
 There sometimes isn't a good way to tell, from looking at the source code, which version to use.
@@ -966,7 +917,7 @@ The `KotlinClosure0` to `KotlinClosure2` types allows adapting Kotlin functions 
 
 .Use `KotlinClosureX` types
 ====
-include::sample[dir="snippets/kotlinDsl/interoperability/kotlinClosure",files="build.gradle.kts[tags=kotlinClosure]"]
+include::sample[dir="snippets/kotlinDsl/interoperability-kotlinClosure/kotlin",files="build.gradle.kts[tags=kotlinClosure]"]
 ====
 
 Also see the link:{kotlin-dsl-samples}groovy-interop[groovy-interop] sample.
@@ -980,7 +931,7 @@ The following example demonstrates several features of the method on the object 
 
 .Use `withGroovyBuilder {}`
 ====
-include::sample[dir="snippets/kotlinDsl/interoperability/groovy-builder",files="build.gradle.kts[tags=withGroovyBuilder]"]
+include::sample[dir="snippets/kotlinDsl/interoperability-groovy-builder/kotlin",files="build.gradle.kts[tags=withGroovyBuilder]"]
 ====
 <1> The receiver is a link:https://docs.groovy-lang.org/latest/html/api/groovy/lang/GroovyObject.html[GroovyObject] and provides Kotlin helpers
 <2> The `GroovyObject` API is available

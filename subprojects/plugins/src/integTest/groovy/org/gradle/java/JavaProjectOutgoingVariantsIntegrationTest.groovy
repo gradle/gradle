@@ -18,9 +18,7 @@ package org.gradle.java
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.maven.MavenFileModule
-import spock.lang.Unroll
 
 abstract class JavaProjectOutgoingVariantsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -93,7 +91,6 @@ project(':consumer') {
         succeeds "resolve"
     }
 
-    @ToBeFixedForInstantExecution
     def "provides runtime JAR as default variant"() {
         when:
         resolve()
@@ -125,8 +122,6 @@ project(':consumer') {
         outputContains("java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}")
     }
 
-    @Unroll
-    @ToBeFixedForInstantExecution
     def "provides API variant - #format"() {
         buildFile << """
             project(':consumer') {
@@ -172,8 +167,6 @@ project(':consumer') {
         "LibraryElements.RESOURCES" | _
     }
 
-    @Unroll
-    @ToBeFixedForInstantExecution
     def "provides runtime variant - format: #format"() {
         buildFile << """
             project(':consumer') {
@@ -238,7 +231,6 @@ project(':consumer') {
         outputContains("java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}")
     }
 
-    @ToBeFixedForInstantExecution
     def "provides runtime classes variant"() {
         buildFile << """
             project(':consumer') {
@@ -278,7 +270,6 @@ project(':consumer') {
         outputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes, org.gradle.usage=java-runtime}")
     }
 
-    @ToBeFixedForInstantExecution
     def "provides runtime resources variant"() {
         buildFile << """
             project(':consumer') {

@@ -36,7 +36,7 @@ public interface StyledTextOutputFactory {
      * @return the output
      */
 
-    StyledTextOutput create(Class logCategory);
+    StyledTextOutput create(Class<?> logCategory);
 
     /**
      * Creates a {@code StyledTextOutput} with the given category and log level.
@@ -45,7 +45,7 @@ public interface StyledTextOutputFactory {
      * @param logLevel The log level. Can be null to use the standard output log level.
      * @return the output
      */
-    StyledTextOutput create(Class logCategory, LogLevel logLevel);
+    StyledTextOutput create(Class<?> logCategory, LogLevel logLevel);
 
     /**
      * Creates a {@code StyledTextOutput} with the given category and log level.

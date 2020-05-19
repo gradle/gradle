@@ -30,7 +30,7 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.Matcher
 
-import org.junit.Assert.assertThat
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 import kotlin.reflect.KClass
@@ -122,7 +122,7 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
                 val t1: Task = getByName("foo")
                 val t2: Task = getByName("foo", Task::class)
                 val t3: Task = getByName<Task>("foo")
-    
+
                 val t4: Task = getByName("bar") {
                     description += "A"
                 }
@@ -134,7 +134,7 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
                     description += "C"
                     destinationDir = file("out")
                 }
-    
+
                 val t7: Task = create("bazar")
                 val t8: Copy = create("cathedral", Copy::class)
                 val t9: Copy = create<Copy>("cabin")
@@ -150,11 +150,11 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
                     description += "!"
                     destinationDir = file("out")
                 }
-    
+
                 val t13: TaskProvider<Task> = named("bat")
                 val t14: TaskProvider<Copy> = named("bat", Copy::class)
                 val t15: TaskProvider<Copy> = named<Copy>("bat")
-    
+
                 val t16: TaskProvider<Task> = named("pipistrelle") {
                     description += "A"
                 }
@@ -166,11 +166,11 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
                     description += "C"
                     destinationDir = file("out")
                 }
-    
+
                 val t19: TaskProvider<Task> = register("yate")
                 val t20: TaskProvider<Copy> = register("quartern", Copy::class)
                 val t21: TaskProvider<Copy> = register<Copy>("veduta")
-    
+
                 val t22: TaskProvider<Task> = register("vansire") {
                     description += "!"
                 }
@@ -254,22 +254,22 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
             fun untyped() {
 
                 tasks {
-    
+
                     val foo: Task by getting
                     val bar: Task by getting {
                         description += "B"
                     }
-    
+
                     val bazar: Task by creating
                     val castle: Task by creating {
                         description += "!"
                     }
-    
+
                     val bat: TaskProvider<Task> by existing
                     val pipistrelle: TaskProvider<Task> by existing {
                         description += "B"
                     }
-    
+
                     val yate: TaskProvider<Task> by registering
                     val vansire: TaskProvider<Task> by registering {
                         description += "!"
@@ -279,25 +279,25 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
             fun typed() {
                 tasks {
-    
+
                     val foo: Task by getting(Task::class)
                     val bar: Copy by getting(Copy::class) {
                         description += "C"
                         destinationDir = file("out")
                     }
-    
+
                     val cathedral: Copy by creating(Copy::class)
                     val hill: Copy by creating(Copy::class) {
                         description += "!"
                         destinationDir = file("out")
                     }
-    
+
                     val bat: TaskProvider<Copy> by existing(Copy::class)
                     val pipistrelle: TaskProvider<Copy> by existing(Copy::class) {
                         description += "C"
                         destinationDir = file("out")
                     }
-    
+
                     val veduta: TaskProvider<Copy> by registering(Copy::class)
                     val diptote: TaskProvider<Copy> by registering(Copy::class) {
                         description += "!"

@@ -86,7 +86,6 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         originBuildInvocationId(":write") == thirdBuildId
     }
 
-    @ToBeFixedForInstantExecution
     def "tracks different tasks"() {
         given:
         buildScript """

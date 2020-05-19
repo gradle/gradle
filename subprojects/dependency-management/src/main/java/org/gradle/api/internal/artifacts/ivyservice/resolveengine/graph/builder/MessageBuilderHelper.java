@@ -32,7 +32,7 @@ abstract class MessageBuilderHelper {
 
     static Collection<String> pathTo(EdgeState edge, boolean includeLast) {
         List<List<EdgeState>> acc = Lists.newArrayListWithExpectedSize(1);
-        pathTo(edge, Lists.<EdgeState>newArrayList(), acc, Sets.<NodeState>newHashSet());
+        pathTo(edge, Lists.newArrayList(), acc, Sets.newHashSet());
         List<String> result = Lists.newArrayListWithCapacity(acc.size());
         for (List<EdgeState> path : acc) {
             EdgeState target = Iterators.getLast(path.iterator());

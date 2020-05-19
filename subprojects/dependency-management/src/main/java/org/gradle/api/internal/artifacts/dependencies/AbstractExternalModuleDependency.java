@@ -28,13 +28,15 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionSelectorStrictSpec;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
+import javax.annotation.Nullable;
+
 public abstract class AbstractExternalModuleDependency extends AbstractModuleDependency implements ExternalModuleDependency {
     private final ModuleIdentifier moduleIdentifier;
     private boolean changing;
     private boolean force;
     private final DefaultMutableVersionConstraint versionConstraint;
 
-    public AbstractExternalModuleDependency(ModuleIdentifier module, String version, String configuration) {
+    public AbstractExternalModuleDependency(ModuleIdentifier module, String version, @Nullable String configuration) {
         super(configuration);
         if (module == null) {
             throw new InvalidUserDataException("Module must not be null!");
@@ -83,6 +85,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public ExternalModuleDependency setForce(boolean force) {
         validateMutation(this.force, force);
         if (force) {
@@ -124,7 +127,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         return moduleIdentifier;
     }
 
-    static ModuleIdentifier assertModuleId(String group, String name) {
+    static ModuleIdentifier assertModuleId(@Nullable String group, @Nullable String name) {
         if (name == null) {
             throw new InvalidUserDataException("Name must not be null!");
         }

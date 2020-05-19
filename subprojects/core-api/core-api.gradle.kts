@@ -1,6 +1,4 @@
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2017 the original author or authors.
  *
@@ -17,8 +15,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    `java-library`
-    // gradlebuild.`strict-compile`
+    gradlebuild.distribution.`core-api-java`
 }
 
 dependencies {
@@ -46,8 +43,13 @@ dependencies {
     testFixturesImplementation(project(":baseServices"))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
+classycle {
+    excludePatterns.set(listOf("org/gradle/**"))
+}
+
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
+    ignoreParameterizedVarargType() // [unchecked] Possible heap pollution from parameterized vararg type: ArtifactResolutionQuery, RepositoryContentDescriptor, HasMultipleValues
 }
 
 testFilesCleanup {

@@ -242,7 +242,7 @@ dependencies {
 
 allprojects {
     // Compile stuff
-    val compile by tasks.creating(JavaCompile::class) {
+    val compile by tasks.registering(JavaCompile::class) {
         // Set a property
         foo.bar = "bazar"
 

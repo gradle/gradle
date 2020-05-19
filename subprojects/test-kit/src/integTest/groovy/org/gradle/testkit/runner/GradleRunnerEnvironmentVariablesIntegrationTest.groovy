@@ -16,11 +16,13 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.testkit.runner.fixtures.CustomEnvironmentVariables
 import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.testkit.runner.fixtures.NoDebug
 
 class GradleRunnerEnvironmentVariablesIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
+    @CustomEnvironmentVariables
     @NoDebug //avoid in-process execution so that we can set the env variable
     def "user can provide env vars"() {
         given:

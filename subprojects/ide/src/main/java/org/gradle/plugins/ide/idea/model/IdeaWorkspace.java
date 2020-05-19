@@ -27,8 +27,10 @@ import static org.gradle.util.ConfigureUtil.configure;
  * At the moment, the only practical way of manipulating the resulting content is via the withXml hook:
  *
  * <pre class='autoTested'>
- * apply plugin: 'java'
- * apply plugin: 'idea'
+ * plugins {
+ *     id 'java'
+ *     id 'idea'
+ * }
  *
  * idea.workspace.iws.withXml { provider -&gt;
  *     provider.asNode().appendNode('gradleRocks', 'true')
@@ -72,6 +74,7 @@ public class IdeaWorkspace {
         action.execute(iws);
     }
 
+    @SuppressWarnings("unchecked")
     public void mergeXmlWorkspace(Workspace xmlWorkspace) {
         iws.getBeforeMerged().execute(xmlWorkspace);
 

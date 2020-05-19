@@ -25,5 +25,6 @@ public interface InternalBuildListener extends BuildListener, InternalListener {
      *
      * @param gradle The build which is being started. Never null.
      */
+    @SuppressWarnings("deprecation")
     void buildStarted(Gradle gradle);
 }

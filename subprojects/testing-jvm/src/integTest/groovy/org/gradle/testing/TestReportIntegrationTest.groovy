@@ -16,26 +16,40 @@
 
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.*
+
+import org.gradle.integtests.fixtures.HtmlTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.testing.fixture.JUnitCoverage.*
-import static org.hamcrest.CoreMatchers.*
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUPITER
+import static org.gradle.testing.fixture.JUnitCoverage.VINTAGE
+import static org.hamcrest.CoreMatchers.allOf
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.is
 import static org.junit.Assume.assumeTrue
 
-@TargetCoverage({ JUNIT_4_LATEST + emptyIfJava7(JUPITER, VINTAGE) })
+@TargetCoverage({ JUNIT_4_LATEST + [JUPITER, VINTAGE] })
 class TestReportIntegrationTest extends JUnitMultiVersionIntegrationSpec {
-    @Rule Sample sample = new Sample(temporaryFolder)
+    @Rule
+    Sample sample = new Sample(temporaryFolder)
 
-    @ToBeFixedForInstantExecution
     def "report includes results of most recent invocation"() {
         given:
         buildFile << """
 $junitSetup
-test { systemProperty 'LogLessStuff', System.getProperty('LogLessStuff') }
+test {
+    def logLessStuff = providers.systemProperty('LogLessStuff').forUseAtConfigurationTime()
+    systemProperty 'LogLessStuff', logLessStuff.orNull
+}
 """
 
         and:
@@ -174,13 +188,13 @@ public class SubClassTests extends SuperClassTests {
         def htmlReport = new HtmlTestExecutionResult(testDirectory, 'build/reports/allTests')
         htmlReport.testClass("org.gradle.testing.UnitTest").assertTestCount(1, 0, 0).assertTestPassed("foo").assertStdout(equalTo('org.gradle.testing.UnitTest#foo\n'))
         htmlReport.testClass("org.gradle.testing.SuperTest").assertTestCount(2, 1, 0).assertTestPassed("passing")
-                .assertTestFailed("failing", equalTo('java.lang.AssertionError: failing test'))
-                .assertStdout(allOf(containsString('org.gradle.testing.SuperTest#failing\n'), containsString('org.gradle.testing.SuperTest#passing\n')))
+            .assertTestFailed("failing", equalTo('java.lang.AssertionError: failing test'))
+            .assertStdout(allOf(containsString('org.gradle.testing.SuperTest#failing\n'), containsString('org.gradle.testing.SuperTest#passing\n')))
         htmlReport.testClass("org.gradle.testing.SubTest").assertTestCount(4, 1, 0).assertTestPassed("passing") // onlySub is passing once and failing once
-                .assertStdout(allOf(containsString('org.gradle.testing.SubTest#passing sub\n'),
-                        containsString('org.gradle.testing.SubTest#passing super\n'),
-                        containsString('org.gradle.testing.SubTest#onlySub sub\n'),
-                        containsString('org.gradle.testing.SubTest#onlySub super\n')))
+            .assertStdout(allOf(containsString('org.gradle.testing.SubTest#passing sub\n'),
+                containsString('org.gradle.testing.SubTest#passing super\n'),
+                containsString('org.gradle.testing.SubTest#onlySub sub\n'),
+                containsString('org.gradle.testing.SubTest#onlySub super\n')))
     }
 
     @Issue("https://issues.gradle.org//browse/GRADLE-2821")
@@ -295,7 +309,6 @@ public class SubClassTests extends SuperClassTests {
         "html" | "build/reports/tests"
     }
 
-    @ToBeFixedForInstantExecution
     def "results or reports are linked to in error output"() {
         given:
         buildScript """
@@ -333,7 +346,6 @@ public class SubClassTests extends SuperClassTests {
         failure.assertHasNoCause("See the")
     }
 
-    @ToBeFixedForInstantExecution
     def "output per test case flag invalidates outputs"() {
         when:
         buildScript """
@@ -412,12 +424,22 @@ public class SubClassTests extends SuperClassTests {
         then:
         def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
         def clazz = xmlReport.testClass("OutputLifecycleTest")
-        clazz.assertTestCaseStderr("m1", is("beforeTest err\nm1 err\nafterTest err\n"))
-        clazz.assertTestCaseStderr("m2", is("beforeTest err\nm2 err\nafterTest err\n"))
-        clazz.assertTestCaseStdout("m1", is("beforeTest out\nm1 out\nafterTest out\n"))
-        clazz.assertTestCaseStdout("m2", is("beforeTest out\nm2 out\nafterTest out\n"))
-        clazz.assertStderr(is("beforeClass err\nconstructor err\nconstructor err\nafterClass err\n"))
-        clazz.assertStdout(is("beforeClass out\nconstructor out\nconstructor out\nafterClass out\n"))
+        if (isJupiter()) {
+            clazz.assertTestCaseStderr("m1", is("beforeTest err\nm1 err\nafterTest err\n"))
+            clazz.assertTestCaseStderr("m2", is("beforeTest err\nm2 err\nafterTest err\n"))
+            clazz.assertTestCaseStdout("m1", is("beforeTest out\nm1 out\nafterTest out\n"))
+            clazz.assertTestCaseStdout("m2", is("beforeTest out\nm2 out\nafterTest out\n"))
+            clazz.assertStderr(is("beforeClass err\nconstructor err\nconstructor err\nafterClass err\n"))
+            clazz.assertStdout(is("beforeClass out\nconstructor out\nconstructor out\nafterClass out\n"))
+        } else {
+            // Output behavior change in JUnit 4.13
+            clazz.assertTestCaseStderr("m1", is("constructor err\nbeforeTest err\nm1 err\nafterTest err\n"))
+            clazz.assertTestCaseStderr("m2", is("constructor err\nbeforeTest err\nm2 err\nafterTest err\n"))
+            clazz.assertTestCaseStdout("m1", is("constructor out\nbeforeTest out\nm1 out\nafterTest out\n"))
+            clazz.assertTestCaseStdout("m2", is("constructor out\nbeforeTest out\nm2 out\nafterTest out\n"))
+            clazz.assertStderr(is("beforeClass err\nafterClass err\n"))
+            clazz.assertStdout(is("beforeClass out\nafterClass out\n"))
+        }
     }
 
     def "collects output for failing non-root suite descriptors"() {
@@ -462,7 +484,7 @@ public class SubClassTests extends SuperClassTests {
         """
         apply plugin: 'java'
         ${mavenCentralRepository()}
-        dependencies { testImplementation 'junit:junit:4.12' }
+        dependencies { testImplementation 'junit:junit:4.13' }
         """
     }
 
@@ -475,6 +497,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 """
     }
+
     void failingTestClass(String name) {
         testClass(name, true)
     }

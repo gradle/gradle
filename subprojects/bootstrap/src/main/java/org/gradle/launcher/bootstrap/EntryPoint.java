@@ -15,11 +15,15 @@
  */
 package org.gradle.launcher.bootstrap;
 
-import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.api.Action;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.internal.logging.text.StreamingStyledTextOutputFactory;
+
+import javax.annotation.CheckForNull;
+import java.io.PrintStream;
 
 /**
  * An entry point is the point at which execution will never return from.
@@ -35,6 +39,7 @@ import org.gradle.internal.logging.text.StreamingStyledTextOutputFactory;
  * testing as it's difficult to test something that will call System.exit().
  */
 public abstract class EntryPoint {
+    private PrintStream originalStdErr = System.err;
 
     /**
      * Unless the createCompleter() method is overridden, the JVM will exit before returning from this method.
@@ -62,7 +67,9 @@ public abstract class EntryPoint {
     }
 
     protected Action<Throwable> createErrorHandler() {
-        return new BuildExceptionReporter(new StreamingStyledTextOutputFactory(System.err), new DefaultLoggingConfiguration(), new GradleLauncherMetaData());
+        DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
+        loggingConfiguration.setShowStacktrace(ShowStacktrace.ALWAYS_FULL);
+        return new BuildExceptionReporter(new StreamingStyledTextOutputFactory(originalStdErr), loggingConfiguration, new GradleLauncherMetaData());
     }
 
     protected abstract void doAction(String[] args, ExecutionListener listener);
@@ -75,6 +82,7 @@ public abstract class EntryPoint {
             this.failure = failure;
         }
 
+        @CheckForNull
         public Throwable getFailure() {
             return failure;
         }

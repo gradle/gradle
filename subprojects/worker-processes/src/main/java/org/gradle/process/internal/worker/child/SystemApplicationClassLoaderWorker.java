@@ -38,6 +38,7 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
 import org.gradle.process.internal.health.memory.DefaultMemoryManager;
 import org.gradle.process.internal.health.memory.DisabledOsMemoryInfo;
@@ -148,7 +149,9 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         Action<WorkerProcessContext> action;
         try {
             ObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), getClass().getClassLoader());
-            action = (Action<WorkerProcessContext>) instr.readObject();
+            @SuppressWarnings("unchecked")
+            Action<WorkerProcessContext> deserializedAction = (Action<WorkerProcessContext>) instr.readObject();
+            action = deserializedAction;
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -222,7 +225,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         }
 
         ListenerManager createListenerManager() {
-            return new DefaultListenerManager();
+            return new DefaultListenerManager(Scopes.Global);
         }
 
         OsMemoryInfo createOsMemoryInfo() {

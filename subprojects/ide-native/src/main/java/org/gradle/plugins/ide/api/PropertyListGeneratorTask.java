@@ -31,6 +31,7 @@ import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurat
 // TODO - DSL documentation?
 @Incubating
 public abstract class PropertyListGeneratorTask<T extends PersistableConfigurationObject> extends GeneratorTask<T> {
+    @SuppressWarnings("rawtypes")
     private final PropertyListTransformer propertyListTransformer = new PropertyListTransformer();
 
     public PropertyListGeneratorTask() {
@@ -48,6 +49,7 @@ public abstract class PropertyListGeneratorTask<T extends PersistableConfigurati
     }
 
     @Internal
+    @SuppressWarnings("rawtypes")
     public PropertyListTransformer getPropertyListTransformer() {
         return propertyListTransformer;
     }

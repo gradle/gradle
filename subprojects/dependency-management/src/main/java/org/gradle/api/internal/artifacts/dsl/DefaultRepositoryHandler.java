@@ -72,17 +72,18 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public FlatDirectoryArtifactRepository flatDir(Closure configureClosure) {
         return flatDir(ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
     public FlatDirectoryArtifactRepository flatDir(Map<String, ?> args) {
-        Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
+        Map<String, Object> modifiedArgs = new HashMap<>(args);
         if (modifiedArgs.containsKey("dirs")) {
             modifiedArgs.put("dirs", flattenCollections(modifiedArgs.get("dirs")));
         }
-        return flatDir(new ConfigureByMapAction<FlatDirectoryArtifactRepository>(modifiedArgs));
+        return flatDir(new ConfigureByMapAction<>(modifiedArgs));
     }
 
     @Override
@@ -117,8 +118,8 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
     @Override
     public MavenArtifactRepository mavenCentral(Map<String, ?> args) {
-        Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
-        return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME, new ConfigureByMapAction<MavenArtifactRepository>(modifiedArgs));
+        Map<String, Object> modifiedArgs = new HashMap<>(args);
+        return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME, new ConfigureByMapAction<>(modifiedArgs));
     }
 
     @Override
@@ -147,6 +148,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public MavenArtifactRepository maven(Closure closure) {
         return maven(ConfigureUtil.configureUsing(closure));
     }
@@ -157,6 +159,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public IvyArtifactRepository ivy(Closure closure) {
         return ivy(ConfigureUtil.configureUsing(closure));
     }
@@ -168,39 +171,37 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     private static Action<? super RepositoryContentDescriptor> transformForExclusivity(Action<? super InclusiveRepositoryContentDescriptor> config) {
-        return desc -> {
-            config.execute(new InclusiveRepositoryContentDescriptor() {
-                @Override
-                public void includeGroup(String group) {
-                    desc.excludeGroup(group);
-                }
+        return desc -> config.execute(new InclusiveRepositoryContentDescriptor() {
+            @Override
+            public void includeGroup(String group) {
+                desc.excludeGroup(group);
+            }
 
-                @Override
-                public void includeGroupByRegex(String groupRegex) {
-                    desc.excludeGroupByRegex(groupRegex);
-                }
+            @Override
+            public void includeGroupByRegex(String groupRegex) {
+                desc.excludeGroupByRegex(groupRegex);
+            }
 
-                @Override
-                public void includeModule(String group, String moduleName) {
-                    desc.excludeModule(group, moduleName);
-                }
+            @Override
+            public void includeModule(String group, String moduleName) {
+                desc.excludeModule(group, moduleName);
+            }
 
-                @Override
-                public void includeModuleByRegex(String groupRegex, String moduleNameRegex) {
-                    desc.excludeModuleByRegex(groupRegex, moduleNameRegex);
-                }
+            @Override
+            public void includeModuleByRegex(String groupRegex, String moduleNameRegex) {
+                desc.excludeModuleByRegex(groupRegex, moduleNameRegex);
+            }
 
-                @Override
-                public void includeVersion(String group, String moduleName, String version) {
-                    desc.excludeVersion(group, moduleName, version);
-                }
+            @Override
+            public void includeVersion(String group, String moduleName, String version) {
+                desc.excludeVersion(group, moduleName, version);
+            }
 
-                @Override
-                public void includeVersionByRegex(String groupRegex, String moduleNameRegex, String versionRegex) {
-                    desc.excludeVersionByRegex(groupRegex, moduleNameRegex, versionRegex);
-                }
-            });
-        };
+            @Override
+            public void includeVersionByRegex(String groupRegex, String moduleNameRegex, String versionRegex) {
+                desc.excludeVersionByRegex(groupRegex, moduleNameRegex, versionRegex);
+            }
+        });
     }
 
     public static class ExclusiveContentRepositorySpec implements ExclusiveContentRepository {

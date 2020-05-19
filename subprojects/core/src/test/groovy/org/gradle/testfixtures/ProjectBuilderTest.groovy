@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.util.IncubationLogger
@@ -120,6 +121,7 @@ class ProjectBuilderTest extends Specification {
         task.property == 'some value'
     }
 
+    @LeaksFileHandles("script jar is held open")
     def canApplyABuildScript() {
         when:
         def project = buildProject()

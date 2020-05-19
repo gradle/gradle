@@ -21,8 +21,6 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
-import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -217,18 +215,14 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         return this;
     }
 
-    public List<? extends ProviderInternal<? extends Map<? extends K, ? extends V>>> getProviders() {
-        List<ProviderInternal<? extends Map<? extends K, ? extends V>>> providers = new ArrayList<>();
-        getSupplier().visit(providers);
-        return providers;
-    }
-
-    public void providers(List<? extends ProviderInternal<? extends Map<? extends K, ? extends V>>> providers) {
-        MapSupplier<K, V> value = defaultValue;
-        for (ProviderInternal<? extends Map<? extends K, ? extends V>> provider : providers) {
-            value = value.plus(new MapCollectors.EntriesFromMapProvider<>(provider));
+    public void fromState(ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value) {
+        if (value.isMissing()) {
+            setSupplier(noValueSupplier());
+        } else if (value.isFixedValue()) {
+            setSupplier(new FixedSuppler<>(Cast.uncheckedNonnullCast(value.getFixedValue())));
+        } else {
+            setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(value.getChangingValue())));
         }
-        setSupplier(value);
     }
 
     @Override
@@ -242,13 +236,13 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     @Override
-    protected Value<? extends Map<K, V>> calculateOwnValue(MapSupplier<K, V> value) {
-        return value.calculateValue();
+    protected Value<? extends Map<K, V>> calculateValueFrom(MapSupplier<K, V> value, ValueConsumer consumer) {
+        return value.calculateValue(consumer);
     }
 
     @Override
-    protected MapSupplier<K, V> finalValue(MapSupplier<K, V> value) {
-        Value<? extends Map<K, V>> result = calculateOwnValue(value);
+    protected MapSupplier<K, V> finalValue(MapSupplier<K, V> value, ValueConsumer consumer) {
+        Value<? extends Map<K, V>> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
             Map<K, V> entries = result.get();
             return new FixedSuppler<>(entries);
@@ -257,6 +251,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         } else {
             return new NoValueSupplier<>(result);
         }
+    }
+
+    @Override
+    protected ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue(MapSupplier<K, V> value) {
+        return value.calculateOwnExecutionTimeValue();
     }
 
     private class EntryProvider extends AbstractMinimalProvider<V> {
@@ -273,8 +272,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        protected Value<? extends V> calculateOwnValue() {
-            Value<? extends Map<K, V>> result = DefaultMapProperty.this.calculateOwnValue();
+        protected Value<? extends V> calculateOwnValue(ValueConsumer consumer) {
+            Value<? extends Map<K, V>> result = DefaultMapProperty.this.calculateOwnValue(consumer);
             if (result.isMissing()) {
                 return result.asType();
             }
@@ -291,9 +290,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        protected Value<? extends Set<K>> calculateOwnValue() {
-            beforeRead();
-            return getSupplier().calculateKeys();
+        protected Value<? extends Set<K>> calculateOwnValue(ValueConsumer consumer) {
+            beforeRead(consumer);
+            return getSupplier().calculateKeys(consumer);
         }
     }
 
@@ -306,17 +305,17 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return false;
         }
 
         @Override
-        public Value<? extends Map<K, V>> calculateValue() {
+        public Value<? extends Map<K, V>> calculateValue(ValueConsumer consumer) {
             return value;
         }
 
         @Override
-        public Value<? extends Set<K>> calculateKeys() {
+        public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
             return value.asType();
         }
 
@@ -327,37 +326,29 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
+        public ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue() {
+            return ExecutionTimeValue.missing();
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return true;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return false;
+        public ValueProducer getProducer() {
+            return ValueProducer.unknown();
         }
     }
 
     private class EmptySupplier implements MapSupplier<K, V> {
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return true;
         }
 
         @Override
-        public Value<? extends Map<K, V>> calculateValue() {
+        public Value<? extends Map<K, V>> calculateValue(ValueConsumer consumer) {
             return Value.of(ImmutableMap.of());
         }
 
         @Override
-        public Value<? extends Set<K>> calculateKeys() {
+        public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
             return Value.of(ImmutableSet.of());
         }
 
@@ -368,21 +359,13 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
+        public ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue() {
+            return ExecutionTimeValue.fixedValue(ImmutableMap.of());
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return true;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return false;
+        public ValueProducer getProducer() {
+            return ValueProducer.noProducer();
         }
     }
 
@@ -394,17 +377,17 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return true;
         }
 
         @Override
-        public Value<? extends Map<K, V>> calculateValue() {
+        public Value<? extends Map<K, V>> calculateValue(ValueConsumer consumer) {
             return Value.of(entries);
         }
 
         @Override
-        public Value<? extends Set<K>> calculateKeys() {
+        public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
             return Value.of(entries.keySet());
         }
 
@@ -414,22 +397,13 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
-            sources.add(Providers.of(entries));
+        public ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue() {
+            return ExecutionTimeValue.fixedValue(entries);
         }
 
         @Override
-        public boolean isValueProducedByTask() {
-            return false;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
-
-        @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return true;
+        public ValueProducer getProducer() {
+            return ValueProducer.unknown();
         }
     }
 
@@ -441,15 +415,15 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public boolean isPresent() {
-            return collector.isPresent();
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return collector.calculatePresence(consumer);
         }
 
         @Override
-        public Value<? extends Set<K>> calculateKeys() {
+        public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
             // TODO - don't make a copy when the collector already produces an immutable collection
             ImmutableSet.Builder<K> builder = ImmutableSet.builder();
-            Value<Void> result = collector.collectKeys(keyCollector, builder);
+            Value<Void> result = collector.collectKeys(consumer, keyCollector, builder);
             if (result.isMissing()) {
                 return result.asType();
             }
@@ -457,13 +431,13 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public Value<? extends Map<K, V>> calculateValue() {
+        public Value<? extends Map<K, V>> calculateValue(ValueConsumer consumer) {
             // TODO - don't make a copy when the collector already produces an immutable collection
             // Cannot use ImmutableMap.Builder here, as it does not allow multiple entries with the same key, however the contract
             // for MapProperty allows a provider to override the entries of earlier providers and so there can be multiple entries
             // with the same key
             Map<K, V> entries = new LinkedHashMap<>();
-            Value<Void> result = collector.collectEntries(entryCollector, entries);
+            Value<Void> result = collector.collectEntries(consumer, entryCollector, entries);
             if (result.isMissing()) {
                 return result.asType();
             }
@@ -476,23 +450,70 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
-            collector.visit(sources);
+        public ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue() {
+            List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values = new ArrayList<>();
+            collector.calculateExecutionTimeValue(values::add);
+            boolean fixed = true;
+            boolean changingContent = false;
+            for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value : values) {
+                if (value.isMissing()) {
+                    return ExecutionTimeValue.missing();
+                }
+                if (value.isChangingValue()) {
+                    fixed = false;
+                } else if (value.hasChangingContent()) {
+                    changingContent = true;
+                }
+            }
+            if (fixed) {
+                Map<K, V> entries = new LinkedHashMap<>();
+                for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value : values) {
+                    entries.putAll(value.getFixedValue());
+                }
+                ExecutionTimeValue<Map<K, V>> value = ExecutionTimeValue.fixedValue(ImmutableMap.copyOf(entries));
+                if (changingContent) {
+                    return value.withChangingContent();
+                } else {
+                    return value;
+                }
+            }
+            List<ProviderInternal<? extends Map<? extends K, ? extends V>>> providers = new ArrayList<>();
+            for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value : values) {
+                providers.add(value.toProvider());
+            }
+            return ExecutionTimeValue.changingValue(new CollectingProvider<K, V>(providers));
         }
 
         @Override
-        public boolean isValueProducedByTask() {
-            return collector.isValueProducedByTask();
+        public ValueProducer getProducer() {
+            return collector.getProducer();
+        }
+    }
+
+    private static class CollectingProvider<K, V> extends AbstractMinimalProvider<Map<K, V>> {
+        private final List<ProviderInternal<? extends Map<? extends K, ? extends V>>> providers;
+
+        public CollectingProvider(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> providers) {
+            this.providers = providers;
+        }
+
+        @Nullable
+        @Override
+        public Class<Map<K, V>> getType() {
+            return Cast.uncheckedCast(Map.class);
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return collector.maybeVisitBuildDependencies(context);
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-            collector.visitProducerTasks(visitor);
+        protected Value<? extends Map<K, V>> calculateOwnValue(ValueConsumer consumer) {
+            Map<K, V> entries = new LinkedHashMap<>();
+            for (ProviderInternal<? extends Map<? extends K, ? extends V>> provider : providers) {
+                Value<? extends Map<? extends K, ? extends V>> value = provider.calculateValue(consumer);
+                if (value.isMissing()) {
+                    return Value.missing();
+                }
+                entries.putAll(value.get());
+            }
+            return Value.of(ImmutableMap.copyOf(entries));
         }
     }
 
@@ -506,51 +527,37 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public boolean isPresent() {
-            return left.isPresent() && right.isPresent();
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return left.calculatePresence(consumer) && right.calculatePresence(consumer);
         }
 
         @Override
-        public Value<Void> collectEntries(MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            Value<Void> result = left.collectEntries(collector, dest);
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            Value<Void> result = left.collectEntries(consumer, collector, dest);
             if (result.isMissing()) {
                 return result;
             }
-            return right.collectEntries(collector, dest);
+            return right.collectEntries(consumer, collector, dest);
         }
 
         @Override
-        public Value<Void> collectKeys(ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
-            Value<Void> result = left.collectKeys(collector, dest);
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+            Value<Void> result = left.collectKeys(consumer, collector, dest);
             if (result.isMissing()) {
                 return result;
             }
-            return right.collectKeys(collector, dest);
+            return right.collectKeys(consumer, collector, dest);
         }
 
         @Override
-        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
-            left.visit(sources);
-            right.visit(sources);
+        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
+            left.calculateExecutionTimeValue(visitor);
+            right.calculateExecutionTimeValue(visitor);
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            if (left.maybeVisitBuildDependencies(context)) {
-                return right.maybeVisitBuildDependencies(context);
-            }
-            return false;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-            left.visitProducerTasks(visitor);
-            right.visitProducerTasks(visitor);
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return left.isValueProducedByTask() || right.isValueProducedByTask();
+        public ValueProducer getProducer() {
+            return left.getProducer().plus(right.getProducer());
         }
     }
 }

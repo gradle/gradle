@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
-import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    `java-library`
+    gradlebuild.distribution.`core-api-java`
 }
 
 configurations {
@@ -50,6 +47,7 @@ dependencies {
     implementation(project(":jvmServices"))
     implementation(project(":modelGroovy"))
     implementation(project(":snapshots"))
+    implementation(project(":fileWatching"))
     implementation(project(":execution"))
     implementation(project(":workerProcesses"))
     implementation(project(":normalizationJava"))
@@ -117,13 +115,6 @@ dependencies {
     testFixturesImplementation(library("guava"))
     testFixturesImplementation(library("ant"))
 
-    testFixturesRuntimeOnly(project(":runtimeApiInfo"))
-    val allCoreRuntimeExtensions: DependencySet by rootProject.extra
-    allCoreRuntimeExtensions.forEach {
-        testFixturesRuntimeOnly(it)
-    }
-    testFixturesRuntimeOnly(project(":testingJunitPlatform"))
-
     testImplementation(project(":dependencyManagement"))
 
     testImplementation(testFixtures(project(":coreApi")))
@@ -159,8 +150,13 @@ dependencies {
     crossVersionTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
+    ignoreParameterizedVarargType() // TODO remove this and address warnings and/or add the RIGHT ignores here
+}
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/**"))
 }
 
 tasks.test {
@@ -174,8 +170,11 @@ listOf(tasks.compileGroovy, tasks.compileTestGroovy).forEach {
 }
 
 val pluginsManifest by tasks.registering(WriteProperties::class) {
-    property("plugins", Callable {
-        pluginProjects.map { it.base.archivesBaseName }.sorted().joinToString(",")
+    property("plugins", provider {
+        rootProject.subprojects.filter {
+            it.plugins.hasPlugin(gradlebuild.distribution.PluginsPlugin::class)
+                && it.plugins.hasPlugin(gradlebuild.distribution.ApiPlugin::class)
+        }.map { it.base.archivesBaseName }.sorted().joinToString(",")
     })
     outputFile = File(generatedResourcesDir, "gradle-plugins.properties")
 }
@@ -185,8 +184,11 @@ sourceSets.main {
 }
 
 val implementationPluginsManifest by tasks.registering(WriteProperties::class) {
-    property("plugins", Callable {
-        implementationPluginProjects.map { it.base.archivesBaseName }.sorted().joinToString(",")
+    property("plugins", provider {
+        rootProject.subprojects.filter {
+            it.plugins.hasPlugin(gradlebuild.distribution.PluginsPlugin::class)
+                && it.plugins.hasPlugin(gradlebuild.distribution.ImplementationPlugin::class)
+        }.map { it.base.archivesBaseName }.sorted().joinToString(",")
     })
     outputFile = File(generatedResourcesDir, "gradle-implementation-plugins.properties")
 }
@@ -197,10 +199,4 @@ sourceSets.main {
 
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
-}
-
-tasks {
-    compileTestFixturesGroovy {
-//        groovyOptions.forkOptions.jvmArgs!!.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005")
-    }
 }

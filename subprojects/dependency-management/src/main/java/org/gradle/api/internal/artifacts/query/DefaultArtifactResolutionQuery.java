@@ -76,9 +76,9 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final ImmutableAttributesFactory attributesFactory;
     private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
 
-    private Set<ComponentIdentifier> componentIds = Sets.newLinkedHashSet();
+    private final Set<ComponentIdentifier> componentIds = Sets.newLinkedHashSet();
     private Class<? extends Component> componentType;
-    private Set<Class<? extends Artifact>> artifactTypes = Sets.newLinkedHashSet();
+    private final Set<Class<? extends Artifact>> artifactTypes = Sets.newLinkedHashSet();
 
     public DefaultArtifactResolutionQuery(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
                                           ResolveIvyFactory ivyFactory, GlobalDependencyResolutionRules metadataHandler,
@@ -113,6 +113,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Class<? extends Artifact>... artifactTypes) {
         return withArtifacts(componentType, Arrays.asList(artifactTypes));
     }

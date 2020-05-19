@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    `java-library`
-    gradlebuild.`strict-compile`
-    gradlebuild.classycle
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
@@ -82,10 +79,8 @@ dependencies {
     integTestRuntimeOnly(project(":ideNative"))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
-
 classycle {
     excludePatterns.set(listOf("org/gradle/language/nativeplatform/internal/**"))
 }
+
+integrationTestUsesSampleDir("subprojects/language-native/src/main")

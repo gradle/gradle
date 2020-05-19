@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -169,10 +170,7 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
         if (lowerBound != null && !isHigher(candidate, lowerBoundVersion, lowerInclusive)) {
             return false;
         }
-        if (upperBound != null && !isLower(candidate, upperBoundVersion, upperInclusive)) {
-            return false;
-        }
-        return true;
+        return upperBound == null || isLower(candidate, upperBoundVersion, upperInclusive);
     }
 
     /**
@@ -237,16 +235,16 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
         if (lowerInclusive != that.lowerInclusive) {
             return false;
         }
-        if (upperBound != null ? !upperBound.equals(that.upperBound) : that.upperBound != null) {
+        if (!Objects.equals(upperBound, that.upperBound)) {
             return false;
         }
-        if (upperBoundVersion != null ? !upperBoundVersion.equals(that.upperBoundVersion) : that.upperBoundVersion != null) {
+        if (!Objects.equals(upperBoundVersion, that.upperBoundVersion)) {
             return false;
         }
-        if (lowerBound != null ? !lowerBound.equals(that.lowerBound) : that.lowerBound != null) {
+        if (!Objects.equals(lowerBound, that.lowerBound)) {
             return false;
         }
-        if (lowerBoundVersion != null ? !lowerBoundVersion.equals(that.lowerBoundVersion) : that.lowerBoundVersion != null) {
+        if (!Objects.equals(lowerBoundVersion, that.lowerBoundVersion)) {
             return false;
         }
         return comparator.equals(that.comparator);

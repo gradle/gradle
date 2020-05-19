@@ -28,7 +28,6 @@ import org.gradle.build.ClasspathManifest
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
 import org.gradle.gradlebuild.BuildEnvironment.isJenkins
 import org.gradle.gradlebuild.BuildEnvironment.isTravis
-import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.kotlin.dsl.*
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
@@ -50,7 +49,7 @@ const val ciBuildTypeName = "CI Build Type"
 
 
 private
-const val vfsRetentionEnabledName = "vfsRetentionEnabled"
+const val watchFileSystemName = "watchFileSystem"
 
 
 @Suppress("unused") // consumed as plugin gradlebuild.buildscan
@@ -68,15 +67,17 @@ open class BuildScanPlugin : Plugin<Project> {
         extractCiOrLocalData()
         extractVcsData()
 
-        if (isCiServer && !isTravis && !isJenkins) {
-            extractAllReportsFromCI()
-            monitorUnexpectedCacheMisses()
+        if (isCiServer) {
+            doNotUploadInBackground()
+            if (!isTravis && !isJenkins) {
+                extractAllReportsFromCI()
+                monitorUnexpectedCacheMisses()
+            }
         }
 
         extractCheckstyleAndCodenarcData()
         extractBuildCacheData()
         extractVfsRetentionData()
-
 
         if ((project.gradle as GradleInternal).buildType != GradleInternal.BuildType.TASKS) {
             buildScan.tag("SYNC")
@@ -268,8 +269,8 @@ open class BuildScanPlugin : Plugin<Project> {
 
     private
     fun Project.extractVfsRetentionData() {
-        val vfsRetentionEnabled = VirtualFileSystemServices.isRetentionEnabled(gradle.startParameter.systemPropertiesArgs)
-        buildScan.value(vfsRetentionEnabledName, vfsRetentionEnabled.toString())
+        val watchFileSystem = project.gradle.startParameter.isWatchFileSystem
+        buildScan.value(watchFileSystemName, watchFileSystem.toString())
     }
 
     private
@@ -301,6 +302,11 @@ open class BuildScanPlugin : Plugin<Project> {
             link("Git Commit Scans", customValueSearchUrl(mapOf(gitCommitName to commitId)))
             link("CI CompileAll Scan", customValueSearchUrl(mapOf(gitCommitName to commitId)) + "&search.tags=CompileAll")
         }
+    }
+
+    private
+    fun Project.doNotUploadInBackground() {
+        buildScan.isUploadInBackground = false
     }
 
     private

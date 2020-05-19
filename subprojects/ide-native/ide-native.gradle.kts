@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -15,9 +13,9 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
@@ -59,7 +57,4 @@ dependencies {
     testFixturesImplementation(testFixtures(project(":ide")))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
-
+integrationTestUsesSampleDir("subprojects/ide-native/src/main")

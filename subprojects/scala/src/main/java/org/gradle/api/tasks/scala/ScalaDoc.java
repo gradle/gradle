@@ -15,12 +15,16 @@
  */
 package org.gradle.api.tasks.scala;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
@@ -51,6 +55,11 @@ public class ScalaDoc extends SourceTask {
     private FileCollection scalaClasspath;
     private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
     private String title;
+    private final Property<String> maxMemory;
+
+    public ScalaDoc() {
+        this.maxMemory = getObjectFactory().property(String.class);
+    }
 
     @Inject
     protected IsolatedAntBuilder getAntBuilder() {
@@ -59,6 +68,11 @@ public class ScalaDoc extends SourceTask {
 
     @Inject
     public WorkerExecutor getWorkerExecutor() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    public ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -133,6 +147,18 @@ public class ScalaDoc extends SourceTask {
         this.title = title;
     }
 
+    /**
+     * Returns the amount of memory allocated to this task.
+     * Ex. 512m, 1G
+     *
+     * @since 6.5
+     */
+    @Incubating
+    @Internal
+    public Property<String> getMaxMemory() {
+        return maxMemory;
+    }
+
     @TaskAction
     protected void generate() {
         ScalaDocOptions options = getScalaDocOptions();
@@ -142,6 +168,9 @@ public class ScalaDoc extends SourceTask {
 
         WorkQueue queue = getWorkerExecutor().processIsolation(worker -> {
             worker.getClasspath().from(getScalaClasspath());
+            if(getMaxMemory().isPresent()) {
+                worker.forkOptions(forkOptions -> forkOptions.setMaxHeapSize(getMaxMemory().get()));
+            }
         });
         queue.submit(GenerateScaladoc.class, parameters -> {
             parameters.getClasspath().from(getClasspath());

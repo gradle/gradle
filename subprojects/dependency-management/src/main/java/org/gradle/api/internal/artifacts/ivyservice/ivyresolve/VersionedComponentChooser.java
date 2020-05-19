@@ -22,12 +22,15 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.RejectedByRuleVersion;
 import org.gradle.internal.resolve.result.ComponentSelectionContext;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 public interface VersionedComponentChooser {
+    @Nullable
     ComponentResolveMetadata selectNewestComponent(ComponentResolveMetadata one, ComponentResolveMetadata two);
 
     void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, ComponentSelectionContext result, VersionSelector versionSelector, VersionSelector rejectedVersionSelector, ImmutableAttributes consumerAttributes);
 
+    @Nullable
     RejectedByRuleVersion isRejectedComponent(ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider);
 }

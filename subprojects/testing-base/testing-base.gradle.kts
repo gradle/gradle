@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
 }
+
+gradlebuildJava.usedInWorkers()
 
 dependencies {
     implementation(project(":baseServices"))
@@ -61,7 +63,12 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.WORKER
+strictCompile {
+    ignoreRawTypes() // raw types used in public API (org.gradle.api.tasks.testing.AbstractTestTask)
 }
 
+classycle {
+    excludePatterns.set(listOf("org/gradle/api/internal/tasks/testing/**"))
+}
+
+integrationTestUsesSampleDir("subprojects/testing-base/src/main")

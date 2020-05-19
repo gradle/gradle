@@ -18,25 +18,19 @@ import build.futureKotlin
 import build.kotlin
 import codegen.GenerateKotlinDslPluginsExtensions
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import plugins.bundledGradlePlugin
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-
+import plugins.bundledGradlePlugin
 
 plugins {
-    `kotlin-dsl-plugin-bundle`
+    gradlebuild.portalplugin.kotlin
 }
 
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "1.3.5"
+version = "1.3.7"
 
 base.archivesBaseName = "plugins"
-
-gradlebuildJava {
-    moduleType = ModuleType.PORTAL_PLUGINS
-}
 
 val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
@@ -98,6 +92,9 @@ dependencies {
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 }
 
+classycle {
+    excludePatterns.set(listOf("org/gradle/kotlin/dsl/plugins/base/**"))
+}
 
 // plugins ------------------------------------------------------------
 
@@ -133,9 +130,7 @@ bundledGradlePlugin(
 
 
 // testing ------------------------------------------------------------
-
-val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
-integTestTasks.configureEach {
+tasks.withType<IntegrationTest>().configureEach {
     dependsOn("publishPluginsToTestRepository")
 }
 
@@ -148,4 +143,13 @@ tasks.noDaemonIntegTest {
 // TODO:kotlin-dsl
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
+}
+
+// TODO: workaround for https://github.com/gradle/gradlecom/issues/627
+//  which causes `publishPlugins` to fail with:
+//  > java.io.FileNotFoundException: .../subprojects/kotlin-dsl-plugins/src/main/java (No such file or directory)
+afterEvaluate {
+    configurations.archives.get().allArtifacts.removeIf {
+        it.name == "java"
+    }
 }

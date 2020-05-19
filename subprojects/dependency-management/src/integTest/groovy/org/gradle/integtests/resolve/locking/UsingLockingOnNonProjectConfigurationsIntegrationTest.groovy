@@ -73,6 +73,50 @@ buildscript {
         unique << [true, false]
     }
 
+    @ToBeFixedForInstantExecution(because = ":buildEnvironment")
+    def 'locks build script classpath configuration in custom lockfile'() {
+        given:
+        mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
+        mavenRepo.module('org.foo', 'foo-plugin', '1.1').publish()
+
+        settingsFile << """
+rootProject.name = 'foo'
+"""
+        FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        buildFile << """
+buildscript {
+    repositories {
+        maven {
+            url = '$mavenRepo.uri'
+        }
+    }
+    dependencyLocking {
+        lockFile = file("\$projectDir/gradle/bslock.file")
+    }
+    configurations.classpath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+    dependencies {
+        classpath 'org.foo:foo-plugin:[1.0,2.0)'
+    }
+}
+"""
+        def lockFile = testDirectory.file('gradle', 'bslock.file')
+        LockfileFixture.createCustomLockfile(lockFile, 'classpath', ['org.foo:foo-plugin:1.0'])
+
+        when:
+        succeeds 'buildEnvironment'
+
+        then:
+        outputContains('org.foo:foo-plugin:[1.0,2.0) -> 1.0')
+
+        when:
+        succeeds 'buildEnvironment', '--write-locks', '--refresh-dependencies'
+
+        then:
+        LockfileFixture.verifyCustomLockfile(lockFile, 'classpath', ['org.foo:foo-plugin:1.1'])
+    }
+
     @Unroll
     def 'strict locks on buildscript classpath does not mean strict locks on project (unique: #unique)'() {
         given:

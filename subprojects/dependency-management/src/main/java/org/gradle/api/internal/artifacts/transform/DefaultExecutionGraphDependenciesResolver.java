@@ -79,9 +79,7 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
             dependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, results.getResolutionResult().getAllComponents(), false);
         }
         VisitedArtifactSet visitedArtifacts = results.getVisitedArtifacts();
-        SelectedArtifactSet artifacts = visitedArtifacts.select(Specs.satisfyAll(), transformer.getFromAttributes(), element -> {
-            return dependencies.contains(element);
-        }, false);
+        SelectedArtifactSet artifacts = visitedArtifacts.select(Specs.satisfyAll(), transformer.getFromAttributes(), element -> dependencies.contains(element), false);
         ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
         artifacts.visitArtifacts(visitor, false);
         if (!visitor.getFailures().isEmpty()) {

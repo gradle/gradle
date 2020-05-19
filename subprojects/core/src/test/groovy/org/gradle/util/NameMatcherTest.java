@@ -15,6 +15,7 @@
  */
 package org.gradle.util;
 
+import org.gradle.internal.Cast;
 import org.junit.Test;
 
 import java.util.List;
@@ -28,7 +29,7 @@ import static org.gradle.util.WrapUtil.toList;
 import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class NameMatcherTest {
     private final NameMatcher matcher = new NameMatcher();
@@ -174,7 +175,7 @@ public class NameMatcherTest {
 
     @Test
     public void doesNotSelectMapEntryWhenMultiplePartialMatches() {
-        Map<String, Integer> items = GUtil.map("someName", 9, "soName", 10);
+        Map<String, Integer> items = Cast.uncheckedNonnullCast(GUtil.map("someName", 9, "soName", 10));
         Integer match = matcher.find("soNa", items);
         assertThat(match, nullValue());
     }

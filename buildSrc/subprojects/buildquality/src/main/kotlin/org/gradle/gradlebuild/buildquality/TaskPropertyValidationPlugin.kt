@@ -56,10 +56,12 @@ open class TaskPropertyValidationPlugin : Plugin<Project> {
                         attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
                     }
                 }
-                dependencies.add(
-                    validationRuntime.name,
-                    dependencies.project(":distributions")
-                )
+                dependencies {
+                    // use a minimal gradle runtime here
+                    validationRuntime(project(":core"))
+                    validationRuntime(project(":dependencyManagement"))
+                    validationRuntime(project(":platformJvm"))
+                }
 
                 val validateTask = if (plugins.hasPlugin("java-gradle-plugin")) {
                     tasks.named(validateTaskName, ValidatePlugins::class)

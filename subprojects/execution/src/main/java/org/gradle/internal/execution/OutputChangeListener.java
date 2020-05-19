@@ -16,6 +16,10 @@
 
 package org.gradle.internal.execution;
 
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
+
+@EventScope(Scopes.Build)
 public interface OutputChangeListener {
     /**
      * Invoked when the outputs of a work item are about to change.

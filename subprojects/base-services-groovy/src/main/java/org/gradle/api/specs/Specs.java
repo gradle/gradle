@@ -51,14 +51,15 @@ public class Specs {
         return Cast.uncheckedCast(SATISFIES_NONE);
     }
 
-    public static <T> Spec<T> convertClosureToSpec(final Closure closure) {
-        return new ClosureSpec<T>(closure);
+    public static <T> Spec<T> convertClosureToSpec(final Closure<?> closure) {
+        return new ClosureSpec<>(closure);
     }
 
     /**
      * Returns a spec that selects the intersection of those items selected by the given specs. Returns a spec that selects everything when no specs provided.
      */
     @SafeVarargs
+    @SuppressWarnings("varargs")
     public static <T> Spec<T> intersect(Spec<? super T>... specs) {
         if (specs.length == 0) {
             return satisfyAll();
@@ -80,7 +81,7 @@ public class Specs {
     }
 
     private static <T> Spec<T> doIntersect(Collection<? extends Spec<? super T>> specs) {
-        List<Spec<? super T>> filtered = new ArrayList<Spec<? super T>>(specs.size());
+        List<Spec<? super T>> filtered = new ArrayList<>(specs.size());
         for (Spec<? super T> spec : specs) {
             if (spec == SATISFIES_NONE) {
                 return satisfyNone();
@@ -95,13 +96,14 @@ public class Specs {
         if (filtered.size() == 1) {
             return Cast.uncheckedCast(filtered.get(0));
         }
-        return new AndSpec<T>(filtered);
+        return new AndSpec<>(filtered);
     }
 
     /**
      * Returns a spec that selects the union of those items selected by the provided spec. Selects everything when no specs provided.
      */
     @SafeVarargs
+    @SuppressWarnings("varargs")
     public static <T> Spec<T> union(Spec<? super T>... specs) {
         if (specs.length == 0) {
             return satisfyAll();
@@ -139,7 +141,7 @@ public class Specs {
             return Cast.uncheckedCast(filtered.get(0));
         }
 
-        return new OrSpec<T>(filtered);
+        return new OrSpec<>(filtered);
     }
 
     /**
@@ -153,10 +155,10 @@ public class Specs {
             return satisfyAll();
         }
         if (spec instanceof NotSpec) {
-            NotSpec<? super T> notSpec = (NotSpec<? super T>) spec;
-            return Cast.uncheckedCast(notSpec.getSourceSpec());
+            NotSpec<? super T> notSpec = Cast.uncheckedNonnullCast(spec);
+            return Cast.uncheckedNonnullCast(notSpec.getSourceSpec());
         }
-        return new NotSpec<T>(spec);
+        return new NotSpec<>(spec);
     }
 
 }

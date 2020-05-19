@@ -17,7 +17,9 @@
 package org.gradle.api.internal.provider
 
 import com.google.common.collect.ImmutableCollection
+import org.gradle.api.Task
 import org.gradle.api.Transformer
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
 import org.gradle.util.TextUtil
@@ -152,7 +154,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     def "can set untyped from provider"() {
         def provider = Stub(ProviderInternal)
         provider.type >> null
-        provider.calculateValue() >>> [["1"], ["2"]].collect { ValueSupplier.Value.of(it) }
+        provider.calculateValue(_) >>> [["1"], ["2"]].collect { ValueSupplier.Value.of(it) }
 
         expect:
         property.setFromAnyValue(provider)
@@ -182,8 +184,8 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     def "queries underlying provider for every call to get()"() {
         def provider = Stub(ProviderInternal)
         provider.type >> List
-        provider.calculateValue() >>> [["123"], ["abc"]].collect { ValueSupplier.Value.of(it) }
-        provider.present >> true
+        provider.calculateValue(_) >>> [["123"], ["abc"]].collect { ValueSupplier.Value.of(it) }
+        provider.calculatePresence(_) >> true
 
         expect:
         property.set(provider)
@@ -286,8 +288,8 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
     def "queries values of provider on every call to get()"() {
         def provider = Stub(ProviderInternal)
-        _ * provider.present >> true
-        _ * provider.calculateValue() >>> [["abc"], ["def"]].collect { ValueSupplier.Value.of(it) }
+        _ * provider.calculatePresence(_) >> true
+        _ * provider.calculateValue(_) >>> [["abc"], ["def"]].collect { ValueSupplier.Value.of(it) }
 
         expect:
         property.addAll(provider)
@@ -351,27 +353,27 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         property.present
 
         then:
-        1 * valueProvider.present >> true
-        1 * addProvider.present >> true
-        1 * addAllProvider.present >> true
+        1 * valueProvider.calculatePresence(_) >> true
+        1 * addProvider.calculatePresence(_) >> true
+        1 * addAllProvider.calculatePresence(_) >> true
         0 * _
 
         when:
         property.get()
 
         then:
-        1 * valueProvider.calculateValue() >> ValueSupplier.Value.of(["1"])
-        1 * addProvider.calculateValue() >> ValueSupplier.Value.of("2")
-        1 * addAllProvider.calculateValue() >> ValueSupplier.Value.of(["3"])
+        1 * valueProvider.calculateValue(_) >> ValueSupplier.Value.of(["1"])
+        1 * addProvider.calculateValue(_) >> ValueSupplier.Value.of("2")
+        1 * addAllProvider.calculateValue(_) >> ValueSupplier.Value.of(["3"])
         0 * _
 
         when:
         property.getOrNull()
 
         then:
-        1 * valueProvider.calculateValue() >> ValueSupplier.Value.of(["1"])
-        1 * addProvider.calculateValue() >> ValueSupplier.Value.of("2")
-        1 * addAllProvider.calculateValue() >> ValueSupplier.Value.of(["3"])
+        1 * valueProvider.calculateValue(_) >> ValueSupplier.Value.of(["1"])
+        1 * addProvider.calculateValue(_) >> ValueSupplier.Value.of("2")
+        1 * addAllProvider.calculateValue(_) >> ValueSupplier.Value.of(["3"])
         0 * _
     }
 
@@ -613,6 +615,120 @@ The value of this property is derived from: <source>""")
         assertValueIs([])
     }
 
+    def "has no producer and fixed execution time value by default"() {
+        expect:
+        assertHasKnownProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        !value.hasChangingContent()
+        value.fixedValue.isEmpty()
+    }
+
+    def "has no producer and missing execution time value when element provider with no value added"() {
+        given:
+        property.addAll("a", "b")
+        property.add(supplierWithNoValue())
+        property.add("c")
+        property.add(supplierWithValues("d"))
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isMissing()
+    }
+
+    def "has no producer and missing execution time value when elements provider with no value added"() {
+        given:
+        property.addAll("a", "b")
+        property.add(supplierWithValues("d"))
+        property.add("c")
+        property.addAll(supplierWithNoValue())
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isMissing()
+    }
+
+    def "has no producer and fixed execution time value when element added"() {
+        given:
+        property.add("a")
+        property.add("b")
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        !value.hasChangingContent()
+        value.fixedValue == toImmutable(["a", "b"])
+    }
+
+    def "has no producer and fixed execution time value when elements added"() {
+        given:
+        property.addAll("a", "b")
+        property.addAll(["c"])
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        value.fixedValue == toImmutable(["a", "b", "c"])
+    }
+
+    def "has no producer and fixed execution time value when element provider added"() {
+        given:
+        property.add(supplierWithValues("a"))
+        property.add(supplierWithValues("b"))
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        value.fixedValue == toImmutable(["a", "b"])
+    }
+
+    def "has no producer and fixed execution time value when elements provider added"() {
+        given:
+        property.addAll(supplierWithValues(["a", "b"]))
+        property.addAll(supplierWithValues(["c"]))
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        value.fixedValue == toImmutable(["a", "b", "c"])
+    }
+
+    def "has no producer and changing execution time value when elements provider with changing value added"() {
+        given:
+        property.addAll(supplierWithChangingExecutionTimeValues(["a", "b"], ["a"]))
+        property.addAll(supplierWithValues(["c"]))
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isChangingValue()
+        value.changingValue.get() == toImmutable(["a", "b", "c"])
+        value.changingValue.get() == toImmutable(["a", "c"])
+    }
+
+    def "has union of producer task from providers unless producer task attached"() {
+        given:
+        def task1 = Stub(Task)
+        def task2 = Stub(Task)
+        def task3 = Stub(Task)
+        def producer = Stub(Task)
+        property.set(supplierWithProducer(task1))
+        property.addAll(supplierWithProducer(task2))
+        property.add(supplierWithProducer(task3))
+
+        expect:
+        assertHasProducer(property, task1, task2, task3)
+
+        property.attachProducer(owner(producer))
+        assertHasProducer(property, producer)
+    }
+
     def "cannot set to empty list after value finalized"() {
         given:
         def property = property()
@@ -801,5 +917,56 @@ The value of this property is derived from: <source>""")
         then:
         def e3 = thrown(IllegalStateException)
         e3.message == 'The value for this property cannot be changed any further.'
+    }
+
+    @Unroll
+    def "finalizes upstream properties when value read using #method and disallow unsafe reads"() {
+        def a = property()
+        def b = property()
+        def c = elementProperty()
+        def property = property()
+        property.disallowUnsafeRead()
+
+        property.addAll(a)
+
+        a.addAll(b)
+        a.attachOwner(owner(), displayName("<a>"))
+
+        b.attachOwner(owner(), displayName("<b>"))
+
+        property.add(c)
+        c.set("c")
+        c.attachOwner(owner(), displayName("<c>"))
+
+        given:
+        property."$method"()
+
+        when:
+        a.set(['a'])
+
+        then:
+        def e1 = thrown(IllegalStateException)
+        e1.message == 'The value for <a> is final and cannot be changed any further.'
+
+        when:
+        b.set(['a'])
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <b> is final and cannot be changed any further.'
+
+        when:
+        c.set('c2')
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for <c> is final and cannot be changed any further.'
+
+        where:
+        method << ["get", "finalizeValue", "isPresent"]
+    }
+
+    Property<String> elementProperty() {
+        return new DefaultProperty<String>(host, String)
     }
 }

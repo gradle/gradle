@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
@@ -29,6 +30,7 @@ import java.util.Set;
 public interface RenderableDependency {
     Object getId();
     String getName();
+    @Nullable
     String getDescription();
     List<ResolvedVariantResult> getResolvedVariants();
     ResolutionState getResolutionState();

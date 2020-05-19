@@ -17,7 +17,6 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class BuildSrcIdentityIntegrationTest extends AbstractIntegrationSpec {
@@ -45,7 +44,6 @@ class BuildSrcIdentityIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "includes build identifier in dependency report with #display"() {
         file("buildSrc/settings.gradle") << """
             $settings

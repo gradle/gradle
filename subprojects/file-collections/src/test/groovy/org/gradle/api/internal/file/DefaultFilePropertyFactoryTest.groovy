@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.file
 
+import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.ProviderInternal
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.internal.state.ModelObject
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -267,85 +268,89 @@ class DefaultFilePropertyFactoryTest extends Specification {
         !var.present
     }
 
-    def "producer task for a directory is not known by default"() {
-        def var = factory.newDirectoryProperty()
-        def context = Mock(TaskDependencyResolveContext)
-
-        when:
-        def visited = var.maybeVisitBuildDependencies(context)
-
-        then:
-        !visited
-        0 * context._
-    }
-
     def "can specify the producer task for a directory"() {
         def var = factory.newDirectoryProperty()
-        def task = Mock(Task)
-        def context = Mock(TaskDependencyResolveContext)
+        def task = Stub(Task)
+        def owner = Stub(ModelObject)
+        owner.taskThatOwnsThisObject >> task
+        def action = Mock(Action)
 
         when:
-        var.attachProducer(task)
-        def visited = var.maybeVisitBuildDependencies(context)
+        var.attachProducer(owner)
+        def producer = var.producer
 
         then:
-        visited
-        1 * context.add(task)
-        0 * context._
+        producer.known
+
+        when:
+        producer.visitProducerTasks(action)
+
+        then:
+        1 * action.execute(task)
+        0 * action._
     }
 
     def "can discard the producer task for a directory"() {
         def var = factory.newDirectoryProperty()
-        def task = Mock(Task)
-        def context = Mock(TaskDependencyResolveContext)
+        def task = Stub(Task)
+        def owner = Stub(ModelObject)
+        owner.taskThatOwnsThisObject >> task
+        def action = Mock(Action)
 
         when:
-        var.attachProducer(task)
-        def visited = var.locationOnly.maybeVisitBuildDependencies(context)
+        var.attachProducer(owner)
+        def producer = var.locationOnly.producer
 
         then:
-        !visited
-        0 * context._
-    }
-
-    def "producer task for a regular file is not known by default"() {
-        def var = factory.newFileProperty()
-        def context = Mock(TaskDependencyResolveContext)
+        !producer.known
 
         when:
-        def visited = var.maybeVisitBuildDependencies(context)
+        producer.visitProducerTasks(action)
 
         then:
-        !visited
-        0 * context._
+        0 * action._
     }
 
     def "can specify the producer task for a regular file"() {
         def var = factory.newFileProperty()
-        def task = Mock(Task)
-        def context = Mock(TaskDependencyResolveContext)
+        def task = Stub(Task)
+        def owner = Stub(ModelObject)
+        owner.taskThatOwnsThisObject >> task
+        def action = Mock(Action)
 
         when:
-        var.attachProducer(task)
-        def visited = var.maybeVisitBuildDependencies(context)
+        var.attachProducer(owner)
+        def producer = var.producer
 
         then:
-        visited
-        1 * context.add(task)
-        0 * context._
+        producer.known
+
+        when:
+        producer.visitProducerTasks(action)
+
+        then:
+        1 * action.execute(task)
+        0 * action._
     }
 
     def "can discard the producer task for a regular file"() {
         def var = factory.newFileProperty()
-        def task = Mock(Task)
-        def context = Mock(TaskDependencyResolveContext)
+        def task = Stub(Task)
+        def owner = Stub(ModelObject)
+        owner.taskThatOwnsThisObject >> task
+        def action = Mock(Action)
 
         when:
-        var.attachProducer(task)
-        def visited = var.locationOnly.maybeVisitBuildDependencies(context)
+        var.attachProducer(owner)
+        def producer = var.locationOnly.producer
 
         then:
-        !visited
-        0 * context._
+        !producer.known
+
+        when:
+        producer.visitProducerTasks(action)
+
+        then:
+        0 * action._
     }
 }

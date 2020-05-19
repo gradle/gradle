@@ -26,17 +26,7 @@ import java.util.Comparator;
 import java.util.Set;
 
 public class SingleProjectTaskReportModel implements TaskReportModel {
-    private final SetMultimap<String, TaskDetails> groups = TreeMultimap.create(new Comparator<String>() {
-        @Override
-        public int compare(String string1, String string2) {
-            return string1.compareToIgnoreCase(string2);
-        }
-    }, new Comparator<TaskDetails>() {
-        @Override
-        public int compare(TaskDetails task1, TaskDetails task2) {
-            return task1.getPath().compareTo(task2.getPath());
-        }
-    });
+    private final SetMultimap<String, TaskDetails> groups = TreeMultimap.create(String::compareToIgnoreCase, Comparator.comparing(TaskDetails::getPath));
     private final TaskDetailsFactory factory;
 
     public SingleProjectTaskReportModel(TaskDetailsFactory factory) {

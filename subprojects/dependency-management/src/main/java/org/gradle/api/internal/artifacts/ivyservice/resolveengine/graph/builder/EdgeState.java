@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -54,7 +53,6 @@ class EdgeState implements DependencyGraphEdge {
     private final DependencyMetadata dependencyMetadata;
     private final NodeState from;
     private final ResolveState resolveState;
-    private final ExcludeSpec transitiveExclusions;
     private final List<NodeState> targetNodes = Lists.newLinkedList();
     private final boolean isTransitive;
     private final boolean isConstraint;
@@ -63,6 +61,7 @@ class EdgeState implements DependencyGraphEdge {
     private SelectorState selector;
     private ModuleVersionResolveException targetNodeSelectionFailure;
     private ImmutableAttributes cachedAttributes;
+    private ExcludeSpec transitiveExclusions;
     private ExcludeSpec cachedEdgeExclusions;
     private ExcludeSpec cachedExclusions;
 
@@ -105,10 +104,6 @@ class EdgeState implements DependencyGraphEdge {
 
     DependencyMetadata getDependencyMetadata() {
         return dependencyMetadata;
-    }
-
-    ModuleIdentifier getTargetIdentifier() {
-        return dependencyState.getModuleIdentifier();
     }
 
     /**
@@ -161,9 +156,9 @@ class EdgeState implements DependencyGraphEdge {
 
     void cleanUpOnSourceChange(NodeState source) {
         removeFromTargetConfigurations();
+        maybeDecreaseHardEdgeCount(source);
         selector.getTargetModule().removeUnattachedDependency(this);
         selector.release();
-        maybeDecreaseHardEdgeCount(source);
     }
 
     void removeFromTargetConfigurations() {
@@ -343,10 +338,20 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
+    @Nullable
     public ResolvedVariantResult getSelectedVariant() {
         if (resolvedVariant != null) {
             return resolvedVariant;
         }
+        List<NodeState> targetNodes = this.targetNodes;
+        if (targetNodes.isEmpty()) {
+            // happens for substituted dependencies
+            ComponentState targetComponent = getTargetComponent();
+            if (targetComponent != null) {
+                targetNodes = targetComponent.getNodes();
+            }
+        }
+        assert !targetNodes.isEmpty();
         for (NodeState targetNode : targetNodes) {
             if (targetNode.isSelected()) {
                 resolvedVariant = targetNode.getResolvedVariant();
@@ -371,6 +376,7 @@ class EdgeState implements DependencyGraphEdge {
         return from.getResolvedVariant();
     }
 
+    @Nullable
     private ComponentState getSelectedComponent() {
         return selector.getTargetModule().getSelected();
     }
@@ -400,11 +406,8 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
+        return this == o;
         // Edge states are deduplicated, this is a performance optimization
-        return false;
     }
 
     @Override
@@ -414,5 +417,17 @@ class EdgeState implements DependencyGraphEdge {
 
     DependencyState getDependencyState() {
         return dependencyState;
+    }
+
+    public void updateTransitiveExcludes(ExcludeSpec newResolutionFilter) {
+        if (isConstraint) {
+            // Constraint do not carry excludes on a path
+            return;
+        }
+        transitiveExclusions = newResolutionFilter;
+        cachedExclusions = null;
+        for (NodeState targetNode : targetNodes) {
+            targetNode.updateTransitiveExcludes();
+        }
     }
 }

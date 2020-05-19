@@ -91,6 +91,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean refreshDependencies;
     private boolean buildCacheEnabled;
     private boolean buildCacheDebugLogging;
+    private boolean watchFileSystem;
     private boolean configureOnDemand;
     private boolean continuous;
     private List<File> includedBuilds = new ArrayList<>();
@@ -556,7 +557,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public List<File> getAllInitScripts() {
         CompositeInitScriptFinder initScriptFinder = new CompositeInitScriptFinder(
-            new UserHomeInitScriptFinder(getGradleUserHomeDir()), new DistributionInitScriptFinder(gradleHomeDir)
+            new UserHomeInitScriptFinder(getGradleUserHomeDir()),
+            new DistributionInitScriptFinder(gradleHomeDir)
         );
 
         List<File> scripts = new ArrayList<>(getInitScripts());
@@ -714,6 +716,26 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public void setBuildCacheDebugLogging(boolean buildCacheDebugLogging) {
         this.buildCacheDebugLogging = buildCacheDebugLogging;
+    }
+
+    /**
+     * Whether watching the file system for faster up-to-date checking is enabled.
+     *
+     * @since 6.5
+     */
+    @Incubating
+    public boolean isWatchFileSystem() {
+        return watchFileSystem;
+    }
+
+    /**
+     * Whether watching the file system for faster up-to-date checking is enabled.
+     *
+     * @since 6.5
+     */
+    @Incubating
+    public void setWatchFileSystem(boolean watchFileSystem) {
+        this.watchFileSystem = watchFileSystem;
     }
 
     /**

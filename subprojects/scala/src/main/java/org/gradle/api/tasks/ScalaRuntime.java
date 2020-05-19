@@ -24,7 +24,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider;
+import org.gradle.api.plugins.scala.ScalaPluginExtension;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -38,7 +38,9 @@ import java.util.regex.Pattern;
  * <p>Example usage:
  *
  * <pre class='autoTested'>
- *     apply plugin: "scala"
+ *     plugins {
+ *         id 'scala'
+ *     }
  *
  *     repositories {
  *         mavenCentral()
@@ -97,8 +99,10 @@ public class ScalaRuntime {
                     throw new AssertionError(String.format("Unexpectedly failed to parse version of Scala Jar file: %s in %s", scalaLibraryJar, project));
                 }
 
+                String zincVersion = project.getExtensions().getByType(ScalaPluginExtension.class).getZincVersion().get();
+
                 String scalaMajorMinorVersion = Joiner.on('.').join(Splitter.on('.').splitToList(scalaVersion).subList(0, 2));
-                DefaultExternalModuleDependency compilerBridgeJar = new DefaultExternalModuleDependency("org.scala-sbt", "compiler-bridge_" + scalaMajorMinorVersion, DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
+                DefaultExternalModuleDependency compilerBridgeJar = new DefaultExternalModuleDependency("org.scala-sbt", "compiler-bridge_" + scalaMajorMinorVersion, zincVersion);
                 compilerBridgeJar.setTransitive(false);
                 compilerBridgeJar.artifact(artifact -> {
                     artifact.setClassifier("sources");
@@ -106,7 +110,7 @@ public class ScalaRuntime {
                     artifact.setExtension("jar");
                     artifact.setName(compilerBridgeJar.getName());
                 });
-                DefaultExternalModuleDependency compilerInterfaceJar = new DefaultExternalModuleDependency("org.scala-sbt", "compiler-interface", DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
+                DefaultExternalModuleDependency compilerInterfaceJar = new DefaultExternalModuleDependency("org.scala-sbt", "compiler-interface", zincVersion);
                 return project.getConfigurations().detachedConfiguration(new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion), compilerBridgeJar, compilerInterfaceJar);
             }
 

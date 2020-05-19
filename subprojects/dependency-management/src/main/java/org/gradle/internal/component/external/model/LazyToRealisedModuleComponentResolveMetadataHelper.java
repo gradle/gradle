@@ -140,7 +140,7 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
         if (descriptorConfiguration.getExtendsFrom().isEmpty()) {
             return ImmutableSet.of(descriptorConfiguration.getName());
         }
-        ImmutableSet.Builder<String> accumulator = new ImmutableSet.Builder<String>();
+        ImmutableSet.Builder<String> accumulator = new ImmutableSet.Builder<>();
         populateHierarchy(descriptorConfiguration, configurationDefinitions, accumulator);
         return accumulator.build();
     }

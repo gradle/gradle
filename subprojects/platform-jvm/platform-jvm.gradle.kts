@@ -1,8 +1,8 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
+
 
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
@@ -40,7 +40,8 @@ dependencies {
     integTestImplementation(library("slf4j_api"))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
+strictCompile {
+    ignoreDeprecations() // most of this project has been deprecated
 }
 
+integrationTestUsesSampleDir("subprojects/platform-jvm/src/main")

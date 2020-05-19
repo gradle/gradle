@@ -45,6 +45,9 @@ public interface FileContents {
      *     {@link Provider#get}, {@link Provider#getOrElse}, {@link Provider#getOrNull} and {@link Provider#isPresent}.
      * </p>
      *
+     * The returned provider cannot be queried at configuration time but can produce a configuration time provider
+     * via {@link Provider#forUseAtConfigurationTime()}.
+     *
      * @return provider of the entire file contents as a single String.
      */
     Provider<String> getAsText();
@@ -66,6 +69,9 @@ public interface FileContents {
      *     When the underlying file exists but reading it fails, the ensuing exception is permanently propagated to callers of
      *     {@link Provider#get}, {@link Provider#getOrElse}, {@link Provider#getOrNull} and {@link Provider#isPresent}.
      * </p>
+     *
+     * The returned provider cannot be queried at configuration time but can produce a configuration time provider
+     * via {@link Provider#forUseAtConfigurationTime()}.
      *
      * @return provider of the entire file contents as a single byte array.
      */

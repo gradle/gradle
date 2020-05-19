@@ -19,7 +19,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 import static org.hamcrest.CoreMatchers.*
 import static org.hamcrest.core.StringStartsWith.startsWith
-import static org.junit.Assert.assertThat
+import static org.hamcrest.MatcherAssert.assertThat
 
 class JUnitXmlTestExecutionResult implements TestExecutionResult {
     private final TestFile testResultsDir

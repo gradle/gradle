@@ -69,7 +69,7 @@ public class ComponentSelectionReasons {
         private final ArrayDeque<ComponentSelectionDescriptorInternal> descriptions;
 
         private DefaultComponentSelectionReason(ComponentSelectionDescriptor... descriptors) {
-            descriptions = new ArrayDeque<ComponentSelectionDescriptorInternal>(1);
+            descriptions = new ArrayDeque<>(1);
             for (ComponentSelectionDescriptor descriptor : descriptors) {
                 descriptions.add((ComponentSelectionDescriptorInternal) descriptor);
             }
@@ -110,6 +110,7 @@ public class ComponentSelectionReasons {
         }
 
         @Override
+        @SuppressWarnings("deprecation")
         public String getDescription() {
             // for backwards compatibility, we use the last added description
             return descriptions.getLast().toString();
@@ -144,7 +145,7 @@ public class ComponentSelectionReasons {
 
         @Override
         public List<ComponentSelectionDescriptor> getDescriptions() {
-            return ImmutableList.<ComponentSelectionDescriptor>copyOf(descriptions);
+            return ImmutableList.copyOf(descriptions);
         }
 
         @Override

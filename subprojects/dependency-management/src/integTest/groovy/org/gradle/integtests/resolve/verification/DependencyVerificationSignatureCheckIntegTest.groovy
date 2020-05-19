@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.verification
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.security.fixtures.KeyServer
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.internal.Fingerprint
@@ -89,7 +90,6 @@ class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVer
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "if signature is verified and checksum is declared in configuration, verify checksum (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -135,7 +135,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "fails verification is key is  (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -278,7 +277,6 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "fails verification is signature is incorrect (terse output=#terse)"() {
         createMetadataFile {
             noMetadataVerification()
@@ -326,7 +324,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "doesn't check the same artifact multiple times during a build (terse output=#terse)"() {
         createMetadataFile {
             noMetadataVerification()
@@ -379,7 +376,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "doesn't check the same parent POM file multiple times during a build  (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -438,7 +434,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "fails verification is signature is not trusted (terse output=#terse)"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
@@ -487,7 +482,6 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "can verify classified artifacts trusting key #trustedKey"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
@@ -533,7 +527,6 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "reasonable error message if key server fails to answer (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -616,7 +609,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "must verify all signatures (terse output=#terse)"() {
         def keyring = newKeyRing()
         keyServerFixture.withDefaultSigningKey()
@@ -666,7 +658,6 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "caches missing keys (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -735,7 +726,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
 
-    @ToBeFixedForInstantExecution
     def "cache takes ignored keys into consideration"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -922,7 +912,6 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "unsigned artifacts require checksum verification (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -968,7 +957,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "can ignore a key and fallback to checksum verification (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -1009,7 +997,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "can ignore a key using full fingerprint and fallback to checksum verification (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -1052,7 +1039,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "can ignore a key for a specific artifact and fallback to checksum verification"() {
         // we tamper the jar, so the verification of the jar would fail, but not the POM
         keyServerFixture.withDefaultSigningKey()
@@ -1105,7 +1091,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "can ignore a key by long id for a specific artifact and fallback to checksum verification (terse output=#terse)"() {
         // we tamper the jar, so the verification of the jar would fail, but not the POM
         keyServerFixture.withDefaultSigningKey()
@@ -1191,7 +1176,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "can collect multiple errors for single dependency (terse output=#terse)"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
@@ -1272,10 +1256,6 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(
-        iterationMatchers = ".*key = false\\)",
-        because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception"
-    )
     def "can mix globally trusted keys and artifact specific keys (trust artifact key = #addLocalKey)"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
@@ -1363,6 +1343,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
     }
 
     @Unroll
+    @UnsupportedWithInstantExecution
     def "can verify dependencies in a buildFinished hook (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)

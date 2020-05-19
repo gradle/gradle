@@ -172,7 +172,7 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
      * For a Maven dependency, the artifacts list as zero or one Artifact, always with '*' configuration
      */
     private ImmutableList<IvyArtifactName> getDependencyArtifacts() {
-        return dependencyArtifact == null ? ImmutableList.<IvyArtifactName>of() : ImmutableList.of(dependencyArtifact);
+        return dependencyArtifact == null ? ImmutableList.of() : ImmutableList.of(dependencyArtifact);
     }
 
     @Override

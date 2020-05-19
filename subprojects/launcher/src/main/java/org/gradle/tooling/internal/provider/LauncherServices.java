@@ -16,12 +16,11 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.execution.internal.TaskInputsListener;
+import org.gradle.api.execution.internal.TaskInputsListeners;
+import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
@@ -66,39 +65,36 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                           List<BuildEventListenerFactory> registrations,
                                           ListenerManager listenerManager,
                                           BuildOperationListenerManager buildOperationListenerManager,
-                                          TaskInputsListener inputsListener,
+                                          TaskInputsListeners inputsListeners,
                                           StyledTextOutputFactory styledTextOutputFactory,
                                           ExecutorFactory executorFactory,
                                           LoggingManagerInternal loggingManager,
                                           GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
-                                          FileSystemChangeWaiterFactory fileSystemChangeWaiterFactory,
-                                          ParallelismConfigurationManager parallelismConfigurationManager
+                                          FileSystemChangeWaiterFactory fileSystemChangeWaiterFactory
         ) {
             return new SetupLoggingActionExecuter(
                 new SessionFailureReportingActionExecuter(
                     new StartParamsValidatingActionExecuter(
-                        new ParallelismConfigurationBuildActionExecuter(
-                            new GradleThreadBuildActionExecuter(
-                                new SessionScopeBuildActionExecuter(
-                                    new SubscribableBuildActionExecuter(
-                                        new ContinuousBuildActionExecuter(
-                                            new BuildTreeScopeBuildActionExecuter(
-                                                new InProcessBuildActionExecuter(
-                                                    new RunAsBuildOperationBuildActionRunner(
-                                                        new BuildCompletionNotifyingBuildActionRunner(
-                                                            new ValidatingBuildActionRunner(
-                                                                new BuildOutcomeReportingBuildActionRunner(
-                                                                    new ChainingBuildActionRunner(buildActionRunners),
-                                                                    styledTextOutputFactory)))))),
+                        new GradleThreadBuildActionExecuter(
+                            new SessionScopeBuildActionExecuter(
+                                new SubscribableBuildActionExecuter(
+                                    new ContinuousBuildActionExecuter(
+                                        new BuildTreeScopeBuildActionExecuter(
+                                            new InProcessBuildActionExecuter(
+                                                new RunAsBuildOperationBuildActionRunner(
+                                                    new BuildCompletionNotifyingBuildActionRunner(
+                                                        new ValidatingBuildActionRunner(
+                                                            new BuildOutcomeReportingBuildActionRunner(
+                                                                new ChainingBuildActionRunner(buildActionRunners),
+                                                                styledTextOutputFactory)))))),
                                         fileSystemChangeWaiterFactory,
-                                        inputsListener,
+                                        inputsListeners,
                                         styledTextOutputFactory,
                                         executorFactory),
-                                            listenerManager,
-                                            buildOperationListenerManager,
-                                            registrations),
-                                    userHomeServiceRegistry)),
-                            parallelismConfigurationManager)),
+                                    listenerManager,
+                                    buildOperationListenerManager,
+                                    registrations),
+                                userHomeServiceRegistry))),
                     styledTextOutputFactory,
                     Time.clock()),
                 loggingManager);

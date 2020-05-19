@@ -15,34 +15,24 @@
  */
 
 package org.gradle.testing.fixture
-
-import org.gradle.api.JavaVersion
-
 /**
- * NEWEST is JUnit 4 series, i.e. junit:junit:4.12
- * JUPITER is JUnit Jupiter engine, i.e. org.junit.jupiter:junit-jupiter-api:5.1.0
- * VINTAGE is JUnit Vintage engine which supports JUnit 4 tests on top of JUnit Platform, i.e. org.junit.vintage:junit-vintage-engine:5.1.0
+ * NEWEST is JUnit 4 series, i.e. junit:junit:4.13
+ * JUPITER is JUnit Jupiter engine, i.e. org.junit.jupiter:junit-jupiter-api:5.6.2
+ * VINTAGE is JUnit Vintage engine which supports JUnit 4 tests on top of JUnit Platform, i.e. org.junit.vintage:junit-vintage-engine:5.6.2
  */
 class JUnitCoverage {
-    final static String NEWEST = '4.12'
-    final static String LATEST_JUPITER_VERSION = '5.4.0'
-    final static String LATEST_VINTAGE_VERSION = '5.4.0'
+    final static String NEWEST = '4.13'
+    final static String LATEST_JUPITER_VERSION = '5.6.2'
+    final static String LATEST_VINTAGE_VERSION = '5.6.2'
+    final static String LATEST_LAUNCHER_VERSION = '1.6.2'
     final static String JUPITER = 'Jupiter:' + LATEST_JUPITER_VERSION
     final static String VINTAGE = 'Vintage:' + LATEST_VINTAGE_VERSION
-    final static String[] LARGE_COVERAGE = ['4.0', '4.4', '4.8.2', NEWEST]
-    final static String[] IGNORE_ON_CLASS = ['4.4', '4.8.2', NEWEST]
-    final static String[] ASSUMPTIONS = ['4.5', NEWEST]
-    final static String[] CATEGORIES = ['4.8', NEWEST]
-    final static String[] FILTER_JUNIT3_TESTS = ['3.8.1', '4.6', NEWEST]
-    final static String[] JUNIT_4_LATEST = [NEWEST]
-    final static String[] JUNIT_VINTAGE = emptyIfJava7(VINTAGE)
-    final static String[] JUNIT_VINTAGE_JUPITER = emptyIfJava7(VINTAGE, JUPITER)
-
-    static String[] emptyIfJava7(String... versions) {
-        if (JavaVersion.current().isJava8Compatible()) {
-            return versions
-        } else {
-            return [] as String[]
-        }
-    }
+    final static List<String> LARGE_COVERAGE = ['4.0', '4.4', '4.8.2', NEWEST]
+    final static List<String> IGNORE_ON_CLASS = ['4.4', '4.8.2', NEWEST]
+    final static List<String> ASSUMPTIONS = ['4.5', NEWEST]
+    final static List<String> CATEGORIES = ['4.8', NEWEST]
+    final static List<String> FILTER_JUNIT3_TESTS = ['3.8.1', '4.6', NEWEST]
+    final static List<String> JUNIT_4_LATEST = [NEWEST]
+    final static List<String> JUNIT_VINTAGE = [VINTAGE]
+    final static List<String> JUNIT_VINTAGE_JUPITER = [VINTAGE, JUPITER]
 }

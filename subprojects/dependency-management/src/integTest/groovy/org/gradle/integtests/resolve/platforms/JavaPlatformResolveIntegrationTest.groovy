@@ -158,39 +158,31 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         fails ":checkDeps"
 
         then:
-        failure.assertHasCause('''Unable to find a matching variant of project :platform:
-  - Variant 'apiElements' capability org.test:platform:1.9:
-      - Incompatible attribute:
-          - Required org.gradle.category 'library' and found incompatible value 'platform'.
-      - Other attributes:
-          - Required org.gradle.dependency.bundling 'external' but no value provided.
-          - Required org.gradle.jvm.version '8' but no value provided.
-          - Required org.gradle.libraryelements 'classes' but no value provided.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
-  - Variant 'enforcedApiElements' capability org.test:platform-derived-enforced-platform:1.9:
-      - Incompatible attribute:
-          - Required org.gradle.category 'library' and found incompatible value 'enforced-platform'.
-      - Other attributes:
-          - Required org.gradle.dependency.bundling 'external' but no value provided.
-          - Required org.gradle.jvm.version '8' but no value provided.
-          - Required org.gradle.libraryelements 'classes' but no value provided.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
-  - Variant 'enforcedRuntimeElements' capability org.test:platform-derived-enforced-platform:1.9:
-      - Incompatible attribute:
-          - Required org.gradle.category 'library' and found incompatible value 'enforced-platform'.
-      - Other attributes:
-          - Required org.gradle.dependency.bundling 'external' but no value provided.
-          - Required org.gradle.jvm.version '8' but no value provided.
-          - Required org.gradle.libraryelements 'classes' but no value provided.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime'.
-  - Variant 'runtimeElements' capability org.test:platform:1.9:
-      - Incompatible attribute:
-          - Required org.gradle.category 'library' and found incompatible value 'platform'.
-      - Other attributes:
-          - Required org.gradle.dependency.bundling 'external' but no value provided.
-          - Required org.gradle.jvm.version '8' but no value provided.
-          - Required org.gradle.libraryelements 'classes' but no value provided.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime'.''')
+        failure.assertHasCause('''No matching variant of project :platform was found. The consumer was configured to find an API of a library compatible with Java 8, preferably in the form of class files, and its dependencies declared externally but:
+  - Variant 'apiElements' capability org.test:platform:1.9 declares an API of a component:
+      - Incompatible because this component declares a platform and the consumer needed a library
+      - Other compatible attributes:
+          - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+          - Doesn't say anything about its target Java version (required compatibility with Java 8)
+          - Doesn't say anything about its elements (required them preferably in the form of class files)
+  - Variant 'enforcedApiElements' capability org.test:platform-derived-enforced-platform:1.9 declares an API of a component:
+      - Incompatible because this component declares an enforced platform and the consumer needed a library
+      - Other compatible attributes:
+          - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+          - Doesn't say anything about its target Java version (required compatibility with Java 8)
+          - Doesn't say anything about its elements (required them preferably in the form of class files)
+  - Variant 'enforcedRuntimeElements' capability org.test:platform-derived-enforced-platform:1.9 declares a runtime of a component:
+      - Incompatible because this component declares an enforced platform and the consumer needed a library
+      - Other compatible attributes:
+          - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+          - Doesn't say anything about its target Java version (required compatibility with Java 8)
+          - Doesn't say anything about its elements (required them preferably in the form of class files)
+  - Variant 'runtimeElements' capability org.test:platform:1.9 declares a runtime of a component:
+      - Incompatible because this component declares a platform and the consumer needed a library
+      - Other compatible attributes:
+          - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+          - Doesn't say anything about its target Java version (required compatibility with Java 8)
+          - Doesn't say anything about its elements (required them preferably in the form of class files)''')
     }
 
     def "can enforce a local platform dependency"() {
@@ -564,6 +556,88 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
 
         then:
         succeeds ":compileJava"
+    }
+
+    @Unroll
+    def 'constraint from platform does not erase excludes (platform: #platform)'() {
+        given:
+        platformModule("""
+        constraints {
+            api 'org:foo:1.0'
+        }
+""")
+        def foobaz = mavenHttpRepo.module('org', 'foobaz', '1.0').publish()
+        def foobar = mavenHttpRepo.module('org', 'foobar', '1.0').publish()
+        def foo = mavenHttpRepo.module('org', 'foo', '1.0').dependsOn(foobar).dependsOn(foobaz).publish()
+        def platformGMM = mavenHttpRepo.module("org", "other-platform", "1.0")
+            .withModuleMetadata()
+            .adhocVariants()
+            .variant("apiElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) { useDefaultArtifacts = false }
+            .dependencyConstraint(foo)
+            .variant("runtimeElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {
+                useDefaultArtifacts = false
+            }
+            .dependencyConstraint(foo)
+            .publish()
+        def mavenBom = mavenHttpRepo.module("org", "bom-platform", "1.0")
+            .hasType("pom")
+            .dependencyConstraint(foo)
+            .publish()
+
+        def bar = mavenHttpRepo.module('org', 'bar', '1.0').dependsOn([exclusions: [[module: 'foobaz']]], foo).withModuleMetadata().publish()
+
+        when:
+        buildFile << """
+            dependencies {
+                implementation platform($platform)
+                implementation 'org:bar:1.0'
+            }
+"""
+        checkConfiguration("runtimeClasspath")
+        platformGMM.allowAll()
+        bar.allowAll()
+        foo.allowAll()
+        foobar.allowAll()
+        foobaz.allowAll()
+        mavenBom.allowAll()
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', 'org.test:test:1.9') {
+                if (platform == "project(':platform')") {
+                    project(":platform", "org.test:platform:1.9") {
+                        variant("runtimeElements", ['org.gradle.usage': 'java-runtime', 'org.gradle.category': 'platform'])
+                        constraint("org:foo:1.0")
+                        noArtifacts()
+                    }
+                } else if (platform == "'org:other-platform:1.0'") {
+                    module('org:other-platform:1.0') {
+                        variant("runtimeElements", ['org.gradle.usage': 'java-runtime', 'org.gradle.category': 'platform', 'org.gradle.status': 'release'])
+                        constraint("org:foo:1.0")
+                        noArtifacts()
+                    }
+                } else if (platform == "'org:bom-platform:1.0'") {
+                    module('org:bom-platform:1.0') {
+                        variant("platform-runtime", ['org.gradle.usage': 'java-runtime', 'org.gradle.category': 'platform', 'org.gradle.status': 'release'])
+                        constraint("org:foo:1.0")
+                        noArtifacts()
+                    }
+                }
+                module('org:bar:1.0') {
+                    configuration = 'runtime'
+                    module('org:foo:1.0') {
+                        configuration = 'runtime'
+                        module('org:foobar:1.0') {
+                            configuration = 'runtime'
+                        }
+                    }
+                }
+            }
+        }
+
+        where:
+        platform << ["project(':platform')", "'org:other-platform:1.0'", "'org:bom-platform:1.0'"]
     }
 
     private void checkConfiguration(String configuration) {

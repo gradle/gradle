@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
@@ -55,9 +56,9 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     @Override
     public void setFromAnyValue(Object object) {
         if (object instanceof Provider) {
-            set((Provider<T>) object);
+            set(Cast.<Provider<T>>uncheckedNonnullCast(object));
         } else {
-            set((T) object);
+            set(Cast.<T>uncheckedNonnullCast(object));
         }
     }
 
@@ -117,18 +118,24 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     }
 
     @Override
-    protected Value<? extends T> calculateOwnValue(ProviderInternal<? extends T> value) {
-        return value.calculateValue();
+    protected ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(ProviderInternal<? extends T> value) {
+        // Discard this property from a provider chain, as it does not contribute anything to the calculation.
+        return value.calculateExecutionTimeValue();
     }
 
     @Override
-    protected ProviderInternal<? extends T> finalValue(ProviderInternal<? extends T> value) {
-        return value.withFinalValue();
+    protected Value<? extends T> calculateValueFrom(ProviderInternal<? extends T> value, ValueConsumer consumer) {
+        return value.calculateValue(consumer);
+    }
+
+    @Override
+    protected ProviderInternal<? extends T> finalValue(ProviderInternal<? extends T> value, ValueConsumer consumer) {
+        return value.withFinalValue(consumer);
     }
 
     @Override
     protected String describeContents() {
         // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
-        return String.format("property(%s, %s)", type, getSupplier());
+        return String.format("property(%s, %s)", type.getName(), getSupplier());
     }
 }

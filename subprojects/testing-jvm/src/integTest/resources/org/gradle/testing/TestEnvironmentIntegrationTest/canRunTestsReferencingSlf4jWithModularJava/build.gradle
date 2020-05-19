@@ -7,30 +7,10 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.slf4j:slf4j-api:1.7.25'
-    implementation 'org.slf4j:slf4j-simple:1.7.25'
+    implementation 'org.slf4j:slf4j-api:1.7.30'
+    implementation 'org.slf4j:slf4j-simple:1.7.30'
 
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13'
 }
 
-
-compileTestJava {
-    def args = ["--module-path", compileTestJava.classpath.asPath,
-                "--add-modules", "junit",
-                "--add-reads", "org.gradle.example=junit"]
-    options.compilerArgs = args
-    classpath = files()
-}
-
-test {
-    def args = ["--module-path", test.classpath.asPath,
-                "--add-modules", "ALL-MODULE-PATH",
-                "--add-reads", "org.gradle.example=junit",
-                "--add-reads", "org.gradle.example=slf4j.api"]
-    jvmArgs = args
-    classpath = files()
-
-    // Required because modular tests are not properly supported
-    scanForTestClasses = false
-    include "**/TestUsingSlf4j.class"
-}
+java.modularity.inferModulePath = true

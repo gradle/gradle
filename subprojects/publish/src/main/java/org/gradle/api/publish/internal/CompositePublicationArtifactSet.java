@@ -26,6 +26,8 @@ public class CompositePublicationArtifactSet<T extends PublicationArtifact> exte
 
     private final FileCollection files;
 
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public CompositePublicationArtifactSet(Class<T> type, PublicationArtifactSet<T>... artifactSets) {
         super(CompositeDomainObjectSet.create(type, artifactSets));
         FileCollection[] fileCollections = new FileCollection[artifactSets.length];

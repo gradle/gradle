@@ -47,8 +47,10 @@ import static org.gradle.util.ConfigureUtil.configure;
  * <pre class='autoTested'>
  * import org.gradle.plugins.ide.idea.model.*
  *
- * apply plugin: 'java'
- * apply plugin: 'idea'
+ * plugins {
+ *     id 'java'
+ *     id 'idea'
+ * }
  *
  * idea {
  *   project {
@@ -83,8 +85,10 @@ import static org.gradle.util.ConfigureUtil.configure;
  * Examples of advanced configuration:
  *
  * <pre class='autoTested'>
- * apply plugin: 'java'
- * apply plugin: 'idea'
+ * plugins {
+ *     id 'java'
+ *     id 'idea'
+ * }
  *
  * idea {
  *   project {
@@ -334,6 +338,7 @@ public class IdeaProject implements IdeWorkspace {
         this.pathFactory = pathFactory;
     }
 
+    @SuppressWarnings("unchecked")
     public void mergeXmlProject(Project xmlProject) {
         ipr.getBeforeMerged().execute(xmlProject);
         xmlProject.configure(getModules(), getJdkName(), getLanguageLevel(), getTargetBytecodeVersion(), getWildcards(), getProjectLibraries(), getVcs());

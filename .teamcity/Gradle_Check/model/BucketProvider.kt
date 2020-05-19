@@ -109,7 +109,13 @@ class StatisticBasedGradleBuildBucketProvider(private val model: CIBuildModel, t
         val validSubprojects = model.subprojects.getSubprojectsFor(testCoverage, stage)
 
         // Build project not found, don't split into buckets
-        val subProjectToClassTimes: Map<String, List<TestClassTime>> = determineSubProjectClassTimes(testCoverage, buildProjectClassTimes) ?: return validSubprojects
+        val subProjectToClassTimes: MutableMap<String, List<TestClassTime>> = determineSubProjectClassTimes(testCoverage, buildProjectClassTimes)?.toMutableMap() ?: return validSubprojects
+
+        validSubprojects.forEach {
+            if (!subProjectToClassTimes.containsKey(it.name)) {
+                subProjectToClassTimes[it.name] = emptyList()
+            }
+        }
 
         val subProjectTestClassTimes: List<SubprojectTestClassTime> = subProjectToClassTimes
             .entries
@@ -256,8 +262,17 @@ type build\$action-test-classes.properties
 
 class SmallSubprojectBucket(val subprojectsBuildTime: List<SubprojectTestClassTime>) : BuildTypeBucket {
     val subprojects = subprojectsBuildTime.map { it.subProject }
-    val name = subprojects.joinToString(",") { it.name }
+    val name = truncateName(subprojects.joinToString(","))
     val totalTime = subprojectsBuildTime.sumBy { it.totalTime }
+
+    private fun truncateName(str: String) =
+        // Can't exceed Linux file name limit 255 char on TeamCity
+        if (str.length > 200) {
+            str.substring(0, 200) + "..."
+        } else {
+            str
+        }
+
     override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int): FunctionalTest =
         FunctionalTest(model,
             getUuid(model, testCoverage, bucketIndex),
@@ -268,7 +283,7 @@ class SmallSubprojectBucket(val subprojectsBuildTime: List<SubprojectTestClassTi
             subprojects.map { it.name }
         )
 
-    override fun getName(testCoverage: TestCoverage) = "${testCoverage.asName()} (${subprojects.joinToString(",") { it.name }})"
+    override fun getName(testCoverage: TestCoverage) = truncateName("${testCoverage.asName()} (${subprojects.joinToString(",") { it.name }})")
 
     override fun getDescription(testCoverage: TestCoverage) = "${testCoverage.asName()} for ${subprojects.joinToString(", ") { it.name }}"
 }

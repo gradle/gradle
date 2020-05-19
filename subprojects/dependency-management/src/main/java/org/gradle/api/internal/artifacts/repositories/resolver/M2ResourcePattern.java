@@ -51,7 +51,7 @@ public class M2ResourcePattern extends AbstractResourcePattern {
         if (artifact.getComponentId() instanceof MavenUniqueSnapshotComponentIdentifier) {
             MavenUniqueSnapshotComponentIdentifier snapshotId = (MavenUniqueSnapshotComponentIdentifier) artifact.getComponentId();
             pattern = pattern
-                    .replaceFirst("\\-\\[revision\\]", "-" + snapshotId.getTimestampedVersion())
+                    .replaceFirst("-\\[revision]", "-" + snapshotId.getTimestampedVersion())
                     .replace("[revision]", snapshotId.getSnapshotVersion());
         }
         return pattern;

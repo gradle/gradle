@@ -1,5 +1,5 @@
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 /*
  * Copyright 2010 the original author or authors.
@@ -17,7 +17,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
@@ -33,6 +33,7 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":platformBase"))
     implementation(project(":platformJvm"))
+    implementation(project(":languageJvm"))
     implementation(project(":languageJava"))
     implementation(project(":languageScala"))
     implementation(project(":scala"))
@@ -67,10 +68,21 @@ dependencies {
     integTestRuntimeOnly(project(":testKit"))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
+strictCompile {
+    ignoreRawTypes()
+}
+
+classycle {
+    excludePatterns.set(listOf(
+        "org/gradle/plugins/ide/internal/*",
+        "org/gradle/plugins/ide/eclipse/internal/*",
+        "org/gradle/plugins/ide/idea/internal/*",
+        "org/gradle/plugins/ide/eclipse/model/internal/*",
+        "org/gradle/plugins/ide/idea/model/internal/*"))
 }
 
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
+
+integrationTestUsesSampleDir("subprojects/ide/src/main")

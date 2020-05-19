@@ -17,7 +17,9 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.internal.file.TreeType;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
+@UsedByScanPlugin("test-distribution")
 public enum  OutputFilePropertyType {
     FILE(TreeType.FILE, ValidationActions.OUTPUT_FILE_VALIDATOR),
     DIRECTORY(TreeType.DIRECTORY, ValidationActions.OUTPUT_DIRECTORY_VALIDATOR),
@@ -32,6 +34,7 @@ public enum  OutputFilePropertyType {
         this.validationAction = validationAction;
     }
 
+    @UsedByScanPlugin("test-distribution")
     public TreeType getOutputType() {
         return outputType;
     }

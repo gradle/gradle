@@ -17,25 +17,21 @@
 package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.util.Requires
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
-
-@Requires(KOTLIN_SCRIPT)
 class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule")
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
+    @UsesSample("dependencyManagement/customizingResolution-conditionalSubstitutionRule")
+    @ToBeFixedForInstantExecution(because = "sample uses system property", iterationMatchers = ".*kotlin dsl.*")
     def "can run sample with all external dependencies with #dsl dsl" () {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -51,12 +47,12 @@ class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSp
         TextUtil.normaliseFileSeparators(output).contains("repo/org.example/project3/1.0/project3-1.0.jar")
 
         where:
-        dsl <<  ['groovy', 'kotlin']
+        dsl << ['groovy', 'kotlin']
     }
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule")
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
+    @UsesSample("dependencyManagement/customizingResolution-conditionalSubstitutionRule")
+    @ToBeFixedForInstantExecution(because = "sample uses system property")
     def "can run sample with some internal projects with #dsl dsl" () {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -73,6 +69,6 @@ class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSp
         TextUtil.normaliseFileSeparators(output).contains("repo/org.example/project3/1.0/project3-1.0.jar")
 
         where:
-        dsl <<  ['groovy', 'kotlin']
+        dsl << ['groovy', 'kotlin']
     }
 }

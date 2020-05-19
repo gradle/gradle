@@ -245,13 +245,13 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         if (rules.isEmpty()) {
             return Actions.doNothing();
         }
-        ArrayList<ConfigurableRule<ComponentMetadataContext>> collectedRules = new ArrayList<ConfigurableRule<ComponentMetadataContext>>();
+        ArrayList<ConfigurableRule<ComponentMetadataContext>> collectedRules = new ArrayList<>();
         for (SpecConfigurableRule classBasedRule : rules) {
             if (classBasedRule.getSpec().isSatisfiedBy(id)) {
                 collectedRules.add(classBasedRule.getConfigurableRule());
             }
         }
-        return new InstantiatingAction<ComponentMetadataContext>(new DefaultConfigurableRules<ComponentMetadataContext>(collectedRules), instantiator, new ExceptionHandler());
+        return new InstantiatingAction<>(new DefaultConfigurableRules<>(collectedRules), instantiator, new ExceptionHandler());
     }
 
 
@@ -313,7 +313,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         private final ModuleVersionIdentifier id;
         private boolean changing;
         private List<String> statusScheme;
-        private AttributeContainerInternal attributes;
+        private final AttributeContainerInternal attributes;
 
         public ShallowComponentMetadataAdapter(NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser, ComponentMetadata source, ImmutableAttributesFactory attributesFactory) {
             this.componentIdentifierNotationParser = componentIdentifierNotationParser;

@@ -23,6 +23,7 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.Convention;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 
 import java.util.Collection;
@@ -85,7 +86,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
 
     public void propertyMissing(String name, Object value) {
         if (value instanceof Closure) {
-            map(name, (Closure) value);
+            map(name, Cast.<Closure<?>>uncheckedNonnullCast(value));
         } else {
             throw new MissingPropertyException(name, getClass());
         }
@@ -106,7 +107,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
                 useMapping = false;
             }
             if (useMapping) {
-                returnValue = (T) _mappings.get(propertyName).getValue(_convention, _source);
+                returnValue = Cast.uncheckedNonnullCast(_mappings.get(propertyName).getValue(_convention, _source));
             }
         }
         return returnValue;

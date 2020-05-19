@@ -19,8 +19,8 @@ package org.gradle.test.fixtures.junitplatform
 import groovy.io.FileType
 
 class JUnitPlatformTestRewriter {
-    static final String LATEST_JUPITER_VERSION = '5.1.0'
-    static final String LATEST_VINTAGE_VERSION = '5.1.0'
+    static final String LATEST_JUPITER_VERSION = '5.6.2'
+    static final String LATEST_VINTAGE_VERSION = '5.6.2'
     static Map replacements = ['org.junit.Test': 'org.junit.jupiter.api.Test',
                                'org.junit.Before;': 'org.junit.jupiter.api.BeforeEach;',
                                'org.junit.After;': 'org.junit.jupiter.api.AfterEach;',
@@ -49,6 +49,7 @@ class JUnitPlatformTestRewriter {
     static rewriteWithJupiter(File projectDir, String dependencyVersion) {
         rewriteBuildFileWithJupiter(projectDir, dependencyVersion)
         rewriteJavaFilesWithJupiterAnno(projectDir)
+        rewriteJavaModuleFileWithJupiterRequires(projectDir)
     }
 
     static replaceCategoriesWithTags(File projectDir) {
@@ -71,7 +72,7 @@ class JUnitPlatformTestRewriter {
     }
 
     static rewriteBuildFileWithVintage(File buildFile, String dependencyVersion) {
-        rewriteBuildFileInDir(buildFile, "org.junit.vintage:junit-vintage-engine:${dependencyVersion}','junit:junit:4.12")
+        rewriteBuildFileInDir(buildFile, "org.junit.vintage:junit-vintage-engine:${dependencyVersion}','junit:junit:4.13")
     }
 
     static rewriteJavaFilesWithJupiterAnno(File rootProject) {
@@ -81,6 +82,13 @@ class JUnitPlatformTestRewriter {
                 text = text.replace(key, value)
             }
             it.text = text
+        }
+    }
+
+    static rewriteJavaModuleFileWithJupiterRequires(File rootProject) {
+        def moduleInfo = new File(rootProject, 'src/test/java/module-info.java')
+        if (moduleInfo.exists()) {
+            moduleInfo.text = moduleInfo.text.replace('requires junit', 'requires org.junit.jupiter.api')
         }
     }
 
@@ -98,8 +106,8 @@ class JUnitPlatformTestRewriter {
     static rewriteBuildFile(File buildFile, String dependenciesReplacement, String moduleName) {
         String text = buildFile.text
         // compile/testCompile/implementation/testImplementation
-        text = text.replaceFirst(/ompile ['"]junit:junit:4\.12['"]/, "ompile '${dependenciesReplacement}'")
-        text = text.replaceFirst(/mplementation ['"]junit:junit:4\.12['"]/, "mplementation '${dependenciesReplacement}'")
+        text = text.replaceFirst(/ompile ['"]junit:junit:4\.13['"]/, "ompile '${dependenciesReplacement}'")
+        text = text.replaceFirst(/mplementation ['"]junit:junit:4\.13['"]/, "mplementation '${dependenciesReplacement}'")
         if (!text.contains('useTestNG')) {
             // we only hack build with JUnit 4
             // See IncrementalTestIntegrationTest.executesTestsWhenTestFrameworkChanges

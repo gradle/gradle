@@ -17,12 +17,11 @@
 package org.gradle.api.internal.provider;
 
 import java.util.Collection;
-import java.util.List;
 
 interface CollectionSupplier<T, C extends Collection<? extends T>> extends ValueSupplier {
-    Value<? extends C> calculateValue();
+    Value<? extends C> calculateValue(ValueConsumer consumer);
 
     CollectionSupplier<T, C> plus(Collector<T> collector);
 
-    void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources);
+    ExecutionTimeValue<? extends C> calculateExecutionTimeValue();
 }

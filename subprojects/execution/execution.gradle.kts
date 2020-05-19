@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
-    gradlebuild.`strict-compile`
-    gradlebuild.classycle
+    gradlebuild.distribution.`core-api-java`
 }
 
 description = "Execution engine that takes a unit of work and makes it happen"
@@ -58,10 +54,3 @@ dependencies {
     testFixturesImplementation(project(":snapshots"))
     testFixturesImplementation(project(":modelCore"))
 }
-
-java {
-    gradlebuildJava {
-        moduleType = ModuleType.CORE
-    }
-}
-

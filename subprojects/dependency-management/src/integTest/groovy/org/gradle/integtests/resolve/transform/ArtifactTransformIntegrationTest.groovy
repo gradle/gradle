@@ -1476,6 +1476,7 @@ Found the following transforms:
         outputContains("files: [test-api-1.3.jar.txt, test-impl2-1.3.jar.txt, test-2-0.1.jar.txt]")
     }
 
+    @ToBeFixedForInstantExecution
     def "user gets a reasonable error message when file dependency cannot be listed and continues with other inputs"() {
         given:
         buildFile << """
@@ -1512,6 +1513,7 @@ Found the following transforms:
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "user gets a reasonable error message when null is registered via outputs.#method"() {
         given:
         buildFile << """
@@ -1594,24 +1596,26 @@ Found the following transforms:
 
             abstract class FailingTransform implements TransformAction<TransformParameters.None> {
                 void transform(TransformOutputs outputs) {
-                    ${switch (type) {
-                        case FileType.Missing:
-                            return """
+                    ${
+            switch (type) {
+                case FileType.Missing:
+                    return """
                                 outputs.${method}('this_file_does_not.exist').delete()
 
                             """
-                        case FileType.Directory:
-                            return """
+                case FileType.Directory:
+                    return """
                                 def output = outputs.${method}('directory')
                                 output.mkdirs()
                             """
-                        case FileType.RegularFile:
-                            return """
+                case FileType.RegularFile:
+                    return """
                                 def output = outputs.${method}('file')
                                 output.delete()
                                 output.text = 'some text'
                             """
-                    }}
+            }
+        }
                 }
             }
             ${declareTransformAction('FailingTransform')}
@@ -1734,6 +1738,7 @@ Found the following transforms:
         method << ["file", "dir"]
     }
 
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "user gets a reasonable error message when transform returns a file that is not part of the input artifact or in the output directory"() {
         given:
         buildFile << """
@@ -1766,6 +1771,7 @@ Found the following transforms:
         failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
     }
 
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "user gets a reasonable error message when transform registers an output that is not part of the input artifact or in the output directory"() {
         given:
         buildFile << """
@@ -1806,6 +1812,7 @@ Found the following transforms:
         failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
     }
 
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "user gets a reasonable error message when transform cannot be instantiated"() {
         given:
         buildFile << """
@@ -1963,6 +1970,10 @@ Found the following transforms:
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(
+        because = "broken file collection",
+        iterationMatchers = ".*immediate transform"
+    )
     def "provides useful error message when parameter value cannot be isolated for #type transform"() {
         mavenRepo.module("test", "a", "1.3").publish()
         settingsFile << "include 'lib'"
@@ -2041,8 +2052,8 @@ Found the following transforms:
 
     def "artifacts with same component id and extension, but different classifier remain distinguishable after transformation"() {
         def module = mavenRepo.module("test", "test", "1.3").publish()
-        module.getArtifactFile(classifier:"foo").text = "1234"
-        module.getArtifactFile(classifier:"bar").text = "5678"
+        module.getArtifactFile(classifier: "foo").text = "1234"
+        module.getArtifactFile(classifier: "bar").text = "5678"
 
         given:
         buildFile << """

@@ -1,9 +1,5 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
-    gradlebuild.`strict-compile`
-    gradlebuild.classycle
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
@@ -35,8 +31,3 @@ dependencies {
     integTestImplementation(testLibrary("jetty"))
     integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
-

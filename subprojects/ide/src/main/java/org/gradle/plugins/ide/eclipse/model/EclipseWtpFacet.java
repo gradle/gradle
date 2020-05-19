@@ -35,8 +35,10 @@ import static org.gradle.util.ConfigureUtil.configure;
  * Advanced configuration closures beforeMerged and whenMerged receive {@link WtpFacet} object as parameter.
  *
  * <pre class='autoTested'>
- * apply plugin: 'war' //or 'ear' or 'java'
- * apply plugin: 'eclipse-wtp'
+ * plugins {
+ *     id 'war' // or 'ear' or 'java'
+ *     id 'eclipse-wtp'
+ * }
  *
  * eclipse {
  *   wtp {
@@ -142,6 +144,7 @@ public class EclipseWtpFacet {
         ));
     }
 
+    @SuppressWarnings("unchecked")
     public void mergeXmlFacet(WtpFacet xmlFacet) {
         file.getBeforeMerged().execute(xmlFacet);
         xmlFacet.configure(getFacets());

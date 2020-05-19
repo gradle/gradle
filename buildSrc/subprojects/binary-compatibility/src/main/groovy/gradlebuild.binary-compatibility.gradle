@@ -1,0 +1,162 @@
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import japicmp.model.JApiChangeStatus
+import me.champeau.gradle.japicmp.JapicmpTask
+import org.gradle.binarycompatibility.AcceptedApiChanges
+import org.gradle.binarycompatibility.BinaryCompatibilityHelper
+import org.gradle.binarycompatibility.CleanAcceptedApiChanges
+import org.gradle.binarycompatibility.transforms.ExplodeZipAndFindJars
+import org.gradle.binarycompatibility.transforms.FindGradleClasspath
+import org.gradle.binarycompatibility.transforms.FindGradleJar
+import org.gradle.gradlebuild.PublicApi
+
+import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
+
+repositories {
+    ['distributions', 'distributions-snapshots'].each { distUrl ->
+        ivy {
+            name 'Gradle distributions'
+            url 'https://services.gradle.org'
+            patternLayout {
+                artifact "/${distUrl}/[module]-[revision]-bin(.[ext])"
+            }
+            metadataSources {
+                artifact()
+            }
+            content {
+                includeModule('gradle', 'gradle')
+            }
+        }
+    }
+}
+
+ext {
+    apiChangesJsonFile = project.file("src/changes/accepted-public-api-changes.json")
+    acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonFile.text)
+    compatibilityBaselineVersion = Versioning_extensionsKt.getReleasedVersions(project).mostRecentRelease
+}
+
+def ARTIFACT_TYPE = Attribute.of('artifactType', String)
+
+configurations {
+    baseline
+    baselineClasspath {
+        extendsFrom baseline
+        attributes.attribute(ARTIFACT_TYPE, 'gradle-classpath')
+    }
+    currentClasspath {
+        canBeConsumed = false
+        canBeResolved = true
+        description = "Classpath to check binary compatibility against"
+        attributes.attribute(USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+    }
+}
+
+def configurationsContainer = configurations
+def apiSourceFolders = files()
+def oldArchivesFiles = files()
+def newArchivesFiles = files()
+dependencies {
+    baseline "gradle:gradle:${compatibilityBaselineVersion}@zip"
+
+    // This transform takes the Gradle zip distribution,
+    // and unzips the Gradle jar files that it contains in a directory
+    registerTransform(ExplodeZipAndFindJars) {
+        from.attribute(ARTIFACT_TYPE, 'zip')
+        to.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
+    }
+    registerTransform(FindGradleClasspath) {
+        from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
+        to.attribute(ARTIFACT_TYPE, 'gradle-classpath')
+    }
+
+    rootProject.subprojects { subproject ->
+        plugins.withId('gradlebuild.distribution.api') {
+            apiSourceFolders.from(subproject.sourceSets.main.allJava.sourceDirectories)
+            if (subproject.plugins.hasPlugin("kotlin")) {
+                apiSourceFolders.from(subproject.sourceSets.main.kotlin.sourceDirectories)
+            }
+            newArchivesFiles.from(subproject.jar)
+            // TODO: Current classpath should be derived from the other "Gradle runtime" sources like api-metadata, runtime-api, distribution building, etc...
+            currentClasspath project(subproject.path)
+
+            // This transform uses the result of the exploded zip extraction
+            // and returns a single jar file based on the lookup project name
+            def projectName = subproject.archivesBaseName - 'gradle-'
+            registerTransform(FindGradleJar) {
+                from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
+                to.attribute(ARTIFACT_TYPE, projectName)
+                parameters {
+                    target = projectName
+                }
+            }
+            def appendixName = projectName.split('-')*.capitalize().join('')
+            def baselineConf = configurationsContainer.create("japicmp-baseline-${appendixName}") {
+                extendsFrom configurationsContainer.baseline
+                attributes.attribute(ARTIFACT_TYPE, projectName)
+            }
+            oldArchivesFiles.from(baselineConf)
+        }
+    }
+}
+
+def buildVersion = rootProject.buildVersion
+def baseVersion = buildVersion.baseVersion
+def isSnapshot = buildVersion.isSnapshot
+def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", JapicmpTask) {
+    inputs.files(configurations.currentClasspath)
+    inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
+    inputs.property("baseline.version", compatibilityBaselineVersion)
+    inputs.property("currentVersion", baseVersion)
+    inputs.files("apiSourceFolders", apiSourceFolders)
+
+    oldClasspath = configurations.baselineClasspath
+    newClasspath = configurations.currentClasspath
+    oldArchives = oldArchivesFiles
+    newArchives = newArchivesFiles
+
+    // binary breaking change checking setup
+    onlyModified = false
+    failOnModification = false // we rely on the custom report to fail or not
+    ignoreMissingClasses = true // because of a missing scala.runtime.AbstractFunction0 class
+    richReport {
+        includedClasses = toPatterns(PublicApi.includes + PublicKotlinDslApi.includes)
+        excludedClasses = toPatterns(PublicApi.excludes + PublicKotlinDslApi.excludes)
+
+        title = "Binary compatibility report for Gradle ${isSnapshot ? "${baseVersion}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
+        destinationDir = file("$buildDir/reports/binary-compatibility")
+        reportName = "report.html"
+    }
+
+    BinaryCompatibilityHelper.setupJApiCmpRichReportRules(delegate, acceptedViolations, apiSourceFolders, baseVersion)
+}
+tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }
+
+tasks.register("cleanAcceptedApiChanges", CleanAcceptedApiChanges) {
+    description = 'Cleans up all existing accepted API changes.'
+    jsonFile = apiChangesJsonFile
+}
+
+static List<String> toPatterns(List<String> packages) {
+    packages.collect {
+        it.replaceAll('\\*\\*', '###')
+            .replaceAll('/\\*', '/[A-Z][a-z_A-Z0-9]+')
+            .replaceAll('$', '\\$')
+            .replaceAll('/', '[.]')
+            .replaceAll('###', '.*?')
+    }
+}

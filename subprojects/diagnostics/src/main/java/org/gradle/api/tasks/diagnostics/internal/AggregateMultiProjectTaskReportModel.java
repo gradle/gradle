@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
-    private List<TaskReportModel> projects = new ArrayList<TaskReportModel>();
+    private final List<TaskReportModel> projects = new ArrayList<>();
     private SetMultimap<String, TaskDetails> groups;
     private final boolean mergeTasksWithSameName;
     private final boolean detail;
@@ -43,17 +43,7 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
     }
 
     public void build() {
-        groups = TreeMultimap.create(new Comparator<String>() {
-            @Override
-            public int compare(String string1, String string2) {
-                return string1.compareToIgnoreCase(string2);
-            }
-        }, new Comparator<TaskDetails>() {
-            @Override
-            public int compare(TaskDetails task1, TaskDetails task2) {
-                return task1.getPath().compareTo(task2.getPath());
-            }
-        });
+        groups = TreeMultimap.create(String::compareToIgnoreCase, Comparator.comparing(TaskDetails::getPath));
         for (TaskReportModel project : projects) {
             for (String group : project.getGroups()) {
                 if (isVisible(group)) {

@@ -1,0 +1,9 @@
+// tag::use-plugin[]
+plugins {
+    id 'org.samples.greeting' version '1.0-SNAPSHOT'
+}
+// end::use-plugin[]
+
+task greeting(type: org.gradle.GreetingTask) {
+    greeting = 'howdy!'
+}

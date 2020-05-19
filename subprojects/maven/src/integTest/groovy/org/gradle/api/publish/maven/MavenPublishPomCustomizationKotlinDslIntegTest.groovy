@@ -19,11 +19,7 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
 
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
-
-@Requires([KOTLIN_SCRIPT])
 class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublishIntegTest {
 
     @Override
@@ -151,7 +147,7 @@ class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublis
                                 val dependency = asNode().appendNode("dependencies").appendNode("dependency")
                                 dependency.appendNode("groupId", "junit")
                                 dependency.appendNode("artifactId", "junit")
-                                dependency.appendNode("version", "4.12")
+                                dependency.appendNode("version", "4.13")
                                 dependency.appendNode("scope", "runtime")
                             }
                         }
@@ -167,7 +163,7 @@ class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublis
         module.assertPublished()
         def parsedPom = module.parsedPom
         parsedPom.packaging == 'custom-packaging'
-        parsedPom.scopes.runtime.assertDependsOn("junit:junit:4.12")
+        parsedPom.scopes.runtime.assertDependsOn("junit:junit:4.13")
 
         and:
         parsedPom.name == 'custom-name'

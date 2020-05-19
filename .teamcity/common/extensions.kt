@@ -16,6 +16,7 @@
 
 package common
 
+import Gradle_Check.configurations.allBranchesFilter
 import configurations.m2CleanScriptUnixLike
 import configurations.m2CleanScriptWindows
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
@@ -54,10 +55,7 @@ fun Requirements.requiresOs(os: Os) {
 }
 
 fun VcsSettings.filterDefaultBranch() {
-    branchFilter = """
-                +:*
-                -:<default>
-            """.trimIndent()
+    branchFilter = allBranchesFilter
 }
 
 fun BuildType.applyDefaultSettings(os: Os = Os.linux, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
@@ -67,7 +65,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.linux, timeout: Int = 30, vcsRoot
         subprojects/*/build/tmp/test files/** => test-files
         subprojects/*/build/tmp/test files/** => test-files
         build/errorLogs/** => errorLogs
-        build/reports/incubation/** => incubation-reports
+        subprojects/internal-build-reports/build/reports/incubation/all-incubating.html => incubation-reports
         build/reports/dependency-verification/** => dependency-verification-reports
     """.trimIndent()
 

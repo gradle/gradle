@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
@@ -29,16 +30,16 @@ import java.util.Collections;
 
 import static org.gradle.internal.classloader.ClassLoaderUtils.executeInClassloader;
 
-public abstract class AbstractClassLoaderWorker implements RequestHandler<TransportableActionExecutionSpec<?>, DefaultWorkResult> {
+public abstract class AbstractClassLoaderWorker implements RequestHandler<TransportableActionExecutionSpec, DefaultWorkResult> {
     private final Worker worker;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
 
     public AbstractClassLoaderWorker(ServiceRegistry workServices, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory) {
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
-        this.worker = new DefaultWorkerServer(workServices, instantiatorFactory, new IsolationScheme<>(WorkAction.class, WorkParameters.class, WorkParameters.None.class), Collections.emptyList());
+        this.worker = new DefaultWorkerServer(workServices, instantiatorFactory, new IsolationScheme<>(Cast.uncheckedCast(WorkAction.class), WorkParameters.class, WorkParameters.None.class), Collections.emptyList());
     }
 
-    public DefaultWorkResult executeInClassLoader(TransportableActionExecutionSpec<?> spec, ClassLoader workerClassLoader) {
+    public DefaultWorkResult executeInClassLoader(TransportableActionExecutionSpec spec, ClassLoader workerClassLoader) {
         return executeInClassloader(workerClassLoader, new Factory<DefaultWorkResult>() {
             @Nullable
             @Override

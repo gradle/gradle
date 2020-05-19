@@ -5,16 +5,11 @@
  * application (eg as part of the tooling API).
  */
 
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.distribution.`core-api-java`
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.WORKER
-}
+gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(project(":baseAnnotations"))

@@ -44,7 +44,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
 
         then:
         GradleConnectionException e = thrown()
-        e.message.startsWith("Could not execute build using Gradle ")
+        e.message.startsWith("Could not execute build using ")
         e.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
 
         where:
@@ -62,7 +62,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
 
         then:
         GradleConnectionException e = thrown()
-        e.message.startsWith("Could not fetch model of type 'GradleProject' using Gradle ")
+        e.message.startsWith("Could not fetch model of type 'GradleProject' using ")
         e.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
 
         where:
@@ -80,7 +80,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
 
         then:
         GradleConnectionException e = thrown()
-        e.message.startsWith("Could not run build action using Gradle ")
+        e.message.startsWith("Could not run build action using ")
         e.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
 
         where:
@@ -98,7 +98,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
 
         then:
         GradleConnectionException e = thrown()
-        e.message.startsWith("Could not execute tests using Gradle ")
+        e.message.startsWith("Could not execute tests using ")
         e.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
 
         where:

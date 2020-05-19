@@ -30,26 +30,26 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
             ${jcenterRepository()}
 
             dependencies {
-                testImplementation 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.13'
                 testImplementation 'org.mockito:mockito-core:2.3.7'
             }
         """
 
         file('src/test/java/example/Issue1618Test.java') << '''
             package example;
-    
+
             import org.junit.Test;
-    
+
             import static org.mockito.Mockito.doThrow;
             import static org.mockito.Mockito.mock;
-    
+
             public class Issue1618Test {
-    
+
                 public static class Bugger {
                     public void run() {
                     }
                 }
-    
+
                 @Test
                 public void thisTestShouldBeMarkedAsFailed() {
                     RuntimeException mockedException = mock(RuntimeException.class);

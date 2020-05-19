@@ -19,19 +19,14 @@ import build.kotlin
 import build.kotlinVersion
 import codegen.GenerateKotlinDependencyExtensions
 import org.gradle.build.ReproduciblePropertiesWriter
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 
 plugins {
-    `kotlin-dsl-module`
+    gradlebuild.distribution.`core-api-kotlin`
 }
 
 description = "Kotlin DSL Provider"
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
 
 dependencies {
     api(project(":kotlinDslToolingModels"))
@@ -39,6 +34,7 @@ dependencies {
     api(futureKotlin("stdlib-jdk8"))
 
     implementation(project(":baseServices"))
+    implementation(project(":messaging"))
     implementation(project(":native"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
@@ -110,10 +106,14 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
+classycle {
+    excludePatterns.set(listOf("org/gradle/kotlin/dsl/**"))
+}
+
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
-val publishedKotlinDslPluginVersion = "1.3.4" // TODO:kotlin-dsl
+val publishedKotlinDslPluginVersion = "1.3.6" // TODO:kotlin-dsl
 
 tasks {
     val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {

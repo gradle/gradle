@@ -370,19 +370,20 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
     private DomNode toXmlNode() {
         DomNode root = new DomNode(nodeNameFor("application"));
-        root.attributes().put("version", version);
+        Map<String, String> rootAttributes = Cast.uncheckedCast(root.attributes());
+        rootAttributes.put("version", version);
         if (!"1.3".equals(version)) {
-            root.attributes().put("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+            rootAttributes.put("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
         }
         if ("1.3".equals(version)) {
             root.setPublicId("-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN");
             root.setSystemId("http://java.sun.com/dtd/application_1_3.dtd");
         } else if ("1.4".equals(version)) {
-            root.attributes().put("xsi:schemaLocation", "http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/application_1_4.xsd");
+            rootAttributes.put("xsi:schemaLocation", "http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/application_1_4.xsd");
         } else if ("5".equals(version) || "6".equals(version)) {
-            root.attributes().put("xsi:schemaLocation", "http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_" + version + ".xsd");
+            rootAttributes.put("xsi:schemaLocation", "http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_" + version + ".xsd");
         } else if ("7".equals(version)) {
-            root.attributes().put("xsi:schemaLocation", "http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/application_" + version + ".xsd");
+            rootAttributes.put("xsi:schemaLocation", "http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/application_" + version + ".xsd");
         }
         if (applicationName != null) {
             new Node(root, nodeNameFor("application-name"), applicationName);

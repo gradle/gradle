@@ -35,6 +35,44 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
         """
     }
 
+    def "does not fail with a project and direct dependency with non dynamic version"() {
+        settingsFile << """
+            include("other")
+"""
+        buildFile << """
+            dependencies {
+                conf(project(':other'))
+                conf 'org:test:1.0'
+            }
+
+            project(':other') {
+                configurations.create('default')
+            }
+"""
+        repository {
+            'org:test:1.0'()
+        }
+
+        when:
+        repositoryInteractions {
+            'org:test:1.0' {
+                expectResolve()
+            }
+        }
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                project(":other", "test:other:unspecified") {
+                    configuration('default')
+                    noArtifacts()
+                }
+                module('org:test:1.0')
+            }
+        }
+    }
+
     def "fails to resolve a direct dependency using a dynamic version"() {
         buildFile << """
             dependencies {
@@ -140,7 +178,7 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
                 conf 'org:testB:1.0'
                 conf 'org:testC:1.0'
             }
-           
+
         """
 
         repository {

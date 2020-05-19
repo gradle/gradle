@@ -82,13 +82,7 @@ public class HtmlDependencyReporter extends ReportRenderer<Set<Project>, File> {
     }
 
     private Transformer<String, Project> projectNamingScheme(final String extension) {
-        return new Transformer<String, Project>() {
-            @Override
-            public String transform(Project project) {
-                return toFileName(project, "." + extension);
-            }
-
-        };
+        return project -> toFileName(project, "." + extension);
     }
 
     private String toFileName(Project project, String extension) {

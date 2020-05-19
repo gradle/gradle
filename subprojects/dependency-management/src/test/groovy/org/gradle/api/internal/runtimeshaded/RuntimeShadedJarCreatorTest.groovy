@@ -21,8 +21,10 @@ import groovy.transform.stc.SimpleType
 import org.apache.ivy.core.settings.IvySettings
 import org.cyberneko.html.xercesbridge.XercesBridge
 import org.gradle.api.Action
-import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.IoActions
+import org.gradle.internal.classpath.ClasspathBuilder
+import org.gradle.internal.classpath.ClasspathWalker
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -35,12 +37,11 @@ import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.util.TraceClassVisitor
+import spock.lang.Issue
 import spock.lang.Specification
 
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
-
-import spock.lang.Issue
 
 @UsesNativeServices
 @CleanupTestDirectory(fieldName = "tmpDir")
@@ -54,7 +55,7 @@ class RuntimeShadedJarCreatorTest extends Specification {
     def outputJar = tmpDir.testDirectory.file('gradle-api.jar')
 
     def setup() {
-        relocatedJarCreator = new RuntimeShadedJarCreator(progressLoggerFactory, new ImplementationDependencyRelocator(RuntimeShadedJarType.API), new DefaultDirectoryFileTreeFactory())
+        relocatedJarCreator = new RuntimeShadedJarCreator(progressLoggerFactory, new ImplementationDependencyRelocator(RuntimeShadedJarType.API), new ClasspathWalker(TestFiles.fileSystem()), new ClasspathBuilder())
     }
 
     def "creates JAR file for input directory"() {
@@ -129,20 +130,42 @@ org.gradle.api.internal.tasks.CompileServices
         handleAsJarFile(outputJar) { JarFile file ->
             List<JarEntry> entries = file.entries() as List
             assert entries*.name == [
+                'org/',
+                'org/gradle/',
                 'org/gradle/MyClass.class',
                 'org/gradle/MySecondClass.class',
+                'net/',
+                'net/rubygrapefruit/',
+                'net/rubygrapefruit/platform/',
+                'net/rubygrapefruit/platform/osx-i386/',
                 'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib',
+                'org/gradle/reporting/',
                 'org/gradle/reporting/report.js',
+                'org/joda/',
+                'org/joda/time/',
+                'org/joda/time/tz/',
+                'org/joda/time/tz/data/',
+                'org/joda/time/tz/data/Africa/',
                 'org/joda/time/tz/data/Africa/Abidjan',
+                'org/gradle/internal/',
+                'org/gradle/internal/impldep/',
+                'org/gradle/internal/impldep/org/',
+                'org/gradle/internal/impldep/org/joda/',
+                'org/gradle/internal/impldep/org/joda/time/',
+                'org/gradle/internal/impldep/org/joda/time/tz/',
+                'org/gradle/internal/impldep/org/joda/time/tz/data/',
+                'org/gradle/internal/impldep/org/joda/time/tz/data/Africa/',
                 'org/gradle/internal/impldep/org/joda/time/tz/data/Africa/Abidjan',
                 'org/gradle/MyAClass.class',
                 'org/gradle/MyBClass.class',
                 'org/gradle/MyFirstClass.class',
+                'META-INF/',
+                'META-INF/services/',
                 'META-INF/services/org.gradle.internal.service.scopes.PluginServiceRegistry',
                 'META-INF/services/org.gradle.internal.other.Service',
                 'META-INF/.gradle-runtime-shaded']
         }
-        outputJar.md5Hash == "84791783853fcd2c66437a674c219bbe"
+        outputJar.md5Hash == "dee78866d881612695b2875ef948d5d5"
     }
 
     def "excludes module-info.class from jar"() {
@@ -167,9 +190,12 @@ org.gradle.api.internal.tasks.CompileServices
         handleAsJarFile(outputJar) { JarFile file ->
             List<JarEntry> entries = file.entries() as List
             assert entries*.name == [
+                'org/',
+                'org/gradle/',
                 'org/gradle/MyClass.class',
                 'org/gradle/MySecondClass.class',
                 'org/gradle/MyFirstClass.class',
+                'META-INF/',
                 'META-INF/.gradle-runtime-shaded']
         }
     }
@@ -360,10 +386,10 @@ org.gradle.api.internal.tasks.CompileServices"""
 
         handleAsJarFile(relocatedJar) { JarFile jar ->
             assert jar.entries().toList().size() ==
-                noRelocationResources.size() +
-                duplicateResources.size() * 2 +
+                noRelocationResources.size() + 7 +
+                duplicateResources.size() * 2 + 13 +
                 onlyRelocatedResources.size() +
-                generatedFiles.size()
+                generatedFiles.size() + 1
             noRelocationResources.each { resourceName ->
                 assert jar.getEntry(resourceName)
             }
@@ -421,7 +447,7 @@ org.gradle.api.internal.tasks.CompileServices"""
     private static void writeClass(TestFile outputDir, String className) {
         TestFile classFile = outputDir.createFile("${className}.class")
         ClassNode classNode = new ClassNode()
-        classNode.version = className=='module-info'?Opcodes.V9:Opcodes.V1_6
+        classNode.version = className == 'module-info' ? Opcodes.V9 : Opcodes.V1_6
         classNode.access = Opcodes.ACC_PUBLIC
         classNode.name = className
         classNode.superName = 'java/lang/Object'

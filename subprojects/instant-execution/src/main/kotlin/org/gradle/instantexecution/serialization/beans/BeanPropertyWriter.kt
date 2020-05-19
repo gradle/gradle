@@ -16,18 +16,18 @@
 
 package org.gradle.instantexecution.serialization.beans
 
-import groovy.lang.Closure
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
-import org.gradle.instantexecution.InstantExecutionException
+import org.gradle.instantexecution.InstantExecutionError
+import org.gradle.instantexecution.InstantExecutionProblemsException
+import org.gradle.instantexecution.extensions.maybeUnwrapInvocationTargetException
+import org.gradle.instantexecution.problems.PropertyKind
+import org.gradle.instantexecution.problems.propertyDescriptionFor
 import org.gradle.instantexecution.serialization.Codec
-import org.gradle.instantexecution.serialization.PropertyKind
+import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.logPropertyError
 import org.gradle.instantexecution.serialization.logPropertyInfo
 import java.io.IOException
-import java.util.concurrent.Callable
-import java.util.function.Supplier
 
 
 class BeanPropertyWriter(
@@ -41,9 +41,14 @@ class BeanPropertyWriter(
      * Serializes a bean by serializing the value of each of its fields.
      */
     override suspend fun WriteContext.writeStateOf(bean: Any) {
-        for (field in relevantFields) {
+        for (relevantField in relevantFields) {
+            val field = relevantField.field
             val fieldName = field.name
-            val fieldValue = valueOrConvention(field.get(bean), bean, fieldName)
+            val originalFieldValue = field.get(bean)
+            val fieldValue = originalFieldValue ?: conventionalValueOf(bean, fieldName)
+            relevantField.unsupportedFieldType?.let {
+                reportUnsupportedFieldType(it, "serialize", field.name, fieldValue)
+            }
             writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
         }
     }
@@ -52,44 +57,40 @@ class BeanPropertyWriter(
     fun conventionalValueOf(bean: Any, fieldName: String): Any? = (bean as? IConventionAware)?.run {
         conventionMapping.getConventionValue<Any?>(null, fieldName, false)
     }
-
-    private
-    fun valueOrConvention(fieldValue: Any?, bean: Any, fieldName: String): Any? = when (fieldValue) {
-        is Closure<*> -> fieldValue
-        // TODO - do not eagerly evaluate these types
-        is Callable<*> -> fieldValue.call()
-        is Supplier<*> -> fieldValue.get()
-        is Function0<*> -> fieldValue.invoke()
-        is Lazy<*> -> fieldValue.value
-        else -> fieldValue ?: conventionalValueOf(bean, fieldName)
-    }
 }
 
 
 /**
- * Returns whether the given property could be written. A property can only be written when there's
- * a suitable [Codec] for its [value].
+ * Writes a bean property.
+ *
+ * A property can only be written when there's a suitable [Codec] for its [value].
  */
-suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind): Boolean {
+suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind) {
     withPropertyTrace(kind, name) {
         try {
             write(value)
         } catch (passThrough: IOException) {
             throw passThrough
-        } catch (passThrough: InstantExecutionException) {
+        } catch (passThrough: InstantExecutionProblemsException) {
             throw passThrough
-        } catch (e: Exception) {
-            logPropertyError("write", e) {
-                text("error writing value of type ")
-                reference(value?.let { unpackedTypeNameOf(it) } ?: "null")
-            }
-            return false
+        } catch (error: Exception) {
+            throw InstantExecutionError(
+                propertyErrorMessage(value),
+                error.maybeUnwrapInvocationTargetException()
+            )
         }
         logPropertyInfo("serialize", value)
-        return true
     }
 }
 
 
 private
-fun unpackedTypeNameOf(value: Any) = GeneratedSubclasses.unpackType(value).name
+fun IsolateContext.propertyErrorMessage(value: Any?) =
+    "${propertyDescriptionFor(trace)}: error writing value of type '${
+    value?.let { unpackedTypeNameOf(it) } ?: "null"
+    }'"
+
+
+private
+fun unpackedTypeNameOf(value: Any) =
+    GeneratedSubclasses.unpackType(value).name

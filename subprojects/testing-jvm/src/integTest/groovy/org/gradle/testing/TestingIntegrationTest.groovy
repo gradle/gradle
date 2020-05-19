@@ -17,8 +17,8 @@ package org.gradle.testing
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -41,7 +41,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation "junit:junit:4.12" }
+            dependencies { testImplementation "junit:junit:4.13" }
         """
 
         and:
@@ -89,7 +89,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         file('build.gradle') << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation 'junit:junit:4.12' }
+            dependencies { testImplementation 'junit:junit:4.13' }
         """
 
         when:
@@ -132,7 +132,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.13'
             }
         """
 
@@ -161,7 +161,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation "junit:junit:4.12" }
+            dependencies { testImplementation "junit:junit:4.13" }
             test.workingDir = "${testWorkingDir.toURI()}"
         """
 
@@ -205,7 +205,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
         where:
         framework   | dependency                | superClass
-        "useJUnit"  | "junit:junit:4.12"        | "org.junit.runner.Result"
+        "useJUnit"  | "junit:junit:4.13"        | "org.junit.runner.Result"
         "useTestNG" | "org.testng:testng:6.3.1" | "org.testng.Converter"
     }
 
@@ -225,7 +225,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 }
 
                 dependencies{
-	                othertestsImplementation "junit:junit:4.12"
+	                othertestsImplementation "junit:junit:4.13"
                 }
 
                 task othertestsTest(type:Test){
@@ -286,7 +286,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 last 'com.google.collections:google-collections:1.0'
                 implementation configurations.first + configurations.last
 
-                testImplementation 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.13'
             }
         """
 
@@ -313,14 +313,13 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3157")
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "test class detection works when '-parameters' compiler option is used (JEP 118)"() {
         when:
         buildScript """
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.13'
             }
             tasks.withType(JavaCompile) {
                 options.with {
@@ -361,14 +360,13 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "tests are re-executed when set of candidate classes change"() {
         given:
         buildFile << """
             apply plugin:'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.13'
             }
             test {
                 testLogging {
@@ -450,7 +448,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin:'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation 'junit:junit:4.12' }
+            dependencies { testImplementation 'junit:junit:4.13' }
         """
 
         and:

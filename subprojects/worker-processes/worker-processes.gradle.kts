@@ -1,9 +1,8 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.distribution.`core-implementation-java`
 }
+
+gradlebuildJava.usedInWorkers()
 
 dependencies {
     implementation(project(":baseServices"))
@@ -15,8 +14,4 @@ dependencies {
     implementation(library("slf4j_api"))
 
     testImplementation(testFixtures(project(":core")))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.WORKER
 }

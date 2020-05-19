@@ -41,6 +41,12 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.BuildRequestMetaData
+import org.gradle.instantexecution.serialization.codecs.transform.ChainedTransformationNodeCodec
+import org.gradle.instantexecution.serialization.codecs.transform.DefaultTransformerCodec
+import org.gradle.instantexecution.serialization.codecs.transform.InitialTransformationNodeCodec
+import org.gradle.instantexecution.serialization.codecs.transform.LegacyTransformerCodec
+import org.gradle.instantexecution.serialization.codecs.transform.TransformationNodeReferenceCodec
+import org.gradle.instantexecution.serialization.codecs.transform.TransformationStepCodec
 import org.gradle.instantexecution.serialization.ownerServiceCodec
 import org.gradle.instantexecution.serialization.reentrant
 import org.gradle.internal.Factory
@@ -52,18 +58,20 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.serialize.BaseSerializerFactory.BIG_DECIMAL_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.BIG_INTEGER_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BOOLEAN_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BYTE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.CHAR_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.DOUBLE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.FLOAT_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.HASHCODE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.INTEGER_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.PATH_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
-import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.process.ExecOperations
@@ -97,6 +105,7 @@ class Codecs(
     transformListener: ArtifactTransformListener,
     valueSourceProviderFactory: ValueSourceProviderFactory,
     patternSetFactory: Factory<PatternSet>,
+    fileOperations: FileOperations,
     fileSystem: FileSystem,
     fileFactory: FileFactory
 ) {
@@ -107,7 +116,7 @@ class Codecs(
 
         baseTypes()
 
-        bind(HashCodeSerializer())
+        bind(HASHCODE_SERIALIZER)
         bind(BrokenValueCodec)
 
         providerTypes(propertyFactory, filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
@@ -115,7 +124,7 @@ class Codecs(
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
 
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, patternSetFactory, fileSystem, fileFactory)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileSystem, fileFactory, patternSetFactory)
 
         bind(ApiTextResourceAdapterCodec)
 
@@ -169,7 +178,7 @@ class Codecs(
         baseTypes()
 
         providerTypes(propertyFactory, filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, patternSetFactory, fileSystem, fileFactory)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileSystem, fileFactory, patternSetFactory)
 
         bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
         bind(InitialTransformationNodeCodec(buildOperationExecutor, transformListener))
@@ -206,20 +215,20 @@ class Codecs(
         bind(DirectoryPropertyCodec(filePropertyFactory, nestedCodec))
         bind(RegularFilePropertyCodec(filePropertyFactory, nestedCodec))
         bind(PropertyCodec(propertyFactory, nestedCodec))
-        bind(BuildServiceProviderCodec(buildServiceRegistry))
-        bind(ValueSourceProviderCodec(valueSourceProviderFactory))
         bind(ProviderCodec(nestedCodec))
     }
 
     private
-    fun BindingsBuilder.fileCollectionTypes(directoryFileTreeFactory: DirectoryFileTreeFactory, fileCollectionFactory: FileCollectionFactory, patternSetFactory: Factory<PatternSet>, fileSystem: FileSystem, fileFactory: FileFactory) {
+    fun BindingsBuilder.fileCollectionTypes(directoryFileTreeFactory: DirectoryFileTreeFactory, fileCollectionFactory: FileCollectionFactory, fileOperations: FileOperations, fileSystem: FileSystem, fileFactory: FileFactory, patternSetFactory: Factory<PatternSet>) {
         bind(DirectoryCodec(fileFactory))
         bind(RegularFileCodec(fileFactory))
-        bind(FileTreeCodec(directoryFileTreeFactory, patternSetFactory, fileSystem))
-        bind(ConfigurableFileCollectionCodec(fileCollectionFactory))
-        bind(FileCollectionCodec(fileCollectionFactory))
+        bind(ConfigurableFileTreeCodec(fileCollectionFactory))
+        bind(FileTreeCodec(fileCollectionFactory, directoryFileTreeFactory, fileOperations, fileSystem))
+        val fileCollectionCodec = FileCollectionCodec(fileCollectionFactory)
+        bind(ConfigurableFileCollectionCodec(fileCollectionCodec, fileCollectionFactory))
+        bind(fileCollectionCodec)
         bind(IntersectPatternSetCodec)
-        bind(PatternSetCodec)
+        bind(PatternSetCodec(patternSetFactory))
     }
 
     private
@@ -235,6 +244,8 @@ class Codecs(
         bind(DOUBLE_SERIALIZER)
         bind(FILE_SERIALIZER)
         bind(PATH_SERIALIZER)
+        bind(BIG_INTEGER_SERIALIZER)
+        bind(BIG_DECIMAL_SERIALIZER)
         bind(ClassCodec)
         bind(MethodCodec)
 
@@ -258,5 +269,8 @@ class Codecs(
 
         bind(arrayCodec)
         bind(EnumCodec)
+        bind(RegexpPatternCodec)
+
+        javaTimeTypes()
     }
 }

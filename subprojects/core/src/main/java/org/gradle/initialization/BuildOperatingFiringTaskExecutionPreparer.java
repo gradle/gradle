@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
@@ -32,12 +33,15 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import static java.util.Objects.requireNonNull;
+
+@SuppressWarnings({"Guava"})
 public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionPreparer {
     private final TaskExecutionPreparer delegate;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -61,22 +65,26 @@ public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionP
 
         @Override
         public void run(BuildOperationContext buildOperationContext) {
-            final TaskExecutionGraphInternal taskGraph = populateTaskGraph();
+            TaskExecutionGraphInternal taskGraph = populateTaskGraph();
+
+            // create copy now - https://github.com/gradle/gradle/issues/12527
+            Set<Task> requestedTasks = taskGraph.getRequestedTasks();
+            Set<Task> filteredTasks = taskGraph.getFilteredTasks();
+            List<Node> scheduledWork = taskGraph.getScheduledWork();
 
             buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
                 @Override
                 public List<String> getRequestedTaskPaths() {
-                    return toTaskPaths(taskGraph.getRequestedTasks());
+                    return toTaskPaths(requestedTasks);
                 }
 
                 @Override
                 public List<String> getExcludedTaskPaths() {
-                    return toTaskPaths(taskGraph.getFilteredTasks());
+                    return toTaskPaths(filteredTasks);
                 }
 
                 @Override
                 public List<CalculateTaskGraphBuildOperationType.PlannedTask> getTaskPlan() {
-                    List<Node> scheduledWork = taskGraph.getScheduledWork();
                     return toPlannedTasks(scheduledWork);
                 }
 
@@ -94,29 +102,15 @@ public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionP
 
                 private CalculateTaskGraphBuildOperationType.PlannedTask toPlannedTask(TaskNode taskNode) {
                     TaskIdentity<?> taskIdentity = taskNode.getTask().getTaskIdentity();
-                    return new DefaultPlannedTask(new PlannedTaskIdentity(taskIdentity),
-                        transformToIdentities(taskNode.getDependencySuccessors(), node -> node.getDependencySuccessors()),
-                        transformToIdentities(taskNode.getMustSuccessors(), node -> Collections.emptySet()),
-                        transformToIdentities(taskNode.getShouldSuccessors(), node -> Collections.emptySet()),
-                        transformToIdentities(taskNode.getFinalizers(), node -> Collections.emptySet()));
-                }
-
-                private List<CalculateTaskGraphBuildOperationType.TaskIdentity> transformToIdentities(Set<Node> nodes, Function<Node, Set<Node>> nestedNodesResolver) {
-                    return toOnlyTaskNodes(nodes, nestedNodesResolver).stream().map(node -> ((TaskNode) node).getTask().getTaskIdentity())
-                        .map(id -> new PlannedTaskIdentity(id)).collect(Collectors.toList());
-                }
-
-                private List<String> toTaskPaths(Set<Task> tasks) {
-                    return ImmutableSortedSet.copyOf(Collections2.transform(tasks, (Function<Task, String>) task -> task.getPath())).asList();
+                    return new DefaultPlannedTask(
+                        new PlannedTaskIdentity(taskIdentity),
+                        traverseNonTasks(taskNode.getDependencySuccessors(), Node::getDependencySuccessors),
+                        filterNonTasks(taskNode.getMustSuccessors()),
+                        filterNonTasks(taskNode.getShouldSuccessors()),
+                        filterNonTasks(taskNode.getFinalizers())
+                    );
                 }
             });
-        }
-
-        private List<Node> toOnlyTaskNodes(Set<Node> nodes, Function<Node, Set<Node>> nestedNodesResolver) {
-            return nodes.stream()
-                .flatMap(node -> node instanceof TaskNode ? Stream.of(node) : toOnlyTaskNodes(nestedNodesResolver.apply(node), nestedNodesResolver).stream())
-                .filter(node -> node instanceof TaskNode)
-                .collect(Collectors.toList());
         }
 
         TaskExecutionGraphInternal populateTaskGraph() {
@@ -126,6 +120,7 @@ public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionP
 
         @Override
         public BuildOperationDescriptor.Builder description() {
+            //noinspection Convert2Lambda
             return BuildOperationDescriptor.displayName(gradle.contextualize("Calculate task graph"))
                 .details(new CalculateTaskGraphBuildOperationType.Details() {
                     @Override
@@ -136,13 +131,59 @@ public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionP
         }
     }
 
+    private static List<CalculateTaskGraphBuildOperationType.TaskIdentity> traverseNonTasks(Collection<Node> nodes, Function<? super Node, ? extends Collection<Node>> traverser) {
+        if (nodes.isEmpty()) {
+            return Collections.emptyList();
+        } else {
+            List<CalculateTaskGraphBuildOperationType.TaskIdentity> list = new ArrayList<>();
+            traverseNonTasks(nodes, traverser, Collections.newSetFromMap(new IdentityHashMap<>()))
+                .forEach(taskNode -> list.add(toIdentity(taskNode)));
+
+            return list;
+        }
+    }
+
+    private static Iterable<TaskNode> traverseNonTasks(Collection<Node> nodes, Function<? super Node, ? extends Collection<Node>> traverser, Set<Node> seen) {
+        if (nodes.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return FluentIterable.from(nodes)
+            .filter(seen::add)
+            .transformAndConcat(
+                node -> node instanceof TaskNode
+                    ? Collections.singleton((TaskNode) node)
+                    : traverseNonTasks(requireNonNull(traverser.apply(node)), traverser, seen)
+            );
+    }
+
+    private static List<CalculateTaskGraphBuildOperationType.TaskIdentity> filterNonTasks(Collection<Node> nodes) {
+        if (nodes.isEmpty()) {
+            return Collections.emptyList();
+        } else {
+            return FluentIterable.from(nodes)
+                .filter(TaskNode.class)
+                .transform(BuildOperatingFiringTaskExecutionPreparer::toIdentity)
+                .toList();
+        }
+    }
+
+    private static CalculateTaskGraphBuildOperationType.TaskIdentity toIdentity(TaskNode n) {
+        return new PlannedTaskIdentity(n.getTask().getTaskIdentity());
+    }
+
+    private static List<String> toTaskPaths(Set<Task> tasks) {
+        return ImmutableSortedSet.copyOf(Collections2.transform(tasks, Task::getPath)).asList();
+    }
+
     private static class PlannedTaskIdentity implements CalculateTaskGraphBuildOperationType.TaskIdentity {
 
-        private final TaskIdentity delegate;
+        private final TaskIdentity<?> delegate;
 
-        public PlannedTaskIdentity(TaskIdentity delegate) {
+        public PlannedTaskIdentity(TaskIdentity<?> delegate) {
             this.delegate = delegate;
         }
+
         @Override
         public String getBuildPath() {
             return delegate.getBuildPath();

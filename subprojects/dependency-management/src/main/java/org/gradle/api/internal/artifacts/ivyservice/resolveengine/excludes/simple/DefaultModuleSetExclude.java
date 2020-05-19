@@ -23,7 +23,7 @@ import java.util.Set;
 
 final class DefaultModuleSetExclude implements ModuleSetExclude {
     private final Set<String> modules;
-    private int hashCode;
+    private final int hashCode;
 
     DefaultModuleSetExclude(Set<String> modules) {
         this.modules = modules;

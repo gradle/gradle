@@ -40,10 +40,12 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
             """
 
         expect:
-        fails "broken"
-        failure.assertHasDescription("Execution failed for task ':broken'.")
-        failure.assertHasCause("Timeout of task ':broken' must be positive, but was -0.001S")
-        result.assertNotOutput("Hello")
+        2.times {
+            fails "broken"
+            failure.assertHasDescription("Execution failed for task ':broken'.")
+            failure.assertHasCause("Timeout of task ':broken' must be positive, but was -0.001S")
+            result.assertNotOutput("Hello")
+        }
     }
 
     @IntegrationTestTimeout(60)
@@ -59,9 +61,11 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
             """
 
         expect:
-        fails "block"
-        failure.assertHasDescription("Execution failed for task ':block'.")
-        failure.assertHasCause("Timeout has been exceeded")
+        2.times {
+            fails "block"
+            failure.assertHasDescription("Execution failed for task ':block'.")
+            failure.assertHasCause("Timeout has been exceeded")
+        }
     }
 
     @IntegrationTestTimeout(60)
@@ -74,23 +78,25 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
                 }
                 timeout = Duration.ofMillis($TIMEOUT)
             }
-            
+
             task foo() {
             }
             """
 
         expect:
-        fails "block", "foo", "--continue"
-        result.assertTaskExecuted(":foo")
-        failure.assertHasDescription("Execution failed for task ':block'.")
-        failure.assertHasCause("Timeout has been exceeded")
+        2.times {
+            fails "block", "foo", "--continue"
+            result.assertTaskExecuted(":foo")
+            failure.assertHasDescription("Execution failed for task ':block'.")
+            failure.assertHasCause("Timeout has been exceeded")
+        }
     }
 
     @IntegrationTestTimeout(60)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "JavaExec")
     def "timeout stops long running exec()"() {
         given:
-        file('src/main/java/Block.java') << """ 
+        file('src/main/java/Block.java') << """
             import java.util.concurrent.CountDownLatch;
             import java.util.concurrent.TimeUnit;
 
@@ -110,20 +116,22 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
             """
 
         expect:
-        fails "block"
-        failure.assertHasDescription("Execution failed for task ':block'.")
-        failure.assertHasCause("Timeout has been exceeded")
+        2.times {
+            fails "block"
+            failure.assertHasDescription("Execution failed for task ':block'.")
+            failure.assertHasCause("Timeout has been exceeded")
+        }
     }
 
     @IntegrationTestTimeout(60)
     def "timeout stops long running tests"() {
         given:
         (1..100).each { i ->
-            file("src/test/java/Block${i}.java") << """ 
+            file("src/test/java/Block${i}.java") << """
                 import java.util.concurrent.CountDownLatch;
                 import java.util.concurrent.TimeUnit;
                 import org.junit.Test;
-    
+
                 public class Block${i} {
                     @Test
                     public void test() throws InterruptedException {
@@ -136,7 +144,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: 'java'
             ${jcenterRepository()}
             dependencies {
-                testImplementation 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.13'
             }
             test {
                 timeout = Duration.ofMillis($TIMEOUT)
@@ -144,9 +152,11 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
             """
 
         expect:
-        fails "test"
-        failure.assertHasDescription("Execution failed for task ':test'.")
-        failure.assertHasCause("Timeout has been exceeded")
+        2.times {
+            fails "test"
+            failure.assertHasDescription("Execution failed for task ':test'.")
+            failure.assertHasCause("Timeout has been exceeded")
+        }
     }
 
     @LeaksFileHandles // TODO https://github.com/gradle/gradle-private/issues/1532
@@ -163,11 +173,11 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
             import java.util.concurrent.CountDownLatch;
             import java.util.concurrent.TimeUnit;
             import javax.inject.Inject;
-            
+
             task block(type: WorkerTask) {
                 timeout = Duration.ofMillis($TIMEOUT)
             }
-            
+
             class WorkerTask extends DefaultTask {
 
                 @Inject
@@ -197,11 +207,13 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
             """
 
         expect:
-        fails "block"
-        failure.assertHasDescription("Execution failed for task ':block'.")
-        failure.assertHasCause("Timeout has been exceeded")
-        if (isolationMode == IsolationMode.PROCESS && failure.output.contains("Caused by:")) {
-            assert failure.output.contains("Error occurred during initialization of VM")
+        2.times {
+            fails "block"
+            failure.assertHasDescription("Execution failed for task ':block'.")
+            failure.assertHasCause("Timeout has been exceeded")
+            if (isolationMode == IsolationMode.PROCESS && failure.output.contains("Caused by:")) {
+                assert failure.output.contains("Error occurred during initialization of VM")
+            }
         }
 
         where:

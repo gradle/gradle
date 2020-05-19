@@ -9,7 +9,7 @@ repositories {
 
 dependencies {
     implementation("org.codehaus.groovy:groovy-all:2.4.15")
-    testImplementation("junit:junit:4.12")
+    testImplementation("junit:junit:4.13")
 }
 
 // tag::groovy-cross-compilation[]

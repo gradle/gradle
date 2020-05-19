@@ -21,12 +21,14 @@ import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 
-import static org.gradle.testing.fixture.JUnitCoverage.*
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUPITER
+import static org.gradle.testing.fixture.JUnitCoverage.VINTAGE
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.is
 
 // https://github.com/junit-team/junit5/issues/1285
-@TargetCoverage({ JUNIT_4_LATEST + emptyIfJava7(JUPITER, VINTAGE) })
+@TargetCoverage({ JUNIT_4_LATEST + [JUPITER, VINTAGE] })
 class JUnitLoggingOutputCaptureIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     def setup() {
         buildFile << """
@@ -94,7 +96,8 @@ public class OkTest {
         succeeds "test"
 
         then:
-        outputContains """Test class OkTest -> class loaded
+        if (isJupiter()) {
+            outputContains """Test class OkTest -> class loaded
 Test class OkTest -> before class out
 Test class OkTest -> before class err
 Test class OkTest -> test constructed
@@ -115,27 +118,71 @@ Test class OkTest -> after class out
 Test class OkTest -> after class err
 """
 
-        // This test covers current behaviour, not necessarily desired behaviour
+            // This test covers current behaviour, not necessarily desired behaviour
 
-        def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
-        def classResult = xmlReport.testClass("OkTest")
-        classResult.assertTestCaseStdout("ok", is("""before out
+            def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
+            def classResult = xmlReport.testClass("OkTest")
+            classResult.assertTestCaseStdout("ok", is("""before out
 test out: \u03b1</html>
 after out
 """))
-        classResult.assertTestCaseStderr("ok", is("""before err
+            classResult.assertTestCaseStderr("ok", is("""before err
 test err
 after err
 """))
-        classResult.assertStdout(is("""class loaded
+            classResult.assertStdout(is("""class loaded
 before class out
 test constructed
 test constructed
 after class out
 """))
-        classResult.assertStderr(is("""before class err
+            classResult.assertStderr(is("""before class err
 after class err
 """))
+        } else {
+            // Behavior change of JUnit 4.13
+            outputContains """Test class OkTest -> class loaded
+Test class OkTest -> before class out
+Test class OkTest -> before class err
+Test anotherOk(OkTest) -> test constructed
+Test anotherOk(OkTest) -> before out
+Test anotherOk(OkTest) -> before err
+Test anotherOk(OkTest) -> ok out
+Test anotherOk(OkTest) -> ok err
+Test anotherOk(OkTest) -> after out
+Test anotherOk(OkTest) -> after err
+Test ok(OkTest) -> test constructed
+Test ok(OkTest) -> before out
+Test ok(OkTest) -> before err
+Test ok(OkTest) -> test out: \u03b1</html>
+Test ok(OkTest) -> test err
+Test ok(OkTest) -> after out
+Test ok(OkTest) -> after err
+Test class OkTest -> after class out
+Test class OkTest -> after class err
+"""
+
+            // This test covers current behaviour, not necessarily desired behaviour
+
+            def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
+            def classResult = xmlReport.testClass("OkTest")
+            classResult.assertTestCaseStdout("ok", is("""test constructed
+before out
+test out: \u03b1</html>
+after out
+"""))
+            classResult.assertTestCaseStderr("ok", is("""before err
+test err
+after err
+"""))
+            classResult.assertStdout(is("""class loaded
+before class out
+after class out
+"""))
+            classResult.assertStderr(is("""before class err
+after class err
+"""))
+        }
 
         def htmlReport = new HtmlTestExecutionResult(testDirectory)
         def classReport = htmlReport.testClass("OkTest")
@@ -181,7 +228,8 @@ dependencies { testImplementation "org.slf4j:slf4j-simple:1.7.10", "org.slf4j:sl
             }
         """
 
-        when: succeeds("test")
+        when:
+        succeeds("test")
 
         then:
         outputContains("Test foo(FooTest) -> [Test worker] INFO FooTest - slf4j info")
@@ -285,7 +333,8 @@ public class OkTest {
 }
 """
 
-        when: run "test"
+        when:
+        run "test"
 
         then:
         def testResult = new JUnitXmlTestExecutionResult(testDirectory)

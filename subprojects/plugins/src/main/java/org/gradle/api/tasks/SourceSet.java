@@ -34,7 +34,9 @@ import javax.annotation.Nullable;
  * compilation of the source files in the 'java' {@link SourceDirectorySet}:
  *
  * <pre class='autoTested'>
- * apply plugin: 'java'
+ * plugins {
+ *     id 'java'
+ * }
  *
  * sourceSets {
  *   main {

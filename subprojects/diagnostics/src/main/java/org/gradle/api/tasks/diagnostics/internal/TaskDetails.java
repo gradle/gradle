@@ -17,8 +17,11 @@ package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
+
 public interface TaskDetails {
     Path getPath();
 
+    @Nullable
     String getDescription();
 }

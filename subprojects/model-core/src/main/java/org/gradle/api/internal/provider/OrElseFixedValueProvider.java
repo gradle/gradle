@@ -16,44 +16,58 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
 class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
-    private final ProviderInternal<T> provider;
-    private final T value;
+    private final ProviderInternal<? extends T> provider;
+    private final T fallbackValue;
 
-    public OrElseFixedValueProvider(ProviderInternal<T> provider, T value) {
+    public OrElseFixedValueProvider(ProviderInternal<? extends T> provider, T fallbackValue) {
         this.provider = provider;
-        this.value = value;
+        this.fallbackValue = fallbackValue;
     }
 
     @Nullable
     @Override
     public Class<T> getType() {
-        return provider.getType();
+        return Cast.uncheckedCast(provider.getType());
     }
 
     @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        if (provider.isValueProducedByTask() || provider.isPresent()) {
-            // either the provider value will be used, or we don't know yet
-            return provider.maybeVisitBuildDependencies(context);
+    public ValueProducer getProducer() {
+        ValueProducer producer = provider.getProducer();
+        if (producer.isProducesDifferentValueOverTime() || provider.isPresent()) {
+            // Value is not available yet or is present
+            return provider.getProducer();
         } else {
-            // provider value will not be used, so there are no dependencies
-            return true;
+            return ValueProducer.unknown();
         }
     }
 
     @Override
-    public boolean isValueProducedByTask() {
-        return provider.isValueProducedByTask();
+    public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+        ExecutionTimeValue<? extends T> value = provider.calculateExecutionTimeValue();
+        if (value.isMissing()) {
+            // Use fallback value
+            return ExecutionTimeValue.fixedValue(fallbackValue);
+        } else if (value.isFixedValue()) {
+            // Result is fixed value, use it
+            return value;
+        } else {
+            // Value is changing, so keep the logic
+            return ExecutionTimeValue.changingValue(new OrElseFixedValueProvider<>(value.getChangingValue(), fallbackValue));
+        }
     }
 
     @Override
-    public T get() {
-        T value = provider.getOrNull();
-        return value != null ? value : this.value;
+    protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+        Value<? extends T> value = provider.calculateValue(consumer);
+        if (value.isMissing()) {
+            return Value.of(fallbackValue);
+        } else {
+            return value;
+        }
     }
 }

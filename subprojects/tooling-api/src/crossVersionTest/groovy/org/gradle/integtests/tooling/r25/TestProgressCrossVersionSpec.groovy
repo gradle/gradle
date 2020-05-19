@@ -116,7 +116,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.12' }
+            dependencies { testCompile 'junit:junit:4.13' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
         """
 
@@ -183,7 +183,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.12' }
+            dependencies { testCompile 'junit:junit:4.13' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
             test.ignoreFailures = true
         """
@@ -264,7 +264,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.12' }
+            dependencies { testCompile 'junit:junit:4.13' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
         """
 
@@ -296,7 +296,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.12' }
+            dependencies { testCompile 'junit:junit:4.13' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
             test.maxParallelForks = 2
         """
@@ -371,7 +371,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             it.file('build.gradle') << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.12' }
+            dependencies { testCompile 'junit:junit:4.13' }
             compileTestJava.options.fork = true
             test.maxParallelForks = 2
             test.ignoreFailures = true
@@ -472,7 +472,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             apply plugin: 'java'
             sourceCompatibility = 1.7
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.12' }
+            dependencies { testCompile 'junit:junit:4.13' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
         """
 

@@ -21,6 +21,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
@@ -34,7 +35,7 @@ public class ReportGenerator {
     private final StyledTextOutputFactory textOutputFactory;
     private final ProjectReportGenerator projectReportGenerator;
 
-    public ReportGenerator(ReportRenderer renderer, BuildClientMetaData buildClientMetaData, File outputFile,
+    public ReportGenerator(ReportRenderer renderer, BuildClientMetaData buildClientMetaData, @Nullable File outputFile,
                            StyledTextOutputFactory textOutputFactory, ProjectReportGenerator projectReportGenerator) {
         this.renderer = renderer;
         this.buildClientMetaData = buildClientMetaData;
@@ -77,6 +78,7 @@ public class ReportGenerator {
      *
      * @return The output file. May be null.
      */
+    @Nullable
     protected File getOutputFile() {
         return outputFile;
     }

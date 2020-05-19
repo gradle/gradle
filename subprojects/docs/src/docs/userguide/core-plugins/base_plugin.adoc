@@ -23,8 +23,8 @@ The Base Plugin provides some tasks and conventions that are common to most buil
 
 .Applying the Base Plugin
 ====
-include::sample[dir="snippets/userguide/basePlugin/groovy",files="build.gradle[tags=apply-base-plugin]"]
-include::sample[dir="snippets/userguide/basePlugin/kotlin",files="build.gradle.kts[tags=apply-base-plugin]"]
+include::sample[dir="snippets/base/basePlugin/groovy",files="build.gradle[tags=apply-base-plugin]"]
+include::sample[dir="snippets/base/basePlugin/kotlin",files="build.gradle.kts[tags=apply-base-plugin]"]
 ====
 
 [[sec:base_tasks]]

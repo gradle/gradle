@@ -33,6 +33,7 @@ import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.DefaultPublicationContainer;
 import org.gradle.api.publish.internal.DefaultPublishingExtension;
 import org.gradle.api.publish.internal.PublicationInternal;
+import org.gradle.internal.Cast;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -81,7 +82,7 @@ public class PublishingPlugin implements Plugin<Project> {
             task.setGroup(PUBLISH_TASK_GROUP);
         });
         extension.getPublications().all(publication -> {
-            PublicationInternal internalPublication = (PublicationInternal) publication;
+            PublicationInternal<?> internalPublication = Cast.uncheckedNonnullCast(publication);
             ProjectInternal projectInternal = (ProjectInternal) project;
             projectPublicationRegistry.registerPublication(projectInternal, internalPublication);
         });

@@ -1701,7 +1701,7 @@ task checkDeps(dependsOn: configurations.compile) {
     }
 
     @Issue("gradle/gradle-private#1268")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":dependencies")
     def "shouldn't fail if root component is also added through cycle, and that failOnVersionConflict() is used"() {
         settingsFile << """
             include "testlib", "common"
@@ -1736,7 +1736,7 @@ task checkDeps(dependsOn: configurations.compile) {
     }
 
     @Issue("gradle/gradle#6403")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":dependencies")
     def "shouldn't fail when forcing a dynamic version in resolution strategy"() {
 
         given:
@@ -1771,7 +1771,7 @@ task checkDeps(dependsOn: configurations.compile) {
     }
 
     @Unroll('optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover has constraint: #dependsOptional, root has constraint: #constraintsOptional)')
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":dependencies")
     def 'optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover has constraint: #dependsOptional, root has constraint: #constraintsOptional)'() {
         given:
         def optional = mavenRepo.module('org', 'optional', '1.0').publish()
@@ -1822,7 +1822,7 @@ dependencies {
     }
 
     @Issue("gradle/gradle#8944")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":dependencies")
     def 'verify that cleaning up constraints no longer causes a ConcurrentModificationException'() {
         given:
         // Direct dependency with transitive to be substituted by project
@@ -1886,7 +1886,7 @@ project(':sub') {
 
     @Issue("gradle/gradle#11844")
     @spock.lang.Ignore
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":dependencies")
     def 'does not fail serialization in recursive error case'() {
         // org:lib:1.0 -> org:between:1.0 -> org:lib:1.1
         //
@@ -1920,7 +1920,7 @@ project(':sub') {
         failure.error.contains("Corrupt serialized resolution result. Cannot find selected module (4) for runtimeClasspath -> org:lib:1.0")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":dependencies")
     def 'local cycle between dependencies does not causes a ConcurrentModificationException during selector removal'() {
         given:
         def lib2 = mavenRepo.module('org', 'lib', '2.0').publish()
@@ -1954,7 +1954,7 @@ project(':sub') {
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":dependencies")
     def 'local cycle between dependencies does not causes a ConcurrentModificationException during selector removal with strict version endorsement'() {
         given:
         def direct11 = mavenRepo.module('org', 'direct', '1.1')
@@ -1988,7 +1988,7 @@ project(':sub') {
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":dependencies")
     def 'local cycle between dependencies does not causes a ConcurrentModificationException during selector removal with multiple strict version endorsements'() {
         given:
         def foo2 = mavenRepo.module('org', 'foo', '2.0').publish()
@@ -2028,7 +2028,7 @@ project(':sub') {
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":dependencies")
     def "can resolve a graph with an obvious version cycle by breaking the cycle"() {
         given:
         def direct2 = mavenRepo.module('org', 'direct', '2.0').publish()
@@ -2055,7 +2055,7 @@ dependencies {
         succeeds 'dependencies', '--configuration', 'conf'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":dependencies")
     def "can resolve a graph with a local cycle caused by module replacement"() {
         given:
         def child1 = mavenRepo.module('org', 'child1', '1.0').publish()
@@ -2086,6 +2086,65 @@ dependencies {
 
         expect:
         succeeds 'dependencies', '--configuration', 'conf'
+    }
+
+    @ToBeFixedForInstantExecution(because = ":dependencies")
+    def 'does not cache node dependencies when node is deselected then reselected with different exclude filter'() {
+        given:
+        // Excluded module
+        def excluded = mavenRepo.module('org.test', 'excluded', '1.0').publish()
+
+        // Intermediates
+        def intermediate10 = mavenRepo.module('org.test', 'intermediate1', '1.0').dependsOn(excluded).publish()
+        def intermediate20 = mavenRepo.module('org.test', 'intermediate1', '2.0').dependsOn(excluded).publish()
+        def intermediate2 = mavenRepo.module('org.test', 'intermediate2', '1.0').dependsOn(intermediate10).publish()
+        def intermediate3 = mavenRepo.module('org.test', 'intermediate3', '1.0').dependsOn(intermediate2).publish()
+
+        // Aligned modules
+        def firstAligned = mavenRepo.module('org.aligned', 'aligned1', '1.0').dependsOn(intermediate20).publish()
+        mavenRepo.module('org.aligned', 'aligned1', '2.0').dependsOn(intermediate20).publish()
+        def otherAligned = mavenRepo.module('org.aligned', 'aligned2', '2.0').publish()
+
+        // Roots
+        mavenRepo.module('org.test', 'excludingRoot', '1.0').dependsOn(firstAligned, exclusions: [[group: 'org.test', module: 'excluded']]).publish()
+        mavenRepo.module('org.test', 'root2', '1.0').dependsOn(intermediate3).publish()
+        mavenRepo.module('org.test', 'root3', '1.0').dependsOn(otherAligned).publish()
+
+        buildFile << """
+            repositories {
+                maven {
+                    name 'repo'
+                    url '${mavenRepo.uri}'
+                }
+            }
+
+            configurations {
+                conf
+            }
+
+            dependencies {
+                conf 'org.test:excludingRoot:1.0'
+                conf 'org.test:root2:1.0'
+                conf 'org.test:root3:1.0'
+
+                components.all(AlignGroup.class)
+            }
+
+            class AlignGroup implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext ctx) {
+                    ctx.details.with { it ->
+                        if (it.getId().getGroup().startsWith("org.aligned")) {
+                            it.belongsTo("org.aligned:platform:\${it.getId().getVersion()}")
+                        }
+                    }
+                }
+            }
+"""
+        when:
+        succeeds 'dependencies', '--configuration', 'conf'
+
+        then:
+        outputContains('excluded')
     }
 
 }

@@ -31,7 +31,7 @@ public class Configurations {
         if (configurations.size() == 1) {
             return ImmutableSet.of(configurations.iterator().next().getName());
         }
-        ImmutableSet.Builder<String> names = new ImmutableSet.Builder<String>();
+        ImmutableSet.Builder<String> names = new ImmutableSet.Builder<>();
         for (Configuration configuration : configurations) {
             names.add(configuration.getName());
         }

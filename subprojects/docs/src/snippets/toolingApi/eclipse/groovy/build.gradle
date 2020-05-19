@@ -1,0 +1,20 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+def toolingApiVersion = gradle.gradleVersion
+
+repositories {
+    maven { url 'https://repo.gradle.org/gradle/libs-releases' }
+}
+
+dependencies {
+    implementation "org.gradle:gradle-tooling-api:${toolingApiVersion}"
+    // Need an SLF4J implementation at runtime
+    runtimeOnly 'org.slf4j:slf4j-simple:1.7.10'
+}
+
+application {
+    mainClass = 'org.gradle.sample.Main'
+}

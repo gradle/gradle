@@ -16,37 +16,49 @@
 package org.gradle.internal.component;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.exceptions.StyledException;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
-public class AmbiguousConfigurationSelectionException extends RuntimeException {
-    public AmbiguousConfigurationSelectionException(AttributeContainerInternal fromConfigurationAttributes,
+public class AmbiguousConfigurationSelectionException extends StyledException {
+    public AmbiguousConfigurationSelectionException(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes,
                                                     AttributeMatcher attributeMatcher,
                                                     List<? extends ConfigurationMetadata> matches,
                                                     ComponentResolveMetadata targetComponent,
-                                                    boolean variantAware) {
-        super(generateMessage(fromConfigurationAttributes, attributeMatcher, matches, targetComponent, variantAware));
+                                                    boolean variantAware,
+                                                    Set<ConfigurationMetadata> discarded) {
+        super(generateMessage(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, matches, discarded, targetComponent, variantAware));
     }
 
-    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent, boolean variantAware) {
-        Map<String, ConfigurationMetadata> ambiguousConfigurations = new TreeMap<String, ConfigurationMetadata>();
+    private static String generateMessage(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, Set<ConfigurationMetadata> discarded, ComponentResolveMetadata targetComponent, boolean variantAware) {
+        Map<String, ConfigurationMetadata> ambiguousConfigurations = new TreeMap<>();
         for (ConfigurationMetadata match : matches) {
             ambiguousConfigurations.put(match.getName(), match);
         }
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Cannot choose between the following " + (variantAware ? "variants" : "configurations") + " of ");
-        formatter.append(targetComponent.getId().getDisplayName());
+        String configTerm = variantAware ? "variants" : "configurations";
+        if (fromConfigurationAttributes.isEmpty()) {
+            formatter.node("Cannot choose between the following " + configTerm + " of ");
+        } else {
+            formatter.node("The consumer was configured to find " + describer.describeAttributeSet(fromConfigurationAttributes.asMap()) + ". However we cannot choose between the following " + configTerm + " of ");
+        }
+        formatter.append(style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName()));
         formatter.startChildren();
         for (String configuration : ambiguousConfigurations.keySet()) {
             formatter.node(configuration);
@@ -57,13 +69,29 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
         // to make sure the output is consistently the same between invocations
         formatter.startChildren();
         for (ConfigurationMetadata ambiguousConf : ambiguousConfigurations.values()) {
-            formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, ambiguousConf, variantAware, true);
+            formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, ambiguousConf, variantAware, true, describer);
         }
         formatter.endChildren();
+        if (!discarded.isEmpty()) {
+            formatter.node("The following " + configTerm + " were also considered but didn't match the requested attributes:");
+            formatter.startChildren();
+            discarded.stream()
+                .sorted(Comparator.comparing(ConfigurationMetadata::getName))
+                .forEach(discardedConf -> formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, discardedConf, variantAware, false, describer));
+            formatter.endChildren();
+        }
+
         return formatter.toString();
     }
 
-    static void formatConfiguration(TreeFormatter formatter, ComponentResolveMetadata targetComponent, AttributeContainerInternal consumerAttributes, AttributeMatcher attributeMatcher, ConfigurationMetadata configuration, boolean variantAware, boolean ambiguous) {
+    static void formatConfiguration(TreeFormatter formatter,
+                                    ComponentResolveMetadata targetComponent,
+                                    AttributeContainerInternal consumerAttributes,
+                                    AttributeMatcher attributeMatcher,
+                                    ConfigurationMetadata configuration,
+                                    boolean variantAware,
+                                    boolean ambiguous,
+                                    AttributeDescriber describer) {
         AttributeContainerInternal producerAttributes = configuration.getAttributes();
         if (variantAware) {
             formatter.node("Variant '");
@@ -76,17 +104,22 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
             formatter.append(" " + CapabilitiesSupport.prettifyCapabilities(targetComponent, configuration.getCapabilities().getCapabilities()));
         }
         if (ambiguous) {
-            formatAttributeMatchesForAmbiguity(formatter, consumerAttributes.asImmutable(), attributeMatcher, producerAttributes.asImmutable());
+            formatAttributeMatchesForAmbiguity(formatter, consumerAttributes.asImmutable(), attributeMatcher, producerAttributes.asImmutable(), describer);
         } else {
-            formatAttributeMatchesForIncompatibility(formatter, consumerAttributes.asImmutable(), attributeMatcher, producerAttributes.asImmutable());
+            formatAttributeMatchesForIncompatibility(formatter, consumerAttributes.asImmutable(), attributeMatcher, producerAttributes.asImmutable(), describer);
         }
     }
 
-    static void formatAttributeMatchesForIncompatibility(TreeFormatter formatter, ImmutableAttributes immutableConsumer, AttributeMatcher attributeMatcher, ImmutableAttributes immutableProducer) {
+    static void formatAttributeMatchesForIncompatibility(TreeFormatter formatter,
+                                                         ImmutableAttributes immutableConsumer,
+                                                         AttributeMatcher attributeMatcher,
+                                                         ImmutableAttributes immutableProducer,
+                                                         AttributeDescriber describer) {
         Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
-        formatter.startChildren();
-        List<String> incompatibleValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
         List<String> otherValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
+        Map<Attribute<?>, ?> compatibleAttrs = Maps.newLinkedHashMap();
+        Map<Attribute<?>, ?> incompatibleAttrs = Maps.newLinkedHashMap();
+        Map<Attribute<?>, ?> incompatibleConsumerAttrs = Maps.newLinkedHashMap();
         for (Attribute<?> attribute : allAttributes.values()) {
             Attribute<Object> untyped = Cast.uncheckedCast(attribute);
             String attributeName = attribute.getName();
@@ -94,25 +127,33 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
             AttributeValue<?> producerValue = immutableProducer.findEntry(attributeName);
             if (consumerValue.isPresent() && producerValue.isPresent()) {
                 if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
-                    otherValues.add("Required " + attributeName + " '" + consumerValue.get() + "' and found compatible value '" + producerValue.get() + "'.");
+                    compatibleAttrs.put(attribute, Cast.uncheckedCast(producerValue.get()));
                 } else {
-                    incompatibleValues.add("Required " + attributeName + " '" + consumerValue.get() + "' and found incompatible value '" + producerValue.get() + "'.");
+                    incompatibleAttrs.put(attribute, Cast.uncheckedCast(producerValue.get()));
+                    incompatibleConsumerAttrs.put(attribute, Cast.uncheckedCast(consumerValue.get()));
                 }
             } else if (consumerValue.isPresent()) {
-                otherValues.add("Required " + attributeName + " '" + consumerValue.get() + "' but no value provided.");
-            } else {
-                otherValues.add("Found " + attributeName + " '" + producerValue.get() + "' but wasn't required.");
+                otherValues.add("Doesn't say anything about " + describer.describeMissingAttribute(attribute, consumerValue.get()));
             }
         }
-        formatAttributeSection(formatter, "Incompatible attribute", incompatibleValues);
-        formatAttributeSection(formatter, "Other attribute", otherValues);
+        if (!compatibleAttrs.isEmpty()) {
+            formatter.append(" declares ").append(style(StyledTextOutput.Style.SuccessHeader, describer.describeAttributeSet(compatibleAttrs)));
+        }
+        formatter.startChildren();
+        if (!incompatibleAttrs.isEmpty()) {
+            formatter.node("Incompatible because this component declares " + style(StyledTextOutput.Style.FailureHeader, describer.describeAttributeSet(incompatibleAttrs)) + " and the consumer needed <FailureHeader>" + describer.describeAttributeSet(incompatibleConsumerAttrs) + "</FailureHeader>");
+        }
+        formatAttributeSection(formatter, "Other compatible attribute", otherValues);
         formatter.endChildren();
     }
 
-    static void formatAttributeMatchesForAmbiguity(TreeFormatter formatter, ImmutableAttributes immutableConsumer, AttributeMatcher attributeMatcher, ImmutableAttributes immutableProducer) {
+    static void formatAttributeMatchesForAmbiguity(TreeFormatter formatter,
+                                                   ImmutableAttributes immutableConsumer,
+                                                   AttributeMatcher attributeMatcher,
+                                                   ImmutableAttributes immutableProducer,
+                                                   AttributeDescriber describer) {
         Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
-        formatter.startChildren();
-        List<String> compatibleValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
+        Map<Attribute<?>, ?> compatibleAttrs = Maps.newLinkedHashMap();
         List<String> otherValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
         for (Attribute<?> attribute : allAttributes.values()) {
             Attribute<Object> untyped = Cast.uncheckedCast(attribute);
@@ -121,25 +162,24 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
             AttributeValue<?> producerValue = immutableProducer.findEntry(attributeName);
             if (consumerValue.isPresent() && producerValue.isPresent()) {
                 if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
-                    compatibleValues.add("Required " + attributeName + " '" + consumerValue.get() + "' and found compatible value '" + producerValue.get() + "'.");
-                } else {
-                    String result = "Required " + attributeName + " '" + consumerValue.get() + "' and found incompatible value '" + producerValue.get() + "'.";
-                    assert false : "Incompatible attributes on ambiguity: " + result;
-                    otherValues.add(result);
+                    compatibleAttrs.put(attribute, Cast.uncheckedCast(producerValue.get()));
                 }
             } else if (consumerValue.isPresent()) {
-                otherValues.add("Required " + attributeName + " '" + consumerValue.get() + "' but no value provided.");
+                otherValues.add("Doesn't say anything about " + describer.describeMissingAttribute(attribute, consumerValue.get()));
             } else {
-                otherValues.add("Found " + attributeName + " '" + producerValue.get() + "' but wasn't required.");
+                otherValues.add("Provides " + describer.describeExtraAttribute(attribute, producerValue.get()) + " but the consumer didn't ask for it");
             }
         }
+        if (!compatibleAttrs.isEmpty()) {
+            formatter.append(" declares ").append(style(StyledTextOutput.Style.SuccessHeader, describer.describeAttributeSet(compatibleAttrs)));
+        }
+        formatter.startChildren();
         formatAttributeSection(formatter, "Unmatched attribute", otherValues);
-        formatAttributeSection(formatter, "Compatible attribute", compatibleValues);
         formatter.endChildren();
     }
 
     private static Map<String, Attribute<?>> collectAttributes(ImmutableAttributes consumerAttributes, ImmutableAttributes producerAttributes) {
-        Map<String, Attribute<?>> allAttributes = new TreeMap<String, Attribute<?>>();
+        Map<String, Attribute<?>> allAttributes = new TreeMap<>();
         for (Attribute<?> attribute : producerAttributes.keySet()) {
             allAttributes.put(attribute.getName(), attribute);
         }

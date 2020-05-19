@@ -41,8 +41,10 @@ import static org.gradle.util.ConfigureUtil.configure;
  * Bear in mind that usually you don't have configure eclipse project directly because Gradle configures it for free!
  *
  * <pre class='autoTested'>
- * apply plugin: 'java'
- * apply plugin: 'eclipse'
+ * plugins {
+ *     id 'java'
+ *     id 'eclipse'
+ * }
  *
  * eclipse {
  *   project {
@@ -95,8 +97,10 @@ import static org.gradle.util.ConfigureUtil.configure;
  * Examples of advanced configuration:
  *
  * <pre class='autoTested'>
- * apply plugin: 'java'
- * apply plugin: 'eclipse'
+ * plugins {
+ *     id 'java'
+ *     id 'eclipse'
+ * }
  *
  * eclipse {
  *   project {

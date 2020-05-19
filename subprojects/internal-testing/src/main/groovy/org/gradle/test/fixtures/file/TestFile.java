@@ -66,7 +66,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
@@ -556,39 +556,42 @@ public class TestFile extends File {
     }
 
     /**
-     * Asserts that this file contains exactly the given set of descendants.
+     * Asserts that this is a directory and contains exactly the given set of descendant files and child directories. Ignores directories that are not empty.
      */
     public TestFile assertHasDescendants(String... descendants) {
         return assertHasDescendants(Arrays.asList(descendants));
     }
 
     /**
-     * Convenience method for {@link #assertHasDescendants(String...)}.
+     * Asserts that this is a directory and contains exactly the given set of descendant files and child directories. Ignores directories that are not empty.
      */
     public TestFile assertHasDescendants(Iterable<String> descendants) {
+        return assertHasDescendants(descendants, false);
+    }
+
+    public TestFile assertHasDescendants(Iterable<String> descendants, boolean ignoreDirs) {
         Set<String> actual = new TreeSet<String>();
         assertIsDir();
-        visit(actual, "", this);
-        Set<String> expected = new TreeSet<String>(Lists.<String>newArrayList(descendants));
+        visit(actual, "", this, ignoreDirs);
+        Set<String> expected = new TreeSet<>(Lists.newArrayList(descendants));
 
-        Set<String> extras = new TreeSet<String>(actual);
+        Set<String> extras = new TreeSet<>(actual);
         extras.removeAll(expected);
-        Set<String> missing = new TreeSet<String>(expected);
+        Set<String> missing = new TreeSet<>(expected);
         missing.removeAll(actual);
 
         assertEquals(String.format("For dir: %s\n extra files: %s, missing files: %s, expected: %s", this, extras, missing, expected), expected, actual);
 
         return this;
-
     }
 
     /**
-     * Convenience method for {@link #assertContainsDescendants(String...)}.
+     * Asserts that this is a directory and contains the given set of descendant files and child directories (and possibly other files). Ignores directories that are not empty.
      */
     public TestFile assertContainsDescendants(Iterable<String> descendants) {
         assertIsDir();
         Set<String> actual = new TreeSet<String>();
-        visit(actual, "", this);
+        visit(actual, "", this, false);
 
         Set<String> expected = new TreeSet<String>(Lists.newArrayList(descendants));
 
@@ -601,14 +604,13 @@ public class TestFile extends File {
     }
 
     /**
-     * Asserts that this file contains the given set of descendants (and possibly other files).
+     * Asserts that this is a directory and contains the given set of descendant files (and possibly other files). Ignores directories that are not empty.
      */
     public TestFile assertContainsDescendants(String... descendants) {
         return assertContainsDescendants(Arrays.asList(descendants));
     }
 
     public TestFile assertIsEmptyDir() {
-        assertIsDir();
         assertHasDescendants();
         return this;
     }
@@ -616,17 +618,17 @@ public class TestFile extends File {
     public Set<String> allDescendants() {
         Set<String> names = new TreeSet<String>();
         if (isDirectory()) {
-            visit(names, "", this);
+            visit(names, "", this, false);
         }
         return names;
     }
 
-    private void visit(Set<String> names, String prefix, File file) {
+    private void visit(Set<String> names, String prefix, File file, boolean ignoreDirs) {
         for (File child : file.listFiles()) {
-            if (child.isFile()) {
+            if (child.isFile() || !ignoreDirs && child.isDirectory() && child.list().length == 0) {
                 names.add(prefix + child.getName());
             } else if (child.isDirectory()) {
-                visit(names, prefix + child.getName() + "/", child);
+                visit(names, prefix + child.getName() + "/", child, ignoreDirs);
             }
         }
     }
@@ -853,11 +855,11 @@ public class TestFile extends File {
         return new TestFileHelper(this).executeSuccess(Arrays.asList(args), null);
     }
 
-    public ExecOutput execWithFailure(List args, List env) {
+    public ExecOutput execWithFailure(List<?> args, List<?> env) {
         return new TestFileHelper(this).executeFailure(args, env);
     }
 
-    public ExecOutput execute(List args, List env) {
+    public ExecOutput execute(List<?> args, List<?> env) {
         return new TestFileHelper(this).executeSuccess(args, env);
     }
 

@@ -51,7 +51,7 @@ class GradleImplDepsPublishingIntegrationTest extends BaseGradleImplDepsIntegrat
         def pom = module.parsedPom
         def compileScope = pom.scopes.test
         compileScope.dependencies.size() == 1
-        compileScope.expectDependency('junit:junit:4.12')
+        compileScope.expectDependency('junit:junit:4.13')
     }
 
     @ToBeFixedForInstantExecution
@@ -82,7 +82,7 @@ class GradleImplDepsPublishingIntegrationTest extends BaseGradleImplDepsIntegrat
         def module = ivyRepo.module('org.gradle.test', 'sample', '1.0')
         def ivy = module.parsedIvy
         ivy.dependencies.size() == 1
-        ivy.dependencies['junit:junit:4.12'].hasConf('testImplementation->default')
+        ivy.dependencies['junit:junit:4.13'].hasConf('testImplementation->default')
     }
 
     @ToBeFixedForInstantExecution

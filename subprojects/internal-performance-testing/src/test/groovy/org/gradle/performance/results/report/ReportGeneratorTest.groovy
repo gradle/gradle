@@ -22,7 +22,9 @@ import org.gradle.performance.results.ResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Ignore
 
+@Ignore
 class ReportGeneratorTest extends ResultSpecification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())

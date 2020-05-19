@@ -1,13 +1,25 @@
 {
     "latestReleaseSnapshot": {
-        "version": "6.3-20200317000053+0000",
-        "buildTime": "20200317000053+0000"
+        "version": "6.4.1-20200518235159+0000",
+        "buildTime": "20200518235159+0000"
     },
     "latestRc": {
-        "version": "6.3-rc-1",
-        "buildTime": "20200311214114+0000"
+        "version": "6.5-milestone-2",
+        "buildTime": "20200515094006+0000"
     },
     "finalReleases": [
+        {
+            "version": "6.4.1",
+            "buildTime": "20200515194340+0000"
+        },
+        {
+            "version": "6.4",
+            "buildTime": "20200505191855+0000"
+        },
+        {
+            "version": "6.3",
+            "buildTime": "20200324195207+0000"
+        },
         {
             "version": "6.2.2",
             "buildTime": "20200304084931+0000"

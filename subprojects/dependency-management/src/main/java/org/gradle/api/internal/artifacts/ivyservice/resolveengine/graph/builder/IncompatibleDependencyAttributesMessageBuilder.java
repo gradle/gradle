@@ -53,7 +53,7 @@ class IncompatibleDependencyAttributesMessageBuilder {
         ComponentSelector selector = dependencyMetadata.getSelector();
         if (selector instanceof ModuleComponentSelector) {
             StringBuilder sb = new StringBuilder("wants '" + state.getRequested() + "' with attribute " + attribute.getName() + " = ");
-            sb.append(((ModuleComponentSelector) selector).getAttributes().getAttribute(attribute));
+            sb.append(selector.getAttributes().getAttribute(attribute));
             return sb.toString();
         } else {
             // This is a safety net, it's unsure whether this can happen, because it's likely (certain?)

@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.quality.pmd
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 import org.hamcrest.Matcher
 import spock.lang.Issue
@@ -37,6 +36,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
             pmd {
                 toolVersion = '$version'
+                ${supportIncrementalAnalysis()? "" : "incrementalAnalysis = false"}
             }
 
             ${fileLockingIssuesSolved() ? "" : """
@@ -45,7 +45,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
                 classpath = files()
             }"""}
 
-            ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.7" : ""}
+            ${requiredSourceCompatibility()}
         """.stripIndent()
     }
 
@@ -85,6 +85,39 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
         output.contains("2 PMD rule violations were found. See the report at:")
+    }
+
+    @ToBeFixedForInstantExecution
+    void "can set max failures"() {
+        badCode()
+        buildFile << """
+            pmd {
+                maxFailures = 2
+            }
+        """
+
+        expect:
+        succeeds("check")
+        file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
+        file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
+        output.contains("2 PMD rule violations were found. See the report at:")
+    }
+
+    @ToBeFixedForInstantExecution
+    void "does not ignore more than max failures"() {
+        badCode()
+        buildFile << """
+            pmd {
+                maxFailures = 1
+            }
+        """
+
+        expect:
+        fails("check")
+        failure.assertHasDescription("Execution failed for task ':pmdTest'.")
+        failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
+        file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
+        file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
 
     @ToBeFixedForInstantExecution

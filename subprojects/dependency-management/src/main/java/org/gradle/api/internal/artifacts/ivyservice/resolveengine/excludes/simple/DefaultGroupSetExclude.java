@@ -23,7 +23,7 @@ import java.util.Set;
 
 final class DefaultGroupSetExclude implements GroupSetExclude {
     private final Set<String> groups;
-    private int hashCode;
+    private final int hashCode;
 
     DefaultGroupSetExclude(Set<String> groups) {
         this.groups = groups;

@@ -26,7 +26,7 @@ public class Artifact {
     private final Set<String> configurations;
 
     public Artifact(IvyArtifactName artifactName) {
-        this(artifactName, Sets.<String>newLinkedHashSet());
+        this(artifactName, Sets.newLinkedHashSet());
     }
 
     public Artifact(IvyArtifactName artifactName, Set<String> configurations) {

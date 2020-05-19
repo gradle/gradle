@@ -16,7 +16,10 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
 
+@EventScope(Scopes.Build)
 public interface InternalBuildFinishedListener {
     /**
      * Called after all user buildFinished hooks have been executed, but before

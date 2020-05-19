@@ -57,6 +57,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -96,8 +97,8 @@ public class NodeState implements DependencyGraphNode {
     private Multimap<ModuleIdentifier, DependencyState> potentiallyActivatedConstraints;
 
     // caches
-    private Map<DependencyMetadata, DependencyState> dependencyStateCache = Maps.newHashMap();
-    private Map<DependencyState, EdgeState> edgesCache = Maps.newHashMap();
+    private final Map<DependencyMetadata, DependencyState> dependencyStateCache = Maps.newHashMap();
+    private final Map<DependencyState, EdgeState> edgesCache = Maps.newHashMap();
 
     // Caches the list of dependency states for dependencies
     private List<DependencyState> cachedDependencyStates;
@@ -305,6 +306,12 @@ public class NodeState implements DependencyGraphNode {
         // (it used to be) because if the filters are _equivalent_, we would
         // revisit all dependencies and possibly change the classpath order!
         boolean sameDependencies = dependencies(newResolutionFilter).equals(oldStates);
+        if (sameDependencies) {
+            // While there will be no change to this node, there might be changes to the nodes it brings as the exclude change could concern them
+            for (EdgeState outgoingEdge : outgoingEdges) {
+                outgoingEdge.updateTransitiveExcludes(newResolutionFilter);
+            }
+        }
         if (LOGGER.isDebugEnabled()) {
             if (sameDependencies) {
                 LOGGER.debug("Filter {} excludes same dependencies as previous {}. Dependencies left = {}", newResolutionFilter, previousTraversalExclusions, oldStates);
@@ -651,7 +658,7 @@ public class NodeState implements DependencyGraphNode {
                     ExcludeSpec exclusions = dependencyEdge.getExclusions();
                     if (edgeExclusions == null || exclusions == nothing) {
                         edgeExclusions = exclusions;
-                    } else if (exclusions != null && edgeExclusions != exclusions) {
+                    } else if (edgeExclusions != exclusions) {
                         if (excludedByBoth == null) {
                             excludedByBoth = Sets.newHashSetWithExpectedSize(incomingEdgeCount);
                         }
@@ -698,7 +705,8 @@ public class NodeState implements DependencyGraphNode {
         return result;
     }
 
-    private static Set<ExcludeSpec> collectEdgeConstraint(ExcludeSpec nodeExclusions, Set<ExcludeSpec> excludedByEither, EdgeState dependencyEdge, ExcludeSpec nothing, int incomingEdgeCount) {
+    @Nullable
+    private static Set<ExcludeSpec> collectEdgeConstraint(ExcludeSpec nodeExclusions, @Nullable Set<ExcludeSpec> excludedByEither, EdgeState dependencyEdge, ExcludeSpec nothing, int incomingEdgeCount) {
         // Constraint: only consider explicit exclusions declared for this constraint
         ExcludeSpec constraintExclusions = dependencyEdge.getEdgeExclusions();
         if (constraintExclusions != nothing && constraintExclusions != nodeExclusions) {
@@ -710,7 +718,8 @@ public class NodeState implements DependencyGraphNode {
         return excludedByEither;
     }
 
-    private ExcludeSpec joinNodeExclusions(ExcludeSpec nodeExclusions, Set<ExcludeSpec> excludedByEither) {
+    @Nullable
+    private ExcludeSpec joinNodeExclusions(@Nullable ExcludeSpec nodeExclusions, @Nullable Set<ExcludeSpec> excludedByEither) {
         if (excludedByEither != null) {
             if (nodeExclusions != null) {
                 excludedByEither.add(nodeExclusions);
@@ -720,7 +729,8 @@ public class NodeState implements DependencyGraphNode {
         return nodeExclusions;
     }
 
-    private ExcludeSpec intersectEdgeExclusions(ExcludeSpec edgeExclusions, Set<ExcludeSpec> excludedByBoth) {
+    @Nullable
+    private ExcludeSpec intersectEdgeExclusions(@Nullable ExcludeSpec edgeExclusions, @Nullable Set<ExcludeSpec> excludedByBoth) {
         if (edgeExclusions == moduleExclusions.nothing()) {
             return edgeExclusions;
         }
@@ -742,7 +752,8 @@ public class NodeState implements DependencyGraphNode {
         storeOwnStrictVersions(constraintsSet);
     }
 
-    private Set<ModuleIdentifier> maybeCollectStrictVersions(Set<ModuleIdentifier> constraintsSet, DependencyState dependencyState) {
+    @Nullable
+    private Set<ModuleIdentifier> maybeCollectStrictVersions(@Nullable Set<ModuleIdentifier> constraintsSet, DependencyState dependencyState) {
         if (dependencyState.getDependency().getSelector() instanceof ModuleComponentSelector) {
             ModuleComponentSelector selector = (ModuleComponentSelector) dependencyState.getDependency().getSelector();
             if (!StringUtils.isEmpty(selector.getVersionConstraint().getStrictVersion())) {
@@ -755,7 +766,7 @@ public class NodeState implements DependencyGraphNode {
         return constraintsSet;
     }
 
-    private void storeOwnStrictVersions(Set<ModuleIdentifier> constraintsSet) {
+    private void storeOwnStrictVersions(@Nullable Set<ModuleIdentifier> constraintsSet) {
         if (constraintsSet == null) {
             ownStrictVersionConstraints = StrictVersionConstraints.EMPTY;
         } else {
@@ -822,7 +833,7 @@ public class NodeState implements DependencyGraphNode {
             .union(parentEndorsedStrictVersionConstraints);
     }
 
-    private static StrictVersionConstraints notNull(StrictVersionConstraints strictVersionConstraints) {
+    private static StrictVersionConstraints notNull(@Nullable StrictVersionConstraints strictVersionConstraints) {
         return strictVersionConstraints == null ? StrictVersionConstraints.EMPTY : strictVersionConstraints;
     }
 
@@ -944,6 +955,7 @@ public class NodeState implements DependencyGraphNode {
         }
         virtualEdges = null;
         previousTraversalExclusions = null;
+        cachedFilteredDependencyStates = null;
         virtualPlatformNeedsRefresh = false;
         removingOutgoingEdges = alreadyRemoving;
     }
@@ -1084,6 +1096,7 @@ public class NodeState implements DependencyGraphNode {
         }
     }
 
+    @Nullable
     public Capability findCapability(String group, String name) {
         Capability onComponent = component.findCapability(group, name);
         if (onComponent != null) {
@@ -1147,5 +1160,12 @@ public class NodeState implements DependencyGraphNode {
             resolvedVariantCapabilities
         );
         return cachedVariantResult;
+    }
+
+    public void updateTransitiveExcludes() {
+        cachedModuleResolutionFilter = null;
+        if (isSelected()) {
+            resolveState.onMoreSelected(this);
+        }
     }
 }

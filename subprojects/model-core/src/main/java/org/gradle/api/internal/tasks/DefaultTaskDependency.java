@@ -23,7 +23,9 @@ import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.Cast;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
 import javax.annotation.Nullable;
@@ -89,7 +91,10 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
             } else if (dependency instanceof ProviderInternal) {
                 // When a Provider is used as a task dependency (rather than as a task input), need to unpack the value
                 ProviderInternal<?> provider = (ProviderInternal<?>) dependency;
-                if (!provider.maybeVisitBuildDependencies(context)) {
+                ValueSupplier.ValueProducer producer = provider.getProducer();
+                if (producer.isKnown()) {
+                    producer.visitProducerTasks(context);
+                } else {
                     // The provider does not know how to produce the value, so use the value instead
                     queue.addFirst(provider.get());
                 }
@@ -116,17 +121,17 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 }
             } else if (dependency instanceof Iterable && !(dependency instanceof Path)) {
                 // Path is Iterable, but we don't want to unpack it
-                Iterable<?> iterable = (Iterable) dependency;
+                Iterable<?> iterable = Cast.uncheckedNonnullCast(dependency);
                 addAllFirst(queue, toArray(iterable, Object.class));
             } else if (dependency instanceof Map) {
-                Map<?, ?> map = (Map) dependency;
+                Map<?, ?> map = Cast.uncheckedNonnullCast(dependency);
                 addAllFirst(queue, map.values().toArray());
             } else if (dependency instanceof Object[]) {
                 Object[] array = (Object[]) dependency;
                 addAllFirst(queue, array);
             } else if (dependency instanceof Callable) {
-                Callable callable = (Callable) dependency;
-                Object callableResult = uncheckedCall(callable);
+                Callable<?> callable = Cast.uncheckedNonnullCast(dependency);
+                Object callableResult = uncheckedCall(Cast.uncheckedNonnullCast(callable));
                 if (callableResult != null) {
                     queue.addFirst(callableResult);
                 }

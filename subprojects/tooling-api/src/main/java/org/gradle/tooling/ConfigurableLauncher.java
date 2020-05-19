@@ -30,7 +30,7 @@ import java.util.Set;
  * @param <T> the ConfigurableLauncher implementation to return as part of the fluent API.
  * @since 2.6
  * */
-public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends LongRunningOperation {
+public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends LongRunningOperation {
     /**
      * {@inheritDoc}
      * @since 1.0

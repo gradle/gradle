@@ -63,7 +63,7 @@ public class ClassLoaderStructureProvider {
         classpath.addAll(DefaultClassPath.of(additionalClasspath).getAsURLs());
 
         Set<ClassLoader> uniqueClassloaders = Sets.newHashSet();
-        for (Class clazz : classes) {
+        for (Class<?> clazz : classes) {
             ClassLoader classLoader = clazz.getClassLoader();
             // System types come from the system classloader and their classloader is null.
             if (classLoader != null) {

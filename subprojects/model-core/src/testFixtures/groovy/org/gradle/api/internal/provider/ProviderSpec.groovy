@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider
 
+import org.gradle.api.Task
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Provider
 import org.gradle.internal.state.Managed
@@ -444,10 +445,36 @@ abstract class ProviderSpec<T> extends Specification {
             }
 
             @Override
-            protected ValueSupplier.Value<T> calculateOwnValue() {
+            protected ValueSupplier.Value<T> calculateOwnValue(ValueSupplier.ValueConsumer consumer) {
                 throw new RuntimeException("broken!")
             }
         }
     }
 
+    void assertHasNoProducer(ProviderInternal<?> provider) {
+        def producer = provider.producer
+        assert !producer.known
+        producer.visitProducerTasks { assert false }
+        producer.visitContentProducerTasks { assert false }
+    }
+
+    void assertHasKnownProducer(ProviderInternal<?> provider) {
+        def producer = provider.producer
+        assert producer.known
+        producer.visitProducerTasks { assert false }
+        producer.visitContentProducerTasks { assert false }
+    }
+
+    void assertHasProducer(ProviderInternal<?> provider, Task task, Task... additional) {
+        def expected = [task] + (additional as List)
+
+        def producer = provider.producer
+        assert producer.known
+        def tasks = []
+        producer.visitProducerTasks { tasks.add(it) }
+        assert tasks == expected
+        tasks.clear()
+        producer.visitContentProducerTasks { tasks.add(it) }
+        assert tasks == expected
+    }
 }

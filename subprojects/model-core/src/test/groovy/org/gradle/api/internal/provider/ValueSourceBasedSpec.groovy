@@ -23,18 +23,21 @@ import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.provider.ValueSourceSpec
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 abstract class ValueSourceBasedSpec extends Specification {
 
-    def listenerManager = new DefaultListenerManager()
+    def listenerManager = new DefaultListenerManager(Scopes.Build)
     def isolatableFactory = new DefaultValueSnapshotter(
         null,
         TestUtil.managedFactoryRegistry()
     )
+    def configurationTimeBarrier = Mock(ConfigurationTimeBarrier)
     def valueSourceProviderFactory = new DefaultValueSourceProviderFactory(
+        configurationTimeBarrier,
         listenerManager,
         TestUtil.instantiatorFactory(),
         isolatableFactory,

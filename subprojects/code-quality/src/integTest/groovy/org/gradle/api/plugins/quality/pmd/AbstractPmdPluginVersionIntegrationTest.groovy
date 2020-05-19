@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 
-@TargetVersions([PmdPlugin.DEFAULT_PMD_VERSION, '4.3', '5.0.5', '5.1.1', '5.3.3', '6.0.0', '6.8.0'])
+@TargetVersions([PmdPlugin.DEFAULT_PMD_VERSION, '4.3', '5.0.5', '5.1.1', '5.3.3', '6.0.0' /*Java 9*/, '6.13.0' /*Java 12*/])
 class AbstractPmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
     String calculateDefaultDependencyNotation() {
         if (versionNumber < VersionNumber.version(5)) {
@@ -31,6 +31,27 @@ class AbstractPmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpe
             return "net.sourceforge.pmd:pmd:$version"
         }
         return "net.sourceforge.pmd:pmd-java:$version"
+    }
+
+    /**
+     * Checks if the current PMD version supports the current Java version, if not we set the sourceCompatibility to the max Java version supported by the current PMD version.
+     */
+    String requiredSourceCompatibility() {
+        if (versionNumber < VersionNumber.parse('6.0.0') && TestPrecondition.JDK9_OR_LATER.isFulfilled()) {
+            "sourceCompatibility = 1.8"
+        } else if (versionNumber < VersionNumber.parse('6.4.0') && TestPrecondition.JDK10_OR_LATER.isFulfilled()) {
+            "sourceCompatibility = 9"
+        } else if (versionNumber < VersionNumber.parse('6.6.0') && TestPrecondition.JDK11_OR_LATER.isFulfilled()) {
+            "sourceCompatibility = 10"
+        } else if (versionNumber < VersionNumber.parse('6.13.0') && TestPrecondition.JDK12_OR_LATER.isFulfilled()) {
+            "sourceCompatibility = 11"
+        } else if (versionNumber < VersionNumber.parse('6.18.0') && TestPrecondition.JDK13_OR_LATER.isFulfilled()) {
+            "sourceCompatibility = 12"
+        } else if (versionNumber < VersionNumber.parse('6.22.0') && TestPrecondition.JDK14_OR_LATER.isFulfilled()) {
+            "sourceCompatibility = 13"
+        } else {
+            "" // do not set a source compatibility for the DEFAULT_PMD_VERSION running on latest Java, this way we will catch if it breaks with a new Java version
+        }
     }
 
     static boolean fileLockingIssuesSolved() {

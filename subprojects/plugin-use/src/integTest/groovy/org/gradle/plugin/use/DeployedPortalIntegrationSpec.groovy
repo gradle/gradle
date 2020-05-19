@@ -154,4 +154,79 @@ class DeployedPortalIntegrationSpec extends AbstractPluginIntegrationTest {
         then:
         failure.assertThatDescription(startsWith("Plugin [id: '$HELLO_WORLD_PLUGIN_ID', version: '$HELLO_WORLD_PLUGIN_VERSION'] was not found"))
     }
+
+    def "can resolve plugin from portal with repository filters present"() {
+        given:
+        mavenRepo.module('com.android.tools', 'r8', '1.5.70').publish()
+
+        when:
+        buildScript """
+            buildscript {
+                repositories {
+                    exclusiveContent {
+                      forRepository {
+                        maven {
+                          url = "${mavenRepo.uri}"
+                          metadataSources {
+                            artifact()
+                          }
+                        }
+                      }
+                      filter {
+                        includeModule("com.android.tools", "r8")
+                      }
+                    }
+                }
+            }
+
+            plugins {
+                id "$HELLO_WORLD_PLUGIN_ID" version "$HELLO_WORLD_PLUGIN_VERSION"
+            }
+        """
+
+        then:
+        succeeds("helloWorld")
+
+        and:
+        output.contains("Hello World!")
+    }
+
+    def "resolution fails from portal with repository filters present"() {
+        given:
+        mavenRepo.module('com.android.tools', 'r8', '1.5.70').publish()
+
+        buildScript """
+            buildscript {
+                repositories {
+                    exclusiveContent {
+                        forRepository {
+                            ${mavenCentralRepository()}
+                        }
+                        filter {
+                            includeModule("com.android.tools", "r8") // force resolving r8 from wrong repo
+                        }
+                    }
+                    maven {
+                        url = "${mavenRepo.uri}"
+                        metadataSources {
+                            artifact()
+                        }
+                    }
+                }
+
+                dependencies {
+                    classpath group: 'com.android.tools', name: 'r8', version: '1.5.70'
+                }
+
+            }
+
+            plugins {
+                id "$HELLO_WORLD_PLUGIN_ID" version "$HELLO_WORLD_PLUGIN_VERSION"
+            }
+        """
+
+        expect:
+        fails("helloWorld")
+        failureCauseContains("Could not find com.android.tools:r8")
+    }
 }

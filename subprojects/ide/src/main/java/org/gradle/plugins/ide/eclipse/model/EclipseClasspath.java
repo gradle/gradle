@@ -19,10 +19,13 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory;
@@ -51,8 +54,10 @@ import java.util.Set;
  * if the defaults don't match your needs.
  *
  * <pre class='autoTested'>
- * apply plugin: 'java'
- * apply plugin: 'eclipse'
+ * plugins {
+ *     id 'java'
+ *     id 'eclipse'
+ * }
  *
  * configurations {
  *   provided
@@ -92,8 +97,10 @@ import java.util.Set;
  * Examples of advanced configuration:
  *
  * <pre class='autoTested'>
- * apply plugin: 'java'
- * apply plugin: 'eclipse'
+ * plugins {
+ *     id 'java'
+ *     id 'eclipse'
+ * }
  *
  * eclipse {
  *   classpath {
@@ -323,10 +330,17 @@ public class EclipseClasspath {
         ProjectInternal projectInternal = (ProjectInternal) this.project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
         ProjectStateRegistry projectRegistry = projectInternal.getServices().get(ProjectStateRegistry.class);
-        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, projectRegistry, new DefaultGradleApiSourcesResolver(project));
+        boolean inferModulePath = false;
+        Task compileJava = project.getTasks().findByName(JavaPlugin.COMPILE_JAVA_TASK_NAME);
+        if (compileJava instanceof JavaCompile) {
+            inferModulePath = ((JavaCompile) compileJava).getModularity().getInferModulePath().get();
+        }
+        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, projectRegistry, new DefaultGradleApiSourcesResolver(project), inferModulePath);
         return classpathFactory.createEntries();
     }
 
+
+    @SuppressWarnings("unchecked")
     public void mergeXmlClasspath(Classpath xmlClasspath) {
         file.getBeforeMerged().execute(xmlClasspath);
         List<ClasspathEntry> entries = resolveDependencies();

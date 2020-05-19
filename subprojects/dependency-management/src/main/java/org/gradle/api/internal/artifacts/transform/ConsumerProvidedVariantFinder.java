@@ -52,14 +52,12 @@ public class ConsumerProvidedVariantFinder {
 
     public ConsumerVariantMatchResult collectConsumerVariants(AttributeContainerInternal actual, AttributeContainerInternal requested) {
         AttributeSpecificCache toCache = getCache(requested);
-        return toCache.transforms.computeIfAbsent(actual, attrs -> {
-            return findProducersFor(actual, requested).asImmutable();
-        });
+        return toCache.transforms.computeIfAbsent(actual, attrs -> findProducersFor(actual, requested).asImmutable());
     }
 
     private ConsumerVariantMatchResult findProducersFor(AttributeContainerInternal actual, AttributeContainerInternal requested) {
         // Prefer direct transformation over indirect transformation
-        List<ArtifactTransformRegistration> candidates = new ArrayList<ArtifactTransformRegistration>();
+        List<ArtifactTransformRegistration> candidates = new ArrayList<>();
         List<ArtifactTransformRegistration> transforms = variantTransforms.getTransforms();
         int nbOfTransforms = transforms.size();
         ConsumerVariantMatchResult result = new ConsumerVariantMatchResult(nbOfTransforms * nbOfTransforms);

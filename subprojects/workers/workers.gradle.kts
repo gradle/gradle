@@ -1,8 +1,5 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.distribution.`core-api-java`
 }
 
 dependencies {
@@ -47,8 +44,3 @@ dependencies {
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":internalTesting"))
 }
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
-

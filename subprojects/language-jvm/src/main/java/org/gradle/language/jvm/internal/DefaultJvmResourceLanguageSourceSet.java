@@ -16,9 +16,9 @@
 package org.gradle.language.jvm.internal;
 
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
-import org.gradle.language.jvm.JvmResourceSet;
 
-public class DefaultJvmResourceLanguageSourceSet extends BaseLanguageSourceSet implements JvmResourceSet {
+@SuppressWarnings("deprecation")
+public class DefaultJvmResourceLanguageSourceSet extends BaseLanguageSourceSet implements org.gradle.language.jvm.JvmResourceSet {
     @Override
     protected String getLanguageName() {
         return "JVM resources";

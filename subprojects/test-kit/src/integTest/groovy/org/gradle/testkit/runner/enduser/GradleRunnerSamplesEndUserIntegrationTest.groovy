@@ -17,8 +17,8 @@
 
 package org.gradle.testkit.runner.enduser
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.testing.internal.util.RetryUtil
 import org.gradle.testkit.runner.fixtures.NoDebug
@@ -28,12 +28,10 @@ import org.junit.Rule
 import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TestPrecondition.ONLINE
 
 @NonCrossVersion
 @NoDebug
-@Requires(KOTLIN_SCRIPT)
 class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
     @Rule
@@ -44,7 +42,7 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
     }
 
     @Unroll
-    @UsesSample("testKit/gradleRunner/junitQuickstart")
+    @UsesSample("testKit/junitQuickstart")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
     def "junitQuickstart with #dsl dsl"() {
         expect:
@@ -55,15 +53,16 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("testKit/gradleRunner/spockQuickstart")
+    @UsesSample("testKit/spockQuickstart")
+    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
     def spockQuickstart() {
         expect:
-        executer.inDirectory(sample.dir)
+        executer.inDirectory(sample.dir.file('groovy'))
         succeeds "check"
     }
 
     @Unroll
-    @UsesSample("testKit/gradleRunner/manualClasspathInjection")
+    @UsesSample("testKit/manualClasspathInjection")
     @Requires(JDK8_OR_EARLIER)
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
     // Uses Gradle 2.8 which does not support Java 9
@@ -77,8 +76,7 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
     }
 
     @Unroll
-    @UsesSample("testKit/gradleRunner/automaticClasspathInjectionQuickstart")
-    @ToBeFixedForInstantExecution
+    @UsesSample("testKit/automaticClasspathInjectionQuickstart")
     def "automaticClasspathInjectionQuickstart with #dsl dsl"() {
         expect:
         executer.inDirectory(sample.dir.file(dsl))
@@ -89,8 +87,7 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
     }
 
     @Unroll
-    @UsesSample("testKit/gradleRunner/automaticClasspathInjectionCustomTestSourceSet")
-    @ToBeFixedForInstantExecution
+    @UsesSample("testKit/automaticClasspathInjectionCustomTestSourceSet")
     def "automaticClasspathInjectionCustomTestSourceSet with #dsl dsl"() {
         expect:
         executer.inDirectory(sample.dir.file(dsl))
@@ -102,11 +99,12 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
 
     @Requires([ONLINE, JDK8_OR_EARLIER])
     // Uses Gradle 2.6 which does not support Java 9
-    @UsesSample("testKit/gradleRunner/gradleVersion")
+    @UsesSample("testKit/gradleVersion")
+    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
     def gradleVersion() {
         expect:
         RetryUtil.retry { //This test is also affected by gradle/gradle#1111 on Windows
-            executer.inDirectory(sample.dir)
+            executer.inDirectory(sample.dir.file('groovy'))
             succeeds "check"
 
         }

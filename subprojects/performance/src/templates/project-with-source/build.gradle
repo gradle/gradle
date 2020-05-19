@@ -33,7 +33,7 @@ dependencies {
     compile "commons-codec:commons-codec:1.2"
     compile "org.slf4j:jcl-over-slf4j:1.7.10"
     compile "org.codehaus.groovy:groovy:2.4.15"
-    testCompile 'junit:junit:4.12'
+    testCompile 'junit:junit:4.13'
     runtime 'com.googlecode:reflectasm:1.01'
 
     <% if (dependencies) { dependencies.each { %>

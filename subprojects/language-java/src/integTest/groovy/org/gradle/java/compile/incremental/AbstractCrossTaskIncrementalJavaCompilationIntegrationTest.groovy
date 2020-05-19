@@ -18,7 +18,6 @@ package org.gradle.java.compile.incremental
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -80,8 +79,43 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.recompiledClasses('ImplB')
     }
 
+    // This behavior is kept for backward compatibility - may be removed in the future
     @Requires(TestPrecondition.JDK9_OR_LATER)
-    @ToBeFixedForInstantExecution
+    def "recompiles when upstream module-info changes with manual module path"() {
+        file("api/src/main/${language.name}/a/A.${language.name}").text = "package a; public class A {}"
+        file("impl/src/main/${language.name}/b/B.${language.name}").text = "package b; import a.A; class B extends A {}"
+        def moduleInfo = file("api/src/main/${language.name}/module-info.${language.name}")
+        moduleInfo.text = """
+            module api {
+                exports a;
+            }
+        """
+        file("impl/src/main/${language.name}/module-info.${language.name}").text = """
+            module impl {
+                requires api;
+            }
+        """
+        file("impl/build.gradle") << """
+            def layout = project.layout
+            compileJava.doFirst {
+                options.compilerArgs << "--module-path" << classpath.join(File.pathSeparator)
+                classpath = layout.files()
+            }
+        """
+        succeeds "impl:${language.compileTaskName}"
+
+        when:
+        moduleInfo.text = """
+            module api {
+            }
+        """
+
+        then:
+        fails "impl:${language.compileTaskName}"
+        result.hasErrorOutput("package a is not visible")
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
     def "recompiles when upstream module-info changes"() {
         file("api/src/main/${language.name}/a/A.${language.name}").text = "package a; public class A {}"
         file("impl/src/main/${language.name}/b/B.${language.name}").text = "package b; import a.A; class B extends A {}"
@@ -97,9 +131,8 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
             }
         """
         file("impl/build.gradle") << """
-            compileJava.doFirst {
-                options.compilerArgs << "--module-path" << classpath.join(File.pathSeparator)
-                classpath = files()
+            compileJava {
+                modularity.inferModulePath.set(true)
             }
         """
         succeeds "impl:${language.compileTaskName}"

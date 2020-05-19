@@ -30,7 +30,7 @@ class SamplesTroubleshootingDependencyResolutionIntegrationTest extends Abstract
     Sample sample = new Sample(testDirectoryProvider)
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/troubleshooting/cache/changing")
+    @UsesSample("dependencyManagement/troubleshooting-cache-changing")
     def "can declare custom TTL for dependency with changing version"() {
 
         given:
@@ -48,7 +48,7 @@ class SamplesTroubleshootingDependencyResolutionIntegrationTest extends Abstract
     }
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/troubleshooting/cache/dynamic")
+    @UsesSample("dependencyManagement/troubleshooting-cache-dynamic")
     def "can declare custom TTL for dependency with dynamic version"() {
 
         given:

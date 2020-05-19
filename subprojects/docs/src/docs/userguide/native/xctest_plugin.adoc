@@ -22,8 +22,8 @@ The XCTest Plugin provides the tasks, configurations and conventions for integra
 
 .Applying the XCTest Plugin
 ====
-include::sample[dir="snippets/userguide/swift/swiftXCTest/groovy",files="build.gradle[tags=apply-plugin]"]
-include::sample[dir="snippets/userguide/swift/swiftXCTest/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
+include::sample[dir="snippets/swift/swiftXCTest/groovy",files="build.gradle[tags=apply-plugin]"]
+include::sample[dir="snippets/swift/swiftXCTest/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
 ====
 
 [[sec:xctest_build_varants]]
@@ -41,8 +41,8 @@ The target machine can be configured as follows:
 
 .Configure application target machines
 ====
-include::sample[dir="snippets/userguide/swift/swiftXCTest/groovy",files="build.gradle[tags=configure-target-machines]"]
-include::sample[dir="snippets/userguide/swift/swiftXCTest/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
+include::sample[dir="snippets/swift/swiftXCTest/groovy",files="build.gradle[tags=configure-target-machines]"]
+include::sample[dir="snippets/swift/swiftXCTest/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
 ====
 
 [[sec:xctest_tasks]]

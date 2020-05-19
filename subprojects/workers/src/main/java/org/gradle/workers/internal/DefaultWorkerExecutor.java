@@ -19,6 +19,7 @@ package org.gradle.workers.internal;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.isolated.IsolationScheme;
@@ -69,7 +70,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ClassLoaderStructureProvider classLoaderStructureProvider;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private final Instantiator instantiator;
-    private final IsolationScheme<WorkAction, WorkParameters> isolationScheme = new IsolationScheme<>(WorkAction.class, WorkParameters.class, WorkParameters.None.class);
+    private final IsolationScheme<WorkAction<?>, WorkParameters> isolationScheme = new IsolationScheme<>(Cast.uncheckedCast(WorkAction.class), WorkParameters.class, WorkParameters.None.class);
     private final File baseDir;
 
     public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory,
@@ -137,6 +138,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void submit(Class<? extends Runnable> actionClass, Action<? super WorkerConfiguration> configAction) {
         DefaultWorkerConfiguration configuration = new DefaultWorkerConfiguration(forkOptionsFactory);
         configAction.execute(configuration);
@@ -305,7 +307,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
                 classes.add(param.getClass());
             }
         }
-        return classes.toArray(new Class[0]);
+        return classes.toArray(new Class<?>[0]);
     }
 
     @Contextual

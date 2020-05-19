@@ -30,14 +30,17 @@ class SamplesDeclaringRepositoriesIntegrationTest extends AbstractIntegrationSpe
         executer.withRepositoryMirrors()
     }
 
-    @UsesSample("userguide/dependencyManagement/declaringRepositories/multipleRepositories/groovy")
+    @UsesSample("dependencyManagement/declaringRepositories-multipleRepositories")
     def "can declare multiple repositories and resolve binary dependency"() {
-        executer.inDirectory(sample.dir)
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         succeeds('copyLibs')
 
         then:
-        sample.dir.file('build/libs/commons-2.0.0.jar').isFile()
+        sample.dir.file("$dsl/build/libs/commons-2.0.0.jar").isFile()
+
+        where:
+        dsl << ['groovy']
     }
 }

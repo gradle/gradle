@@ -23,9 +23,9 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ClosureBackedRuleAction<T> implements RuleAction<T> {
-    private final Closure closure;
+    private final Closure<?> closure;
     private final Class<? super T> subjectType;
-    private List<Class<?>> inputTypes;
+    private final List<Class<?>> inputTypes;
 
     public ClosureBackedRuleAction(Class<T> subjectType, Closure<?> closure) {
         this.subjectType = subjectType;
@@ -40,7 +40,7 @@ public class ClosureBackedRuleAction<T> implements RuleAction<T> {
 
     @Override
     public void execute(T subject, List<?> inputs) {
-        Closure copy = (Closure) closure.clone();
+        Closure<?> copy = (Closure<?>) closure.clone();
         copy.setResolveStrategy(Closure.DELEGATE_FIRST);
         copy.setDelegate(subject);
 
@@ -63,9 +63,7 @@ public class ClosureBackedRuleAction<T> implements RuleAction<T> {
 
         if (parameterTypes.length != 0) {
             if (parameterTypes[0].isAssignableFrom(subjectType)) {
-                for (Class<?> parameterType : Arrays.asList(parameterTypes).subList(1, parameterTypes.length)) {
-                    inputTypes.add(parameterType);
-                }
+                inputTypes.addAll(Arrays.asList(parameterTypes).subList(1, parameterTypes.length));
             } else {
                 throw new RuleActionValidationException(String.format("First parameter of rule action closure must be of type '%s'.", subjectType.getSimpleName()));
             }
@@ -83,7 +81,7 @@ public class ClosureBackedRuleAction<T> implements RuleAction<T> {
             return false;
         }
 
-        ClosureBackedRuleAction that = (ClosureBackedRuleAction) o;
+        ClosureBackedRuleAction<?> that = (ClosureBackedRuleAction<?>) o;
         return closure.equals(that.closure)
                 && subjectType.equals(that.subjectType);
     }

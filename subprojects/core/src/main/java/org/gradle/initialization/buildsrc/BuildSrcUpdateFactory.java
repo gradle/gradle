@@ -25,8 +25,11 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.invocation.BuildController;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Collection;
+
+import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic;
 
 public class BuildSrcUpdateFactory implements Factory<ClassPath> {
     private static final Logger LOGGER = Logging.getLogger(BuildSrcUpdateFactory.class);
@@ -42,10 +45,11 @@ public class BuildSrcUpdateFactory implements Factory<ClassPath> {
     }
 
     @Override
+    @Nonnull
     public ClassPath create() {
         Collection<File> classpath = build();
         LOGGER.debug("Gradle source classpath is: {}", classpath);
-        return cachedClasspathTransformer.transform(DefaultClassPath.of(classpath));
+        return cachedClasspathTransformer.transform(DefaultClassPath.of(classpath), BuildLogic);
     }
 
     private Collection<File> build() {

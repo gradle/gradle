@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -17,7 +15,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  */
 
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
@@ -46,6 +44,6 @@ dependencies {
     testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
+classycle {
+    excludePatterns.set(listOf("org/gradle/api/plugins/antlr/internal/*"))
 }

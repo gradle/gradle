@@ -127,20 +127,20 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     }
 
     private static class CommandLineParseFailureAction implements Action<ExecutionListener> {
-        private final Exception e;
+        private final Exception exception;
         private final CommandLineParser parser;
 
-        public CommandLineParseFailureAction(CommandLineParser parser, Exception e) {
+        public CommandLineParseFailureAction(CommandLineParser parser, Exception exception) {
             this.parser = parser;
-            this.e = e;
+            this.exception = exception;
         }
 
         @Override
         public void execute(ExecutionListener executionListener) {
             System.err.println();
-            System.err.println(e.getMessage());
+            System.err.println(exception.getMessage());
             showUsage(System.err, parser);
-            executionListener.onFailure(e);
+            executionListener.onFailure(exception);
         }
     }
 
@@ -251,9 +251,10 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             loggingManager.start();
 
             Action<ExecutionListener> exceptionReportingAction =
-                    new ExceptionReportingAction(reporter, loggingManager,
-                            new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager,
-                                    new WelcomeMessageAction(buildLayout, action)));
+                new ExceptionReportingAction(reporter, loggingManager,
+                        new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager,
+                            new WelcomeMessageAction(buildLayout,
+                                    new DebugLoggerWarningAction(loggingConfiguration, action))));
             try {
                 exceptionReportingAction.execute(executionListener);
             } finally {

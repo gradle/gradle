@@ -18,6 +18,10 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
+/**
+ * Variant derivation strategies should be stateless. If they aren't singletons,
+ * implementors must make sure that equals/hashcode returns true for all instances.
+ */
 public interface VariantDerivationStrategy {
     boolean derivesVariants();
     ImmutableList<? extends ConfigurationMetadata> derive(ModuleComponentResolveMetadata metadata);

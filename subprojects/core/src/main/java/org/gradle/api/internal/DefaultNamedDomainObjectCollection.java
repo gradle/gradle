@@ -26,6 +26,7 @@ import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Namer;
+import org.gradle.api.NonExtensible;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.collections.CollectionEventRegister;
@@ -808,6 +809,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return Cast.uncheckedCast(getInstantiator().newInstance(ExistingNamedDomainObjectProvider.class, this, name, new DslObject(object).getDeclaredType()));
     }
 
+    @NonExtensible
     protected abstract class AbstractNamedDomainObjectProvider<I extends T> extends AbstractMinimalProvider<I> implements Named, NamedDomainObjectProvider<I> {
         private final String name;
         private final Class<I> type;
@@ -829,13 +831,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return findDomainObject(getName()) != null;
         }
 
         @Override
         public String toString() {
-            return String.format("provider(%s %s, %s)", getTypeDisplayName(), getName(), getType());
+            return String.format("provider(%s '%s', %s)", getTypeDisplayName(), getName(), getType());
         }
     }
 
@@ -852,7 +854,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return getOrNull() != null;
         }
 
@@ -865,7 +867,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        protected Value<I> calculateOwnValue() {
+        protected Value<I> calculateOwnValue(ValueConsumer consumer) {
             return Value.ofNullable(Cast.uncheckedCast(findByNameWithoutRules(getName())));
         }
     }
@@ -886,7 +888,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return findDomainObject(getName()) != null;
         }
 
@@ -914,7 +916,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        protected Value<? extends I> calculateOwnValue() {
+        protected Value<? extends I> calculateOwnValue(ValueConsumer consumer) {
             if (wasElementRemoved()) {
                 return Value.missing();
             }

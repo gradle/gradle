@@ -26,7 +26,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
-@Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
+@Requires(TestPrecondition.JDK8_OR_EARLIER) // tests against old Gradle version that can only work with Java versions up tp 8
 @ToolingApiVersion("current")
 class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
     def buildPluginWith(String gradleVersion) {
@@ -39,10 +39,10 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
         def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(gradleDist, temporaryFolder).withWarningMode(null), pluginDir)
         builder.sourceFile("com/example/MyTask.java") << """
             package com.example;
-            
+
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
-            
+
             public class MyTask extends DefaultTask {
                 public MyTask() {
                     getInputs().file("somefile");
@@ -61,7 +61,7 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
                     classpath files("${pluginJar.toURI()}")
                 }
             }
-            
+
             task myTask(type: com.example.MyTask)
         """
     }

@@ -38,6 +38,8 @@ import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 
+import javax.annotation.Nullable;
+
 public class RepositoryChainDependencyToComponentIdResolver implements DependencyToComponentIdResolver {
     private final DynamicVersionResolver dynamicRevisionResolver;
     private final AttributeContainer consumerAttributes;
@@ -52,7 +54,7 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
     }
 
     @Override
-    public void resolve(DependencyMetadata dependency, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
+    public void resolve(DependencyMetadata dependency, VersionSelector acceptor, @Nullable VersionSelector rejector, BuildableComponentIdResolveResult result) {
         ComponentSelector componentSelector = dependency.getSelector();
         if (componentSelector instanceof ModuleComponentSelector) {
             ModuleComponentSelector module = (ModuleComponentSelector) componentSelector;

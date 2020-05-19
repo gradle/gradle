@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 description = "Shared classes for projects requiring GPG support"
@@ -46,9 +44,8 @@ dependencies {
     testFixturesImplementation(testLibrary("jetty"))
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":internalIntegTesting"))
-
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
+classycle {
+    excludePatterns.set(listOf("org/gradle/plugins/signing/type/pgp/**"))
 }

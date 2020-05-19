@@ -42,11 +42,7 @@ public class OpaqueComponentIdentifier implements ComponentIdentifier {
 
         OpaqueComponentIdentifier that = (OpaqueComponentIdentifier) o;
 
-        if (!displayName.equals(that.displayName)) {
-            return false;
-        }
-
-        return true;
+        return displayName.equals(that.displayName);
     }
 
     @Override

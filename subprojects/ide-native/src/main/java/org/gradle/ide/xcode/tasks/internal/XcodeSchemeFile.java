@@ -19,6 +19,7 @@ package org.gradle.ide.xcode.tasks.internal;
 import groovy.util.Node;
 import groovy.util.NodeList;
 import org.gradle.api.Action;
+import org.gradle.internal.Cast;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
@@ -96,23 +97,28 @@ public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
         }
 
         public void setBuildForRunning(boolean buildForRunning) {
-            xml.attributes().put("buildForRunning", toYesNo(buildForRunning));
+            Map<String, String> attributes = Cast.uncheckedNonnullCast(xml.attributes());
+            attributes.put("buildForRunning", toYesNo(buildForRunning));
         }
 
         public void setBuildForTesting(boolean buildForTesting) {
-            xml.attributes().put("buildForTesting", toYesNo(buildForTesting));
+            Map<String, String> attributes = Cast.uncheckedNonnullCast(xml.attributes());
+            attributes.put("buildForTesting", toYesNo(buildForTesting));
         }
 
         public void setBuildForProfiling(boolean buildForProfiling) {
-            xml.attributes().put("buildForProfiling", toYesNo(buildForProfiling));
+            Map<String, String> attributes = Cast.uncheckedNonnullCast(xml.attributes());
+            attributes.put("buildForProfiling", toYesNo(buildForProfiling));
         }
 
         public void setBuildForArchiving(boolean buildForArchiving) {
-            xml.attributes().put("buildForArchiving", toYesNo(buildForArchiving));
+            Map<String, String> attributes = Cast.uncheckedNonnullCast(xml.attributes());
+            attributes.put("buildForArchiving", toYesNo(buildForArchiving));
         }
 
         public void setBuildForAnalysing(boolean buildForAnalysing) {
-            xml.attributes().put("buildForAnalyzing", toYesNo(buildForAnalysing));
+            Map<String, String> attributes = Cast.uncheckedNonnullCast(xml.attributes());
+            attributes.put("buildForAnalyzing", toYesNo(buildForAnalysing));
         }
 
         public void setBuildableReference(BuildableReference buildableReference) {
@@ -128,7 +134,8 @@ public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
         }
 
         public void setBuildConfiguration(String buildConfiguration) {
-            xml.attributes().put("buildConfiguration", buildConfiguration);
+            Map<String, String> attributes = Cast.uncheckedNonnullCast(xml.attributes());
+            attributes.put("buildConfiguration", buildConfiguration);
         }
 
         public void entry(Action<TestableEntry> action) {
@@ -144,7 +151,8 @@ public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
         }
 
         public void setSkipped(boolean skipped) {
-            xml.attributes().put("skipped", toYesNo(skipped));
+            Map<String, String> attributes = Cast.uncheckedNonnullCast(xml.attributes());
+            attributes.put("skipped", toYesNo(skipped));
         }
 
         public void setBuildableReference(BuildableReference buildableReference) {
@@ -160,7 +168,8 @@ public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
         }
 
         public void setBuildConfiguration(String buildConfiguration) {
-            xml.attributes().put("buildConfiguration", buildConfiguration);
+            Map<String, String> attributes = Cast.uncheckedNonnullCast(xml.attributes());
+            attributes.put("buildConfiguration", buildConfiguration);
         }
 
         public void setBuildableProductRunnable(BuildableReference buildableReference) {
@@ -180,7 +189,8 @@ public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
         }
 
         public void setBuildConfiguration(String buildConfiguration) {
-            xml.attributes().put("buildConfiguration", buildConfiguration);
+            Map<String, String> attributes = Cast.uncheckedNonnullCast(xml.attributes());
+            attributes.put("buildConfiguration", buildConfiguration);
         }
     }
 
@@ -192,7 +202,8 @@ public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
         }
 
         public void setBuildConfiguration(String buildConfiguration) {
-            xml.attributes().put("buildConfiguration", buildConfiguration);
+            Map<String, String> attributes = Cast.uncheckedNonnullCast(xml.attributes());
+            attributes.put("buildConfiguration", buildConfiguration);
         }
     }
 
@@ -204,7 +215,8 @@ public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
         }
 
         public void setBuildConfiguration(String buildConfiguration) {
-            xml.attributes().put("buildConfiguration", buildConfiguration);
+            Map<String, String> attributes = Cast.uncheckedNonnullCast(xml.attributes());
+            attributes.put("buildConfiguration", buildConfiguration);
         }
     }
 
@@ -256,7 +268,7 @@ public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
         }
 
         public Node toXml() {
-            Map<String, String> attributes = new HashMap<String, String>();
+            Map<String, String> attributes = new HashMap<>();
             attributes.put("BuildableIdentifier", getBuildableIdentifier());
             attributes.put("BlueprintIdentifier", getBlueprintIdentifier());
             attributes.put("BuildableName", getBuildableName());

@@ -68,7 +68,7 @@ public class SimpleFileServerContainer implements Container {
             if (contentType.startsWith("text/")) {
                 resp.set("Content-Encoding", Charset.defaultCharset().name());
                 Reader input = new FileReader(requestIndex.getFile());
-                IOUtils.copy(input, output);
+                IOUtils.copy(input, output, Charset.defaultCharset());
                 IoActions.closeQuietly(input);
             } else {
                 InputStream input = new FileInputStream(requestIndex.getFile());

@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
 import org.gradle.internal.logging.events.operations.ProgressStartBuildOperationProgressDetails
@@ -36,6 +37,7 @@ import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
 import java.util.regex.Pattern
 
@@ -72,30 +74,30 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 
         file("build.gradle") << """
             apply plugin: 'java'
-    
+
             repositories {
                 maven { url "${mavenHttpRepository.uri}" }
             }
-            
+
             dependencies {
                 runtimeOnly 'org:foo:1.0'
             }
-            
+
             jar.doLast {
                 println 'from jar task'
             }
-        
+
             task resolve {
                 doLast {
                     // force resolve
                     configurations.runtimeClasspath.files
                 }
             }
-            
+
             build.dependsOn resolve
-                        
+
             logger.lifecycle('from build.gradle')
-        
+
             gradle.taskGraph.whenReady{
                 logger.warn('warning from taskgraph')
             }
@@ -150,6 +152,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
     def "captures threaded output sources with context"() {
         given:
         executer.requireOwnGradleUserHomeDir()
@@ -161,7 +164,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         """
         file("build.gradle") << """
             import java.util.concurrent.CountDownLatch
-            
+
             subprojects {
                 10.times {
                     task("myTask\$it") { tsk ->
@@ -179,16 +182,16 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
                         }
                     }
                 }
-                
+
                 gradle.buildFinished {
                     tasks.all.logger.lifecycle("build finished from \${tasks.all.path}")
                 }
             }
-            
+
             threaded {
                 println("threaded configuration output")
             }
-            
+
             def threaded(Closure action) {
                 Thread.start(action).join()
             }
@@ -278,6 +281,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         assertNestedTaskOutputTracked()
     }
 
+    @IgnoreIf({ GradleContextualExecuter.vfsRetention })
     def "supports debug level logging"() {
         when:
         buildFile << """
@@ -314,7 +318,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             file("p$i/build.gradle") << """
                 task t {
                     doLast {
-                        ${lines}.times { 
+                        ${lines}.times {
                             logger.quiet "o: $i \$it"
                         }
                     }
@@ -343,6 +347,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
     def "does not fail when build operation listeners emit logging"() {
         when:
         buildFile << """
@@ -355,21 +360,21 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
                 void progress($OperationIdentifier.name operationIdentifier, $OperationProgressEvent.name progressEvent) {
                     def details = progressEvent.details
                     if (
-                        details instanceof $LogEventBuildOperationProgressDetails.name || 
-                        details instanceof $StyledTextBuildOperationProgressDetails.name || 
+                        details instanceof $LogEventBuildOperationProgressDetails.name ||
+                        details instanceof $StyledTextBuildOperationProgressDetails.name ||
                         details instanceof $ProgressStartBuildOperationProgressDetails.name
                     ) {
                         // ignore, otherwise we recurse unto death
                     } else {
                         logger.lifecycle "progress \$operationIdentifier"
-                    }      
+                    }
                 }
 
                 void finished($BuildOperationDescriptor.name buildOperation, $OperationFinishEvent.name finishEvent) {
                     logger.lifecycle "finished operation"
                 }
-            } 
-            manager.addListener(listener) 
+            }
+            manager.addListener(listener)
             gradle.buildFinished {
                 manager.removeListener(listener)
             }
@@ -399,7 +404,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             public class SomeTest{
                 @org.junit.Test
                 public void test1(){}
-                
+
                 @org.junit.Test
                 public void test2(){}
 
@@ -407,14 +412,14 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         """
         file("build.gradle") << """
             apply plugin: 'java'
-            
+
             repositories {
                 ${jcenterRepository()}
             }
             dependencies {
                 testImplementation 'junit:junit:4.10'
             }
-            
+
         """
         when:
         succeeds 'build' // ensure all deps are downloaded
@@ -449,7 +454,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
                     println 'foo println'
                     logger.lifecycle 'foo from logger'
                 }
-            } 
+            }
         """
     }
 

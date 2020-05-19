@@ -190,4 +190,18 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.getRejectedVersions() == ['+']
     }
 
+
+    def "strict version does not clear preferred version"() {
+        given:
+        def version = new DefaultMutableVersionConstraint('1.0')
+
+        when:
+        version.prefer('1.5')
+        version.strictly('[1,2)')
+
+        then:
+        version.requiredVersion == '[1,2)'
+        version.preferredVersion == '1.5'
+        version.strictVersion == '[1,2)'
+    }
 }

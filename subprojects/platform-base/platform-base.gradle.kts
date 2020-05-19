@@ -1,8 +1,7 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    `java-library`
-    gradlebuild.`strict-compile`
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
@@ -36,6 +35,8 @@ dependencies {
     testFixturesApi(testFixtures(project(":diagnostics")))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
+classycle {
+    excludePatterns.set(listOf("org/gradle/**"))
 }
+
+integrationTestUsesSampleDir("subprojects/platform-base/src/main")

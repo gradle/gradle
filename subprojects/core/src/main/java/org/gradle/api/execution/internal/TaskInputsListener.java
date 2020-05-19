@@ -18,8 +18,13 @@ package org.gradle.api.execution.internal;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.internal.filewatch.FileSystemChangeWaiter;
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
 
+/**
+ * Registered via {@link TaskInputsListeners}.
+ */
+@EventScope(Scopes.Global)
 public interface TaskInputsListener {
 
     /**
@@ -27,11 +32,9 @@ public interface TaskInputsListener {
      * <p>
      * The given files may not == taskInternal.inputs.files, as only a subset of that collection may be relevant to the task execution.
      *
-     * @param taskInternal the task to be executed
+     * @param task the task to be executed
      * @param fileSystemInputs the file system inputs relevant to the task execution
      */
-    void onExecute(TaskInternal taskInternal, FileCollectionInternal fileSystemInputs);
-
-    void setFileSystemWaiter(FileSystemChangeWaiter waiter);
+    void onExecute(TaskInternal task, FileCollectionInternal fileSystemInputs);
 
 }

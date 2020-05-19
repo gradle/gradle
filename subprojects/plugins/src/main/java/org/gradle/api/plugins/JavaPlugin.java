@@ -37,7 +37,6 @@ import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
-import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.component.BuildableJavaComponent;
@@ -49,8 +48,11 @@ import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
@@ -246,6 +248,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      *
      * @deprecated Use {@link #TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME} instead.
      */
+    @Deprecated
     public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
 
     /**
@@ -294,47 +297,38 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         project.getPluginManager().apply(JavaBasePlugin.class);
 
+        JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
         JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
         project.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(javaConvention));
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
 
         configureSourceSets(javaConvention, buildOutputCleanupRegistry);
-        configureConfigurations(project, javaConvention);
+        configureConfigurations(project, javaPluginExtension, javaConvention);
 
-        configureTest(project, javaConvention);
-        configureJavadocTask(project, javaConvention);
+        configureTest(project, javaPluginExtension, javaConvention);
+        configureJavadocTask(project, javaPluginExtension, javaConvention);
         configureArchivesAndComponent(project, javaConvention);
         configureBuild(project);
     }
 
     private void configureSourceSets(JavaPluginConvention pluginConvention, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
         Project project = pluginConvention.getProject();
+        SourceSetContainer sourceSets = pluginConvention.getSourceSets();
 
-        SourceSet main = pluginConvention.getSourceSets().create(SourceSet.MAIN_SOURCE_SET_NAME);
+        SourceSet main = sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
 
-        SourceSet test = pluginConvention.getSourceSets().create(SourceSet.TEST_SOURCE_SET_NAME);
+        SourceSet test = sourceSets.create(SourceSet.TEST_SOURCE_SET_NAME);
         test.setCompileClasspath(project.getObjects().fileCollection().from(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
         test.setRuntimeClasspath(project.getObjects().fileCollection().from(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
 
         // Register the project's source set output directories
-        pluginConvention.getSourceSets().all(new Action<SourceSet>() {
-            @Override
-            public void execute(SourceSet sourceSet) {
-                buildOutputCleanupRegistry.registerOutputs(sourceSet.getOutput());
-            }
-        });
+        sourceSets.all(sourceSet ->
+            buildOutputCleanupRegistry.registerOutputs(sourceSet.getOutput())
+        );
     }
 
     private void configureArchivesAndComponent(Project project, final JavaPluginConvention pluginConvention) {
-        TaskProvider<Jar> jar = project.getTasks().register(JAR_TASK_NAME, Jar.class, new Action<Jar>() {
-            @Override
-            public void execute(Jar jar) {
-                jar.setDescription("Assembles a jar archive containing the main classes.");
-                jar.setGroup(BasePlugin.BUILD_GROUP);
-                jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
-            }
-        });
-        PublishArtifact jarArtifact = new LazyPublishArtifact(jar);
+        PublishArtifact jarArtifact = new LazyPublishArtifact(registerJarTaskFor(project, pluginConvention));
         Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
         Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
         Configuration runtimeElementsConfiguration = project.getConfigurations().getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
@@ -345,14 +339,30 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         addJar(apiElementConfiguration, jarArtifact);
         addJar(runtimeConfiguration, jarArtifact);
-        addRuntimeVariants(project, runtimeElementsConfiguration, jarArtifact, pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME), processResources);
+        addRuntimeVariants(project, runtimeElementsConfiguration, jarArtifact, mainSourceSetOf(pluginConvention), processResources);
 
         registerSoftwareComponents(project);
     }
 
-    private void configureJavadocTask(ProjectInternal project, JavaPluginConvention pluginConvention) {
-        SourceSet main = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        configureJavaDocTask(null, main, project.getTasks());
+    private TaskProvider<Jar> registerJarTaskFor(Project project, JavaPluginConvention pluginConvention) {
+        return project.getTasks().register(JAR_TASK_NAME, Jar.class, jar -> {
+            jar.setDescription("Assembles a jar archive containing the main classes.");
+            jar.setGroup(BasePlugin.BUILD_GROUP);
+            jar.from(mainSourceSetOf(pluginConvention).getOutput());
+        });
+    }
+
+    private static SourceSet mainSourceSetOf(JavaPluginConvention pluginConvention) {
+        return sourceSetOf(pluginConvention, SourceSet.MAIN_SOURCE_SET_NAME);
+    }
+
+    private static SourceSet sourceSetOf(JavaPluginConvention pluginConvention, String mainSourceSetName) {
+        return pluginConvention.getSourceSets().getByName(mainSourceSetName);
+    }
+
+    private void configureJavadocTask(ProjectInternal project, JavaPluginExtension javaPluginExtension, JavaPluginConvention pluginConvention) {
+        SourceSet main = mainSourceSetOf(pluginConvention);
+        configureJavaDocTask(null, main, project.getTasks(), javaPluginExtension);
     }
 
     private void registerSoftwareComponents(Project project) {
@@ -410,22 +420,23 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
+    private void configureTest(Project project, JavaPluginExtension javaPluginExtension, JavaPluginConvention pluginConvention) {
         project.getTasks().withType(Test.class).configureEach(new Action<Test>() {
             @Override
             public void execute(final Test test) {
                 test.getConventionMapping().map("testClassesDirs", new Callable<Object>() {
                     @Override
                     public Object call() throws Exception {
-                        return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs();
+                        return sourceSetOf(pluginConvention, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs();
                     }
                 });
                 test.getConventionMapping().map("classpath", new Callable<Object>() {
                     @Override
                     public Object call() throws Exception {
-                        return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath();
+                        return sourceSetOf(pluginConvention, SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath();
                     }
                 });
+                test.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
             }
         });
 
@@ -444,7 +455,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureConfigurations(Project project, final JavaPluginConvention convention) {
+    private void configureConfigurations(Project project, JavaPluginExtension extension, JavaPluginConvention convention) {
         ConfigurationContainer configurations = project.getConfigurations();
 
         Configuration defaultConfiguration = configurations.getByName(Dependency.DEFAULT_CONFIGURATION);
@@ -489,20 +500,15 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         apiElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME);
         runtimeElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME, RUNTIME_ONLY_CONFIGURATION_NAME);
 
-        configureTargetPlatform(apiElementsConfiguration, convention);
-        configureTargetPlatform(runtimeElementsConfiguration, convention);
+        configureTargetPlatform(apiElementsConfiguration, convention, project.getTasks());
+        configureTargetPlatform(runtimeElementsConfiguration, convention, project.getTasks());
     }
 
     /**
      * Configures the target platform for an outgoing configuration.
      */
-    private void configureTargetPlatform(Configuration outgoing, final JavaPluginConvention convention) {
-        ((ConfigurationInternal)outgoing).beforeLocking(new Action<ConfigurationInternal>() {
-            @Override
-            public void execute(ConfigurationInternal configuration) {
-                JavaEcosystemSupport.configureDefaultTargetPlatform(configuration, convention.getTargetCompatibility());
-            }
-        });
+    private void configureTargetPlatform(Configuration configuration, JavaPluginConvention convention, TaskContainer tasks) {
+        ((ConfigurationInternal) configuration).beforeLocking(JvmPluginsHelper.configureDefaultTargetPlatform(convention, true, tasks.named(COMPILE_JAVA_TASK_NAME, JavaCompile.class)));
     }
 
     /**
@@ -540,7 +546,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         @Override
         public FileCollection getRuntimeClasspath() {
             ProjectInternal project = convention.getProject();
-            SourceSet mainSourceSet = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+            SourceSet mainSourceSet = mainSourceSetOf(convention);
             FileCollection runtimeClasspath = mainSourceSet.getRuntimeClasspath();
             FileCollection gradleApi = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi(), project.getDependencies().localGroovy());
             Configuration runtimeElements = project.getConfigurations().getByName(mainSourceSet.getRuntimeElementsConfigurationName());

@@ -26,12 +26,12 @@ public class TaskExecutionStatisticsEventAdapter implements TaskListenerInternal
     private int upToDateTaskCount;
 
     @Override
-    public void beforeExecute(TaskIdentity taskIdentity) {
+    public void beforeExecute(TaskIdentity<?> taskIdentity) {
         // do nothing
     }
 
     @Override
-    public void afterExecute(TaskIdentity taskIdentity, TaskState state) {
+    public void afterExecute(TaskIdentity<?> taskIdentity, TaskState state) {
         TaskStateInternal stateInternal = (TaskStateInternal) state;
         if (stateInternal.isActionable()) {
             switch (stateInternal.getOutcome()) {

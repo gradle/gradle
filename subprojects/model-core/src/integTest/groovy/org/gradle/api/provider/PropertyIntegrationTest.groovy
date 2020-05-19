@@ -18,18 +18,19 @@ package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeFixedForInstantExecution
     def "can use property as task input"() {
         given:
         taskTypeWritesPropertyValueToFile()
         buildFile << """
 
 task thing(type: SomeTask) {
-    prop = System.getProperty('prop')
+    prop = providers.systemProperty('prop')
     outputFile = layout.buildDirectory.file("out.txt")
 }
 
@@ -219,6 +220,7 @@ task thing {
         output.contains("prop = null")
     }
 
+    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#268")
     def "reports failure due to broken @Input task property"() {
         taskTypeWritesPropertyValueToFile()
         buildFile << """
@@ -235,6 +237,7 @@ task thing(type: SomeTask) {
 
         then:
         failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("Failed to calculate the value of task ':thing' property 'prop'.")
         failure.assertHasCause("broken")
     }
 
@@ -273,6 +276,7 @@ task thing(type: SomeTask) {
         output.count("calculating value") == 0
     }
 
+    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
     def "does not calculate task @Input property value when task is skipped due to @SkipWhenEmpty on another property"() {
         buildFile << """
 
@@ -524,6 +528,117 @@ project.extensions.create("some", SomeExtension)
         'prop3' | 'mapProperty()'       | 'Map'         | '<K, V>'
         'prop4' | 'directoryProperty()' | 'Directory'   | ''
         'prop5' | 'fileProperty()'      | 'RegularFile' | ''
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Issue("https://github.com/gradle/gradle/issues/12811")
+    def "multiple tasks can have property values calculated from a shared finalize on read property instance with value derived from dependency resolution"() {
+        settingsFile << """
+            include 'producer'
+            include 'consumer'
+        """
+        taskTypeWritesPropertyValueToFile()
+        buildFile << """
+            project(':producer') {
+                def t = task producer(type: SomeTask) {
+                    prop = "producer"
+                    outputFile = layout.buildDirectory.file("producer.txt")
+                }
+                def c = configurations.create("default")
+                c.outgoing.artifact(t.outputFile)
+
+                // Start another task that blocks dependency resolution from the other project
+                task slow {
+                    dependsOn t
+                    doLast {
+                        sleep(200)
+                    }
+                }
+            }
+
+            interface Model {
+                Property<String> getProp()
+            }
+
+            project(':consumer') {
+                def m = extensions.create('model', Model)
+                m.prop.finalizeValueOnRead()
+                def c = configurations.create("incoming")
+                dependencies.incoming(project(":producer"))
+                m.prop = c.elements.map { files -> files*.asFile*.text.join(",") }
+                task consumer1(type: SomeTask) {
+                    prop = m.prop
+                    outputFile = layout.buildDirectory.file("consumer1.txt")
+                }
+                task consumer2(type: SomeTask) {
+                    prop = m.prop
+                    outputFile = layout.buildDirectory.file("consumer2.txt")
+                }
+            }
+        """
+
+        when:
+        run("slow", "consumer1", "consumer2", "--parallel", "--max-workers=3")
+
+        then:
+        file("consumer/build/consumer1.txt").text == "producer"
+        file("consumer/build/consumer2.txt").text == "producer"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12969")
+    @IgnoreIf({ GradleContextualExecuter.parallel })
+    def "task can have property value derived from dependency resolution result when another task has input files derived from same result"() {
+        settingsFile << """
+            include 'producer'
+            include 'consumer'
+        """
+        taskTypeWritesPropertyValueToFile()
+        buildFile << """
+            project(':producer') {
+                def t = task producer(type: SomeTask) {
+                    prop = "producer"
+                    outputFile = layout.buildDirectory.file("producer.txt")
+                }
+                def c = configurations.create("default")
+                c.outgoing.artifact(t.outputFile)
+
+                // Start another task that blocks dependency resolution from the other project
+                task slow {
+                    dependsOn t
+                    doLast {
+                        sleep(200)
+                    }
+                }
+            }
+
+            interface Model {
+                Property<String> getProp()
+            }
+
+            project(':consumer') {
+                def m = extensions.create('model', Model)
+                m.prop.finalizeValueOnRead()
+                def c = configurations.create("incoming")
+                dependencies.incoming(project(":producer"))
+                m.prop = c.elements.map { files -> files*.asFile*.text.join(",") }
+                task consumer1 {
+                    inputs.files(c)
+                    doLast {
+                        println inputs.files
+                    }
+                }
+                task consumer2(type: SomeTask) {
+                    prop = m.prop
+                    outputFile = layout.buildDirectory.file("consumer2.txt")
+                }
+            }
+        """
+
+        when:
+        run("slow", "consumer1", "consumer2", "--parallel", "--max-workers=3")
+
+        then:
+        file("consumer/build/consumer2.txt").text == "producer"
     }
 
     def taskTypeWritesPropertyValueToFile() {

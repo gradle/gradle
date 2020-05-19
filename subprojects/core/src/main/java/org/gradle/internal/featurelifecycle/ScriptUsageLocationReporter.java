@@ -16,12 +16,11 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import javax.annotation.concurrent.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.groovy.scripts.Script;
-import org.gradle.groovy.scripts.ScriptExecutionListener;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.scripts.ScriptExecutionListener;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +33,7 @@ public class ScriptUsageLocationReporter implements ScriptExecutionListener, Usa
     private final Map<String, ScriptSource> scripts = new HashMap<String, ScriptSource>();
 
     @Override
-    public void scriptClassLoaded(ScriptSource scriptSource, Class<? extends Script> scriptClass) {
+    public void onScriptClassLoaded(ScriptSource scriptSource, Class<?> scriptClass) {
         lock.lock();
         try {
             scripts.put(scriptSource.getFileName(), scriptSource);

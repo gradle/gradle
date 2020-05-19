@@ -30,7 +30,7 @@ import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.CoreMatchers.hasItem
 import static org.hamcrest.CoreMatchers.hasItems
-import static org.junit.Assert.assertThat
+import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertTrue
 
 
@@ -96,7 +96,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         withFile("buildSrc/build.gradle.kts").tap { buildSrcScript ->
             buildSrcScript.text = buildSrcScript.text + """
                 dependencies {
-                    testImplementation("junit:junit:4.12")
+                    testImplementation("junit:junit:4.13")
                 }
             """
         }

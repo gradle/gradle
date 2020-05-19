@@ -46,7 +46,11 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     private static final List<String> SUPPORTED = [
         "3.0",
         "3.1",
-        "3.1.1"
+        "3.1.1",
+        "3.2",
+        "3.2.1",
+        "3.3",
+        "3.3.1"
     ]
 
     @Unroll
@@ -121,7 +125,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             ${jcenterRepository()}
 
             dependencies {
-                testImplementation 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.13'
             }
         """
 

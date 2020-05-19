@@ -86,7 +86,6 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         file('encoded.out').getText("utf-8") == "\u03b1\u03b2\u03b3"
     }
 
-    @ToBeFixedForInstantExecution
     def compilesWithSpecifiedDebugSettings() {
         given:
         goodCode()
@@ -126,7 +125,7 @@ compileJava.options.debug = false
     }
 
     // JavaFx was removed in JDK 10
-    @Requires([TestPrecondition.JDK8_OR_LATER, TestPrecondition.JDK9_OR_EARLIER])
+    @Requires(TestPrecondition.JDK9_OR_EARLIER)
     def "compileJavaFx8Code"() {
         given:
         file("src/main/java/compile/test/FxApp.java") << '''
@@ -148,11 +147,90 @@ public class FxApp extends Application {
         given:
         goodCode()
         buildFile << """
+java.targetCompatibility = JavaVersion.VERSION_1_7
 compileJava.options.compilerArgs.addAll(['--release', '8'])
+compileJava {
+    doFirst {
+        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+    }
+}
 """
 
         expect:
         succeeds 'compileJava'
+        bytecodeVersion() == 52
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "compile with release option and autoTargetJvmDisabled"() {
+        given:
+        goodCode()
+        buildFile << """
+java.targetCompatibility = JavaVersion.VERSION_1_7 // ignored
+compileJava.targetCompatibility = '10' // ignored
+compileJava.options.compilerArgs.addAll(['--release', '8'])
+java.disableAutoTargetJvm()
+compileJava {
+    doFirst {
+        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert !configurations.compileClasspath.attributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
+        assert !configurations.runtimeClasspath.attributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
+    }
+}
+"""
+
+        expect:
+        succeeds 'compileJava'
+        bytecodeVersion() == 52
+    }
+
+    def "compile with target compatibility"() {
+        given:
+        goodCode()
+        buildFile.text = buildFile.text.replace("<< '-Werror'", '') // warning: [options] bootstrap class path not set in conjunction with -source 8
+        buildFile << """
+java.targetCompatibility = JavaVersion.VERSION_1_9 // ignored
+compileJava.targetCompatibility = '1.8'
+compileJava.sourceCompatibility = '1.8'
+compileJava {
+    doFirst {
+        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+    }
+}
+"""
+
+        expect:
+        succeeds 'compileJava'
+        bytecodeVersion() == 52
+    }
+
+    def "compile with target compatibility set in plugin extension"() {
+        given:
+        goodCode()
+        buildFile.text = buildFile.text.replace("<< '-Werror'", '') // warning: [options] bootstrap class path not set in conjunction with -source 8
+        buildFile << """
+java.targetCompatibility = JavaVersion.VERSION_1_8
+java.sourceCompatibility = JavaVersion.VERSION_1_8
+compileJava {
+    doFirst {
+        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+    }
+}
+"""
+
+        expect:
+        succeeds 'compileJava'
+        bytecodeVersion() == 52
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
@@ -279,7 +357,9 @@ class Main {
         settingsFile << "include 'processor'"
         writeAnnotationProcessorProject()
 
-        file("src/main/java/Java.java") << "@com.test.SimpleAnnotation public class Java {}"
+        file("src/main/java/Java.java") << """@com.test.SimpleAnnotation public class Java {
+            void foo() { (new Runnable() { public void run() {} }).run(); }
+        }"""
 
         then:
         succeeds("compileJava")
@@ -387,6 +467,15 @@ class Main {
         then:
         fails("compileJava")
         failure.assertHasErrorOutput("package ${gradleBaseServicesClass.package.name} does not exist")
+    }
+
+    def bytecodeVersion() {
+        def classFile = javaClassFile('compile/test/Person.class').newDataInputStream()
+        classFile.readInt()
+        classFile.readUnsignedShort()
+        def majorVersion = classFile.readUnsignedShort()
+        classFile.close()
+        return majorVersion
     }
 
 }

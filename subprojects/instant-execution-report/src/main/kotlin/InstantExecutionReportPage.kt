@@ -37,9 +37,9 @@ import kotlin.browser.window
 internal
 sealed class ProblemNode {
 
-    data class Error(val label: ProblemNode) : ProblemNode()
+    data class Error(val label: ProblemNode, val docLink: ProblemNode?) : ProblemNode()
 
-    data class Warning(val label: ProblemNode) : ProblemNode()
+    data class Warning(val label: ProblemNode, val docLink: ProblemNode?) : ProblemNode()
 
     data class Task(val path: String, val type: String) : ProblemNode()
 
@@ -48,6 +48,8 @@ sealed class ProblemNode {
     data class Property(val kind: String, val name: String, val owner: String) : ProblemNode()
 
     data class Label(val text: String) : ProblemNode()
+
+    data class Link(val href: String, val label: String) : ProblemNode()
 
     data class Message(val prettyText: PrettyText) : ProblemNode()
 
@@ -166,10 +168,10 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
             viewSubTrees(applyFilter(displayFilter, model)) { child ->
                 when (val node = child.tree.label) {
                     is ProblemNode.Error -> {
-                        viewLabel(treeIntent, child, node.label, errorIcon)
+                        viewLabel(treeIntent, child, node.label, node.docLink, errorIcon)
                     }
                     is ProblemNode.Warning -> {
-                        viewLabel(treeIntent, child, node.label, warningIcon)
+                        viewLabel(treeIntent, child, node.label, node.docLink, warningIcon)
                     }
                     is ProblemNode.Exception -> {
                         viewException(treeIntent, child, node)
@@ -216,6 +218,10 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         is ProblemNode.Message -> viewPrettyText(
             node.prettyText
         )
+        is ProblemNode.Link -> a(
+            attributes { href(node.href) },
+            node.label
+        )
         else -> span(
             node.toString()
         )
@@ -226,13 +232,23 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         treeIntent: (ProblemTreeIntent) -> Intent,
         child: Tree.Focus<ProblemNode>,
         label: ProblemNode,
+        docLink: ProblemNode? = null,
         decoration: View<Intent> = empty
     ): View<Intent> = div(
-        treeButtonFor(child, treeIntent),
-        decoration,
-        span(" "),
-        viewNode(label)
-    )
+        listOf(
+            treeButtonFor(child, treeIntent),
+            decoration,
+            span(" "),
+            viewNode(label)
+        ) + if (docLink == null) {
+            emptyList()
+        } else {
+            listOf(
+                span(" ("),
+                viewNode(docLink),
+                span(")")
+            )
+        })
 
     private
     fun treeButtonFor(child: Tree.Focus<ProblemNode>, treeIntent: (ProblemTreeIntent) -> Intent): View<Intent> =

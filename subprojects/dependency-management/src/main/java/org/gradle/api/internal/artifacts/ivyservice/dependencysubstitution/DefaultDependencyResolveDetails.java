@@ -33,7 +33,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 public class DefaultDependencyResolveDetails implements DependencyResolveDetails {
 
     private final DependencySubstitutionInternal delegate;
-    private ModuleVersionSelector requested;
+    private final ModuleVersionSelector requested;
 
     private String customDescription;
     private VersionConstraint useVersion;

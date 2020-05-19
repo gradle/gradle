@@ -57,8 +57,10 @@ import org.gradle.internal.HasInternalProtocol;
  * </p>
  * <h4>Example of publishing a Java module with a source artifact and a customized POM</h4>
  * <pre class='autoTested'>
- * apply plugin: "java"
- * apply plugin: "maven-publish"
+ * plugins {
+ *     id 'java'
+ *     id 'maven-publish'
+ * }
  *
  * task sourceJar(type: Jar) {
  *   from sourceSets.main.allJava
@@ -134,8 +136,10 @@ public interface MavenPublication extends Publication {
      *
      * The following example demonstrates how to publish the 'java' component to a Maven repository.
      * <pre class='autoTested'>
-     * apply plugin: "java"
-     * apply plugin: "maven-publish"
+     * plugins {
+     *     id 'java'
+     *     id 'maven-publish'
+     * }
      *
      * publishing {
      *   publications {
@@ -165,7 +169,9 @@ public interface MavenPublication extends Publication {
      *
      * The following example demonstrates the addition of various custom artifacts.
      * <pre class='autoTested'>
-     * apply plugin: "maven-publish"
+     * plugins {
+     *     id 'maven-publish'
+     * }
      *
      * task sourceJar(type: Jar) {
      *   archiveClassifier = "sources"
@@ -194,7 +200,9 @@ public interface MavenPublication extends Publication {
      * This method also accepts the configure action as a closure argument, by type coercion.
      *
      * <pre class='autoTested'>
-     * apply plugin: "maven-publish"
+     * plugins {
+     *     id 'maven-publish'
+     * }
      *
      * task sourceJar(type: Jar) {
      *   archiveClassifier = "sources"
@@ -228,8 +236,10 @@ public interface MavenPublication extends Publication {
      *
      * For example, to exclude the dependencies declared by a component and instead use a custom set of artifacts:
      * <pre class='autoTested'>
-     * apply plugin: "java"
-     * apply plugin: "maven-publish"
+     * plugins {
+     *     id 'java'
+     *     id 'maven-publish'
+     * }
      *
      * task sourceJar(type: Jar) {
      *   archiveClassifier = "sources"
@@ -290,8 +300,10 @@ public interface MavenPublication extends Publication {
      *
      * For example, to use resolved versions for runtime dependencies:
      * <pre class='autoTested'>
-     * apply plugin: "java"
-     * apply plugin: "maven-publish"
+     * plugins {
+     *     id 'java'
+     *     id 'maven-publish'
+     * }
      *
      * publishing {
      *   publications {

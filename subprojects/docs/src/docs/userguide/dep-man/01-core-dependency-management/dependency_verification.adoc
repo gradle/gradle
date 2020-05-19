@@ -272,7 +272,7 @@ See <<sec:troubleshooting-verification,troubleshooting dependency verification>>
 
 === What checksums are verified?
 
-If a dependency verification metadata files declares more than one checksum for a dependency, Gradle will verify _all of them_ and fail if _any of them fails_.
+If a dependency verification metadata file declares more than one checksum for a dependency, Gradle will verify _all of them_ and fail if _any of them fails_.
 For example, the following configuration would check both the `md5` and `sha256` checksums:
 
 [source,xml]
@@ -297,11 +297,11 @@ There are multiple reasons why you'd like to do so:
 In addition to <<sec:checksum-verification,checksums>>, Gradle supports verification of signatures.
 Signatures are used to assess the _provenance_ of a dependency (it tells who signed the artifacts, which usually corresponds to who produced it).
 
-While enabling signature verification usually means a higher level of security, you might want to replace checksum verification with signature verification.
+As enabling signature verification usually means a higher level of security, you might want to replace checksum verification with signature verification.
 
 [WARNING]
 ====
-Signatures _can_ also used to assess the integrity of a dependency similarly to checksums.
+Signatures _can_ also be used to assess the integrity of a dependency similarly to checksums.
 Signatures are signatures of the _hash_ of artifacts, not artifacts themselves.
 This means that if the signature is done on an _unsafe hash_ (even SHA1), then you're not correctly assessing the _integrity_ of a file.
 For this reason, if you care about both, you need to add both signatures _and_ checksums to your verification metadata.
@@ -433,7 +433,7 @@ You should be careful when trusting a key globally: try to limit it to the appro
 
 It means you can trust the key `A` for the first artifact, probably only up to the released version before the key was stolen, but not for `B`.
 
-Remember that anybody can put arbitrary name when generating PGP key, so never trust the key solely based on the key name.
+Remember that anybody can put an arbitrary name when generating a PGP key, so never trust the key solely based on the key name.
 Verify if the key is listed at the official site.
 For example, Apache projects typically provide a KEYS.txt file that you can trust.
 ====
@@ -547,7 +547,7 @@ However, because there might be verification failures, missing keys or missing s
 
 this means that Gradle will verify the signatures and fallback to SHA-256 checksums when there's a problem.
 
-When bootstrapping, Gradle performs _optimitic verification_ and therefore assumes a sane build environment.
+When bootstrapping, Gradle performs _optimistic verification_ and therefore assumes a sane build environment.
 It will therefore:
 
 - automatically add the trusted keys as soon as verification passes
@@ -956,14 +956,14 @@ To do this, you need to call the `ResolutionStrategy#disableDependencyVerificati
 
 .Disabling dependency verification
 ====
-include::sample[dir="snippets/userguide/dependencyManagement/dependencyVerification/disablingVerification/groovy",files="build.gradle[tags=disabling-one-configuration]"]
-include::sample[dir="snippets/userguide/dependencyManagement/dependencyVerification/disablingVerification/kotlin",files="build.gradle.kts[tags=disabling-one-configuration]"]
+include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/groovy",files="build.gradle[tags=disabling-one-configuration]"]
+include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/kotlin",files="build.gradle.kts[tags=disabling-one-configuration]"]
 ====
 
 It's also possible to disable verification on detached configurations like in the following example:
 
 .Disabling dependency verification
 ====
-include::sample[dir="snippets/userguide/dependencyManagement/dependencyVerification/disablingVerification/groovy",files="build.gradle[tags=disabling-detached-configuration]"]
-include::sample[dir="snippets/userguide/dependencyManagement/dependencyVerification/disablingVerification/kotlin",files="build.gradle.kts[tags=disabling-detached-configuration]"]
+include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/groovy",files="build.gradle[tags=disabling-detached-configuration]"]
+include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/kotlin",files="build.gradle.kts[tags=disabling-detached-configuration]"]
 ====

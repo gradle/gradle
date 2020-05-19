@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.runtimeshaded;
 
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
+import org.gradle.internal.classpath.ClasspathBuilder;
+import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -35,13 +36,15 @@ public class RuntimeShadedJarFactory {
 
     private final GeneratedGradleJarCache cache;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private final DirectoryFileTreeFactory directoryFileTreeFactory;
+    private final ClasspathWalker classpathWalker;
+    private final ClasspathBuilder classpathBuilder;
     private final BuildOperationExecutor executor;
 
-    public RuntimeShadedJarFactory(GeneratedGradleJarCache cache, ProgressLoggerFactory progressLoggerFactory, DirectoryFileTreeFactory directoryFileTreeFactory, BuildOperationExecutor executor) {
+    public RuntimeShadedJarFactory(GeneratedGradleJarCache cache, ProgressLoggerFactory progressLoggerFactory, ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder, BuildOperationExecutor executor) {
         this.cache = cache;
         this.progressLoggerFactory = progressLoggerFactory;
-        this.directoryFileTreeFactory = directoryFileTreeFactory;
+        this.classpathWalker = classpathWalker;
+        this.classpathBuilder = classpathBuilder;
         this.executor = executor;
     }
 
@@ -52,7 +55,8 @@ public class RuntimeShadedJarFactory {
                 RuntimeShadedJarCreator creator = new RuntimeShadedJarCreator(
                     progressLoggerFactory,
                     new ImplementationDependencyRelocator(type),
-                    directoryFileTreeFactory
+                    classpathWalker,
+                    classpathBuilder
                 );
                 creator.create(file, classpath);
             }

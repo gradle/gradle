@@ -1,10 +1,8 @@
 import org.gradle.build.GradleStartScriptGenerator
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.distribution.`core-api-java`
 }
 
 dependencies {
@@ -70,14 +68,14 @@ dependencies {
     }
 }
 
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
+}
+
 // Needed for testing debug command line option (JDWPUtil) - 'CommandLineIntegrationSpec.can debug with org.gradle.debug=true'
 val toolsJar = buildJvms.testJvm.map { jvm -> jvm.toolsClasspath }
 dependencies {
     integTestRuntimeOnly(files(toolsJar))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
 
 tasks.jar {

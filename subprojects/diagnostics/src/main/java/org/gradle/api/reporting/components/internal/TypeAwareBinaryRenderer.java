@@ -17,6 +17,7 @@
 package org.gradle.api.reporting.components.internal;
 
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.model.ModelElement;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.reporting.ReportRenderer;
 
@@ -26,13 +27,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TypeAwareBinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
-    static final Comparator<BinarySpec> SORT_ORDER = new Comparator<BinarySpec>() {
-        @Override
-        public int compare(BinarySpec binary1, BinarySpec binary2) {
-            return binary1.getName().compareTo(binary2.getName());
-        }
-    };
-    private final Map<Class<?>, ReportRenderer<BinarySpec, TextReportBuilder>> renderers = new HashMap<Class<?>, ReportRenderer<BinarySpec, TextReportBuilder>>();
+    static final Comparator<BinarySpec> SORT_ORDER = Comparator.comparing(ModelElement::getName);
+    private final Map<Class<?>, ReportRenderer<BinarySpec, TextReportBuilder>> renderers = new HashMap<>();
 
     public void register(AbstractBinaryRenderer<?> renderer) {
         renderers.put(renderer.getTargetType(), renderer);

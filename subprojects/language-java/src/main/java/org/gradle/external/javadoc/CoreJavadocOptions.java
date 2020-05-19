@@ -42,6 +42,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     private final JavadocOptionFileOption<List<File>> docletpath;
     private final JavadocOptionFileOption<String> source; // TODO bind with the sourceCompatibility property
     private final JavadocOptionFileOption<List<File>> classpath; // TODO link to runtime configuration ?
+    private final JavadocOptionFileOption<List<File>> modulePath;
     private final JavadocOptionFileOption<List<File>> bootClasspath;
     private final JavadocOptionFileOption<List<File>> extDirs;
     private final JavadocOptionFileOption<JavadocOutputLevel> outputLevel;
@@ -65,6 +66,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         docletpath = addPathOption("docletpath");
         source = addStringOption("source");
         classpath = addPathOption("classpath");
+        modulePath = addPathOption("-module-path");
         bootClasspath = addPathOption("bootclasspath");
         extDirs = addPathOption("extdirs");
         outputLevel = addEnumOption("outputLevel", JavadocOutputLevel.QUIET);
@@ -84,6 +86,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         docletpath = optionFile.getOption("docletpath");
         source = optionFile.getOption("source");
         classpath = optionFile.getOption("classpath");
+        modulePath = optionFile.getOption("-module-path");
         bootClasspath = optionFile.getOption("bootclasspath");
         extDirs = optionFile.getOption("extdirs");
         outputLevel = optionFile.getOption("outputLevel");
@@ -305,6 +308,22 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     @Override
     public void setClasspath(List<File> classpath) {
         this.classpath.setValue(classpath);
+    }
+
+    @Override
+    public List<File> getModulePath() {
+        return modulePath.getValue();
+    }
+
+    @Override
+    public void setModulePath(List<File> modulePath) {
+        this.modulePath.setValue(modulePath);
+    }
+
+    @Override
+    public MinimalJavadocOptions modulePath(List<File> modulePath) {
+        this.modulePath.getValue().addAll(modulePath);
+        return this;
     }
 
     @Override

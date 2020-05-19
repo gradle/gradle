@@ -30,6 +30,7 @@ import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.time.Clock;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -57,7 +58,7 @@ public class SessionFailureReportingActionExecuter implements BuildActionExecute
             // TODO - wire this stuff in properly
 
             // Sanitise the exception and report it
-            ExceptionAnalyser exceptionAnalyser = new MultipleBuildFailuresExceptionAnalyser(new DefaultExceptionAnalyser(new DefaultListenerManager()));
+            ExceptionAnalyser exceptionAnalyser = new MultipleBuildFailuresExceptionAnalyser(new DefaultExceptionAnalyser(new DefaultListenerManager(Scopes.BuildSession)));
             if (action.getStartParameter().getShowStacktrace() != ShowStacktrace.ALWAYS_FULL) {
                 exceptionAnalyser = new StackTraceSanitizingExceptionAnalyser(exceptionAnalyser);
             }

@@ -227,7 +227,7 @@ private constructor(
 /**
  * Gets the delegate value.
  */
-operator fun <T> ExistingDomainObjectDelegate<T>.getValue(receiver: Any?, property: KProperty<*>): T =
+operator fun <T> ExistingDomainObjectDelegate<out T>.getValue(receiver: Any?, property: KProperty<*>): T =
     delegate
 
 

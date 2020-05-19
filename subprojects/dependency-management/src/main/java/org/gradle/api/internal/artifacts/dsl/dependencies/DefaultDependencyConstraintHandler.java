@@ -113,6 +113,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
 
     private class DependencyConstraintAdder implements DynamicAddDependencyMethods.DependencyAdder<DependencyConstraint> {
         @Override
+        @SuppressWarnings("rawtypes")
         public DependencyConstraint add(Configuration configuration, Object dependencyNotation, Closure configureClosure) {
             DependencyConstraint dependencyConstraint = ConfigureUtil.configure(configureClosure, dependencyFactory.createDependencyConstraint(dependencyNotation));
             configuration.getDependencyConstraints().add(dependencyConstraint);

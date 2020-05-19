@@ -35,7 +35,7 @@ public class TemplateOperationFactory {
     private final String templatepackage;
     private final PathToFileResolver fileResolver;
     private final DocumentationRegistry documentationRegistry;
-    private final Map defaultBindings;
+    private final Map<String, String> defaultBindings;
 
     public TemplateOperationFactory(String templatepackage, PathToFileResolver fileResolver, DocumentationRegistry documentationRegistry) {
         this.documentationRegistry = documentationRegistry;
@@ -46,7 +46,7 @@ public class TemplateOperationFactory {
 
     private Map<String, String> loadDefaultBindings() {
         String now = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(new Date());
-        Map<String, String> map = new LinkedHashMap<String, String>(3);
+        Map<String, String> map = new LinkedHashMap<>(3);
         map.put("genDate", now);
         map.put("genUser", System.getProperty("user.name"));
         map.put("genGradleVersion", GradleVersion.current().toString());
@@ -59,10 +59,10 @@ public class TemplateOperationFactory {
 
     public class TemplateOperationBuilder {
         private File target;
-        private Map<String, String> bindings =  new HashMap<String, String>();
+        final private Map<String, String> bindings =  new HashMap<>();
         private URL templateUrl;
 
-        public TemplateOperationBuilder(Map defaultBindings) {
+        public TemplateOperationBuilder(Map<String, String> defaultBindings) {
             this.bindings.putAll(defaultBindings);
         }
 
@@ -103,7 +103,7 @@ public class TemplateOperationFactory {
 
         public TemplateOperation create() {
             final Set<Map.Entry<String, String>> entries = bindings.entrySet();
-            Map wrappedBindings = new HashMap(entries.size());
+            Map<String, TemplateValue> wrappedBindings = new HashMap<>(entries.size());
             for (Map.Entry<String, String> entry : entries) {
                 if (entry.getValue() == null) {
                     throw new IllegalArgumentException("Null value provided for binding '" + entry.getKey() + "'.");

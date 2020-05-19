@@ -33,10 +33,6 @@ public class PendingDependencies {
         this.reportActivePending = true;
     }
 
-    ModuleIdentifier getModuleIdentifier() {
-        return moduleIdentifier;
-    }
-
     void addNode(NodeState state) {
         if (hardEdges != 0) {
             throw new IllegalStateException("Cannot add a pending node for a dependency which is not pending");

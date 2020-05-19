@@ -27,6 +27,7 @@ class MixedDependencyLockingIntegrationTest extends AbstractDependencyResolution
         settingsFile << "rootProject.name = 'mixedDepLock'"
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def 'can resolve locked and unlocked configurations'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -70,6 +71,7 @@ dependencies {
 
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def 'ignores the lockfile of a parent configuration when resolving an unlocked child configuration'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -104,6 +106,7 @@ dependencies {
         outputDoesNotContain('constraint')
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def 'applies the lock file to inherited dependencies'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()

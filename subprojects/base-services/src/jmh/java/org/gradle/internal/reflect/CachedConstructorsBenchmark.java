@@ -30,17 +30,17 @@ import java.util.Random;
 @State(Scope.Benchmark)
 public class CachedConstructorsBenchmark {
 
-    private final static Class<?>[] CLAZZ_ARRAY = new Class[]{ArrayList.class, LinkedList.class, String.class, HashMap.class};
+    private final static Class<?>[] CLAZZ_ARRAY = new Class<?>[]{ArrayList.class, LinkedList.class, String.class, HashMap.class};
     private final static int ARR_LEN = 1024;
     private final static Random RANDOM = new Random();
-    public static final Class[] EMPTY = new Class[0];
+    public static final Class<?>[] EMPTY = new Class<?>[0];
 
     private final DirectInstantiator.ConstructorCache cache = new DirectInstantiator.ConstructorCache();
     private Class<?>[] randomClasses;
 
     @Setup(Level.Iteration)
     public void configClasses() {
-        randomClasses = new Class[ARR_LEN];
+        randomClasses = new Class<?>[ARR_LEN];
         for (int i = 0; i < randomClasses.length; i++) {
             randomClasses[i] = CLAZZ_ARRAY[RANDOM.nextInt(CLAZZ_ARRAY.length)];
         }

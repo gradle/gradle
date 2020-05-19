@@ -22,6 +22,7 @@ import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Set;
 
 public class DefaultExclude implements Exclude {
@@ -90,13 +91,13 @@ public class DefaultExclude implements Exclude {
         if (!moduleId.equals(that.moduleId)) {
             return false;
         }
-        if (artifact != null ? !artifact.equals(that.artifact) : that.artifact != null) {
+        if (!Objects.equals(artifact, that.artifact)) {
             return false;
         }
         if (!configurations.equals(that.configurations)) {
             return false;
         }
-        return patternMatcher != null ? patternMatcher.equals(that.patternMatcher) : that.patternMatcher == null;
+        return Objects.equals(patternMatcher, that.patternMatcher);
     }
 
     @Override

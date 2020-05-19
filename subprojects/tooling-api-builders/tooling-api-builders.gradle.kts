@@ -1,9 +1,5 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
-    gradlebuild.`strict-compile`
-    gradlebuild.classycle
+    gradlebuild.distribution.`plugins-implementation-java`
 }
 
 dependencies {
@@ -33,10 +29,6 @@ dependencies {
     testImplementation(project(":fileCollections"))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
-
 strictCompile {
-    ignoreDeprecations = true
+    ignoreDeprecations()
 }

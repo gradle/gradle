@@ -18,9 +18,12 @@ package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.internal.Cast;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,39 +45,41 @@ public class BaseSerializerFactory {
     public static final Serializer<Map<String, String>> NO_NULL_STRING_MAP_SERIALIZER = new StringMapSerializer();
     public static final Serializer<Throwable> THROWABLE_SERIALIZER = new ThrowableSerializer();
     public static final Serializer<HashCode> HASHCODE_SERIALIZER = new HashCodeSerializer();
+    public static final Serializer<BigInteger> BIG_INTEGER_SERIALIZER = new BigIntegerSerializer();
+    public static final Serializer<BigDecimal> BIG_DECIMAL_SERIALIZER = new BigDecimalSerializer();
 
     public <T> Serializer<T> getSerializerFor(Class<T> type) {
         if (type.equals(String.class)) {
-            return (Serializer<T>) STRING_SERIALIZER;
+            return Cast.uncheckedNonnullCast(STRING_SERIALIZER);
         }
         if (type.equals(Long.class)) {
-            return (Serializer) LONG_SERIALIZER;
+            return Cast.uncheckedNonnullCast(LONG_SERIALIZER);
         }
         if (type.equals(File.class)) {
-            return (Serializer) FILE_SERIALIZER;
+            return Cast.uncheckedNonnullCast(FILE_SERIALIZER);
         }
         if (type.equals(byte[].class)) {
-            return (Serializer) BYTE_ARRAY_SERIALIZER;
+            return Cast.uncheckedNonnullCast(BYTE_ARRAY_SERIALIZER);
         }
         if (type.isEnum()) {
-            return new EnumSerializer(type);
+            return Cast.uncheckedNonnullCast(new EnumSerializer<Enum<?>>(Cast.<Class<Enum<?>>>uncheckedNonnullCast(type)));
         }
         if (type.equals(Boolean.class)) {
-            return (Serializer<T>) BOOLEAN_SERIALIZER;
+            return Cast.uncheckedNonnullCast(BOOLEAN_SERIALIZER);
         }
         if (Throwable.class.isAssignableFrom(type)) {
-            return (Serializer<T>) THROWABLE_SERIALIZER;
+            return Cast.uncheckedNonnullCast(THROWABLE_SERIALIZER);
         }
         if (HashCode.class.isAssignableFrom(type)) {
-            return (Serializer<T>) HASHCODE_SERIALIZER;
+            return Cast.uncheckedNonnullCast(HASHCODE_SERIALIZER);
         }
         if (Path.class.isAssignableFrom(type)) {
-            return (Serializer) PATH_SERIALIZER;
+            return Cast.uncheckedNonnullCast(PATH_SERIALIZER);
         }
         return new DefaultSerializer<T>(type.getClassLoader());
     }
 
-    private static class EnumSerializer<T extends Enum> extends AbstractSerializer<T> {
+    private static class EnumSerializer<T extends Enum<?>> extends AbstractSerializer<T> {
         private final Class<T> type;
 
         private EnumSerializer(Class<T> type) {
@@ -97,7 +102,7 @@ public class BaseSerializerFactory {
                 return false;
             }
 
-            EnumSerializer rhs = (EnumSerializer) obj;
+            EnumSerializer<?> rhs = (EnumSerializer<?>) obj;
             return Objects.equal(type, rhs.type);
         }
 
@@ -275,6 +280,33 @@ public class BaseSerializerFactory {
         public void write(Encoder encoder, Double value) throws Exception {
             byte[] b = ByteBuffer.allocate(8).putDouble(value).array();
             encoder.writeBytes(b);
+        }
+    }
+
+    private static class BigIntegerSerializer extends AbstractSerializer<BigInteger> {
+        @Override
+        public BigInteger read(Decoder decoder) throws Exception {
+            return new BigInteger(decoder.readBinary());
+        }
+
+        @Override
+        public void write(Encoder encoder, BigInteger value) throws Exception {
+            encoder.writeBinary(value.toByteArray());
+        }
+    }
+
+    private static class BigDecimalSerializer extends AbstractSerializer<BigDecimal> {
+        @Override
+        public BigDecimal read(Decoder decoder) throws Exception {
+            BigInteger unscaledVal = BIG_INTEGER_SERIALIZER.read(decoder);
+            int scale = decoder.readSmallInt();
+            return new BigDecimal(unscaledVal, scale);
+        }
+
+        @Override
+        public void write(Encoder encoder, BigDecimal value) throws Exception {
+            BIG_INTEGER_SERIALIZER.write(encoder, value.unscaledValue());
+            encoder.writeSmallInt(value.scale());
         }
     }
 

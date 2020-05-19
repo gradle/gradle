@@ -25,11 +25,13 @@ import org.gradle.api.internal.tasks.properties.AbstractPropertyNode;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
 import org.gradle.api.internal.tasks.properties.TypeScheme;
+import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.DefaultListenerManager;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.TypeValidationContext;
@@ -38,6 +40,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 
 import javax.annotation.Nullable;
@@ -64,10 +67,11 @@ public class PropertyValidationAccess {
         builder.provider(new Object() {
             @SuppressWarnings("unused")
             void configure(ServiceRegistration registration) {
-                registration.add(DefaultListenerManager.class, new DefaultListenerManager());
+                registration.add(ListenerManager.class, new DefaultListenerManager(Scopes.Global));
                 registration.add(DefaultCrossBuildInMemoryCacheFactory.class);
                 // TODO: do we need any factories here?
                 registration.add(DefaultManagedFactoryRegistry.class, new DefaultManagedFactoryRegistry());
+                registration.add(OutputPropertyRoleAnnotationHandler.class);
                 registration.add(DefaultInstantiatorFactory.class);
                 List<PluginServiceRegistry> pluginServiceFactories = new DefaultServiceLocator(false, getClass().getClassLoader()).getAll(PluginServiceRegistry.class);
                 for (PluginServiceRegistry pluginServiceFactory : pluginServiceFactories) {

@@ -19,7 +19,6 @@ package org.gradle.api.reporting.dependencies;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
@@ -29,7 +28,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.reporting.dependencies.internal.DefaultDependencyReportContainer;
 import org.gradle.api.reporting.dependencies.internal.HtmlDependencyReporter;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
@@ -71,12 +69,7 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
     public HtmlDependencyReportTask() {
         reports = getObjectFactory().newInstance(DefaultDependencyReportContainer.class, this, getCallbackActionDecorator());
         reports.getHtml().setEnabled(true);
-        getOutputs().upToDateWhen(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return false;
-            }
-        });
+        getOutputs().upToDateWhen(element -> false);
     }
 
     @Nested
@@ -86,8 +79,9 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public DependencyReportContainer reports(Closure closure) {
-        return reports(new ClosureBackedAction<DependencyReportContainer>(closure));
+        return reports(new ClosureBackedAction<>(closure));
     }
 
     @Override

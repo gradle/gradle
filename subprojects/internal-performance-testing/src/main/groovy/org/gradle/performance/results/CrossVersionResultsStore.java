@@ -53,13 +53,16 @@ import static org.gradle.performance.results.ResultsStoreHelper.toArray;
  */
 public class CrossVersionResultsStore implements DataReporter<CrossVersionPerformanceResults>, ResultsStore {
     private static final String FLAKINESS_RATE_SQL =
-        "SELECT TESTID, AVG(CONVERT(CASEWHEN(DIFFCONFIDENCE > 0.97, 1, 0), DECIMAL)) AS FAILURE_RATE\n" +
-            "FROM TESTEXECUTION\n" +
-            "WHERE (CHANNEL = 'flakiness-detection-master' OR CHANNEL = 'flakiness-detection-release') AND STARTTIME>?\n" +
-            "GROUP BY TESTID";
+        "SELECT TESTID, AVG(\n" +
+            "  CASE WHEN DIFFCONFIDENCE > 0.97 THEN 1.0\n" +
+            "    ELSE 0.0\n" +
+            "  END) AS FAILURE_RATE \n" +
+            "  FROM testExecution\n" +
+            " WHERE (CHANNEL = 'flakiness-detection-master' OR CHANNEL = 'flakiness-detection-release') AND STARTTIME> ?\n" +
+            "GROUP BY TESTID ORDER by FAILURE_RATE;";
     private static final String FAILURE_THRESOLD_SQL =
         "SELECT TESTID, MAX(ABS((BASELINEMEDIAN-CURRENTMEDIAN)/BASELINEMEDIAN)) as THRESHOLD\n" +
-            "FROM TESTEXECUTION\n" +
+            "FROM testExecution\n" +
             "WHERE (CHANNEL = 'flakiness-detection-master' or CHANNEL= 'flakiness-detection-release') AND STARTTIME > ? AND DIFFCONFIDENCE > 0.97\n" +
             "GROUP BY TESTID";
     // Only the flakiness detection results within 90 days will be considered.
@@ -73,7 +76,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     }
 
     public CrossVersionResultsStore(String databaseName) {
-        db = new PerformanceDatabase(databaseName, new CrossVersionResultsSchemaInitializer(), new StaleDataCleanupInitializer());
+        db = new PerformanceDatabase(databaseName);
 
         // Ignore some broken samples before the given date
         DateFormat timeStampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -125,7 +128,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
             "jvm", "vcsBranch", "vcsCommit", "channel", "host", "cleanTasks", "teamCityBuildId", "currentMedian", "baselineMedian", "diffConfidence");
 
 
-        try (PreparedStatement statement = connection.prepareStatement(insertStatement)) {
+        try (PreparedStatement statement = connection.prepareStatement(insertStatement, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, results.getTestId());
             statement.setTimestamp(2, new Timestamp(results.getStartTime()));
             statement.setTimestamp(3, new Timestamp(results.getEndTime()));
@@ -134,7 +137,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
             statement.setObject(6, toArray(results.getTasks()));
             statement.setObject(7, toArray(results.getArgs()));
             statement.setObject(8, toArray(results.getGradleOpts()));
-            statement.setObject(9, results.getDaemon());
+            statement.setBoolean(9, results.getDaemon());
             statement.setString(10, results.getOperatingSystem());
             statement.setString(11, results.getJvm());
             statement.setString(12, results.getVcsBranch());
@@ -228,13 +231,13 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                 ResultSet operations = null;
 
                 try {
-                    executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks, teamCityBuildId from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc");
+                    executionsForName = connection.prepareStatement("select id, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks, teamCityBuildId from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc limit ?");
                     executionsForName.setFetchSize(mostRecentN);
-                    executionsForName.setInt(1, mostRecentN);
-                    executionsForName.setString(2, testName);
+                    executionsForName.setString(1, testName);
                     Timestamp minDate = new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
-                    executionsForName.setTimestamp(3, minDate);
-                    executionsForName.setString(4, channel);
+                    executionsForName.setTimestamp(2, minDate);
+                    executionsForName.setString(3, channel);
+                    executionsForName.setInt(4, mostRecentN);
 
                     testExecutions = executionsForName.executeQuery();
                     while (testExecutions.next()) {
@@ -263,12 +266,12 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     }
 
                     operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime from testOperation "
-                        + "where testExecution in (select top ? id from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc)");
+                        + "where testExecution in (select t.* from ( select id from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc limit ?) as t)");
                     operationsForExecution.setFetchSize(10 * results.size());
-                    operationsForExecution.setInt(1, mostRecentN);
-                    operationsForExecution.setString(2, testName);
-                    operationsForExecution.setTimestamp(3, minDate);
-                    operationsForExecution.setString(4, channel);
+                    operationsForExecution.setString(1, testName);
+                    operationsForExecution.setTimestamp(2, minDate);
+                    operationsForExecution.setString(3, channel);
+                    operationsForExecution.setInt(4, mostRecentN);
 
                     operations = operationsForExecution.executeQuery();
                     while (operations.next()) {
@@ -319,65 +322,6 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     @Override
     public void close() {
         db.close();
-    }
-
-    private class CrossVersionResultsSchemaInitializer implements ConnectionAction<Void> {
-        @Override
-        public Void execute(Connection connection) throws SQLException {
-            Statement statement = null;
-
-            try {
-                statement = connection.createStatement();
-                statement.execute("create table if not exists testExecution (id bigint identity not null, testId varchar not null, startTime timestamp not null, targetVersion varchar not null, testProject varchar not null, tasks array not null, args array not null, operatingSystem varchar not null, jvm varchar not null)");
-                statement.execute("create table if not exists testOperation (testExecution bigint not null, version varchar, totalTime decimal not null, foreign key(testExecution) references testExecution(id))");
-                statement.execute("alter table testExecution add column if not exists vcsBranch varchar not null default 'master'");
-                statement.execute("alter table testExecution add column if not exists vcsCommit varchar");
-                statement.execute("alter table testExecution add column if not exists gradleOpts array");
-                statement.execute("alter table testExecution add column if not exists daemon boolean");
-                if (DataBaseSchemaUtil.columnExists(connection, "TESTOPERATION", "EXECUTIONTIMEMS")) {
-                    statement.execute("alter table testOperation alter column executionTimeMs rename to totalTime");
-                }
-                if (DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", "EXECUTIONTIME")) {
-                    statement.execute("alter table testExecution alter column executionTime rename to startTime");
-                }
-                if (!DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", "ENDTIME")) {
-                    statement.execute("alter table testExecution add column endTime timestamp");
-                    statement.execute("update testExecution set endTime = startTime");
-                    statement.execute("alter table testExecution alter column endTime set not null");
-                }
-                if (!DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", "CHANNEL")) {
-                    statement.execute("alter table testExecution add column if not exists channel varchar");
-                    statement.execute("update testExecution set channel='commits'");
-                    statement.execute("alter table testExecution alter column channel set not null");
-                    statement.execute("create index if not exists testExecution_channel on testExecution (channel)");
-                }
-
-                addColumnToExecutionTableIfNotExists(connection, statement, "HOST", "varchar");
-                addColumnToExecutionTableIfNotExists(connection, statement, "teamCityBuildId", "varchar");
-                addColumnToExecutionTableIfNotExists(connection, statement, "baselineMedian", "decimal");
-                addColumnToExecutionTableIfNotExists(connection, statement, "currentMedian", "decimal");
-                addColumnToExecutionTableIfNotExists(connection, statement, "diffConfidence", "decimal");
-
-                statement.execute("create index if not exists testExecution_testId on testExecution (testId)");
-                statement.execute("create index if not exists testExecution_executionTime on testExecution (startTime desc)");
-
-                if (!DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", "CLEANTASKS")) {
-                    statement.execute("alter table testExecution add column if not exists cleanTasks array");
-                }
-
-                DataBaseSchemaUtil.removeOutdatedColumnsFromTestDB(connection, statement);
-            } finally {
-                closeStatement(statement);
-            }
-
-            return null;
-        }
-    }
-
-    private void addColumnToExecutionTableIfNotExists(Connection connection, Statement statement, String column, String type) throws SQLException {
-        if (!DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", column)) {
-            statement.execute("alter table testExecution add column if not exists " + column + " " + type);
-        }
     }
 
     private void closeStatement(Statement statement) throws SQLException {

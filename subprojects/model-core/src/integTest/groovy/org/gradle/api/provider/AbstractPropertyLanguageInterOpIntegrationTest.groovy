@@ -18,43 +18,10 @@ package org.gradle.api.provider
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.api.internal.provider.AbstractLanguageInterOpIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-import static org.gradle.integtests.fixtures.KotlinDslTestUtil.kotlinDslBuildSrcScript
-
-@Requires(TestPrecondition.KOTLIN_SCRIPT)
-abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIntegrationSpec {
-    private hasKotlin = false
-
-    TestFile pluginDir = file("buildSrc/plugin")
-
-    void usesKotlin(TestFile dir) {
-        def buildfile = dir.file("build.gradle.kts")
-        if (!buildfile.file) {
-            buildfile.createFile()
-        }
-        buildfile.text = kotlinDslBuildSrcScript + buildfile.text
-        if (!hasKotlin) {
-            hasKotlin = true
-        }
-    }
-
-    def setup() {
-        executer.withRepositoryMirrors()
-        executer.withPluginRepositoryMirror()
-        file("buildSrc/settings.gradle.kts") << """
-            include("plugin")
-        """
-        file("buildSrc/build.gradle.kts") << """
-            dependencies {
-                implementation(project(":plugin"))
-            }
-        """
-    }
+abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLanguageInterOpIntegrationTest {
 
     abstract void pluginSetsValues()
 
@@ -66,7 +33,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
 
     @ToBeFixedForInstantExecution(
         because = "Kotlin Gradle Plugin",
-        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest"]
+        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
     )
     def "can define property and set value from language plugin"() {
         pluginSetsValues()
@@ -80,6 +47,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         then:
         outputContains("flag = true")
         outputContains("message = some value")
+        outputContains("number = 1.23")
         outputContains("list = [1, 2]")
         outputContains("set = [1, 2]")
         outputContains("map = {1=true, 2=false}")
@@ -87,7 +55,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
 
     @ToBeFixedForInstantExecution(
         because = "Kotlin Gradle Plugin",
-        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest"]
+        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
     )
     def "can define property and set calculated value using function from language plugin"() {
         pluginSetsCalculatedValuesUsingCallable()
@@ -101,6 +69,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         then:
         outputContains("flag = true")
         outputContains("message = some value")
+        outputContains("number = 1.23")
         outputContains("list = [1, 2]")
         outputContains("set = [1, 2]")
         outputContains("map = {1=true, 2=false}")
@@ -108,7 +77,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
 
     @ToBeFixedForInstantExecution(
         because = "Kotlin Gradle Plugin",
-        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest"]
+        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
     )
     def "can define property and set calculated value using mapped provider from language plugin"() {
         pluginSetsCalculatedValuesUsingMappedProvider()
@@ -122,12 +91,38 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         then:
         outputContains("flag = true")
         outputContains("message = some value")
+        outputContains("number = 1.23")
         outputContains("list = [1, 2]")
         outputContains("set = [1, 2]")
         outputContains("map = {1=true, 2=false}")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(
+        because = "Kotlin Gradle Plugin",
+        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
+    )
+    def "attaches diagnostic information to property"() {
+        pluginDefinesTask()
+
+        buildFile << """
+            apply plugin: SomePlugin
+
+            println "flag = " + tasks.someTask.flag
+        """
+
+        when:
+        run()
+
+        then:
+        outputContains("flag = task ':someTask' property 'flag'")
+    }
+
+    @ToBeFixedForInstantExecution(
+        bottomSpecs = [
+            "PropertyKotlinInterOpIntegrationTest",
+            "ManagedPropertyKotlinInterOpIntegrationTest"
+        ]
+    )
     def "can define property in language plugin and set value from Groovy DSL"() {
         pluginDefinesTask()
 
@@ -136,6 +131,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
             tasks.someTask {
                 flag = true
                 message = "some value"
+                number = 1.23d
                 list = [1, 2]
                 set = [1, 2]
                 map = [1: true, 2: false]
@@ -147,6 +143,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         then:
         outputContains("flag = true")
         outputContains("message = some value")
+        outputContains("number = 1.23")
         outputContains("list = [1, 2]")
         outputContains("set = [1, 2]")
         outputContains("map = {1=true, 2=false}")
@@ -171,7 +168,10 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         outputContains("map = {3=true}")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(
+        because = "Kotlin Gradle Plugin",
+        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
+    )
     def "can define property in language plugin and set value from Kotlin DSL"() {
         pluginDefinesTask()
 
@@ -180,6 +180,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
             tasks.withType(SomeTask::class.java).named("someTask").configure {
                 flag.set(true)
                 message.set("some value")
+                number.set(1.23)
                 list.set(listOf(1, 2))
                 set.set(listOf(1, 2))
                 map.set(mapOf(1 to true, 2 to false))
@@ -192,6 +193,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         then:
         outputContains("flag = true")
         outputContains("message = some value")
+        outputContains("number = 1.23")
         outputContains("list = [1, 2]")
         outputContains("set = [1, 2]")
         outputContains("map = {1=true, 2=false}")
@@ -201,6 +203,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
             tasks.withType(SomeTask::class.java).named("someTask").configure {
                 flag.set(provider { false })
                 message.set(provider { "some new value" })
+                number.set(provider { 4.56 })
                 list.set(provider { listOf(3) })
                 set.set(provider { listOf(3) })
                 map.set(provider { mapOf(3 to true) })
@@ -211,6 +214,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         then:
         outputContains("flag = false")
         outputContains("message = some new value")
+        outputContains("number = 4.56")
         outputContains("list = [3]")
         outputContains("set = [3]")
         outputContains("map = {3=true}")
@@ -218,7 +222,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
 
     @ToBeFixedForInstantExecution(
         because = "Kotlin Gradle Plugin",
-        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest"]
+        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
     )
     def "can define property in language plugin and set value from Java plugin"() {
         pluginDefinesTask()
@@ -254,6 +258,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
                     project.getTasks().withType(SomeTask.class).configureEach(t -> {
                         t.getFlag().set(false);
                         t.getMessage().set("some other value");
+                        t.getNumber().set(1.23);
                         t.getList().set(Arrays.asList(1, 2));
                         t.getSet().set(Arrays.asList(1, 2));
                         Map<Integer, Boolean> map = new LinkedHashMap<>();
@@ -276,6 +281,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         then:
         outputContains("flag = false")
         outputContains("message = some other value")
+        outputContains("number = 1.23")
         outputContains("list = [1, 2]")
         outputContains("set = [1, 2]")
         outputContains("map = {1=true, 2=false}")
@@ -313,6 +319,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
                     project.tasks.withType(SomeTask::class.java).configureEach {
                         flag.set(false)
                         message.set("some other value")
+                        number.set(1.23)
                         list.set(listOf(1, 2))
                         set.set(listOf(1, 2))
                         map.set(mapOf(1 to true, 2 to false))
@@ -334,6 +341,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         then:
         outputContains("flag = false")
         outputContains("message = some other value")
+        outputContains("number = 1.23")
         outputContains("list = [1, 2]")
         outputContains("set = [1, 2]")
         outputContains("map = {1=true, 2=false}")

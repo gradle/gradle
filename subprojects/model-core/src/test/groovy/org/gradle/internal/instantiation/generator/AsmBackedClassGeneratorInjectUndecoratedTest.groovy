@@ -22,7 +22,10 @@ import org.gradle.api.internal.HasConvention
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
 import org.gradle.internal.service.ServiceLookup
+import org.gradle.internal.state.ModelObject
+import org.gradle.internal.state.OwnerAware
 
 import javax.inject.Inject
 
@@ -30,7 +33,7 @@ import static AsmBackedClassGeneratorTest.AbstractBean
 import static AsmBackedClassGeneratorTest.BeanWithServiceGetters
 
 class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGeneratorSpec {
-    final ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], [], new TestCrossBuildInMemoryCacheFactory(), 0)
+    final ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0)
 
     def "returns original class when class is not abstract and no service getter methods present"() {
         expect:
@@ -54,7 +57,12 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
 
         bean instanceof GeneratedSubclass
         bean.publicType() == AbstractBean
+
+        bean instanceof ModelObject
+        bean.modelIdentityDisplayName == null
         !bean.hasUsefulDisplayName()
+
+        bean instanceof OwnerAware
 
         !(bean instanceof DynamicObjectAware)
         !(bean instanceof ExtensionAware)
@@ -75,7 +83,12 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
 
         bean instanceof GeneratedSubclass
         bean.publicType() == BeanWithServiceGetters
+
+        bean instanceof ModelObject
+        bean.modelIdentityDisplayName == null
         !bean.hasUsefulDisplayName()
+
+        bean instanceof OwnerAware
 
         !(bean instanceof DynamicObjectAware)
         !(bean instanceof ExtensionAware)
@@ -89,8 +102,8 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
         services.get(Number) >> 12
 
         expect:
-        def decorated = create(AsmBackedClassGenerator.decorateAndInject([], [], new TestCrossBuildInMemoryCacheFactory(), 0), BeanWithServiceGetters)
-        def undecorated = create(AsmBackedClassGenerator.injectOnly([], [], new TestCrossBuildInMemoryCacheFactory(),0), BeanWithServiceGetters)
+        def decorated = create(AsmBackedClassGenerator.decorateAndInject([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0), BeanWithServiceGetters)
+        def undecorated = create(AsmBackedClassGenerator.injectOnly([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(),0), BeanWithServiceGetters)
         decorated.class != undecorated.class
         decorated instanceof ExtensionAware
         !(undecorated instanceof ExtensionAware)

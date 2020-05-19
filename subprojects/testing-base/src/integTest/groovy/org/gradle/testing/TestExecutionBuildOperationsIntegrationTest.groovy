@@ -93,7 +93,7 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertJunit(rootTestOp, this.operations)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "emits test operations as expected for composite builds"() {
         given:
         resources.maybeCopy('TestExecutionBuildOperationsIntegrationTest')

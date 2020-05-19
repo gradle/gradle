@@ -56,11 +56,11 @@ abstract class FileContentGenerator {
         ${noJavaLibraryPluginFlag()}
 
         ${config.plugins.collect { decideOnJavaPlugin(it, dependencyTree.hasParentProject(subProjectNumber)) }.join("\n        ")}
-        
+
         repositories {
             ${config.repositories.join("\n            ")}
         }
-        ${dependenciesBlock('api', 'implementation', 'testImplementation', subProjectNumber, dependencyTree)}             
+        ${dependenciesBlock('api', 'implementation', 'testImplementation', subProjectNumber, dependencyTree)}
 
         allprojects {
             dependencies{
@@ -103,7 +103,7 @@ abstract class FileContentGenerator {
 
             String includedProjects = ""
             if (config.subProjects != 0) {
-                includedProjects = """ 
+                includedProjects = """
                     ${(0..config.subProjects - 1).collect { "include(\"project$it\")" }.join("\n")}
                 """
             }
@@ -204,7 +204,7 @@ abstract class FileContentGenerator {
             <dependencies>
                 ${config.externalApiDependencies.collect { convertToPomDependency(it) }.join()}
                 ${config.externalImplementationDependencies.collect { convertToPomDependency(it) }.join()}
-                ${convertToPomDependency('junit:junit:4.12', 'test')}
+                ${convertToPomDependency('junit:junit:4.13', 'test')}
                 ${subProjectDependencies}
             </dependencies>
             """
@@ -232,43 +232,49 @@ abstract class FileContentGenerator {
                   maven {
                     targets = ["clean", "package", "-Dmaven.test.skip=true", "-T", "4"]
                   }
+                  bazel {
+                    targets = ["build", "//..."]
+                  }
                 }
-                
+
                 abiChange {
                   tasks = ["assemble"]
                   apply-abi-change-to = "${fileToChange}"
                   maven {
                     targets = ["clean", "package", "-Dmaven.test.skip=true", "-T", "4"]
                   }
+                  bazel {
+                    targets = ["build", "//..."]
+                  }
                 }
-                
+
                 cleanAssemble {
                   tasks = ["clean", "assemble"]
                    maven {
                     targets = ["clean", "package", "-Dmaven.test.skip=true", "-T", "4"]
                   }
                 }
-                
+
                 cleanAssembleCached {
                   tasks = ["clean", "assemble"]
                   gradle-args = ["--build-cache"]
                 }
-                
+
                 cleanBuild {
                   tasks = ["clean", "build"]
                   maven {
-                    targets = ["clean", "test", "package", "-T", "4"]
+                    targets = ["clean", "package", "-T", "4"]
                   }
                 }
-                
+
                 cleanBuildCached {
                   tasks = ["clean", "build"]
                   maven {
-                    targets = ["clean", "test", "package", "-T", "4"]
+                    targets = ["clean", "package", "-T", "4"]
                   }
                   gradle-args = ["--build-cache"]
                 }
-                
+
                 incrementalCompile {
                   tasks = ["compileJava"]
                    maven {
@@ -276,7 +282,7 @@ abstract class FileContentGenerator {
                   }
                   apply-non-abi-change-to = "${fileToChange}"
                 }
-                
+
                 incrementalTest {
                   tasks = ["build"]
                   apply-non-abi-change-to = "${fileToChange}"
@@ -284,14 +290,14 @@ abstract class FileContentGenerator {
                     targets = ["test", "-T", "4"]
                   }
                 }
-                
+
                 cleanTest {
                   tasks = ["clean", "test"]
                   maven {
                     targets = ["clean", "test", "-T", "4"]
                   }
                 }
-                
+
                 cleanTestCached {
                   tasks = ["clean", "test"]
                   gradle-args = ["--build-cache"]
@@ -325,7 +331,7 @@ abstract class FileContentGenerator {
             public $propertyType getProperty$it() {
                 return property$it;
             }
-        
+
             public void setProperty$it($propertyType value) {
                 property$it = value;
             }
@@ -335,9 +341,9 @@ abstract class FileContentGenerator {
         """
         package ${ownPackageName};
         ${imports}
-        public class Production$classNumber {        
-            $properties    
-        }   
+        public class Production$classNumber {
+            $properties
+        }
         """
     }
 
@@ -377,9 +383,9 @@ abstract class FileContentGenerator {
         ${imports}
         import org.${config.useTestNG ? 'testng.annotations' : 'junit'}.Test;
         import static org.${config.useTestNG ? 'testng' : 'junit'}.Assert.*;
-        
-        public class Test$classNumber {  
-            Production$classNumber objectUnderTest = new Production$classNumber();     
+
+        public class Test$classNumber {
+            Production$classNumber objectUnderTest = new Production$classNumber();
             $testMethods
         }
         """
@@ -425,8 +431,8 @@ abstract class FileContentGenerator {
         def block = """
                     ${config.externalApiDependencies.collect { directDependencyDeclaration(hasParent ? api : implementation, it) }.join("\n            ")}
                     ${config.externalImplementationDependencies.collect { directDependencyDeclaration(implementation, it) }.join("\n            ")}
-                    ${directDependencyDeclaration(testImplementation, config.useTestNG ? 'org.testng:testng:6.4' : 'junit:junit:4.12')}
-    
+                    ${directDependencyDeclaration(testImplementation, config.useTestNG ? 'org.testng:testng:6.4' : 'junit:junit:4.13')}
+
                     $subProjectDependencies
         """
         return """

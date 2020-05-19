@@ -252,7 +252,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
         allprojects{
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.12' }
+            dependencies { testCompile 'junit:junit:4.13' }
         }
         """
     }

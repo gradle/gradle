@@ -47,7 +47,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     private final ConfigurationsProvider configurationsProvider;
     private final MetadataHolder holder;
     private final ProjectStateRegistry projectStateRegistry;
-    private DependencyLockingProvider dependencyLockingProvider;
+    private final DependencyLockingProvider dependencyLockingProvider;
 
     public DefaultRootComponentMetadataBuilder(DependencyMetaDataProvider metadataProvider,
                                                ComponentIdentifierFactory componentIdentifierFactory,

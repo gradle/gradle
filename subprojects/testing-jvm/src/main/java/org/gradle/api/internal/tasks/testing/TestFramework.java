@@ -21,6 +21,8 @@ import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
+import java.util.List;
+
 public interface TestFramework {
 
     /**
@@ -44,4 +46,9 @@ public interface TestFramework {
      * executed before starting each worker process.
      */
     Action<WorkerProcessBuilder> getWorkerConfigurationAction();
+
+    /**
+     * Returns a list of modules the test worker requires on the --module-path if it runs as a module.
+     */
+    List<String> getTestWorkerImplementationModules();
 }

@@ -36,7 +36,6 @@ import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
 
@@ -94,7 +93,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     @Override
     protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> parents, VariantMetadataRules componentMetadataRules) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = getArtifactsForConfiguration(name);
-        final DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.<ExcludeMetadata>of(), getAttributes(), true);
+        final DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.of(), getAttributes(), true);
         configuration.setConfigDependenciesFactory(new Factory<List<ModuleDependencyMetadata>>() {
             @Nullable
             @Override
@@ -107,7 +106,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
 
     @Override
     protected Optional<ImmutableList<? extends ConfigurationMetadata>> maybeDeriveVariants() {
-        return Optional.<ImmutableList<? extends ConfigurationMetadata>>fromNullable(getDerivedVariants());
+        return Optional.fromNullable(getDerivedVariants());
     }
 
     private ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
@@ -179,7 +178,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
                 filteredDependencies.add(element);
             }
         }
-        return filteredDependencies == null ? ImmutableList.<ModuleDependencyMetadata>of() : filteredDependencies.build();
+        return filteredDependencies == null ? ImmutableList.of() : filteredDependencies.build();
     }
 
     private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {
@@ -298,7 +297,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         @Override
         public List<IvyArtifactName> getArtifacts() {
             IvyArtifactName dependencyArtifact = dependencyDescriptor.getDependencyArtifact();
-            return dependencyArtifact == null ? ImmutableList.<IvyArtifactName>of() : ImmutableList.of(dependencyArtifact);
+            return dependencyArtifact == null ? ImmutableList.of() : ImmutableList.of(dependencyArtifact);
         }
 
         /**

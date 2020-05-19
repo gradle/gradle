@@ -53,7 +53,7 @@ class AbstractJUnitTestExecutionIntegrationSpec extends AbstractIntegrationSpec 
             model {
                 testSuites {
                     myTest(JUnitTestSuiteSpec) {
-                        jUnitVersion '4.12'
+                        jUnitVersion '4.13'
                         ${testedComponent?"testing \$.components.$testedComponent":''}
                     }
                 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
@@ -25,6 +26,7 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.gradle.internal.component.model.AttributeSelectionSchema;
 import org.gradle.internal.component.model.AttributeSelectionUtils;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
@@ -50,6 +52,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     private final DefaultAttributeMatcher matcher;
     private final IsolatableFactory isolatableFactory;
     private final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache = Maps.newHashMap();
+    private final List<AttributeDescriber> consumerAttributeDescribers = Lists.newArrayList();
 
     public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
         this.componentAttributeMatcher = componentAttributeMatcher;
@@ -128,6 +131,16 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         return EmptySchema.INSTANCE.disambiguationRules(attribute);
     }
 
+    @Override
+    public List<AttributeDescriber> getConsumerDescribers() {
+        return consumerAttributeDescribers;
+    }
+
+    @Override
+    public void addConsumerDescriber(AttributeDescriber describer) {
+        consumerAttributeDescribers.add(describer);
+    }
+
     private static class DefaultAttributeMatcher implements AttributeMatcher {
         private final ComponentAttributeMatcher componentAttributeMatcher;
         private final AttributeSelectionSchema effectiveSchema;
@@ -148,17 +161,17 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         }
 
         @Override
-        public <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested) {
-            return matches(candidates, requested, null);
+        public <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested, AttributeMatchingExplanationBuilder explanationBuilder) {
+            return matches(candidates, requested, null, explanationBuilder);
         }
 
         @Override
-        public <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested, @Nullable T fallback) {
-            return componentAttributeMatcher.match(effectiveSchema, candidates, requested, fallback);
+        public <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested, @Nullable T fallback, AttributeMatchingExplanationBuilder explanationBuilder) {
+            return componentAttributeMatcher.match(effectiveSchema, candidates, requested, fallback, explanationBuilder);
         }
 
         @Override
-        public List<MatchingDescription> describeMatching(AttributeContainerInternal candidate, AttributeContainerInternal requested) {
+        public List<MatchingDescription<?>> describeMatching(AttributeContainerInternal candidate, AttributeContainerInternal requested) {
             return componentAttributeMatcher.describeMatching(effectiveSchema, candidate, requested);
         }
     }
@@ -176,12 +189,12 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         }
 
         @Override
-        public Set<Object> disambiguate(Attribute<?> attribute, Object requested, Set<Object> candidates) {
+        public Set<Object> disambiguate(Attribute<?> attribute, @Nullable Object requested, Set<Object> candidates) {
             DefaultMultipleCandidateResult<Object> result = null;
 
             DisambiguationRule<Object> rules = disambiguationRules(attribute);
             if (rules.doesSomething()) {
-                result = new DefaultMultipleCandidateResult<Object>(requested, candidates);
+                result = new DefaultMultipleCandidateResult<>(requested, candidates);
                 rules.execute(result);
                 if (result.hasResult()) {
                     return result.getMatches();
@@ -191,7 +204,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
             rules = producerSchema.disambiguationRules(attribute);
             if (rules.doesSomething()) {
                 if (result == null) {
-                    result = new DefaultMultipleCandidateResult<Object>(requested, candidates);
+                    result = new DefaultMultipleCandidateResult<>(requested, candidates);
                 }
                 rules.execute(result);
                 if (result.hasResult()) {
@@ -216,7 +229,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
             CompatibilityRule<Object> rules = compatibilityRules(attribute);
             if (rules.doesSomething()) {
-                result = new DefaultCompatibilityCheckResult<Object>(requested, candidate);
+                result = new DefaultCompatibilityCheckResult<>(requested, candidate);
                 rules.execute(result);
                 if (result.hasResult()) {
                     return result.isCompatible();
@@ -226,7 +239,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
             rules = producerSchema.compatibilityRules(attribute);
             if (rules.doesSomething()) {
                 if (result == null) {
-                    result = new DefaultCompatibilityCheckResult<Object>(requested, candidate);
+                    result = new DefaultCompatibilityCheckResult<>(requested, candidate);
                 }
                 rules.execute(result);
                 if (result.hasResult()) {

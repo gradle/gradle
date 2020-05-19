@@ -33,12 +33,90 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_6.5]]
+== Upgrading from 6.4
+
+=== Potential breaking changes
+
+==== Updates to bundled Gradle dependencies
+
+- Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.3.72[Kotlin 1.3.72].
+- Groovy has been updated to https://groovy-lang.org/changelogs/changelog-2.5.11.html[Groovy 2.5.11].
+
+==== Updates to default tool integration versions
+
+- PMD has been updated to https://github.com/pmd/pmd/releases/tag/pmd_releases%2F6.23.0[PMD 6.23.0].
+
+=== Deprecations
+
+[[abstract_task_deprecated]]
+==== Internal class AbstractTask is deprecated
+
+`AbstractTask` is an internal class which is visible on the public API, as a superclass of public type `DefaultTask`.
+`AbstractTask` will be removed in Gradle 7.0, and the following are deprecated in Gradle 6.5:
+
+- Registering a task whose type is `AbstractTask` or `TaskInternal`. You can remove the task type from the task registration and Gradle will use `DefaultTask` instead.
+- Registering a task whose type is a subclass of `AbstractTask` but not a subclass of `DefaultTask`. You can change the task type to extend `DefaultTask` instead.
+- Using the class `AbstractTask` from plugin code or build scripts. You can change the code to use `DefaultTask` instead.
+
 [[changes_6.4]]
 == Upgrading from 6.3
 
 === Potential breaking changes
 
-There were no breaking changes between Gradle 6.3 and 6.4.
+[[upgrade:pmd_expects_6]]
+==== PMD plugin expects PMD 6.0.0 or higher by default
+
+Gradle 6.4 enabled incremental analysis by default.
+Incremental analysis is only available in PMD 6.0.0 or higher.
+If you want to use an older PMD version, you need to disable incremental analysis:
+
+```
+pmd {
+    incrementalAnalysis = false
+}
+```
+
+==== Changes in dependency locking
+
+With Gradle 6.4, the incubating API for <<dependency_locking#fine_tuning_dependency_locking_behaviour_with_lock_mode, dependency locking `LockMode`>> has changed.
+The value is now set via a `Property<LockMode>` instead of a direct setter.
+This means that the notation to set the value has to be updated for the Kotlin DSL:
+
+```
+dependencyLocking {
+    lockMode.set(LockMode.STRICT)
+}
+```
+
+Users of the Groovy DSL should not be impacted as the notation `lockMode = LockMode.STRICT` remains valid.
+
+==== Java versions in published metadata
+
+If a Java library is published with Gradle Module Metadata, the information which Java version it supports is encoded in the `org.gradle.jvm.version` attribute.
+By default, this attribute was set to what you configured in `java.targetCompatibility`.
+If that was not configured, it was set to the current Java version running Gradle.
+Changing the version of a particular compile task, e.g. `javaCompile.targetCompatibility` had no effect on that attribute, leading to wrong information if the attribute was not adjusted manually.
+This is now fixed and the attribute defaults to the setting of the compile task that is associated with the sources from which the published jar is built.
+
+==== Ivy repositories with custom layouts
+
+Gradle versions from 6.0 to 6.3.x included could generate bad Gradle Module Metadata when publishing on an Ivy repository which had a custom repository layout.
+Starting from 6.4, Gradle will no longer publish Gradle Module Metadata if it detects that you are using a custom repository layout.
+
+==== New properties may shadow variables in build scripts
+
+This release introduces some new properties -- `mainClass`, `mainModule`, `modularity` -- in different places.
+Since these are very generic names, there is a chance that you use one of them in your build scripts as variable name.
+A new property might then shadow one of your variables in an undesired way, leading to a build failure where the property is accessed instead of the local variable with the same name.
+You can fix it by renaming the corresponding variable in the build script.
+
+Affected is configuration code inside the `application {}` and `java {}` configuration blocks, inside a java execution setup with `project.javaexec {}`, and inside various task configurations
+(`JavaExec`, `CreateStartScripts`, `JavaCompile`, `Test`, `Javadoc`).
+
+==== Updates to bundled Gradle dependencies
+
+- Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.3.71[Kotlin 1.3.71].
 
 === Deprecations
 

@@ -114,6 +114,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
         listenerManager.addListener(usageLocationReporter);
+
         StartParameter startParameter = buildDefinition.getStartParameter();
         ShowStacktrace showStacktrace = startParameter.getShowStacktrace();
         switch (showStacktrace) {

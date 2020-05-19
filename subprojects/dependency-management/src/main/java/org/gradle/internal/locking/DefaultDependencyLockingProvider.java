@@ -19,7 +19,6 @@ package org.gradle.internal.locking;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
-import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -36,10 +35,14 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 
+import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -68,15 +71,14 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private final DomainObjectContext context;
     private final DependencySubstitutionRules dependencySubstitutionRules;
     private final boolean uniqueLockStateEnabled;
+    private final Property<LockMode> lockMode;
+    private final Property<File> lockFile;
     private boolean uniqueLockStateLoaded;
     private Map<String, List<String>> allLockState;
-    private LockMode lockMode;
-    private boolean used = false;
 
-    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, DependencySubstitutionRules dependencySubstitutionRules, FeaturePreviews featurePreviews) {
+    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, DependencySubstitutionRules dependencySubstitutionRules, FeaturePreviews featurePreviews, PropertyFactory propertyFactory) {
         this.context = context;
         this.dependencySubstitutionRules = dependencySubstitutionRules;
-        this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver, context);
         this.writeLocks = startParameter.isWriteDependencyLocks();
         if (writeLocks) {
             LOGGER.debug("Write locks is enabled");
@@ -84,8 +86,11 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         List<String> lockedDependenciesToUpdate = startParameter.getLockedDependenciesToUpdate();
         partialUpdate = !lockedDependenciesToUpdate.isEmpty();
         lockEntryFilter = LockEntryFilterFactory.forParameter(lockedDependenciesToUpdate);
-        lockMode = LockMode.DEFAULT;
         uniqueLockStateEnabled = featurePreviews.isFeatureEnabled(ONE_LOCKFILE_PER_PROJECT);
+        lockMode = propertyFactory.property(LockMode.class);
+        lockMode.convention(LockMode.DEFAULT);
+        lockFile = propertyFactory.property(File.class);
+        this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver, context, lockFile);
     }
 
     @Override
@@ -96,7 +101,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         }
         if (!writeLocks || partialUpdate) {
             List<String> lockedModules = findLockedModules(configurationName, uniqueLockStateEnabled);
-            if (lockedModules == null && lockMode == LockMode.STRICT) {
+            if (lockedModules == null && lockMode.get() == LockMode.STRICT) {
                 throw new MissingLockStateException(context.identityPath(configurationName).toString());
             }
             if (lockedModules != null) {
@@ -112,13 +117,14 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
                 } else {
                     LOGGER.info("Loaded lock state for configuration '{}'", context.identityPath(configurationName));
                 }
-                boolean strictlyValidate = !partialUpdate && lockMode != LockMode.LENIENT;
+                boolean strictlyValidate = !partialUpdate && lockMode.get() != LockMode.LENIENT;
                 return new DefaultDependencyLockingState(strictlyValidate, results);
             }
         }
         return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
     }
 
+    @Nullable
     private List<String> findLockedModules(String configurationName, boolean uniqueLockStateEnabled) {
         List<String> result = null;
         if (uniqueLockStateEnabled) {
@@ -142,11 +148,8 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     }
 
     private void recordUsage() {
-        used = true;
-    }
-
-    private boolean hasRecordedUsage() {
-        return used;
+        lockMode.finalizeValue();
+        lockFile.finalizeValue();
     }
 
     private boolean isSubstitutedInComposite(ModuleComponentIdentifier lockedIdentifier) {
@@ -211,21 +214,18 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     }
 
     @Override
-    public LockMode getLockMode() {
+    public Property<LockMode> getLockMode() {
         return lockMode;
     }
 
     @Override
-    public void setLockMode(LockMode mode) {
-        if (hasRecordedUsage()) {
-            throw new InvalidUserCodeException("It is illegal to modify the dependency locking mode after any dependency configuration has been resolved");
-        }
-        this.lockMode = mode;
+    public Property<File> getLockFile() {
+        return lockFile;
     }
 
     private static class LockingDependencySubstitution implements DependencySubstitutionInternal {
 
-        private ComponentSelector selector;
+        private final ComponentSelector selector;
         private boolean didSubstitute = false;
 
         private LockingDependencySubstitution(ComponentSelector selector) {
@@ -262,7 +262,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
 
         @Override
         public List<ComponentSelectionDescriptorInternal> getRuleDescriptors() {
-            return null;
+            return Collections.emptyList();
         }
 
         @Override

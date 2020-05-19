@@ -55,14 +55,14 @@ class DistributionTestingPlugin : Plugin<Project> {
             )
             addSetUpAndTearDownActions(project)
         }
-        rootProject.project(":toolingApi").afterEvaluate {
-            this@run.tasks.withType<DistributionTest>().configureEach {
-                gradleInstallationForTest.toolingApiShadedJarDir.set(dirWorkaround(providers, layout, objects) {
-                    // TODO Refactor to not reach into tasks of another project
-                    val toolingApiShadedJar: ShadedJar by tasks
-                    toolingApiShadedJar.jarFile.get().asFile.parentFile
-                })
-            }
+
+        tasks.withType<DistributionTest>().configureEach {
+            gradleInstallationForTest.toolingApiShadedJarDir.set(dirWorkaround(providers, layout, objects) {
+                // TODO Refactor to not reach into tasks of another project
+                val toolingApi = rootProject.project(":toolingApi")
+                val toolingApiShadedJar: ShadedJar by toolingApi.tasks
+                toolingApiShadedJar.jarFile.get().asFile.parentFile
+            })
         }
     }
 
@@ -118,7 +118,6 @@ class DistributionTestingPlugin : Plugin<Project> {
     fun DistributionTest.setSystemPropertiesOfTestJVM(project: Project) {
         // use -PtestVersions=all or -PtestVersions=1.2,1.3…
         val integTestVersionsSysProp = "org.gradle.integtest.versions"
-        val sysPropValue = System.getProperty(integTestVersionsSysProp)
         if (project.hasProperty("testVersions")) {
             systemProperties[integTestVersionsSysProp] = project.property("testVersions")
         } else {

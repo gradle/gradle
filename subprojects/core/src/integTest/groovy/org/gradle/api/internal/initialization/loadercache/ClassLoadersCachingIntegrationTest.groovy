@@ -132,7 +132,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         isCached(":foo")
     }
 
-    @ToBeFixedForInstantExecution
     def "uses cached subproject classloader when parent changes"() {
         settingsFile << "include 'foo'"
         addIsCachedCheck()
@@ -290,7 +289,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         notCached
     }
 
-    @ToBeFixedForInstantExecution
     def "reuse classloader when init script changed"() {
         addIsCachedCheck()
 
@@ -344,6 +342,9 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
     def "changing non root buildsript classpath does affect child projects"() {
         when:
         settingsFile << "include 'a', 'a:a'"
+        createJarWithProperties("thing.jar")
+        createJarWithProperties("a/thing.jar")
+        createJarWithProperties("a/a/thing.jar")
         addIsCachedCheck()
         addIsCachedCheck("a")
         addIsCachedCheck("a/a")
@@ -415,7 +416,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
         then:
         isCached("a")
-        isNotCached("a:a") // cached in cross-build cache
-
+        isNotCached("a:a")
     }
 }

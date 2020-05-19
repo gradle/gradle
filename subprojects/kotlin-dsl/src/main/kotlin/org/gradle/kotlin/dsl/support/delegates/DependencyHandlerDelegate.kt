@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.query.ArtifactResolutionQuery
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.artifacts.transform.TransformSpec
-import org.gradle.api.artifacts.transform.VariantTransform
 import org.gradle.api.artifacts.type.ArtifactTypeContainer
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.plugins.ExtensionContainer
@@ -110,7 +109,8 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
     override fun artifactTypes(configureAction: Action<in ArtifactTypeContainer>) =
         delegate.artifactTypes(configureAction)
 
-    override fun registerTransform(registrationAction: Action<in VariantTransform>) =
+    @Suppress("deprecation")
+    override fun registerTransform(registrationAction: Action<in org.gradle.api.artifacts.transform.VariantTransform>) =
         delegate.registerTransform(registrationAction)
 
     override fun <T : TransformParameters?> registerTransform(actionType: Class<out TransformAction<T>>, registrationAction: Action<in TransformSpec<T>>) =

@@ -19,9 +19,12 @@ package org.gradle.internal.component;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.exceptions.StyledException;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.Map;
@@ -29,24 +32,30 @@ import java.util.TreeMap;
 
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatConfiguration;
 
-public class NoMatchingConfigurationSelectionException extends RuntimeException {
+public class NoMatchingConfigurationSelectionException extends StyledException {
     public NoMatchingConfigurationSelectionException(
+        AttributeDescriber describer,
         AttributeContainerInternal fromConfigurationAttributes,
         AttributeMatcher attributeMatcher,
         ComponentResolveMetadata targetComponent,
         boolean variantAware) {
-        super(generateMessage(fromConfigurationAttributes, attributeMatcher, targetComponent, variantAware));
+        super(generateMessage(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, variantAware));
     }
 
-    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentResolveMetadata targetComponent, boolean variantAware) {
-        Map<String, ConfigurationMetadata> configurations = new TreeMap<String, ConfigurationMetadata>();
+    private static String generateMessage(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentResolveMetadata targetComponent, boolean variantAware) {
+        Map<String, ConfigurationMetadata> configurations = new TreeMap<>();
         Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal = targetComponent.getVariantsForGraphTraversal();
         ImmutableList<? extends ConfigurationMetadata> variantsParticipatingInSelection = variantsForGraphTraversal.or(new LegacyConfigurationsSupplier(targetComponent));
         for (ConfigurationMetadata configurationMetadata : variantsParticipatingInSelection) {
             configurations.put(configurationMetadata.getName(), configurationMetadata);
         }
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Unable to find a matching " + (variantAware ? "variant" : "configuration") + " of " + targetComponent.getId().getDisplayName());
+        String targetVariantText = style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName());
+        if (fromConfigurationAttributes.isEmpty()) {
+            formatter.node("Unable to find a matching " + (variantAware ? "variant" : "configuration") + " of " + targetVariantText);
+        } else {
+            formatter.node("No matching " + (variantAware ? "variant" : "configuration") + " of " + targetVariantText + " was found. The consumer was configured to find " + describer.describeAttributeSet(fromConfigurationAttributes.asMap()) + " but:");
+        }
         formatter.startChildren();
         if (configurations.isEmpty()) {
             formatter.node("None of the " + (variantAware ? "variants" : "consumable configurations") + " have attributes.");
@@ -54,7 +63,7 @@ public class NoMatchingConfigurationSelectionException extends RuntimeException 
             // We're sorting the names of the configurations and later attributes
             // to make sure the output is consistently the same between invocations
             for (ConfigurationMetadata configuration : configurations.values()) {
-                formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, configuration, variantAware, false);
+                formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, configuration, variantAware, false, describer);
             }
         }
         formatter.endChildren();

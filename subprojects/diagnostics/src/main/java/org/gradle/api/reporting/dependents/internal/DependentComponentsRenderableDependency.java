@@ -16,8 +16,6 @@
 
 package org.gradle.api.reporting.dependents.internal;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.AbstractRenderableDependency;
@@ -38,7 +36,7 @@ import static com.google.common.base.Strings.emptyToNull;
 public class DependentComponentsRenderableDependency extends AbstractRenderableDependency {
 
     public static DependentComponentsRenderableDependency of(ComponentSpec componentSpec, ComponentSpecInternal internalProtocol) {
-        return of(componentSpec, internalProtocol, null);
+        return of(componentSpec, internalProtocol, new LinkedHashSet<>());
     }
 
     public static DependentComponentsRenderableDependency of(ComponentSpec componentSpec, ComponentSpecInternal internalProtocol, LinkedHashSet<DependentComponentsRenderableDependency> children) {
@@ -49,15 +47,9 @@ public class DependentComponentsRenderableDependency extends AbstractRenderableD
         if (componentSpec instanceof VariantComponentSpec) {
             // Consider variant aware components with no buildable binaries as non-buildables
             VariantComponentSpec variantComponentSpec = (VariantComponentSpec) componentSpec;
-            buildable = Iterables.any(variantComponentSpec.getBinaries().values(), new Predicate<BinarySpec>() {
-                @Override
-                public boolean apply(BinarySpec binarySpec) {
-                    return binarySpec.isBuildable();
-                }
-            });
+            buildable = variantComponentSpec.getBinaries().values().stream().anyMatch(BinarySpec::isBuildable);
         }
-        boolean testSuite = false;
-        return new DependentComponentsRenderableDependency(id, name, description, buildable, testSuite, children);
+        return new DependentComponentsRenderableDependency(id, name, description, buildable, false, children);
     }
 
     public static DependentComponentsRenderableDependency of(DependentBinariesResolvedResult resolvedResult) {

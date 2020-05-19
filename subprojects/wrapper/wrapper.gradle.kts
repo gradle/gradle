@@ -15,12 +15,12 @@
  */
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import java.util.jar.Attributes
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.distribution.`core-api-java`
 }
+
+gradlebuildJava.usedInWorkers()
 
 dependencies {
     implementation(project(":cli"))
@@ -44,8 +44,8 @@ dependencies {
     crossVersionTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.WORKER
+strictCompile {
+    ignoreRawTypes() // Raw type used in 'org.gradle.wrapper.Install', consider fixing next time the wrapper code needs changes
 }
 
 tasks.register<Jar>("executableJar") {
@@ -60,7 +60,6 @@ tasks.register<Jar>("executableJar") {
     })
 }
 
-val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
-integTestTasks.configureEach {
+tasks.withType<IntegrationTest>().configureEach {
     binaryDistributions.binZipRequired = true
 }

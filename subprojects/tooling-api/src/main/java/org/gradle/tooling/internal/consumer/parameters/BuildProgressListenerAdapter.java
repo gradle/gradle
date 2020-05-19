@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer.parameters;
 
+import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.FinishEvent;
@@ -455,7 +456,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (!type.isAssignableFrom(descriptorClass)) {
             throw new IllegalStateException(String.format("Unexpected operation type. Required %s but found %s", type.getName(), descriptorClass.getName()));
         }
-        return (T) descriptor;
+        return Cast.uncheckedNonnullCast(descriptor);
     }
 
     private TestOperationDescriptor toTestDescriptor(InternalTestDescriptor descriptor) {

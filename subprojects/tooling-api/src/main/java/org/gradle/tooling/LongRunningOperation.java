@@ -235,6 +235,7 @@ public interface LongRunningOperation {
      * @return this
      * @since 1.0-milestone-7
      */
+    @SuppressWarnings("overloads")
     LongRunningOperation addProgressListener(ProgressListener listener);
 
     /**
@@ -250,6 +251,7 @@ public interface LongRunningOperation {
      * @return this
      * @since 2.5
      */
+    @SuppressWarnings("overloads")
     LongRunningOperation addProgressListener(org.gradle.tooling.events.ProgressListener listener);
 
     /**

@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selector
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -64,7 +65,6 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         return false;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Iterator<T> iterator() {
         return selectors.iterator();
@@ -133,7 +133,7 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         return hasLatestSelector(vc.getRequiredSelector());
     }
 
-    private static boolean hasLatestSelector(VersionSelector versionSelector) {
+    private static boolean hasLatestSelector(@Nullable VersionSelector versionSelector) {
         return versionSelector instanceof LatestVersionSelector;
     }
 
@@ -153,7 +153,7 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         return versionOf(versionConstraint.getPreferredSelector());
     }
 
-    private static Version versionOf(VersionSelector selector) {
+    private static Version versionOf(@Nullable VersionSelector selector) {
         if (!(selector instanceof ExactVersionSelector)) {
             return EMPTY_VERSION;
         }
@@ -164,16 +164,15 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         return selectors.size();
     }
 
+    @Nullable
     public T first() {
         if (size() == 0) {
             return null;
         }
-        if (size() == 1) {
-            return selectors.get(0);
-        }
         return selectors.get(0);
     }
 
+    @Nullable
     public IvyArtifactName getFirstDependencyArtifact() {
         for (T selector: selectors) {
             if (selector.getFirstDependencyArtifact() != null) {

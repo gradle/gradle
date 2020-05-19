@@ -68,23 +68,26 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.AdditiveCacheLocations;
-import org.gradle.internal.vfs.DarwinFileWatcherRegistry;
-import org.gradle.internal.vfs.LinuxFileWatcherRegistry;
 import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
-import org.gradle.internal.vfs.WatchingAwareVirtualFileSystem;
-import org.gradle.internal.vfs.WindowsFileWatcherRegistry;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
-import org.gradle.internal.vfs.impl.NonWatchingVirtualFileSystem;
-import org.gradle.internal.vfs.impl.WatchingVirtualFileSystem;
-import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
+import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
+import org.gradle.internal.watch.registry.impl.DarwinFileWatcherRegistryFactory;
+import org.gradle.internal.watch.registry.impl.LinuxFileWatcherRegistryFactory;
+import org.gradle.internal.watch.registry.impl.WindowsFileWatcherRegistryFactory;
+import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.impl.DelegatingDiffCapturingUpdateFunctionDecorator;
+import org.gradle.internal.watch.vfs.impl.NonWatchingVirtualFileSystem;
+import org.gradle.internal.watch.vfs.impl.WatchingVirtualFileSystem;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
@@ -96,36 +99,31 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     public static final String VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.partial-invalidation";
 
     /**
-     * Boolean system property to enable retaining VFS state between builds.
+     * Deprecated system property used to enable watching the file system.
      *
-     * Also enables partial VFS invalidation.
-     *
-     * @see #VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY
+     * Using this property causes Gradle to emit a deprecation warning.
      */
-    public static final String VFS_RETENTION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.retention";
-
-    /**
-     * When retention is enabled, this system property can be used to pass a comma-separated
-     * list of file paths that have changed since the last build.
-     *
-     * @see #VFS_RETENTION_ENABLED_PROPERTY
-     */
-    public static final String VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY = "org.gradle.unsafe.vfs.changes";
+    @Deprecated
+    public static final String DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.retention";
 
     /**
      * When retention is enabled, this system property can be used to invalidate the entire VFS.
      *
-     * @see #VFS_RETENTION_ENABLED_PROPERTY
+     * @see org.gradle.initialization.StartParameterBuildOptions.WatchFileSystemOption
      */
     public static final String VFS_DROP_PROPERTY = "org.gradle.unsafe.vfs.drop";
 
-    public static boolean isPartialInvalidationEnabled(Map<String, String> systemPropertiesArgs) {
-        return isSystemPropertyEnabled(VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, systemPropertiesArgs)
-            || isRetentionEnabled(systemPropertiesArgs);
+    public static boolean isPartialInvalidationEnabled(StartParameter startParameter) {
+        return startParameter.isWatchFileSystem()
+            || isSystemPropertyEnabled(VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, startParameter.getSystemPropertiesArgs());
     }
 
-    public static boolean isRetentionEnabled(Map<String, String> systemPropertiesArgs) {
-        return isSystemPropertyEnabled(VFS_RETENTION_ENABLED_PROPERTY, systemPropertiesArgs);
+    public static boolean isDropVfs(StartParameter startParameter) {
+        return isSystemPropertyEnabled(VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs());
+    }
+
+    public static boolean isDeprecatedVfsRetentionPropertyPresent(StartParameter startParameter) {
+        return getSystemProperty(DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY, startParameter.getSystemPropertiesArgs()) != null;
     }
 
     private static boolean isSystemPropertyEnabled(String systemProperty, Map<String, String> systemPropertiesArgs) {
@@ -169,36 +167,37 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             StringInterner stringInterner,
             ListenerManager listenerManager
         ) {
+            Predicate<String> watchFilter = path -> !additiveCacheLocations.isInsideAdditiveCache(path);
+            DelegatingDiffCapturingUpdateFunctionDecorator updateFunctionDecorator = new DelegatingDiffCapturingUpdateFunctionDecorator(watchFilter);
             DefaultVirtualFileSystem delegate = new DefaultVirtualFileSystem(
                 hasher,
                 stringInterner,
                 stat,
                 fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
+                updateFunctionDecorator,
                 DirectoryScanner.getDefaultExcludes()
             );
             WatchingAwareVirtualFileSystem watchingAwareVirtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current())
                 .<WatchingAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
                     delegate,
-                    path -> !additiveCacheLocations.isInsideAdditiveCache(path)
+                    updateFunctionDecorator,
+                    watchFilter
                 ))
                 .orElse(new NonWatchingVirtualFileSystem(delegate));
             listenerManager.addListener(new VirtualFileSystemBuildLifecycleListener(
-                watchingAwareVirtualFileSystem,
-                startParameter -> isRetentionEnabled(startParameter.getSystemPropertiesArgs()),
-                startParameter -> isSystemPropertyEnabled(VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs()),
-                startParameter -> getSystemProperty(VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY, startParameter.getSystemPropertiesArgs())
+                watchingAwareVirtualFileSystem
             ));
             return watchingAwareVirtualFileSystem;
         }
 
         private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(OperatingSystem operatingSystem) {
             if (operatingSystem.isMacOsX()) {
-                return Optional.of(new DarwinFileWatcherRegistry.Factory());
+                return Optional.of(new DarwinFileWatcherRegistryFactory());
             } else if (operatingSystem.isWindows()) {
-                return Optional.of(new WindowsFileWatcherRegistry.Factory());
+                return Optional.of(new WindowsFileWatcherRegistryFactory());
             } else if (operatingSystem.isLinux()) {
-                return Optional.of(new LinuxFileWatcherRegistry.Factory());
+                return Optional.of(new LinuxFileWatcherRegistryFactory());
             }
             return Optional.empty();
         }
@@ -263,13 +262,14 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 stringInterner,
                 stat,
                 fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
+                SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP,
                 DirectoryScanner.getDefaultExcludes()
             );
             RoutingVirtualFileSystem routingVirtualFileSystem = new RoutingVirtualFileSystem(
                 additiveCacheLocations,
                 gradleUserHomeVirtualFileSystem,
                 buildSessionsScopedVirtualFileSystem,
-                () -> isRetentionEnabled(startParameter.getSystemPropertiesArgs())
+                startParameter::isWatchFileSystem
             );
 
             listenerManager.addListener(new RootBuildLifecycleListener() {

@@ -288,6 +288,41 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("count = 12")
     }
 
+    def "can define task with non-abstract read-only @Nested property"() {
+        given:
+        buildFile << """
+            interface Params {
+                @Internal
+                Property<Integer> getCount()
+            }
+            class MyTask extends DefaultTask {
+                private final params = project.objects.newInstance(Params)
+
+                @Nested
+                Params getParams() { return params }
+
+                @TaskAction
+                void go() {
+                    println("count = \${params.count.get()}")
+                }
+            }
+
+            tasks.create("thing", MyTask) {
+                println("params = \$params")
+                println("params.count = \$params.count")
+                params.count = 12
+            }
+        """
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("params = task ':thing' property 'params'")
+        outputContains("params.count = task ':thing' property 'params.count'")
+        outputContains("count = 12")
+    }
+
     def "can query generated read only property in constructor"() {
         given:
         buildFile << """
@@ -337,10 +372,10 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         // Problem is exposed by Java compiler
         file("buildSrc/src/main/java/AbstractCustomTask.java") << """
             import org.gradle.api.file.ConfigurableFileCollection;
-            import org.gradle.api.internal.AbstractTask;
+            import org.gradle.api.DefaultTask;
             import org.gradle.api.tasks.InputFiles;
 
-            abstract class AbstractCustomTask extends AbstractTask {
+            abstract class AbstractCustomTask extends DefaultTask {
                 private final ConfigurableFileCollection sourceFiles = getProject().files();
 
                 @InputFiles

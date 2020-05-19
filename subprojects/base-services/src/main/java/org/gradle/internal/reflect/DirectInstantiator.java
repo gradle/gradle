@@ -119,7 +119,7 @@ public class DirectInstantiator implements Instantiator {
             }));
         }
 
-        private boolean isMatch(Class<?>[] argumentTypes, Class[] parameterTypes) {
+        private boolean isMatch(Class<?>[] argumentTypes, Class<?>[] parameterTypes) {
             for (int i = 0; i < argumentTypes.length; i++) {
                 Class<?> argumentType = argumentTypes[i];
                 Class<?> parameterType = parameterTypes[i];

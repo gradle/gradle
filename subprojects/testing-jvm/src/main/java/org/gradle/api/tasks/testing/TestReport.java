@@ -18,8 +18,8 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Transformer;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
@@ -78,27 +78,27 @@ public class TestReport extends DefaultTask {
      * Returns the set of binary test results to include in the report.
      */
     @PathSensitive(PathSensitivity.NONE)
-    @InputFiles @SkipWhenEmpty
+    @InputFiles
+    @SkipWhenEmpty
     public FileCollection getTestResultDirs() {
-        UnionFileCollection dirs = new UnionFileCollection();
+        ConfigurableFileCollection dirs = getObjectFactory().fileCollection();
         for (Object result : results) {
             addTo(result, dirs);
         }
         return dirs;
     }
 
-    private void addTo(Object result, UnionFileCollection dirs) {
-        ObjectFactory objects = getObjectFactory();
+    private void addTo(Object result, ConfigurableFileCollection dirs) {
         if (result instanceof Test) {
             Test test = (Test) result;
-            dirs.addToUnion(objects.fileCollection().from(test.getBinaryResultsDirectory()).builtBy(test));
+            dirs.from(test.getBinaryResultsDirectory());
         } else if (result instanceof Iterable<?>) {
             Iterable<?> iterable = (Iterable<?>) result;
             for (Object nested : iterable) {
                 addTo(nested, dirs);
             }
         } else {
-            dirs.addToUnion(objects.fileCollection().from(result));
+            dirs.from(result);
         }
     }
 

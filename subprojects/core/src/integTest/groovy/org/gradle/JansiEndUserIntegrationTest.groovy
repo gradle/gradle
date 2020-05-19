@@ -34,7 +34,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             dependencies {
                 testImplementation 'org.fusesource.jansi:jansi:$JANSI_VERSION'
-                testImplementation 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.13'
             }
         """
 

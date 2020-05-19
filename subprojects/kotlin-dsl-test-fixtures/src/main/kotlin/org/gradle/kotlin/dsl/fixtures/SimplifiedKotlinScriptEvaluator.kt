@@ -168,6 +168,8 @@ class SimplifiedKotlinScriptEvaluator(
         override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =
             action()
 
+        override fun onScriptClassLoaded(scriptSource: ScriptSource, specializedProgram: Class<*>) = Unit
+
         override val implicitImports: List<String>
             get() = ImplicitImports(DefaultImportsReader()).list
     }

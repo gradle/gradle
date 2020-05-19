@@ -42,6 +42,7 @@ public interface AntlrSourceVirtualDirectory {
      * @param configureClosure The closure to use to configure the Antlr source.
      * @return this
      */
+    @SuppressWarnings("rawtypes")
     AntlrSourceVirtualDirectory antlr(Closure configureClosure);
 
     /**

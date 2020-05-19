@@ -25,6 +25,7 @@ import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.BY_ANCESTOR;
@@ -44,7 +45,7 @@ class DependencyState {
     private boolean reasonsAlreadyAdded;
 
     DependencyState(DependencyMetadata dependency, ComponentSelectorConverter componentSelectorConverter) {
-        this(dependency, dependency.getSelector(), null, componentSelectorConverter);
+        this(dependency, dependency.getSelector(), Collections.emptyList(), componentSelectorConverter);
     }
 
     private DependencyState(DependencyMetadata dependency, ComponentSelector requested, List<ComponentSelectionDescriptorInternal> ruleDescriptors, ComponentSelectorConverter componentSelectorConverter) {
@@ -81,15 +82,8 @@ class DependencyState {
         return new DependencyState(targeted, requested, ruleDescriptors, componentSelectorConverter);
     }
 
-    /**
-     * Descriptor for any rules that modify this DependencyState from the original.
-     */
-    public List<ComponentSelectionDescriptorInternal> getRuleDescriptors() {
-        return ruleDescriptors;
-    }
-
     public boolean isForced() {
-        if (ruleDescriptors != null) {
+        if (!ruleDescriptors.isEmpty()) {
             for (ComponentSelectionDescriptorInternal ruleDescriptor : ruleDescriptors) {
                 if (ruleDescriptor.isEquivalentToForce()) {
                     return true;
@@ -114,7 +108,7 @@ class DependencyState {
         reasonsAlreadyAdded = true;
         addMainReason(reasons);
 
-        if (ruleDescriptors != null) {
+        if (!ruleDescriptors.isEmpty()) {
             addRuleDescriptors(reasons);
         }
         if (isDependencyForced()) {
@@ -130,7 +124,7 @@ class DependencyState {
 
     private void addMainReason(List<ComponentSelectionDescriptorInternal> reasons) {
         ComponentSelectionDescriptorInternal dependencyDescriptor;
-        if (reasons != null && reasons.contains(BY_ANCESTOR)) {
+        if (reasons.contains(BY_ANCESTOR)) {
             dependencyDescriptor = BY_ANCESTOR;
         } else {
             dependencyDescriptor = dependency.isConstraint() ? CONSTRAINT : REQUESTED;
@@ -157,11 +151,8 @@ class DependencyState {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
+        return this == o;
         // This is a performance optimization, dependency states are deduplicated
-        return false;
     }
 
     @Override

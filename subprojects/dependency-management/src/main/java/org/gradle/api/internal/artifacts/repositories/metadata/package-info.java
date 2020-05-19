@@ -17,4 +17,7 @@
 /**
  * Types that represent different metadata sources for a repository.
  */
+@NonNullApi
 package org.gradle.api.internal.artifacts.repositories.metadata;
+
+import org.gradle.api.NonNullApi;

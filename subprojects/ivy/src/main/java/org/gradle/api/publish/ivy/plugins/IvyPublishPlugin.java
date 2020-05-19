@@ -21,12 +21,19 @@ import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.repositories.DefaultIvyArtifactRepository;
+import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
+import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPlatformPlugin;
@@ -45,16 +52,21 @@ import org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor;
 import org.gradle.api.publish.ivy.tasks.PublishToIvyRepository;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
+import org.gradle.api.specs.AndSpec;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.model.Path;
 
 import javax.inject.Inject;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -64,6 +76,7 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  * @since 1.3
  */
 public class IvyPublishPlugin implements Plugin<Project> {
+    private final static Logger LOGGER = Logging.getLogger(IvyPublishPlugin.class);
 
     private final Instantiator instantiator;
     private final ObjectFactory objectFactory;
@@ -105,7 +118,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
         publications.all(publication -> {
             final String publicationName = publication.getName();
             createGenerateIvyDescriptorTask(tasks, publicationName, publication, buildDir);
-            createGenerateMetadataTask(tasks, publication, publications, buildDir);
+            createGenerateMetadataTask(tasks, publication, publications, buildDir, repositories);
             createPublishTaskForEachRepository(tasks, publication, publicationName, repositories);
         });
     }
@@ -147,7 +160,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
         publication.setIvyDescriptorGenerator(generatorTask);
     }
 
-    private void createGenerateMetadataTask(final TaskContainer tasks, final IvyPublicationInternal publication, final Set<IvyPublicationInternal> publications, final DirectoryProperty buildDir) {
+    private void createGenerateMetadataTask(final TaskContainer tasks, final IvyPublicationInternal publication, final Set<IvyPublicationInternal> publications, final DirectoryProperty buildDir, NamedDomainObjectList<IvyArtifactRepository> repositories) {
         final String publicationName = publication.getName();
         String descriptorTaskName = "generateMetadataFileFor" + capitalize(publicationName) + "Publication";
         TaskProvider<GenerateModuleMetadata> generatorTask = tasks.register(descriptorTaskName, GenerateModuleMetadata.class, generateTask -> {
@@ -156,8 +169,47 @@ public class IvyPublishPlugin implements Plugin<Project> {
             generateTask.getPublication().set(publication);
             generateTask.getPublications().set(publications);
             generateTask.getOutputFile().convention(buildDir.file("publications/" + publicationName + "/module.json"));
+            disableGradleMetadataGenerationIfCustomLayout(repositories, generateTask);
         });
         publication.setModuleDescriptorGenerator(generatorTask);
+    }
+
+    private void disableGradleMetadataGenerationIfCustomLayout(NamedDomainObjectList<IvyArtifactRepository> repositories, GenerateModuleMetadata generateTask) {
+        AtomicBoolean didWarn = new AtomicBoolean();
+        Spec<? super Task> checkStandardLayout = task -> {
+            boolean standard = repositories.stream().allMatch(this::hasStandardPattern);
+            if (!standard && !didWarn.getAndSet(true)) {
+                LOGGER.warn("Publication of Gradle Module Metadata is disabled because you have configured an Ivy repository with a non-standard layout");
+            }
+            return standard;
+        };
+        Spec<TaskInternal> spec = new AndSpec<TaskInternal>(generateTask.getOnlyIf(), checkStandardLayout);
+        generateTask.setOnlyIf(Cast.<Spec<? super Task>>uncheckedCast(spec));
+    }
+
+    private boolean hasStandardPattern(IvyArtifactRepository ivyArtifactRepository) {
+        DefaultIvyArtifactRepository repo = (DefaultIvyArtifactRepository) ivyArtifactRepository;
+        RepositoryDescriptor descriptor = repo.getDescriptor();
+        if (descriptor instanceof IvyRepositoryDescriptor) {
+            IvyRepositoryDescriptor desc = (IvyRepositoryDescriptor) descriptor;
+            List<String> artifactPatterns = desc.getArtifactPatterns();
+            if (artifactPatterns.size() == 1) {
+                if (!artifactPatterns.get(0).equals(IvyArtifactRepository.GRADLE_ARTIFACT_PATTERN)) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+            List<String> ivyPatterns = desc.getIvyPatterns();
+            if (ivyPatterns.size() == 1) {
+                if (!ivyPatterns.get(0).equals(IvyArtifactRepository.GRADLE_IVY_PATTERN)) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static class IvyPublicationFactory implements NamedDomainObjectFactory<IvyPublication> {

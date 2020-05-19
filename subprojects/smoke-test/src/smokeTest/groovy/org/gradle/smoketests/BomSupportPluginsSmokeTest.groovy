@@ -50,7 +50,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
             dependencies {
                 implementation "org.springframework.boot:spring-boot"
                 implementation "org.springframework.boot:spring-boot-autoconfigure"
-            
+
                 testImplementation "junit:junit"
                 testImplementation "org.springframework:spring-test"
                 testImplementation "org.springframework.boot:spring-boot-test"

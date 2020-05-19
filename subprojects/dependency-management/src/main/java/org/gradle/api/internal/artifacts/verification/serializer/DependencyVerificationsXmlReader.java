@@ -128,7 +128,7 @@ public class DependencyVerificationsXmlReader {
         }
 
         @Override
-        public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+        public void startElement(String uri, String localName, String qName, Attributes attributes) {
             switch (qName) {
                 case CONFIG:
                     inConfiguration = true;
@@ -191,12 +191,10 @@ public class DependencyVerificationsXmlReader {
                     }
                     break;
                 case IGNORED_KEYS:
-                    if (currentArtifact != null) {
-                        inIgnoredKeys = true;
-                    } else {
+                    if (currentArtifact == null) {
                         assertInConfiguration(IGNORED_KEYS);
-                        inIgnoredKeys = true;
                     }
+                    inIgnoredKeys = true;
                     break;
                 case IGNORED_KEY:
                     assertContext(inIgnoredKeys, IGNORED_KEY, IGNORED_KEYS);
@@ -318,7 +316,7 @@ public class DependencyVerificationsXmlReader {
         }
 
         @Override
-        public void endElement(String uri, String localName, String qName) throws SAXException {
+        public void endElement(String uri, String localName, String qName) {
             switch (qName) {
                 case CONFIG:
                     inConfiguration = false;

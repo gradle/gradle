@@ -55,7 +55,7 @@ If we do so, a consumer would then have to declare two dependencies:
 
 [NOTE]
 ====
-While the engine supports feature variants independently of the the ecosystem, this feature is currently only available using the Java plugins and is incubating.
+While the engine supports feature variants independently of the ecosystem, this feature is currently only available using the Java plugins and is incubating.
 ====
 
 [[sec::declare_feature_variants]]
@@ -182,8 +182,8 @@ Similarly, if an external library with feature variants was published with {meta
 
 .Consuming specific features from an external repository
 ====
-include::sample[dir="snippets/java-feature-variant/requiring-features-external/groovy",files="build.gradle[tags=consumer]"]
-include::sample[dir="snippets/java-feature-variant/requiring-features-external/kotlin",files="build.gradle.kts[tags=consumer]"]
+include::sample[dir="snippets/java-feature-variant/requiring-features-external/groovy/project",files="build.gradle[tags=consumer]"]
+include::sample[dir="snippets/java-feature-variant/requiring-features-external/kotlin/project",files="build.gradle.kts[tags=consumer]"]
 ====
 
 
@@ -221,9 +221,9 @@ include::sample[dir="snippets/java-feature-variant/incompatible-variants/kotlin/
 
 Dependency resolution would fail with the following error:
 
-```
+----
 Cannot choose between
    org.gradle.demo:producer:1.0 variant mysqlSupportRuntimeElements and
    org.gradle.demo:producer:1.0 variant postgresSupportRuntimeElements
    because they provide the same capability: org.gradle.demo:producer-db-support:1.0
-```
+----

@@ -87,6 +87,9 @@ class InstantExecutionStartParameter(
         createCompactMD5(cacheKey.toString())
     }
 
+    val allInitScripts: List<File>
+        get() = startParameter.allInitScripts
+
     /**
      * Returns the path of [target] relative to [base] if
      * [target] is a child of [base] or `null` otherwise.

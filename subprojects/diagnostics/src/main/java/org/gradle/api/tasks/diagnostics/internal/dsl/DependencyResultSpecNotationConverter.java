@@ -40,7 +40,7 @@ public class DependencyResultSpecNotationConverter implements NotationConverter<
         return NotationParserBuilder
                 .toType(new TypeInfo<Spec<DependencyResult>>(Spec.class))
                 .invalidNotationMessage("Please check the input for the DependencyInsight.dependency element.")
-                .fromType(Closure.class, new ClosureToSpecNotationConverter<DependencyResult>(DependencyResult.class))
+                .fromType(Closure.class, new ClosureToSpecNotationConverter<>(DependencyResult.class))
                 .fromCharSequence(new DependencyResultSpecNotationConverter())
                 .toComposite();
     }

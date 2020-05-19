@@ -41,16 +41,17 @@ public class PmdExtension extends CodeQualityExtension {
     private TextResource ruleSetConfig;
     private ConfigurableFileCollection ruleSetFiles;
     private boolean consoleOutput;
+    private Property<Integer> maxFailures;
     private Property<Boolean> incrementalAnalysis;
 
     public PmdExtension(Project project) {
         this.project = project;
-        // TODO: Enable this by default when toolVersion >= 6.0.0 if it's stable enough.
-        this.incrementalAnalysis = project.getObjects().property(Boolean.class).convention(false);
+        this.incrementalAnalysis = project.getObjects().property(Boolean.class).convention(true);
+        this.maxFailures = project.getObjects().property(Integer.class).convention(0);
     }
 
     /**
-     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.21.0/pmd_rules_java.html">official list</a> of built-in rule sets.
+     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.23.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
      * <pre>
      *     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
@@ -61,7 +62,7 @@ public class PmdExtension extends CodeQualityExtension {
     }
 
     /**
-     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.21.0/pmd_rules_java.html">official list</a> of built-in rule sets.
+     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.23.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
      * <pre>
      *     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
@@ -102,6 +103,18 @@ public class PmdExtension extends CodeQualityExtension {
     }
 
     /**
+     * The maximum number of failures to allow before stopping the build.
+     *
+     * If <pre>ignoreFailures</pre> is set, this is ignored and no limit is enforced.
+     *
+     * @since 6.4
+     */
+    @Incubating
+    public Property<Integer> getMaxFailures() {
+        return maxFailures;
+    }
+
+    /**
      * Sets the target jdk used with pmd.
      *
      * @param value The value for the target jdk as defined by {@link TargetJdk#toVersion(Object)}
@@ -115,7 +128,7 @@ public class PmdExtension extends CodeQualityExtension {
      *
      * This is equivalent to PMD's Ant task minimumPriority property.
      *
-     * See the official documentation for the <a href="https://pmd.github.io/pmd-6.21.0/pmd_userdocs_configuring_rules.html">list of priorities</a>.
+     * See the official documentation for the <a href="https://pmd.github.io/pmd-6.23.0/pmd_userdocs_configuring_rules.html">list of priorities</a>.
      *
      * <pre>
      *     rulePriority = 3
@@ -136,7 +149,7 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * The custom rule set to be used (if any). Replaces {@code ruleSetFiles}, except that it does not currently support multiple rule sets.
      *
-     * See the <a href="https://pmd.github.io/pmd-6.21.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set.
+     * See the <a href="https://pmd.github.io/pmd-6.23.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set.
      *
      * <pre>
      *     ruleSetConfig = resources.text.fromFile("config/pmd/myRuleSet.xml")
@@ -152,7 +165,7 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * The custom rule set to be used (if any). Replaces {@code ruleSetFiles}, except that it does not currently support multiple rule sets.
      *
-     * See the <a href="https://pmd.github.io/pmd-6.21.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set.
+     * See the <a href="https://pmd.github.io/pmd-6.23.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set.
      *
      * <pre>
      *     ruleSetConfig = resources.text.fromFile("config/pmd/myRuleSet.xml")
@@ -165,7 +178,7 @@ public class PmdExtension extends CodeQualityExtension {
     }
 
     /**
-     * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.21.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
+     * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.23.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
      * If you want to only use custom rule sets, you must clear {@code ruleSets}.
      *
      * <pre>
@@ -177,7 +190,7 @@ public class PmdExtension extends CodeQualityExtension {
     }
 
     /**
-     * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.21.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
+     * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.23.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
      * This adds to the default rule sets defined by {@link #getRuleSets()}.
      *
      * <pre>
@@ -218,11 +231,10 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * Controls whether to use incremental analysis or not.
      *
-     * This is only supported for PMD 6.0.0 or better. See <a href="https://pmd.github.io/pmd-6.21.0/pmd_userdocs_incremental_analysis.html"></a> for more details.
+     * This is only supported for PMD 6.0.0 or better. See <a href="https://pmd.github.io/pmd-6.23.0/pmd_userdocs_incremental_analysis.html"></a> for more details.
      *
      * @since 5.6
      */
-    @Incubating
     public Property<Boolean> getIncrementalAnalysis() {
         return incrementalAnalysis;
     }

@@ -22,7 +22,7 @@ package org.gradle.api.tasks.application;
  * <pre class='autoTested'>
  * task createStartScripts(type: CreateStartScripts) {
  *   outputDir = file('build/sample')
- *   mainClassName = 'org.gradle.test.Main'
+ *   mainClass = 'org.gradle.test.Main'
  *   applicationName = 'myApp'
  *   classpath = files('path/to/some.jar')
  * }
@@ -63,7 +63,8 @@ package org.gradle.api.tasks.application;
  * <li>{@code applicationName}</li>
  * <li>{@code optsEnvironmentVar}</li>
  * <li>{@code exitEnvironmentVar}</li>
- * <li>{@code mainClassName}</li>
+ * <li>{@code mainModule}</li>
+ * <li>{@code mainClass}</li>
  * <li>{@code defaultJvmOpts}</li>
  * <li>{@code appNameSystemProperty}</li>
  * <li>{@code appHomeRelativePath}</li>

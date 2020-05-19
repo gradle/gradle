@@ -19,7 +19,6 @@ package org.gradle.integtests
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
@@ -29,7 +28,6 @@ import spock.lang.Unroll
 class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue(['GRADLE-2440', 'GRADLE-2579'])
-    @ToBeFixedForInstantExecution
     def 'stale output file is removed after input source directory is emptied.'() {
         def taskWithSources = new TaskWithSources()
         taskWithSources.createInputs()
@@ -192,13 +190,15 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: 'base'
 
             task myTask {
-                outputs.file "build/file"
-                outputs.dir "build/dir"
+                def builtFile = file('build/file')
+                def builtDir = file('build/dir')
+                outputs.file builtFile
+                outputs.dir builtDir
                 doLast {
-                    assert !file("build/file").exists()
-                    file("build/file").text = "Created"
-                    assert file("build/dir").directory
-                    assert file("build/dir").list().length == 0
+                    assert !builtFile.exists()
+                    builtFile.text = "Created"
+                    assert builtDir.directory
+                    assert builtDir.list().length == 0
                 }
             }
         """
@@ -436,9 +436,10 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         skipped(taskWithLocalState.taskPath)
     }
 
-    @ToBeFixedForInstantExecution
     def "up-to-date checks detect removed stale outputs"() {
-        buildFile << """                                    
+
+        given:
+        buildFile << """
             plugins {
                 id 'base'
             }
@@ -446,32 +447,26 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
             def originalDir = file('build/original')
             def backupDir = file('backup')
 
-            task backup {
-                inputs.files(originalDir)
-                outputs.dir(backupDir)
-                doLast {
-                    copy {
-                        from originalDir
-                        into backupDir
-                    }
-                }
+            task backup(type: Copy) {
+                from originalDir
+                into backupDir
             }
-            
-            task restore {
-                inputs.files(backupDir)
-                outputs.dir(originalDir)
-                doLast {
-                    copy {
-                        from backupDir
-                        into originalDir
-                    }
-                }
+
+            task restore(type: Copy) {
+                from backupDir
+                into originalDir
             }
         """
 
+        and:
         def original = file('build/original/original.txt')
         original.text = "Original"
         def backup = file('backup/original.txt')
+
+        and:
+        executer.beforeExecute {
+            withArgument("--max-workers=1")
+        }
 
         when:
         run 'backup', 'restore'

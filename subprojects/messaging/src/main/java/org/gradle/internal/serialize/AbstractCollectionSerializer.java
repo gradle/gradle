@@ -39,7 +39,7 @@ public abstract class AbstractCollectionSerializer<T, C extends Collection<T>> i
             return false;
         }
 
-        AbstractCollectionSerializer rhs = (AbstractCollectionSerializer) obj;
+        AbstractCollectionSerializer<?, ?> rhs = (AbstractCollectionSerializer<?, ?>) obj;
         return Objects.equal(entrySerializer, rhs.entrySerializer);
     }
 

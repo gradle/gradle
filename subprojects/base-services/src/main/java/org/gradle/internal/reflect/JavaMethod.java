@@ -73,7 +73,7 @@ public class JavaMethod<T, R> {
         method.setAccessible(true);
     }
 
-    private static Method findMethod(Class origTarget, Class target, String name, boolean allowStatic, Class<?>[] paramTypes) {
+    private static Method findMethod(Class<?> origTarget, Class<?> target, String name, boolean allowStatic, Class<?>[] paramTypes) {
         for (Method method : target.getDeclaredMethods()) {
             if (!allowStatic && Modifier.isStatic(method.getModifiers())) {
                 continue;

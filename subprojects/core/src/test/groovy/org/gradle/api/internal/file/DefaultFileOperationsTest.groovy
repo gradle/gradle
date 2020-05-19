@@ -112,7 +112,7 @@ class DefaultFileOperationsTest extends Specification {
 
         then:
         result == fileCollection
-        1 * fileCollectionFactory.resolving('a', 'b', 'c') >> fileCollection
+        1 * fileCollectionFactory.resolving(['a', 'b', 'c'] as Object[]) >> fileCollection
     }
 
     def createsFileTree() {

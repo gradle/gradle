@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resource.s3.ivy
 
-
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.resolve.ivy.AbstractIvyRemoteRepoResolveIntegrationTest
 import org.gradle.integtests.resource.s3.fixtures.S3Server

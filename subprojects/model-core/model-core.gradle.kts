@@ -15,11 +15,8 @@
  */
 
 import build.kotlinVersion
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.distribution.`core-api-java`
 }
 
 dependencies {
@@ -60,8 +57,8 @@ dependencies {
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
 }
 
 classycle {

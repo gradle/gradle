@@ -92,11 +92,7 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
         if (!moduleIdentifier.equals(that.moduleIdentifier)) {
             return false;
         }
-        if (!version.equals(that.version)) {
-            return false;
-        }
-
-        return true;
+        return version.equals(that.version);
     }
 
     @Override

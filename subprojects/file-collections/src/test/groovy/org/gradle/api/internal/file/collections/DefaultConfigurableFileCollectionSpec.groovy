@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionSpec
+import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.PropertyHost
@@ -292,6 +293,66 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         files.empty
     }
 
+    def canAppendContentsToEmptyCollectionUsingPlusOperator() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def src = containing(file1, file2)
+
+        when:
+        collection.from = collection + src
+        def files = collection.files
+
+        then:
+        files as List == [file1, file2]
+    }
+
+    def canAppendContentsToCollectionUsingPlusOperator() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def src = containing(file2)
+
+        when:
+        collection.from = "src1"
+        collection.from = collection + src
+        def files = collection.files
+
+        then:
+        _ * fileResolver.resolve("src1") >> file1
+        files as List == [file1, file2]
+    }
+
+    def canPrependContentsToEmptyCollectionUsingPlusOperator() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def src = containing(file1, file2)
+
+        when:
+        collection.from = src + collection
+        def files = collection.files
+
+        then:
+        files as List == [file1, file2]
+    }
+
+    def canPrependContentsToCollectionUsingPlusOperator() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def src = containing(file1)
+
+        when:
+        collection.from = "src2"
+        collection.from = src + collection
+        def files = collection.files
+
+        then:
+        _ * fileResolver.resolve("src2") >> file2
+        files as List == [file1, file2]
+    }
+
     def elementsProviderTracksChangesToContent() {
         given:
         def file1 = new File("1")
@@ -406,6 +467,28 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         dependencies == [task] as Set<? extends Task>
         fileTreeDependencies == [task] as Set<? extends Task>
         filteredFileTreeDependencies == [task] as Set<? extends Task>
+    }
+
+    def "can visit contents when collection contains paths"() {
+        def visitor = Mock(FileCollectionStructureVisitor)
+        def one = testDir.file('one')
+        def two = testDir.file('two')
+
+        given:
+        collection.from("a", "b")
+
+        when:
+        collection.visitStructure(visitor)
+
+        then:
+        1 * visitor.startVisit(FileCollectionInternal.OTHER, collection) >> true
+        1 * fileResolver.resolve('a') >> one
+        1 * visitor.startVisit(FileCollectionInternal.OTHER, { it as List == [one] }) >> true
+        1 * visitor.visitCollection(FileCollectionInternal.OTHER, { it as List == [one] })
+        1 * fileResolver.resolve('b') >> two
+        1 * visitor.startVisit(FileCollectionInternal.OTHER, { it as List == [two] }) >> true
+        1 * visitor.visitCollection(FileCollectionInternal.OTHER, { it as List == [two] })
+        0 * _
     }
 
     def resolvesPathToFileWhenFinalized() {
@@ -1215,7 +1298,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         e.message == "Cannot query the value for <display> because <reason>."
 
         and:
-        1 * host.beforeRead() >> "<reason>"
+        1 * host.beforeRead(null) >> "<reason>"
         0 * _
 
         when:
@@ -1225,7 +1308,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         result == [file] as Set
 
         and:
-        1 * host.beforeRead() >> null
+        1 * host.beforeRead(null) >> null
         1 * fileResolver.resolve('a') >> file
         0 * _
     }
@@ -1250,7 +1333,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         e.message == "Cannot query the value for <display> because <reason>."
 
         and:
-        1 * host.beforeRead() >> "<reason>"
+        1 * host.beforeRead(null) >> "<reason>"
         0 * _
 
         when:
@@ -1260,8 +1343,91 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         result.asFile == [file]
 
         and:
-        1 * host.beforeRead() >> null
+        1 * host.beforeRead(null) >> null
         1 * fileResolver.resolve('a') >> file
         0 * _
+    }
+
+    def cannotFinalizeValueWhenUnsafeReadsDisallowedAndHostIsNotReady() {
+        given:
+        def file = new File('one')
+        collection.from('a')
+        collection.disallowUnsafeRead()
+
+        when:
+        collection.finalizeValue()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot finalize the value for <display> because <reason>."
+
+        and:
+        1 * host.beforeRead(null) >> "<reason>"
+        0 * _
+
+        when:
+        collection.finalizeValue()
+
+        then:
+        1 * host.beforeRead(null) >> null
+        1 * fileResolver.resolve('a') >> file
+        0 * _
+
+        when:
+        def result = collection.files
+
+        then:
+        result == [file] as Set
+
+        and:
+        0 * _
+    }
+
+    def canFinalizeOnNextReadWhenUnsafeReadsDisallowedAndHostIsNotReady() {
+        given:
+        def file = new File('one')
+        collection.from('a')
+        collection.disallowUnsafeRead()
+
+        when:
+        collection.finalizeValueOnRead()
+
+        then:
+        0 * _
+
+        when:
+        def result = collection.files
+
+        then:
+        1 * host.beforeRead(null) >> null
+        1 * fileResolver.resolve('a') >> file
+        0 * _
+
+        then:
+        result == [file] as Set
+    }
+
+    def canDisallowChangesWhenUnsafeReadsDisallowedAndHostIsNotReady() {
+        given:
+        def file = new File('one')
+        collection.from('a')
+        collection.disallowUnsafeRead()
+
+        when:
+        collection.disallowChanges()
+
+        then:
+        0 * _
+
+        when:
+        def result = collection.files
+
+        then:
+        1 * host.beforeRead(null) >> null
+        1 * fileResolver.resolve('a') >> file
+        0 * _
+
+        then:
+        result == [file] as Set
     }
 }

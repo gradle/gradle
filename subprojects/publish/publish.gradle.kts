@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2012 the original author or authors.
  *
@@ -15,9 +13,10 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
+
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
@@ -38,7 +37,7 @@ dependencies {
     implementation(library("inject"))
 
     testImplementation(testFixtures(project(":core")))
-    
+
     testRuntimeOnly(project(":runtimeApiInfo"))
     testRuntimeOnly(project(":workers"))
 
@@ -46,7 +45,4 @@ dependencies {
     integTestRuntimeOnly(project(":maven"))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
-
+integrationTestUsesSampleDir("subprojects/publish/src/main")

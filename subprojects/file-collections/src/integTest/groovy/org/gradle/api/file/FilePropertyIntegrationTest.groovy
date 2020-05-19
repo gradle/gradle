@@ -337,29 +337,15 @@ task useDirProviderApi {
                 }
             }
 
-            class MergeTask extends DefaultTask {
-                @InputFile
-                final RegularFileProperty inputFile = project.objects.fileProperty()
-                @OutputFile
-                final RegularFileProperty outputFile = project.objects.fileProperty()
-
-                @TaskAction
-                void go() {
-                    def file = outputFile.asFile.get()
-                    file.text = ""
-                    file << inputFile.asFile.get().text
-                }
-            }
-
             task createFile(type: FileOutputTask)
-            task merge(type: MergeTask) {
+            task merge(type: FileOutputTask) {
                 outputFile = layout.buildDirectory.file("merged.txt")
                 inputFile = createFile.outputFile
             }
 
             // Set values lazily
             createFile.inputFile = layout.projectDirectory.file("file-source.txt")
-            createFile.outputFile = layout.buildDirectory.file("file.txt")
+            createFile.outputFile = layout.buildDirectory.file("intermediate.txt")
 
             buildDir = "output"
 """
@@ -387,136 +373,116 @@ task useDirProviderApi {
         file("output/merged.txt").text == 'new-file1'
     }
 
-    @Unroll
-    def "task #annotation file property is implicitly finalized when task starts execution"() {
+    def "can wire an output file from unmanaged nested property of a task as input to another task using property"() {
         buildFile << """
-            class SomeTask extends DefaultTask {
-                ${annotation}
-                final RegularFileProperty prop = project.objects.fileProperty()
+            interface Params {
+                @OutputFile
+                RegularFileProperty getOutputFile()
+            }
+
+            class FileOutputTask extends DefaultTask {
+                private params = project.objects.newInstance(Params)
+
+                @InputFile
+                final RegularFileProperty inputFile = project.objects.fileProperty()
+                @Nested
+                Params getParams() { return params }
 
                 @TaskAction
                 void go() {
-                    println "value: " + prop.get()
+                    def file = params.outputFile.asFile.get()
+                    file.text = inputFile.asFile.get().text
                 }
             }
 
-            task show(type: SomeTask) {
-                prop = file("in.txt")
-                doFirst {
-                    prop = file("other.txt")
-                }
+            task createFile(type: FileOutputTask) {
+                inputFile = layout.projectDirectory.file("file-source.txt")
+                params.outputFile = layout.buildDirectory.file("intermediate.txt")
             }
+            task merge(type: FileOutputTask) {
+                params.outputFile = layout.buildDirectory.file("merged.txt")
+                inputFile = createFile.params.outputFile
+            }
+
+            buildDir = "output"
 """
-        file("in.txt").createFile()
+        file("file-source.txt").text = "file1"
 
         when:
-        fails("show")
+        run("merge")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':show'.")
-        failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
+        result.assertTasksExecuted(":createFile", ":merge")
+        file("output/merged.txt").text == 'file1'
 
-        where:
-        annotation    | _
-        "@InputFile"  | _
-        "@OutputFile" | _
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksNotSkipped()
+
+        when:
+        file("file-source.txt").text = "new-file1"
+        run("merge")
+
+        then:
+        result.assertTasksExecuted(":createFile", ":merge")
+        file("output/merged.txt").text == 'new-file1'
     }
 
-    @Unroll
-    def "task #annotation directory property is implicitly finalized when task starts execution"() {
+    def "can wire an output file from managed nested property of a task as input to another task using property"() {
         buildFile << """
-            class SomeTask extends DefaultTask {
-                ${annotation}
-                final DirectoryProperty prop = project.objects.directoryProperty()
+            interface Params {
+                @OutputFile
+                RegularFileProperty getOutputFile()
+            }
+
+            abstract class FileOutputTask extends DefaultTask {
+                @InputFile
+                final RegularFileProperty inputFile = project.objects.fileProperty()
+                @Nested
+                abstract Params getParams()
 
                 @TaskAction
                 void go() {
-                    println "value: " + prop.get()
+                    def file = params.outputFile.asFile.get()
+                    file.text = inputFile.asFile.get().text
                 }
             }
 
-            task show(type: SomeTask) {
-                prop = file("in.dir")
-                doFirst {
-                    prop = file("other.dir")
-                }
+            task createFile(type: FileOutputTask) {
+                inputFile = layout.projectDirectory.file("file-source.txt")
+                params.outputFile = layout.buildDirectory.file("intermediate.txt")
             }
+            task merge(type: FileOutputTask) {
+                params.outputFile = layout.buildDirectory.file("merged.txt")
+                inputFile = createFile.params.outputFile
+            }
+
+            buildDir = "output"
 """
-        file("in.dir").createDir()
+        file("file-source.txt").text = "file1"
 
         when:
-        fails("show")
+        run("merge")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':show'.")
-        failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
-
-        where:
-        annotation         | _
-        "@InputDirectory"  | _
-        "@OutputDirectory" | _
-    }
-
-    @Unroll
-    def "task ad hoc file property registered using #registrationMethod is implicitly finalized when task starts execution"() {
-        given:
-        buildFile << """
-
-def prop = project.objects.fileProperty()
-
-task thing {
-    ${registrationMethod}(prop)
-    prop.set(file("file-1"))
-    doLast {
-        prop.set(file("ignored"))
-        println "prop = " + prop.get()
-    }
-}
-"""
-        file("file-1").createFile()
+        result.assertTasksExecuted(":createFile", ":merge")
+        file("output/merged.txt").text == 'file1'
 
         when:
-        fails("thing")
+        run("merge")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
-        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
-
-        where:
-        registrationMethod | _
-        "inputs.file"      | _
-        "outputs.file"     | _
-    }
-
-    @Unroll
-    def "task ad hoc directory property registered using #registrationMethod is implicitly finalized when task starts execution"() {
-        given:
-        buildFile << """
-
-def prop = project.objects.directoryProperty()
-
-task thing {
-    ${registrationMethod}(prop)
-    prop.set(file("file-1"))
-    doLast {
-        prop.set(file("ignored"))
-        println "prop = " + prop.get()
-    }
-}
-"""
-        file("file-1").createDir()
+        result.assertTasksNotSkipped()
 
         when:
-        fails("thing")
+        file("file-source.txt").text = "new-file1"
+        run("merge")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
-        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
-
-        where:
-        registrationMethod | _
-        "inputs.dir"       | _
-        "outputs.dir"      | _
+        result.assertTasksExecuted(":createFile", ":merge")
+        file("output/merged.txt").text == 'new-file1'
     }
 
     def "can wire the output file of an ad hoc task as input to another task using property"() {
@@ -743,16 +709,16 @@ task thing {
         buildFile << """
 class SomeTask extends DefaultTask {
     @Optional @InputFile
-    final Property<RegularFile> inFile = project.objects.fileProperty()
+    final RegularFileProperty inFile = project.objects.fileProperty()
 
     @Optional @InputDirectory
-    final Property<Directory> inDir = project.objects.directoryProperty()
+    final DirectoryProperty inDir = project.objects.directoryProperty()
 
     @Optional @OutputFile
-    final Property<RegularFile> outFile = project.objects.fileProperty()
+    final RegularFileProperty outFile = project.objects.fileProperty()
 
     @Optional @OutputDirectory
-    final Property<Directory> outDir = project.objects.directoryProperty()
+    final DirectoryProperty outDir = project.objects.directoryProperty()
 
     @TaskAction
     def go() { }
@@ -820,195 +786,5 @@ class SomeTask extends DefaultTask {
         failure.assertHasDescription("A problem was found with the configuration of task ':consumer' (type 'ConsumerTask').")
         failure.assertHasCause("No value has been specified for property 'bean.inputFile'.")
         failure.assertTasksExecuted(':consumer')
-    }
-
-    def "can query task output file property at any time"() {
-        taskTypeWithOutputFileProperty()
-        buildFile << """
-            task producer(type: FileProducer) {
-                output = layout.buildDir.file("text.out")
-            }
-            println("prop = " + producer.output.get())
-            task after {
-                dependsOn(producer)
-                doLast {
-                    println("prop = " + producer.output.get())
-                }
-            }
-            task before {
-                doLast {
-                    println("prop = " + producer.output.get())
-                }
-            }
-            producer.dependsOn(before)
-        """
-
-        expect:
-        succeeds("after")
-    }
-
-    def "can query task output directory property at any time"() {
-        taskTypeWithOutputDirectoryProperty()
-        buildFile << """
-            task producer(type: DirProducer) {
-                output = layout.buildDir.dir("dir.out")
-                names = ["a", "b"]
-            }
-            println("prop = " + producer.output.get())
-            task after {
-                dependsOn(producer)
-                doLast {
-                    println("prop = " + producer.output.get())
-                }
-            }
-            task before {
-                doLast {
-                    println("prop = " + producer.output.get())
-                }
-            }
-            producer.dependsOn(before)
-        """
-
-        expect:
-        succeeds("after")
-    }
-
-    def "can query mapped task output file location property at any time"() {
-        taskTypeWithOutputFileProperty()
-        buildFile << """
-            task producer(type: FileProducer) {
-                output = layout.buildDir.file("text.out")
-            }
-            def prop = producer.output.locationOnly.map { it.asFile.name }
-            println("prop = " + prop.get())
-            task after {
-                dependsOn(producer)
-                doLast {
-                    println("prop = " + prop.get())
-                }
-            }
-            task before {
-                doLast {
-                    println("prop = " + prop.get())
-                }
-            }
-            producer.dependsOn(before)
-        """
-
-        expect:
-        succeeds("after")
-    }
-
-    def "can query mapped task output directory location property at any time"() {
-        taskTypeWithOutputDirectoryProperty()
-        buildFile << """
-            task producer(type: DirProducer) {
-                output = layout.buildDir.dir("dir.out")
-                names = ["a", "b"]
-            }
-            def prop = producer.output.locationOnly.map { it.asFile.name }
-            println("prop = " + prop.get())
-            task after {
-                dependsOn(producer)
-                doLast {
-                    println("prop = " + prop.get())
-                }
-            }
-            task before {
-                doLast {
-                    println("prop = " + prop.get())
-                }
-            }
-            producer.dependsOn(before)
-        """
-
-        expect:
-        succeeds("after")
-    }
-
-    def "querying the value of a mapped task output file property before the task has started is deprecated"() {
-        taskTypeWithOutputFileProperty()
-        buildFile << """
-            task producer(type: FileProducer) {
-                output = layout.buildDir.file("text.out")
-            }
-            def prop = producer.output.map { it.asFile.file ? it.asFile.text : "(null)" }
-            println("prop = " + prop.get())
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. " +
-            "This will fail with an error in Gradle 7.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed")
-        succeeds("producer")
-
-        then:
-        outputContains("prop = (null)")
-    }
-
-    def "querying the value of a mapped task output file property before the task has completed is deprecated"() {
-        taskTypeWithOutputFileProperty()
-        buildFile << """
-            task producer(type: FileProducer) {
-                output = layout.buildDir.file("text.out")
-            }
-            def prop = producer.output.map { it.asFile.file ? it.asFile.text : "(null)" }
-            producer.doFirst {
-                println("prop = " + prop.get())
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. " +
-            "This will fail with an error in Gradle 7.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed")
-        succeeds("producer")
-
-        then:
-        outputContains("prop = (null)")
-    }
-
-    def "querying the value of a mapped task output directory property before the task has started is deprecated"() {
-        taskTypeWithOutputDirectoryProperty()
-        buildFile << """
-            task producer(type: DirProducer) {
-                output = layout.buildDir.dir("dir.out")
-                names = ["a", "b"]
-            }
-            def prop = producer.output.map { it.asFile.directory ? it.asFile.list().length : -1 }
-            println("prop = " + prop.get())
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. " +
-            "This will fail with an error in Gradle 7.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed")
-        succeeds("producer")
-
-        then:
-        outputContains("prop = -1")
-    }
-
-    def "querying the value of a mapped task output directory property before the task has completed is deprecated"() {
-        taskTypeWithOutputDirectoryProperty()
-        buildFile << """
-            task producer(type: DirProducer) {
-                output = layout.buildDir.dir("dir.out")
-                names = ["a", "b"]
-            }
-            def prop = producer.output.map { it.asFile.directory ? it.asFile.list().length : -1 }
-            producer.doFirst {
-                println("prop = " + prop.get())
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. " +
-            "This will fail with an error in Gradle 7.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed")
-        succeeds("producer")
-
-        then:
-        outputContains("prop = 0")
     }
 }

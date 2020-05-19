@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -30,7 +29,7 @@ import org.gradle.util.GUtil;
 import javax.annotation.Nullable;
 
 /**
- * A partial {@link Provider} implementation. Subclasses need to implement {@link ProviderInternal#getType()} and {@link AbstractMinimalProvider#calculateOwnValue()}.
+ * A partial {@link Provider} implementation. Subclasses must implement {@link ProviderInternal#getType()} and {@link AbstractMinimalProvider#calculateOwnValue(ValueConsumer)}.
  */
 public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, Managed {
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this provider");
@@ -68,45 +67,40 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         return DEFAULT_DISPLAY_NAME;
     }
 
-    protected abstract ValueSupplier.Value<? extends T> calculateOwnValue();
+    protected abstract ValueSupplier.Value<? extends T> calculateOwnValue(ValueConsumer consumer);
 
     @Override
     public boolean isPresent() {
-        return !calculateOwnValue().isMissing();
+        return calculatePresence(ValueConsumer.IgnoreUnsafeRead);
+    }
+
+    @Override
+    public boolean calculatePresence(ValueConsumer consumer) {
+        return !calculateOwnValue(consumer).isMissing();
     }
 
     @Override
     public T get() {
-        Value<? extends T> value = calculateOwnValue();
+        Value<? extends T> value = calculateOwnValue(ValueConsumer.IgnoreUnsafeRead);
         if (value.isMissing()) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node("Cannot query the value of ").append(getDisplayName().getDisplayName()).append(" because it has no value available.");
-            if (!value.getPathToOrigin().isEmpty()) {
-                formatter.node("The value of ").append(getTypedDisplayName().getDisplayName()).append(" is derived from");
-                formatter.startChildren();
-                for (DisplayName displayName : value.getPathToOrigin()) {
-                    formatter.node(displayName.getDisplayName());
-                }
-                formatter.endChildren();
-            }
-            throw new MissingValueException(formatter.toString());
+            throw new MissingValueException(cannotQueryValueOf(value));
         }
         return value.get();
     }
 
     @Override
     public T getOrNull() {
-        return calculateOwnValue().orNull();
+        return calculateOwnValue(ValueConsumer.IgnoreUnsafeRead).orNull();
     }
 
     @Override
     public T getOrElse(T defaultValue) {
-        return calculateOwnValue().orElse(defaultValue);
+        return calculateOwnValue(ValueConsumer.IgnoreUnsafeRead).orElse(defaultValue);
     }
 
     @Override
-    public Value<? extends T> calculateValue() {
-        return calculateOwnValue().pushWhenMissing(getDeclaredDisplayName());
+    public Value<? extends T> calculateValue(ValueConsumer consumer) {
+        return calculateOwnValue(consumer).pushWhenMissing(getDeclaredDisplayName());
     }
 
     @Override
@@ -120,23 +114,25 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
+    public Provider<T> forUseAtConfigurationTime() {
+        // By default, any provider can be used at configuration time
+        return this;
+    }
+
+    @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         // When used as an input, add the producing tasks if known
-        maybeVisitBuildDependencies(context);
+        getProducer().visitProducerTasks(context);
     }
 
     @Override
-    public boolean isValueProducedByTask() {
-        return false;
+    public ValueProducer getProducer() {
+        return ValueProducer.unknown();
     }
 
     @Override
-    public void visitProducerTasks(Action<? super Task> visitor) {
-    }
-
-    @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        return false;
+    public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+        return ExecutionTimeValue.value(calculateOwnValue(ValueConsumer.IgnoreUnsafeRead));
     }
 
     @Override
@@ -144,15 +140,15 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         if (getType() != null && !targetType.isAssignableFrom(getType())) {
             throw new IllegalArgumentException(String.format("Cannot set the value of %s of type %s using a provider of type %s.", owner.getDisplayName(), targetType.getName(), getType().getName()));
         } else if (getType() == null) {
-            return new TypeSanitizingProvider<>(owner, sanitizer, targetType, this);
+            return new MappingProvider<>(Cast.uncheckedCast(targetType), this, new TypeSanitizingTransformer<>(owner, sanitizer, targetType));
         } else {
             return this;
         }
     }
 
     @Override
-    public ProviderInternal<T> withFinalValue() {
-        return Providers.nullableValue(calculateValue());
+    public ProviderInternal<T> withFinalValue(ValueConsumer consumer) {
+        return Providers.nullableValue(calculateValue(consumer));
     }
 
     @Override
@@ -181,4 +177,17 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         return ManagedFactories.ProviderManagedFactory.FACTORY_ID;
     }
 
+    private String cannotQueryValueOf(Value<? extends T> value) {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("Cannot query the value of ").append(getDisplayName().getDisplayName()).append(" because it has no value available.");
+        if (!value.getPathToOrigin().isEmpty()) {
+            formatter.node("The value of ").append(getTypedDisplayName().getDisplayName()).append(" is derived from");
+            formatter.startChildren();
+            for (DisplayName displayName : value.getPathToOrigin()) {
+                formatter.node(displayName.getDisplayName());
+            }
+            formatter.endChildren();
+        }
+        return formatter.toString();
+    }
 }

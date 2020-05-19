@@ -269,7 +269,7 @@ class CIConfigIntegrationTests {
         }.forEach {
             val dir = getSubProjectFolder(it)
             assertEquals(it.unitTests, File(dir, "src/test").isDirectory, "${it.name}'s unitTests is wrong!")
-            assertEquals(it.functionalTests, File(dir, "src/integTest").isDirectory, "${it.name}'s functionalTests is wrong!")
+            assertEquals(it.functionalTests, if (it.name == "docs") true else File(dir, "src/integTest").isDirectory, "${it.name}'s functionalTests is wrong!")
             assertEquals(it.crossVersionTests, File(dir, "src/crossVersionTest").isDirectory, "${it.name}'s crossVersionTests is wrong!")
         }
     }

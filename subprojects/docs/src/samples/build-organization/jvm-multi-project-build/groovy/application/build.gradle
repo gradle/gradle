@@ -1,0 +1,11 @@
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation project(':utilities')
+}
+
+application {
+    mainClass = 'org.gradle.sample.app.Main'
+}

@@ -1,10 +1,8 @@
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.internal.java
 }
 
 dependencies {
@@ -29,11 +27,6 @@ dependencies {
         exclude(module = "slf4j-simple")
     }
 
-    val allTestRuntimeDependencies: DependencySet by rootProject.extra
-    allTestRuntimeDependencies.forEach {
-        integTestRuntimeOnly(it)
-    }
-
     crossVersionTestImplementation(project(":baseServices"))
     crossVersionTestImplementation(project(":core"))
     crossVersionTestImplementation(project(":plugins"))
@@ -47,21 +40,18 @@ dependencies {
     crossVersionTestImplementation(project(":codeQuality"))
     crossVersionTestImplementation(project(":signing"))
 
-    allTestRuntimeDependencies.forEach {
-        crossVersionTestRuntimeOnly(it)
-    }
-
     integTestImplementation(testFixtures(project(":core")))
     integTestImplementation(testFixtures(project(":diagnostics")))
     integTestImplementation(testFixtures(project(":platformNative")))
 }
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
+configurations.integTestRuntimeClasspath {
+    extendsFrom(configurations.fullGradleRuntime.get())
+}
+configurations.crossVersionTestRuntimeClasspath {
+    extendsFrom(configurations.fullGradleRuntime.get())
 }
 
-val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
-integTestTasks.configureEach {
+tasks.withType<IntegrationTest>().configureEach {
     libsRepository.required = true
 }
 

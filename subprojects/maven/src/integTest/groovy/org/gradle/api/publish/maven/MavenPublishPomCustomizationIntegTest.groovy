@@ -136,7 +136,7 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
                                 def dependency = asNode().appendNode('dependencies').appendNode('dependency')
                                 dependency.appendNode('groupId', 'junit')
                                 dependency.appendNode('artifactId', 'junit')
-                                dependency.appendNode('version', '4.12')
+                                dependency.appendNode('version', '4.13')
                                 dependency.appendNode('scope', 'runtime')
                             }
                         }
@@ -152,7 +152,7 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         module.assertPublished()
         def parsedPom = module.parsedPom
         parsedPom.packaging == 'custom-packaging'
-        parsedPom.scopes.runtime.assertDependsOn("junit:junit:4.12")
+        parsedPom.scopes.runtime.assertDependsOn("junit:junit:4.13")
 
         and:
         parsedPom.name == 'custom-name'
@@ -402,7 +402,7 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
                             def dependency = asNode().appendNode('dependencies').appendNode('dependency')
                             dependency.appendNode('groupId', 'junit')
                             dependency.appendNode('artifactId', 'junit')
-                            dependency.appendNode('version', '4.12')
+                            dependency.appendNode('version', '4.13')
                             dependency.appendNode('scope', 'runtime')
                         }
                     }
@@ -418,7 +418,7 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         module.hasGradleMetadataRedirectionMarker()
         def parsedPom = module.parsedPom
         parsedPom.scope("runtime") {
-            assertDependsOn("junit:junit:4.12")
+            assertDependsOn("junit:junit:4.13")
         }
     }
 }

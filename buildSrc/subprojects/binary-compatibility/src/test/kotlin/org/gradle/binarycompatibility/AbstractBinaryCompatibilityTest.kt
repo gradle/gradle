@@ -23,7 +23,7 @@ import org.gradle.testkit.runner.UnexpectedBuildFailure
 import org.hamcrest.CoreMatchers
 
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertThat
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -234,7 +234,7 @@ abstract class AbstractBinaryCompatibilityTest {
                         BinaryCompatibilityHelper.setupJApiCmpRichReportRules(
                             this,
                             AcceptedApiChanges.parse("{acceptedApiChanges:[]}"),
-                            setOf(rootProject.file("v2/src/main/kotlin")),
+                            rootProject.files("v2/src/main/kotlin"),
                             "2.0"
                         )
                     }

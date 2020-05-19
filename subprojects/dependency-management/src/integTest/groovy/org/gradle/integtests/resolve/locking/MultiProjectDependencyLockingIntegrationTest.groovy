@@ -30,6 +30,7 @@ include 'first', 'second'
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def 'does not apply lock defined in a dependent project'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -72,6 +73,7 @@ project(':second') {
         outputContains('org:foo:1.1')
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def 'does apply lock to transitive dependencies from dependent project'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()

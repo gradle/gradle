@@ -37,6 +37,7 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         """
     }
 
+    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
     def "listener added to script receives output synchronously and only while script is running"() {
         buildFile << """
             System.out.println "before" 
@@ -72,6 +73,7 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         succeeds("log")
     }
 
+    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
     def "listener added to task receives output synchronously and only while the task is running"() {
         buildFile << """
             def output = new CollectingListener()
@@ -122,7 +124,7 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         succeeds("log", "other")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
     def "listener added to task receives logging for log level"() {
         buildFile << """
             def output = new CollectingListener()

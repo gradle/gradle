@@ -41,18 +41,18 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
         this(null, version, null);
     }
 
-    private DefaultMutableVersionConstraint(String preferredVersion, String requiredVersion, String strictVersion) {
-        this(preferredVersion, requiredVersion, strictVersion, Collections.<String>emptyList());
+    private DefaultMutableVersionConstraint(@Nullable String preferredVersion, String requiredVersion, @Nullable String strictVersion) {
+        this(preferredVersion, requiredVersion, strictVersion, Collections.emptyList());
     }
 
-    private DefaultMutableVersionConstraint(String preferredVersion, String requiredVersion, String strictVersion, List<String> rejects) {
+    private DefaultMutableVersionConstraint(@Nullable String preferredVersion, String requiredVersion, @Nullable String strictVersion, List<String> rejects) {
         updateVersions(preferredVersion, requiredVersion, strictVersion);
         for (String reject : rejects) {
             this.rejectedVersions.add(nullToEmpty(reject));
         }
     }
 
-    private void updateVersions(String preferredVersion, String requiredVersion, String strictVersion) {
+    private void updateVersions(@Nullable String preferredVersion, @Nullable String requiredVersion, @Nullable String strictVersion) {
         this.preferredVersion = nullToEmpty(preferredVersion);
         this.requiredVersion = nullToEmpty(requiredVersion);
         this.strictVersion = nullToEmpty(strictVersion);
@@ -79,7 +79,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     }
 
     @Override
-    public void setBranch(String branch) {
+    public void setBranch(@Nullable String branch) {
         this.branch = branch;
     }
 
@@ -110,7 +110,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     @Override
     public void strictly(String version) {
-        updateVersions(null, version, version);
+        updateVersions(preferredVersion, version, version);
     }
 
     @Override

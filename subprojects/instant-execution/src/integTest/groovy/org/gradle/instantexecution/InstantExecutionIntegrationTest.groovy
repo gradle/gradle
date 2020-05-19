@@ -65,24 +65,25 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     def "instant execution for help on empty project"() {
         given:
         instantRun "help"
-        def firstRunOutput = result.normalizedOutput
+        def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
             .replaceAll(/Calculating task graph as no instant execution cache is available for tasks: help\n/, '')
-            .replaceAll(/Watching \d+ (directory hierarchies to track changes between builds in \d+ directories|directories to track changes between builds)\n/, '')
-            .replaceAll(/Spent \d+ ms registering watches for file system events\n/, '')
-            .replaceAll(/Virtual file system .*\n/, '')
 
         when:
         instantRun "help"
-        def secondRunOutput = result.normalizedOutput
+        def secondRunOutput = removeVfsLogOutput(result.normalizedOutput)
             .replaceAll(/Reusing instant execution cache. This is not guaranteed to work in any way.\n/, '')
+
+        then:
+        firstRunOutput == secondRunOutput
+    }
+
+    private static String removeVfsLogOutput(String normalizedOutput) {
+        normalizedOutput
             .replaceAll(/Received \d+ file system events .*\n/, '')
             .replaceAll(/Spent \d+ ms processing file system events since last build\n/, '')
             .replaceAll(/Watching \d+ (directory hierarchies to track changes between builds in \d+ directories|directories to track changes between builds)\n/, '')
             .replaceAll(/Spent \d+ ms registering watches for file system events\n/, '')
             .replaceAll(/Virtual file system .*\n/, '')
-
-        then:
-        firstRunOutput == secondRunOutput
     }
 
     def "restores some details of the project structure"() {
@@ -666,7 +667,16 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         """
 
         when:
+        problems.withDoNotFailOnProblems()
         instantFails "broken"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems("field 'value' from type 'SomeTask': $problem")
+            withProblemsWithStackTraceCount(1)
+        }
+
+        when:
         instantFails "broken"
 
         then:
@@ -676,9 +686,9 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         failure.assertHasCause("broken!")
 
         where:
-        type               | reference                    | query
-        "Provider<String>" | "project.providers.provider" | "get()"
-        "FileCollection"   | "project.files"              | "files"
+        type               | reference                    | query   | problem
+        "Provider<String>" | "project.providers.provider" | "get()" | "value 'provider(?)' failed to unpack provider"
+        "FileCollection"   | "project.files"              | "files" | "value 'file collection' failed to visit file collection"
     }
 
     @Unroll
@@ -739,10 +749,13 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "RegularFileProperty"         | "objects.fileProperty()"              | "null"           | "null"
         "ListProperty<String>"        | "objects.listProperty(String)"        | "[]"             | "[]"
         "ListProperty<String>"        | "objects.listProperty(String)"        | "['abc']"        | ['abc']
+        "ListProperty<String>"        | "objects.listProperty(String)"        | "null"           | "null"
         "SetProperty<String>"         | "objects.setProperty(String)"         | "[]"             | "[]"
         "SetProperty<String>"         | "objects.setProperty(String)"         | "['abc']"        | ['abc']
+        "SetProperty<String>"         | "objects.setProperty(String)"         | "null"           | "null"
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "[:]"            | [:]
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "['abc': 'def']" | ['abc': 'def']
+        "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "null"           | "null"
     }
 
     @Unroll
@@ -901,6 +914,48 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     }
 
     @Unroll
+    def "restores task with action that is Java lambda"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaPlugin.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import org.gradle.api.*;
+                import org.gradle.api.tasks.*;
+
+                public class LambdaPlugin implements Plugin<Project> {
+                    public void apply(Project project) {
+                        $type value = $expression;
+                        project.getTasks().register("ok", task -> {
+                            task.doLast(t -> {
+                                System.out.println(task.getName() + " value is " + value);
+                            });
+                        });
+                    }
+                }
+            """
+        }
+
+        buildFile << """
+            apply plugin: my.LambdaPlugin
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("ok value is ${value}")
+
+        where:
+        type      | expression | value
+        "String"  | '"value"'  | "value"
+        "int"     | "12"       | "12"
+        "boolean" | "true"     | "true"
+    }
+
+    @Unroll
     def "restores task fields whose value is #kind TextResource"() {
 
         given:
@@ -1030,5 +1085,32 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         then:
         outputContains("thisTask = true")
         outputContains("bean.owner = true")
+    }
+
+    def "captures changes applied in task graph whenReady listener"() {
+        buildFile << """
+            class SomeTask extends DefaultTask {
+                @Internal
+                String value
+
+                @TaskAction
+                void run() {
+                    println "value = " + value
+                }
+            }
+
+            task ok(type: SomeTask)
+
+            gradle.taskGraph.whenReady {
+                ok.value = 'value'
+            }
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("value = value")
     }
 }

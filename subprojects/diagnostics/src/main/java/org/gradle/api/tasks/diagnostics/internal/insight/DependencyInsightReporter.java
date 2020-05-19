@@ -55,14 +55,11 @@ public class DependencyInsightReporter {
     private final VersionComparator versionComparator;
     private final VersionParser versionParser;
 
-    private static final Transformer<DependencyEdge, DependencyResult> TO_EDGES = new Transformer<DependencyEdge, DependencyResult>() {
-        @Override
-        public DependencyEdge transform(DependencyResult result) {
-            if (result instanceof UnresolvedDependencyResult) {
-                return new UnresolvedDependencyEdge((UnresolvedDependencyResult) result);
-            } else {
-                return new ResolvedDependencyEdge((ResolvedDependencyResult) result);
-            }
+    private static final Transformer<DependencyEdge, DependencyResult> TO_EDGES = result -> {
+        if (result instanceof UnresolvedDependencyResult) {
+            return new UnresolvedDependencyEdge((UnresolvedDependencyResult) result);
+        } else {
+            return new ResolvedDependencyEdge((ResolvedDependencyResult) result);
         }
     };
 
@@ -73,7 +70,7 @@ public class DependencyInsightReporter {
     }
 
     public Collection<RenderableDependency> convertToRenderableItems(Collection<DependencyResult> dependencies, boolean singlePathToDependency) {
-        LinkedList<RenderableDependency> out = new LinkedList<RenderableDependency>();
+        LinkedList<RenderableDependency> out = new LinkedList<>();
         Collection<DependencyEdge> sortedEdges = toDependencyEdges(dependencies);
 
         //remember if module id was annotated
@@ -134,12 +131,10 @@ public class DependencyInsightReporter {
         if (edge instanceof UnresolvedDependencyEdge) {
             UnresolvedDependencyEdge unresolved = (UnresolvedDependencyEdge) edge;
             Throwable failure = unresolved.getFailure();
-            if (failure != null) {
-                DefaultSection failures = new DefaultSection("Failures");
-                String errorMessage = collectErrorMessages(failure, alreadyReportedErrors);
-                failures.addChild(new DefaultSection(errorMessage));
-                sections.add(failures);
-            }
+            DefaultSection failures = new DefaultSection("Failures");
+            String errorMessage = collectErrorMessages(failure, alreadyReportedErrors);
+            failures.addChild(new DefaultSection(errorMessage));
+            sections.add(failures);
         }
     }
 
@@ -206,7 +201,11 @@ public class DependencyInsightReporter {
                 return "Rejection";
             case CONSTRAINT:
                 return "By constraint";
+            case BY_ANCESTOR:
+                return "By ancestor";
+            default:
+                assert false : "Missing an enum value " + cause;
+                return cause.getDefaultReason();
         }
-        return "Unknown";
     }
 }

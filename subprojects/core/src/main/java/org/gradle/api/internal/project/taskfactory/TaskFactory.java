@@ -16,12 +16,16 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.api.tasks.TaskInstantiationException;
+import org.gradle.internal.Describables;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.util.NameValidator;
 
@@ -57,11 +61,25 @@ public class TaskFactory implements ITaskFactory {
         NameValidator.validate(identity.name, "task name", "");
 
         final Class<? extends AbstractTask> implType;
-        if (identity.type.isAssignableFrom(DefaultTask.class)) {
+        if (identity.type == Task.class) {
+            implType = DefaultTask.class;
+        } else if (DefaultTask.class.isAssignableFrom(identity.type)) {
+            implType = identity.type.asSubclass(AbstractTask.class);
+        } else if (identity.type == AbstractTask.class || identity.type == TaskInternal.class) {
+            DeprecationLogger.deprecate("Registering a task with type " + identity.type.getSimpleName())
+                .willBecomeAnErrorInGradle7()
+                .withUpgradeGuideSection(6, "abstract_task_deprecated")
+                .nagUser();
             implType = DefaultTask.class;
         } else {
+            DeprecationLogger.deprecate("Registering a task with a type that directly extends AbstractTask")
+                .willBecomeAnErrorInGradle7()
+                .withUpgradeGuideSection(6, "abstract_task_deprecated")
+                .nagUser();
             implType = identity.type.asSubclass(AbstractTask.class);
         }
+
+        Describable displayName = Describables.withTypeAndName("task", identity.getIdentityPath());
 
         return AbstractTask.injectIntoNewInstance(project, identity, new Callable<S>() {
             @Override
@@ -69,7 +87,7 @@ public class TaskFactory implements ITaskFactory {
                 try {
                     Task instance;
                     if (constructorArgs != null) {
-                        instance = instantiationScheme.instantiator().newInstance(implType, constructorArgs);
+                        instance = instantiationScheme.instantiator().newInstanceWithDisplayName(implType, displayName, constructorArgs);
                     } else {
                         instance = instantiationScheme.deserializationInstantiator().newInstance(implType, AbstractTask.class);
                     }

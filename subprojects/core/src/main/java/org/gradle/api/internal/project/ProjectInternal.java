@@ -56,6 +56,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     Attribute<String> STATUS_ATTRIBUTE = Attribute.of("org.gradle.status", String.class);
 
+    @Nullable
     @Override
     ProjectInternal getParent();
 
@@ -84,6 +85,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     DynamicObject getInheritedScope();
 
     @Override
+    @UsedByScanPlugin("test-distribution")
     GradleInternal getGradle();
 
     ProjectEvaluationListener getProjectEvaluationBroadcaster();

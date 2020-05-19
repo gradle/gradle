@@ -77,17 +77,11 @@ public class DependencyVerifier {
     }
 
     private boolean shouldSkipVerification(ArtifactVerificationOperation.ArtifactKind kind) {
-        if (kind == ArtifactVerificationOperation.ArtifactKind.METADATA && !config.isVerifyMetadata()) {
-            return true;
-        }
-        return false;
+        return kind == ArtifactVerificationOperation.ArtifactKind.METADATA && !config.isVerifyMetadata();
     }
 
     private boolean isTrustedArtifact(ModuleComponentArtifactIdentifier id) {
-        if (config.getTrustedArtifacts().stream().anyMatch(artifact -> artifact.matches(id))) {
-            return true;
-        }
-        return false;
+        return config.getTrustedArtifacts().stream().anyMatch(artifact -> artifact.matches(id));
     }
 
     private void performVerification(ModuleComponentArtifactIdentifier foundArtifact, ChecksumService checksumService, SignatureVerificationService signatureVerificationService, File file, File signature, ArtifactVerificationResultBuilder builder) {
@@ -237,11 +231,9 @@ public class DependencyVerifier {
         if (config.isVerifySignatures()) {
             writeFlags.add("pgp");
         }
-        getVerificationMetadata().forEach(md -> {
-            md.getArtifactVerifications().forEach(av -> {
-                av.getChecksums().forEach(checksum -> writeFlags.add(checksum.getKind().name()));
-            });
-        });
+        getVerificationMetadata().forEach(md -> md.getArtifactVerifications().forEach(av -> {
+            av.getChecksums().forEach(checksum -> writeFlags.add(checksum.getKind().name()));
+        }));
         if (Collections.singleton("pgp").equals(writeFlags)) {
             // need to suggest at least one checksum so we use the most secure
             writeFlags.add("sha512");

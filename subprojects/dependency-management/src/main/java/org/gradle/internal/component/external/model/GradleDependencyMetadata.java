@@ -47,11 +47,11 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     private final boolean force;
     private final List<IvyArtifactName> artifacts;
 
-    public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean endorsing, String reason, boolean force, @Nullable IvyArtifactName artifact) {
+    public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean endorsing, @Nullable String reason, boolean force, @Nullable IvyArtifactName artifact) {
         this(selector, excludes, constraint, endorsing, reason, force, artifact == null ? ImmutableList.of() : ImmutableList.of(artifact));
     }
 
-    private GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean endorsing, String reason, boolean force, List<IvyArtifactName> artifacts) {
+    private GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean endorsing, @Nullable String reason, boolean force, List<IvyArtifactName> artifacts) {
         this.selector = selector;
         this.excludes = excludes;
         this.reason = reason;
@@ -128,7 +128,8 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
 
     @Override
     public boolean isTransitive() {
-        return true;
+        // Constraints are _never_ transitive
+        return !isConstraint();
     }
 
     @Override
@@ -174,11 +175,12 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
             force == that.force &&
             Objects.equal(selector, that.selector) &&
             Objects.equal(excludes, that.excludes) &&
-            Objects.equal(reason, that.reason);
+            Objects.equal(reason, that.reason) &&
+            Objects.equal(artifacts, that.artifacts);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(selector, excludes, constraint, reason, force);
+        return Objects.hashCode(selector, excludes, constraint, reason, force, artifacts);
     }
 }

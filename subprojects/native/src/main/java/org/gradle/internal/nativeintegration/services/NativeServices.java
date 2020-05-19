@@ -28,6 +28,7 @@ import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
 import net.rubygrapefruit.platform.memory.Memory;
 import net.rubygrapefruit.platform.terminal.Terminals;
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.Cast;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
@@ -270,12 +271,11 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
 
     protected FileMetadataAccessor createFileMetadataAccessor(OperatingSystem operatingSystem) {
         // Based on the benchmark found in org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessorBenchmark
-        // and the results in the PR https://github.com/gradle/gradle/pull/1183
-        // we're using "native platform" for Mac OS and a  mix of File and NIO API for Linux and Windows
-        // Once JDK 9 is out, we need to revisit the choice, because testing for file.exists() should become much
-        // cheaper using the pure NIO implementation.
+        // and the results in the PR https://github.com/gradle/gradle/pull/12966
+        // we're using "native platform" for all OSes if available.
+        // If it isn't available, we fall back to using Java NIO and, if that fails, to using the old `File` APIs.
 
-        if ((operatingSystem.isMacOsX()) && useNativeIntegrations) {
+        if (useNativeIntegrations) {
             try {
                 return new NativePlatformBackedFileMetadataAccessor(net.rubygrapefruit.platform.Native.get(Files.class));
             } catch (NativeIntegrationUnavailableException e) {
@@ -284,14 +284,14 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         }
 
         if (JavaVersion.current().isJava7Compatible()) {
-            return newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7FileMetadataAccessor", NativeServices.class.getClassLoader(), FallbackFileMetadataAccessor.class);
+            return newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.NioFileMetadataAccessor", NativeServices.class.getClassLoader(), FallbackFileMetadataAccessor.class);
         }
 
         return new FallbackFileMetadataAccessor();
     }
 
     private <T> T notAvailable(Class<T> type) {
-        return (T) Proxy.newProxyInstance(type.getClassLoader(), new Class[]{type}, new BrokenService(type.getSimpleName()));
+        return Cast.uncheckedNonnullCast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, new BrokenService(type.getSimpleName())));
     }
 
     private static String format(Throwable throwable) {

@@ -62,14 +62,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.Map;
 
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
-    private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
     private static final NoOpGroovyResourceLoader NO_OP_GROOVY_RESOURCE_LOADER = new NoOpGroovyResourceLoader();
     private static final String METADATA_FILE_NAME = "metadata.bin";
     private static final int EMPTY_FLAG = 1;
@@ -160,16 +159,13 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         File metadataFile = new File(metadataDir, METADATA_FILE_NAME);
         try {
             GFileUtils.mkdirs(metadataDir);
-            KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(metadataFile));
-            try {
+            try (KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(metadataFile))) {
                 byte flags = (byte) ((emptyScript ? EMPTY_FLAG : 0) | (hasMethods ? HAS_METHODS_FLAG : 0));
                 encoder.writeByte(flags);
                 if (extractingTransformer != null && extractingTransformer.getDataSerializer() != null) {
                     Serializer<M> serializer = extractingTransformer.getDataSerializer();
                     serializer.write(encoder, extractingTransformer.getExtractedData());
                 }
-            } finally {
-                encoder.close();
             }
         } catch (Exception e) {
             throw new GradleException(String.format("Failed to serialize script metadata extracted for %s", scriptSource.getDisplayName()), e);
@@ -209,22 +205,17 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     public <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, File scriptCacheDir,
                                                                   File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass) {
         File metadataFile = new File(metadataCacheDir, METADATA_FILE_NAME);
-        try {
-            KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(metadataFile));
-            try {
-                byte flags = decoder.readByte();
-                boolean isEmpty = (flags & EMPTY_FLAG) != 0;
-                boolean hasMethods = (flags & HAS_METHODS_FLAG) != 0;
-                M data;
-                if (transformer != null && transformer.getDataSerializer() != null) {
-                    data = transformer.getDataSerializer().read(decoder);
-                } else {
-                    data = null;
-                }
-                return new ClassesDirCompiledScript<T, M>(isEmpty, hasMethods, scriptBaseClass, scriptCacheDir, targetScope, source, sourceHashCode, data);
-            } finally {
-                decoder.close();
+        try (KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(metadataFile))) {
+            byte flags = decoder.readByte();
+            boolean isEmpty = (flags & EMPTY_FLAG) != 0;
+            boolean hasMethods = (flags & HAS_METHODS_FLAG) != 0;
+            M data;
+            if (transformer != null && transformer.getDataSerializer() != null) {
+                data = transformer.getDataSerializer().read(decoder);
+            } else {
+                data = null;
             }
+            return new ClassesDirCompiledScript<>(isEmpty, hasMethods, scriptBaseClass, scriptCacheDir, targetScope, source, sourceHashCode, data);
         } catch (Exception e) {
             throw new IllegalStateException(String.format("Failed to deserialize script metadata extracted for %s", source.getDisplayName()), e);
         }
@@ -274,7 +265,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
     private static class NoOpGroovyResourceLoader implements GroovyResourceLoader {
         @Override
-        public URL loadGroovySource(String filename) throws MalformedURLException {
+        public URL loadGroovySource(String filename) {
             return null;
         }
     }

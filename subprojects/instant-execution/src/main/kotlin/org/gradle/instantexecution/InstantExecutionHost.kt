@@ -66,19 +66,19 @@ class InstantExecutionHost internal constructor(
     private val projectFactory: IProjectFactory
 ) : DefaultInstantExecution.Host {
 
-    override val currentBuild: ClassicModeBuild =
-        DefaultClassicModeBuild()
+    override val currentBuild: VintageGradleBuild =
+        DefaultVintageGradleBuild()
 
     override fun createBuild(rootProjectName: String): InstantExecutionBuild =
         DefaultInstantExecutionBuild(gradle, service(), rootProjectName)
 
-    override fun <T> getService(serviceType: Class<T>): T =
+    override fun <T> service(serviceType: Class<T>): T =
         gradle.services.get(serviceType)
 
     override fun <T> factory(serviceType: Class<T>): Factory<T> =
         gradle.services.getFactory(serviceType)
 
-    inner class DefaultClassicModeBuild : ClassicModeBuild {
+    inner class DefaultVintageGradleBuild : VintageGradleBuild {
         override val buildSrc: Boolean
             get() = gradle.parent != null && gradle.publicBuildPath.buildPath.name == SettingsInternal.BUILD_SRC
 

@@ -32,7 +32,6 @@ import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.TransformSpec;
-import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.Category;
@@ -40,6 +39,7 @@ import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ImmutableCapability;
@@ -103,7 +103,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     @Override
-    public Dependency add(String configurationName, Object dependencyNotation, Closure configureClosure) {
+    @SuppressWarnings("rawtypes")
+    public Dependency add(String configurationName, Object dependencyNotation, @Nullable Closure configureClosure) {
         return doAdd(configurationContainer.getByName(configurationName), dependencyNotation, configureClosure);
     }
 
@@ -113,24 +114,44 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     @Override
-    public Dependency create(Object dependencyNotation, Closure configureClosure) {
+    @SuppressWarnings("rawtypes")
+    public Dependency create(Object dependencyNotation, @Nullable Closure configureClosure) {
         Dependency dependency = dependencyFactory.createDependency(dependencyNotation);
         return ConfigureUtil.configure(configureClosure, dependency);
     }
 
-    private Dependency doAdd(Configuration configuration, Object dependencyNotation, Closure configureClosure) {
+    @SuppressWarnings("rawtypes")
+    private Dependency doAdd(Configuration configuration, Object dependencyNotation, @Nullable Closure configureClosure) {
         if (dependencyNotation instanceof Configuration) {
-            Configuration other = (Configuration) dependencyNotation;
-            if (!configurationContainer.contains(other)) {
-                throw new UnsupportedOperationException("Currently you can only declare dependencies on configurations from the same project.");
-            }
-            configuration.extendsFrom(other);
-            return null;
+            return doAddConfiguration(configuration, (Configuration) dependencyNotation);
         }
+        if (dependencyNotation instanceof Provider<?>) {
+            return doAddProvider(configuration, (Provider<?>) dependencyNotation, configureClosure);
+        } else {
+            return doAddRegularDependency(configuration, dependencyNotation, configureClosure);
+        }
+    }
 
+    private Dependency doAddRegularDependency(Configuration configuration, Object dependencyNotation, Closure<?> configureClosure) {
         Dependency dependency = create(dependencyNotation, configureClosure);
         configuration.getDependencies().add(dependency);
         return dependency;
+    }
+
+    private Dependency doAddProvider(Configuration configuration, Provider<?> dependencyNotation, Closure<?> configureClosure) {
+        Provider<Dependency> lazyDependency = dependencyNotation.map(lazyNotation -> create(lazyNotation, configureClosure));
+        configuration.getDependencies().addLater(lazyDependency);
+        // Return null here because we don't want to prematurely realize the dependency
+        return null;
+    }
+
+    private Dependency doAddConfiguration(Configuration configuration, Configuration dependencyNotation) {
+        Configuration other = dependencyNotation;
+        if (!configurationContainer.contains(other)) {
+            throw new UnsupportedOperationException("Currently you can only declare dependencies on configurations from the same project.");
+        }
+        configuration.extendsFrom(other);
+        return null;
     }
 
     @Override
@@ -144,7 +165,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     @Override
-    public Dependency module(Object notation, Closure configureClosure) {
+    @SuppressWarnings("rawtypes")
+    public Dependency module(Object notation, @Nullable Closure configureClosure) {
         return dependencyFactory.createModule(notation, configureClosure);
     }
 
@@ -229,7 +251,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     @Override
-    public void registerTransform(Action<? super VariantTransform> registrationAction) {
+    @SuppressWarnings("deprecation")
+    public void registerTransform(Action<? super org.gradle.api.artifacts.transform.VariantTransform> registrationAction) {
         transforms.registerTransform(registrationAction);
     }
 
@@ -259,6 +282,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public Dependency enforcedPlatform(Object notation) {
         Dependency platformDependency = create(notation);
         if (platformDependency instanceof ExternalModuleDependency) {
@@ -286,12 +310,10 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
             projectDependency.capabilities(new ProjectTestFixtures(projectDependency.getDependencyProject()));
         } else if (testFixturesDependency instanceof ModuleDependency) {
             ModuleDependency moduleDependency = (ModuleDependency) testFixturesDependency;
-            moduleDependency.capabilities(capabilities -> {
-                capabilities.requireCapability(new ImmutableCapability(
-                    moduleDependency.getGroup(),
-                    moduleDependency.getName() + TEST_FIXTURES_CAPABILITY_APPENDIX,
-                    null));
-            });
+            moduleDependency.capabilities(capabilities -> capabilities.requireCapability(new ImmutableCapability(
+                moduleDependency.getGroup(),
+                moduleDependency.getName() + TEST_FIXTURES_CAPABILITY_APPENDIX,
+                null)));
         }
         return testFixturesDependency;
     }
@@ -310,6 +332,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     private class DirectDependencyAdder implements DynamicAddDependencyMethods.DependencyAdder<Dependency> {
 
         @Override
+        @SuppressWarnings("rawtypes")
         public Dependency add(Configuration configuration, Object dependencyNotation, @Nullable Closure configureAction) {
             return doAdd(configuration, dependencyNotation, configureAction);
         }

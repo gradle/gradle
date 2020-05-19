@@ -119,7 +119,7 @@ public class AntGroovydoc {
             }
         });
         try {
-            return Files.toString(temp, Charset.defaultCharset()).trim();
+            return Files.asCharSource(temp, Charset.defaultCharset()).read().trim();
         } catch (IOException e) {
             throw new GradleException("Unable to find Groovy version needed for Groovydoc", e);
         }

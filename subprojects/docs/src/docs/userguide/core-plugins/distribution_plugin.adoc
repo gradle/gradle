@@ -25,8 +25,8 @@ To use the Distribution Plugin, include the following in your build script:
 
 .Using the Distribution Plugin
 ====
-include::sample[dir="snippets/userguide/distribution/groovy",files="build.gradle[tags=use-plugin]"]
-include::sample[dir="snippets/userguide/distribution/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/base/distribution/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/base/distribution/kotlin",files="build.gradle.kts[tags=use-plugin]"]
 ====
 
 The plugin adds an extension named `distributions` of type link:{groovyDslPath}/org.gradle.api.distribution.DistributionContainer.html[DistributionContainer] to the project. It also creates a single distribution in the distributions container extension named `main`. If your build only produces one distribution you only need to configure this distribution (or use the defaults).
@@ -74,8 +74,8 @@ The following sample creates a `custom` distribution that will cause four additi
 
 .Adding extra distributions
 ====
-include::sample[dir="snippets/userguide/distribution/groovy",files="build.gradle[tags=custom-distribution]"]
-include::sample[dir="snippets/userguide/distribution/kotlin",files="build.gradle.kts[tags=custom-distribution]"]
+include::sample[dir="snippets/base/distribution/groovy",files="build.gradle[tags=custom-distribution]"]
+include::sample[dir="snippets/base/distribution/kotlin",files="build.gradle.kts[tags=custom-distribution]"]
 ====
 
 Given that the project name is `myproject` and version `1.2`, running `gradle customDistZip` will produce a ZIP file named `myproject-custom-1.2.zip`.
@@ -89,8 +89,8 @@ All of the files in the `src/__$distribution.name__/dist` directory will automat
 
 .Configuring the main distribution
 ====
-include::sample[dir="snippets/userguide/distribution/groovy",files="build.gradle[tags=configure-distribution]"]
-include::sample[dir="snippets/userguide/distribution/kotlin",files="build.gradle.kts[tags=configure-distribution]"]
+include::sample[dir="snippets/base/distribution/groovy",files="build.gradle[tags=configure-distribution]"]
+include::sample[dir="snippets/base/distribution/kotlin",files="build.gradle.kts[tags=configure-distribution]"]
 ====
 
 In the example above, the content of the `src/readme` directory will be included in the distribution (along with the files in the `src/main/dist` directory which are added by default).
@@ -135,6 +135,6 @@ With the <<maven_plugin.adoc#maven_plugin, Maven Plugin>> applied, the distribut
 
 .Publishing the distribution ZIP with the Maven Plugin
 ====
-include::sample[dir="snippets/userguide/distribution/groovy",files="build.gradle[tags=publish-distribution]"]
-include::sample[dir="snippets/userguide/distribution/kotlin",files="build.gradle.kts[tags=publish-distribution]"]
+include::sample[dir="snippets/base/distribution/groovy",files="build.gradle[tags=publish-distribution]"]
+include::sample[dir="snippets/base/distribution/kotlin",files="build.gradle.kts[tags=publish-distribution]"]
 ====

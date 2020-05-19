@@ -898,7 +898,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         """
     }
 
-    @ToBeFixedForInstantExecution
     def "implementation of nested closure in decorated bean is tracked"() {
         taskWithNestedBeanWithAction()
         buildFile << """
@@ -932,7 +931,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         output.contains "Implementation of input property 'bean.action' has changed for task ':myTask'"
     }
 
-    @ToBeFixedForInstantExecution
     @ToBeImplemented("https://github.com/gradle/gradle/issues/11703")
     def "nested bean from closure can be used with the build cache"() {
         def project1 = file("project1").createDir()

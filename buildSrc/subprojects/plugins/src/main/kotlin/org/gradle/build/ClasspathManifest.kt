@@ -30,7 +30,6 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
-import org.gradle.kotlin.dsl.*
 
 import java.util.Properties
 import javax.inject.Inject
@@ -66,7 +65,7 @@ abstract class ClasspathManifest @Inject constructor(
     @get:Input
     internal
     val runtime: Provider<String> = providers.provider {
-        runtimeNonProjectDependencies.joinForProperties { it.name }
+        runtimeNonProjectDependencies.map { it.name }.joinForProperties()
     }
 
     @get:Input
@@ -111,6 +110,6 @@ abstract class ClasspathManifest @Inject constructor(
     }
 
     private
-    fun <T : Any> Iterable<T>.joinForProperties(transform: ((T) -> CharSequence)? = null) =
-        joinToString(",", transform = transform)
+    fun Iterable<String>.joinForProperties() =
+        sorted().joinToString(",")
 }

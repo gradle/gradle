@@ -20,7 +20,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.fixtures.CompileJavaBuildOperationsFixture
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.util.TextUtil
@@ -92,7 +91,6 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         file("build/generated-sources/TestAppHelper.java").text == 'class TestAppHelper {    String getValue() { return "greetings"; }}'
     }
 
-    @ToBeFixedForInstantExecution
     def "generated sources are cleaned up on full compilations"() {
         given:
         buildFile << """

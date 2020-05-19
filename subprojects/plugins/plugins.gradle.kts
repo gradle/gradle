@@ -1,5 +1,5 @@
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 /*
  * Copyright 2010 the original author or authors.
@@ -17,7 +17,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
@@ -88,9 +88,13 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
+    ignoreDeprecations() // uses deprecated software model types
+}
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
+classycle {
+    excludePatterns.set(listOf("org/gradle/**"))
 }
 
 val wrapperJarDir = file("$buildDir/generated-resources/wrapper-jar")
@@ -106,3 +110,5 @@ sourceSets.main {
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
+
+integrationTestUsesSampleDir("subprojects/plugins/src/main")

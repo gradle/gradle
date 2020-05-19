@@ -44,8 +44,8 @@ In Gradle however, it is done via a regular dependency declaration on the BOM:
 
 .Depending on a BOM to import its dependency constraints
 ====
-include::sample[dir="snippets/userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
-include::sample[dir="snippets/userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-constraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-constraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
 ====
 
 In the example, the versions of `gson` and `dom4j` are provided by the Spring Boot BOM.
@@ -60,6 +60,6 @@ You can enable this behavior by using the `enforcedPlatform` keyword, instead of
 
 .Importing a BOM, making sure the versions it defines override any other version found
 ====
-include::sample[dir="snippets/userguide/dependencyManagement/managingTransitiveDependencies/enforcedConstraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
-include::sample[dir="snippets/userguide/dependencyManagement/managingTransitiveDependencies/enforcedConstraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedConstraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedConstraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
 ====

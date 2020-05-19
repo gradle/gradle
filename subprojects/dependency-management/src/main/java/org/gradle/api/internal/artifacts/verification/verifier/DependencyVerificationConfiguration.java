@@ -23,6 +23,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class DependencyVerificationConfiguration {
@@ -133,16 +134,16 @@ public class DependencyVerificationConfiguration {
             if (regex != that.regex) {
                 return false;
             }
-            if (group != null ? !group.equals(that.group) : that.group != null) {
+            if (!Objects.equals(group, that.group)) {
                 return false;
             }
-            if (name != null ? !name.equals(that.name) : that.name != null) {
+            if (!Objects.equals(name, that.name)) {
                 return false;
             }
-            if (version != null ? !version.equals(that.version) : that.version != null) {
+            if (!Objects.equals(version, that.version)) {
                 return false;
             }
-            return fileName != null ? fileName.equals(that.fileName) : that.fileName == null;
+            return Objects.equals(fileName, that.fileName);
         }
 
         @Override

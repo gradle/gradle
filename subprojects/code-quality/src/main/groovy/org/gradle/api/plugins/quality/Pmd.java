@@ -71,12 +71,14 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     private int rulePriority;
     private boolean consoleOutput;
     private FileCollection classpath;
-    private Property<Boolean> incrementalAnalysis;
+    private final Property<Integer> maxFailures;
+    private final Property<Boolean> incrementalAnalysis;
 
     public Pmd() {
         ObjectFactory objects = getObjectFactory();
         reports = objects.newInstance(PmdReportsImpl.class, this);
         this.incrementalAnalysis = objects.property(Boolean.class);
+        this.maxFailures = objects.property(Integer.class);
     }
 
     @Inject
@@ -159,7 +161,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
-     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.21.0/pmd_rules_java.html">official list</a> of built-in rule sets.
+     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.23.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
      * <pre>
      *     ruleSets = ["basic", "braces"]
@@ -171,7 +173,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
-     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.21.0/pmd_rules_java.html">official list</a> of built-in rule sets.
+     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.23.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
      * <pre>
      *     ruleSets = ["basic", "braces"]
@@ -199,7 +201,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     /**
      * The custom rule set to be used (if any). Replaces {@code ruleSetFiles}, except that it does not currently support multiple rule sets.
      *
-     * See the <a href="https://pmd.github.io/pmd-6.21.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set.
+     * See the <a href="https://pmd.github.io/pmd-6.23.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set.
      *
      * <pre>
      *     ruleSetConfig = resources.text.fromFile(resources.file("config/pmd/myRuleSets.xml"))
@@ -217,7 +219,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     /**
      * The custom rule set to be used (if any). Replaces {@code ruleSetFiles}, except that it does not currently support multiple rule sets.
      *
-     * See the <a href="https://pmd.github.io/pmd-6.21.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set.
+     * See the <a href="https://pmd.github.io/pmd-6.23.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set.
      *
      * <pre>
      *     ruleSetConfig = resources.text.fromFile(resources.file("config/pmd/myRuleSets.xml"))
@@ -230,7 +232,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
-     * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.21.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
+     * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.23.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
      * If you want to only use custom rule sets, you must clear {@code ruleSets}.
      *
      * <pre>
@@ -244,7 +246,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
-     * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.21.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
+     * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.23.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
      * This adds to the default rule sets defined by {@link #getRuleSets()}.
      *
      * <pre>
@@ -290,6 +292,21 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
+     * The maximum number of failures to allow before stopping the build.
+     *
+     * Defaults to 0, which will stop the build on any failure.  Values 0 and
+     * above are valid.  If <pre>ignoreFailures</pre> is set, this is ignored
+     * and the build will continue (infinite failures allowed).
+     *
+     * @since 6.4
+     */
+    @Input
+    @Incubating
+    public Property<Integer> getMaxFailures() {
+        return maxFailures;
+    }
+
+    /**
      * Specifies the rule priority threshold.
      *
      * @since 2.8
@@ -308,7 +325,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     public void setRulePriority(int intValue) {
         validate(intValue);
         rulePriority = intValue;
-
     }
 
     /**
@@ -362,7 +378,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     /**
      * Controls whether to use incremental analysis or not.
      *
-     * This is only supported for PMD 6.0.0 or better. See <a href="https://pmd.github.io/pmd-6.21.0/pmd_userdocs_incremental_analysis.html"></a> for more details.
+     * This is only supported for PMD 6.0.0 or better. See <a href="https://pmd.github.io/pmd-6.23.0/pmd_userdocs_incremental_analysis.html"></a> for more details.
      *
      * @since 5.6
      */

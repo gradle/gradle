@@ -34,7 +34,9 @@ class GenerateSubprojectsInfoPlugin : Plugin<Project> {
 open class GenerateSubprojectsInfoTask : DefaultTask() {
     @TaskAction
     fun generateSubprojectsInfo() {
-        val subprojects: List<GradleSubproject> = project.rootDir.resolve("subprojects").listFiles(File::isDirectory).map(this::generateSubproject)
+        val subprojects: List<GradleSubproject> = project.rootDir.resolve("subprojects").listFiles(File::isDirectory)!!
+            .sorted()
+            .map(this::generateSubproject)
         val gson = GsonBuilder().setPrettyPrinting().create()
         project.rootDir.resolve(".teamcity/subprojects.json").writeText(gson.toJson(subprojects))
     }
@@ -44,7 +46,7 @@ open class GenerateSubprojectsInfoTask : DefaultTask() {
         return GradleSubproject(subprojectDir.name,
             subprojectDir.name.kebabToCamel(),
             subprojectDir.hasDescendantDir("src/test"),
-            subprojectDir.hasDescendantDir("src/integTest"),
+            if (subprojectDir.name == "docs") true else subprojectDir.hasDescendantDir("src/integTest"),
             subprojectDir.hasDescendantDir("src/crossVersionTest"))
     }
 }

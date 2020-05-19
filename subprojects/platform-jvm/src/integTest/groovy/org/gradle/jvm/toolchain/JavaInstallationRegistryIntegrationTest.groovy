@@ -200,6 +200,7 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
         outputContains("java version = ${Jvm.current().javaVersion}")
     }
 
+    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#268")
     def "reports unrecognized Java installation"() {
         file("install/bin/java").createFile()
 

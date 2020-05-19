@@ -17,11 +17,9 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution
     def "jvm argument providers are passed to the test worker"() {
         file("src/test/java/FooTest.java") << """
             import java.io.*;
@@ -45,9 +43,9 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                testImplementation "junit:junit:4.12"
-            }              
-                                   
+                testImplementation "junit:junit:4.13"
+            }
+
             class MyTestSystemProperties implements CommandLineArgumentProvider {
                 @InputFile
                 @PathSensitive(PathSensitivity.NONE)
@@ -59,7 +57,9 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            test.jvmArgumentProviders << new MyTestSystemProperties(inputFile: file(project.property('inputFile')))
+            test.jvmArgumentProviders << new MyTestSystemProperties(
+                inputFile: file(providers.gradleProperty('inputFile').forUseAtConfigurationTime().get())
+            )
         """
         file('inputFile.txt').text = "Test"
 

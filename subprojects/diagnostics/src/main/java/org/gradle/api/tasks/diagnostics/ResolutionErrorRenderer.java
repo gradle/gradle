@@ -63,38 +63,32 @@ class ResolutionErrorRenderer implements Action<Throwable> {
     }
 
     private void handleOutOfDateLocks(final LockOutOfDateException cause) {
-        registerError(new Action<StyledTextOutput>() {
-            @Override
-            public void execute(StyledTextOutput output) {
-                List<String> errors = cause.getErrors();
-                output.text("The dependency locks are out-of-date:");
-                output.println();
-                for (String error : errors) {
-                    output.text("   - " + error);
-                    output.println();
-                }
+        registerError(output -> {
+            List<String> errors = cause.getErrors();
+            output.text("The dependency locks are out-of-date:");
+            output.println();
+            for (String error : errors) {
+                output.text("   - " + error);
                 output.println();
             }
+            output.println();
         });
     }
 
     private void handleConflict(final VersionConflictException conflict) {
-        registerError(new Action<StyledTextOutput>() {
-            @Override
-            public void execute(StyledTextOutput output) {
-                output.text("Dependency resolution failed because of conflict(s) on the following module(s):");
-                output.println();
-                for (Pair<List<? extends ModuleVersionIdentifier>, String> identifierStringPair : conflict.getConflicts()) {
-                    boolean matchesSpec = hasVersionConflictOnRequestedDependency(identifierStringPair.getLeft());
-                    if (!matchesSpec) {
-                        continue;
-                    }
-                    output.text("   - ");
-                    output.withStyle(StyledTextOutput.Style.Error).text(identifierStringPair.getRight());
-                    output.println();
+        registerError(output -> {
+            output.text("Dependency resolution failed because of conflict(s) on the following module(s):");
+            output.println();
+            for (Pair<List<? extends ModuleVersionIdentifier>, String> identifierStringPair : conflict.getConflicts()) {
+                boolean matchesSpec = hasVersionConflictOnRequestedDependency(identifierStringPair.getLeft());
+                if (!matchesSpec) {
+                    continue;
                 }
+                output.text("   - ");
+                output.withStyle(StyledTextOutput.Style.Error).text(identifierStringPair.getRight());
                 output.println();
             }
+            output.println();
         });
 
     }

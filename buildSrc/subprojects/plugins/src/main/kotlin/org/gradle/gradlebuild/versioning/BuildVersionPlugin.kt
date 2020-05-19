@@ -16,10 +16,8 @@
 
 package org.gradle.gradlebuild.versioning
 
-import org.gradle.StartParameter
 import org.gradle.api.Describable
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileContents
@@ -32,9 +30,7 @@ import org.gradle.api.tasks.Optional
 import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.BuildEnvironment.CI_ENVIRONMENT_VARIABLE
-import org.gradle.internal.Cast
 import org.gradle.kotlin.dsl.*
-import org.gradle.plugins.buildtypes.BuildType
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -49,12 +45,6 @@ class BuildVersionPlugin : Plugin<Project> {
 
 private
 fun Project.setBuildVersion() {
-
-    val isPromotionBuild = isPromotionBuild()
-    if (isPromotionBuild) {
-        logger.logStartParameter(gradle.startParameter)
-    }
-
     val finalRelease = gradleProperty("finalRelease").orNull
     val rcNumber = gradleProperty("rcNumber").orNull
     val milestoneNumber = gradleProperty("milestoneNumber").orNull
@@ -91,11 +81,14 @@ fun Project.setBuildVersion() {
         }
     }
 
-    project.version = versionNumber
+    allprojects {
+        group = "org.gradle"
+        version = versionNumber
+    }
 
     registerBuildReceiptTask(versionNumber, baseVersion, isSnapshot, buildTimestamp)
 
-    if (isPromotionBuild) {
+    if (isPromotionBuild()) {
         logger.logBuildVersion(versionNumber, baseVersion, isSnapshot, buildTimestamp.get())
     }
 
@@ -104,6 +97,10 @@ fun Project.setBuildVersion() {
         BuildVersion(baseVersion, isSnapshot)
     )
 }
+
+
+private
+fun Project.isPromotionBuild(): Boolean = gradle.startParameter.taskNames.contains("promotionBuild")
 
 
 private
@@ -126,15 +123,6 @@ fun Project.registerBuildReceiptTask(
             this.destinationDir = rootProject.buildDir
         }
     }
-}
-
-
-private
-fun Logger.logStartParameter(startParameter: StartParameter) {
-    lifecycle(
-        "Invocation tasks: ${startParameter.taskNames}\n" +
-            "Invocation properties: ${startParameter.projectProperties}"
-    )
 }
 
 
@@ -165,7 +153,7 @@ fun Logger.logBuildVersion(
  */
 private
 fun Project.trimmedContentsOfFile(path: String): String =
-    fileContentsOf(path).asText.get().trim()
+    fileContentsOf(path).asText.forUseAtConfigurationTime().get().trim()
 
 
 private
@@ -184,14 +172,14 @@ fun Project.buildTimestamp(): Provider<String> =
                 gradleProperty("buildTimestamp")
             )
             runningOnCi.set(
-                providers.environmentVariable(CI_ENVIRONMENT_VARIABLE)
+                environmentVariable(CI_ENVIRONMENT_VARIABLE)
                     .presence()
             )
             runningInstallTask.set(provider {
                 isRunningInstallTask()
             })
         }
-    }
+    }.forUseAtConfigurationTime()
 
 
 private
@@ -208,9 +196,10 @@ fun Project.buildTimestampFromBuildReceipt(): Provider<String> =
                     .file(BuildReceipt.BUILD_RECEIPT_FILE_NAME)
                     .let(providers::fileContents)
                     .asText
+                    .forUseAtConfigurationTime()
             )
         }
-    }
+    }.forUseAtConfigurationTime()
 
 
 abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampValueSource.Parameters>, Describable {
@@ -308,18 +297,13 @@ fun Date.withoutTime(): Date = SimpleDateFormat("yyyy-MM-dd").run {
 
 
 private
-fun Project.isPromotionBuild(): Boolean =
-    buildTypes["promotionBuild"].active
-
-
-private
-val Project.buildTypes
-    get() = extensions.getByName<NamedDomainObjectContainer<BuildType>>("buildTypes")
+fun Project.environmentVariable(variableName: String): Provider<String> =
+    providers.environmentVariable(variableName).forUseAtConfigurationTime()
 
 
 private
 fun Project.gradleProperty(propertyName: String): Provider<String> =
-    providers.gradleProperty(propertyName)
+    providers.gradleProperty(propertyName).forUseAtConfigurationTime()
 
 
 /**
@@ -330,8 +314,3 @@ fun Project.gradleProperty(propertyName: String): Provider<String> =
 private
 fun <T> Provider<T>.presence(): Provider<Boolean> =
     map { true }.orElse(false)
-
-
-private
-fun <T> Any.uncheckedCast(): T =
-    Cast.uncheckedNonnullCast(this)

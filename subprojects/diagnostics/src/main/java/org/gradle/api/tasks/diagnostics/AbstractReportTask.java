@@ -16,9 +16,7 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
@@ -48,13 +46,8 @@ public abstract class AbstractReportTask extends ConventionTask {
     private Set<Project> projects;
 
     protected AbstractReportTask() {
-        getOutputs().upToDateWhen(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return false;
-            }
-        });
-        projects = new HashSet<Project>();
+        getOutputs().upToDateWhen(element -> false);
+        projects = new HashSet<>();
         projects.add(getProject());
     }
 
@@ -70,20 +63,17 @@ public abstract class AbstractReportTask extends ConventionTask {
 
     @TaskAction
     public void generate() {
-        ProjectReportGenerator projectReportGenerator = new ProjectReportGenerator() {
-            @Override
-            public void generateReport(Project project) throws IOException {
-                generate(project);
+        ProjectReportGenerator projectReportGenerator = project -> {
+            generate(project);
 
-                if (shouldCreateReportFile()) {
-                    project.getLogger().lifecycle("See the report at: {}", new ConsoleRenderer().asClickableFileUrl(getOutputFile()));
-                }
+            if (shouldCreateReportFile()) {
+                project.getLogger().lifecycle("See the report at: {}", new ConsoleRenderer().asClickableFileUrl(getOutputFile()));
             }
         };
 
         ReportGenerator reportGenerator = new ReportGenerator(getRenderer(), getClientMetaData(), getOutputFile(),
                 getTextOutputFactory(), projectReportGenerator);
-        reportGenerator.generateReport(new TreeSet<Project>(getProjects()));
+        reportGenerator.generateReport(new TreeSet<>(getProjects()));
     }
 
     private boolean shouldCreateReportFile() {

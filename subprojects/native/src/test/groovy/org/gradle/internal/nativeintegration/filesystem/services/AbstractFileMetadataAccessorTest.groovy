@@ -16,6 +16,8 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services
 
+import org.gradle.internal.file.FileMetadata
+import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.FileType
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -25,13 +27,20 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.internal.file.FileMetadata.AccessType.DIRECT
+import static org.gradle.internal.file.FileMetadata.AccessType.VIA_SYMLINK
+
 @UsesNativeServices
 abstract class AbstractFileMetadataAccessorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     abstract FileMetadataAccessor getAccessor()
 
-    abstract long lastModified(File file)
+    abstract void assertSameLastModified(FileMetadata fileMetadata, File file)
+
+    void assertSameAccessType(FileMetadata fileMetadata, AccessType accessType) {
+        assert fileMetadata.accessType == accessType
+    }
 
     def "stats missing file"() {
         def file = tmpDir.file("missing")
@@ -41,6 +50,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.type == FileType.Missing
         stat.lastModified == 0
         stat.length == 0
+        assertSameAccessType(stat, DIRECT)
     }
 
     def "stats regular file"() {
@@ -50,8 +60,9 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         expect:
         def stat = accessor.stat(file)
         stat.type == FileType.RegularFile
-        stat.lastModified == lastModified(file)
+        assertSameLastModified(stat, file)
         stat.length == 3
+        assertSameAccessType(stat, DIRECT)
     }
 
     def "stats directory"() {
@@ -62,6 +73,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.type == FileType.Directory
         stat.lastModified == 0
         stat.length == 0
+        assertSameAccessType(stat, DIRECT)
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -74,7 +86,99 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         expect:
         def stat = accessor.stat(link)
         stat.type == FileType.RegularFile
-        stat.lastModified == lastModified(file)
+        assertSameLastModified(stat, file)
         stat.length == 3
+        assertSameAccessType(stat, VIA_SYMLINK)
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "stats symlink to directory"() {
+        def dir = tmpDir.createDir("dir")
+        def link = tmpDir.file("link")
+        link.createLink(dir)
+
+        expect:
+        def stat = accessor.stat(link)
+        stat.type == FileType.Directory
+        stat.lastModified == 0
+        stat.length == 0
+        assertSameAccessType(stat, VIA_SYMLINK)
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "stats broken symlink"() {
+        def file = tmpDir.file("file")
+        def link = tmpDir.file("link")
+        link.createLink(file)
+
+        expect:
+        def stat = accessor.stat(link)
+        stat.type == FileType.Missing
+        stat.lastModified == 0
+        stat.length == 0
+        assertSameAccessType(stat, VIA_SYMLINK)
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "stats symlink pointing to symlink pointing to file"() {
+        def file = tmpDir.file("file")
+        file.text = "123"
+        def link = tmpDir.file("link")
+        link.createLink(file)
+        def linkToLink = tmpDir.file("linkToLink")
+        linkToLink.createLink(link)
+
+        expect:
+        def stat = accessor.stat(linkToLink)
+        stat.type == FileType.RegularFile
+        assertSameLastModified(stat, file)
+        stat.length == 3
+        assertSameAccessType(stat, VIA_SYMLINK)
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "stats symlink pointing to broken symlink"() {
+        def file = tmpDir.file("file")
+        def link = tmpDir.file("link")
+        link.createLink(file)
+        def linkToLink = tmpDir.file("linkToBrokenLink")
+        linkToLink.createLink(link)
+
+        expect:
+        def stat = accessor.stat(linkToLink)
+        stat.type == FileType.Missing
+        stat.lastModified == 0
+        stat.length == 0
+        assertSameAccessType(stat, VIA_SYMLINK)
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "stats a symlink cycle"() {
+        def first = tmpDir.file("first")
+        def second = tmpDir.file("second")
+        def third = tmpDir.file("third")
+        first.createLink(second)
+        second.createLink(third)
+        third.createLink(first)
+
+        expect:
+        def stat = accessor.stat(first)
+        stat.type == FileType.Missing
+        stat.lastModified == 0
+        stat.length == 0
+        assertSameAccessType(stat, VIA_SYMLINK)
+    }
+
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "stats named pipes"() {
+        def pipe = tmpDir.file("testPipe").createNamedPipe()
+
+        when:
+        def stat = accessor.stat(pipe)
+        then:
+        stat.type == FileType.Missing
+        stat.lastModified == 0
+        stat.length == 0
+        assertSameAccessType(stat, DIRECT)
     }
 }

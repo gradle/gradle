@@ -74,7 +74,7 @@ class SelectorStateResolverResults {
             throw failure;
         }
 
-        return resolved == null ? Collections.<T>emptyList() : resolved;
+        return resolved == null ? Collections.emptyList() : resolved;
     }
 
     static <T extends ComponentResolutionState> boolean isVersionAllowedByPlatform(T componentState) {
@@ -87,10 +87,8 @@ class SelectorStateResolverResults {
             }
         } else {
             VirtualPlatformState platform = componentState.getPlatformState();
-            if (platform != null && platform.isGreaterThanForcedVersion(componentState.getVersion())) {
-                // the platform itself is greater than the forced version
-                return false;
-            }
+            // the platform itself is greater than the forced version
+            return platform == null || !platform.isGreaterThanForcedVersion(componentState.getVersion());
         }
         return true;
     }

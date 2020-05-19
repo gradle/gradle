@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
-    `java-library`
-    gradlebuild.`strict-compile`
+    gradlebuild.distribution.`core-api-java`
 }
 
 dependencies {
@@ -47,14 +44,14 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
+classycle {
+    excludePatterns.set(listOf("org/gradle/testkit/runner/internal/**"))
 }
 
-tasks.register<IntegrationTest>("crossVersionTests") {
-    description = "Runs the TestKit version compatibility tests"
-    systemProperties["org.gradle.integtest.testkit.compatibility"] = "all"
-    systemProperties["org.gradle.integtest.executer"] = "forking"
+tasks.integMultiVersionTest {
+    systemProperty("org.gradle.integtest.testkit.compatibility", "all")
+    // TestKit multi version tests are not using JUnit categories
+    (options as JUnitOptions).includeCategories.clear()
 }
 
 testFilesCleanup {

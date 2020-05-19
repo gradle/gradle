@@ -61,6 +61,10 @@ public class ProjectStateInternal implements ProjectState {
         return state == State.UNCONFIGURED;
     }
 
+    public boolean hasCompleted() {
+        return state == State.CONFIGURED;
+    }
+
     public void toBeforeEvaluate() {
         assert state == State.UNCONFIGURED;
         state = State.IN_BEFORE_EVALUATE;

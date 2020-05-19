@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
@@ -26,7 +25,6 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
-import java.io.IOException;
 import java.util.List;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
@@ -36,7 +34,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
  * task from the command-line.</p>
  */
 public class ProjectReportTask extends AbstractReportTask {
-    private TextReportRenderer renderer = new TextReportRenderer();
+    private final TextReportRenderer renderer = new TextReportRenderer();
 
     @Override
     protected TextReportRenderer getRenderer() {
@@ -44,7 +42,7 @@ public class ProjectReportTask extends AbstractReportTask {
     }
 
     @Override
-    protected void generate(Project project) throws IOException {
+    protected void generate(Project project) {
         BuildClientMetaData metaData = getClientMetaData();
 
         StyledTextOutput textOutput = getRenderer().getTextOutput();
@@ -77,13 +75,10 @@ public class ProjectReportTask extends AbstractReportTask {
 
     private void render(final Project project, GraphRenderer renderer, boolean lastChild,
                         final StyledTextOutput textOutput) {
-        renderer.visit(new Action<StyledTextOutput>() {
-            @Override
-            public void execute(StyledTextOutput styledTextOutput) {
-                styledTextOutput.text(StringUtils.capitalize(project.toString()));
-                if (GUtil.isTrue(project.getDescription())) {
-                    textOutput.withStyle(Description).format(" - %s", project.getDescription());
-                }
+        renderer.visit(styledTextOutput -> {
+            styledTextOutput.text(StringUtils.capitalize(project.toString()));
+            if (GUtil.isTrue(project.getDescription())) {
+                textOutput.withStyle(Description).format(" - %s", project.getDescription());
             }
         }, lastChild);
         renderer.startChildren();

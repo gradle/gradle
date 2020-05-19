@@ -293,7 +293,6 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
     }
 
-    @ToBeFixedForInstantExecution
     def "can recover from --offline mode"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -400,7 +399,6 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         failure.assertHasCause("No cached resource '${server.uri}/repo/group/projectB/2.2/status-offline.txt' available for offline mode.")
     }
 
-    @ToBeFixedForInstantExecution
     def "reports and recovers from remote failure"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -507,7 +505,6 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         succeeds 'checkDeps'
     }
 
-    @ToBeFixedForInstantExecution
     def "handles and recovers from errors in a custom metadata provider"() {
         given:
         buildFile << """
@@ -1196,7 +1193,6 @@ group:projectB:2.2;release
 
     }
 
-    @ToBeFixedForInstantExecution
     def "cross-build caching is resilient to failure"() {
         def metadataFile = file("buildSrc/src/main/groovy/MP.groovy")
         executer.requireIsolatedDaemons() // because we're going to --stop

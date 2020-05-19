@@ -16,8 +16,9 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.Action;
 import org.gradle.api.execution.internal.TaskInputsListener;
+import org.gradle.api.execution.internal.TaskInputsListeners;
+import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.deployment.internal.Deployment;
 import org.gradle.deployment.internal.DeploymentInternal;
@@ -49,17 +50,25 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.util.DisconnectableInputStream;
 
+import java.util.function.Supplier;
+
 public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final BuildActionExecuter<BuildActionParameters> delegate;
-    private final TaskInputsListener inputsListener;
+    private final TaskInputsListeners inputsListeners;
     private final OperatingSystem operatingSystem;
     private final FileSystemChangeWaiterFactory changeWaiterFactory;
     private final ExecutorFactory executorFactory;
     private final StyledTextOutput logger;
 
-    public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileSystemChangeWaiterFactory changeWaiterFactory, TaskInputsListener inputsListener, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
+    public ContinuousBuildActionExecuter(
+        BuildActionExecuter<BuildActionParameters> delegate,
+        FileSystemChangeWaiterFactory changeWaiterFactory,
+        TaskInputsListeners inputsListeners,
+        StyledTextOutputFactory styledTextOutputFactory,
+        ExecutorFactory executorFactory
+    ) {
         this.delegate = delegate;
-        this.inputsListener = inputsListener;
+        this.inputsListeners = inputsListeners;
         this.operatingSystem = OperatingSystem.current();
         this.executorFactory = executorFactory;
         this.changeWaiterFactory = changeWaiterFactory;
@@ -113,7 +122,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     }
 
     private BuildActionResult executeMultipleBuilds(BuildAction action, final BuildRequestContext requestContext, final BuildActionParameters actionParameters, final ServiceRegistry buildSessionScopeServices,
-                                         CancellableOperationManager cancellableOperationManager, ContinuousExecutionGate continuousExecutionGate) {
+                                                    CancellableOperationManager cancellableOperationManager, ContinuousExecutionGate continuousExecutionGate) {
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
 
         BuildActionResult lastResult;
@@ -127,19 +136,14 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
                     logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as no executed tasks declared file system inputs.");
                     return lastResult;
                 } else {
-                    cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>() {
-                        @Override
-                        public void execute(BuildCancellationToken cancellationToken) {
-                            FileWatcherEventListener reporter = new DefaultFileWatcherEventListener();
-                            waiter.wait(new Runnable() {
-                                @Override
-                                public void run() {
-                                    logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(requestContext));
-                                }
-                            }, reporter);
-                            if (!cancellationToken.isCancellationRequested()) {
-                                reporter.reportChanges(logger);
-                            }
+                    cancellableOperationManager.monitorInput(operationToken -> {
+                        FileWatcherEventListener reporter = new DefaultFileWatcherEventListener();
+                        waiter.wait(
+                            () -> logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(requestContext)),
+                            reporter
+                        );
+                        if (!operationToken.isCancellationRequested()) {
+                            reporter.reportChanges(logger);
                         }
                     });
                 }
@@ -177,13 +181,25 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         }
     }
 
-    private BuildActionResult executeBuildAndAccumulateInputs(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, final FileSystemChangeWaiter waiter, ServiceRegistry buildSessionScopeServices) {
-        try {
-            inputsListener.setFileSystemWaiter(waiter);
-            return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
-        } finally {
-            inputsListener.setFileSystemWaiter(null);
-        }
+    private BuildActionResult executeBuildAndAccumulateInputs(
+        BuildAction action,
+        BuildRequestContext requestContext,
+        BuildActionParameters actionParameters,
+        final FileSystemChangeWaiter waiter,
+        ServiceRegistry buildSessionScopeServices
+    ) {
+        return withTaskInputsListener(
+            (task, fileSystemInputs) -> waiter.watch(FileSystemSubset.of(fileSystemInputs)),
+            () -> delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices)
+        );
+    }
 
+    private <T> T withTaskInputsListener(TaskInputsListener listener, Supplier<T> supplier) {
+        try {
+            inputsListeners.addListener(listener);
+            return supplier.get();
+        } finally {
+            inputsListeners.removeListener(listener);
+        }
     }
 }

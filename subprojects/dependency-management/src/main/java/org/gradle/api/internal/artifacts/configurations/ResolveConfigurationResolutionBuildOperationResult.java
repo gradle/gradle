@@ -66,7 +66,7 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
 
     @Override
     public Object getCustomOperationTraceSerializableModel() {
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         model.put("resolvedDependenciesCount", getRootComponent().getDependencies().size());
         final Map<String, Map<String, String>> components = Maps.newHashMap();
         resolutionResult.allComponents(component -> components.put(
@@ -74,7 +74,7 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
             Collections.singletonMap("repoName", ((ResolvedComponentResultInternal) component).getRepositoryName())
         ));
         model.put("components", components);
-        ImmutableList.Builder<Object> requestedAttributesBuilder = new ImmutableList.Builder<Object>();
+        ImmutableList.Builder<Object> requestedAttributesBuilder = new ImmutableList.Builder<>();
         for (Attribute<?> att : requestedAttributes.keySet()) {
             requestedAttributesBuilder.add(ImmutableMap.of("name", att.getName(), "value", requestedAttributes.getAttribute(att).toString()));
         }
@@ -95,7 +95,7 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         private final ImmutableAttributesFactory attributesFactory;
         private ImmutableAttributes desugared;
 
-        private LazyDesugaringAttributeContainer(AttributeContainer source, ImmutableAttributesFactory attributesFactory) {
+        private LazyDesugaringAttributeContainer(@Nullable AttributeContainer source, ImmutableAttributesFactory attributesFactory) {
             this.source = source;
             this.attributesFactory = attributesFactory;
         }
@@ -134,6 +134,11 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         @Override
         public ImmutableAttributes asImmutable() {
             return getDesugared();
+        }
+
+        @Override
+        public Map<Attribute<?>, ?> asMap() {
+            return getDesugared().asMap();
         }
 
         @Override

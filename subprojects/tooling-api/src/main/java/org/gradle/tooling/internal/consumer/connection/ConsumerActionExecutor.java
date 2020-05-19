@@ -27,8 +27,10 @@ public interface ConsumerActionExecutor extends Stoppable {
      */
     @Override
     void stop();
-    
+
     String getDisplayName();
 
     <T> T run(ConsumerAction<T> action) throws UnsupportedOperationException, IllegalStateException;
+
+    void disconnect();
 }

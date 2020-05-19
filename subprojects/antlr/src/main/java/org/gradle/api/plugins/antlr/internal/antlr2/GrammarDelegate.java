@@ -30,7 +30,7 @@ import java.util.List;
 public class GrammarDelegate {
     public static List<GrammarDelegate> extractGrammarDelegates(GrammarFile antlrGrammarFile) {
         List<GrammarDelegate> grammarDelegates = new ArrayList<GrammarDelegate>();
-        Enumeration grammarFileGrammars = antlrGrammarFile.getGrammars().elements();
+        Enumeration<?> grammarFileGrammars = antlrGrammarFile.getGrammars().elements();
         while (grammarFileGrammars.hasMoreElements()) {
             grammarDelegates.add(new GrammarDelegate(grammarFileGrammars.nextElement()));
         }
@@ -127,18 +127,18 @@ public class GrammarDelegate {
         return vocabName;
     }
 
-    private static final Class ANTLR_GRAMMAR_CLASS;
-    private static final Class ANTLR_OPTION_CLASS;
+    private static final Class<?> ANTLR_GRAMMAR_CLASS;
+    private static final Class<?> ANTLR_OPTION_CLASS;
 
     static {
         ANTLR_GRAMMAR_CLASS = loadAntlrClass("antlr.preprocessor.Grammar");
         ANTLR_OPTION_CLASS = loadAntlrClass("antlr.preprocessor.Option");
     }
 
-    public static final Class[] NO_ARG_SIGNATURE = new Class[0];
+    public static final Class<?>[] NO_ARG_SIGNATURE = new Class<?>[0];
     public static final Object[] NO_ARGS = new Object[0];
 
-    private static Class loadAntlrClass(String className) {
+    private static Class<?> loadAntlrClass(String className) {
         try {
             return Class.forName(className, true, GrammarDelegate.class.getClassLoader());
         } catch (ClassNotFoundException e) {

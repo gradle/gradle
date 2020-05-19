@@ -20,20 +20,17 @@ import org.gradle.integtests.fixtures.VfsRetentionFixture
 import org.gradle.integtests.fixtures.daemon.DaemonFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.vfs.watch.FileWatcherRegistry
+import org.gradle.internal.watch.registry.FileWatcherRegistry
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.experimental.categories.Category
 
+import java.nio.file.Files
+
 @Category(SoakTest)
-// Fixme: See https://github.com/gradle/gradle/issues/12457
-@Requires(TestPrecondition.MAC_OS_X)
 class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implements VfsRetentionFixture {
 
     private static final int NUMBER_OF_SUBPROJECTS = 50
-    private static final int MAX_FILE_CHANGES_WITHOUT_OVERFLOW = 1000
     private static final int NUMBER_OF_SOURCES_PER_SUBPROJECT = 100
     private static final double LOST_EVENTS_RATIO_MAC_OS = 0.6
     private static final double LOST_EVENTS_RATIO_WINDOWS = 0.1
@@ -69,16 +66,19 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
     }
 
     def "file watching works with multiple builds on the same daemon"() {
-        def numberOfChangesBetweenBuilds = MAX_FILE_CHANGES_WITHOUT_OVERFLOW
+        def numberOfChangesBetweenBuilds = maxFileChangesWithoutOverflow
 
         when:
         succeeds("assemble")
+        // Assemble twice, so everything is up-to-date and nothing is invalidated
+        succeeds("assemble")
         def daemon = daemons.daemon
+        def retainedFilesInLastBuild = retainedFilesInCurrentBuild
         then:
         daemon.assertIdle()
 
         expect:
-        boolean overflowDetected = false
+        long endOfDaemonLog = getLinesInDaemonLog(daemon)
         50.times { iteration ->
             // when:
             changeSourceFiles(iteration, numberOfChangesBetweenBuilds)
@@ -89,26 +89,28 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
             assert daemons.daemon.logFile == daemon.logFile
             daemon.assertIdle()
             assertWatchingSucceeded()
+            boolean overflowDetected = detectOverflow(daemon, endOfDaemonLog)
             if (!overflowDetected) {
-                overflowDetected = detectOverflow(daemon)
-            }
-            int expectedNumberOfRetainedFiles = retainedFilesInCurrentBuild - numberOfChangesBetweenBuilds
-            if (overflowDetected) {
-                assert retainedFilesSinceLastBuild in [expectedNumberOfRetainedFiles, 0]
-            } else {
-                assert retainedFilesSinceLastBuild == expectedNumberOfRetainedFiles
+                int expectedNumberOfRetainedFiles = retainedFilesInLastBuild - numberOfChangesBetweenBuilds
+                int retainedFilesAtTheBeginningOfTheCurrentBuild = retainedFilesSinceLastBuild
+                assert retainedFilesAtTheBeginningOfTheCurrentBuild <= expectedNumberOfRetainedFiles
+                assert expectedNumberOfRetainedFiles - 100 <= retainedFilesAtTheBeginningOfTheCurrentBuild
             }
             assert receivedFileSystemEventsSinceLastBuild >= minimumExpectedFileSystemEvents(numberOfChangesBetweenBuilds, 1)
+            retainedFilesInLastBuild = retainedFilesInCurrentBuild
+            endOfDaemonLog = getLinesInDaemonLog(daemon)
         }
     }
 
     def "file watching works with many changes between two builds"() {
         // Use 40 minutes idle timeout since the test may be running longer with an idle daemon
         executer.withDaemonIdleTimeoutSecs(2400)
-        def numberOfChangedSourcesFilesPerBatch = MAX_FILE_CHANGES_WITHOUT_OVERFLOW
+        def numberOfChangedSourcesFilesPerBatch = maxFileChangesWithoutOverflow
         def numberOfChangeBatches = 500
 
         when:
+        succeeds("assemble")
+        // Assemble twice, so everything is up-to-date and nothing is invalidated
         succeeds("assemble")
         def daemon = daemons.daemon
         then:
@@ -119,25 +121,36 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
             changeSourceFiles(iteration, numberOfChangedSourcesFilesPerBatch)
             waitBetweenChangesToAvoidOverflow()
         }
-        boolean overflowDetected = detectOverflow(daemon)
-        int expectedNumberOfRetainedFiles = overflowDetected
-            ? 0
-            : retainedFilesInCurrentBuild - numberOfChangedSourcesFilesPerBatch
+        boolean overflowDetected = detectOverflow(daemon, 0)
+        // This needs to happen here, since retainedFilesInCurrentBuild looks at the log of the last executed build.
+        int expectedNumberOfRetainedFiles = retainedFilesInCurrentBuild - numberOfChangedSourcesFilesPerBatch
         then:
         succeeds("assemble")
         daemons.daemon.logFile == daemon.logFile
         daemon.assertIdle()
         assertWatchingSucceeded()
         receivedFileSystemEventsSinceLastBuild >= minimumExpectedFileSystemEvents(numberOfChangedSourcesFilesPerBatch, numberOfChangeBatches)
-        retainedFilesSinceLastBuild == expectedNumberOfRetainedFiles
+        if (!overflowDetected) {
+            assert retainedFilesSinceLastBuild == expectedNumberOfRetainedFiles
+        }
     }
 
-    private static boolean detectOverflow(DaemonFixture daemon) {
-        boolean overflowDetected = daemon.logContains(FileWatcherRegistry.Type.INVALIDATE.toString())
+    private static getMaxFileChangesWithoutOverflow() {
+        OperatingSystem.current().windows
+            ? 200
+            : 1000
+    }
+
+    private static boolean detectOverflow(DaemonFixture daemon, long fromLine) {
+        boolean overflowDetected = daemon.logContains(fromLine, FileWatcherRegistry.Type.INVALIDATED.toString())
         if (overflowDetected) {
             println "Detected overflow in watcher, no files will be retained for the next build"
         }
         overflowDetected
+    }
+
+    private static long getLinesInDaemonLog(DaemonFixture daemon) {
+        Files.lines(daemon.logFile.toPath()).withCloseable { lines -> lines.count() }
     }
 
     private static void waitBetweenChangesToAvoidOverflow() {

@@ -188,7 +188,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
 
     @Override
     public ImmutableList<File> transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges) {
-        TransformAction transformAction = newTransformAction(inputArtifactProvider, dependencies, inputChanges);
+        TransformAction<?> transformAction = newTransformAction(inputArtifactProvider, dependencies, inputChanges);
         DefaultTransformOutputs transformOutputs = new DefaultTransformOutputs(inputArtifactProvider.get().getAsFile(), outputDir, fileLookup);
         transformAction.transform(transformOutputs);
         return transformOutputs.getRegisteredOutputs();
@@ -326,7 +326,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
     }
 
-    private TransformAction newTransformAction(Provider<FileSystemLocation> inputArtifactProvider, ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges) {
+    private TransformAction<?> newTransformAction(Provider<FileSystemLocation> inputArtifactProvider, ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges) {
         TransformParameters parameters = getIsolatedParameters().getIsolatedParameterObject().isolate();
         ServiceLookup services = new IsolationScheme<>(TransformAction.class, TransformParameters.class, TransformParameters.None.class).servicesForImplementation(parameters, internalServices);
         services = new TransformServiceLookup(inputArtifactProvider, requiresDependencies ? artifactTransformDependencies : null, inputChanges, services);

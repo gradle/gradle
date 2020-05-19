@@ -29,7 +29,9 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
  *
  *
  * <pre class='autoTested'>
- * apply plugin: 'ivy-publish'
+ * plugins {
+ *     id 'ivy-publish'
+ * }
  *
  * publishing.publications.create('publication-name', IvyPublication) {
  *     // Configure the ivy publication here

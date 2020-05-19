@@ -22,10 +22,14 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.jvm.DefaultModularitySpec;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
@@ -52,7 +56,9 @@ import java.util.Map;
  * Similar to {@link org.gradle.api.tasks.Exec}, but starts a JVM with the given classpath and application class.
  * </p>
  * <pre class='autoTested'>
- * apply plugin: 'java'
+ * plugins {
+ *     id 'java'
+ * }
  *
  * task runApp(type: JavaExec) {
  *   classpath = sourceSets.main.runtimeClasspath
@@ -103,11 +109,22 @@ import java.util.Map;
  */
 public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final JavaExecAction javaExecHandleBuilder;
+    private final Property<String> mainModule;
+    private final Property<String> mainClass;
+    private final ModularitySpec modularity;
     private final Property<ExecResult> execResult;
 
     public JavaExec() {
+        ObjectFactory objectFactory = getObjectFactory();
+        mainModule = objectFactory.property(String.class);
+        mainClass = objectFactory.property(String.class);
+        modularity = objectFactory.newInstance(DefaultModularitySpec.class);
+        execResult = objectFactory.property(ExecResult.class);
+
         javaExecHandleBuilder = getDslExecActionFactory().newDecoratedJavaExecAction();
-        execResult = getObjectFactory().property(ExecResult.class);
+        javaExecHandleBuilder.getMainClass().convention(getProviderFactory().provider(this::getMain)); // go through 'main' to keep this compatible with existing convention mappings
+        javaExecHandleBuilder.getMainModule().convention(mainModule);
+        javaExecHandleBuilder.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
     }
 
     @Inject
@@ -121,14 +138,23 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     @Inject
+    protected ProviderFactory getProviderFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
     protected DslExecActionFactory getDslExecActionFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JavaModuleDetector getJavaModuleDetector() {
         throw new UnsupportedOperationException();
     }
 
     @TaskAction
     public void exec() {
-        setMain(getMain()); // make convention mapping work (at least for 'main'...
-        setJvmArgs(getJvmArgs()); // ...and for 'jvmArgs')
+        setJvmArgs(getJvmArgs()); // convention mapping for 'jvmArgs'
         execResult.set(javaExecHandleBuilder.execute());
     }
 
@@ -352,8 +378,25 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
+    public Property<String> getMainModule() {
+        return mainModule;
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Property<String> getMainClass() {
+        return mainClass;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public String getMain() {
-        return javaExecHandleBuilder.getMain();
+        return getMainClass().getOrNull();
     }
 
     /**
@@ -361,7 +404,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec setMain(String mainClassName) {
-        javaExecHandleBuilder.setMain(mainClassName);
+        getMainClass().set(mainClassName);
         return this;
     }
 
@@ -463,6 +506,14 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     public FileCollection getClasspath() {
         return javaExecHandleBuilder.getClasspath();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ModularitySpec getModularity() {
+        return modularity;
     }
 
     /**

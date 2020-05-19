@@ -1,4 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.util.VersionNumber
 import java.util.*
 
@@ -18,8 +17,7 @@ import java.util.*
  * limitations under the License.
  */
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
@@ -57,20 +55,13 @@ dependencies {
     integTestImplementation(project(":native"))
     integTestImplementation(testLibrary("jetty"))
 
-    val allTestRuntimeDependencies: DependencySet by rootProject.extra
-    allTestRuntimeDependencies.forEach {
-        integTestRuntimeOnly(it)
-    }
-
     testFixturesImplementation(project(":internalTesting"))
 
     testRuntimeOnly(project(":runtimeApiInfo"))
 }
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
+configurations.integTestRuntimeClasspath {
+    extendsFrom(configurations.fullGradleRuntime.get())
 }
-
 
 tasks {
     register("updateInitPluginTemplateVersionFile") {

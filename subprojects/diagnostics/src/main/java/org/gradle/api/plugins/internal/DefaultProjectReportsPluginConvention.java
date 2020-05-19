@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.internal;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.ProjectReportsPluginConvention;
 import org.gradle.api.reflect.HasPublicType;
@@ -28,6 +29,7 @@ import java.util.Set;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
+@NonNullApi
 public class DefaultProjectReportsPluginConvention extends ProjectReportsPluginConvention implements HasPublicType {
     private String projectReportDirName = "project";
     private final Project project;

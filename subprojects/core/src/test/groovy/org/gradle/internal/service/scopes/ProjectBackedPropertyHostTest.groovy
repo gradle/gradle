@@ -16,28 +16,66 @@
 
 package org.gradle.internal.service.scopes
 
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateInternal
+import org.gradle.api.internal.tasks.TaskExecutionOutcome
+import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.internal.state.ModelObject
 import spock.lang.Specification
 
 class ProjectBackedPropertyHostTest extends Specification {
-    def "disallows read before after evaluate"() {
-        def state = new ProjectStateInternal()
-        def project = Stub(ProjectInternal)
+    def state = new ProjectStateInternal()
+    def project = Stub(ProjectInternal)
+    def host = new ProjectBackedPropertyHost(project)
+
+    def setup() {
         _ * project.displayName >> "<project>"
         _ * project.state >> state
+    }
 
-        def host = new ProjectBackedPropertyHost(project)
-
+    def "disallows read before before completion when property has no producer"() {
         expect:
-        host.beforeRead() == "configuration of <project> has not finished yet"
+        host.beforeRead(null) == "configuration of <project> has not completed yet"
         state.toBeforeEvaluate()
-        host.beforeRead() == "configuration of <project> has not finished yet"
+        host.beforeRead(null) == "configuration of <project> has not completed yet"
         state.toEvaluate()
-        host.beforeRead() == "configuration of <project> has not finished yet"
+        host.beforeRead(null) == "configuration of <project> has not completed yet"
         state.toAfterEvaluate()
-        host.beforeRead() == null
+        host.beforeRead(null) == "configuration of <project> has not completed yet"
         state.configured()
         host.beforeRead() == null
+    }
+
+    def "disallows read before before producer task starts when property has producer"() {
+        def producer = Stub(ModelObject)
+        def task = Stub(TaskInternal)
+        def taskState = new TaskStateInternal()
+        _ * producer.taskThatOwnsThisObject >> task
+        _ * task.state >> taskState
+        _ * task.toString() >> "<task>"
+
+        expect:
+        host.beforeRead(producer) == "configuration of <project> has not completed yet"
+        state.toBeforeEvaluate()
+        host.beforeRead(producer) == "configuration of <project> has not completed yet"
+        state.toEvaluate()
+        host.beforeRead(producer) == "configuration of <project> has not completed yet"
+        state.toAfterEvaluate()
+        host.beforeRead(producer) == "configuration of <project> has not completed yet"
+        state.configured()
+        host.beforeRead(producer) == "<task> has not completed yet"
+
+        when:
+        taskState.executing = true
+
+        then:
+        host.beforeRead(producer) == null
+
+        when:
+        taskState.outcome = TaskExecutionOutcome.EXECUTED
+
+        then:
+        host.beforeRead(producer) == null
     }
 }

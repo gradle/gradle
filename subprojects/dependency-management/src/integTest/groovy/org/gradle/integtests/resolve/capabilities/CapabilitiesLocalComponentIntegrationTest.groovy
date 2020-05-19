@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.capabilities
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec {
 
@@ -55,6 +56,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
    Cannot select module with conflict on capability 'org:capability:1.0' also provided by [:test:unspecified(compileClasspath)]""")
     }
 
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def 'fails to resolve undeclared test fixture'() {
         buildFile << """
             apply plugin: 'java-library'

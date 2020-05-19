@@ -30,7 +30,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
 
                 $greetTask
 
-                val greetingProp = providers.systemProperty("greeting")
+                val greetingProp = providers.systemProperty("greeting").forUseAtConfigurationTime()
                 if (greetingProp.get() == "hello") {
                     tasks.register<Greet>("greet") {
                         greeting.set("hello, hello")
@@ -87,7 +87,12 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
     enum SystemPropertySource {
         COMMAND_LINE,
         GRADLE_PROPERTIES,
-        GRADLE_PROPERTIES_FROM_MASTER_SETTINGS_DIR
+        GRADLE_PROPERTIES_FROM_MASTER_SETTINGS_DIR;
+
+        @Override
+        String toString() {
+            name().toLowerCase().replace('_', ' ')
+        }
     }
 
     @Unroll
@@ -122,7 +127,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
                     propertiesFile.set(layout.projectDirectory.file("local.properties"))
                     propertyName.set("ci")
                 }
-            }
+            }.forUseAtConfigurationTime()
 
             if ($expression) {
                 tasks.register("run") {
@@ -189,7 +194,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
 
             $greetTask
 
-            val greetingProp = providers.${kind}Property("greeting")
+            val greetingProp = providers.${kind}Property("greeting").forUseAtConfigurationTime()
             if (greetingProp.get() == "hello") {
                 tasks.register<Greet>("greet") {
                     greeting.set("hello, hello")
@@ -234,7 +239,10 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         def instant = newInstantExecutionFixture()
         buildKotlinFile """
 
-            val sysPropProvider = providers.systemProperty("thread.pool.size").map(Integer::valueOf)
+            val sysPropProvider = providers
+                .systemProperty("thread.pool.size")
+                .map(Integer::valueOf)
+                .orElse(1)
 
             abstract class TaskA : DefaultTask() {
 
@@ -253,11 +261,18 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         """
 
         when:
+        instantRun("a")
+
+        then:
+        output.count("ThreadPoolSize = 1") == 1
+        instant.assertStateStored()
+
+        when:
         instantRun("a", "-Dthread.pool.size=4")
 
         then:
         output.count("ThreadPoolSize = 4") == 1
-        instant.assertStateStored()
+        instant.assertStateLoaded()
 
         when:
         instantRun("a", "-Dthread.pool.size=3")
@@ -273,7 +288,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         given:
         def instant = newInstantExecutionFixture()
         buildKotlinFile """
-            val isCi = providers.systemProperty("ci")
+            val isCi = providers.systemProperty("ci").forUseAtConfigurationTime()
             if ($expression) {
                 tasks.register("run") {
                     doLast { println("ON CI") }
@@ -321,7 +336,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
             $greetTask
 
             val greetingVar = providers.environmentVariable("GREETING")
-            if (greetingVar.get().startsWith("hello")) {
+            if (greetingVar.forUseAtConfigurationTime().get().startsWith("hello")) {
                 tasks.register<Greet>("greet") {
                     greeting.set("hello, hello")
                 }
@@ -365,7 +380,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         buildKotlinFile """
             val ciFile = layout.projectDirectory.file("ci")
             val isCi = providers.fileContents(ciFile)
-            if ($expression) {
+            if (isCi.$expression) {
                 tasks.register("run") {
                     doLast { println("ON CI") }
                 }
@@ -412,15 +427,15 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
 
         then: "cache is NO longer valid"
         output.count(usage.endsWith("presence") ? "ON CI" : "NOT CI") == 1
-        outputContains "configuration file 'ci' has changed"
+        outputContains "file 'ci' has changed"
         instant.assertStateStored()
 
         where:
-        expression                                                     | usage
-        "isCi.asText.map(String::toBoolean).getOrElse(false)"          | "text"
-        "isCi.asText.isPresent"                                        | "text presence"
-        "isCi.asBytes.map { String(it).toBoolean() }.getOrElse(false)" | "bytes"
-        "isCi.asBytes.isPresent"                                       | "bytes presence"
+        expression                                                                            | usage
+        "asText.forUseAtConfigurationTime().map(String::toBoolean).getOrElse(false)"          | "text"
+        "asText.forUseAtConfigurationTime().isPresent"                                        | "text presence"
+        "asBytes.forUseAtConfigurationTime().map { String(it).toBoolean() }.getOrElse(false)" | "bytes"
+        "asBytes.forUseAtConfigurationTime().isPresent"                                       | "bytes presence"
     }
 
     def "mapped file contents used as task input"() {
@@ -498,9 +513,65 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         instant.assertStateLoaded()
 
         where:
-        operator    | operatorType       | usage
-        "getOrElse" | "String"           | "build logic input"
-        "orElse"    | "Provider<String>" | "task input"
+        operator                                | operatorType       | usage
+        "forUseAtConfigurationTime().getOrElse" | "String"           | "build logic input"
+        "orElse"                                | "Provider<String>" | "task input"
+    }
+
+    def "can define and use custom value source in a Groovy script"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        buildFile.text = """
+
+            import org.gradle.api.provider.*
+
+            abstract class IsSystemPropertySet implements ValueSource<Boolean, Parameters> {
+                interface Parameters extends ValueSourceParameters {
+                    Property<String> getPropertyName()
+                }
+                @Override Boolean obtain() {
+                    System.getProperties().get(parameters.getPropertyName().get()) != null
+                }
+            }
+
+            def isCi = providers.of(IsSystemPropertySet) {
+                parameters {
+                    propertyName = "ci"
+                }
+            }
+            if (isCi.forUseAtConfigurationTime().get()) {
+                tasks.register("build") {
+                    doLast { println("ON CI") }
+                }
+            } else {
+                tasks.register("build") {
+                    doLast { println("NOT CI") }
+                }
+            }
+        """
+
+        when:
+        instantRun "build"
+
+        then:
+        output.count("NOT CI") == 1
+        instant.assertStateStored()
+
+        when:
+        instantRun "build"
+
+        then:
+        output.count("NOT CI") == 1
+        instant.assertStateLoaded()
+
+        when:
+        instantRun "build", "-Dci=true"
+
+        then:
+        output.count("ON CI") == 1
+        output.contains("because a build logic input of type 'IsSystemPropertySet' has changed")
+        instant.assertStateStored()
     }
 
     private static String getGreetTask() {

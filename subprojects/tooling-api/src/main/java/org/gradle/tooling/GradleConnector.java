@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.internal.consumer.ConnectorServices;
 
 import java.io.File;
@@ -59,13 +60,13 @@ import java.net.URI;
  *
  * <h2>Gradle version compatibility</h2>
  *
- * <p>The Tooling API is both forwards and backwards compatible with other versions of Gradle. It supports execution of Gradle builds that use older or newer versions of Gradle.</p>
+ * <p>The Tooling API is both forwards and backwards compatible with other versions of Gradle. It supports execution of Gradle builds that use older or newer versions of Gradle.  Each release of Gradle contains a new release of the Tooling API as well.</p>
  *
- * <p>The current version of the Tooling API supports running builds using Gradle versions 1.2.</p>
+ * <p>The Tooling API supports running builds using Gradle version 2.6 and up.</p>
  *
- * <p>You should note that not all features of the Tooling API are available for all versions of Gradle. For example, build cancellation is only available for builds using Gradle 2.1 and later. Refer to the documentation for each class and method for more details.</p>
+ * <p>You should note that not all features of the Tooling API are available for all versions of Gradle. Refer to the documentation for each class and method for more details.</p>
  *
- * <p>The current Gradle version can be used from Tooling API versions 2.0 or later.
+ * <p>Builds using Gradle 5.0 and up require the use of Tooling API version 3.0 or later.
  *
  * <h2>Java version compatibility</h2>
  *
@@ -163,4 +164,19 @@ public abstract class GradleConnector {
      */
     public abstract ProjectConnection connect() throws GradleConnectionException;
 
+    /**
+     * Disconnects all ProjectConnection instances created by this connector.
+     *
+     * <p>
+     * Calling this method tries to do a best effort to clean up resources used by the tooling API.
+     * It tries to cancel any builds and shut down running daemons.
+     * <p>
+     *
+     * After calling {@code disconnect}, creating new project connections will be rejected and the existing ones
+     * created by this instance will also deny future build operations.
+     *
+     * @since 6.5
+     */
+    @Incubating
+    public abstract void disconnect();
 }

@@ -58,17 +58,17 @@ public class VariantMetadataAdapter implements VariantMetadata {
 
     @Override
     public void withDependencies(Action<? super DirectDependenciesMetadata> action) {
-        metadata.getVariantMetadataRules().addDependencyAction(instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, new VariantMetadataRules.VariantAction<DirectDependenciesMetadata>(spec, action));
+        metadata.getVariantMetadataRules().addDependencyAction(instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, new VariantMetadataRules.VariantAction<>(spec, action));
     }
 
     @Override
     public void withDependencyConstraints(Action<? super DependencyConstraintsMetadata> action) {
-        metadata.getVariantMetadataRules().addDependencyConstraintAction(instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, new VariantMetadataRules.VariantAction<DependencyConstraintsMetadata>(spec, action));
+        metadata.getVariantMetadataRules().addDependencyConstraintAction(instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, new VariantMetadataRules.VariantAction<>(spec, action));
     }
 
     @Override
     public void withCapabilities(Action<? super MutableCapabilitiesMetadata> action) {
-        metadata.getVariantMetadataRules().addCapabilitiesAction(new VariantMetadataRules.VariantAction<MutableCapabilitiesMetadata>(spec, action));
+        metadata.getVariantMetadataRules().addCapabilitiesAction(new VariantMetadataRules.VariantAction<>(spec, action));
     }
 
     @Override
@@ -78,7 +78,7 @@ public class VariantMetadataAdapter implements VariantMetadata {
 
     @Override
     public VariantMetadata attributes(Action<? super AttributeContainer> action) {
-        metadata.getVariantMetadataRules().addAttributesAction(metadata.getAttributesFactory(), new VariantMetadataRules.VariantAction<AttributeContainer>(spec, action));
+        metadata.getVariantMetadataRules().addAttributesAction(metadata.getAttributesFactory(), new VariantMetadataRules.VariantAction<>(spec, action));
         return this;
     }
 

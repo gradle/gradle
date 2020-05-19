@@ -115,7 +115,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
                 signatories = new ${signatoryProviderClass.name}()
             }
         """
-        run "signJar"
+        run "signJar", "-i"
 
         then:
         executedAndNotSkipped(":signJar")
@@ -234,7 +234,11 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         skipped(":signCustomFile")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(
+        bottomSpecs = [
+            "SigningTasksWithGpgCmdIntegrationSpec"
+        ]
+    )
     def "up-to-date when order of signed files changes"() {
         given:
         def inputFile1 = file("input1.txt") << "foo"

@@ -46,7 +46,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultResolutionResultBuilder {
-    private final Map<Long, DefaultResolvedComponentResult> modules = new HashMap<Long, DefaultResolvedComponentResult>();
+    private final Map<Long, DefaultResolvedComponentResult> modules = new HashMap<>();
     private final CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
     private AttributeContainer requestedAttributes;
 
@@ -109,7 +109,7 @@ public class DefaultResolutionResultBuilder {
     }
 
     private static class RootFactory implements Factory<ResolvedComponentResult> {
-        private DefaultResolvedComponentResult rootModule;
+        private final DefaultResolvedComponentResult rootModule;
 
         public RootFactory(DefaultResolvedComponentResult rootModule) {
             this.rootModule = rootModule;

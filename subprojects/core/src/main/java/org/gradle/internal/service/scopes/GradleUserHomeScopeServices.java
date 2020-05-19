@@ -22,6 +22,7 @@ import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
@@ -45,7 +46,9 @@ import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathTransformerCacheFactory;
+import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.classpath.DefaultClasspathTransformerCacheFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -53,10 +56,9 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.file.FileAccessTimeJournal;
-import org.gradle.internal.file.JarCache;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
-import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -91,13 +93,15 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         File userHomeDir = userHomeDirProvider.getGradleUserHomeDirectory();
         registration.addProvider(new CacheRepositoryServices(userHomeDir, null));
         registration.addProvider(new GradleUserHomeCleanupServices());
+        registration.add(ClasspathWalker.class);
+        registration.add(ClasspathBuilder.class);
         for (PluginServiceRegistry plugin : globalServices.getAll(PluginServiceRegistry.class)) {
             plugin.registerGradleUserHomeServices(registration);
         }
     }
 
     ListenerManager createListenerManager(ListenerManager parent) {
-        return parent.createChild();
+        return parent.createChild(Scopes.UserHome);
     }
 
     GlobalScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {
@@ -143,24 +147,28 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     }
 
     CachedClasspathTransformer createCachedClasspathTransformer(
-        AdditiveCacheLocations additiveCacheLocations,
         CacheRepository cacheRepository,
         ClasspathTransformerCacheFactory classpathTransformerCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
-        FileHasher fileHasher
+        VirtualFileSystem virtualFileSystem,
+        ClasspathWalker classpathWalker,
+        ClasspathBuilder classpathBuilder,
+        ExecutorFactory executorFactory
     ) {
         return new DefaultCachedClasspathTransformer(
             cacheRepository,
             classpathTransformerCacheFactory,
             fileAccessTimeJournal,
-            new JarCache(fileHasher),
-            additiveCacheLocations
-        );
+            classpathWalker,
+            classpathBuilder,
+            virtualFileSystem,
+            executorFactory);
     }
 
     WorkerProcessFactory createWorkerProcessFactory(LoggingManagerInternal loggingManagerInternal, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
                                                     TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory, JvmVersionDetector jvmVersionDetector,
-                                                    MemoryManager memoryManager, GradleUserHomeDirProvider gradleUserHomeDirProvider, OutputEventListener outputEventListener) {
+                                                    JavaModuleDetector javaModuleDetector, MemoryManager memoryManager, GradleUserHomeDirProvider gradleUserHomeDirProvider,
+                                                    OutputEventListener outputEventListener) {
         return new DefaultWorkerProcessFactory(
             loggingManagerInternal,
             messagingServer,
@@ -170,6 +178,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
             temporaryFileProvider,
             execHandleFactory,
             jvmVersionDetector,
+            javaModuleDetector,
             outputEventListener,
             memoryManager
         );
@@ -184,6 +193,10 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
 
     WorkerProcessClassPathProvider createWorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
         return new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry);
+    }
+
+    protected JavaModuleDetector createJavaModuleDetector(FileContentCacheFactory cacheFactory, FileCollectionFactory fileCollectionFactory) {
+        return new JavaModuleDetector(cacheFactory, fileCollectionFactory);
     }
 
     DefaultGeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository) {

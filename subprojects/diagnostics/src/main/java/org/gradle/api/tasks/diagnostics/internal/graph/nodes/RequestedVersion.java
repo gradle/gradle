@@ -30,7 +30,7 @@ public class RequestedVersion extends AbstractRenderableDependencyResult impleme
     private final ComponentSelector requested;
     private final ComponentIdentifier actual;
     private final boolean resolvable;
-    private final Set<RenderableDependency> children = new LinkedHashSet<RenderableDependency>();
+    private final Set<RenderableDependency> children = new LinkedHashSet<>();
 
     public RequestedVersion(ComponentSelector requested, ComponentIdentifier actual, boolean resolvable) {
         this.requested = requested;
@@ -65,7 +65,7 @@ public class RequestedVersion extends AbstractRenderableDependencyResult impleme
     @Override
     public AttributeContainer getAttributes() {
         return requested instanceof ModuleComponentSelector
-            ? ((ModuleComponentSelector) requested).getAttributes()
+            ? requested.getAttributes()
             : ImmutableAttributes.EMPTY;
     }
 }

@@ -27,7 +27,7 @@ import org.junit.Assume
 
 import static org.gradle.util.TestPrecondition.SUPPORTS_TARGETING_JAVA6
 
-@TargetVersions(["1.6", "1.7", "1.8"])
+@TargetVersions(["1.6", "1.7", "1.8", "9", "10", "11"])
 class ScalaCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
     JavaVersion getJavaVersion() {
         JavaVersion.toVersion(MultiVersionIntegrationSpec.version)
@@ -86,7 +86,7 @@ class ScalaThing { }
     def "can compile source and run JUnit tests using target Java version"() {
         given:
         buildFile << """
-dependencies { testImplementation 'junit:junit:4.12' }
+dependencies { testImplementation 'junit:junit:4.13' }
 """
 
         file("src/test/scala/ThingTest.scala") << """

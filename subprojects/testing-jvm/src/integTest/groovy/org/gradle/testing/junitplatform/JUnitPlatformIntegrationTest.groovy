@@ -17,9 +17,6 @@
 package org.gradle.testing.junitplatform
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Timeout
 import spock.lang.Unroll
@@ -27,7 +24,6 @@ import spock.lang.Unroll
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 import static org.hamcrest.CoreMatchers.containsString
 
-@Requires(TestPrecondition.JDK8_OR_LATER)
 class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
     void createSimpleJupiterTest() {
         file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
@@ -330,7 +326,6 @@ public class StaticInnerTest {
 
     @Unroll
     @Issue('https://github.com/gradle/gradle/issues/4924')
-    @ToBeFixedForInstantExecution
     def "re-executes test when #key is changed"() {
         given:
         buildScriptWithJupiterDependencies("""

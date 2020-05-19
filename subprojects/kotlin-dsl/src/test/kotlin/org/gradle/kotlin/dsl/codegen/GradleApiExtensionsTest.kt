@@ -35,7 +35,7 @@ import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
-import org.junit.Assert.assertThat
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 import org.slf4j.Logger
@@ -64,7 +64,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             ClassAndGroovyNamedArguments::class
         ) {
 
-            assertGeneratedJarHash("09e568a928f5de15d5ad9489f372ce7d")
+            assertGeneratedJarHash("b429469f8feb02fe9435b6bf7de2f7a5")
         }
     }
 
@@ -376,7 +376,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
 
     private
     fun apiJarsWith(vararg classes: KClass<*>): List<File> =
-        jarClassPathWith("gradle-api.jar", *classes).asFiles
+        jarClassPathWith("gradle-api.jar", *classes, org.gradle.api.Generated::class).asFiles
 
     private
     fun fixturesApiMetadataJar(): File =

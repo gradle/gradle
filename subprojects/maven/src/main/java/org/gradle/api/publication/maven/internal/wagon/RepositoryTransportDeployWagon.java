@@ -22,15 +22,19 @@ import org.apache.maven.wagon.TransferFailedException;
 import org.apache.maven.wagon.Wagon;
 import org.apache.maven.wagon.authentication.AuthenticationException;
 import org.apache.maven.wagon.authentication.AuthenticationInfo;
-import org.apache.maven.wagon.authorization.AuthorizationException;
-import org.apache.maven.wagon.events.*;
+import org.apache.maven.wagon.events.SessionEvent;
+import org.apache.maven.wagon.events.SessionEventSupport;
+import org.apache.maven.wagon.events.SessionListener;
+import org.apache.maven.wagon.events.TransferEvent;
+import org.apache.maven.wagon.events.TransferEventSupport;
+import org.apache.maven.wagon.events.TransferListener;
 import org.apache.maven.wagon.proxy.ProxyInfo;
 import org.apache.maven.wagon.proxy.ProxyInfoProvider;
 import org.apache.maven.wagon.repository.Repository;
 import org.apache.maven.wagon.resource.Resource;
 import org.gradle.api.GradleException;
-import org.gradle.internal.resource.local.FileReadableContent;
 import org.gradle.internal.resource.ReadableContent;
+import org.gradle.internal.resource.local.FileReadableContent;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,8 +42,15 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 
-import static org.apache.maven.wagon.events.SessionEvent.*;
-import static org.apache.maven.wagon.events.TransferEvent.*;
+import static org.apache.maven.wagon.events.SessionEvent.SESSION_DISCONNECTING;
+import static org.apache.maven.wagon.events.SessionEvent.SESSION_LOGGED_IN;
+import static org.apache.maven.wagon.events.SessionEvent.SESSION_LOGGED_OFF;
+import static org.apache.maven.wagon.events.SessionEvent.SESSION_OPENED;
+import static org.apache.maven.wagon.events.TransferEvent.REQUEST_GET;
+import static org.apache.maven.wagon.events.TransferEvent.REQUEST_PUT;
+import static org.apache.maven.wagon.events.TransferEvent.TRANSFER_COMPLETED;
+import static org.apache.maven.wagon.events.TransferEvent.TRANSFER_INITIATED;
+import static org.apache.maven.wagon.events.TransferEvent.TRANSFER_STARTED;
 
 /**
  * A maven wagon intended to work with {@link org.apache.maven.artifact.manager.DefaultWagonManager} Maven uses reflection to initialize instances of this wagon see: {@link
@@ -63,7 +74,7 @@ public class RepositoryTransportDeployWagon implements Wagon {
     }
 
     @Override
-    public final void get(String resourceName, File destination) throws TransferFailedException, ResourceDoesNotExistException, AuthorizationException {
+    public final void get(String resourceName, File destination) throws TransferFailedException, ResourceDoesNotExistException {
         Resource resource = new Resource(resourceName);
         this.transferEventSupport.fireTransferInitiated(transferEvent(resource, TRANSFER_INITIATED, REQUEST_GET));
         this.transferEventSupport.fireTransferStarted(transferEvent(resource, TRANSFER_STARTED, REQUEST_GET));
@@ -86,7 +97,7 @@ public class RepositoryTransportDeployWagon implements Wagon {
     }
 
     @Override
-    public final void put(File file, String resourceName) throws TransferFailedException, ResourceDoesNotExistException, AuthorizationException {
+    public final void put(File file, String resourceName) throws TransferFailedException {
         Resource resource = new Resource(resourceName);
         this.transferEventSupport.fireTransferInitiated(transferEvent(resource, TRANSFER_INITIATED, REQUEST_PUT));
         try {
@@ -104,24 +115,24 @@ public class RepositoryTransportDeployWagon implements Wagon {
     }
 
     @Override
-    public final boolean resourceExists(String resourceName) throws TransferFailedException, AuthorizationException {
+    public final boolean resourceExists(String resourceName) {
         throwNotImplemented("getIfNewer(String resourceName, File file, long timestamp)");
         return false;
     }
 
     @Override
-    public final boolean getIfNewer(String resourceName, File file, long timestamp) throws TransferFailedException, ResourceDoesNotExistException, AuthorizationException {
+    public final boolean getIfNewer(String resourceName, File file, long timestamp)  {
         throwNotImplemented("getIfNewer(String resourceName, File file, long timestamp)");
         return false;
     }
 
     @Override
-    public final void putDirectory(File file, String resourceName) throws TransferFailedException, ResourceDoesNotExistException, AuthorizationException {
+    public final void putDirectory(File file, String resourceName) {
         throwNotImplemented("putDirectory(File file, String resourceName)");
     }
 
     @Override
-    public final List getFileList(String resourceName) throws TransferFailedException, ResourceDoesNotExistException, AuthorizationException {
+    public final List<String> getFileList(String resourceName) {
         throwNotImplemented("getFileList(String resourceName)");
         return null;
     }
@@ -137,11 +148,11 @@ public class RepositoryTransportDeployWagon implements Wagon {
     }
 
     @Override
-    public final void openConnection() throws ConnectionException, AuthenticationException {
+    public final void openConnection() {
     }
 
     @Override
-    public final void connect(Repository repository) throws ConnectionException, AuthenticationException {
+    public final void connect(Repository repository) {
         this.mutatingRepository = repository;
         this.sessionEventSupport.fireSessionLoggedIn(sessionEvent(SESSION_LOGGED_IN));
         this.sessionEventSupport.fireSessionOpened(sessionEvent(SESSION_OPENED));
@@ -173,7 +184,7 @@ public class RepositoryTransportDeployWagon implements Wagon {
     }
 
     @Override
-    public final void disconnect() throws ConnectionException {
+    public final void disconnect() {
         this.sessionEventSupport.fireSessionDisconnecting(sessionEvent(SESSION_DISCONNECTING));
         this.sessionEventSupport.fireSessionLoggedOff(sessionEvent(SESSION_LOGGED_OFF));
         this.sessionEventSupport.fireSessionDisconnected(sessionEvent(SESSION_LOGGED_OFF));

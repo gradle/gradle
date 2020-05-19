@@ -9,7 +9,6 @@ import common.Os
 import common.builtInRemoteBuildCacheNode
 import configurations.BuildDistributions
 import configurations.CompileAll
-import configurations.DependenciesCheck
 import configurations.FunctionalTest
 import configurations.Gradleception
 import configurations.SanityCheck
@@ -31,7 +30,6 @@ data class CIBuildModel(
     val projectPrefix: String = "Gradle_Check_",
     val rootProjectName: String = "Check",
     val publishStatusToGitHub: Boolean = true,
-    val masterAndReleaseBranches: List<String> = listOf("master", "release"),
     val parentBuildCache: BuildCache = builtInRemoteBuildCacheNode,
     val childBuildCache: BuildCache = builtInRemoteBuildCacheNode,
     val buildScanTags: List<String> = emptyList(),
@@ -51,8 +49,9 @@ data class CIBuildModel(
             specificBuilds = listOf(
                 SpecificBuild.BuildDistributions,
                 SpecificBuild.Gradleception,
-                SpecificBuild.SmokeTestsMinJavaVersion,
-                SpecificBuild.InstantSmokeTestsMaxJavaVersion
+                SpecificBuild.SmokeTestsMaxJavaVersion,
+                SpecificBuild.InstantSmokeTestsMaxJavaVersion,
+                SpecificBuild.InstantSmokeTestsMinJavaVersion
             ),
             functionalTests = listOf(
                 TestCoverage(3, TestType.platform, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
@@ -63,12 +62,12 @@ data class CIBuildModel(
         Stage(StageNames.READY_FOR_NIGHTLY,
             trigger = Trigger.eachCommit,
             specificBuilds = listOf(
-                SpecificBuild.SmokeTestsMaxJavaVersion,
-                SpecificBuild.InstantSmokeTestsMinJavaVersion
+                SpecificBuild.SmokeTestsMinJavaVersion
             ),
             functionalTests = listOf(
                 TestCoverage(5, TestType.quickFeedbackCrossVersion, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                TestCoverage(6, TestType.quickFeedbackCrossVersion, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor))
+                TestCoverage(6, TestType.quickFeedbackCrossVersion, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
+                TestCoverage(28, TestType.vfsRetention, Os.linux, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))
         ),
         Stage(StageNames.READY_FOR_RELEASE,
             trigger = Trigger.daily,
@@ -84,7 +83,11 @@ data class CIBuildModel(
                 TestCoverage(14, TestType.platform, Os.macos, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor, expectedBucketNumber = 20),
                 TestCoverage(15, TestType.forceRealizeDependencyManagement, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
                 TestCoverage(33, TestType.allVersionsIntegMultiVersion, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor, expectedBucketNumber = 10),
-                TestCoverage(34, TestType.allVersionsIntegMultiVersion, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor, expectedBucketNumber = 10)),
+                TestCoverage(34, TestType.allVersionsIntegMultiVersion, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor, expectedBucketNumber = 10),
+                // Only Java 8 VFS retention tests pass on macOS, since later versions have problems
+                // with the JDK watcher and continuous build.
+                TestCoverage(31, TestType.vfsRetention, Os.macos, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
+                TestCoverage(30, TestType.vfsRetention, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)),
             performanceTests = listOf(
                 PerformanceTestType.slow)),
         Stage(StageNames.HISTORICAL_PERFORMANCE,
@@ -105,10 +108,7 @@ data class CIBuildModel(
             runsIndependent = true,
             functionalTests = listOf(
                 TestCoverage(27, TestType.vfsRetention, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                TestCoverage(28, TestType.vfsRetention, Os.linux, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor),
                 TestCoverage(29, TestType.vfsRetention, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                TestCoverage(30, TestType.vfsRetention, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor),
-                TestCoverage(31, TestType.vfsRetention, Os.macos, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
                 TestCoverage(32, TestType.vfsRetention, Os.macos, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))
         )
     ),
@@ -270,11 +270,6 @@ enum class SpecificBuild {
     InstantSmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
             return SmokeTests(model, stage, JvmCategory.MAX_VERSION, "instantSmokeTest")
-        }
-    },
-    DependenciesCheck {
-        override fun create(model: CIBuildModel, stage: Stage): BuildType {
-            return DependenciesCheck(model, stage)
         }
     };
 

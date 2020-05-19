@@ -34,14 +34,14 @@ repositories.jcenter()
 
 dependencies {
      implementation "com.google.guava:guava:21.0"
-     testImplementation "junit:junit:4.12"
+     testImplementation "junit:junit:4.13"
 }
 
 """
 
         //then
         classpath.lib("guava-21.0.jar").assertHasNoAttribute("test", "true")
-        classpath.lib("junit-4.12.jar").assertHasAttribute("test", "true")
+        classpath.lib("junit-4.13.jar").assertHasAttribute("test", "true")
         classpath.sourceDir("src/main/java").assertHasNoAttribute("test", "true")
         classpath.sourceDir("src/test/java").assertHasAttribute("test", "true")
     }

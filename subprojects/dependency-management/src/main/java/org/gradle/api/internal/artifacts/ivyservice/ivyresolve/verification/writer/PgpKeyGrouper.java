@@ -155,7 +155,7 @@ class PgpKeyGrouper {
         }
         List<List<String>> commonPrefixes = Lists.newArrayList();
         List<List<String>> remainder = Lists.newArrayList(splitGroups);
-        List<List<String>> previous = null;
+        List<List<String>> previous;
         while (!remainder.isEmpty()) {
             previous = Lists.newArrayList(remainder);
             shortest = remainder.get(0);

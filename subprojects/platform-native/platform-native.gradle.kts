@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 plugins {
-    `java-library`
-    gradlebuild.`strict-compile`
-    gradlebuild.classycle
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
@@ -74,10 +71,6 @@ dependencies {
     testImplementation(testFixtures(project(":snapshots")))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
-
 classycle {
     excludePatterns.set(listOf(
         "org/gradle/nativeplatform/plugins/**",
@@ -86,3 +79,5 @@ classycle {
         "org/gradle/nativeplatform/toolchain/internal/**"
     ))
 }
+
+integrationTestUsesSampleDir("subprojects/platform-native/src/main")

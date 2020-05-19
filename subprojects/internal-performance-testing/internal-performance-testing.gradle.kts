@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 import accessors.java
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.internal.java
 }
 
 val reports by configurations.creating
@@ -30,7 +27,7 @@ repositories {
 }
 
 dependencies {
-    reports("jquery:jquery.min:1.11.0@js")
+    reports("jquery:jquery.min:3.4.1@js")
     reports("flot:flot:0.8.1:min@js")
 
     api(library("gradleProfiler")) {
@@ -70,11 +67,7 @@ dependencies {
     implementation(testFixtures(project(":core")))
     implementation(testFixtures(project(":toolingApi")))
 
-    runtimeOnly("com.h2database:h2:1.4.192")
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
+    runtimeOnly("mysql:mysql-connector-java:8.0.17")
 }
 
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir

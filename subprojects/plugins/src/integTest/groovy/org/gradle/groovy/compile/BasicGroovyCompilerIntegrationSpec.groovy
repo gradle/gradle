@@ -17,7 +17,6 @@ package org.gradle.groovy.compile
 
 import com.google.common.collect.Ordering
 import org.gradle.api.Action
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -315,7 +314,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         !groovyClassFile('Java$$Generated.class').exists()
     }
 
-    @ToBeFixedForInstantExecution
     def "groovyToolClassesAreNotVisible"() {
         Assume.assumeFalse(versionLowerThan("2.0"))
 
@@ -392,7 +390,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     // JavaFx was removed in JDK 10
-    @Requires([TestPrecondition.JDK8_OR_LATER, TestPrecondition.JDK9_OR_EARLIER])
+    @Requires(TestPrecondition.JDK9_OR_EARLIER)
     def "compileJavaFx8Code"() {
         expect:
         succeeds("compileGroovy")

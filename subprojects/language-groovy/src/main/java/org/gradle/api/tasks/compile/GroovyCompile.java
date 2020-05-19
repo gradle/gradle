@@ -38,9 +38,9 @@ import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFa
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
+import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovyRecompilationSpecProvider;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovySourceFileClassNameConverter;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.DefaultSourceFileClassNameConverter;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.IncrementalCompilationResult;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.model.ObjectFactory;
@@ -58,12 +58,9 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.file.Deleter;
-import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.IncubationLogger;
-import org.gradle.work.ChangeType;
-import org.gradle.work.FileChange;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 
@@ -71,11 +68,10 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.stream.StreamSupport;
 
 import static org.gradle.api.internal.FeaturePreviews.Feature.GROOVY_COMPILATION_AVOIDANCE;
+import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.mergeIncrementalMappingsIntoOldMappings;
 import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.readSourceClassesMappingFile;
-import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.writeSourceClassesMappingFile;
 
 /**
  * Compiles Groovy source files, and optionally, Java source files.
@@ -158,7 +154,7 @@ public class GroovyCompile extends AbstractCompile {
         if (result instanceof IncrementalCompilationResult) {
             // The compilation will generate the new mapping file
             // Only merge old mappings into new mapping on incremental recompilation
-            mergeIncrementalMappingsIntoOldMappings(inputChanges, oldMappings);
+            mergeIncrementalMappingsIntoOldMappings(getSourceClassesMappingFile(), getStableSources(), inputChanges, oldMappings);
         }
     }
 
@@ -181,20 +177,6 @@ public class GroovyCompile extends AbstractCompile {
             sourceClassesMappingFile = new File(tmpDir, "source-classes-mapping.txt");
         }
         return sourceClassesMappingFile;
-    }
-
-    private void mergeIncrementalMappingsIntoOldMappings(InputChanges inputChanges, Multimap<String, String> oldMappings) {
-        Multimap<String, String> mappingsDuringIncrementalCompilation = readSourceClassesMappingFile(getSourceClassesMappingFile());
-
-        StreamSupport.stream(inputChanges.getFileChanges(getStableSources()).spliterator(), false)
-            .filter(fileChange -> fileChange.getChangeType() == ChangeType.REMOVED)
-            .map(FileChange::getNormalizedPath)
-            .forEach(oldMappings::removeAll);
-        mappingsDuringIncrementalCompilation.keySet().forEach(oldMappings::removeAll);
-
-        oldMappings.putAll(mappingsDuringIncrementalCompilation);
-
-        writeSourceClassesMappingFile(getSourceClassesMappingFile(), oldMappings);
     }
 
     private void warnIfCompileAvoidanceEnabled() {
@@ -233,7 +215,7 @@ public class GroovyCompile extends AbstractCompile {
             stableSources.getAsFileTree(),
             inputChanges.isIncremental(),
             () -> inputChanges.getFileChanges(stableSources).iterator(),
-            new GroovySourceFileClassNameConverter(sourceClassesMapping));
+            new DefaultSourceFileClassNameConverter(sourceClassesMapping));
     }
 
     /**
@@ -347,7 +329,8 @@ public class GroovyCompile extends AbstractCompile {
      * @since 4.0
      */
     @Nested
-    protected JavaToolChain getJavaToolChain() {
+    @SuppressWarnings("deprecation")
+    protected org.gradle.jvm.toolchain.JavaToolChain getJavaToolChain() {
         return getJavaToolChainFactory().forCompileOptions(getOptions());
     }
 

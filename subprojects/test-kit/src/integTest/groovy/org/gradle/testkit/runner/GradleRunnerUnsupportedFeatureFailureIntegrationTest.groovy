@@ -55,7 +55,7 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRun
         }
     }
 
-    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
+    @Requires(TestPrecondition.JDK8_OR_EARLIER) // tests against old Gradle version that can only work with Java versions up tp 8
     @Debug
     def "fails informatively when trying to inspect build output in debug mode with unsupported gradle version"() {
         def maxUnsupportedVersion = getMaxUnsupportedVersion(TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG)
@@ -77,7 +77,7 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRun
         e.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not capture build output in debug mode with the GradleRunner. Support for this is available in Gradle $minSupportedVersion and all later versions."
     }
 
-    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
+    @Requires(TestPrecondition.JDK8_OR_EARLIER) // tests against old Gradle version that can only work with Java versions up tp 8
     def "fails informatively when trying to inject plugin classpath with unsupported gradle version"() {
         def maxUnsupportedVersion = getMaxUnsupportedVersion(TestKitFeature.PLUGIN_CLASSPATH_INJECTION)
         def minSupportedVersion = TestKitFeature.PLUGIN_CLASSPATH_INJECTION.since.version
@@ -96,7 +96,7 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRun
         e.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not support plugin classpath injection. Support for this is available in Gradle $minSupportedVersion and all later versions."
     }
 
-    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
+    @Requires(TestPrecondition.JDK8_OR_EARLIER) // tests against old Gradle version that can only work with Java versions up tp 8
     def "fails informatively if trying to use conventional plugin classpath on version that does not support injection"() {
         given:
         def maxUnsupportedVersion = getMaxUnsupportedVersion(TestKitFeature.PLUGIN_CLASSPATH_INJECTION)

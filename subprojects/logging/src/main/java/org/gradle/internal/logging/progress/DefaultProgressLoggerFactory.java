@@ -44,12 +44,12 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     }
 
     @Override
-    public ProgressLogger newOperation(Class loggerCategory) {
+    public ProgressLogger newOperation(Class<?> loggerCategory) {
         return newOperation(loggerCategory.getName());
     }
 
     @Override
-    public ProgressLogger newOperation(Class loggerCategory, BuildOperationDescriptor buildOperationDescriptor) {
+    public ProgressLogger newOperation(Class<?> loggerCategory, BuildOperationDescriptor buildOperationDescriptor) {
         String category = ProgressStartEvent.BUILD_OP_CATEGORY;
         if (buildOperationDescriptor.getOperationType() == BuildOperationCategory.TASK) {
             // This is a legacy quirk.
@@ -85,7 +85,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     }
 
     @Override
-    public ProgressLogger newOperation(Class loggerClass, ProgressLogger parent) {
+    public ProgressLogger newOperation(Class<?> loggerClass, ProgressLogger parent) {
         return init(loggerClass.toString(), parent);
     }
 

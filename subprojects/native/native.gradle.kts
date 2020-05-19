@@ -1,12 +1,10 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
-/*
-    This project contains various native operating system integration utilities.
-*/
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.distribution.`core-api-java`
 }
+
+description = "This project contains various native operating system integration utilities"
+
+gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(project(":files"))
@@ -23,10 +21,6 @@ dependencies {
     testImplementation(testFixtures(project(":logging")))
 
     jmhImplementation(project(":files"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.WORKER
 }
 
 jmh {
@@ -63,7 +57,9 @@ val convertCSV by tasks.registering {
 
                 val (benchmark, mode, threads, samples, score) = tokens.subList(0, 5)
                 val (error, unit, accessor) = tokens.subList(5, tokens.size)
-                benchmarks.getValue(benchToScenarioName.getValue(benchmark)).add(Pair(accessor.replace("FileMetadataAccessor", ""), score.toDouble().toInt()))
+                val benchmarksValue = benchmarks.getValue(benchToScenarioName.getValue(benchmark))
+                benchmarksValue.add(Pair(accessor.replace("FileMetadataAccessor", ""), score.toDouble().toInt()))
+                benchmarks.put(benchToScenarioName.getValue(benchmark), benchmarksValue)
             }
         }
         outputFile.parentFile.mkdirs()

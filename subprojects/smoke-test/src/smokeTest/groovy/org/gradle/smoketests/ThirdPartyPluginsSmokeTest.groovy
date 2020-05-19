@@ -16,7 +16,9 @@
 
 package org.gradle.smoketests
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -29,6 +31,9 @@ import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.not
+import static org.junit.Assume.assumeThat
 
 class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
@@ -239,12 +244,17 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')
-    @ToBeFixedForInstantExecution(because = ":buildEnvironment")
+    @ToBeFixedForInstantExecution(because = "plugin uses task conventions")
     def 'spring boot plugin'() {
         given:
         buildFile << """
             plugins {
+                id "application"
                 id "org.springframework.boot" version "${TestedVersions.springBoot}"
+            }
+
+            bootRun {
+                sourceResources sourceSets.main
             }
         """.stripIndent()
 
@@ -257,13 +267,24 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         """.stripIndent()
 
         when:
-        def result = runner('build').build()
-        println(result.output)
+        def buildResult = runner('build').build()
 
         then:
-        result.task(':buildEnvironment').outcome == SUCCESS
+        buildResult.task(':build').outcome == SUCCESS
 
-        expectNoDeprecationWarnings(result)
+        // https://github.com/spring-projects/spring-boot/issues/20759
+        expectDeprecationWarnings(buildResult,
+            "Property 'mainClassName' is annotated with @Optional that is not allowed for @Internal properties. " +
+                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+
+        when:
+        def runResult = runner('bootRun').build()
+
+        then:
+        runResult.task(':bootRun').outcome == SUCCESS
+
+        expectNoDeprecationWarnings(runResult)
     }
 
     @Issue('https://plugins.gradle.org/plugin/com.bmuschko.tomcat')
@@ -333,6 +354,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://plugins.gradle.org/plugin/org.ajoberstar.grgit')
+    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
     def 'org.ajoberstar.grgit plugin'() {
         given:
         GitFileRepository.init(testProjectDir.root)
@@ -437,6 +459,12 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
     @Issue("https://github.com/gradle/gradle/issues/9897")
     def 'errorprone plugin'() {
+
+        if (GradleContextualExecuter.isInstant()) {
+            // errorprone plugin use a task that has a Configuration field on Java 8
+            assumeThat(JavaVersion.current().majorVersion, not(equalTo("8")))
+        }
+
         given:
         buildFile << """
             plugins {
@@ -557,7 +585,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                 inpath "org.apache.httpcomponents:httpcore-nio:4.4.11"
                 implementation "org.aspectj:aspectjrt:1.9.5"
 
-                testImplementation "junit:junit:4.12"
+                testImplementation "junit:junit:4.13"
             }
         """
         file("src/main/aspectj/StupidAspect.aj") << """

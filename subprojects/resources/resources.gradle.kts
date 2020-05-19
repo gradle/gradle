@@ -1,12 +1,8 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
-/*
- * A set of general-purpose resource abstractions.
- */
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.distribution.`core-api-java`
 }
+
+description = "A set of general-purpose resource abstractions"
 
 dependencies {
     implementation(project(":baseServices"))
@@ -27,8 +23,4 @@ dependencies {
 
     integTestImplementation(project(":internalIntegTesting"))
     integTestRuntimeOnly(project(":runtimeApiInfo"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }

@@ -68,7 +68,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinInitScript(
     private val host: KotlinScriptHost<Gradle>
-) : InitScriptApi(host.target) /* TODO:kotlin-dsl configure implicit receiver */ {
+) : @Suppress("deprecation") InitScriptApi(host.target) /* TODO:kotlin-dsl configure implicit receiver */ {
 
     /**
      * The [ScriptHandler] for this script.

@@ -83,12 +83,13 @@ class PerformanceTestBuildTypeTest {
                 "\"-Dscan.tag.PerformanceTest\"",
                 "--build-cache",
                 "\"-Dgradle.cache.remote.url=%gradle.cache.remote.url%\"",
+                "\"-Dgradle.cache.remote.url.us=%gradle.cache.remote.url.us%\"",
                 "\"-Dgradle.cache.remote.username=%gradle.cache.remote.username%\"",
                 "\"-Dgradle.cache.remote.password=%gradle.cache.remote.password%\""
         )
 
         assertEquals(
-                (listOf("clean", "distributedPerformanceTests") + expectedRunnerParams).joinToString(" "),
+                (listOf("clean", ":performance:distributedPerformanceTest") + expectedRunnerParams).joinToString(" "),
                 performanceTest.getGradleStep("GRADLE_RUNNER").gradleParams!!.trim()
         )
         assertEquals(BuildStep.ExecutionMode.DEFAULT, performanceTest.getGradleStep("GRADLE_RUNNER").executionMode)

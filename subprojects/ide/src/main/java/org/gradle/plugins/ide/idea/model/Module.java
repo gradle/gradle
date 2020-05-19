@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
+import org.gradle.internal.Cast;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
@@ -382,7 +383,7 @@ public class Module extends XmlPersistableConfigurationObject {
 
     private void setContentURL() {
         if (contentPath != null) {
-            findOrCreateContentNode().attributes().put("url", contentPath.getUrl());
+            setNodeAttribute(findOrCreateContentNode(), "url", contentPath.getUrl());
         }
     }
 
@@ -448,21 +449,21 @@ public class Module extends XmlPersistableConfigurationObject {
     }
 
     private void writeInheritOutputDirsToXml() {
-        getNewModuleRootManager().attributes().put("inherit-compiler-output", inheritOutputDirs);
+        setNodeAttribute(getNewModuleRootManager(), "inherit-compiler-output", inheritOutputDirs);
     }
 
     private void writeSourceLanguageLevel() {
         if (languageLevel != null) {
-            getNewModuleRootManager().attributes().put("LANGUAGE_LEVEL", languageLevel);
+            setNodeAttribute(getNewModuleRootManager(), "LANGUAGE_LEVEL", languageLevel);
         }
     }
 
     private void addOutputDirsToXml() {
         if (outputDir != null) {
-            findOrCreateOutputDir().attributes().put("url", outputDir.getUrl());
+            setNodeAttribute(findOrCreateOutputDir(), "url", outputDir.getUrl());
         }
         if (testOutputDir != null) {
-            findOrCreateTestOutputDir().attributes().put("url", testOutputDir.getUrl());
+            setNodeAttribute(findOrCreateTestOutputDir(), "url", testOutputDir.getUrl());
         }
     }
 
@@ -476,7 +477,7 @@ public class Module extends XmlPersistableConfigurationObject {
     }
 
     protected boolean isDependencyOrderEntry(Object orderEntry) {
-        return Arrays.asList("module-library", "module").contains(((Node) orderEntry).attribute("type"));
+        return Arrays.asList("module-library", "module").contains((String) ((Node) orderEntry).attribute("type"));
     }
 
     private void addDependenciesToXml() {
@@ -537,6 +538,11 @@ public class Module extends XmlPersistableConfigurationObject {
 
     private List<Node> findOrderEntries() {
         return getChildren(getNewModuleRootManager(), "orderEntry");
+    }
+
+    private static void setNodeAttribute(Node node, String key, Object value) {
+        final Map<String, Object> attributes = Cast.uncheckedCast(node.attributes());
+        attributes.put(key, value);
     }
 
     @Override

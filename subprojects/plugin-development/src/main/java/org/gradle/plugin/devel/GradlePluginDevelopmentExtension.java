@@ -33,7 +33,9 @@ import java.util.Set;
  * typically only selected properties will be configured.
  *
  * <pre class='autoTested'>
- *     apply plugin: "java-gradle-plugin"
+ *     plugins {
+ *         id 'java-gradle-plugin'
+ *     }
  *
  *     sourceSets {
  *         customMain

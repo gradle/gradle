@@ -17,17 +17,14 @@
 package org.gradle.plugins.signing
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
-
-@Requires(KOTLIN_SCRIPT)
 class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     @Rule
     public final Sample sample = new Sample(testDirectoryProvider)
@@ -165,7 +162,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     }
 
     @Unroll
-    @UsesSample('signing/in-memory')
+    @UsesSample('signing/in-memory-subkey')
     @ToBeFixedForInstantExecution
     def "uses in-memory PGP subkeys with dsl #dsl"() {
         given:
@@ -184,7 +181,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         projectDir.file('build/distributions/stuff.zip.asc').exists()
 
         where:
-        dsl << ['groovy-subkey', 'kotlin-subkey']
+        dsl << ['groovy', 'kotlin']
     }
 
     MavenFileRepository repoFor(String dsl) {

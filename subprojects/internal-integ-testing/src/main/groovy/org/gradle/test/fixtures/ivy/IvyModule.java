@@ -83,6 +83,15 @@ public interface IvyModule extends Module {
     IvyModule dependencyConstraint(Map<String, ?> attributes, Module module);
 
     /**
+     * Responsible for exclusions at configuration level
+     * @param group
+     * @param module
+     * @param configuration
+     * @return
+     */
+    IvyModule excludeFromConfig(String group, String module, String configuration);
+
+    /**
      * Options:
      *  name
      *  type

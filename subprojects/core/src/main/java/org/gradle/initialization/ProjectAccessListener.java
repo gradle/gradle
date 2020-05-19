@@ -24,6 +24,4 @@ public interface ProjectAccessListener {
     void beforeRequestingTaskByPath(ProjectInternal targetProject);
 
     void beforeResolvingProjectDependency(ProjectInternal dependencyProject);
-
-    void onProjectAccess(String invocationDescription, Object invocationSource);
 }

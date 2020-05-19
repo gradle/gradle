@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
-    `java-library`
-    gradlebuild.`strict-compile`
-    gradlebuild.classycle
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
@@ -44,10 +41,6 @@ dependencies {
     testLibraries("sshd").forEach { integTestImplementation(it) }
 
     integTestRuntimeOnly(project(":runtimeApiInfo"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
 
 testFilesCleanup {

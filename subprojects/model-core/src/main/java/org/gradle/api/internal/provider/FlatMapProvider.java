@@ -17,12 +17,11 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 
-class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
+public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     private final ProviderInternal<? extends T> provider;
     private final Transformer<? extends Provider<? extends S>, ? super T> transformer;
 
@@ -38,24 +37,20 @@ class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     }
 
     @Override
-    public boolean isPresent() {
-        T value = provider.getOrNull();
-        if (value == null) {
-            return false;
-        }
-        return map(value).isPresent();
+    public boolean calculatePresence(ValueConsumer consumer) {
+        return backingProvider(consumer).calculatePresence(consumer);
     }
 
     @Override
-    protected Value<? extends S> calculateOwnValue() {
-        Value<? extends T> value = provider.calculateValue();
+    protected Value<? extends S> calculateOwnValue(ValueConsumer consumer) {
+        Value<? extends T> value = provider.calculateValue(consumer);
         if (value.isMissing()) {
             return value.asType();
         }
-        return map(value.get()).calculateValue();
+        return doMapValue(value.get()).calculateValue(consumer);
     }
 
-    private ProviderInternal<? extends S> map(T value) {
+    private ProviderInternal<? extends S> doMapValue(T value) {
         Provider<? extends S> result = transformer.transform(value);
         if (result == null) {
             return Providers.notDefined();
@@ -63,9 +58,22 @@ class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
         return Providers.internal(result);
     }
 
+    private ProviderInternal<? extends S> backingProvider(ValueConsumer consumer) {
+        Value<? extends T> value = provider.calculateValue(consumer);
+        if (value.isMissing()) {
+            return Providers.notDefined();
+        }
+        return doMapValue(value.get());
+    }
+
     @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        return Providers.internal(map(provider.get())).maybeVisitBuildDependencies(context);
+    public ValueProducer getProducer() {
+        return backingProvider(ValueConsumer.IgnoreUnsafeRead).getProducer();
+    }
+
+    @Override
+    public ExecutionTimeValue<? extends S> calculateExecutionTimeValue() {
+        return backingProvider(ValueConsumer.IgnoreUnsafeRead).calculateExecutionTimeValue();
     }
 
     @Override

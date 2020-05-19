@@ -41,8 +41,8 @@ import java.util.stream.Collectors;
 
 public class DefaultResolvedComponentResult implements ResolvedComponentResultInternal {
     private final ModuleVersionIdentifier moduleVersion;
-    private final Set<DependencyResult> dependencies = new LinkedHashSet<DependencyResult>();
-    private final Set<ResolvedDependencyResult> dependents = new LinkedHashSet<ResolvedDependencyResult>();
+    private final Set<DependencyResult> dependencies = new LinkedHashSet<>();
+    private final Set<ResolvedDependencyResult> dependents = new LinkedHashSet<>();
     private final ComponentSelectionReason selectionReason;
     private final ComponentIdentifier componentId;
     private final List<ResolvedVariantResult> variants;
@@ -104,6 +104,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public ResolvedVariantResult getVariant() {
         if (variants.isEmpty()) {
             return new DefaultResolvedVariantResult(Describables.of("<empty>"), ImmutableAttributes.EMPTY, Collections.emptyList());

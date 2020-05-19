@@ -17,12 +17,13 @@
 package org.gradle.kotlin.dsl.tooling.builders
 
 import groovy.transform.CompileStatic
-
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiAdditionalClasspath
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
@@ -42,7 +43,7 @@ import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.hasItem
 import static org.hamcrest.CoreMatchers.hasItems
 import static org.hamcrest.CoreMatchers.not
-import static org.junit.Assert.assertThat
+import static org.hamcrest.MatcherAssert.assertThat
 
 
 class ProjectSourceRoots {
@@ -73,7 +74,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
 
     protected String repositoriesBlock = """
         repositories {
-            gradlePluginPortal()
+            ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
         }
     """.stripIndent()
 

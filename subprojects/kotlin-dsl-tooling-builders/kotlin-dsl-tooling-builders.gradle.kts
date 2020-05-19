@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 
 plugins {
-    `kotlin-dsl-module`
+    gradlebuild.distribution.`plugins-implementation-kotlin`
 }
 
 description = "Kotlin DSL Tooling Builders for IDEs"
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
-
 
 dependencies {
     implementation(project(":kotlinDsl"))
@@ -44,6 +38,7 @@ dependencies {
 
     testImplementation(project(":kotlinDslTestFixtures"))
     integTestImplementation(project(":kotlinDslTestFixtures"))
+    integTestImplementation(project(":internalTesting"))
 
     integTestRuntimeOnly(project(":toolingApiBuilders"))
     integTestRuntimeOnly(project(":runtimeApiInfo"))

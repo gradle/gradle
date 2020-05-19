@@ -47,7 +47,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         then:
         result.size() == 1
         result[0] instanceof FileCollectionAdapter
-        result[0].fileCollection == fileSet
+        result[0].fileSet == fileSet
     }
 
     def "resolve as FileTree converts the elements of MinimalFileSet"() {
@@ -189,11 +189,11 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         then:
         result.size() == 2
         result[0] instanceof FileCollectionAdapter
-        result[0].fileCollection instanceof ListBackedFileSet
-        result[0].fileCollection.files as List == [file1]
+        result[0].fileSet instanceof ListBackedFileSet
+        result[0].fileSet.files as List == [file1]
         result[1] instanceof FileCollectionAdapter
-        result[1].fileCollection instanceof ListBackedFileSet
-        result[1].fileCollection.files as List == [file2]
+        result[1].fileSet instanceof ListBackedFileSet
+        result[1].fileSet.files as List == [file2]
         1 * resolver.resolve('a') >> file1
         1 * resolver.resolve('b') >> file2
     }

@@ -17,8 +17,10 @@
 package org.gradle.invocation
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import spock.lang.Unroll
 
+@UnsupportedWithInstantExecution
 class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
     private static final String INIT_FILE_NAME = "init.gradle"
 

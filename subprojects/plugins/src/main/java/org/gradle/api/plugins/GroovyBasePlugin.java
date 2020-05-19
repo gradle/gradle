@@ -24,7 +24,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
@@ -32,7 +32,6 @@ import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.reporting.ReportingExtension;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.GroovyRuntime;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
@@ -43,6 +42,8 @@ import org.gradle.api.tasks.javadoc.Groovydoc;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
+
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
  * Extends {@link org.gradle.api.plugins.JavaBasePlugin} to provide support for compiling and documenting Groovy
@@ -100,25 +101,26 @@ public class GroovyBasePlugin implements Plugin<Project> {
                 final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
                 new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
 
-                groovySourceSet.getGroovy().srcDir("src/" + sourceSet.getName() + "/groovy");
-                sourceSet.getResources().getFilter().exclude(new Spec<FileTreeElement>() {
-                    @Override
-                    public boolean isSatisfiedBy(FileTreeElement element) {
-                        return groovySourceSet.getGroovy().contains(element.getFile());
-                    }
-                });
-                sourceSet.getAllJava().source(groovySourceSet.getGroovy());
-                sourceSet.getAllSource().source(groovySourceSet.getGroovy());
+                final SourceDirectorySet groovySource = groovySourceSet.getGroovy();
+                groovySource.srcDir("src/" + sourceSet.getName() + "/groovy");
+
+                // Explicitly capture only a FileCollection in the lambda below for compatibility with instant-execution.
+                final FileCollection groovySourceFiles = groovySource;
+                sourceSet.getResources().getFilter().exclude(
+                    spec(element -> groovySourceFiles.contains(element.getFile()))
+                );
+                sourceSet.getAllJava().source(groovySource);
+                sourceSet.getAllSource().source(groovySource);
 
                 final TaskProvider<GroovyCompile> compileTask = project.getTasks().register(sourceSet.getCompileTaskName("groovy"), GroovyCompile.class, new Action<GroovyCompile>() {
                     @Override
                     public void execute(final GroovyCompile compile) {
-                        JvmPluginsHelper.configureForSourceSet(sourceSet, groovySourceSet.getGroovy(), compile, compile.getOptions(), project);
+                        JvmPluginsHelper.configureForSourceSet(sourceSet, groovySource, compile, compile.getOptions(), project);
                         compile.setDescription("Compiles the " + sourceSet.getName() + " Groovy source.");
-                        compile.setSource(groovySourceSet.getGroovy());
+                        compile.setSource(groovySource);
                     }
                 });
-                JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, groovySourceSet.getGroovy(), project, compileTask, compileTask.map(new Transformer<CompileOptions, GroovyCompile>() {
+                JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, groovySource, project, compileTask, compileTask.map(new Transformer<CompileOptions, GroovyCompile>() {
                     @Override
                     public CompileOptions transform(GroovyCompile groovyCompile) {
                         return groovyCompile.getOptions();

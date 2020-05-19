@@ -48,6 +48,7 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
@@ -157,6 +158,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     /**
      * Return any failure to resolve the component selector to id, or failure to resolve component metadata for id.
      */
+    @Nullable
     ModuleVersionResolveException getFailure() {
         return failure;
     }
@@ -180,7 +182,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         return preferResult;
     }
 
-    private ComponentIdResolveResult resolve(VersionSelector selector, VersionSelector rejector, ComponentIdResolveResult previousResult) {
+    private ComponentIdResolveResult resolve(@Nullable VersionSelector selector, VersionSelector rejector, ComponentIdResolveResult previousResult) {
         try {
             if (!requiresResolve(previousResult, rejector)) {
                 return previousResult;
@@ -212,7 +214,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.preferResult = idResolveResult;
     }
 
-    private boolean requiresResolve(ComponentIdResolveResult previousResult, VersionSelector allRejects) {
+    private boolean requiresResolve(@Nullable ComponentIdResolveResult previousResult, @Nullable VersionSelector allRejects) {
         this.reusable = false;
         // If we've never resolved, must resolve
         if (previousResult == null) {
@@ -230,11 +232,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         }
 
         // If the previous result is still not rejected, do not need to re-resolve. The previous result is still good.
-        if (allRejects == null || !allRejects.accept(previousResult.getModuleVersionId().getVersion())) {
-            return false;
-        }
-
-        return true;
+        return allRejects != null && allRejects.accept(previousResult.getModuleVersionId().getVersion());
     }
 
     @Override
@@ -448,7 +446,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         private final String version;
         private final String reason;
 
-        private RejectedByRuleReason(String version, String reason) {
+        private RejectedByRuleReason(String version, @Nullable String reason) {
             this.version = version;
             this.reason = reason;
         }

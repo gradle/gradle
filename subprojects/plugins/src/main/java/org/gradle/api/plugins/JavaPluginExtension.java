@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.jvm.ModularitySpec;
 
 /**
  * Common configuration for Java based projects. This is added by the {@link JavaBasePlugin}.
@@ -27,6 +28,7 @@ import org.gradle.api.artifacts.Configuration;
  * @since 4.10
  */
 public interface JavaPluginExtension {
+
     /**
      * Returns the source compatibility used for compiling Java sources.
      */
@@ -107,4 +109,13 @@ public interface JavaPluginExtension {
      */
     @Incubating
     void withSourcesJar();
+
+    /**
+     * Configure the module path handling for tasks that have a 'classpath' as input. The module classpath handling defines
+     * to determine for each entry if it is passed to Java tools using '-classpath' or '--module-path'.
+     *
+     * @since 6.4
+     */
+    @Incubating
+    ModularitySpec getModularity();
 }
