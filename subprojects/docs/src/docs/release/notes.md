@@ -12,10 +12,6 @@ We would like to thank the following community contributors to this release of G
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
 [kerr](https://github.com/hepin1989),
 and [Erhard Pointl](https://github.com/epeee).
-<!-- 
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
--->
 
 ## Upgrade Instructions
 
@@ -25,24 +21,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
 
-NOTE: Gradle 6.4 has had _one_ patch release, which fixed several issues from the original release. We recommend always using the latest patch release.
-
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
-
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
-
-<!-- 
-Add release features here!
-## 1
-
-details of 1
-
-## 2
-
-details of 2
-
-## n
--->
 
 <a name="incremental-improvements"></a>
 ## Incremental development improvements
@@ -110,16 +89,6 @@ These changes will become the default in Gradle 7.0.
 ## Improvements for tooling providers
 
 Tooling API clients can now use a new method from [`GradleConnector`](javadoc/org/gradle/tooling/GradleConnector.html) to asynchronously cancel all Tooling API connections without waiting for the current build to finish. 
-
-## Promoted features
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
 
 ## Fixed issues
 
