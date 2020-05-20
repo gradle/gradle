@@ -34,12 +34,6 @@ fun Project.addDependenciesAndConfigurations(testType: TestType) {
 
     dependencies {
         "${prefix}TestImplementation"(project(":internalIntegTesting"))
-
-        // so that implicit help tasks are available:
-        "${prefix}TestRuntimeOnly"(project(":diagnostics"))
-
-        // So that the wrapper and init task are added when integTests are run via commandline
-        "${prefix}TestRuntimeOnly"(project(":buildInit"))
     }
 }
 

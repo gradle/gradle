@@ -139,6 +139,7 @@ dependencies {
     integTestImplementation(testLibrary("littleproxy"))
     integTestImplementation(testFixtures(project(":native")))
 
+    integTestRuntimeOnly(project(":buildInit"))
     integTestRuntimeOnly(project(":testingJunitPlatform"))
     integTestRuntimeOnly(project(":maven"))
     integTestRuntimeOnly(project(":apiMetadata"))

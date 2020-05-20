@@ -38,11 +38,14 @@ dependencies {
     integTestImplementation(testLibrary("jetty"))
 
     integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":buildInit"))
 
     crossVersionTestImplementation(project(":logging"))
     crossVersionTestImplementation(project(":persistentCache"))
     crossVersionTestImplementation(project(":launcher"))
+
     crossVersionTestRuntimeOnly(project(":runtimeApiInfo"))
+    crossVersionTestRuntimeOnly(project(":buildInit"))
 }
 
 strictCompile {

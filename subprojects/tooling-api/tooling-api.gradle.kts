@@ -67,9 +67,11 @@ dependencies {
     crossVersionTestImplementation(testLibrary("jetty"))
     crossVersionTestImplementation(library("commons_io"))
 
+    crossVersionTestRuntimeOnly(project(":toolingApiBuilders"))
     crossVersionTestRuntimeOnly(project(":kotlinDsl"))
     crossVersionTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
     crossVersionTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
+    crossVersionTestRuntimeOnly(project(":buildInit"))
     crossVersionTestRuntimeOnly(project(":ivy"))
     crossVersionTestRuntimeOnly(project(":maven"))
     crossVersionTestRuntimeOnly(project(":apiMetadata"))
