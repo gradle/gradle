@@ -22,6 +22,7 @@ import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.internal.Cast;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -114,12 +115,9 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     @Override
     public boolean addPending(final ProviderInternal<? extends T> provider) {
         if (provider instanceof ChangingValue) {
-            ((ChangingValue<T>)provider).onValueChange(new Action<T>() {
-                @Override
-                public void execute(T previousValue) {
-                    values.remove(previousValue);
-                    pending.addPending(provider);
-                }
+            Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(previousValue -> {
+                values.remove(previousValue);
+                pending.addPending(provider);
             });
         }
         return pending.addPending(provider);
@@ -133,14 +131,11 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     @Override
     public boolean addPendingCollection(final CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
         if (provider instanceof ChangingValue) {
-            ((ChangingValue<Iterable<T>>)provider).onValueChange(new Action<Iterable<T>>() {
-                @Override
-                public void execute(Iterable<T> previousValues) {
-                    for (T value : previousValues) {
-                        values.remove(value);
-                    }
-                    pending.addPendingCollection(provider);
+            Cast.<ChangingValue<Iterable<T>>>uncheckedNonnullCast(provider).onValueChange(previousValues -> {
+                for (T value : previousValues) {
+                    values.remove(value);
                 }
+                pending.addPendingCollection(provider);
             });
         }
         return pending.addPendingCollection(provider);

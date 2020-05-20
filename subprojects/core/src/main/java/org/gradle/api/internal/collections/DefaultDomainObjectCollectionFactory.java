@@ -107,7 +107,7 @@ public class DefaultDomainObjectCollectionFactory implements DomainObjectCollect
     }
 
     @Override
-    public <T> CompositeDomainObjectSet<T> newDomainObjectSet(Class<T> elementType, DomainObjectCollection<? extends T>... collections) {
-        return CompositeDomainObjectSet.create(elementType, collectionCallbackActionDecorator, collections);
+    public <T> CompositeDomainObjectSet<T> newDomainObjectSet(Class<T> elementType, DomainObjectCollection<? extends T> collection) {
+        return CompositeDomainObjectSet.create(elementType, collectionCallbackActionDecorator, collection);
     }
 }

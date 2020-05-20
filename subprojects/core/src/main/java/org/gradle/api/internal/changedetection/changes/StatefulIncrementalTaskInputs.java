@@ -17,10 +17,10 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.api.Action;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
-public abstract class StatefulIncrementalTaskInputs implements IncrementalTaskInputs {
+@SuppressWarnings("deprecation")
+public abstract class StatefulIncrementalTaskInputs implements org.gradle.api.tasks.incremental.IncrementalTaskInputs {
     private boolean outOfDateProcessed;
     private boolean removedProcessed;
 

@@ -18,6 +18,7 @@ package org.gradle.initialization;
 import org.gradle.api.Project;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.internal.Cast;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,8 +63,8 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         return new DefaultGradleProperties(defaultProperties, overrideProperties);
     }
 
-    Map getAllSystemProperties() {
-        return System.getProperties();
+    Map<String, String> getAllSystemProperties() {
+        return Cast.uncheckedNonnullCast(System.getProperties());
     }
 
     Map<String, String> getAllEnvProperties() {
@@ -74,7 +75,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         for (File propertyFile : files) {
             if (propertyFile != null && propertyFile.isFile()) {
                 Properties properties = GUtil.loadProperties(propertyFile);
-                target.putAll(new HashMap(properties));
+                target.putAll(Cast.uncheckedNonnullCast(properties));
             }
         }
     }

@@ -36,7 +36,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.ManagedFactories;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
@@ -139,7 +138,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DeferredProjectConfiguration(project);
     }
 
-    protected SourceDirectorySetFactory createSourceDirectorySetFactory(ObjectFactory objectFactory) {
+    @SuppressWarnings("deprecation")
+    protected org.gradle.api.internal.file.SourceDirectorySetFactory createSourceDirectorySetFactory(ObjectFactory objectFactory) {
         return new DefaultSourceDirectorySetFactory(objectFactory);
     }
 

@@ -124,9 +124,11 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaForkOptionsInternal immutableCopy(JavaForkOptionsInternal options) {
+        @SuppressWarnings("deprecation")
+        Factory<PatternSet> nonCachingPatternSetFactory = PatternSets.getNonCachingPatternSetFactory();
         // NOTE: We do not want/need a decorated version of JavaForkOptions or JavaDebugOptions because
         // these immutable instances are held across builds and will retain classloaders/services in the decorated object
-        DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), PatternSets.getNonCachingPatternSetFactory(), PropertyHost.NO_OP, FileSystems.getDefault());
+        DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), nonCachingPatternSetFactory, PropertyHost.NO_OP, FileSystems.getDefault());
         JavaForkOptionsInternal copy = new DefaultJavaForkOptions(fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions());
         options.copyTo(copy);
         return new ImmutableJavaForkOptions(copy);

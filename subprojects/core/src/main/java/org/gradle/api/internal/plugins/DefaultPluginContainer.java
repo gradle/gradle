@@ -24,6 +24,7 @@ import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Cast;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
 /**
@@ -49,13 +50,15 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     @Override
+    @Deprecated
     public boolean add(Plugin toAdd) {
         throw new UnsupportedOperationException();
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public Plugin apply(String id) {
-        PluginImplementation plugin = pluginRegistry.lookup(DefaultPluginId.unvalidated(id));
+        PluginImplementation<?> plugin = pluginRegistry.lookup(DefaultPluginId.unvalidated(id));
         if (plugin == null) {
             throw new UnknownPluginException("Plugin with id '" + id + "' not found.");
         }
@@ -63,11 +66,12 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
         if (!Plugin.class.isAssignableFrom(plugin.asClass())) {
             throw new IllegalArgumentException("Plugin implementation '" + plugin.asClass().getName() + "' does not implement the Plugin interface. This plugin cannot be applied directly via the PluginContainer.");
         } else {
-            return pluginManager.addImperativePlugin(plugin);
+            return pluginManager.addImperativePlugin(Cast.<PluginImplementation<Plugin<?>>>uncheckedNonnullCast(plugin));
         }
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public <P extends Plugin> P apply(Class<P> type) {
         return pluginManager.addImperativePlugin(type);
     }
@@ -82,9 +86,9 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
         return findPlugin(type) != null;
     }
 
-    private Plugin doFindPlugin(String id) {
+    private Plugin<?> doFindPlugin(String id) {
         for (final PluginManagerInternal.PluginWithId pluginWithId : pluginManager.pluginsForId(id)) {
-            Plugin plugin = Iterables.tryFind(DefaultPluginContainer.this, new Predicate<Plugin>() {
+            Plugin<?> plugin = Iterables.tryFind(DefaultPluginContainer.this, new Predicate<Plugin>() {
                 @Override
                 public boolean apply(Plugin plugin) {
                     return pluginWithId.clazz.equals(plugin.getClass());
@@ -116,7 +120,7 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
 
     @Override
     public Plugin getPlugin(String id) {
-        Plugin plugin = findPlugin(id);
+        Plugin<?> plugin = findPlugin(id);
         if (plugin == null) {
             throw new UnknownPluginException("Plugin with id " + id + " has not been used.");
         }

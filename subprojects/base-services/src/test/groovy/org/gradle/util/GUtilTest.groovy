@@ -186,23 +186,23 @@ class GUtilTest extends Specification {
     def "adds to collection"() {
         def list = [0]
         when:
-        addToCollection(list, [1, 2], [2, 3])
+        addToCollection(addToCollection(list, [1, 2]), [2, 3])
         then:
         list == [0, 1, 2, 2, 3]
     }
 
     def "adds empty list to collection"() {
         expect:
-        addToCollection([], [], []) == []
-        addToCollection([1], [], [2]) == [1, 2]
+        addToCollection([], []) == []
+        addToCollection([1], []) == [1]
     }
 
     def "adds to collection preventing nulls"() {
         when:
-        addToCollection([], true, [1, 2], [null, 3])
+        addToCollection([], true, [1, 2, null, 3])
         then:
         def ex = thrown(IllegalArgumentException)
-        ex.message.contains([null, 3].toString())
+        ex.message.contains([1, 2, null, 3].toString())
     }
 
     def "can convert strings to enums using the enum value names"() {

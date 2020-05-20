@@ -16,7 +16,6 @@
 
 package org.gradle.internal.graph;
 
-import org.gradle.internal.Cast;
 import org.gradle.util.GUtil;
 
 import java.util.ArrayDeque;
@@ -62,7 +61,7 @@ public class CachingDirectedGraphWalker<N, T> {
      * Adds some start nodes.
      */
     public CachingDirectedGraphWalker<?, ?> add(Iterable<? extends N> values) {
-        GUtil.addToCollection(startNodes, Cast.<Iterable<? extends N>[]>uncheckedNonnullCast(new Iterable<?>[]{values}));
+        GUtil.addToCollection(startNodes, values);
         return this;
     }
 
