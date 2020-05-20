@@ -265,7 +265,6 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(5)
     }
 
-    @ToBeFixedForInstantExecution
     def "caches scripts applied from remote locations"() {
         server.start()
 
@@ -279,7 +278,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         """))
 
         when:
-        run 'tasks'
+        run 'help'
 
         then:
         outputContains 'Echo'
@@ -309,7 +308,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         """))
 
         when:
-        run 'tasks'
+        run 'help'
 
         then:
         outputContains 'Echo 0'
@@ -324,7 +323,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             println 'Echo 1'
         """))
 
-        run 'tasks'
+        run 'help'
 
         then:
         outputContains 'Echo 1'
