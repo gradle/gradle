@@ -213,7 +213,7 @@ class InstantExecutionScriptTaskDefinitionIntegrationTest extends AbstractInstan
         then:
         problems.assertFailureHasProblems(failure) {
             withUniqueProblems(
-                "field 'this${'$'}0' from type 'Build_gradle${'$'}1': cannot serialize object of type 'Build_gradle', a subtype of 'org.gradle.kotlin.dsl.KotlinScript', as these are not supported with instant execution."
+                "field 'this${'$'}0' from type 'Build_gradle${'$'}1': cannot serialize object of type 'Build_gradle', a subtype of 'org.gradle.kotlin.dsl.KotlinScript', as these are not supported with the configuration cache."
             )
         }
     }

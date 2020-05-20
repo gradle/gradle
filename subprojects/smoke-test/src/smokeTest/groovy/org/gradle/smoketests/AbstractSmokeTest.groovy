@@ -191,14 +191,14 @@ abstract class AbstractSmokeTest extends Specification {
             .withProjectDir(testProjectDir.root)
             .forwardOutput()
             .withArguments(
-                tasks.toList() + outputParameters() + repoMirrorParameters() + buildContextParameters()
+                tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters()
             ) as DefaultGradleRunner
         gradleRunner.withJvmArguments(
-            ["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"]
+            ["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"] + generatedApiJarCacheDirJvmArguments()
         )
     }
 
-    private List<String> buildContextParameters() {
+    private List<String> configurationCacheParameters() {
         List<String> parameters = []
         if (GradleContextualExecuter.isInstant()) {
             def maxProblems = maxInstantExecutionProblems()
@@ -213,11 +213,15 @@ abstract class AbstractSmokeTest extends Specification {
                 "-D${BuildOperationTrace.SYSPROP}=${buildOperationTracePath()}".toString()
             ]
         }
+        return parameters
+    }
+
+    private static List<String> generatedApiJarCacheDirJvmArguments() {
         def generatedApiJarCacheDir = IntegrationTestBuildContext.INSTANCE.gradleGeneratedApiJarCacheDir
         if (generatedApiJarCacheDir == null) {
-            return parameters
+            return []
         }
-        return parameters + ["-D${DefaultGeneratedGradleJarCache.BASE_DIR_OVERRIDE_PROPERTY}=${generatedApiJarCacheDir.absolutePath}" as String]
+        return ["-D${DefaultGeneratedGradleJarCache.BASE_DIR_OVERRIDE_PROPERTY}=${generatedApiJarCacheDir.absolutePath}" as String]
     }
 
     private static List<String> outputParameters() {

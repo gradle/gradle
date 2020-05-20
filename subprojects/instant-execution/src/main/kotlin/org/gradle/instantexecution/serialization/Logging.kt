@@ -34,7 +34,7 @@ fun IsolateContext.logPropertyProblem(action: String, exception: Throwable? = nu
 
 
 fun IsolateContext.logPropertyInfo(action: String, value: Any?) {
-    logger.debug("instant-execution > {}d {} with value {}", action, trace, value)
+    logger.debug("configuration-cache > {}d {} with value {}", action, trace, value)
 }
 
 
@@ -47,7 +47,7 @@ fun IsolateContext.logUnsupported(action: String, baseType: KClass<*>, actualTyp
             reference(GeneratedSubclasses.unpack(actualType))
             text(", a subtype of ")
             reference(baseType)
-            text(", as these are not supported with instant execution.")
+            text(", as these are not supported with the configuration cache.")
         }, null, "disallowed_types"))
 }
 
@@ -59,7 +59,7 @@ fun IsolateContext.logUnsupported(action: String, baseType: KClass<*>) {
             text(action)
             text(" object of type ")
             reference(baseType)
-            text(" as these are not supported with instant execution.")
+            text(" as these are not supported with the configuration cache.")
         }, null, "disallowed_types"))
 }
 
@@ -68,14 +68,14 @@ fun IsolateContext.logNotImplemented(baseType: Class<*>) {
     logPropertyProblem {
         text("objects of type ")
         reference(baseType)
-        text(" are not yet supported with instant execution.")
+        text(" are not yet supported with the configuration cache.")
     }
 }
 
 
 fun IsolateContext.logNotImplemented(feature: String) {
     onProblem(PropertyProblem(trace, build {
-        text("support for $feature is not yet implemented with instant execution.")
+        text("support for $feature is not yet implemented with the configuration cache.")
     }, null, "not_yet_implemented"))
 }
 
@@ -89,6 +89,6 @@ fun IsolateContext.logPropertyProblem(documentationSection: String? = null, mess
 
 private
 fun IsolateContext.logPropertyProblem(action: String, problem: PropertyProblem) {
-    logger.debug("instant-execution > failed to {} {} because {}", action, problem.trace, problem.message)
+    logger.debug("configuration-cache > failed to {} {} because {}", action, problem.trace, problem.message)
     onProblem(problem)
 }

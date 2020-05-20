@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 
 /**
@@ -68,6 +69,7 @@ public interface JavaApplication {
     /**
      * The fully qualified name of the application's main class.
      */
+    @ReplacedBy("mainClass")
     String getMainClassName();
 
     /**
