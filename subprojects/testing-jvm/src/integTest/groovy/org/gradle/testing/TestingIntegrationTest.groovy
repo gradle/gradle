@@ -19,15 +19,18 @@ import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.CoreMatchers
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
+import static org.hamcrest.CoreMatchers.equalTo
 
 /**
  * General tests for the JVM testing infrastructure that don't deserve their own test class.
@@ -101,7 +104,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         and:
         def results = new DefaultTestExecutionResult(file("."))
         results.assertTestClassesExecuted("ExceptionTest")
-        results.testClass("ExceptionTest").assertTestFailed("testThrow", CoreMatchers.equalTo('ExceptionTest$BadlyBehavedException: Broken writeObject()'))
+        results.testClass("ExceptionTest").assertTestFailed("testThrow", equalTo('ExceptionTest$BadlyBehavedException: Broken writeObject()'))
     }
 
     def "fails cleanly even if an exception is thrown that doesn't de-serialize cleanly"() {
@@ -146,7 +149,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         and:
         def results = new DefaultTestExecutionResult(file("."))
         results.assertTestClassesExecuted("ExceptionTest")
-        results.testClass("ExceptionTest").assertTestFailed("testThrow", CoreMatchers.equalTo('ExceptionTest$BadlyBehavedException: Broken readObject()'))
+        results.testClass("ExceptionTest").assertTestFailed("testThrow", equalTo('ExceptionTest$BadlyBehavedException: Broken readObject()'))
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -476,5 +479,54 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
         then:
         outputContains "Unable to reset SecurityManager"
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(TestPrecondition.JDK14_OR_LATER)
+    def "useful NPE messages are transported to the daemon"() {
+        buildFile << """
+            apply plugin:'java-library'
+            ${mavenCentralRepository()}
+            dependencies { testImplementation 'junit:junit:4.13' }
+
+            test {
+                jvmArgs("-XX:+ShowCodeDetailsInExceptionMessages")
+            }
+        """
+
+        file('src/test/java/UsefulNPETest.java') << """
+            import org.junit.Test;
+
+            public class UsefulNPETest {
+                @Test
+                public void testUsefulNPE() {
+                    Object o = null;
+                    o.toString();
+                }
+
+                @Test
+                public void testDeepUsefulNPE() {
+                    other(null);
+                }
+
+                void other(Object param) {
+                    try {
+                       System.out.println(param.toString());
+                    } catch (NullPointerException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+            }
+        """
+
+        when:
+        fails 'test'
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.testClass("UsefulNPETest")
+            .testFailed("testUsefulNPE", equalTo('java.lang.NullPointerException: Cannot invoke "Object.toString()" because "o" is null'))
+        result.testClass("UsefulNPETest")
+            .testFailed("testDeepUsefulNPE", equalTo('java.lang.RuntimeException: java.lang.NullPointerException: Cannot invoke "Object.toString()" because "param" is null'))
     }
 }
