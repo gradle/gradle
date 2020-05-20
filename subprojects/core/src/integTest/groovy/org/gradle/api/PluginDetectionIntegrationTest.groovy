@@ -61,7 +61,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         detectedBy << JAVA_PLUGIN_IDS + JAVA_PLUGIN_IDS.reverse()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Gradle.buildFinishedl")
     def "unqualified ids from classpath are detectable"() {
         def pluginBuilder = new PluginBuilder(testDirectory)
         pluginBuilder.addPlugin("")
@@ -103,7 +103,6 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         run("verify")
     }
 
-    @ToBeFixedForInstantExecution
     def "plugin manager with id is fired after the plugin is applied for imperative plugins"() {
         when:
         buildFile << """
@@ -115,10 +114,9 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         then:
-        succeeds "tasks"
+        succeeds "help"
     }
 
-    @ToBeFixedForInstantExecution
     def "plugin manager with id is fired after the plugin is applied for hybrid plugins"() {
         when:
         file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
@@ -154,10 +152,9 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         then:
-        succeeds "tasks"
+        succeeds "help"
     }
 
-    @ToBeFixedForInstantExecution
     def "plugin manager with id is fired after the plugin is applied for rule plugins"() {
         when:
         file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
@@ -184,7 +181,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         then:
-        succeeds "tasks"
+        succeeds "help"
     }
 
     @Issue("http://discuss.gradle.org/t/concurrentmodification-exception-on-java-8-for-plugins-withid-with-gradle-2-4/8928")
