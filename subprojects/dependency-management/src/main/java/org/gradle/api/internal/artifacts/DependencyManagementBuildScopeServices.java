@@ -18,10 +18,13 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import org.gradle.BuildAdapter;
 import org.gradle.StartParameter;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
@@ -38,6 +41,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.CachingVersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -186,6 +190,18 @@ class DependencyManagementBuildScopeServices {
 
     ComponentIdentifierFactory createComponentIdentifierFactory(BuildState currentBuild, BuildStateRegistry buildRegistry) {
         return new DefaultComponentIdentifierFactory(buildRegistry.getBuild(currentBuild.getBuildIdentifier()));
+    }
+
+    VersionComparator createVersionComparator(FeaturePreviews featurePreviews, ListenerManager listenerManager) {
+        DefaultVersionComparator defaultVersionComparator = new DefaultVersionComparator(featurePreviews);
+        // This needs to be removed once the feature preview disappears
+        listenerManager.addListener(new BuildAdapter() {
+            @Override
+            public void settingsEvaluated(Settings settings) {
+                defaultVersionComparator.configure();
+            }
+        });
+        return defaultVersionComparator;
     }
 
     DependencyFactory createDependencyFactory(

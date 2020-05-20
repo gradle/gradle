@@ -57,7 +57,7 @@ class ModuleResolveState implements CandidateModule {
     private final ModuleIdentifier id;
     private final List<EdgeState> unattachedDependencies = new LinkedList<>();
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<>();
-    private final ModuleSelectors<SelectorState> selectors = new ModuleSelectors<>();
+    private final ModuleSelectors<SelectorState> selectors;
     private final ImmutableAttributesFactory attributesFactory;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
@@ -91,6 +91,7 @@ class ModuleResolveState implements CandidateModule {
         this.resolveOptimizations = resolveOptimizations;
         this.pendingDependencies = new PendingDependencies(id);
         this.selectorStateResolver = selectorStateResolver;
+        selectors = new ModuleSelectors<SelectorState>(versionComparator);
     }
 
     void setSelectorStateResolver(SelectorStateResolver<ComponentState> selectorStateResolver) {

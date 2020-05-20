@@ -30,7 +30,7 @@ import org.gradle.tooling.events.work.WorkItemOperationDescriptor
 @TargetGradleVersion('>=5.1')
 class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
-    void setup() {
+    def setup() {
         prepareTaskTypeUsingWorker()
         withRunnableClassInBuildSrc()
         buildFile << """

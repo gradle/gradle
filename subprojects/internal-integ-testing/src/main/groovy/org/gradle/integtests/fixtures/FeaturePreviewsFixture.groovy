@@ -29,4 +29,10 @@ enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')
 enableFeaturePreview('ONE_LOCKFILE_PER_PROJECT')
 """
     }
+
+    static void enableUpdatedVersionSorting(File settings) {
+        settings << """
+            enableFeaturePreview('VERSION_SORTING_V2')
+"""
+    }
 }

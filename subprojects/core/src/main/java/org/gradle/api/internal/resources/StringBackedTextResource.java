@@ -62,7 +62,7 @@ public class StringBackedTextResource implements TextResourceInternal {
     public File asFile(String charset) {
         File file = tempFileProvider.createTemporaryFile("string", ".txt", "resource");
         try {
-            Files.write(string, file, Charset.forName(charset));
+            Files.asCharSink(file, Charset.forName(charset)).write(string);
         } catch (IOException e) {
             throw new ResourceException("Could not write " + getDisplayName() + " content to " + file + ".", e);
         }

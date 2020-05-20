@@ -16,9 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
+import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState
 import spock.lang.Specification
 import spock.lang.Subject
@@ -26,8 +29,9 @@ import spock.lang.Unroll
 
 class ModuleSelectorsTest extends Specification {
 
+    Comparator<Version> versionComparator = new DefaultVersionComparator(new FeaturePreviews()).asVersionComparator()
     @Subject
-    ModuleSelectors selectors = new ModuleSelectors()
+    ModuleSelectors selectors = new ModuleSelectors(versionComparator)
     int dynCount = 1
 
     def 'empty by default'() {
@@ -187,8 +191,8 @@ class ModuleSelectorsTest extends Specification {
 
     }
 
-    private static List<ResolvableSelectorState> sort(List<ResolvableSelectorState> list) {
-        list.sort(ModuleSelectors.SELECTOR_COMPARATOR)
+    private List<ResolvableSelectorState> sort(List<ResolvableSelectorState> list) {
+        list.sort(selectors.selectorComparator)
         list
     }
 

@@ -16,12 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
+import org.gradle.api.internal.FeaturePreviews
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultVersionSelectorSchemeTest extends Specification {
-    def matcher = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), new VersionParser())
+    def matcher = new DefaultVersionSelectorScheme(new DefaultVersionComparator(new FeaturePreviews()), new VersionParser())
 
     def "creates version range selector"() {
         expect:

@@ -31,12 +31,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 final class DefaultImmutableAttributes implements ImmutableAttributes, AttributeValue<Object> {
-    private static final Comparator<Attribute<?>> ATTRIBUTE_NAME_COMPARATOR = new Comparator<Attribute<?>>() {
-        @Override
-        public int compare(Attribute<?> o1, Attribute<?> o2) {
-            return o1.getName().compareTo(o2.getName());
-        }
-    };
+    private static final Comparator<Attribute<?>> ATTRIBUTE_NAME_COMPARATOR = Comparator.comparing(Attribute::getName);
     // Coercion is an expensive process, so we cache the result of coercing to other attribute types.
     // We can afford using a hashmap here because attributes are interned, and their lifetime doesn't
     // exceed a build
@@ -131,9 +126,10 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
         return isolatable == null ? null : isolatable.isolate();
     }
 
+    @Nullable
     protected <T> Isolatable<T> getIsolatableAttribute(Attribute<T> key) {
         DefaultImmutableAttributes attributes = hierarchy.get(key);
-        return (Isolatable<T>) (attributes == null ? null : attributes.value);
+        return Cast.uncheckedCast(attributes == null ? null : attributes.value);
     }
 
     /**
@@ -142,7 +138,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     @Override
     public <T> AttributeValue<T> findEntry(Attribute<T> key) {
         DefaultImmutableAttributes attributes = hierarchy.get(key);
-        return (AttributeValue<T>) (attributes == null ? MISSING : attributes);
+        return Cast.uncheckedNonnullCast(attributes == null ? MISSING : attributes);
     }
 
     /**
@@ -150,6 +146,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
      */
     @Override
     public AttributeValue<?> findEntry(String key) {
+        //noinspection StringEquality
         if (singleEntryName == key) {
             // The identity check is intentional here, do not replace with .equals()
             return singleEntryValue;
@@ -163,6 +160,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
         return value.isolate();
     }
 
+    @Nullable
     private String desugar() {
         // We support desugaring for all non-primitive types supported in GradleModuleMetadataWriter.writeAttributes(), which are:
         // - Named
@@ -200,7 +198,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
         // 1) Both attributes are strongly typed and match, usually the case if both are sourced from the local build
         // 2) Both attributes are desugared, usually the case if both are sourced from published metadata
         if (otherAttributeType.isAssignableFrom(attribute.getType())) {
-            return (S) get();
+            return Cast.uncheckedCast(get());
         }
 
         // Attempt to coerce myself into the other attribute's type
@@ -211,7 +209,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
         } else if (otherAttributeType.isAssignableFrom(String.class)) {
             // Attempt to desugar myself
             // - I am strongly typed and the other is desugared, usually the case if I am sourced from the local build and the other is sourced from published metadata
-            converted = (S) desugar();
+            converted = Cast.uncheckedCast(desugar());
             if (converted != null) {
                 return converted;
             }
@@ -259,7 +257,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
 
     @Override
     public String toString() {
-        Map<Attribute<?>, Object> sorted = new TreeMap<Attribute<?>, Object>(ATTRIBUTE_NAME_COMPARATOR);
+        Map<Attribute<?>, Object> sorted = new TreeMap<>(ATTRIBUTE_NAME_COMPARATOR);
         for (Map.Entry<Attribute<?>, DefaultImmutableAttributes> entry : hierarchy.entrySet()) {
             sorted.put(entry.getKey(), entry.getValue().value.isolate());
         }

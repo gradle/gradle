@@ -47,6 +47,7 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
+import org.gradle.internal.Cast;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.build.BuildState;
@@ -278,7 +279,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     public void beforeProject(Closure closure) {
         assertProjectMutatingMethodAllowed("beforeProject(Closure)");
-        projectEvaluationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Gradle.beforeProject", closure)));
+        projectEvaluationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Gradle.beforeProject", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
     }
 
     @Override
@@ -290,7 +291,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     public void afterProject(Closure closure) {
         assertProjectMutatingMethodAllowed("afterProject(Closure)");
-        projectEvaluationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Gradle.afterProject", closure)));
+        projectEvaluationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Gradle.afterProject", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
     }
 
     @Override
@@ -342,7 +343,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     public void projectsLoaded(Closure closure) {
         assertProjectMutatingMethodAllowed("projectsLoaded(Closure)");
-        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("projectsLoaded", getListenerBuildOperationDecorator().decorate("Gradle.projectsLoaded", closure)));
+        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("projectsLoaded", getListenerBuildOperationDecorator().decorate("Gradle.projectsLoaded", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
     }
 
     @Override
@@ -354,7 +355,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     public void projectsEvaluated(Closure closure) {
         assertProjectMutatingMethodAllowed("projectsEvaluated(Closure)");
-        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("projectsEvaluated", getListenerBuildOperationDecorator().decorate("Gradle.projectsEvaluated", closure)));
+        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("projectsEvaluated", getListenerBuildOperationDecorator().decorate("Gradle.projectsEvaluated", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
     }
 
     @Override

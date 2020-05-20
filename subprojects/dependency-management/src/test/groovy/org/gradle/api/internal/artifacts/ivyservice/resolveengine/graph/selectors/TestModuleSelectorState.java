@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selecto
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
@@ -35,7 +36,7 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResu
 public class TestModuleSelectorState implements ResolvableSelectorState {
 
     private static final VersionParser VERSION_PARSER = new VersionParser();
-    private static final DefaultVersionComparator VERSION_COMPARATOR = new DefaultVersionComparator();
+    private static final DefaultVersionComparator VERSION_COMPARATOR = new DefaultVersionComparator(new FeaturePreviews());
     private static final VersionSelectorScheme VERSION_SELECTOR_SCHEME = new DefaultVersionSelectorScheme(VERSION_COMPARATOR, VERSION_PARSER);
 
     private final DependencyToComponentIdResolver resolver;

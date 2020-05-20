@@ -16,12 +16,12 @@
 
 package org.gradle.api;
 
-import org.gradle.api.internal.AbstractTask;
 import org.gradle.internal.extensibility.NoConventionMapping;
 
 /**
  * {@code DefaultTask} is the standard {@link Task} implementation. You can extend this to implement your own task types.
  */
 @NoConventionMapping
-public class DefaultTask extends AbstractTask {
+@SuppressWarnings("deprecation")
+public class DefaultTask extends org.gradle.api.internal.AbstractTask {
 }

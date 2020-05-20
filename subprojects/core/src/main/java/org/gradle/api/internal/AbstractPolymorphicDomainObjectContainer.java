@@ -111,7 +111,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
     @Override
     protected ConfigureDelegate createConfigureDelegate(Closure configureClosure) {
-        return new PolymorphicDomainObjectContainerConfigureDelegate(configureClosure, this);
+        return new PolymorphicDomainObjectContainerConfigureDelegate<>(configureClosure, this);
     }
 
     private class ContainerElementsDynamicObject extends AbstractDynamicObject {
@@ -164,7 +164,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
     @Override
     public <U extends T> NamedDomainObjectContainer<U> containerWithType(Class<U> type) {
-        return getInstantiator().newInstance(TypedDomainObjectContainerWrapper.class, type, this);
+        return Cast.uncheckedNonnullCast(getInstantiator().newInstance(TypedDomainObjectContainerWrapper.class, type, this));
     }
 
 }

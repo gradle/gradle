@@ -41,6 +41,22 @@ Versions are ordered based on the following rules:
 ** The string `SNAPSHOT` has **no special meaning**, and is sorted alphabetically like any other string part: `1.0-alpha` < `1.0-SNAPSHOT` < `1.0-zeta` < `1.0-rc` < `1.0`.
 ** Numeric snapshot versions have **no special meaning**, and are sorted like any other numeric part: `1.0` < `1.0-20150201.121010-123` < `1.1`.
 
+[NOTE]
+====
+Gradle 6.5 supports an alternate, opt-in, version sorting scheme which special cases more suffixes:
+
+* The string `SNAPSHOT` will be sorted higher than `rc`: `1.0-RC` < `1.0-SNAPSHOT` < `1.0`
+* The string `GA` will be sorted next to `FINAL` and `RELEASE`, in alphabetical order: `1.0-RC` < `1.0-FINAL` < `1.0-GA` < `1.0-RELEASE` < `1.0`
+* The string `SP` will be sorted higher than `RELEASE`, it remains however lower than an unqualified version, limiting its use to versioning schemes using either `FINAL`, `GA` or `RELEASE`: `1.0-RELEASE` < `1.0-SP1` < `1.0`
+
+Activating the feature preview `VERSION_SORTING_V2` in `settings.gradle(.kts)` enables this set of changes:
+```
+enableFeaturePreview("VERSION_SORTING_V2")
+```
+
+These changes will become the default in Gradle 7.0.
+====
+
 == Simple version declaration semantics
 
 When you declare a version using the short-hand notation, for example:
