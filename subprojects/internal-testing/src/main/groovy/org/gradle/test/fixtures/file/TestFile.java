@@ -30,6 +30,7 @@ import org.gradle.internal.hash.HashingOutputStream;
 import org.gradle.internal.io.NullOutputStream;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.testing.internal.util.RetryUtil;
 import org.hamcrest.Matcher;
 
@@ -63,14 +64,15 @@ import java.util.jar.Manifest;
 
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 public class TestFile extends File {
+    private static final boolean RUN_GC_ON_FAILED_DELETE = OperatingSystem.current().isWindows();
     private boolean useNativeTools;
 
     public TestFile(File file, Object... path) {
@@ -697,7 +699,7 @@ public class TestFile extends File {
 
                     @Override
                     public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                        if (!dir.toFile().delete()) {
+                        if (!tryHardToDelete(dir.toFile())) {
                             errorPaths.add(dir.toFile().getCanonicalPath());
                         }
                         return FileVisitResult.CONTINUE;
@@ -720,6 +722,31 @@ public class TestFile extends File {
             }
         }
         return this;
+    }
+
+    private boolean tryHardToDelete(File file) {
+        if (deleteFile(file)) {
+            return true;
+        }
+
+        // This is copied from Ant (see org.apache.tools.ant.util.FileUtils.tryHardToDelete).
+        // It mentions that there is a bug in the Windows JDK implementations that this is a valid
+        // workaround for. I've been unable to find a definitive reference to this bug.
+        // The thinking is that if this is good enough for Ant, it's good enough for us.
+        if (RUN_GC_ON_FAILED_DELETE) {
+            System.gc();
+        }
+        try {
+            Thread.sleep(30);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+
+        return deleteFile(file);
+    }
+
+    private boolean deleteFile(File file) {
+        return file.delete() && !file.exists();
     }
 
     public TestFile createFile() {
