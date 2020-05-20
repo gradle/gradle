@@ -1423,7 +1423,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         outputDir("snapshot-1.2-SNAPSHOT.jar", "snapshot-1.2-SNAPSHOT.jar.txt") != outputDir2
     }
 
-    @ToBeFixedForInstantExecution
     def "cleans up cache"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
@@ -1449,7 +1448,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         and:
         // start as new process so journal is not restored from in-memory cache
-        executer.withTasks("tasks").start().waitForFinish()
+        executer.withTasks("help").start().waitForFinish()
 
         then:
         outputDir1.assertDoesNotExist()
