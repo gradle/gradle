@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.compress.utils.Lists;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.archive.FileZipInput;
 import org.gradle.api.internal.file.archive.StreamZipInput;
 import org.gradle.api.internal.file.archive.ZipEntry;
@@ -115,7 +114,7 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
             Hasher hasher = Hashing.newHasher();
             FingerprintHashingStrategy.SORT.appendToHasher(hasher, fingerprints);
             return hasher.hash();
-        } catch (IOException | UncheckedIOException e) {
+        } catch (Exception e) {
             return hashMalformedZip(zipFileSnapshot, e);
         }
     }
