@@ -90,7 +90,6 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         module.parsedPom.scopes.isEmpty()
     }
 
-    @ToBeFixedForInstantExecution
     def "fails at configuration time with helpful error when credentials provider can not be resolved"() {
         given:
         def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", "tests3Bucket")
