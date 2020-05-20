@@ -1,8 +1,9 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [1](), [2](), ... [n](), and more.
+This release features the [start of several improvements](#incremental-improvements) for faster feedback using [file watching](#file-watching). This release also has a [feature preview](#dependency-ordering) for changes to version ordering and many [bug fixes](#fixed-issues). 
 
 We would like to thank the following community contributors to this release of Gradle:
+
 [Daniil Popov](https://github.com/int02h),
 [Scott Robinson](https://github.com/quad),
 [Cristian Garcia](https://github.com/CristianGM),
@@ -24,7 +25,7 @@ See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@b
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 <a name="incremental-improvements"></a>
-## Incremental development improvements
+## Fast feedback improvements
 
 A large part of the day in the life of a software developer is typically spent making small changes to the code, then rebuilding it, checking the results, and then going back to make other small changes.
 We call this the _incremental development use case,_ and ensuring fast feedback for it is a critically important for great developer experience and productivity. 
@@ -33,38 +34,24 @@ Starting with the current release we will embark on a mission focused on heavily
 Each forthcoming release in the coming months will include new improvements that we hope will each significantly improve the developer experience.
 Taken together we are hoping to see a quantum leap in how developers work with Gradle, especially from inside an IDE.
 
+<a name="file-watching"></a>
 ### File watching
 
-In Gradle 6.5 we introduce _[file-system watching](userguide/gradle_daemon.html#sec:daemon_watch_fs)._
-This experimental feature allows Gradle to keep what it learned about the file-system in memory between builds.
-Doing so significantly reduces the amount of disk I/O needed to figure out what has changed since the previous build.
+In this release, we've introduced _[file-system watching](userguide/gradle_daemon.html#sec:daemon_watch_fs)_.
+This experimental feature allows Gradle to keep what it has learned about the file-system in memory between builds.
+This significantly reduces the amount of disk I/O needed to figure out what has changed since the previous build.
 
-You can enable this feature by supplying the experimental `--watch-fs` parameter on the command-line.
+You can enable this feature by supplying the parameter `--watch-fs` on the command-line.
 
-Here's how enabling this feature reduces the time it takes to make small changes to the [Santa Tracker Android application](https://github.com/gradle/santa-tracker-performance):
+Enabling this feature reduced the time it takes to build small changes to the [Santa Tracker Android application](https://github.com/gradle/santa-tracker-performance):
 
 TBD image for the comparison
 
+<!-- TODO Need to insert link to blog post here -->
 Read more about this new feature and its impact [on the Gradle blog](https://blog.gradle.org)!
 
-<a name="lazy-dependencies"><a>
-## Derive dependencies from user configuration
-
-Gradle 6.5 now supports using a [`org.gradle.api.provider.Provider`](javadoc/org/gradle/api/provider/Provider.html) when adding dependencies. 
-
-For example:
-```groovy
-dependencies {
-    // Version of Guava defaults to 28.0-jre but can be changed via Gradle property (-PguavaVersion=...)
-    def guavaVersion = providers.gradleProperty("guavaVersion").orElse("28.0-jre")
-
-    api(guavaVersion.map { "com.google.guava:guava:" + it })
-}
-```
-
-This is useful for plugin authors that need to supply different dependencies based upon other configuration that may be set by the user.
-
-## Preview of changes in dependency version ordering
+<a name="dependency-ordering"><a>
+## Feature Preview: Dependency version ordering
 
 There are multiple version ordering schemes used in the Java ecosystem.
 A number relies on `SNAPSHOT` versions, a concept from Maven.
@@ -86,9 +73,33 @@ enableFeaturePreview("VERSION_SORTING_V2")
 Have a look at the [full documentation on version sorting](userguide/single_versions.html) to understand all the implications.
 These changes will become the default in Gradle 7.0.  
 
-## Improvements for tooling providers
+<a name="lazy-dependencies"><a>
+## Usability: Derive dependencies from user configuration
 
-Tooling API clients can now use a new method from [`GradleConnector`](javadoc/org/gradle/tooling/GradleConnector.html) to asynchronously cancel all Tooling API connections without waiting for the current build to finish. 
+Gradle now supports using a [`org.gradle.api.provider.Provider`](javadoc/org/gradle/api/provider/Provider.html) when adding dependencies. 
+
+For example:
+```groovy
+dependencies {
+    // Version of Guava defaults to 28.0-jre but can be changed via Gradle property (-PguavaVersion=...)
+    def guavaVersion = providers.gradleProperty("guavaVersion").orElse("28.0-jre")
+
+    api(guavaVersion.map { "com.google.guava:guava:" + it })
+}
+```
+
+This is useful for plugin authors that need to supply different dependencies based upon other configuration that may be set by the user.
+
+## Documentation: New samples available
+
+This release demonstrates a few new use cases as samples:
+- How to safely use credentials in a Gradle build
+- How to develop local changes to two independent projects with a composite build
+- How to develop a custom Gradle plugin and test it with a real build
+
+## Tooling: Improvements for tooling providers
+
+Tooling API clients (like [Eclipse Buildship](https://projects.eclipse.org/projects/tools.buildship) or [IntelliJ IDEA](https://www.jetbrains.com/idea/)) can now use a new method from [`GradleConnector`](javadoc/org/gradle/tooling/GradleConnector.html) to asynchronously cancel all Tooling API connections without waiting for the current build to finish. 
 
 ## Fixed issues
 
