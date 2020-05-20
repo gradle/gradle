@@ -49,7 +49,7 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
         )
         assertThat(
             problem.message.toString(),
-            equalTo("objects of type 'kotlin.Pair' are not yet supported with instant execution.")
+            equalTo("objects of type 'kotlin.Pair' are not yet supported with the configuration cache.")
         )
     }
 

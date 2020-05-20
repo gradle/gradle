@@ -26,7 +26,7 @@ tasks {
 
     compileKotlin2Js {
         kotlinOptions {
-            outputFile = "$buildDir/js/instant-execution-report.js"
+            outputFile = "$buildDir/js/configuration-cache-report.js"
             metaInfo = false
             sourceMap = false
         }
