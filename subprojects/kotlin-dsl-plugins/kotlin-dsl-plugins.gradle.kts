@@ -20,6 +20,7 @@ import codegen.GenerateKotlinDslPluginsExtensions
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import plugins.bundledGradlePlugin
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesKotlinDslPlugins
 
 plugins {
     gradlebuild.portalplugin.kotlin
@@ -153,3 +154,5 @@ afterEvaluate {
         it.name == "java"
     }
 }
+
+integrationTestUsesKotlinDslPlugins()

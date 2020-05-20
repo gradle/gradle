@@ -15,6 +15,7 @@
  */
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import java.util.jar.Attributes
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesDistribution
 
 plugins {
     gradlebuild.distribution.`core-api-java`
@@ -63,3 +64,5 @@ tasks.register<Jar>("executableJar") {
 tasks.withType<IntegrationTest>().configureEach {
     binaryDistributions.binZipRequired = true
 }
+
+integrationTestUsesDistribution()
