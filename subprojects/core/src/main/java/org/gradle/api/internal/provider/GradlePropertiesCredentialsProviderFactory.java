@@ -74,8 +74,6 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
         private final Class<T> type;
         private final DisplayName displayName;
 
-        private boolean valueRequested = false;
-
         protected CredentialsProvider(Class<T> type, DisplayName displayName) {
             this.type = type;
             this.displayName = displayName;
@@ -96,14 +94,8 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
             return type;
         }
 
-        boolean valueRequested() {
-            return valueRequested;
-        }
-
         @Override
         protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-            this.valueRequested = true;
-
             Value<T> missing = validateProperties();
             if (missing != null) {
                 return missing;
