@@ -17,6 +17,7 @@
 package org.gradle.internal.serialize;
 
 import org.gradle.api.Transformer;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -31,11 +32,22 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 class ExceptionPlaceholder implements Serializable {
+    private static final Set<String> CANDIDATE_GET_CAUSES = Collections.unmodifiableSet(
+        new HashSet<String>() {{
+            add("getCauses");
+            add("getFailures");
+        }}
+    );
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionPlaceholder.class);
     private final String type;
@@ -194,6 +206,10 @@ class ExceptionPlaceholder implements Serializable {
         if (throwable instanceof MultiCauseException) {
             return ((MultiCauseException) throwable).getCauses();
         } else {
+            List<? extends Throwable> causes = tryExtractMultiCauses(throwable);
+            if (causes != null) {
+                return causes;
+            }
             Throwable causeTmp;
             try {
                 causeTmp = throwable.getCause();
@@ -204,6 +220,53 @@ class ExceptionPlaceholder implements Serializable {
             }
             return causeTmp == null ? Collections.<Throwable>emptyList() : Collections.singletonList(causeTmp);
         }
+    }
+
+    private static Method findCandidateGetCausesMethod(Throwable throwable) {
+        Method[] declaredMethods = throwable.getClass().getDeclaredMethods();
+        for (Method method : declaredMethods) {
+            if (CANDIDATE_GET_CAUSES.contains(method.getName())) {
+                Class<?> returnType = method.getReturnType();
+                if (Collection.class.isAssignableFrom(returnType)) {
+                    return method;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Does best effort to find a method which potentially returns multiple causes
+     * for an exception. This is for classes of external projects which actually do
+     * something similar to what we do in Gradle with {@link DefaultMultiCauseException}.
+     * It is, in particular, the case for opentest4j.
+     */
+    private static List<? extends Throwable> tryExtractMultiCauses(Throwable throwable) {
+        Method causesMethod = findCandidateGetCausesMethod(throwable);
+        if (causesMethod != null) {
+            Collection<?> causes;
+            try {
+                causes = Cast.uncheckedCast(causesMethod.invoke(throwable));
+            } catch (IllegalAccessException e) {
+                return null;
+            } catch (InvocationTargetException e) {
+                return null;
+            }
+            if (causes == null) {
+                return null;
+            }
+            for (Object cause : causes) {
+                if (!(cause instanceof Throwable)) {
+                    return null;
+                }
+            }
+            List<Throwable> result = new ArrayList<Throwable>(causes.size());
+            for (Object cause : causes) {
+                result.add(Cast.<Throwable>uncheckedCast(cause));
+            }
+            return result;
+        }
+        return null;
     }
 
     private List<Throwable> recreateCauses(Transformer<Class<?>, String> classNameTransformer, Transformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
