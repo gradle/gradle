@@ -492,8 +492,7 @@ samples {
             category = "Build organization"
         }
 
-        // temporarily disabled - tests failing after merge - investigating
-        /*publishingCredentials {
+        publishingCredentials {
             sampleDirectory = samplesRoot.dir("credentials-handling/publishing-credentials")
             description = "Publish to a password protected repository"
             category = "Using Credentials"
@@ -501,7 +500,7 @@ samples {
                 from(templates.javaListLibrary)
                 from(templates.javaUtilitiesLibrary)
             }
-        }*/
+        }
 
         credentialsForExternalToolViaStdin {
             sampleDirectory = samplesRoot.dir("credentials-handling/pass-credentials-to-external-tool-via-stdin")
