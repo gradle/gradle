@@ -58,6 +58,7 @@ import testLibrary
 import java.util.concurrent.Callable
 import java.util.jar.Attributes
 import org.gradle.testing.PerformanceTest
+import gitInfo
 
 
 /**
@@ -270,6 +271,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             maxParallelForks = project.maxParallelForks
 
             configureJvmForTest()
+            configureGitInfo()
             addOsAsInputs()
 
             if (BuildEnvironment.isCiServer && this !is PerformanceTest) {
@@ -282,6 +284,15 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
                 }
             }
         }
+    }
+
+    /**
+     * Some tests depends on repository's git information.
+     */
+    private
+    fun Test.configureGitInfo() {
+        systemProperty("gradleBuildBranch", project.gitInfo.gradleBuildBranch.get())
+        systemProperty("gradleBuildCommitId", project.gitInfo.gradleBuildCommitId.get())
     }
 
     private

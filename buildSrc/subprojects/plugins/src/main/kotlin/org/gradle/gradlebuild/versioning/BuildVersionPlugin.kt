@@ -33,13 +33,27 @@ import org.gradle.gradlebuild.BuildEnvironment.CI_ENVIRONMENT_VARIABLE
 import org.gradle.kotlin.dsl.*
 import java.text.SimpleDateFormat
 import java.util.Date
+import GitInformationExtension
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 
 class BuildVersionPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         require(project === project.rootProject)
         project.setBuildVersion()
+        project.setGitInformation()
     }
+}
+
+
+private
+fun Project.setGitInformation() {
+    val repository by lazy { FileRepositoryBuilder().setGitDir(rootProject.projectDir.resolve(".git")).build() }
+    extensions.create<GitInformationExtension>("gitInfo",
+        environmentVariable(BuildEnvironment.BUILD_BRANCH).orElse(providers.provider { repository.branch }),
+        environmentVariable(BuildEnvironment.BUILD_COMMIT_ID).orElse(providers.provider { repository.resolve(repository.fullBranch).name }
+        )
+    )
 }
 
 

@@ -17,9 +17,9 @@
 package org.gradle.gradlebuild.versioning
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.*
+import gitInfo
 
 
 /**
@@ -29,7 +29,7 @@ import org.gradle.kotlin.dsl.*
 open class UpdateBranchStatus : DefaultTask() {
     @TaskAction
     fun publishBranchStatus() {
-        when (project.determineCurrentBranch()) {
+        when (project.gitInfo.gradleBuildBranch.get()) {
             "master" -> publishBranchStatus("master")
             "release" -> publishBranchStatus("release")
         }
@@ -39,7 +39,4 @@ open class UpdateBranchStatus : DefaultTask() {
     fun publishBranchStatus(branch: String) {
         project.execAndGetStdout("git", "push", "origin", "$branch:green-$branch")
     }
-
-    private
-    fun Project.determineCurrentBranch() = System.getenv("BUILD_BRANCH") ?: execAndGetStdout("git", "rev-parse", "--abbrev-ref", "HEAD")
 }
