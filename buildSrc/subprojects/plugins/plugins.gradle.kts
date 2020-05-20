@@ -50,4 +50,5 @@ gradlePlugin {
 
 tasks.withType<Test> {
     environment("BUILD_BRANCH", "myBranch")
+    environment("BUILD_COMMIT_ID", "myCommitId")
 }
