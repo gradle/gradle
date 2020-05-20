@@ -16,6 +16,7 @@
 
 package org.gradle.internal.serialize;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
@@ -60,7 +61,7 @@ class ExceptionPlaceholder implements Serializable {
     private Throwable toStringRuntimeExec;
     private Throwable getMessageExec;
 
-    public ExceptionPlaceholder(final Throwable throwable, Transformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator) {
+    public ExceptionPlaceholder(Throwable throwable, Transformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator) {
         type = throwable.getClass().getName();
         contextual = throwable.getClass().getAnnotation(Contextual.class) != null;
 
@@ -76,6 +77,10 @@ class ExceptionPlaceholder implements Serializable {
             message = throwable.getMessage();
         } catch (Throwable failure) {
             getMessageExec = failure;
+        }
+
+        if (isJava14()) {
+            throwable = Java14NullPointerExceptionUsefulMessageSupport.maybeReplaceUsefulNullPointerMessage(throwable);
         }
 
         try {
@@ -126,6 +131,10 @@ class ExceptionPlaceholder implements Serializable {
             }
             this.causes = placeholders;
         }
+    }
+
+    private static boolean isJava14() {
+        return JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14);
     }
 
     public Throwable read(Transformer<Class<?>, String> classNameTransformer, Transformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
@@ -280,5 +289,26 @@ class ExceptionPlaceholder implements Serializable {
             result.add(placeholder.read(classNameTransformer, objectInputStreamCreator));
         }
         return result;
+    }
+
+    /**
+     * A support utility which will replace the message of NullPointerException
+     * thrown in Java 14+ with the "useful" one when it's not using a custom
+     * message.
+     *
+     * We have to do this because Java 14 will not serialize the required context
+     * and therefore when the exception is sent back to the daemon, it loses
+     * information required to create a "useful message".
+     */
+    private static class Java14NullPointerExceptionUsefulMessageSupport {
+
+        private static Throwable maybeReplaceUsefulNullPointerMessage(Throwable throwable) {
+            if (throwable instanceof NullPointerException) {
+                StackTraceElement[] stackTrace = throwable.getStackTrace();
+                throwable = new NullPointerException(throwable.getMessage());
+                throwable.setStackTrace(stackTrace);
+            }
+            return throwable;
+        }
     }
 }
