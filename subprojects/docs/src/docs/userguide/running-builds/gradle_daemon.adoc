@@ -196,3 +196,36 @@ The Gradle Daemon is a _long lived_ build process. In between builds it waits id
 A significant part of the story for modern JVM performance is runtime code optimization. For example, HotSpot (the JVM implementation provided by Oracle and used as the basis of OpenJDK) applies optimization to code while it is running. The optimization is progressive and not instantaneous. That is, the code is progressively optimized during execution which means that subsequent builds can be faster purely due to this optimization process. Experiments with HotSpot have shown that it takes somewhere between 5 and 10 builds for optimization to stabilize. The difference in perceived build time between the first build and the 10th for a Daemon can be quite dramatic.
 
 The Daemon also allows more effective in memory caching across builds. For example, the classes needed by the build (e.g. plugins, build scripts) can be held in memory between builds. Similarly, Gradle can maintain in-memory caches of build data such as the hashes of task inputs and outputs, used for incremental building.
+
+When <<sec:daemon_watch_fs,watching the file system>> is enabled, the Daemon can re-use information about the file system from the last build.
+For incremental builds, there are only a few changes between builds.
+Therefore, incremental builds can re-use most of the information about the file system from the last build and benefit the most from watching the file system.
+
+[[sec:daemon_watch_fs]]
+== Watching the file system
+
+[NOTE]
+====
+Watching the file system is an experimental feature.
+====
+
+Gradle caches information about the file system in-memory (aka _Virtual File System_, or VFS).
+By watching the file system, Gradle can keep the Virtual File System in sync with the file system even between builds.
+Doing so allows the Daemon to save the time to rebuild the Virtual File System from disk for the next build.
+For incremental builds, there are only a few changes between builds.
+Therefore, incremental builds can re-use most of the Virtual File System from the last build and benefit the most from watching the file system.
+
+Gradle uses operating system features for watching the file system.
+It supports the feature on these operating systems:
+
+- Windows 10,
+- Linux (Ubuntu 16.04 or later),
+- macOS 10.14 (Mojave) or later.
+
+Watching the file system is an experimental feature and is disabled by default.
+You can enable the feature in a couple of ways:
+
+Run with `--watch-fs` on the command line::
+This enables watching the file system for this build only.
+Put `org.gradle.unsafe.watch-fs=true` in your `gradle.properties`::
+This enables watching the file system for all builds, unless explicitly disabled with `--no-watch-fs`.

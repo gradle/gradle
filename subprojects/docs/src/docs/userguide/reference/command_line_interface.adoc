@@ -358,6 +358,11 @@ Generate a build scan with detailed performance diagnostics.
 
 image::gradle-core-test-build-scan-performance.png[Build Scan performance report]
 
+`--watch-fs`, `--no-watch-fs`::
+Toggles <<gradle_daemon.adoc#sec:daemon_watch_fs,watching the file system>>.
+Allows Gradle to re-use data about the file system in the next build.
+_Default is off_.
+
 === Gradle daemon options
 You can manage the <<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>> through the following command line options.
 
