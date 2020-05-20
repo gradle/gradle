@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
@@ -86,7 +85,6 @@ public class LoggingTest {
     }
 
     @UsesSample("testing/testReport/groovy")
-    @ToBeFixedForInstantExecution
     def "can generate report for subprojects"() {
         given:
         sample sample
@@ -100,7 +98,6 @@ public class LoggingTest {
         htmlReport.testClass("org.gradle.sample.UtilTest").assertTestCount(1, 0, 0).assertTestPassed("ok").assertStdout(equalTo("hello from UtilTest.\n"))
     }
 
-    @ToBeFixedForInstantExecution
     def "merges report with duplicated classes and methods"() {
         given:
         ignoreWhenJupiter()
@@ -198,7 +195,6 @@ public class SubClassTests extends SuperClassTests {
     }
 
     @Issue("https://issues.gradle.org//browse/GRADLE-2821")
-    @ToBeFixedForInstantExecution
     def "test report task can handle test tasks that did not run tests"() {
         given:
         buildScript """
@@ -251,7 +247,6 @@ public class SubClassTests extends SuperClassTests {
         succeeds "testReport"
     }
 
-    @ToBeFixedForInstantExecution
     def "test report task is skipped when there are no results"() {
         given:
         buildScript """
