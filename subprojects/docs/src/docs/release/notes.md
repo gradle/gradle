@@ -56,7 +56,7 @@ Taken together we are hoping to see a quantum leap in how developers work with G
 
 ### File watching
 
-In Gradle 6.5 we introduce _file-system watching._
+In Gradle 6.5 we introduce _[file-system watching](userguide/gradle_daemon.html#sec:daemon_watch_fs)._
 This experimental feature allows Gradle to keep what it learned about the file-system in memory between builds.
 Doing so significantly reduces the amount of disk I/O needed to figure out what has changed since the previous build.
 
