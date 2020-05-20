@@ -18,6 +18,8 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesToolingApiJar
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesDistribution
 
 plugins {
     gradlebuild.distribution.`core-api-java`
@@ -110,3 +112,5 @@ testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
 integrationTestUsesSampleDir("subprojects/tooling-api/src/main")
+integrationTestUsesToolingApiJar()
+integrationTestUsesDistribution()

@@ -16,6 +16,8 @@
 
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesToolingApiFatJar
+import org.gradle.gradlebuild.versioning.buildVersion
 
 plugins {
     gradlebuild.distribution.`plugins-api-java`
@@ -77,4 +79,5 @@ testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
 
+integrationTestUsesToolingApiFatJar()
 integrationTestUsesSampleDir("subprojects/plugin-development/src/main")

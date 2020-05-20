@@ -17,6 +17,7 @@
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import plugins.futurePluginVersionsFile
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesKotlinDslPlugins
 
 plugins {
     gradlebuild.internal.kotlin
@@ -86,3 +87,5 @@ tasks {
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
+
+integrationTestUsesKotlinDslPlugins()
