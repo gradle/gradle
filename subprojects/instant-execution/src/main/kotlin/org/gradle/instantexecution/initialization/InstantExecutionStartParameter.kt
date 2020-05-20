@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.initialization
 
-import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.layout.BuildLayout
@@ -28,11 +27,8 @@ import java.io.File
 
 class InstantExecutionStartParameter(
     private val buildLayout: BuildLayout,
-    startParameter: StartParameter
+    private val startParameter: StartParameterInternal
 ) {
-
-    private
-    val startParameter = startParameter as StartParameterInternal
 
     val isEnabled: Boolean
         get() = startParameter.configurationCache != ConfigurationCacheOption.Value.OFF
