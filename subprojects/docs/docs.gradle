@@ -541,31 +541,19 @@ tasks.named("docsTest") { task ->
         }
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-best-practices-logic-during-configuration-dont_*.sample' // negative sanity check fails (= build succeeds) for Kotlin variant
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-scala-cross-compilation_groovy_sanityCheck.sample' // There is no java executable in /Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/bin. Expression: executable.exists()
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-artifacts-maven_*.sample' // // emits deprecation warning
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-base-distribution_*.sample' // emits deprecation warning
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-composite-builds*.sample' // emits deprecation warning
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-dependency-management-managing-transitive-dependencies-force-for-dependency_*.sample' // emits deprecation warning
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-groovy-cross-compilation_*.sample'  // compilation error
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-init-scripts-custom-logger_*.sample' // seems legit: Smart cast to 'Throwable' is impossible, because 'result.failure' is a property that has open or custom getter
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-java-feature-variant-incompatible-variants_*.sample' // seems legit: dependency resolution fails
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-java-feature-variant-requiring-features-external_*.sample'  // emits deprecation warning
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-java-library-multiproject_*.sample' // seems legit; `mainClassName` should be placed within the application { } block
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-jvm-components-scala_*.sample' // emits deprecation warning
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-kotlin-dsl-android-build_*.sample' // plugin [id: 'com.android.application', version: '3.2.0', apply: false] was not found: Gradle Central Plugin Repository
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-kotlin-dsl-android-single-build_*.sample' // seems legit: java.lang.NoClassDefFoundError: Could not initialize class org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSetKt
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-kotlin-dsl-multi-project-build_*.sample'  // emits deprecation warning
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-maven-migration-import-bom_*.sample' // compilation failure
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-maven-pom-generation_*.sample' // emits deprecation warning
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-maven-quickstart_*.sample' // emits deprecation warning
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-multiproject-flat-with-no-default-master_groovy_sanityCheck.sample' // emits deprecation warning
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-multiproject-flat_*.sample' // emits deprecation warning
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-play-*.sample' // emits deprecation warning
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-plugins-consuming_*.sample' // emits deprecation warning
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-plugins-custom-plugin_*.sample' // emits deprecation warning
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-plugins-multiproject_*.sample' // emits deprecation warning
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-plugins-plugin-versions_*.sample' // emits deprecation warning
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-plugins-resolution-rules_*.sample' // emits deprecation warning
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-signing-maven_*.sample' // emits deprecation warning
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-tasks-custom-task-using-convention_*.sample' // seems legit: Could not set unknown property 'greeting' for root project 'custom-task-using-convention' of Project.
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-tooling-api-custom-model_*.sample' // emits deprecation warning
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-tutorial-archive-content_*.sample'  // seems like a legit failure
