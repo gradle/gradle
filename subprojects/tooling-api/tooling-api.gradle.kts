@@ -19,6 +19,7 @@ import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesToolingApiJar
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesDistribution
 
 plugins {
     gradlebuild.distribution.`core-api-java`
@@ -112,3 +113,4 @@ testFilesCleanup {
 }
 integrationTestUsesSampleDir("subprojects/tooling-api/src/main")
 integrationTestUsesToolingApiJar()
+integrationTestUsesDistribution()
