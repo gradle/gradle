@@ -44,12 +44,6 @@ public interface TestDescriptor {
     String getDisplayName();
 
     /**
-     * Whether or not the class has a @DisplayName annotation.
-     * @return true if the class has @DisplayName annotation; false otherwise.
-     */
-    boolean hasDisplayNameAnnotation();
-
-    /**
      * Returns the test class name for this test, if any.
      *
      * @return The class name. May return null.
