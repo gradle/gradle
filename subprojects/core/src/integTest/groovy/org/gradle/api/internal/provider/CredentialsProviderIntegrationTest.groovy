@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.provider
 
-import groovy.transform.NotYetImplemented
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
@@ -76,35 +76,13 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'firstTask'
     }
 
-    def "missing credentials will fail the build at execution time"() {
-        given:
-        buildFile << """
-            def firstTask = tasks.register('firstTask') {
-            }
-
-            def taskWithCredentials = tasks.register('taskWithCredentials', TaskWithCredentials) {
-                dependsOn(firstTask)
-                credentials.set(project.services.get(org.gradle.api.internal.provider.CredentialsProviderFactory)
-                    .provideCredentials(PasswordCredentials, 'testCredentials'))
-            }
-        """
-
-        when:
-        fails 'taskWithCredentials'
-
-        then:
-        failure.assertHasDescription("A problem was found with the configuration of task ':taskWithCredentials' (type 'TaskWithCredentials').")
-        failure.assertHasCause("No value has been specified for property 'credentials'.")
-    }
-
-    @NotYetImplemented
     def "missing credentials will fail the build at configuration time when the task needing them is executed directly"() {
         given:
         buildFile << """
             def firstTask = tasks.register('firstTask') {
             }
 
-            def taskWithCredentials = tasks.register('taskWithCredentials', TaskWithCredentials) {
+            tasks.register('taskWithCredentials', TaskWithCredentials) {
                 dependsOn(firstTask)
                 credentials.set(project.services.get(org.gradle.api.internal.provider.CredentialsProviderFactory)
                     .provideCredentials(PasswordCredentials, 'testCredentials'))
@@ -115,14 +93,13 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         fails 'taskWithCredentials'
 
         then:
-        notExecuted('firstTask', 'taskWithCredentials')
+        notExecuted(':firstTask', ':taskWithCredentials')
         failure.assertHasErrorOutput("Cannot query the value of username and password provider because it has no value available.")
         failure.assertHasErrorOutput("The value of this provider is derived from:")
         failure.assertHasErrorOutput("- Gradle property 'testCredentialsPassword'")
         failure.assertHasErrorOutput("- Gradle property 'testCredentialsUsername'")
     }
 
-    @NotYetImplemented
     def "missing credentials will fail the build at configuration time when the task needing them is in execution graph"() {
         given:
         buildFile << """
@@ -144,7 +121,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         fails 'finalTask'
 
         then:
-        notExecuted('firstTask', 'taskWithCredentials', 'finalTask')
+        notExecuted(':firstTask', ':taskWithCredentials', ':finalTask')
         failure.assertHasErrorOutput("Cannot query the value of username and password provider because it has no value available.")
         failure.assertHasErrorOutput("The value of this provider is derived from:")
         failure.assertHasErrorOutput("- Gradle property 'testCredentialsPassword'")

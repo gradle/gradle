@@ -32,14 +32,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 public class GradlePropertiesCredentialsProviderFactory implements CredentialsProviderFactory {
 
     private final GradleProperties gradleProperties;
 
-    private final Map<String, PasswordCredentialsProvider> passwordProviders = new HashMap<>();
-    private final Map<String, AwsCredentialsProvider> awsProviders = new HashMap<>();
+    private final Map<String, Provider<PasswordCredentials>> passwordProviders = new HashMap<>();
+    private final Map<String, Provider<AwsCredentials>> awsProviders = new HashMap<>();
 
     public GradlePropertiesCredentialsProviderFactory(GradleProperties gradleProperties) {
         this.gradleProperties = gradleProperties;
@@ -50,10 +51,10 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
         validateIdentity(identity);
 
         if (PasswordCredentials.class.isAssignableFrom(credentialsType)) {
-            return (Provider<T>) passwordProviders.computeIfAbsent(identity, PasswordCredentialsProvider::new);
+            return (Provider<T>) passwordProviders.computeIfAbsent(identity, id -> evaluateAtConfigurationTime(() -> new PasswordCredentialsProvider(id).get()));
         }
         if (AwsCredentials.class.isAssignableFrom(credentialsType)) {
-            return (Provider<T>) awsProviders.computeIfAbsent(identity, AwsCredentialsProvider::new);
+            return (Provider<T>) awsProviders.computeIfAbsent(identity, id -> evaluateAtConfigurationTime(() -> new AwsCredentialsProvider(id).get()));
         }
 
         throw new IllegalArgumentException(String.format("Unsupported credentials type: %s", credentialsType));
@@ -61,12 +62,30 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
 
     @Override
     public <T extends Credentials> Provider<T> provideCredentials(Class<T> credentialsType, Supplier<String> identity) {
-        return new DefaultProvider<>(() -> provideCredentials(credentialsType, identity.get()).get());
+        return evaluateAtConfigurationTime(() -> provideCredentials(credentialsType, identity.get()).get());
     }
 
-    private void validateIdentity(@Nullable String identity) {
+    private static void validateIdentity(@Nullable String identity) {
         if (identity == null || identity.isEmpty() || !identity.chars().allMatch(Character::isLetterOrDigit)) {
             throw new IllegalArgumentException("Identity may contain only letters and digits, received: " + identity);
+        }
+    }
+
+    private static <T extends Credentials> Provider<T> evaluateAtConfigurationTime(Callable<T> provider) {
+        return new DefaultProvider<>(provider).orElse(new MissingCredentials<>());
+    }
+
+    private static class MissingCredentials<T extends Credentials> extends AbstractMinimalProvider<T> {
+
+        @Override
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+            return Value.missing();
+        }
+
+        @Nullable
+        @Override
+        public Class<T> getType() {
+            return null;
         }
     }
 
