@@ -74,6 +74,7 @@ class RhinoPluginIntegrationTest extends WellBehavedPluginTest {
         output.contains "rhino arg: foo"
     }
 
+    @ToBeFixedForInstantExecution
     def "compile failure fails task"() {
         given:
         file("some.js") << " ' "

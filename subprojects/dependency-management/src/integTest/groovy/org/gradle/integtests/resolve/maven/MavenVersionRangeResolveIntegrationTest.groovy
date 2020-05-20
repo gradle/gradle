@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -153,6 +154,7 @@ dependencies {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1898")
+    @ToBeFixedForInstantExecution
     def "error when parent pom with specified version range cannot be found"() {
         given:
         settingsFile << "rootProject.name = 'test' "

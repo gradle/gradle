@@ -69,15 +69,13 @@ class InstantExecutionProblems(
     }
 
     private
-    var isConsoleSummaryRequested = false
+    var isConsoleSummaryRequested = true
 
-    internal
-    fun requestConsoleSummary() {
-        isConsoleSummaryRequested = true
-    }
+    private
+    var isFailOnProblems = startParameter.failOnProblems
 
-    fun runIfProblems(action: () -> Unit) {
-        if (problems.isNotEmpty()) action()
+    fun failingBuildDueToSerializationError() {
+        isFailOnProblems = false
     }
 
     private
@@ -85,15 +83,6 @@ class InstantExecutionProblems(
 
         override fun onProblem(problem: PropertyProblem) {
             problems.add(problem)
-            when {
-                problems.size >= startParameter.maxProblems -> {
-                    isConsoleSummaryRequested = false
-                    throw TooManyInstantExecutionProblemsException(problems, report.htmlReportFile)
-                }
-                !startParameter.failOnProblems -> {
-                    requestConsoleSummary()
-                }
-            }
         }
     }
 
@@ -105,13 +94,13 @@ class InstantExecutionProblems(
                 return
             }
             report.writeReportFiles(problems)
-            when {
-                isConsoleSummaryRequested -> {
-                    report.logConsoleSummary(problems)
-                }
-                startParameter.failOnProblems -> {
-                    throw InstantExecutionProblemsException(problems, report.htmlReportFile)
-                }
+            if (isFailOnProblems) {
+                // TODO - always include this as a build failure, currently it is disabled when a serialization problem happens
+                throw InstantExecutionProblemsException(problems, report.htmlReportFile)
+            } else if (problems.size > startParameter.maxProblems) {
+                throw TooManyInstantExecutionProblemsException(problems, report.htmlReportFile)
+            } else {
+                report.logConsoleSummary(problems)
             }
         }
     }

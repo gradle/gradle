@@ -654,6 +654,11 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             notSkipped.removeAll(skippedTasks);
             return notSkipped;
         }
+
+        @Override
+        public void assertResultVisited() {
+            outputResult.assertResultVisited();
+        }
     }
 
     private static class InProcessExecutionFailure extends InProcessExecutionResult implements ExecutionFailure {
