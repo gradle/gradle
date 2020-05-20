@@ -481,7 +481,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     val instantExecutionStateFile by unsafeLazy {
-        val cacheDir = absoluteFile(".gradle/${currentGradleVersion()}/configuration-cache")
+        val cacheDir = absoluteFile(".gradle/configuration-cache/${currentGradleVersion()}")
         val baseName = startParameter.instantExecutionCacheKey
         val cacheFileName = "$baseName.bin"
         File(cacheDir, cacheFileName)
