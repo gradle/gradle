@@ -20,6 +20,9 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.FeaturePreviews
 
 class VersionRangeSelectorTest extends AbstractStringVersionSelectorTest {
+
+    def featurePreviews = new FeaturePreviews()
+
     def "all handled selectors are dynamic"() {
         expect:
         isDynamic("[1.0,2.0]")
@@ -35,9 +38,11 @@ class VersionRangeSelectorTest extends AbstractStringVersionSelectorTest {
     }
 
     def "excluded upper bound corner cases"() {
+        given:
+        featurePreviews.enableFeature(FeaturePreviews.Feature.VERSION_SORTING_V2)
         expect:
-        accept("[1.0,2.0)", "2.0-final")
-        accept("[1.0,2.0)", "2.0-dev")
+        !accept("[1.0,2.0)", "2.0-final")
+        !accept("[1.0,2.0)", "2.0-dev")
         !accept("[1.0,2.0)", "2.0.0-dev")
     }
 
@@ -171,6 +176,6 @@ class VersionRangeSelectorTest extends AbstractStringVersionSelectorTest {
 
     @Override
     VersionSelector getSelector(String selector) {
-        return new VersionRangeSelector(selector, new DefaultVersionComparator(new FeaturePreviews()).asVersionComparator(), new VersionParser())
+        return new VersionRangeSelector(selector, new DefaultVersionComparator(featurePreviews).asVersionComparator(), new VersionParser(), featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.VERSION_SORTING_V2))
     }
 }

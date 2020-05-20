@@ -16,6 +16,22 @@ Gradle supports different ways of declaring a version string:
 ** Will match the highest versioned module with the specified status. See link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html#getStatus--[ComponentMetadata.getStatus()].
 * A Maven `SNAPSHOT` version identifier: e.g. `1.0-SNAPSHOT`, `1.4.9-beta1-SNAPSHOT`
 
+[NOTE]
+====
+Gradle 6.5 supports an alternate, opt-in, behaviour for version ranges.
+
+When an upper bound excludes a version, it also acts as a prefix exclude.
+This means that `[1.0, 2.0[` will also exclude all versions starting with `2.0` that are smaller than `2.0`.
+For example versions like `2.0-dev1` or `2.0-SNAPSHOT` are no longer included in the range.
+
+Activating the feature preview `VERSION_SORTING_V2` in `settings.gradle(.kts)` enables this change:
+```
+enableFeaturePreview("VERSION_SORTING_V2")
+```
+
+This change will become the default in Gradle 7.0.
+====
+
 == Version ordering
 
 Versions have an implicit ordering. Version ordering is used to:
