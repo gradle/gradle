@@ -16,15 +16,11 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Task;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.credentials.PasswordCredentials;
-import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.TaskInputs;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
@@ -38,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class GradlePropertiesCredentialsProviderFactory implements CredentialsProviderFactory, TaskExecutionGraphListener {
+public class GradlePropertiesCredentialsProviderFactory implements CredentialsProviderFactory {
 
     private final GradleProperties gradleProperties;
 
@@ -66,15 +62,6 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
     @Override
     public <T extends Credentials> Provider<T> provideCredentials(Class<T> credentialsType, Supplier<String> identity) {
         return new DefaultProvider<>(() -> provideCredentials(credentialsType, identity.get()).get());
-    }
-
-    @Override
-    public void graphPopulated(TaskExecutionGraph graph) {
-        if (!passwordProviders.isEmpty() || !awsProviders.isEmpty()) {
-            graph.getAllTasks().stream().map(Task::getInputs).forEach(TaskInputs::getProperties);
-            passwordProviders.values().stream().filter(CredentialsProvider::valueRequested).forEach(AbstractMinimalProvider::get);
-            awsProviders.values().stream().filter(CredentialsProvider::valueRequested).forEach(AbstractMinimalProvider::get);
-        }
     }
 
     private void validateIdentity(@Nullable String identity) {

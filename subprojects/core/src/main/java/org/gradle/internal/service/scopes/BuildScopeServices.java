@@ -604,9 +604,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected CredentialsProviderFactory createCredentialsProviderFactory(GradleProperties gradleProperties, ListenerManager listenerManager) {
-        GradlePropertiesCredentialsProviderFactory credentialsProviderFactory = new GradlePropertiesCredentialsProviderFactory(gradleProperties);
-        listenerManager.addListener(credentialsProviderFactory);
-        return credentialsProviderFactory;
+    protected CredentialsProviderFactory createCredentialsProviderFactory(GradleProperties gradleProperties) {
+        return new GradlePropertiesCredentialsProviderFactory(gradleProperties);
     }
 }
