@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
+import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
@@ -115,7 +116,8 @@ class DependencyGraphBuilderTest extends Specification {
 
     def moduleConflictHandler = new DefaultConflictHandler(conflictResolver, moduleReplacements)
     def capabilitiesConflictHandler = new DefaultCapabilitiesConflictHandler()
-    def versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), new VersionParser())
+    def versionComparator = new DefaultVersionComparator(new FeaturePreviews())
+    def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, new VersionParser())
 
     DependencyGraphBuilder builder
 
@@ -125,7 +127,7 @@ class DependencyGraphBuilderTest extends Specification {
         _ * configuration.allDependencies >> Stub(DependencySet)
         _ * moduleResolver.resolve(_, _) >> { it[1].resolved(root) }
 
-        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, moduleConflictHandler, capabilitiesConflictHandler, Specs.satisfyAll(), attributesSchema, moduleExclusions, buildOperationProcessor, dependencySubstitutionApplicator, componentSelectorConverter, AttributeTestUtil.attributesFactory(), versionSelectorScheme, Stub(Comparator), new VersionParser())
+        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, moduleConflictHandler, capabilitiesConflictHandler, Specs.satisfyAll(), attributesSchema, moduleExclusions, buildOperationProcessor, dependencySubstitutionApplicator, componentSelectorConverter, AttributeTestUtil.attributesFactory(), versionSelectorScheme, versionComparator.asVersionComparator(), new VersionParser())
     }
 
     private TestGraphVisitor resolve(DependencyGraphBuilder builder = this.builder) {

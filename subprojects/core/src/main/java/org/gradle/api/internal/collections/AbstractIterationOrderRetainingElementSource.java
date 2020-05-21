@@ -34,6 +34,7 @@ import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.internal.provider.Collectors.TypedCollector;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Cast;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -150,12 +151,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     Element<T> cachingElement(ProviderInternal<? extends T> provider) {
         final Element<T> element = new Element<T>(provider.getType(), new ElementFromProvider<T>(provider), realizeAction);
         if (provider instanceof ChangingValue) {
-            ((ChangingValue<T>) provider).onValueChange(new Action<T>() {
-                @Override
-                public void execute(T previousValue) {
-                    clearCachedElement(element);
-                }
-            });
+            Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(previousValue -> clearCachedElement(element));
         }
         return element;
     }
@@ -163,12 +159,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     Element<T> cachingElement(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
         final Element<T> element = new Element<T>(provider.getElementType(), new ElementsFromCollectionProvider<T>(provider), realizeAction);
         if (provider instanceof ChangingValue) {
-            ((ChangingValue<Iterable<T>>) provider).onValueChange(new Action<Iterable<T>>() {
-                @Override
-                public void execute(Iterable<T> previousValues) {
-                    clearCachedElement(element);
-                }
-            });
+            Cast.<ChangingValue<Iterable<T>>>uncheckedNonnullCast(provider).onValueChange(previousValues -> clearCachedElement(element));
         }
         return element;
     }
@@ -382,7 +373,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            Element that = (Element) o;
+            Element<?> that = (Element<?>) o;
             return Objects.equal(delegate, that.delegate) &&
                 Objects.equal(cache, that.cache);
         }

@@ -347,8 +347,9 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
 
         buildFile << """
             import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.*
+            import org.gradle.api.internal.*
 
-            def VERSIONED_COMPARATOR = new DefaultVersionComparator()
+            def VERSIONED_COMPARATOR = new DefaultVersionComparator(new FeaturePreviews())
             def VERSION_SCHEME = new DefaultVersionSelectorScheme(VERSIONED_COMPARATOR, new VersionParser())
 
             configurations.all {

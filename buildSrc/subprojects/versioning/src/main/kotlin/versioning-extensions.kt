@@ -16,8 +16,20 @@
 
 import org.gradle.api.Project
 import org.gradle.build.ReleasedVersionsFromVersionControl
+import org.gradle.kotlin.dsl.*
 import java.io.File
+import org.gradle.api.provider.Provider
+
+
+val Project.gitInfo
+    get() = rootProject.extensions.getByName<GitInformationExtension>("gitInfo")
 
 
 val Project.releasedVersions
     get() = ReleasedVersionsFromVersionControl(File(rootDir, "released-versions.json"), File(rootDir, "version.txt"))
+
+
+open class GitInformationExtension(
+    val gradleBuildBranch: Provider<String>,
+    val gradleBuildCommitId: Provider<String>
+)

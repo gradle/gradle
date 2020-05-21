@@ -50,13 +50,13 @@ class InstantExecutionReport(
         val logger = Logging.getLogger(InstantExecutionReport::class.java)
 
         private
-        const val reportHtmlFileName = "instant-execution-report.html"
+        const val reportHtmlFileName = "configuration-cache-report.html"
     }
 
     private
     val outputDirectory: File by lazy {
         startParameter.rootDirectory.resolve(
-            "build/reports/instant-execution/${startParameter.instantExecutionCacheKey}"
+            "build/reports/configuration-cache/${startParameter.instantExecutionCacheKey}"
         ).let { base ->
             if (!base.exists()) base
             else generateSequence(1) { it + 1 }
@@ -87,8 +87,8 @@ class InstantExecutionReport(
     fun copyReportResources(outputDirectory: File) {
         listOf(
             reportHtmlFileName,
-            "instant-execution-report.js",
-            "instant-execution-report.css",
+            "configuration-cache-report.js",
+            "configuration-cache-report.css",
             "kotlin.js"
         ).forEach { resourceName ->
             copyURLToFile(
@@ -101,9 +101,11 @@ class InstantExecutionReport(
     private
     fun writeJsReportData(problems: List<PropertyProblem>, outputDirectory: File) {
         val documentationRegistry = DocumentationRegistry()
-        outputDirectory.resolve("instant-execution-report-data.js").bufferedWriter().use { writer ->
+        outputDirectory.resolve("configuration-cache-report-data.js").bufferedWriter().use { writer ->
             writer.run {
-                appendln("function instantExecutionProblems() { return [")
+                appendln("function configurationCacheProblems() { return {")
+                appendln("documentationLink: \"${documentationRegistry.getDocumentationFor("configuration_cache")}\",")
+                appendln("problems: [")
                 problems.forEach {
                     append(
                         JsonOutput.toJson(
@@ -117,7 +119,8 @@ class InstantExecutionReport(
                     )
                     appendln(",")
                 }
-                appendln("];}")
+                appendln("]")
+                appendln("};}")
             }
         }
     }

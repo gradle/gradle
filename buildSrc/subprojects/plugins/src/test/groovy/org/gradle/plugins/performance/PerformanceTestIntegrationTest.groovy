@@ -5,11 +5,15 @@ class PerformanceTestIntegrationTest extends AbstractIntegrationTest {
         buildFile << """
             plugins {
                 id 'java-library'
+                id 'gradlebuild.build-version'
                 id 'gradlebuild.performance-test'
             }
             subprojects {
                 apply plugin: 'java'
             }
+
+            apply plugin: 'gradlebuild.performance-test'
+
             def distributedPerformanceTests = tasks.withType(org.gradle.testing.DistributedPerformanceTest)
             distributedPerformanceTests.all {
                 // resolve these tasks
@@ -23,6 +27,7 @@ class PerformanceTestIntegrationTest extends AbstractIntegrationTest {
             }
         """
 
+        file("version.txt") << '6.5'
         settingsFile << """
             include 'internalPerformanceTesting', 'docs', 'launcher', 'apiMetadata'
         """

@@ -165,7 +165,7 @@ org.gradle.api.internal.tasks.CompileServices
                 'META-INF/services/org.gradle.internal.other.Service',
                 'META-INF/.gradle-runtime-shaded']
         }
-        outputJar.md5Hash == "dee78866d881612695b2875ef948d5d5"
+        outputJar.md5Hash == "18aea65849b2aebd52d160f59823d635"
     }
 
     def "excludes module-info.class from jar"() {

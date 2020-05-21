@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.specs;
 
+import org.gradle.internal.Cast;
+
 public class ExplainingSpecs {
 
     private static final ExplainingSpec<Object> SATISFIES_ALL = new ExplainingSpec<Object>() {
@@ -30,7 +32,7 @@ public class ExplainingSpecs {
     };
 
     public static <T> ExplainingSpec<T> satisfyAll() {
-        return (ExplainingSpec<T>)SATISFIES_ALL;
+        return Cast.uncheckedNonnullCast(SATISFIES_ALL);
     }
 
     private static final ExplainingSpec<Object> SATISFIES_NONE = new ExplainingSpec<Object>() {
@@ -45,6 +47,6 @@ public class ExplainingSpecs {
     };
 
     public static <T> ExplainingSpec<T> satisfyNone() {
-        return (ExplainingSpec<T>)SATISFIES_NONE;
+        return Cast.uncheckedNonnullCast(SATISFIES_NONE);
     }
 }

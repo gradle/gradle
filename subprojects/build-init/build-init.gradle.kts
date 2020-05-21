@@ -76,7 +76,7 @@ tasks {
 
             // The latest released version is 2.0.0-M1, which is excluded by "don't use snapshot" strategy
             findLatest("scala-xml", "org.scala-lang.modules:scala-xml_${versionProperties["scala"]}:1.2.0", versionProperties)
-            findLatest("groovy", "org.codehaus.groovy:groovy:(2.5,)", versionProperties)
+            findLatest("groovy", "org.codehaus.groovy:groovy:[2.5,3.0)", versionProperties)
             findLatest("junit", "junit:junit:(4.0,)", versionProperties)
             findLatest("junit-jupiter", "org.junit.jupiter:junit-jupiter-api:(5,)", versionProperties)
             findLatest("testng", "org.testng:testng:(6.0,)", versionProperties)
@@ -129,8 +129,9 @@ val devSuffixes = arrayOf(
     "-alpha-?\\d+",
     "-beta-?\\d+",
     "-dev-?\\d+",
+    "-dev-\\d+-\\d+",
     "-rc-?\\d+",
     "-RC-?\\d+",
-    "-M\\d+",
+    "-M\\d+(-release-\\d+)?",
     "-eap-?\\d+"
 )

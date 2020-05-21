@@ -61,22 +61,22 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaPluginPlugin = "14.4.0"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "16.6.0"
+        static nebulaLint = "16.8.1"
 
         // https://plugins.gradle.org/plugin/nebula.dependency-lock
         static nebulaDependencyLock = Versions.of("7.0.1", "7.8.0", "8.0.0", "8.8.0", "9.0.0")
 
         // https://plugins.gradle.org/plugin/nebula.resolution-rules
-        static nebulaResolutionRules = "7.5.0"
+        static nebulaResolutionRules = "7.6.0"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
         static shadow = Versions.of("4.0.4", "5.2.0")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
-        static asciidoctor = Versions.of("2.3.0", "3.0.0", "3.1.0")
+        static asciidoctor = Versions.of("2.3.0", "3.0.0", "3.2.0")
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
-        static spotbugs = "4.0.5"
+        static spotbugs = "4.2.0"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
         static docker = "6.4.0"
@@ -88,7 +88,7 @@ abstract class AbstractSmokeTest extends Specification {
         static springDependencyManagement = "1.0.9.RELEASE"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
-        static springBoot = "2.2.6.RELEASE"
+        static springBoot = "2.3.0.RELEASE"
 
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "29.0.3"
@@ -99,7 +99,7 @@ abstract class AbstractSmokeTest extends Specification {
         static kotlin = Versions.of('1.3.21', '1.3.31', '1.3.41', '1.3.50', '1.3.61', '1.3.72')
 
         // https://plugins.gradle.org/plugin/org.gretty
-        static gretty = "3.0.2"
+        static gretty = "3.0.3"
 
         // https://plugins.gradle.org/plugin/com.eriwen.gradle.js
         static gradleJs = "2.14.1"
@@ -108,7 +108,7 @@ abstract class AbstractSmokeTest extends Specification {
         static gradleCss = "2.14.0"
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
-        static grgit = "4.0.1"
+        static grgit = "4.0.2"
 
         // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
         static gradleVersions = "0.28.0"
@@ -127,11 +127,11 @@ abstract class AbstractSmokeTest extends Specification {
         static testRetryPlugin = "1.1.5"
 
         // https://plugins.gradle.org/plugin/com.jfrog.artifactory
-        static artifactoryPlugin = "4.15.1"
+        static artifactoryPlugin = "4.15.2"
         static artifactoryRepoOSSVersion = "6.16.0"
 
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
-        static aspectj = "4.1.6"
+        static aspectj = "5.1.0"
     }
 
     static class Versions implements Iterable<String> {
@@ -191,14 +191,14 @@ abstract class AbstractSmokeTest extends Specification {
             .withProjectDir(testProjectDir.root)
             .forwardOutput()
             .withArguments(
-                tasks.toList() + outputParameters() + repoMirrorParameters() + buildContextParameters()
+                tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters()
             ) as DefaultGradleRunner
         gradleRunner.withJvmArguments(
-            ["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"]
+            ["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"] + generatedApiJarCacheDirJvmArguments()
         )
     }
 
-    private List<String> buildContextParameters() {
+    private List<String> configurationCacheParameters() {
         List<String> parameters = []
         if (GradleContextualExecuter.isInstant()) {
             def maxProblems = maxInstantExecutionProblems()
@@ -213,11 +213,15 @@ abstract class AbstractSmokeTest extends Specification {
                 "-D${BuildOperationTrace.SYSPROP}=${buildOperationTracePath()}".toString()
             ]
         }
+        return parameters
+    }
+
+    private static List<String> generatedApiJarCacheDirJvmArguments() {
         def generatedApiJarCacheDir = IntegrationTestBuildContext.INSTANCE.gradleGeneratedApiJarCacheDir
         if (generatedApiJarCacheDir == null) {
-            return parameters
+            return []
         }
-        return parameters + ["-D${DefaultGeneratedGradleJarCache.BASE_DIR_OVERRIDE_PROPERTY}=${generatedApiJarCacheDir.absolutePath}" as String]
+        return ["-D${DefaultGeneratedGradleJarCache.BASE_DIR_OVERRIDE_PROPERTY}=${generatedApiJarCacheDir.absolutePath}" as String]
     }
 
     private static List<String> outputParameters() {

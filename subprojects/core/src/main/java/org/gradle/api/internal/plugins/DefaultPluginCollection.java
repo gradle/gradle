@@ -27,6 +27,7 @@ import org.gradle.api.specs.Specs;
 
 import java.util.Collection;
 
+@SuppressWarnings("deprecation") // Something is weird with the hierarchy of 'add(T)', the implementation inherited from DefaultDomainObjectSet is used internally in DefaultPluginContainer.pluginAdded() but at the same time PluginCollection.add(T) is deprecated
 class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectSet<T> implements PluginCollection<T> {
     DefaultPluginCollection(Class<T> type, CollectionCallbackActionDecorator decorator) {
         super(type, decorator);

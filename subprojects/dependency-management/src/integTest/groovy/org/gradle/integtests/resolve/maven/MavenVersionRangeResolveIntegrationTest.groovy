@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -181,5 +182,50 @@ dependencies {
 
         then:
         failure.assertHasCause('Could not find any version that matches org.test:parent:[2.0,3.0)')
+    }
+
+    def "updated behaviour on upper bound exclusion"() {
+        given:
+        settingsFile << """
+rootProject.name = "testrange"
+"""
+        FeaturePreviewsFixture.enableUpdatedVersionSorting(settingsFile)
+        buildFile << """
+repositories {
+    maven {
+        url "${mavenRepo.uri}"
+    }
+}
+
+configurations { conf }
+
+dependencies {
+    conf "org.test:dep:[1.0, 2.0["
+}
+"""
+        and:
+        mavenRepo.module("org.test", "dep", "1.0").publish()
+        mavenRepo.module("org.test", "dep", "1.5").publish()
+        mavenRepo.module("org.test", "dep", "2.0-dev1").publish()
+        mavenRepo.module("org.test", "dep", "2.0-final").publish()
+        mavenRepo.module("org.test", "dep", "2.0").publish()
+        mavenRepo.module("org.test", "dep", "2.1").publish()
+        mavenRepo.module("org.test", "dep", "3.0").publish()
+
+        def resolve = new ResolveTestFixture(buildFile, "conf")
+        resolve.prepare()
+        resolve.expectDefaultConfiguration("runtime")
+
+        when:
+        succeeds "checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":testrange:") {
+                edge("org.test:dep:[1.0, 2.0[", "org.test:dep:1.5") {
+                    byReason("didn't match versions 3.0, 2.1, 2.0, 2.0-final, 2.0-dev1")
+                }
+            }
+        }
     }
 }

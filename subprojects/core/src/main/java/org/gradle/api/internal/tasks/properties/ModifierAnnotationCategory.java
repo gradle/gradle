@@ -31,23 +31,23 @@ import java.util.Collection;
 import java.util.Map;
 
 public enum ModifierAnnotationCategory implements AnnotationCategory {
-    INCREMENTAL(
+    INCREMENTAL(ImmutableSet.of(
         Incremental.class,
         SkipWhenEmpty.class
-    ),
-    NORMALIZATION(
+    )),
+    NORMALIZATION(ImmutableSet.of(
         Classpath.class,
         CompileClasspath.class,
         PathSensitive.class
-    ),
-    OPTIONAL(
+    )),
+    OPTIONAL(ImmutableSet.of(
         Optional.class
-    );
+    ));
 
     private final ImmutableSet<Class<? extends Annotation>> annotations;
 
-    ModifierAnnotationCategory(Class<? extends Annotation>... annotations) {
-        this.annotations = ImmutableSet.copyOf(annotations);
+    ModifierAnnotationCategory(ImmutableSet<Class<? extends Annotation>> annotations) {
+        this.annotations = annotations;
     }
 
     @Override

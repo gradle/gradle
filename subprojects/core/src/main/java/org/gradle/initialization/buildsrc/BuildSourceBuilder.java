@@ -124,6 +124,7 @@ public class BuildSourceBuilder {
         });
     }
 
+    @SuppressWarnings("try")
     private ClassPath buildBuildSrc(final BuildDefinition buildDefinition, ClassLoaderScope parentClassLoaderScope) {
         StandAloneNestedBuild nestedBuild = buildRegistry.addBuildSrcNestedBuild(buildDefinition, currentBuild);
         return nestedBuild.run(buildController -> {

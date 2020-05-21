@@ -26,7 +26,7 @@ public class MavenRepositoryStub {
         SERVER.stubFor(put(anyUrl()).withBasicAuth(USERNAME, PASSWORD).willReturn(ok()));
         SERVER.stubFor(get(anyUrl()).withBasicAuth(USERNAME, PASSWORD).willReturn(notFound()));
 
-        return String.format("http://localhost:%d", SERVER.port());
+        return String.format("http://127.0.0.1:%d", SERVER.port());
     }
 
     public static void stop() {

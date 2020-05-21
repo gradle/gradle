@@ -40,6 +40,12 @@ import javax.inject.Inject;
 import java.util.Set;
 
 public abstract class JavaEcosystemSupport {
+
+    @SuppressWarnings("deprecation")
+    private static final String DEPRECATED_JAVA_API_JARS = Usage.JAVA_API_JARS;
+    @SuppressWarnings("deprecation")
+    private static final String DEPRECATED_JAVA_RUNTIME_JARS = Usage.JAVA_RUNTIME_JARS;
+
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
         configureUsage(attributesSchema, objectFactory);
         configureLibraryElements(attributesSchema, objectFactory);
@@ -79,9 +85,9 @@ public abstract class JavaEcosystemSupport {
             @Override
             public void execute(ActionConfiguration actionConfiguration) {
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API));
-                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API_JARS));
+                actionConfiguration.params(objectFactory.named(Usage.class, DEPRECATED_JAVA_API_JARS));
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
-                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS));
+                actionConfiguration.params(objectFactory.named(Usage.class, DEPRECATED_JAVA_RUNTIME_JARS));
             }
         });
     }
@@ -156,8 +162,8 @@ public abstract class JavaEcosystemSupport {
     @VisibleForTesting
     public static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage>, ReusableAction {
         private static final Set<String> COMPATIBLE_WITH_JAVA_API = ImmutableSet.of(
-                Usage.JAVA_API_JARS,
-                Usage.JAVA_RUNTIME_JARS,
+                DEPRECATED_JAVA_API_JARS,
+                DEPRECATED_JAVA_RUNTIME_JARS,
                 Usage.JAVA_RUNTIME
         );
         @Override
@@ -170,7 +176,7 @@ public abstract class JavaEcosystemSupport {
                 }
                 return;
             }
-            if (consumerValue.equals(Usage.JAVA_RUNTIME) && producerValue.equals(Usage.JAVA_RUNTIME_JARS)) {
+            if (consumerValue.equals(Usage.JAVA_RUNTIME) && producerValue.equals(DEPRECATED_JAVA_RUNTIME_JARS)) {
                 details.compatible();
                 return;
             }

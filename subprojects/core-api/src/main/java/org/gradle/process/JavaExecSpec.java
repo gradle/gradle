@@ -18,10 +18,10 @@ package org.gradle.process;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.jvm.ModularitySpec;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 
@@ -63,7 +63,8 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * This does not need to be set if using an <a href="https://docs.oracle.com/javase/tutorial/deployment/jar/appman.html">Executable Jar</a> with a {@code Main-Class} attribute.
      * </p>
      */
-    @Nullable @Optional @Internal
+    @Nullable @Optional
+    @ReplacedBy("mainClass")
     String getMain();
 
     /**

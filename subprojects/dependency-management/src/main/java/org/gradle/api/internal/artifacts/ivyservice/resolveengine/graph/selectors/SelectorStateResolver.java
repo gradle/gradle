@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
@@ -47,13 +48,15 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
     private final T rootComponent;
     private final ModuleIdentifier rootModuleId;
     private final ResolveOptimizations resolveOptimizations;
+    private final Comparator<Version> versionComparator;
 
-    public SelectorStateResolver(ModuleConflictResolver<T> conflictResolver, ComponentStateFactory<T> componentFactory, T rootComponent, ResolveOptimizations resolveOptimizations) {
+    public SelectorStateResolver(ModuleConflictResolver<T> conflictResolver, ComponentStateFactory<T> componentFactory, T rootComponent, ResolveOptimizations resolveOptimizations, Comparator<Version> versionComparator) {
         this.conflictResolver = conflictResolver;
         this.componentFactory = componentFactory;
         this.rootComponent = rootComponent;
         this.rootModuleId = rootComponent.getId().getModule();
         this.resolveOptimizations = resolveOptimizations;
+        this.versionComparator = versionComparator;
     }
 
     public T selectBest(ModuleIdentifier moduleId, ModuleSelectors<? extends ResolvableSelectorState> selectors) {
@@ -119,7 +122,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      * If not, a minimal set of versions will be provided in the result, and conflict resolution will be required to choose.
      */
     private List<T> buildResolveResults(ModuleSelectors<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
-        SelectorStateResolverResults results = new SelectorStateResolverResults(selectors.size());
+        SelectorStateResolverResults results = new SelectorStateResolverResults(versionComparator, selectors.size());
         TreeSet<ComponentIdResolveResult> preferResults = null; // Created only on demand
 
         for (ResolvableSelectorState selector : selectors) {
