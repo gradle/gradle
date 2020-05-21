@@ -24,7 +24,9 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -33,6 +35,8 @@ import java.util.Set;
 
 @ServiceScope(Scopes.UserHome)
 public class ClasspathBuilder {
+    private static final int BUFFER_SIZE = 8192;
+
     /**
      * Creates a Jar file using the given action to add entries to the file.
      */
@@ -49,7 +53,7 @@ public class ClasspathBuilder {
         File tmpFile = File.createTempFile(jarFile.getName(), ".tmp");
         try {
             Files.createDirectories(parentDir.toPath());
-            try (ZipOutputStream outputStream = new ZipOutputStream(tmpFile)) {
+            try (ZipOutputStream outputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(tmpFile), BUFFER_SIZE))) {
                 outputStream.setLevel(0);
                 action.execute(new ZipEntryBuilder(outputStream));
             }
