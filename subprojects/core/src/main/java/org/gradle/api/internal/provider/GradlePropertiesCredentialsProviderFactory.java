@@ -46,6 +46,7 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
         this.gradleProperties = gradleProperties;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends Credentials> Provider<T> provideCredentials(Class<T> credentialsType, String identity) {
         validateIdentity(identity);
