@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider;
+package org.gradle.api.internal.credentials;
 
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.provider.Provider;

@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider
+package org.gradle.api.internal.credentials
 
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.api.internal.provider.MissingValueException
 import spock.lang.Specification
 
 class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
