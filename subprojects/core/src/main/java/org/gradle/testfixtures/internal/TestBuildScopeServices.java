@@ -25,6 +25,8 @@ import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.build.NestedBuildState;
 import org.gradle.internal.build.NestedRootBuild;
+import org.gradle.internal.classpath.BuildLogicTransformStrategy;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.service.ServiceRegistry;
@@ -54,6 +56,15 @@ public class TestBuildScopeServices extends BuildScopeServices {
 
     protected CurrentGradleInstallation createCurrentGradleInstallation() {
         return new CurrentGradleInstallation(new GradleInstallation(homeDir));
+    }
+
+    protected BuildLogicTransformStrategy createBuildLogicTransformStrategy() {
+        return new BuildLogicTransformStrategy() {
+            @Override
+            public CachedClasspathTransformer.StandardTransform transformToApplyToBuildLogic() {
+                return CachedClasspathTransformer.StandardTransform.BuildLogic;
+            }
+        };
     }
 
     protected NestedBuildFactory createNestedBuildFactory() {

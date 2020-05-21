@@ -18,16 +18,37 @@ package org.gradle.internal.classpath;
 
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.vfs.AdditiveCache;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.util.List;
 
 public class CopyingClasspathFileTransformer implements ClasspathFileTransformer {
+    private final List<AdditiveCache> additiveCaches;
+
+    public CopyingClasspathFileTransformer(List<AdditiveCache> additiveCaches) {
+        this.additiveCaches = additiveCaches;
+    }
+
     @Override
     public File transform(File source, CompleteFileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
+        // Copy files into the cache, if it is possible that loading the file in a ClassLoader may cause locking problems if the file is deleted
+
         if (sourceSnapshot.getType() != FileType.RegularFile) {
+            // Directories are ok to use outside the cache
             return source;
         }
+        for (AdditiveCache cache : additiveCaches) {
+            for (File root : cache.getAdditiveCacheRoots()) {
+                if (source.toPath().startsWith(root.toPath())) {
+                    // It's not expected that the file will be deleted, so assume it is ok to use outside the cache
+                    return source;
+                }
+            }
+        }
+
+        // Copy the file into the cache
         File cachedFile = new File(cacheDir, "o_" + sourceSnapshot.getHash().toString() + '/' + source.getName());
         if (!cachedFile.isFile()) {
             // Just copy the jar

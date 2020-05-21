@@ -153,7 +153,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         VirtualFileSystem virtualFileSystem,
         ClasspathWalker classpathWalker,
         ClasspathBuilder classpathBuilder,
-        ExecutorFactory executorFactory
+        ExecutorFactory executorFactory,
+        List<AdditiveCache> additiveCaches
     ) {
         return new DefaultCachedClasspathTransformer(
             cacheRepository,
@@ -162,7 +163,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
             classpathWalker,
             classpathBuilder,
             virtualFileSystem,
-            executorFactory);
+            executorFactory,
+            additiveCaches);
     }
 
     WorkerProcessFactory createWorkerProcessFactory(LoggingManagerInternal loggingManagerInternal, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
