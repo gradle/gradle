@@ -26,6 +26,11 @@ import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import java.util.concurrent.CopyOnWriteArrayList
+
+
+private
+const val maxCauses = 5
 
 
 @ServiceScope(Scopes.BuildTree)
@@ -52,7 +57,10 @@ class InstantExecutionProblems(
     val buildFinishedHandler = BuildFinishedProblemsHandler()
 
     private
-    val problems = mutableListOf<PropertyProblem>()
+    val problems = CopyOnWriteArrayList<PropertyProblem>()
+
+    private
+    var isFailOnProblems = startParameter.failOnProblems
 
     init {
         listenerManager.addListener(problemHandler)
@@ -68,15 +76,12 @@ class InstantExecutionProblems(
         broadcaster.onProblem(problem)
     }
 
-    private
-    var isConsoleSummaryRequested = true
-
-    private
-    var isFailOnProblems = startParameter.failOnProblems
-
     fun failingBuildDueToSerializationError() {
         isFailOnProblems = false
     }
+
+    private
+    fun List<PropertyProblem>.causes() = mapNotNull { it.exception }.take(maxCauses)
 
     private
     inner class ProblemHandler : ProblemsListener {
@@ -95,10 +100,10 @@ class InstantExecutionProblems(
             }
             report.writeReportFiles(problems)
             if (isFailOnProblems) {
-                // TODO - always include this as a build failure, currently it is disabled when a serialization problem happens
-                throw InstantExecutionProblemsException(problems, report.htmlReportFile)
+                // TODO - always include this as a build failure; currently it is disabled when a serialization problem happens
+                throw InstantExecutionProblemsException(problems.causes(), problems, report.htmlReportFile)
             } else if (problems.size > startParameter.maxProblems) {
-                throw TooManyInstantExecutionProblemsException(problems, report.htmlReportFile)
+                throw TooManyInstantExecutionProblemsException(problems.causes(), problems, report.htmlReportFile)
             } else {
                 report.logConsoleSummary(problems)
             }

@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import com.google.common.base.Joiner;
 import junit.framework.AssertionFailedError;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.BuildResult;
@@ -79,6 +80,7 @@ import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.IncubationLogger;
 import org.hamcrest.Matcher;
+import org.hamcrest.StringDescription;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -92,6 +94,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -101,6 +104,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.function.Consumer;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -109,19 +113,16 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.flattenTaskPaths;
-import static org.gradle.util.Matchers.hasMessage;
-import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.Matchers.normalizedLineSeparators;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.startsWith;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 public class InProcessGradleExecuter extends DaemonGradleExecuter {
@@ -164,7 +165,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         return assertResult(new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
-                OutputScrapingExecutionResult.from(outputStream.toString(), errorStream.toString())));
+            OutputScrapingExecutionResult.from(outputStream.toString(), errorStream.toString())));
     }
 
     @Override
@@ -181,7 +182,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             throw new AssertionError("expected build to fail but it did not.");
         }
         return assertResult(new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
-                OutputScrapingExecutionFailure.from(outputStream.toString(), errorStream.toString()), result.getFailure()));
+            OutputScrapingExecutionFailure.from(outputStream.toString(), errorStream.toString()), result.getFailure()));
     }
 
     private boolean isForkRequired() {
@@ -469,7 +470,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         private String path(Task task) {
-            return ((TaskInternal)task).getIdentityPath().getPath();
+            return ((TaskInternal) task).getIdentityPath().getPath();
         }
     }
 
@@ -667,7 +668,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         private final Throwable failure;
         private final List<String> fileNames = new ArrayList<>();
         private final List<String> lineNumbers = new ArrayList<>();
-        private final List<String> descriptions = new ArrayList<>();
+        private final List<FailureDetails> failures = new ArrayList<>();
 
         InProcessExecutionFailure(List<String> tasks, Set<String> skippedTasks, ExecutionFailure outputFailure, Throwable failure) {
             super(tasks, skippedTasks, outputFailure);
@@ -684,14 +685,17 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         private void extractDetails(Throwable failure) {
+            List<String> causes = new ArrayList<>();
+            extractCauses(failure, causes);
+
             String failureMessage = failure.getMessage() == null ? "" : failure.getMessage();
             java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(failureMessage);
             if (matcher.find()) {
                 fileNames.add(matcher.group(1));
                 lineNumbers.add(matcher.group(3));
-                descriptions.add(failureMessage.substring(matcher.end()).trim());
+                failures.add(new FailureDetails(failure, failureMessage.substring(matcher.end()).trim(), causes));
             } else {
-                descriptions.add(failureMessage.trim());
+                failures.add(new FailureDetails(failure, failureMessage.trim(), causes));
             }
         }
 
@@ -725,10 +729,8 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public ExecutionFailure assertHasFailures(int count) {
             outputFailure.assertHasFailures(count);
-            if (count == 1) {
-                assertFalse(failure instanceof MultipleBuildFailures);
-            } else {
-                assertEquals(count, ((MultipleBuildFailures) failure).getCauses().size());
+            if (failures.size() != count) {
+                throw new AssertionFailedError(String.format("Expected %s failures, but found %s", count, failures.size()));
             }
             return this;
         }
@@ -742,40 +744,44 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public ExecutionFailure assertThatCause(Matcher<? super String> matcher) {
             outputFailure.assertThatCause(matcher);
-            List<Throwable> causes = new ArrayList<>();
-            extractCauses(failure, causes);
-            Matcher<Throwable> messageMatcher = hasMessage(normalizedLineSeparators(matcher));
-            for (Throwable cause : causes) {
-                if (messageMatcher.matches(cause)) {
-                    return this;
+            Set<String> seen = new LinkedHashSet<>();
+            Matcher<String> messageMatcher = normalizedLineSeparators(matcher);
+            for (FailureDetails failure : failures) {
+                for (String cause : failure.causes) {
+                    if (messageMatcher.matches(cause)) {
+                        return this;
+                    }
+                    seen.add(cause);
                 }
             }
-            fail(String.format("Could not find matching cause in: %s%nFailure is: %s", causes, failure));
+            fail(String.format("Could not find matching cause in: %s%nFailure is: %s", seen, failure));
             return this;
         }
 
-        private void extractCauses(Throwable failure, List<Throwable> causes) {
+        private void extractCauses(Throwable failure, List<String> causes) {
             if (failure instanceof MultipleBuildFailures) {
                 MultipleBuildFailures exception = (MultipleBuildFailures) failure;
                 for (Throwable componentFailure : exception.getCauses()) {
                     extractCauses(componentFailure, causes);
                 }
             } else if (failure instanceof LocationAwareException) {
-                causes.addAll(((LocationAwareException) failure).getReportableCauses());
+                for (Throwable cause : ((LocationAwareException) failure).getReportableCauses()) {
+                    causes.add(cause.getMessage());
+                }
             } else {
-                causes.add(failure);
+                causes.add(failure.getMessage());
             }
         }
 
         @Override
         public ExecutionFailure assertHasNoCause(String description) {
             outputFailure.assertHasNoCause(description);
-            Matcher<Throwable> matcher = hasMessage(containsString(description));
-            List<Throwable> causes = new ArrayList<>();
-            extractCauses(failure, causes);
-            for (Throwable cause : causes) {
-                if (matcher.matches(cause)) {
-                    throw new AssertionFailedError(String.format("Expected no failure with description '%s', found: %s", description, cause));
+            Matcher<String> matcher = containsString(description);
+            for (FailureDetails failure : failures) {
+                for (String cause : failure.causes) {
+                    if (matcher.matches(cause)) {
+                        throw new AssertionFailedError(String.format("Expected no failure with description '%s', found: %s", description, cause));
+                    }
                 }
             }
             return this;
@@ -784,11 +790,8 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public ExecutionFailure assertHasNoCause() {
             outputFailure.assertHasNoCause();
-            if (failure instanceof LocationAwareException) {
-                LocationAwareException exception = (LocationAwareException) failure;
-                assertThat(exception.getReportableCauses(), isEmpty());
-            } else {
-                assertThat(failure.getCause(), nullValue());
+            for (FailureDetails failure : failures) {
+                assertEquals(0, failure.causes.size());
             }
             return this;
         }
@@ -802,8 +805,29 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public ExecutionFailure assertThatDescription(Matcher<? super String> matcher) {
             outputFailure.assertThatDescription(matcher);
-            assertThat(descriptions, hasItem(normalizedLineSeparators(matcher)));
+            assertHasFailure(matcher, f -> {
+            });
             return this;
+        }
+
+        @Override
+        public ExecutionFailure assertHasFailure(String description, Consumer<? super Failure> action) {
+            outputFailure.assertHasFailure(description, action);
+            assertHasFailure(startsWith(description), action);
+            return this;
+        }
+
+        private void assertHasFailure(Matcher<? super String> matcher, Consumer<? super Failure> action) {
+            Matcher<String> normalized = normalizedLineSeparators(matcher);
+            for (FailureDetails failure : failures) {
+                if (normalized.matches(failure.description)) {
+                    action.accept(failure);
+                    return;
+                }
+            }
+            StringDescription description = new StringDescription();
+            matcher.describeTo(description);
+            throw new AssertionFailedError(String.format("Could not find any failure with description %s, failures:%s\n", description.toString(), Joiner.on("\n").join(failures)));
         }
 
         @Override
@@ -815,6 +839,28 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public DependencyResolutionFailure assertResolutionFailure(String configurationPath) {
             return new DependencyResolutionFailure(this, configurationPath);
+        }
+    }
+
+    private static class FailureDetails implements ExecutionFailure.Failure {
+        final Throwable failure;
+        final String description;
+        final List<String> causes;
+
+        public FailureDetails(Throwable failure, String description, List<String> causes) {
+            this.failure = failure;
+            this.description = description;
+            this.causes = causes;
+        }
+
+        @Override
+        public String toString() {
+            return description;
+        }
+
+        @Override
+        public void assertHasCauses(int count) {
+            assertEquals(count, causes.size());
         }
     }
 
