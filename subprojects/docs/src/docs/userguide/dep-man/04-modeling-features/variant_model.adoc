@@ -74,7 +74,7 @@ It is conceptually similar to the `dependencyInsight` <<viewing_debugging_depend
 
 By default, `outgoingVariants` prints information about all variants.
 It offers the optional parameter `--variant <variantName>` to select a single variant to display.
-It also accepts the `-all` flag to include information about legacy and deprecated configurations.
+It also accepts the `--all` flag to include information about legacy and deprecated configurations.
 
 Here is the output of the `outgoingVariants` task on a freshly generated `java-library` project:
 
