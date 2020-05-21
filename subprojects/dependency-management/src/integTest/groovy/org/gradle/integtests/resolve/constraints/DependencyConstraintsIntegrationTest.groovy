@@ -96,6 +96,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
+    @ToBeFixedForInstantExecution
     void "dependency constraint can be used to declare incompatibility"() {
         given:
         mavenRepo.module("org", "foo", '1.1').publish()

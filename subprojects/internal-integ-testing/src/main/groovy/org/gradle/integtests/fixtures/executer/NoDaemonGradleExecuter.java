@@ -198,12 +198,12 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected ExecutionResult doRun() {
-        return startHandle().waitForFinish();
+        return createGradleHandle().waitForFinish();
     }
 
     @Override
     protected ExecutionFailure doRunWithFailure() {
-        return start().waitForFailure();
+        return createGradleHandle().waitForFailure();
     }
 
     private interface ExecHandlerConfigurer {

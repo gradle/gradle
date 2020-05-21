@@ -61,7 +61,14 @@ class AbstractIntegrationSpec extends Specification {
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
-    GradleExecuter executer = createExecuter()
+    private GradleExecuter executor
+
+    GradleExecuter getExecuter() {
+        if (executor == null) {
+            executor = createExecuter()
+        }
+        return executor
+    }
 
     BuildTestFixture buildTestFixture = new BuildTestFixture(temporaryFolder)
 
@@ -91,6 +98,13 @@ class AbstractIntegrationSpec extends Specification {
 
     def cleanup() {
         executer.cleanup()
+    }
+
+    private void recreateExecuter() {
+        if (executor != null) {
+            executor.cleanup()
+        }
+        executor = null
     }
 
     GradleExecuter createExecuter() {
@@ -231,7 +245,7 @@ class AbstractIntegrationSpec extends Specification {
         def isolatedGradleHomeDir = getTestDirectory().file("gradle-home")
         getBuildContext().gradleHomeDir.copyTo(isolatedGradleHomeDir)
         distribution = new UnderDevelopmentGradleDistribution(getBuildContext(), isolatedGradleHomeDir)
-        executer = createExecuter()
+        recreateExecuter()
         executer.requireGradleDistribution()
         executer.requireIsolatedDaemons() //otherwise we might connect to a running daemon from the original installation location
         executer

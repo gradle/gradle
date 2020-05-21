@@ -36,7 +36,8 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture {
     private final static long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
 
-    @Rule BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
 
     def setup() {
         settingsFile << """
@@ -1220,7 +1221,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         // change the implementation
         buildFile.text = ""
-        buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform(fileValue:  "'new value'", parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
+        buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform(fileValue: "'new value'", parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
         succeeds ":util:resolve", ":app:resolve"
 
         then:

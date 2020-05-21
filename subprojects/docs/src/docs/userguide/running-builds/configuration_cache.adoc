@@ -1,20 +1,57 @@
 [[config_cache]]
 = Configuration cache
 
-- What is it?
-- How to enable it?
-- How does it work?
-- Limitations?
-- Diagnosing problems?
-
-
 [NOTE]
 ====
-The configuration cache is an incubating feature: details are subject to change.
+The configuration cache is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, and the details described here may change.
 ====
 
+== Introduction
 
-== Usage
+The configuration cache is a feature that significantly improves build performance by caching the result of the configuration phase and reusing this for subsequent builds.
+This allows Gradle to skip the configuration phase entirely when nothing has changed to affect the build configuration, and in addition allows Gradle to apply some
+performance improvements to task execution as well. (TODO - link to build lifecycle reference)
+
+The configuration cache is similar to the build cache, but caches different information. The build cache takes care of caching the outputs and intermediate files of the build,
+such as task outputs or artifact transform outputs. The configuration cache takes care of caching the build configuration for a particular set of tasks. You can think of this
+as caching the output of the configuration phase, which is an input to the execution phase.
+
+This feature is currently experimental and not enabled by default.
+
+=== How does it work?
+
+When the configuration cache is enabled and you run Gradle for a particular set of tasks, for example by running `gradlew check`, Gradle checks whether a configuration cache entry is available for
+the requested set of tasks and if available will use this instead of running the configuration phase.
+
+The first time you run a set of tasks, there will be no entry in the configuration cache for these tasks and so Gradle will run the configuration phase as normal. Gradle will:
+
+1. Run any init scripts.
+2. Run the settings script for the build, applying any requested settings plugins.
+3. Run the builds scripts for the build, applying any requested project plugins.
+4. Calculate the task graph for the requested tasks, running any deferred configuration actions.
+
+Following the configuration phase, Gradle writes the state of the task graph to the configuration cache, taking a snapshot for later Gradle invocations. The execution phase then runs as normal.
+This means you will not see any build performance improvement the first time you run a particular set of tasks.
+
+When you subsequently run Gradle with this set of tasks, for example by running `gradlew check` again, Gradle will load the tasks and their configuration directly from the configuration cache
+and skip the configuration phase entirely.
+Before using a configuration cache entry, Gradle checks that none of the "build inputs" for the entry have changed. If a build input has changed, Gradle will not use the entry and will
+run the configuration phase again as above, saving the result for later reuse.
+
+Build inputs include:
+
+- Init scripts, settings scripts, build scripts.
+- System properties, Gradle properties and configuration files used during the configuration phase, accessed using value suppliers (TODO - add docs for this).
+- build inputs and source files for `buildSrc` projects.
+
+=== Performance improvements
+
+Apart from the clear advantage of skipping the configuration phase, the configuration cache provides some additional performance improvements:
+
+- All tasks run in parallel by default.
+- Dependency resolution is cached as well.
+
+== Using the configuration cache
 
 [[enable]]
 === Enabling the configuration cache
@@ -122,7 +159,6 @@ Support for using configuration caching with certain Gradle features is not yet 
 
 - Composite builds
 
-
 [[testkit]]
 == Testing Build Logic with TestKit
 
@@ -147,3 +183,7 @@ include::sample[dir="snippets/configurationCache/testKit/kotlin",files="src/test
 If problems with the configuration cache are found then Gradle will fail the build reporting the problems, and the test will fail.
 
 When gradually improving your plugin or build logic to support the configuration cache it can be useful to temporarily <<configuration_cache.adoc#ignore_problems,ignore problems>> or <<configuration_cache.adoc#max_problems,allow a given number of problems>>.
+
+== Troubleshooting
+
+TODO

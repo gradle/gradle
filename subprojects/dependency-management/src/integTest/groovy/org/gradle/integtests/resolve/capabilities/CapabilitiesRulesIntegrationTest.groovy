@@ -18,12 +18,14 @@ package org.gradle.integtests.resolve.capabilities
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
 import spock.lang.Unroll
 
 class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
+    @ToBeFixedForInstantExecution
     def "can declare capabilities using a component metadata rule"() {
         given:
         repository {
@@ -77,6 +79,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
    Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib-nodep:3.2.5($variant)]""")
     }
 
+    @ToBeFixedForInstantExecution
     def "implicit capability conflict is detected if implicit capability is discovered late"() {
         given:
         repository {
@@ -200,6 +203,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
         'all { select(candidates.find { it.id.module == "cglib" }) because "custom reason" }' | 'On capability cglib:cglib custom reason'
     }
 
+    @ToBeFixedForInstantExecution
     def "can detect conflict between local project and capability from external dependency"() {
         given:
         repository {
@@ -309,6 +313,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
     }
 
     @Issue("gradle/gradle#12011")
+    @ToBeFixedForInstantExecution
     @Unroll
     def "can detect capability conflict even when participants belong to a virtual platform (#first, #second)"() {
         given:

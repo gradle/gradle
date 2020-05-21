@@ -110,7 +110,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     }
 
     protected RepositoryContentDescriptorInternal createRepositoryDescriptor() {
-        return new DefaultRepositoryContentDescriptor(getDisplayName());
+        return new DefaultRepositoryContentDescriptor(this::getDisplayName);
     }
 
     @Nullable
