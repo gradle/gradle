@@ -40,11 +40,10 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
     public void handlesWhitespaceOnlySettingsAndBuildFiles() {
         testFile("settings.gradle").write("   \n  ");
         testFile("build.gradle").write("   ");
-        inTestDirectory().withTaskList().run();
+        inTestDirectory().withTasks("help").run();
     }
 
     @Test

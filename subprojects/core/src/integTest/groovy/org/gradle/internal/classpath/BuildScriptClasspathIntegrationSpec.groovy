@@ -256,7 +256,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         jar.assertExists()
     }
 
-    @ToBeFixedForInstantExecution
     def "cleans up unused versions of jars cache"() {
         given:
         requireOwnGradleUserHomeDir() // messes with caches
@@ -267,7 +266,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         gcFile.createFile().lastModified = daysAgo(2)
 
         when:
-        succeeds("tasks")
+        succeeds("help")
 
         then:
         oldCacheDirs.each {

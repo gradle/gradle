@@ -386,7 +386,7 @@ task check {
         args('-I', 'init.gradle')
 
         then:
-        succeeds 'tasks'
+        succeeds 'help'
         output.count('loaded external script') == 4
 
         when:
@@ -395,7 +395,7 @@ task check {
         args('-I', 'init.gradle')
 
         then:
-        succeeds 'tasks'
+        succeeds 'help'
         output.count('loaded external script') == 4
     }
 
@@ -414,7 +414,7 @@ task check {
         server.expectGet('/' + scriptName, scriptFile)
 
         then:
-        succeeds 'tasks'
+        succeeds 'help'
         output.contains('loaded external script 1')
 
         when:
@@ -423,7 +423,7 @@ task check {
         server.expectGet('/' + scriptName, scriptFile)
 
         then:
-        succeeds 'tasks'
+        succeeds 'help'
         output.contains('loaded external script 2')
 
         when:
@@ -431,7 +431,7 @@ task check {
         args("--offline")
 
         then:
-        succeeds 'tasks'
+        succeeds 'help'
         output.contains('loaded external script 2')
     }
 
