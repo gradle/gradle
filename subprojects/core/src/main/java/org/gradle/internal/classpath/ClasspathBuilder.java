@@ -46,14 +46,14 @@ public class ClasspathBuilder {
 
     private void buildJar(File jarFile, Action action) throws IOException {
         File parentDir = jarFile.getParentFile();
-        File tmpFile = new File(parentDir, jarFile.getName() + ".tmp");
+        File tmpFile = File.createTempFile(jarFile.getName(), ".tmp");
         try {
             Files.createDirectories(parentDir.toPath());
             try (ZipOutputStream outputStream = new ZipOutputStream(tmpFile)) {
                 outputStream.setLevel(0);
                 action.execute(new ZipEntryBuilder(outputStream));
             }
-            Files.move(tmpFile.toPath(), jarFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            Files.move(tmpFile.toPath(), jarFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } finally {
             Files.deleteIfExists(tmpFile.toPath());
         }
