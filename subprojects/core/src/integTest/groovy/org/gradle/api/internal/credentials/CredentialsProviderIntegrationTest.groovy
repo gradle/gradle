@@ -209,4 +209,30 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("- testCredentialsPassword")
     }
 
+    def "credentials are not cached"() {
+        given:
+        buildFile << """
+            def firstTask = tasks.register('firstTask') {
+            }
+
+            def taskWithCredentials = tasks.register('taskWithCredentials', TaskWithCredentials) {
+                dependsOn(firstTask)
+                credentials.set(project.services.get(org.gradle.api.internal.credentials.CredentialsProviderFactory)
+                    .provideCredentials(PasswordCredentials, 'testCredentials'))
+            }
+
+            tasks.register('finalTask') {
+                dependsOn(taskWithCredentials)
+            }
+        """
+
+        when:
+        args '-PtestCredentialsUsername=user', '-PtestCredentialsPassword=secret', '--configuration-cache=on'
+        succeeds 'finalTask'
+
+        then:
+        args '--configuration-cache=on'
+        fails 'finalTask'
+        failure.assertHasDescription("Credentials required for this build could not be resolved.")
+    }
 }

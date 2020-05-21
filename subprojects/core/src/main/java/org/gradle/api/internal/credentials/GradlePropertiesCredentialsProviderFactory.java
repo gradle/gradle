@@ -22,10 +22,10 @@ import org.gradle.api.credentials.Credentials;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
-import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.MissingValueException;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
 import org.gradle.internal.credentials.DefaultPasswordCredentials;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -43,15 +43,15 @@ import java.util.stream.Collectors;
 
 public class GradlePropertiesCredentialsProviderFactory implements CredentialsProviderFactory, TaskExecutionGraphListener {
 
-    private final GradleProperties gradleProperties;
+    private final ProviderFactory providerFactory;
 
     private final Map<String, Provider<PasswordCredentials>> passwordProviders = new HashMap<>();
     private final Map<String, Provider<AwsCredentials>> awsProviders = new HashMap<>();
 
     private final Set<String> missingProviderErrors = new HashSet<>();
 
-    public GradlePropertiesCredentialsProviderFactory(GradleProperties gradleProperties) {
-        this.gradleProperties = gradleProperties;
+    public GradlePropertiesCredentialsProviderFactory(ProviderFactory providerFactory) {
+        this.providerFactory = providerFactory;
     }
 
     @SuppressWarnings("unchecked")
@@ -94,17 +94,17 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
         @Nullable
         String getRequiredProperty(String property) {
             String identityProperty = identityProperty(property);
-            String value = gradleProperties.find(identityProperty);
-            if (value == null) {
+            Provider<String> propertyProvider = providerFactory.gradleProperty(identityProperty).forUseAtConfigurationTime();
+            if (!propertyProvider.isPresent()) {
                 missingProperties.add(identityProperty);
             }
-            return value;
+            return propertyProvider.getOrNull();
         }
 
         @Nullable
-        String getProperty(String property) {
+        String getOptionalProperty(String property) {
             String identityProperty = identityProperty(property);
-            return gradleProperties.find(identityProperty);
+            return providerFactory.gradleProperty(identityProperty).forUseAtConfigurationTime().getOrNull();
         }
 
         void assertRequiredValuesPresent() {
@@ -157,7 +157,7 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
             AwsCredentials credentials = new DefaultAwsCredentials();
             credentials.setAccessKey(accessKey);
             credentials.setSecretKey(secretKey);
-            credentials.setSessionToken(getProperty("SessionToken"));
+            credentials.setSessionToken(getOptionalProperty("SessionToken"));
             return credentials;
         }
     }
@@ -196,6 +196,5 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
                 throw e;
             }
         }
-
     }
 }
