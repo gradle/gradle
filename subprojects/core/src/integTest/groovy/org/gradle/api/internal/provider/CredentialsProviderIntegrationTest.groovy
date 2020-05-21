@@ -185,4 +185,28 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("- someOtherCredentialsPassword")
     }
 
+    def "programmatically registered inputs with credentials provider are evaluated before execution"() {
+        given:
+        buildFile << """
+            def firstTask = tasks.register('firstTask') {
+            }
+
+            tasks.register('taskWithCredentials') {
+                dependsOn(firstTask)
+                inputs.property('credentials', project.services.get(org.gradle.api.internal.provider.CredentialsProviderFactory)
+                    .provideCredentials(PasswordCredentials, 'testCredentials'))
+            }
+        """
+
+        when:
+        fails 'taskWithCredentials'
+
+        then:
+        notExecuted(':firstTask', ':taskWithCredentials')
+        failure.assertHasDescription("Credentials required for this build could not be resolved.")
+        failure.assertHasCause("The following Gradle properties are missing for 'testCredentials' credentials:")
+        failure.assertHasErrorOutput("- testCredentialsUsername")
+        failure.assertHasErrorOutput("- testCredentialsPassword")
+    }
+
 }
