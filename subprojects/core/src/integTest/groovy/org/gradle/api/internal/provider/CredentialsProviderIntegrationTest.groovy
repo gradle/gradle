@@ -94,9 +94,8 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         notExecuted(':firstTask', ':taskWithCredentials')
-        failure.assertHasDescription("Could not determine the dependencies of task ':taskWithCredentials'.")
-        failure.assertHasCause("Credentials for 'testCredentials' required for this build could not be found.")
-        failure.assertHasErrorOutput("The following Gradle properties are missing:")
+        failure.assertHasDescription("Credentials required for this build could not be resolved.")
+        failure.assertHasCause("The following Gradle properties are missing for 'testCredentials' credentials:")
         failure.assertHasErrorOutput("- testCredentialsUsername")
         failure.assertHasErrorOutput("- testCredentialsPassword")
     }
@@ -123,9 +122,8 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         notExecuted(':firstTask', ':taskWithCredentials', ':finalTask')
-        failure.assertHasDescription("Could not determine the dependencies of task ':taskWithCredentials'.")
-        failure.assertHasCause("Credentials for 'testCredentials' required for this build could not be found.")
-        failure.assertHasErrorOutput("The following Gradle properties are missing:")
+        failure.assertHasDescription("Credentials required for this build could not be resolved.")
+        failure.assertHasCause("The following Gradle properties are missing for 'testCredentials' credentials:")
         failure.assertHasErrorOutput("- testCredentialsUsername")
         failure.assertHasErrorOutput("- testCredentialsPassword")
     }
@@ -148,6 +146,43 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         then:
         succeeds 'tasks', '--all'
         succeeds 'help'
+    }
+
+    def "multiple missing credentials for different tasks in graph are reported in same failure"() {
+        given:
+        buildFile << """
+            def firstTask = tasks.register('firstTask') {
+            }
+
+            def taskWithCredentials = tasks.register('taskWithCredentials', TaskWithCredentials) {
+                dependsOn(firstTask)
+                credentials.set(project.services.get(org.gradle.api.internal.provider.CredentialsProviderFactory)
+                    .provideCredentials(PasswordCredentials, 'someCredentials'))
+            }
+
+            def anotherTaskWithCredentials = tasks.register('anotherTaskWithCredentials', TaskWithCredentials) {
+                dependsOn(taskWithCredentials)
+                credentials.set(project.services.get(org.gradle.api.internal.provider.CredentialsProviderFactory)
+                    .provideCredentials(PasswordCredentials, 'someOtherCredentials'))
+            }
+
+            tasks.register('finalTask') {
+                dependsOn(anotherTaskWithCredentials)
+            }
+        """
+
+        when:
+        fails 'finalTask'
+
+        then:
+        notExecuted(':firstTask', ':taskWithCredentials', ':finalTask')
+        failure.assertHasDescription("Credentials required for this build could not be resolved.")
+        failure.assertHasCause("The following Gradle properties are missing for 'someCredentials' credentials:")
+        failure.assertHasErrorOutput("- someCredentialsUsername")
+        failure.assertHasErrorOutput("- someCredentialsPassword")
+        failure.assertHasCause("The following Gradle properties are missing for 'someOtherCredentials' credentials:")
+        failure.assertHasErrorOutput("- someOtherCredentialsUsername")
+        failure.assertHasErrorOutput("- someOtherCredentialsPassword")
     }
 
 }

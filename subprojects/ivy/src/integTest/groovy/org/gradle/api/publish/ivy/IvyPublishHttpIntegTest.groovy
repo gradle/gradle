@@ -599,9 +599,8 @@ credentials {
 
         then:
         notExecuted(':jar', ':publishIvyPublicationToIvyRepository')
-        failure.assertHasDescription("Could not determine the dependencies of task ':publishIvyPublicationToIvyRepository'.")
-        failure.assertHasCause("Credentials for 'ivy' required for this build could not be found.")
-        failure.assertHasErrorOutput("The following Gradle properties are missing:")
+        failure.assertHasDescription("Credentials required for this build could not be resolved.")
+        failure.assertHasCause("The following Gradle properties are missing for 'ivy' credentials:")
         failure.assertHasErrorOutput("- ivyUsername")
         failure.assertHasErrorOutput("- ivyPassword")
     }

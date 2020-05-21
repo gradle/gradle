@@ -16,9 +16,12 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.credentials.PasswordCredentials;
+import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
@@ -28,17 +31,22 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
-public class GradlePropertiesCredentialsProviderFactory implements CredentialsProviderFactory {
+public class GradlePropertiesCredentialsProviderFactory implements CredentialsProviderFactory, TaskExecutionGraphListener {
 
     private final GradleProperties gradleProperties;
 
     private final Map<String, Provider<PasswordCredentials>> passwordProviders = new HashMap<>();
     private final Map<String, Provider<AwsCredentials>> awsProviders = new HashMap<>();
+
+    private final Set<String> missingProviderErrors = new HashSet<>();
 
     public GradlePropertiesCredentialsProviderFactory(GradleProperties gradleProperties) {
         this.gradleProperties = gradleProperties;
@@ -62,6 +70,14 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
     @Override
     public <T extends Credentials> Provider<T> provideCredentials(Class<T> credentialsType, Supplier<String> identity) {
         return evaluateAtConfigurationTime(() -> provideCredentials(credentialsType, identity.get()).get());
+    }
+
+    @Override
+    public void graphPopulated(TaskExecutionGraph graph) {
+        if (!missingProviderErrors.isEmpty()) {
+            throw new ProjectConfigurationException("Credentials required for this build could not be resolved.",
+                missingProviderErrors.stream().map(MissingValueException::new).collect(Collectors.toList()));
+        }
     }
 
     private abstract class CredentialsProvider<T extends Credentials> implements Callable<T> {
@@ -92,13 +108,13 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
         void assertRequiredValuesPresent() {
             if (!missingProperties.isEmpty()) {
                 TreeFormatter errorBuilder = new TreeFormatter();
-                errorBuilder.node("Credentials for '").append(identity).append("' required for this build could not be found.");
-                errorBuilder.node("The following Gradle properties are missing");
+                errorBuilder.node("The following Gradle properties are missing for '").append(identity).append("' credentials");
                 errorBuilder.startChildren();
                 for (String missingProperty : missingProperties) {
                     errorBuilder.node(missingProperty);
                 }
                 errorBuilder.endChildren();
+                missingProperties.clear();
                 throw new MissingValueException(errorBuilder.toString());
             }
         }
@@ -150,7 +166,34 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
         }
     }
 
-    private static <T extends Credentials> Provider<T> evaluateAtConfigurationTime(Callable<T> provider) {
-        return new DefaultProvider<>(provider).orElse(Providers.notDefined());
+    private <T extends Credentials> Provider<T> evaluateAtConfigurationTime(Callable<T> provider) {
+        return new InterceptingProvider<>(provider);
+    }
+
+    private class InterceptingProvider<T> extends DefaultProvider<T> {
+
+        public InterceptingProvider(Callable<? extends T> value) {
+            super(value);
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            calculatePresence(ValueConsumer.IgnoreUnsafeRead);
+            return super.getProducer();
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            try {
+                return super.calculatePresence(consumer);
+            } catch (MissingValueException e) {
+                missingProviderErrors.add(e.getMessage());
+                if (consumer == ValueConsumer.IgnoreUnsafeRead) {
+                    return false;
+                }
+                throw e;
+            }
+        }
+
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider
 
+import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.api.internal.properties.GradleProperties
@@ -47,10 +48,21 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
 
         then:
         def e = thrown(MissingValueException)
-        e.message.contains("Credentials for 'myService' required for this build could not be found.")
-        e.message.contains("The following Gradle properties are missing:")
+        e.message.contains("The following Gradle properties are missing for 'myService' credentials:")
         e.message.contains("- myServiceUsername")
         e.message.contains("- myServicePassword")
+    }
+
+    def "does not throw on presence check when credentials are missing"() {
+        given:
+        def provider = factory.provideCredentials(PasswordCredentials, 'myService')
+
+        when:
+        def isPresent = provider.isPresent()
+
+        then:
+        noExceptionThrown()
+        !isPresent
     }
 
     def "describes single missing property"() {
@@ -63,8 +75,7 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
 
         then:
         def e = thrown(MissingValueException)
-        e.message.contains("Credentials for 'myService' required for this build could not be found.")
-        e.message.contains("The following Gradle properties are missing:")
+        e.message.contains("The following Gradle properties are missing for 'myService' credentials:")
         e.message.contains("- myServiceUsername")
         !e.message.contains("- myServicePassword")
     }
@@ -128,5 +139,24 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
         credentials.secretKey == 'secret'
         credentials.accessKey == 'access'
         credentials.sessionToken == 'token'
+    }
+
+    def "collects multiple missing credentials failures when presence is checked"() {
+        given:
+        def awsProvider = factory.provideCredentials(AwsCredentials, "cloudService")
+        def passwordProvider = factory.provideCredentials(AwsCredentials, "myService")
+
+        when:
+        awsProvider.isPresent()
+        awsProvider.isPresent()
+        passwordProvider.isPresent()
+
+        and:
+        factory.graphPopulated(null)
+
+        then:
+        def e = thrown(ProjectConfigurationException)
+        e.message == 'Credentials required for this build could not be resolved.'
+        e.causes.size() == 2
     }
 }
