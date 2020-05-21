@@ -351,10 +351,10 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         then:
         notExecuted(':jar', ':publishMavenPublicationToMavenRepository')
         failure.assertHasDescription("Could not determine the dependencies of task ':publishMavenPublicationToMavenRepository'")
-        failure.assertHasCause("Cannot query the value of username and password provider because it has no value available.")
-        failure.assertHasErrorOutput("The value of this provider is derived from")
-        failure.assertHasErrorOutput("- Gradle property 'mavenUsername'")
-        failure.assertHasErrorOutput("- Gradle property 'mavenPassword'")
+        failure.assertHasCause("Credentials for 'maven' required for this build could not be found.")
+        failure.assertHasErrorOutput("The following Gradle properties are missing:")
+        failure.assertHasErrorOutput("- mavenUsername")
+        failure.assertHasErrorOutput("- mavenPassword")
     }
 
     private static String publicationBuild(String version, String group, URI uri, PasswordCredentials credentials = null) {

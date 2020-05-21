@@ -47,10 +47,10 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
 
         then:
         def e = thrown(MissingValueException)
-        e.message.contains("Cannot query the value of username and password provider because it has no value available.")
-        e.message.contains("The value of this provider is derived from:")
-        e.message.contains("- Gradle property 'myServicePassword'")
-        e.message.contains("- Gradle property 'myServiceUsername'")
+        e.message.contains("Credentials for 'myService' required for this build could not be found.")
+        e.message.contains("The following Gradle properties are missing:")
+        e.message.contains("- myServiceUsername")
+        e.message.contains("- myServicePassword")
     }
 
     def "describes single missing property"() {
@@ -63,10 +63,10 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
 
         then:
         def e = thrown(MissingValueException)
-        e.message.contains("Cannot query the value of username and password provider because it has no value available.")
-        e.message.contains("The value of this provider is derived from:")
-        !e.message.contains("- Gradle property 'myServicePassword'")
-        e.message.contains("- Gradle property 'myServiceUsername'")
+        e.message.contains("Credentials for 'myService' required for this build could not be found.")
+        e.message.contains("The following Gradle properties are missing:")
+        e.message.contains("- myServiceUsername")
+        !e.message.contains("- myServicePassword")
     }
 
     def "evaluates username and password credentials provider"() {

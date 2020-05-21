@@ -94,10 +94,11 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         notExecuted(':firstTask', ':taskWithCredentials')
-        failure.assertHasErrorOutput("Cannot query the value of username and password provider because it has no value available.")
-        failure.assertHasErrorOutput("The value of this provider is derived from:")
-        failure.assertHasErrorOutput("- Gradle property 'testCredentialsPassword'")
-        failure.assertHasErrorOutput("- Gradle property 'testCredentialsUsername'")
+        failure.assertHasDescription("Could not determine the dependencies of task ':taskWithCredentials'.")
+        failure.assertHasCause("Credentials for 'testCredentials' required for this build could not be found.")
+        failure.assertHasErrorOutput("The following Gradle properties are missing:")
+        failure.assertHasErrorOutput("- testCredentialsUsername")
+        failure.assertHasErrorOutput("- testCredentialsPassword")
     }
 
     def "missing credentials will fail the build at configuration time when the task needing them is in execution graph"() {
@@ -122,10 +123,11 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         notExecuted(':firstTask', ':taskWithCredentials', ':finalTask')
-        failure.assertHasErrorOutput("Cannot query the value of username and password provider because it has no value available.")
-        failure.assertHasErrorOutput("The value of this provider is derived from:")
-        failure.assertHasErrorOutput("- Gradle property 'testCredentialsPassword'")
-        failure.assertHasErrorOutput("- Gradle property 'testCredentialsUsername'")
+        failure.assertHasDescription("Could not determine the dependencies of task ':taskWithCredentials'.")
+        failure.assertHasCause("Credentials for 'testCredentials' required for this build could not be found.")
+        failure.assertHasErrorOutput("The following Gradle properties are missing:")
+        failure.assertHasErrorOutput("- testCredentialsUsername")
+        failure.assertHasErrorOutput("- testCredentialsPassword")
     }
 
     @ToBeFixedForInstantExecution

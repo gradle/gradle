@@ -600,10 +600,10 @@ credentials {
         then:
         notExecuted(':jar', ':publishIvyPublicationToIvyRepository')
         failure.assertHasDescription("Could not determine the dependencies of task ':publishIvyPublicationToIvyRepository'.")
-        failure.assertHasCause("Cannot query the value of username and password provider because it has no value available.")
-        failure.assertHasErrorOutput("The value of this provider is derived from")
-        failure.assertHasErrorOutput("- Gradle property 'ivyUsername'")
-        failure.assertHasErrorOutput("- Gradle property 'ivyPassword'")
+        failure.assertHasCause("Credentials for 'ivy' required for this build could not be found.")
+        failure.assertHasErrorOutput("The following Gradle properties are missing:")
+        failure.assertHasErrorOutput("- ivyUsername")
+        failure.assertHasErrorOutput("- ivyPassword")
     }
 
     private static String publicationBuild(String version, String group, URI uri, String credentialsBlock) {
