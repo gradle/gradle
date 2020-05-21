@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.credentials
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
@@ -209,6 +208,8 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("- testCredentialsPassword")
     }
 
+    // Should be ignored for instant execution - this test checks behavior with and without configuration cache
+    @ToBeFixedForInstantExecution
     def "credentials are not cached"() {
         given:
         buildFile << """
