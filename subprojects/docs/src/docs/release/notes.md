@@ -12,6 +12,7 @@ We would like to thank the following community contributors to this release of G
 [Gregor Dschung](https://github.com/chkpnt),
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
 [kerr](https://github.com/hepin1989),
+[Chris Doré](https://github.com/oesolutions),
 and [Erhard Pointl](https://github.com/epeee).
 
 ## Upgrade Instructions
