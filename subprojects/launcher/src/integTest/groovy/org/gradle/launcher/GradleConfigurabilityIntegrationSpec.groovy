@@ -32,12 +32,12 @@ class GradleConfigurabilityIntegrationSpec extends AbstractIntegrationSpec {
 
     def "honours jvm args specified in gradle.properties"() {
         given:
-        file("gradle.properties") << "org.gradle.jvmargs=-Dsome-prop=some-value -Xmx32m"
+        file("gradle.properties") << "org.gradle.jvmargs=-Dsome-prop=some-value -Xmx64m"
 
         expect:
         buildSucceeds """
 assert providers.systemProperty('some-prop').forUseAtConfigurationTime().get() == 'some-value'
-assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx32m')
+assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx64m')
         """
     }
 
