@@ -126,6 +126,7 @@ task retrieve(type: Sync) {
         jarC1.assertHasChangedSince(jarCsnapshot)
     }
 
+    @ToBeFixedForInstantExecution
     def "cannot define authentication for local file repo"() {
         given:
         def repo = ivyRepo()

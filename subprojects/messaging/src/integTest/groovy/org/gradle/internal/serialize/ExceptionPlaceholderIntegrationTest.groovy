@@ -17,7 +17,13 @@
 package org.gradle.internal.serialize
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.HtmlTestExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
+import spock.lang.Unroll
+
+import static org.hamcrest.CoreMatchers.containsString
 
 class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
 
@@ -60,7 +66,136 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
             }
         '''
 
-        expect:
-        fails('test')
+        when:
+        fails 'test'
+
+        then:
+        outputContains "example.Issue1618Test > thisTestShouldBeMarkedAsFailed FAILED"
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Issue("https://github.com/gradle/gradle/issues/9487")
+    def "best effort to capture multi-cause exceptions"() {
+        given:
+        buildFile << """
+            apply plugin: 'java-library'
+
+            ${jcenterRepository()}
+
+            dependencies {
+                testImplementation 'junit:junit:4.13'
+                testImplementation 'org.opentest4j:opentest4j:1.2.0'
+            }
+        """
+
+        file('src/test/java/example/Issue9487Test.java') << '''
+            package example;
+
+            import org.junit.Test;
+            import org.opentest4j.MultipleFailuresError;
+            import java.util.List;
+            import java.util.ArrayList;
+
+            public class Issue9487Test {
+
+                @Test
+                public void allCausesShouldBeCaptured() {
+                    List<Throwable> errors = new ArrayList<Throwable>();
+                    errors.add(new AssertionError("error 1"));
+                    errors.add(new RuntimeException("error 2"));
+                    throw new MultipleFailuresError("oh noes", errors);
+                }
+            }
+        '''
+
+        when:
+        fails "test"
+
+        then:
+        def result = new HtmlTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted("example.Issue9487Test")
+        result.testClass("example.Issue9487Test")
+            .assertTestFailed("allCausesShouldBeCaptured",
+                containsString("oh noes (2 failures)"))
+        result.testClass("example.Issue9487Test")
+            .assertTestFailed("allCausesShouldBeCaptured",
+                containsString("Cause 1: java.lang.AssertionError: error 1"))
+        result.testClass("example.Issue9487Test")
+            .assertTestFailed("allCausesShouldBeCaptured",
+                containsString("Cause 2: java.lang.RuntimeException: error 2"))
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Issue("https://github.com/gradle/gradle/issues/9487")
+    @Unroll
+    def "best effort to capture multi-cause exceptions using adhoc exception type (methodName=#methodName)"() {
+        given:
+        buildFile << """
+            apply plugin: 'java-library'
+
+            ${jcenterRepository()}
+
+            dependencies {
+                testImplementation 'junit:junit:4.13'
+            }
+        """
+
+        file("src/test/java/example/AdhocError.java") << """
+            package example;
+
+            import java.util.List;
+
+            public class AdhocError extends AssertionError {
+                private final List<Throwable> causes;
+
+                public AdhocError(List<Throwable> errors) {
+                   this.causes = errors;
+                }
+
+                public List<Throwable> $methodName() {
+                    return causes;
+                }
+            }
+            """
+
+        file('src/test/java/example/Issue9487Test.java') << '''
+            package example;
+
+            import org.junit.Test;
+            import java.util.List;
+            import java.util.ArrayList;
+
+            public class Issue9487Test {
+
+                @Test
+                public void allCausesShouldBeCaptured() {
+                    List<Throwable> errors = new ArrayList<Throwable>();
+                    errors.add(new AssertionError("error 1"));
+                    errors.add(new RuntimeException("error 2"));
+                    throw new AdhocError(errors);
+                }
+            }
+
+
+        '''
+
+        when:
+        fails "test"
+
+        then:
+        def result = new HtmlTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted("example.Issue9487Test")
+        result.testClass("example.Issue9487Test")
+            .assertTestFailed("allCausesShouldBeCaptured",
+                containsString("Cause 1: java.lang.AssertionError: error 1"))
+        result.testClass("example.Issue9487Test")
+            .assertTestFailed("allCausesShouldBeCaptured",
+                containsString("Cause 2: java.lang.RuntimeException: error 2"))
+
+        where:
+        methodName << [
+            'getFailures',
+            'getCauses'
+        ]
     }
 }

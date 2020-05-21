@@ -334,8 +334,6 @@ include::sample[dir="snippets/testing/junitplatform-mix/kotlin",files="build.gra
 
 In this way, you can use `gradle test` to test JUnit 3/4 tests on JUnit Platform, without the need to rewrite them.
 
-A sample of mixed tests can be found at `samples/testing/junitplatform-mix` in the '-all' distribution of Gradle.
-
 [[filtering_test_engine]]
 === Filtering test engine
 
@@ -351,8 +349,6 @@ To control specific test engine implementations explicitly, you can add the foll
 include::sample[dir="snippets/testing/junitplatform-engine/groovy",files="build.gradle[tags=filter-engine]"]
 include::sample[dir="snippets/testing/junitplatform-engine/kotlin",files="build.gradle.kts[tags=filter-engine]"]
 ====
-
-A test engine filtering sample can be found at `samples/testing/junitplatform-engine` in the '-all' distribution of Gradle.
 
 [[test_execution_order]]
 == Test execution order in TestNG
