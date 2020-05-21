@@ -151,20 +151,6 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
     }
 
     private static <T extends Credentials> Provider<T> evaluateAtConfigurationTime(Callable<T> provider) {
-        return new DefaultProvider<>(provider).orElse(new MissingCredentials<>());
-    }
-
-    private static class MissingCredentials<T extends Credentials> extends AbstractMinimalProvider<T> {
-
-        @Override
-        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-            return Value.missing();
-        }
-
-        @Nullable
-        @Override
-        public Class<T> getType() {
-            return null;
-        }
+        return new DefaultProvider<>(provider).orElse(Providers.notDefined());
     }
 }
