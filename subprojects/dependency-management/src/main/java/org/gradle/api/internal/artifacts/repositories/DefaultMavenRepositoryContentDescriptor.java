@@ -19,12 +19,14 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
 import org.gradle.internal.Actions;
 
+import java.util.function.Supplier;
+
 class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDescriptor implements MavenRepositoryContentDescriptor {
     private boolean snapshots = true;
     private boolean releases = true;
 
-    public DefaultMavenRepositoryContentDescriptor(String repositoryName) {
-        super(repositoryName);
+    public DefaultMavenRepositoryContentDescriptor(Supplier<String> repositoryNameSupplier) {
+        super(repositoryNameSupplier);
     }
 
     @Override

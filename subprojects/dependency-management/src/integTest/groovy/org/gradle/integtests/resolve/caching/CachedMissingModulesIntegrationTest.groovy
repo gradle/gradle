@@ -145,6 +145,7 @@ task showMissing { doLast { println configurations.missing.files } }
         succeeds("showMissing")
     }
 
+    @ToBeFixedForInstantExecution
     def "cached empty version list is ignored when no module for dynamic version is available in any repo"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -159,7 +160,7 @@ task showMissing { doLast { println configurations.missing.files } }
                 maven {
                     name 'repo2'
                     url '${repo2.uri}'
-                    metadataSources { 
+                    metadataSources {
                         mavenPom()
                         artifact()
                     }
@@ -366,6 +367,7 @@ Required by:
 
     }
 
+    @ToBeFixedForInstantExecution
     def "cached missing module is ignored if module is not available in any repo"() {
         given:
         def repo1 = mavenHttpRepo("repo1")

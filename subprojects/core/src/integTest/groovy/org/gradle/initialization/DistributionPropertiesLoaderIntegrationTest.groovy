@@ -26,7 +26,7 @@ class DistributionPropertiesLoaderIntegrationTest extends AbstractIntegrationSpe
     @ToBeFixedForInstantExecution(because = "composite builds")
     def "System properties defined in gradle.properties are available in buildSrc and in included builds"() {
         given:
-        requireIsolatedGradleDistribution()
+        executer.requireGradleDistribution()
 
         settingsFile << '''
             includeBuild 'includedBuild'

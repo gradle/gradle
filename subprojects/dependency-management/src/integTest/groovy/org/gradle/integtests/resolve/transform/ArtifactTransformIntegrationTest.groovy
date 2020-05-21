@@ -1692,6 +1692,7 @@ Found the following transforms:
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "directories are not created for output #method which is part of the input"() {
         given:
         buildFile << """

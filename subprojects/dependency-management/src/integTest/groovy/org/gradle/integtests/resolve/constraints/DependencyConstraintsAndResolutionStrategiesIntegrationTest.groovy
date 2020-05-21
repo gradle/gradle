@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.constraints
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 /**
@@ -72,6 +73,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         }
     }
 
+    @ToBeFixedForInstantExecution
     void "fail-on-conflict resolution strategy is applied to dependency constraints"() {
         given:
         buildFile << """

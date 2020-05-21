@@ -86,7 +86,7 @@ The Tooling API always uses the Gradle daemon. This means that subsequent calls 
 [[sec:embedding_quickstart]]
 === Quickstart
 
-As the Tooling API is an interface for developers, the Javadoc is the main documentation for it. We provide several _samples_ that live in `samples/toolingApi` in your Gradle distribution. These samples specify all of the required dependencies for the Tooling API with examples for querying information from Gradle builds and executing tasks from the Tooling API.
+As the Tooling API is an interface for developers, the Javadoc is the main documentation for it. 
 
 To use the Tooling API, add the following repository and dependency declarations to your build script:
 

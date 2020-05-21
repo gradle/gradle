@@ -353,6 +353,10 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return this;
     }
 
+    @Override
+    public void assertResultVisited() {
+    }
+
     private void failOnDifferentSets(String message, Set<String> expected, Set<String> actual) {
         failureOnUnexpectedOutput(String.format("%s%nExpected: %s%nActual: %s", message, expected, actual));
     }
