@@ -135,6 +135,7 @@ $ rm -rf .gradle/configuration-cache
 ----
 
 
+[[constraints]]
 == Constraints
 
 In order to capture the state of the task graph to the configuration cache and reload it again in a later build, Gradle applies certain constraints to tasks and other build logic.
@@ -270,3 +271,5 @@ First grouped by error message, then grouped by task.
 The former allows to quickly see what classes of problems your build is facing.
 The latter allows to quickly see which tasks are problematic.
 In both cases you can expand the tree in order to discover where in the object graph is the culprit.
+
+Problems displayed in the report have links to the corresponding <<configuration_cache#constraints,constraint>> above where you can find guidance on how to fix the problem.
