@@ -78,7 +78,6 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'nested jars' | 'ignoredResourceInNestedJar' | 'notIgnoredResourceInNestedJar' | false
     }
 
-    @ToBeFixedForInstantExecution
     def "can ignore manifest attributes on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(true).withManifestAttributesIgnored()
 
