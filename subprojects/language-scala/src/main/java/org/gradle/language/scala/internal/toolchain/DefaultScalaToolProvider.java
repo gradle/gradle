@@ -18,6 +18,7 @@ package org.gradle.language.scala.internal.toolchain;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.scala.DaemonScalaCompiler;
+import org.gradle.api.internal.tasks.scala.HashedClasspath;
 import org.gradle.api.internal.tasks.scala.NormalizingScalaCompiler;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.ZincScalaCompilerFacade;
@@ -38,14 +39,14 @@ public class DefaultScalaToolProvider implements ToolProvider {
 
     private final File daemonWorkingDir;
     private final WorkerDaemonFactory workerDaemonFactory;
-    private final Set<File> resolvedScalaClasspath;
+    private final HashedClasspath resolvedScalaClasspath;
     private final Set<File> resolvedZincClasspath;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
 
-    public DefaultScalaToolProvider(File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory, JavaForkOptionsFactory forkOptionsFactory, Set<File> resolvedScalaClasspath, Set<File> resolvedZincClasspath, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+    public DefaultScalaToolProvider(File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory, JavaForkOptionsFactory forkOptionsFactory, HashedClasspath resolvedScalaClasspath, Set<File> resolvedZincClasspath, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         this.daemonWorkingDir = daemonWorkingDir;
         this.workerDaemonFactory = workerDaemonFactory;
         this.forkOptionsFactory = forkOptionsFactory;

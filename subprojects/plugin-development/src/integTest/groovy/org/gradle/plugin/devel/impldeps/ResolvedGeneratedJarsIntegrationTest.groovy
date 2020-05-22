@@ -28,7 +28,6 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeInt
         buildFile << testablePluginProject(applyJavaPlugin())
     }
 
-    @ToBeFixedForInstantExecution
     def "gradle api jar is generated only when requested"() {
         setup:
         productionCode()
@@ -37,7 +36,7 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeInt
         def generatedJarsDirectory = "user-home/caches/$version/generated-gradle-jars"
 
         when:
-        succeeds("tasks")
+        succeeds("help")
 
         then:
         file(generatedJarsDirectory).assertIsEmptyDir()

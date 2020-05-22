@@ -31,6 +31,7 @@ import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
+import org.gradle.internal.classpath.BuildLogicTransformStrategy;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
@@ -94,10 +95,11 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
 
         PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginDependencyResolutionServices dependencyResolutionServices,
                                                               PluginResolverFactory pluginResolverFactory, PluginResolutionStrategyInternal internalPluginResolutionStrategy,
-                                                              PluginInspector pluginInspector, CachedClasspathTransformer cachedClasspathTransformer) {
+                                                              PluginInspector pluginInspector, CachedClasspathTransformer cachedClasspathTransformer,
+                                                              BuildLogicTransformStrategy transformStrategy) {
             return new DefaultPluginRequestApplicator(
                 pluginRegistry, pluginResolverFactory, dependencyResolutionServices.getPluginRepositoriesProvider(),
-                internalPluginResolutionStrategy, pluginInspector, cachedClasspathTransformer);
+                internalPluginResolutionStrategy, pluginInspector, cachedClasspathTransformer, transformStrategy);
         }
 
         InjectedClasspathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector,

@@ -94,7 +94,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "tasks"
+        fails "help"
 
         then:
         failure.assertHasFileName("Script '${file("script2.gradle").absolutePath}'")
@@ -112,7 +112,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "tasks"
+        fails "help"
 
         then:
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
@@ -130,14 +130,13 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "tasks", "-I", file("init.gradle").absolutePath
+        fails "help", "-I", file("init.gradle").absolutePath
 
         then:
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertThatCause(containsText("Could not find method someMethod()"))
     }
 
-    @ToBeFixedForInstantExecution
     def "methods defined in a build script are visible to scripts applied to sub projects"() {
         given:
         settingsFile << "include 'sub'"
@@ -152,7 +151,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         file("sub/script.gradle") << "someMethod()"
 
         when:
-        run "tasks"
+        run "help"
 
         then:
         output.contains("from some method")
@@ -192,7 +191,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         file("script2.gradle") << "new Foo()"
 
         when:
-        fails "tasks"
+        fails "help"
 
         then:
         failure.assertHasFileName("Script '${file("script2.gradle").absolutePath}'")

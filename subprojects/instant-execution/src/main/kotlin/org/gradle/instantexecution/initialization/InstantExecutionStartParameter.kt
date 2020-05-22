@@ -21,15 +21,21 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.instantexecution.extensions.unsafeLazy
+import org.gradle.internal.classpath.BuildLogicTransformStrategy
+import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
+import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.None
 import org.gradle.internal.hash.HashUtil.createCompactMD5
+import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.GFileUtils
 import java.io.File
 
 
+@ServiceScope(Scopes.BuildTree)
 class InstantExecutionStartParameter(
     private val buildLayout: BuildLayout,
     startParameter: StartParameter
-) {
+) : BuildLogicTransformStrategy {
 
     private
     val startParameter = startParameter as StartParameterInternal
@@ -60,6 +66,14 @@ class InstantExecutionStartParameter(
 
     val requestedTaskNames: List<String> by unsafeLazy {
         startParameter.taskNames
+    }
+
+    override fun transformToApplyToBuildLogic() = if (isEnabled) {
+        BuildLogic
+    } else {
+        // For now, disable instrumentation when configuration caching is not used
+        // This means that build logic will use different classpaths when the configuration cache is enabled or disabled
+        None
     }
 
     val instantExecutionCacheKey: String by unsafeLazy {
