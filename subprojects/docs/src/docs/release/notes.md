@@ -4,6 +4,7 @@ This release features the [start of several improvements](#incremental-improveme
 
 We would like to thank the following community contributors to this release of Gradle:
 
+[SheliakLyr](https://github.com/SheliakLyr),
 [Daniil Popov](https://github.com/int02h),
 [Scott Robinson](https://github.com/quad),
 [Cristian Garcia](https://github.com/CristianGM),
