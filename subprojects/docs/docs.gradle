@@ -538,9 +538,6 @@ tasks.named("docsTest") { task ->
         if (!buildJvms.testJvm.get().javaVersion.java9Compatible) {
             excludeTestsMatching "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.java-modules-*.sample"
         }
-        // SLG TEMP
-        excludeTestsMatching "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.java-modules-multi-project*.sample"
-        excludeTestsMatching "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.precompiled-script-plugin-in-build-src*.sample"
 
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.android-application_*.sample' // has build deprecations
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-best-practices-logic-during-configuration-dont_*.sample' // negative sanity check fails (= build succeeds) for Kotlin variant

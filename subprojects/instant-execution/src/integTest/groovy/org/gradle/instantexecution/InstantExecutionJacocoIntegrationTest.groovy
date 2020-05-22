@@ -49,6 +49,7 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
         problems.assertFailureHasProblems(failure) {
             withUniqueProblems(expectedStoreProblems)
             withTotalProblemsCount(expectedStoreProblemCount)
+            withProblemsWithStackTraceCount(0)
         }
 
         when:
@@ -59,6 +60,7 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
         problems.assertResultHasProblems(result) {
             withTotalProblemsCount(expectedLoadProblemCount)
             withUniqueProblems(expectedLoadProblems)
+            withProblemsWithStackTraceCount(0)
         }
         htmlReportDir.assertIsDir()
 
@@ -74,6 +76,7 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
         problems.assertFailureHasProblems(failure) {
             withTotalProblemsCount(expectedLoadProblemCount)
             withUniqueProblems(expectedLoadProblems)
+            withProblemsWithStackTraceCount(0)
         }
 
         when:
