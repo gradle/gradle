@@ -232,7 +232,43 @@ TODO - examples, more details
 Support for using configuration caching with certain Gradle features is not yet implemented.
 Support for these features will be added in later Gradle releases.
 
-- Composite builds
+=== Build scan support
+
+When it comes to link:https://gradle.com/build-scans/[build scans], only the `--scan` command line option is supported for now.
+
+The build scan plugin is currently ignored when applied via an init script or build script, as is any configuration done via the build scan extension (server location, accept license, tags, etc).
+This means that scans will be published to the public `scans.gradle.com` instance by default.
+
+=== Composite builds
+
+When using the configuration cache on a <<composite_builds#composite_builds,composite build>> a problem will be reported.
+If you <<configuration_cache#ignore_problems,ignore problems>> then the included builds will be skipped when reusing the configuration cache.
+
+=== Source dependencies
+
+Support for link:https://blog.gradle.org/introducing-source-dependencies[source dependencies] is not yet implemented.
+With the configuration cache enabled, no problem will be reported and the build will fail.
+
+=== Dependency locking
+
+<<dependency_locking#dependency-locking, Locking dependency versions>> isn't supported yet.
+With the configuration cache enabled, no problem will be reported and dependency locks will be ignored.
+
+=== Dynamic or changing dependencies
+
+<<dynamic_versions#sec:dynamic_versions_and_changing_modules,Dependencies with versions which change over time>> aren't supported yet.
+With the configuration cache enabled, no problem will be reported and changes to dependencies won't be detected.
+
+=== Filesystem repositories
+
+Repositories on local file systems are not supported yet.
+With the configuration cache enabled, no problem will be reported and changes to the filesystem in the repositories won't be detected.
+
+This includes:
+
+* <<declaring_repositories#sec:declaring_custom_repository,Maven or Ivy repositories>> with `file://` URLs,
+* <<declaring_repositories#sub:maven_local,`mavenLocal()`>>,
+* and <<declaring_repositories#sub:flat_dir_resolver,flat directory repositories>>.
 
 
 [[testkit]]
