@@ -118,18 +118,19 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
                 continue;
             }
             String fullName = parentName.isEmpty() ? zipEntry.getName() : parentName + "/" + zipEntry.getName();
+            ZipEntryContext zipEntryContext = new ZipEntryContext(zipEntry, fullName, rootParentName);
             if (isZipFile(zipEntry.getName())) {
                 fingerprintZipEntries(fullName, rootParentName, fingerprints, new StreamZipInput(zipEntry.getInputStream()));
             } else {
-                fingerprintZipEntry(zipEntry, fullName, fingerprints);
+                fingerprintZipEntry(zipEntryContext, fingerprints);
             }
         }
     }
 
-    private void fingerprintZipEntry(ZipEntry zipEntry, String fullName, List<FileSystemLocationFingerprint> fingerprints) throws IOException {
-        HashCode hash = resourceHasher.hash(zipEntry);
+    private void fingerprintZipEntry(ZipEntryContext zipEntryContext, List<FileSystemLocationFingerprint> fingerprints) throws IOException {
+        HashCode hash = resourceHasher.hash(zipEntryContext);
         if (hash != null) {
-            fingerprints.add(new DefaultFileSystemLocationFingerprint(fullName, FileType.RegularFile, hash));
+            fingerprints.add(new DefaultFileSystemLocationFingerprint(zipEntryContext.getFullName(), FileType.RegularFile, hash));
         }
     }
 

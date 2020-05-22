@@ -107,7 +107,7 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
     }
 
     def zipEntry(String path) {
-        return new ZipEntry() {
+        def zipEntry = new ZipEntry() {
             @Override
             boolean isDirectory() {
                 return false
@@ -133,5 +133,6 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
                 return 0
             }
         }
+        return new ZipEntryContext(zipEntry, path, "foo.zip")
     }
 }

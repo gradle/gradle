@@ -224,7 +224,7 @@ class ManifestFileZipEntryHasherTest extends Specification {
         }
         ByteArrayOutputStream bos = new ByteArrayOutputStream()
         manifest.write(bos)
-        return new ZipEntry() {
+        def zipEntry = new ZipEntry() {
             @Override
             boolean isDirectory() {
                 return false
@@ -250,5 +250,6 @@ class ManifestFileZipEntryHasherTest extends Specification {
                 return bos.size()
             }
         }
+        return new ZipEntryContext(zipEntry, "META-INF/MANIFEST.MF", "foo.zip")
     }
 }

@@ -54,23 +54,24 @@ public class MetaInfAwareClasspathResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(ZipEntry zipEntry) throws IOException {
+    public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
+        ZipEntry zipEntry = zipEntryContext.getEntry();
         if (isManifestFile(zipEntry.getName())) {
-            return tryHashWithFallback(zipEntry, manifestFileZipEntryHasher);
+            return tryHashWithFallback(zipEntryContext, manifestFileZipEntryHasher);
         } else if (isManifestPropertyFile(zipEntry.getName())) {
-            return tryHashWithFallback(zipEntry, propertiesFileZipEntryHasher);
+            return tryHashWithFallback(zipEntryContext, propertiesFileZipEntryHasher);
         } else {
-            return delegate.hash(zipEntry);
+            return delegate.hash(zipEntryContext);
         }
     }
 
     @Nullable
-    private HashCode tryHashWithFallback(ZipEntry zipEntry, ZipEntryHasher hasher) throws IOException {
+    private HashCode tryHashWithFallback(ZipEntryContext zipEntryContext, ZipEntryHasher hasher) throws IOException {
         try {
-            return hasher.hash(zipEntry);
+            return hasher.hash(zipEntryContext);
         } catch (IOException e) {
-            LOGGER.warn("Could not load fingerprint for " + zipEntry.getName() + ". Falling back to regular fingerprinting", e);
-            return delegate.hash(zipEntry);
+            LOGGER.debug("Could not load fingerprint for " + zipEntryContext.getRootParentName() + "!" + zipEntryContext.getFullName() + ". Falling back to full entry fingerprinting", e);
+            return delegate.hash(zipEntryContext);
         }
     }
 

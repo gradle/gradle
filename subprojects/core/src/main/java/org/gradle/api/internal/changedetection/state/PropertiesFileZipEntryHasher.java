@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
-import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -44,8 +43,8 @@ public class PropertiesFileZipEntryHasher implements ZipEntryHasher, Configurabl
 
     @Nullable
     @Override
-    public HashCode hash(ZipEntry zipEntry) throws IOException {
-        return hashProperties(ByteStreams.toByteArray(zipEntry.getInputStream()));
+    public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
+        return hashProperties(ByteStreams.toByteArray(zipEntryContext.getEntry().getInputStream()));
     }
 
     private HashCode hashProperties(byte[] entryBytes) throws IOException {

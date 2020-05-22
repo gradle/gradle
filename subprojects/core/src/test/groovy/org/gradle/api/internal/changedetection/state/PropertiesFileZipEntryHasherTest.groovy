@@ -115,12 +115,12 @@ class PropertiesFileZipEntryHasherTest extends Specification {
         hash3 == hash4
     }
 
-    ZipEntry zipEntry(Map<String, String> attributes, String comments = "") {
+    ZipEntryContext zipEntry(Map<String, String> attributes, String comments = "") {
         Properties properties = new Properties()
         properties.putAll(attributes)
         ByteArrayOutputStream bos = new ByteArrayOutputStream()
         properties.store(bos, comments)
-        return new ZipEntry() {
+        def zipEntry = new ZipEntry() {
             @Override
             boolean isDirectory() {
                 return false
@@ -146,5 +146,6 @@ class PropertiesFileZipEntryHasherTest extends Specification {
                 return bos.size()
             }
         }
+        return new ZipEntryContext(zipEntry, "META-INF/build-info.properties", "foo.zip")
     }
 }

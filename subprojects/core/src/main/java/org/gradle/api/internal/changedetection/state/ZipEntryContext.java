@@ -16,18 +16,28 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.internal.hash.HashCode;
+import org.gradle.api.internal.file.archive.ZipEntry;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
+public class ZipEntryContext {
+    private final ZipEntry entry;
+    private final String fullName;
+    private final String rootParentName;
 
-/**
- * Hashes a zip entry (e.g. a class file in a jar, a manifest file, a properties file)
- */
-public interface ZipEntryHasher {
-    /**
-     * Returns {@code null} if the zip entry should be ignored.
-     */
-    @Nullable
-    HashCode hash(ZipEntryContext zipEntryContext) throws IOException;
+    public ZipEntryContext(ZipEntry entry, String fullName, String rootParentName) {
+        this.entry = entry;
+        this.fullName = fullName;
+        this.rootParentName = rootParentName;
+    }
+
+    public ZipEntry getEntry() {
+        return entry;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public String getRootParentName() {
+        return rootParentName;
+    }
 }
