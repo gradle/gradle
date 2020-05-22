@@ -6,6 +6,7 @@
 The configuration cache is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, and the details described here may change.
 ====
 
+
 == Introduction
 
 The configuration cache is a feature that significantly improves build performance by caching the result of the <<build_lifecycle#build_lifecycle,configuration phase>> and reusing this for subsequent builds.
@@ -209,6 +210,7 @@ to fix: use `providers.fileContents(x)`
 
 TODO - examples, more details
 
+
 [[not_yet_implemented]]
 == Not yet implemented
 
@@ -216,6 +218,7 @@ Support for using configuration caching with certain Gradle features is not yet 
 Support for these features will be added in later Gradle releases.
 
 - Composite builds
+
 
 [[testkit]]
 == Testing Build Logic with TestKit
@@ -241,6 +244,7 @@ include::sample[dir="snippets/configurationCache/testKit/kotlin",files="src/test
 If problems with the configuration cache are found then Gradle will fail the build reporting the problems, and the test will fail.
 
 When gradually improving your plugin or build logic to support the configuration cache it can be useful to temporarily <<configuration_cache.adoc#ignore_problems,ignore problems>> or <<configuration_cache.adoc#max_problems,allow a given number of problems>>.
+
 
 == Troubleshooting
 
