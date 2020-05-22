@@ -192,15 +192,17 @@ Instead, these system properties must be declared as a potential build input by 
 
 To fix: before:
 
-```
+[source,groovy]
+----
 def enabled = System.getProperty("some-property")
-```
+----
 
 After:
 
-```
+[source,groovy]
+----
 def enabled = providers.systemProperty("some-property").forUseAtConfigurationTime().present
-```
+----
 
 In general, you should avoid reading the value of system properties at configuration time, to avoid invalidating configuration cache entries when the system property value changes.
 Instead, you can connect the `Provider` returned by `providers.systemProperty()` to task properties.
