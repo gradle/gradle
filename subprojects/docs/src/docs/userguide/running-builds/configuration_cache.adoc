@@ -162,7 +162,12 @@ This includes calling `Task.getProject()` while the task is running.
 
 to fix: some cases can be fixed in the same way as the previous constraint.
 
-to fix: use injected services instead of the methods of `Project`.
+to fix: use <<custom_gradle_types#service_injection,injected services>> instead of the methods of `Project`.
+
+* `project.file()` -> `ProjectLayout`
+* `project.files()` / `project.fileTree()` -> `ObjectFactory`
+* `project.exec {}` / `project.javaexec {}` -> `ExecOperations`
+* `project.copy {}` / `project.sync {}` / `project.delete {}` -> `FileSystemOperations`
 
 TODO - examples, more details
 
@@ -181,7 +186,7 @@ TODO - examples, more details
 
 Plugins and build scripts must not register any build listeners.
 
-to fix: use a build service.
+to fix: use a <<build_services#build_services,build service>>.
 
 TODO - examples
 
