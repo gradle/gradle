@@ -65,7 +65,7 @@ It can be enabled from the command line:
 
 [source,bash]
 ----
-gradle --configuration-cache=on
+$ gradle --configuration-cache=on
 ----
 
 It can also be enabled persistently in a `gradle.properties` file:
@@ -79,7 +79,7 @@ If it is enabled in a `gradle.properties` file, it can be disabled on the comman
 
 [source,bash]
 ----
-gradle --configuration-cache=off
+$ gradle --configuration-cache=off
 ----
 
 [[ignore_problems]]
@@ -90,7 +90,7 @@ Configuration cache problems can be turned into warnings on the command line:
 
 [source,bash]
 ----
-gradle --configuration-cache=warn
+$ gradle --configuration-cache=warn
 ----
 
 or in a `gradle.properties` file:
@@ -109,7 +109,7 @@ This can be adjusted by specifying an allowed maximum number of problems on the 
 
 [source,bash]
 ----
-gradle -Dorg.gradle.unsafe.configuration-cache.max-problems=5
+$ gradle -Dorg.gradle.unsafe.configuration-cache.max-problems=5
 ----
 
 or in a `gradle.properties` file:
