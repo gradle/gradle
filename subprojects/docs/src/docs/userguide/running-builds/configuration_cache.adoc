@@ -297,14 +297,58 @@ In general, you should avoid reading the value of environment variables at confi
 Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#environmentVariable-java.lang.String-[providers.environmentVariable()] to task properties.
 
 [[undeclared_file_read]]
-=== Reading files at configuration time
+=== Undeclared reading of files
 
-Plugins and build scripts should not read files directly using the Java APIs.
+Plugins and build scripts should not read files directly using the Java, Groovy or Kotlin APIs at configuration time.
 Instead, declare files as potential build inputs using the value supplier APIs.
 
-to fix: use `providers.fileContents(x)`
+This problem is caused by build logic similar to this:
 
-TODO - examples, more details
+.Read files directly using the language API
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
+----
+def config = file("some.conf").text
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source, kotlin]
+----
+val config = file("some.conf").readText()
+----
+=====
+====
+
+To fix this problem, read files using link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#fileContents-org.gradle.api.file.RegularFile-[providers.fileContents()] instead:
+
+.Read files using the value supplier API
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
+----
+def config = providers.fileContents("some.conf").forUseAtConfigurationTime().asText
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source, kotlin]
+----
+val config = providers.fileContents("some.conf").forUseAtConfigurationTime().asText
+----
+=====
+====
+
+In general, you should avoid reading files at configuration time, to avoid invalidating configuration cache entries when the file content changes.
+Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#fileContents-org.gradle.api.file.RegularFile-[providers.fileContents()] to task properties.
+
 
 
 [[not_yet_implemented]]
