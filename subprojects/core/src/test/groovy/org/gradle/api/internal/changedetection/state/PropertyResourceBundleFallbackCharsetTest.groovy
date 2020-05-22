@@ -21,11 +21,11 @@ import spock.lang.Specification
 import java.nio.ByteBuffer
 import java.nio.CharBuffer
 
-class Java8PropertyResourceBundleFallbackCharsetTest extends Specification {
+class PropertyResourceBundleFallbackCharsetTest extends Specification {
     private final byte[] utf8bytes =  [0xc3, 0xa2, 0x61, 0x62, 0x63, 0x64] as byte[]
     private final byte[] iso8859bytes = [0xe2, 0x61, 0x62, 0x63, 0x64] as byte[]
 
-    def charset = new Java8PropertyResourceBundleFallbackCharset()
+    def charset = new PropertyResourceBundleFallbackCharset()
 
     def "can decode a UTF-8 stream"() {
         when:

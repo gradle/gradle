@@ -50,7 +50,7 @@ public class PropertiesFileZipEntryHasher implements ZipEntryHasher, Configurabl
     private HashCode hashProperties(byte[] entryBytes) throws IOException {
         Hasher hasher = Hashing.newHasher();
         Properties properties = new Properties();
-        properties.load(new InputStreamReader(new ByteArrayInputStream(entryBytes), new Java8PropertyResourceBundleFallbackCharset()));
+        properties.load(new InputStreamReader(new ByteArrayInputStream(entryBytes), new PropertyResourceBundleFallbackCharset()));
         Map<String, String> entries = Maps.fromProperties(properties);
         entries
             .entrySet()

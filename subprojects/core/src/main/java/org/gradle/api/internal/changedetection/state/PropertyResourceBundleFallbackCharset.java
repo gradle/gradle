@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -34,10 +35,10 @@ import java.nio.charset.StandardCharsets;
  * available in Java 8.  This class can be removed in favor of {@link sun.util.PropertyResourceBundleCharset}
  * once Java 8 is no longer supported.
  */
-public class Java8PropertyResourceBundleFallbackCharset extends Charset {
+public class PropertyResourceBundleFallbackCharset extends Charset {
 
-    public Java8PropertyResourceBundleFallbackCharset() {
-        super(Java8PropertyResourceBundleFallbackCharset.class.getCanonicalName(), new String[0]);
+    public PropertyResourceBundleFallbackCharset() {
+        super(PropertyResourceBundleFallbackCharset.class.getCanonicalName(), new String[0]);
     }
 
     @Override
@@ -66,15 +67,23 @@ public class Java8PropertyResourceBundleFallbackCharset extends Charset {
             super(charset, 1.0f, 1.0f);
         }
 
+        static void mark(Buffer buffer) {
+            buffer.mark();
+        }
+
+        static void reset(Buffer buffer) {
+            buffer.reset();
+        }
+
         protected CoderResult decodeLoop(ByteBuffer in, CharBuffer out) {
-            in.mark();
-            out.mark();
+            mark(in);
+            mark(out);
 
             CoderResult coderResult = decoder.decode(in, out, false);
 
             if (coderResult.isError() && utf8) {
-                in.reset();
-                out.reset();
+                reset(in);
+                reset(out);
                 // Fallback to the ISO_8859_1 decoder
                 decoder = StandardCharsets.ISO_8859_1.newDecoder();
                 utf8 = false;
