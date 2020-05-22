@@ -509,6 +509,15 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                     other(null);
                 }
 
+                @Test
+                public void testFailingGetMessage() {
+                    throw new NullPointerException() {
+                        public String getMessage() {
+                            throw new RuntimeException();
+                        }
+                    };
+                }
+
                 void other(Object param) {
                     try {
                        System.out.println(param.toString());
@@ -516,6 +525,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                         throw new RuntimeException(ex);
                     }
                 }
+
             }
         """
 
@@ -528,5 +538,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             .testFailed("testUsefulNPE", equalTo('java.lang.NullPointerException: Cannot invoke "Object.toString()" because "o" is null'))
         result.testClass("UsefulNPETest")
             .testFailed("testDeepUsefulNPE", equalTo('java.lang.RuntimeException: java.lang.NullPointerException: Cannot invoke "Object.toString()" because "param" is null'))
+        result.testClass("UsefulNPETest")
+            .testFailed("testFailingGetMessage", equalTo('Could not determine failure message for exception of type UsefulNPETest$1: java.lang.RuntimeException'))
     }
 }
