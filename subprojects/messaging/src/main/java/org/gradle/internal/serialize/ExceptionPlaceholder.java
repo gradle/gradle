@@ -305,7 +305,13 @@ class ExceptionPlaceholder implements Serializable {
         private static Throwable maybeReplaceUsefulNullPointerMessage(Throwable throwable) {
             if (throwable instanceof NullPointerException) {
                 StackTraceElement[] stackTrace = throwable.getStackTrace();
-                throwable = new NullPointerException(throwable.getMessage());
+                try {
+                    throwable = new NullPointerException(throwable.getMessage());
+                } catch (Exception e) {
+                    // if calling `getMessage()` fails for whatever reason, just ignore
+                    // the replacement
+                    return throwable;
+                }
                 throwable.setStackTrace(stackTrace);
             }
             return throwable;
