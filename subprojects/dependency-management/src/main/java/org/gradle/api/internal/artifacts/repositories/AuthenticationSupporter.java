@@ -89,6 +89,11 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
         action.execute(getCredentials(credentialsType));
     }
 
+    @Override
+    public void credentials(Class<? extends Credentials> credentialsType) {
+        throw new UnsupportedOperationException();
+    }
+
     public void credentials(Class<? extends Credentials> credentialsType, Supplier<String> identity) {
         this.usesCredentials = true;
         this.credentials.set(credentialsProviderFactory.provideCredentials(credentialsType, identity));

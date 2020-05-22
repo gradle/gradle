@@ -17,31 +17,25 @@ include::sample[dir="groovy",files="build.gradle[tags=publication]"]
 include::sample[dir="kotlin",files="build.gradle.kts[tags=publication]"]
 ====
 
-Authentication credentials are only configured and validated if the publication task is going to be invoked in the current build:
-====
-include::sample[dir="groovy",files="build.gradle[tags=credentials]"]
-include::sample[dir="kotlin",files="build.gradle.kts[tags=credentials]"]
-====
-
 Credential values are declared to be Gradle properties and can be passed to the publish task in multiple ways:
 
 * via command-line properties:
 =====
 ----
-$ ./gradlew publish -PmavenUser=secret-user -PmavenPassword=secret-password
+$ ./gradlew publish -PmySecureRepositoryUsername=secret-user -PmySecureRepositoryPassword=secret-password
 ----
 =====
 * via environment variables:
 =====
 ----
-$ ORG_GRADLE_PROJECT_mavenUser=secret-user ORG_GRADLE_PROJECT_mavenPassword=secret-password ./gradlew publish
+$ ORG_GRADLE_PROJECT_mySecureRepositoryUsername=secret-user ORG_GRADLE_PROJECT_mySecureRepositoryPassword=secret-password ./gradlew publish
 ----
 =====
 * by setting the properties in `gradle.properties` file:
 =====
 ----
-mavenUser=secret-user
-mavenPassword=secret-password
+mySecureRepositoryUsername=secret-user
+mySecureRepositoryPassword=secret-password
 ----
 =====
 and running
