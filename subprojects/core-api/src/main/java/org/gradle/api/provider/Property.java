@@ -109,6 +109,7 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      *
      * @since 5.0
      */
-    @Incubating @Override
+    @Incubating
+    @Override
     void finalizeValue();
 }

@@ -93,6 +93,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         loopNumber << (1..6).toList()
     }
 
+    @ToBeFixedForInstantExecution(because = "classpath locations are different when caching enabled or disabled")
     def "build script classloader copies jar files to cache"() {
         given:
         createBuildFileThatPrintsClasspathURLs("""
@@ -114,7 +115,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         then:
         succeeds("showBuildscript")
         inJarCache("test-1.3-BUILD-SNAPSHOT.jar")
-        inJarCache("commons-io-1.4.jar")
+        notInJarCache("commons-io-1.4.jar")
     }
 
     private void createBuildFileThatPrintsClasspathURLs(String dependencies = '') {
@@ -256,7 +257,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         jar.assertExists()
     }
 
-    @ToBeFixedForInstantExecution
     def "cleans up unused versions of jars cache"() {
         given:
         requireOwnGradleUserHomeDir() // messes with caches
@@ -267,7 +267,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         gcFile.createFile().lastModified = daysAgo(2)
 
         when:
-        succeeds("tasks")
+        succeeds("help")
 
         then:
         oldCacheDirs.each {

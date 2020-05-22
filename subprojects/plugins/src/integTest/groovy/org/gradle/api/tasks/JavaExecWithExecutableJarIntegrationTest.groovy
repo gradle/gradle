@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
@@ -101,6 +102,7 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
         file("out.txt").text == """helloworld"""
     }
 
+    @Ignore("Change rolled back, to be added again in 7.0")
     @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "can run JavaExec with an executable jar configured in the application plugin"() {
 
@@ -118,6 +120,7 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
         file("out.txt").text == """helloworld"""
     }
 
+    @Ignore("Change rolled back, to be added again in 7.0")
     @ToBeFixedForInstantExecution
     def "can run javaexec with executable jar configured in the application plugin"() {
 

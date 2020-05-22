@@ -21,6 +21,8 @@ import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.dispatch.ProxyDispatchAdapter;
 import org.gradle.internal.dispatch.ReflectionDispatch;
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,13 +41,15 @@ public class DefaultListenerManager implements ListenerManager {
     private final Map<Object, ListenerDetails> allLoggers = new LinkedHashMap<Object, ListenerDetails>();
     private final Map<Class<?>, EventBroadcast<?>> broadcasters = new ConcurrentHashMap<Class<?>, EventBroadcast<?>>();
     private final Object lock = new Object();
+    private final Scopes scope;
     private final DefaultListenerManager parent;
 
-    public DefaultListenerManager() {
-        this(null);
+    public DefaultListenerManager(Scopes scope) {
+        this(scope, null);
     }
 
-    private DefaultListenerManager(DefaultListenerManager parent) {
+    private DefaultListenerManager(Scopes scope, DefaultListenerManager parent) {
+        this.scope = scope;
         this.parent = parent;
     }
 
@@ -99,11 +103,13 @@ public class DefaultListenerManager implements ListenerManager {
 
     @Override
     public <T> T getBroadcaster(Class<T> listenerClass) {
+        assertCanBroadcast(listenerClass);
         return getBroadcasterInternal(listenerClass).getBroadcaster();
     }
 
     @Override
     public <T> AnonymousListenerBroadcast<T> createAnonymousBroadcaster(Class<T> listenerClass) {
+        assertCanBroadcast(listenerClass);
         AnonymousListenerBroadcast<T> broadcast = new AnonymousListenerBroadcast<T>(listenerClass);
         broadcast.add(getBroadcasterInternal(listenerClass).getDispatch(true));
         return broadcast;
@@ -126,9 +132,19 @@ public class DefaultListenerManager implements ListenerManager {
         }
     }
 
+    private <T> void assertCanBroadcast(Class<T> listenerClass) {
+        EventScope scope = listenerClass.getAnnotation(EventScope.class);
+        if (scope == null) {
+            throw new IllegalArgumentException(String.format("Listener type %s is not annotated with @EventScope.", listenerClass.getName()));
+        }
+        if (!scope.value().equals(this.scope)) {
+            throw new IllegalArgumentException(String.format("Listener type %s with scope %s cannot be used to generate events in scope %s.", listenerClass.getName(), scope.value(), this.scope));
+        }
+    }
+
     @Override
-    public ListenerManager createChild() {
-        return new DefaultListenerManager(this);
+    public ListenerManager createChild(Scopes scope) {
+        return new DefaultListenerManager(scope, this);
     }
 
     /**

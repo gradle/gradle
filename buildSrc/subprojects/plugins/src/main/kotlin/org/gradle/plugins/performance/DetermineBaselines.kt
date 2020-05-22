@@ -23,6 +23,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.execAndGetStdout
 import org.gradle.kotlin.dsl.property
 import javax.inject.Inject
+import gitInfo
 
 
 const val defaultBaseline = "defaults"
@@ -67,7 +68,7 @@ open class DetermineBaselines @Inject constructor(isDistributed: Boolean) : Defa
     fun determineFlakinessDetectionBaseline() = if (distributed) flakinessDetectionCommitBaseline else currentCommitBaseline()
 
     private
-    fun currentBranchIsMasterOrRelease() = project.determineCurrentBranch() in listOf("master", "release")
+    fun currentBranchIsMasterOrRelease() = project.gitInfo.gradleBuildBranch.get() in listOf("master", "release")
 
     private
     fun Property<String>.isDefaultValue() = !isPresent || get() in listOf("", defaultBaseline, Config.baseLineList)

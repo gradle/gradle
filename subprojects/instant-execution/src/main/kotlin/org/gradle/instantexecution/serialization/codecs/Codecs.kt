@@ -41,6 +41,12 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.BuildRequestMetaData
+import org.gradle.instantexecution.serialization.codecs.transform.ChainedTransformationNodeCodec
+import org.gradle.instantexecution.serialization.codecs.transform.DefaultTransformerCodec
+import org.gradle.instantexecution.serialization.codecs.transform.InitialTransformationNodeCodec
+import org.gradle.instantexecution.serialization.codecs.transform.LegacyTransformerCodec
+import org.gradle.instantexecution.serialization.codecs.transform.TransformationNodeReferenceCodec
+import org.gradle.instantexecution.serialization.codecs.transform.TransformationStepCodec
 import org.gradle.instantexecution.serialization.ownerServiceCodec
 import org.gradle.instantexecution.serialization.reentrant
 import org.gradle.internal.Factory

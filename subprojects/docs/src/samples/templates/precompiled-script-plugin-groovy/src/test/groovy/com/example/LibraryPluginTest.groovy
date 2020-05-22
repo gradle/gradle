@@ -75,10 +75,10 @@ class LibraryPluginTest extends PluginTest {
     def "fails when README does not have API section"() {
         given:
         testProjectDir.newFile('README.md') << """
-            ## Changelog
-            - change 1
-            - change 2
-        """.stripIndent()
+## Changelog
+- change 1
+- change 2
+        """
 
         when:
         def result = runTaskWithFailure('check')
@@ -91,9 +91,9 @@ class LibraryPluginTest extends PluginTest {
     def "fails when README does not have Changelog section"() {
         given:
         testProjectDir.newFile('README.md') << """
-            ## API
-            public API description
-        """.stripIndent()
+## API
+public API description
+        """
 
         when:
         def result = runTaskWithFailure('check')
@@ -105,12 +105,12 @@ class LibraryPluginTest extends PluginTest {
 
     private def readmeContainingMandatorySectionsExists() {
         testProjectDir.newFile('README.md') << """
-            ## API
-            public API description
+## API
+public API description
 
-            ## Changelog
-            - change 1
-            - change 2
-        """.stripIndent()
+## Changelog
+- change 1
+- change 2
+        """
     }
 }

@@ -17,14 +17,20 @@
 package org.gradle.integtests.fixtures.instantexecution
 
 import groovy.transform.PackageScope
+import junit.framework.AssertionFailedError
 import org.gradle.api.Action
-import org.gradle.instantexecution.SystemProperties
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.LogContent
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ConfigureUtil
+import org.hamcrest.BaseMatcher
+import org.hamcrest.Description
 import org.hamcrest.Matcher
 
 import javax.annotation.Nullable
@@ -33,10 +39,7 @@ import javax.script.ScriptEngineManager
 import java.nio.file.Paths
 import java.util.regex.Pattern
 
-import static org.gradle.util.Matchers.normalizedLineSeparators
-import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
-import static org.hamcrest.CoreMatchers.endsWith
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.CoreMatchers.notNullValue
@@ -45,10 +48,13 @@ import static org.hamcrest.CoreMatchers.startsWith
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertTrue
 
-
 final class InstantExecutionProblemsFixture {
 
-    protected static final String PROBLEMS_REPORT_HTML_FILE_NAME = "instant-execution-report.html"
+    static final String STRICT_CLI_OPTION = "--${ConfigurationCacheOption.LONG_OPTION}=on"
+    static final String LENIENT_CLI_OPTION = "--${ConfigurationCacheOption.LONG_OPTION}=warn"
+    static final String MAX_PROBLEMS_CLI_OPTION = "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}"
+
+    protected static final String PROBLEMS_REPORT_HTML_FILE_NAME = "configuration-cache-report.html"
 
     private final GradleExecuter executer
     private final File rootDir
@@ -56,14 +62,6 @@ final class InstantExecutionProblemsFixture {
     InstantExecutionProblemsFixture(GradleExecuter executer, File rootDir) {
         this.executer = executer
         this.rootDir = rootDir
-    }
-
-    void withFailOnProblems() {
-        executer.withArgument("-D${SystemProperties.failOnProblems}=true")
-    }
-
-    void withDoNotFailOnProblems() {
-        executer.withArgument("-D${SystemProperties.failOnProblems}=false")
     }
 
     void assertFailureHasError(
@@ -88,7 +86,7 @@ final class InstantExecutionProblemsFixture {
     ) {
         spec.validateSpec()
 
-        assertFailureDescription(failure, spec.rootCauseDescription, failureDescriptionMatcherForError(spec))
+        assertFailureDescription(failure, failureDescriptionMatcherForError(spec))
 
         if (spec.hasProblems()) {
             assertHasConsoleSummary(failure.output, spec)
@@ -133,7 +131,7 @@ final class InstantExecutionProblemsFixture {
         HasInstantExecutionProblemsSpec spec
     ) {
         assertNoProblemsSummary(failure.output)
-        assertFailureDescription(failure, spec.rootCauseDescription, failureDescriptionMatcherForProblems(spec))
+        assertFailureDescription(failure, failureDescriptionMatcherForProblems(spec))
         assertProblemsHtmlReport(failure.error, rootDir, spec)
     }
 
@@ -156,7 +154,7 @@ final class InstantExecutionProblemsFixture {
         HasInstantExecutionProblemsSpec spec
     ) {
         assertNoProblemsSummary(failure.output)
-        assertFailureDescription(failure, spec.rootCauseDescription, failureDescriptionMatcherForTooManyProblems(spec))
+        assertFailureDescription(failure, failureDescriptionMatcherForTooManyProblems(spec))
         assertProblemsHtmlReport(failure.error, rootDir, spec)
     }
 
@@ -202,21 +200,23 @@ final class InstantExecutionProblemsFixture {
     }
 
     private static Matcher<String> failureDescriptionMatcherForError(HasInstantExecutionErrorSpec spec) {
-        return equalTo("Instant execution state could not be cached: ${spec.error}".toString())
+        return equalTo("Configuration cache state could not be cached: ${spec.error}".toString())
     }
 
     private static Matcher<String> failureDescriptionMatcherForProblems(HasInstantExecutionProblemsSpec spec) {
         return buildMatcherForProblemsFailureDescription(
-            "Instant execution problems found in this build.\n" +
-                "Failing because -D${SystemProperties.failOnProblems} is 'true'.",
+            "Configuration cache problems found in this build.\n" +
+                "Gradle can be made to ignore these problems, " +
+                "see ${new DocumentationRegistry().getDocumentationFor("configuration_cache", "ignore_problems")}.",
             spec
         )
     }
 
     private static Matcher<String> failureDescriptionMatcherForTooManyProblems(HasInstantExecutionProblemsSpec spec) {
         return buildMatcherForProblemsFailureDescription(
-            "Maximum number of instant execution problems has been reached.\n" +
-                "This behavior can be adjusted via -D${SystemProperties.maxProblems}=<integer>.",
+            "Maximum number of configuration cache problems has been reached.\n" +
+                "This behavior can be adjusted, " +
+                "see ${new DocumentationRegistry().getDocumentationFor("configuration_cache", "max_problems")}",
             spec
         )
     }
@@ -225,58 +225,45 @@ final class InstantExecutionProblemsFixture {
         String message,
         HasInstantExecutionProblemsSpec spec
     ) {
-        def expectedMessage = """
-$message
+        return new BaseMatcher<String>() {
+            @Override
+            boolean matches(Object item) {
+                if (!item.toString().contains(message)) {
+                    return false
+                }
+                assertHasConsoleSummary(item.toString(), spec)
+                return true
+            }
 
-${textProblemsSummary(spec)}
-
-See the complete report at file:
-        """.trim()
-        return allOf(
-            startsWith(expectedMessage),
-            endsWith(PROBLEMS_REPORT_HTML_FILE_NAME)
-        )
-    }
-
-    private static String textProblemsSummary(HasInstantExecutionProblemsSpec spec) {
-        def uniqueCount = spec.uniqueProblems.size()
-        def totalCount = spec.totalProblemsCount ?: uniqueCount
-        return """
-${problemsSummaryHeaderFor(totalCount, uniqueCount)}
-- ${spec.uniqueProblems.join("\n- ")}
-        """.trim()
+            @Override
+            void describeTo(Description description) {
+                description.appendText("contains expected problems")
+            }
+        }
     }
 
     private static void assertNoProblemsSummary(String text) {
-        assertThat(text, not(containsString("instant execution problem")))
+        assertThat(text, not(containsString("configuration cache problem")))
     }
 
     private static void assertFailureDescription(
         ExecutionFailure failure,
-        @Nullable String rootCauseDescription = null,
         Matcher<String> failureMatcher
     ) {
-        if (rootCauseDescription) {
-            failure.assertHasDescription(rootCauseDescription)
-            failure.assertThatCause(failureMatcher)
-        } else {
-            failure.assertThatDescription(failureMatcher)
-        }
+        failure.assertThatDescription(failureMatcher)
     }
 
-    private static void assertHasConsoleSummary(String output, HasInstantExecutionProblemsSpec spec) {
-        assertThat(output, allOf(
-            containsNormalizedString(textProblemsSummary(spec)),
-            containsNormalizedString(PROBLEMS_REPORT_HTML_FILE_NAME)
-        ))
-    }
+    private static void assertHasConsoleSummary(String text, HasInstantExecutionProblemsSpec spec) {
+        def uniqueCount = spec.uniqueProblems.size()
+        def totalCount = spec.totalProblemsCount ?: uniqueCount
 
-    protected static String problemsSummaryHeaderFor(int totalProblems, int uniqueProblems) {
-        def header = "${totalProblems} instant execution problem${totalProblems >= 2 ? 's were' : ' was'} found"
-        if (totalProblems == uniqueProblems) {
-            return "${header}."
+        def summary = extractSummary(text)
+        assert summary.totalProblems == totalCount
+        assert summary.uniqueProblems == uniqueCount
+        assert summary.messages.size() == spec.uniqueProblems.size()
+        for (int i in spec.uniqueProblems.indices) {
+            assert spec.uniqueProblems[i].matches(summary.messages[i])
         }
-        return "${header}, ${uniqueProblems} of which seem${uniqueProblems >= 2 ? '' : 's'} unique."
     }
 
     protected static void assertProblemsHtmlReport(
@@ -284,12 +271,13 @@ ${problemsSummaryHeaderFor(totalCount, uniqueCount)}
         File rootDir,
         HasInstantExecutionProblemsSpec spec
     ) {
+        def totalProblemCount = spec.totalProblemsCount ? spec.totalProblemsCount : spec.uniqueProblems.size()
         assertProblemsHtmlReport(
             rootDir,
             output,
-            spec.totalProblemsCount ? spec.totalProblemsCount : spec.uniqueProblems.size(),
+            totalProblemCount,
             spec.uniqueProblems.size(),
-            spec.problemsWithStackTraceCount
+            spec.problemsWithStackTraceCount == null ? totalProblemCount : spec.problemsWithStackTraceCount
         )
     }
 
@@ -298,7 +286,7 @@ ${problemsSummaryHeaderFor(totalCount, uniqueCount)}
         String output,
         int totalProblemCount,
         int uniqueProblemCount,
-        @Nullable Integer problemsWithStackTraceCount
+        int problemsWithStackTraceCount
     ) {
         def expectReport = totalProblemCount > 0 || uniqueProblemCount > 0
         def reportDir = resolveInstantExecutionReportDirectory(rootDir, output)
@@ -306,7 +294,7 @@ ${problemsSummaryHeaderFor(totalCount, uniqueCount)}
             assertThat("HTML report URI not found", reportDir, notNullValue())
             assertTrue("HTML report directory not found '$reportDir'", reportDir.isDirectory())
             def htmlFile = reportDir.file(PROBLEMS_REPORT_HTML_FILE_NAME)
-            def jsFile = reportDir.file('instant-execution-report-data.js')
+            def jsFile = reportDir.file('configuration-cache-report-data.js')
             assertTrue("HTML report HTML file not found in '$reportDir'", htmlFile.isFile())
             assertTrue("HTML report JS model not found in '$reportDir'", jsFile.isFile())
             assertThat(
@@ -314,13 +302,11 @@ ${problemsSummaryHeaderFor(totalCount, uniqueCount)}
                 numberOfProblemsIn(jsFile),
                 equalTo(totalProblemCount)
             )
-            if (problemsWithStackTraceCount != null) {
-                assertThat(
-                    "HTML report JS model has wrong number of problem(s) with stacktrace",
-                    numberOfProblemsWithStacktraceIn(jsFile),
-                    equalTo(problemsWithStackTraceCount)
-                )
-            }
+            assertThat(
+                "HTML report JS model has wrong number of problem(s) with stacktrace",
+                numberOfProblemsWithStacktraceIn(jsFile),
+                equalTo(problemsWithStackTraceCount)
+            )
         } else {
             assertThat("Unexpected HTML report URI found", reportDir, nullValue())
         }
@@ -328,7 +314,7 @@ ${problemsSummaryHeaderFor(totalCount, uniqueCount)}
 
     @Nullable
     private static TestFile resolveInstantExecutionReportDirectory(File rootDir, String output) {
-        def baseDirUri = clickableUrlFor(new File(rootDir, "build/reports/instant-execution"))
+        def baseDirUri = clickableUrlFor(new File(rootDir, "build/reports/configuration-cache"))
         def pattern = Pattern.compile("See the complete report at (${baseDirUri}.*)$PROBLEMS_REPORT_HTML_FILE_NAME")
         def reportDirUri = output.readLines().findResult { line ->
             def matcher = pattern.matcher(line)
@@ -344,14 +330,14 @@ ${problemsSummaryHeaderFor(totalCount, uniqueCount)}
     private static int numberOfProblemsIn(File jsFile) {
         newJavaScriptEngine().with {
             eval(jsFile.text)
-            eval("instantExecutionProblems().length") as int
+            eval("configurationCacheProblems().problems.length") as int
         }
     }
 
     protected static int numberOfProblemsWithStacktraceIn(File jsFile) {
         newJavaScriptEngine().with {
             eval(jsFile.text)
-            eval("instantExecutionProblems().filter(function(problem) { return problem['error'] != null; }).length") as int
+            eval("configurationCacheProblems().problems.filter(function(problem) { return problem['error'] != null; }).length") as int
         }
     }
 
@@ -359,9 +345,66 @@ ${problemsSummaryHeaderFor(totalCount, uniqueCount)}
         new ScriptEngineManager().getEngineByName("JavaScript")
     }
 
-    protected static Matcher<String> containsNormalizedString(String string) {
-        return normalizedLineSeparators(containsString(string))
+    private static ProblemsSummary extractSummary(String text) {
+        def headerPattern = Pattern.compile("(\\d+) configuration cache (problems were|problem was) found(, (\\d+) of which seem(s)? unique)?.*")
+        def problemPattern = Pattern.compile("- (.*)")
+        def docPattern = Pattern.compile(" {2}\\QSee https://docs.gradle.org\\E.*")
+        def tooManyProblemsPattern = Pattern.compile("plus (\\d+) more problems. Please see the report for details.")
+
+        def output = LogContent.of(text)
+
+        def match = output.splitOnFirstMatchingLine(headerPattern)
+        if (match == null) {
+            throw new AssertionFailedError("""Could not find problems summary in output:
+${text}
+""")
+        }
+
+        def summary = match.right
+        def matcher = headerPattern.matcher(summary.first)
+        assert matcher.matches()
+        def totalProblems = matcher.group(1).toInteger()
+        def expectedUniqueProblems = matcher.group(4)?.toInteger() ?: totalProblems
+        summary = summary.drop(1)
+
+        def problems = []
+        for (int i = 0; i < expectedUniqueProblems; i++) {
+            matcher = problemPattern.matcher(summary.first)
+            if (!matcher.matches()) {
+                matcher = tooManyProblemsPattern.matcher(summary.first)
+                if (matcher.matches()) {
+                    def remainder = matcher.group(1).toInteger()
+                    if (i + remainder == expectedUniqueProblems) {
+                        break
+                    }
+                }
+                throw new AssertionFailedError("""Expected ${expectedUniqueProblems - i} more problem descriptions, found: ${summary.first}""")
+            }
+            def problem = matcher.group(1)
+            problems.add(problem)
+            summary = summary.drop(1)
+            if (summary.first.matches(docPattern)) {
+                // Documentation for the current problem, skip
+                // TODO - fail when there is no documentation for a problem
+                summary = summary.drop(1)
+            }
+        }
+
+        return new ProblemsSummary(totalProblems, problems.size(), problems)
     }
+
+    private static class ProblemsSummary {
+        final int totalProblems
+        final int uniqueProblems
+        final List<String> messages
+
+        ProblemsSummary(int totalProblems, int uniqueProblems, List<String> messages) {
+            this.totalProblems = totalProblems
+            this.uniqueProblems = uniqueProblems
+            this.messages = messages
+        }
+    }
+
 }
 
 final class HasInstantExecutionErrorSpec extends HasInstantExecutionProblemsSpec {
@@ -377,13 +420,8 @@ final class HasInstantExecutionErrorSpec extends HasInstantExecutionProblemsSpec
 
 
 class HasInstantExecutionProblemsSpec {
-
-    @Nullable
     @PackageScope
-    String rootCauseDescription
-
-    @PackageScope
-    final List<String> uniqueProblems = []
+    final List<Matcher<String>> uniqueProblems = []
 
     @Nullable
     @PackageScope
@@ -414,22 +452,24 @@ class HasInstantExecutionProblemsSpec {
         return !uniqueProblems.isEmpty()
     }
 
-    HasInstantExecutionProblemsSpec withRootCauseDescription(String rootCauseDescription) {
-        this.rootCauseDescription = rootCauseDescription
-        return this
-    }
-
     HasInstantExecutionProblemsSpec withUniqueProblems(String... uniqueProblems) {
         return withUniqueProblems(uniqueProblems as List)
     }
 
     HasInstantExecutionProblemsSpec withUniqueProblems(Iterable<String> uniqueProblems) {
         this.uniqueProblems.clear()
-        this.uniqueProblems.addAll(uniqueProblems)
+        uniqueProblems.each {
+            withProblem(it)
+        }
         return this
     }
 
     HasInstantExecutionProblemsSpec withProblem(String problem) {
+        uniqueProblems.add(startsWith(problem))
+        return this
+    }
+
+    HasInstantExecutionProblemsSpec withProblem(Matcher<String> problem) {
         uniqueProblems.add(problem)
         return this
     }

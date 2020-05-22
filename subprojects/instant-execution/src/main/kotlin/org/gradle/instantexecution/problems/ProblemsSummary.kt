@@ -16,25 +16,37 @@
 
 package org.gradle.instantexecution.problems
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.internal.logging.ConsoleRenderer
 import java.io.File
 
 
 private
-typealias UniquePropertyProblem = Pair<String, StructuredMessage>
+data class UniquePropertyProblem(val property: String, val message: StructuredMessage, val documentationSection: String?)
+
+
+private
+const val maxConsoleProblems = 15
 
 
 internal
 fun buildConsoleSummary(problems: List<PropertyProblem>, reportFile: File): String {
+    val documentationRegistry = DocumentationRegistry()
     val uniquePropertyProblems = uniquePropertyProblems(problems)
     return StringBuilder().apply {
         appendln()
         appendln(buildSummaryHeader(problems.size, uniquePropertyProblems))
-        uniquePropertyProblems.forEach { (property, message) ->
+        uniquePropertyProblems.take(maxConsoleProblems).forEach { problem ->
             append("- ")
-            append(property)
+            append(problem.property)
             append(": ")
-            appendln(message)
+            appendln(problem.message)
+            if (problem.documentationSection != null) {
+                appendln("  See ${documentationRegistry.getDocumentationFor("configuration_cache", problem.documentationSection)}")
+            }
+        }
+        if (uniquePropertyProblems.size > maxConsoleProblems) {
+            appendln("plus ${uniquePropertyProblems.size - maxConsoleProblems} more problems. Please see the report for details.")
         }
         appendln()
         append(buildSummaryReportLink(reportFile))
@@ -45,7 +57,7 @@ fun buildConsoleSummary(problems: List<PropertyProblem>, reportFile: File): Stri
 private
 fun uniquePropertyProblems(problems: List<PropertyProblem>): Set<UniquePropertyProblem> =
     problems.sortedBy { it.trace.sequence.toList().reversed().joinToString(".") }
-        .groupBy { propertyDescriptionFor(it.trace) to it.message }
+        .groupBy { UniquePropertyProblem(propertyDescriptionFor(it.trace), it.message, it.documentationSection) }
         .keys
 
 
@@ -53,7 +65,7 @@ private
 fun buildSummaryHeader(totalProblemCount: Int, uniquePropertyProblems: Set<UniquePropertyProblem>): String {
     val result = StringBuilder()
     result.append(totalProblemCount)
-    result.append(" instant execution ")
+    result.append(" configuration cache ")
     result.append(if (totalProblemCount == 1) "problem was found" else "problems were found")
     val uniqueProblemCount = uniquePropertyProblems.size
     if (totalProblemCount != uniquePropertyProblems.size) {

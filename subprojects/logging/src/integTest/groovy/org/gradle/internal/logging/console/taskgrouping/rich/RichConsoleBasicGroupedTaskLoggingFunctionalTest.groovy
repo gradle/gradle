@@ -44,7 +44,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
     def "group header is printed red if task failed"() {
         given:
         buildFile << """
-            task failing { doFirst { 
+            task failing { doFirst {
                 logger.quiet 'hello'
                 throw new RuntimeException('Failure...')
             } }
@@ -61,7 +61,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
     def "group header is printed red if task failed and there is no output"() {
         given:
         buildFile << """
-            task failing { doFirst { 
+            task failing { doFirst {
                 throw new RuntimeException('Failure...')
             } }
         """
@@ -76,7 +76,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
     def "group header is printed white if task succeeds"() {
         given:
         buildFile << """
-            task succeeding { doFirst { 
+            task succeeding { doFirst {
                 logger.quiet 'hello'
             } }
         """
@@ -91,9 +91,9 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
     def "configure project group header is printed red if configuration fails with additional failures"() {
         given:
         buildFile << """
-            afterEvaluate { 
+            afterEvaluate {
                 println "executing after evaluate..."
-                throw new RuntimeException("After Evaluate Failure...") 
+                throw new RuntimeException("After Evaluate Failure...")
             }
             throw new RuntimeException('Config Failure...')
         """
@@ -104,6 +104,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
 
         then:
         result.formattedOutput.contains(configuringProject.output)
+        failure.assertHasFailures(2)
     }
 
     def "tasks that complete without output do not break up other task output"() {

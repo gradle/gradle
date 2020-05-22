@@ -137,6 +137,7 @@ class InstantExecutionCacheFingerprintController internal constructor(
     fun removeListener(listener: InstantExecutionCacheFingerprintWriter) {
         taskInputsListeners.removeListener(listener)
         buildTreeListenerManager.service.removeListener(listener)
+        listenerManager.removeListener(listener)
     }
 
     private

@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
@@ -28,18 +29,22 @@ import org.intellij.lang.annotations.Language
 
 class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
+    static final String STRICT_CLI_OPTION = InstantExecutionProblemsFixture.STRICT_CLI_OPTION
+    static final String LENIENT_CLI_OPTION = InstantExecutionProblemsFixture.LENIENT_CLI_OPTION
+    static final String MAX_PROBLEMS_CLI_OPTION = InstantExecutionProblemsFixture.MAX_PROBLEMS_CLI_OPTION
+
     protected InstantExecutionProblemsFixture problems
 
     def setup() {
         // Verify that the previous test cleaned up state correctly
-        assert System.getProperty(SystemProperties.isEnabled) == null
+        assert System.getProperty(ConfigurationCacheOption.PROPERTY_NAME) == null
         problems = new InstantExecutionProblemsFixture(executer, testDirectory)
     }
 
     @Override
     def cleanup() {
         // Verify that the test (or fixtures) has cleaned up state correctly
-        assert System.getProperty(SystemProperties.isEnabled) == null
+        assert System.getProperty(ConfigurationCacheOption.PROPERTY_NAME) == null
     }
 
     void buildKotlinFile(@Language("kotlin") String script) {
@@ -47,14 +52,20 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void instantRun(String... tasks) {
-        run(INSTANT_EXECUTION_PROPERTY, *tasks)
+        run(STRICT_CLI_OPTION, *tasks)
+    }
+
+    void instantRunLenient(String... tasks) {
+        run(LENIENT_CLI_OPTION, *tasks)
     }
 
     void instantFails(String... tasks) {
-        fails(INSTANT_EXECUTION_PROPERTY, *tasks)
+        fails(STRICT_CLI_OPTION, *tasks)
     }
 
-    public static final String INSTANT_EXECUTION_PROPERTY = "-D${SystemProperties.isEnabled}=true"
+    void instantFailsLenient(String... tasks) {
+        fails(LENIENT_CLI_OPTION, *tasks)
+    }
 
     protected InstantExecutionBuildOperationsFixture newInstantExecutionFixture() {
         return new InstantExecutionBuildOperationsFixture(new BuildOperationsFixture(executer, temporaryFolder))

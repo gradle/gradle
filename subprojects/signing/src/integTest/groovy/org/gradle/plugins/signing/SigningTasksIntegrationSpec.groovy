@@ -115,7 +115,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
                 signatories = new ${signatoryProviderClass.name}()
             }
         """
-        run "signJar"
+        run "signJar", "-i"
 
         then:
         executedAndNotSkipped(":signJar")

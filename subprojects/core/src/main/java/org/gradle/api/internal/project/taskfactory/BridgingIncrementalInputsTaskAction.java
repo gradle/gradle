@@ -21,7 +21,6 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.work.FileChange;
@@ -35,11 +34,13 @@ public class BridgingIncrementalInputsTaskAction extends IncrementalInputsTaskAc
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     protected void doExecute(Task task, String methodName) {
-        JavaMethod.of(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, new BridgingInputChanges(getInputChanges()));
+        JavaMethod.of(task, Object.class, methodName, org.gradle.api.tasks.incremental.IncrementalTaskInputs.class).invoke(task, new BridgingInputChanges(getInputChanges()));
     }
 
-    private static class BridgingInputChanges implements IncrementalTaskInputs, InputChanges {
+    @SuppressWarnings("deprecation")
+    private static class BridgingInputChanges implements org.gradle.api.tasks.incremental.IncrementalTaskInputs, InputChanges {
         private final InputChanges inputChanges;
 
         public BridgingInputChanges(InputChanges inputChanges) {

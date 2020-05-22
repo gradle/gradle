@@ -46,12 +46,9 @@ public class PublishToIvyRepository extends DefaultTask {
     public PublishToIvyRepository() {
 
         // Allow the publication to participate in incremental build
-        getInputs().files(new Callable<FileCollection>() {
-            @Override
-            public FileCollection call() throws Exception {
-                IvyPublicationInternal publicationInternal = getPublicationInternal();
-                return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
-            }
+        getInputs().files((Callable<FileCollection>) () -> {
+            IvyPublicationInternal publicationInternal = getPublicationInternal();
+            return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
         })
             .withPropertyName("publication.publishableFiles")
             .withPathSensitivity(PathSensitivity.NAME_ONLY);
@@ -145,7 +142,7 @@ public class PublishToIvyRepository extends DefaultTask {
     private void doPublish(final IvyPublicationInternal publication, final IvyArtifactRepository repository) {
         new PublishOperation(publication, repository.getName()) {
             @Override
-            protected void publish() throws Exception {
+            protected void publish() {
                 IvyNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
                 IvyPublisher publisher = getIvyPublisher();
                 publisher.publish(normalizedPublication, repository);

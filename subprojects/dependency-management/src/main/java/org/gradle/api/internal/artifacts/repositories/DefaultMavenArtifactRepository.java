@@ -349,7 +349,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     @Override
     protected RepositoryContentDescriptorInternal createRepositoryDescriptor() {
-        return new DefaultMavenRepositoryContentDescriptor(getDisplayName());
+        return new DefaultMavenRepositoryContentDescriptor(this::getDisplayName);
     }
 
     private static class DefaultDescriber implements Transformer<String, MavenArtifactRepository> {

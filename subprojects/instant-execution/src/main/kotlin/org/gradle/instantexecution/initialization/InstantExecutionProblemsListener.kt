@@ -27,10 +27,11 @@ import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.problems.StructuredMessage
 import org.gradle.internal.InternalListener
+import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 
 
-@ServiceScope(ServiceScope.Value.Build)
+@ServiceScope(Scopes.Build)
 interface InstantExecutionProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener
 
 
@@ -69,7 +70,8 @@ class DefaultInstantExecutionProblemsListener internal constructor(
                 reference(invocationDescription)
                 text(" at execution time is unsupported.")
             },
-            exception
+            exception,
+            "use_project_during_execution"
         )
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
@@ -98,7 +100,8 @@ class DefaultInstantExecutionProblemsListener internal constructor(
                 reference(invocationDescription)
                 text(" is unsupported")
             },
-            exception
+            exception,
+            "build_listeners"
         )
 }
 

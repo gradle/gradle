@@ -16,23 +16,27 @@
 
 package org.gradle.internal.watch
 
+import org.apache.commons.io.FileUtils
+import org.gradle.initialization.StartParameterBuildOptions.WatchFileSystemOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.VfsRetentionFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-
+import spock.lang.Unroll
 
 // The whole test makes no sense if there isn't a daemon to retain the state.
 @IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.vfsRetention })
+@Unroll
 class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, VfsRetentionFixture {
+    private static final String INCUBATING_MESSAGE = "Watching the file system is an incubating feature"
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
@@ -218,7 +222,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         executedAndNotSkipped ":compileJava", ":classes", ":run"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "2 more files retained")
     def "detects input file change just before the task is executed"() {
         executer.requireDaemon()
         server.start()
@@ -265,7 +269,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         retainedFilesInCurrentBuild == 10 // 8 build script class files + 2 task files
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "2 more files retained")
     def "detects input file change after the task has been executed"() {
         executer.requireDaemon()
         server.start()
@@ -332,21 +336,61 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         result = handle.waitForFinish()
     }
 
-    def "incubating message is shown for retention"() {
+    def "incubating message is shown for watching the file system"() {
         buildFile << """
             apply plugin: "java"
         """
-        def incubatingMessage = "Virtual file system retention is an incubating feature"
 
         when:
         withRetention().run("assemble")
         then:
-        outputContains(incubatingMessage)
+        outputContains(INCUBATING_MESSAGE)
 
         when:
         withoutRetention().run("assemble")
         then:
-        outputDoesNotContain(incubatingMessage)
+        outputDoesNotContain(INCUBATING_MESSAGE)
+    }
+
+    def "can be enabled via gradle.properties"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+
+        when:
+        file("gradle.properties") << "${WatchFileSystemOption.GRADLE_PROPERTY}=true"
+        run("assemble")
+        then:
+        outputContains(INCUBATING_MESSAGE)
+    }
+
+    def "can be enabled via #commandLineOption"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+
+        when:
+        run("assemble", commandLineOption)
+        then:
+        outputContains(INCUBATING_MESSAGE)
+
+        where:
+        commandLineOption << ["-D${WatchFileSystemOption.GRADLE_PROPERTY}=true", "--watch-fs"]
+    }
+
+    def "deprecation message is shown when using the old property to enable watching the file system"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+        executer.expectDocumentedDeprecationWarning(
+            "Using the system property org.gradle.unsafe.vfs.retention to enable watching the file system has been deprecated. " +
+                "This is scheduled to be removed in Gradle 7.0. " +
+                "Use the gradle property org.gradle.unsafe.watch-fs instead. " +
+                "See https://docs.gradle.org/current/userguide/gradle_daemon.html for more details."
+        )
+
+        expect:
+        succeeds("assemble", "-D${VirtualFileSystemServices.DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY}=true")
     }
 
     def "detects when outputs are removed for tasks without sources"() {
@@ -470,7 +514,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
             task incremental(type: IncrementalTask) {
                 sources = file("sources")
-                input = providers.systemProperty("outputDir")
+                input = providers.systemProperty("outputDir").forUseAtConfigurationTime()
                 outputDir = file("build/\${input.get()}")
             }
         """
@@ -498,7 +542,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         file("build/output1").assertExists()
     }
 
-    @ToBeFixedForInstantExecution(because = "https://github.com/gradle/gradle/issues/11818")
+    @ToBeFixedForInstantExecution(because = "https://github.com/gradle/instant-execution/issues/168")
     def "detects changes to manifest"() {
         buildFile << """
             plugins {
@@ -606,7 +650,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
         when:
         inDirectory(settingsDir)
-        run("thing")
+        withRetention().run("thing")
         then:
         executed ":sub:thing"
 
@@ -614,7 +658,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
     @Issue("https://github.com/gradle/gradle/issues/11851")
     @Requires(TestPrecondition.SYMLINKS)
-    def "gracefully handle when watching the same path via symlinks"() {
+    def "gracefully handle when declaring the same path as an input via symlinks"() {
         def actualDir = file("actualDir").createDir()
         file("symlink1").createLink(actualDir)
         file("symlink2").createLink(actualDir)
@@ -641,9 +685,112 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         withRetention().run "myTask"
         then:
         skipped(":myTask")
-        if (OperatingSystem.current().linux) {
-            outputContains("Watching not supported, not tracking changes between builds: Unable to watch same file twice via different paths")
-        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/11851")
+    @Requires(TestPrecondition.SYMLINKS)
+    def "changes to #description are detected"() {
+        file(fileToChange).createFile()
+        file(linkSource).createLink(file(linkTarget))
+
+        buildFile << """
+            task myTask {
+                def outputFile = file("build/output.txt")
+                inputs.${inputDeclaration}
+                outputs.file(outputFile)
+
+                doLast {
+                    outputFile.text = "Hello world"
+                }
+            }
+        """
+
+        when:
+        withRetention().run "myTask"
+        then:
+        executedAndNotSkipped ":myTask"
+
+        when:
+        withRetention().run "myTask"
+        then:
+        skipped(":myTask")
+
+        when:
+        file(fileToChange).text = "changed"
+        waitForChangesToBePickedUp()
+        withRetention().run "myTask"
+        then:
+        executedAndNotSkipped ":myTask"
+
+        where:
+        description                     | linkSource                     | linkTarget       | inputDeclaration        | fileToChange
+        "symlinked file"                | "symlinkedFile"                | "actualFile"     | 'file("symlinkedFile")' | "actualFile"
+        "symlinked directory"           | "symlinkedDir"                 | "actualDir"      | 'dir("symlinkedDir")'   | "actualDir/file.txt"
+        "symlink in a directory"        | "dirWithSymlink/symlinkInside" | "fileInside.txt" | 'dir("dirWithSymlink")' | "fileInside.txt"
+    }
+
+    @Unroll
+    def "detects when a task removes the build directory #buildDir"() {
+        buildFile << """
+            apply plugin: 'base'
+
+            project.buildDir = file("${buildDir}")
+
+            task myClean {
+                doLast {
+                    delete buildDir
+                }
+            }
+
+            task producer {
+                def outputFile = new File(buildDir, "some/file/in/buildDir/output.txt")
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.parentFile.mkdirs()
+                    outputFile.text = "Output"
+                }
+            }
+        """
+
+        when:
+        withRetention().run "producer"
+        then:
+        executedAndNotSkipped ":producer"
+
+        when:
+        withRetention().run "myClean"
+        withRetention().run "producer"
+        then:
+        executedAndNotSkipped ":producer"
+
+        where:
+        buildDir << ["build", "build/myProject"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12614")
+    def "can remove watched directory after all files inside have been removed"() {
+        // This test targets Windows, where watched directories can't be deleted.
+
+        def projectDir = file("projectDir")
+        projectDir.file("build.gradle") << """
+            apply plugin: "java-library"
+        """
+        projectDir.file("settings.gradle").createFile()
+
+        def mainSourceFile = projectDir.file("src/main/java/Main.java")
+        mainSourceFile.text = sourceFileWithGreeting("Hello World!")
+
+        when:
+        inDirectory(projectDir)
+        withRetention().run "assemble"
+        then:
+        executedAndNotSkipped ":assemble"
+
+        when:
+        FileUtils.cleanDirectory(projectDir)
+        waitForChangesToBePickedUp()
+        then:
+        projectDir.delete()
     }
 
     // This makes sure the next Gradle run starts with a clean BuildOutputCleanupRegistry

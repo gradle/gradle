@@ -61,6 +61,7 @@ import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.util.GradleVersion
+import org.gradle.util.IncubationLogger
 import java.io.File
 import java.io.OutputStream
 import java.nio.file.Files
@@ -93,19 +94,19 @@ class DefaultInstantExecution internal constructor(
             false
         }
         startParameter.recreateCache -> {
-            log("Recreating instant execution cache")
+            logBootstrapSummary("Recreating configuration cache")
             false
         }
         startParameter.isRefreshDependencies -> {
-            log(
-                "Calculating task graph as instant execution cache cannot be reused due to {}",
+            logBootstrapSummary(
+                "Calculating task graph as configuration cache cannot be reused due to {}",
                 "--refresh-dependencies"
             )
             false
         }
         !instantExecutionFingerprintFile.isFile -> {
-            log(
-                "Calculating task graph as no instant execution cache is available for tasks: {}",
+            logBootstrapSummary(
+                "Calculating task graph as no configuration cache is available for tasks: {}",
                 startParameter.requestedTaskNames.joinToString(" ")
             )
             false
@@ -114,16 +115,14 @@ class DefaultInstantExecution internal constructor(
             val fingerprintChangedReason = checkFingerprint()
             when {
                 fingerprintChangedReason != null -> {
-                    log(
-                        "Calculating task graph as instant execution cache cannot be reused because {}.",
+                    logBootstrapSummary(
+                        "Calculating task graph as configuration cache cannot be reused because {}.",
                         fingerprintChangedReason
                     )
                     false
                 }
                 else -> {
-                    log(
-                        "Reusing instant execution cache. This is not guaranteed to work in any way."
-                    )
+                    logBootstrapSummary("Reusing configuration cache.")
                     true
                 }
             }
@@ -147,32 +146,17 @@ class DefaultInstantExecution internal constructor(
             return
         }
 
-        stopCollectingCacheFingerprint()
         Instrumented.discardListener()
+        stopCollectingCacheFingerprint()
 
         buildOperationExecutor.withStoreOperation {
-
             try {
-
-                instantExecutionStateFile.createParentDirectories()
-
-                service<ProjectStateRegistry>().withLenientState {
-                    withWriteContextFor(instantExecutionStateFile) {
-                        encodeScheduledWork()
-                    }
-                }
-
-                writeInstantExecutionCacheFingerprint()
+                writeInstantExecutionFiles()
             } catch (error: InstantExecutionError) {
-                // Invalidate unusable state on errors
+                // Invalidate state on problems that fail the build
                 invalidateInstantExecutionState()
-                problems.requestConsoleSummary()
+                problems.failingBuildDueToSerializationError()
                 throw error
-            } finally {
-                if (startParameter.failOnProblems) {
-                    // Invalidate state on problems that fail the build
-                    problems.runIfProblems { invalidateInstantExecutionState() }
-                }
             }
         }
     }
@@ -186,8 +170,33 @@ class DefaultInstantExecution internal constructor(
         scopeRegistryListener.dispose()
 
         buildOperationExecutor.withLoadOperation {
-            withReadContextFor(instantExecutionStateFile) {
-                decodeScheduledWork()
+            readInstantExecutionState()
+        }
+    }
+
+    private
+    fun writeInstantExecutionFiles() {
+        instantExecutionStateFile.createParentDirectories()
+        writeInstantExecutionState()
+        writeInstantExecutionCacheFingerprint()
+    }
+
+    private
+    fun writeInstantExecutionState() {
+        service<ProjectStateRegistry>().withLenientState {
+            withWriteContextFor(instantExecutionStateFile) {
+                encodeScheduledWork()
+                writeInt(0x1ecac8e)
+            }
+        }
+    }
+
+    private
+    fun readInstantExecutionState() {
+        withReadContextFor(instantExecutionStateFile) {
+            decodeScheduledWork()
+            require(readInt() == 0x1ecac8e) {
+                "corrupt state file"
             }
         }
     }
@@ -309,7 +318,7 @@ class DefaultInstantExecution internal constructor(
         encoder,
         scopeRegistryListener,
         logger,
-        problems::onProblem
+        problems
     )
 
     private
@@ -319,7 +328,7 @@ class DefaultInstantExecution internal constructor(
         service(),
         beanConstructors,
         logger,
-        problems::onProblem
+        problems
     )
 
     private
@@ -429,6 +438,14 @@ class DefaultInstantExecution internal constructor(
         }
 
     private
+    fun logBootstrapSummary(message: String, vararg args: Any?) {
+        if (!startParameter.isQuiet) {
+            IncubationLogger.incubatingFeatureUsed("Configuration cache")
+        }
+        log(message, *args)
+    }
+
+    private
     fun log(message: String, vararg args: Any?) {
         logger.log(instantExecutionLogLevel, message, *args)
     }
@@ -459,7 +476,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     val instantExecutionStateFile by unsafeLazy {
-        val cacheDir = absoluteFile(".instant-execution-state/${currentGradleVersion()}")
+        val cacheDir = absoluteFile(".gradle/configuration-cache/${currentGradleVersion()}")
         val baseName = startParameter.instantExecutionCacheKey
         val cacheFileName = "$baseName.bin"
         File(cacheDir, cacheFileName)

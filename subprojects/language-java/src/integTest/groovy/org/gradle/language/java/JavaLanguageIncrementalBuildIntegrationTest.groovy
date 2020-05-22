@@ -16,15 +16,15 @@
 
 package org.gradle.language.java
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIncrementalBuildIntegrationTest
 import org.gradle.language.fixtures.TestJavaComponent
 
+@UnsupportedWithInstantExecution(because = "software model")
 class JavaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageIncrementalBuildIntegrationTest {
     TestJvmComponent testComponent = new TestJavaComponent()
 
-    @ToBeFixedForInstantExecution
     def "rebuilds jar when input property changed"() {
         given:
         expectDeprecationWarnings()
@@ -43,7 +43,6 @@ class JavaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageInc
         executedAndNotSkipped ":compileMainJarMainJava", ":createMainJar", ":mainJar"
     }
 
-    @ToBeFixedForInstantExecution
     def "task outcome is up to date when no recompilation necessary"() {
         given:
         buildFile.text = ""

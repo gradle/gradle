@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.file.FileWatcher;
+import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
@@ -43,7 +44,6 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(NonHierarchicalFileWatcherUpdater.class);
 
     private final Multiset<String> watchedRoots = HashMultiset.create();
-    private final Set<String> mustWatchDirectories = new HashSet<>();
     private final Map<String, ImmutableList<String>> watchedRootsForSnapshot = new HashMap<>();
     private final FileWatcher fileWatcher;
 
@@ -71,17 +71,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void updateMustWatchDirectories(Collection<File> updatedWatchDirectories) {
-        Map<String, Integer> changedDirectories = new HashMap<>();
-        mustWatchDirectories.forEach(path -> decrement(path, changedDirectories));
-        mustWatchDirectories.clear();
-        updatedWatchDirectories.stream()
-            .filter(File::isDirectory)
-            .map(File::getAbsolutePath)
-            .forEach(mustWatchDirectories::add);
-        mustWatchDirectories.forEach(path -> increment(path, changedDirectories));
-        updateWatchedDirectories(changedDirectories);
-
+    public void updateProjectRootDirectory(File projectRoot) {
     }
 
     private void updateWatchedDirectories(Map<String, Integer> changedWatchDirectories) {
@@ -108,7 +98,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         if (watchedRoots.isEmpty()) {
             LOGGER.info("Not watching anything anymore");
         }
-        LOGGER.info("Watching {} directory hierarchies to track changes", watchedRoots.entrySet().size());
+        LOGGER.info("Watching {} directories to track changes", watchedRoots.entrySet().size());
         try {
             if (!watchRootsToRemove.isEmpty()) {
                 fileWatcher.stopWatching(watchRootsToRemove);
@@ -138,16 +128,17 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
         public OnlyVisitSubDirectories(Consumer<String> subDirectoryConsumer) {
             this.subDirectoryConsumer = subDirectoryConsumer;
-            root = true;
+            this.root = true;
         }
 
         @Override
         public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            if (!root) {
+            boolean directoryAccessedDirectly = directorySnapshot.getAccessType() == AccessType.DIRECT;
+            if (!root && directoryAccessedDirectly) {
                 subDirectoryConsumer.accept(directorySnapshot.getAbsolutePath());
             }
             root = false;
-            return true;
+            return directoryAccessedDirectly;
         }
 
         @Override

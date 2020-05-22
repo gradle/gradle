@@ -80,6 +80,7 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -1019,14 +1020,14 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public void beforeEvaluate(Closure closure) {
         assertMutatingMethodAllowed("beforeEvaluate(Closure)");
-        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", closure)));
+        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
     }
 
     @Override
     public void afterEvaluate(Closure closure) {
         assertMutatingMethodAllowed("afterEvaluate(Closure)");
         maybeNagDeprecationOfAfterEvaluateAfterProjectIsEvaluated("afterEvaluate(Closure)");
-        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", closure)));
+        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
     }
 
     private void maybeNagDeprecationOfAfterEvaluateAfterProjectIsEvaluated(String methodPrototype) {
@@ -1183,17 +1184,17 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void subprojects(Closure configureClosure) {
-        getProjectConfigurator().subprojects(getSubprojects(), ConfigureUtil.<Project>configureUsing(configureClosure));
+        getProjectConfigurator().subprojects(getSubprojects(), ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
     public void allprojects(Closure configureClosure) {
-        getProjectConfigurator().allprojects(getAllprojects(), ConfigureUtil.<Project>configureUsing(configureClosure));
+        getProjectConfigurator().allprojects(getAllprojects(), ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
     public Project project(String path, Closure configureClosure) {
-        return getProjectConfigurator().project(project(path), ConfigureUtil.<Project>configureUsing(configureClosure));
+        return getProjectConfigurator().project(project(path), ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
@@ -1269,7 +1270,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public Task task(Map options, String task) {
-        return taskContainer.create(addMaps(options, singletonMap(Task.TASK_NAME, task)));
+        return taskContainer.create(addMaps(Cast.uncheckedNonnullCast(options), singletonMap(Task.TASK_NAME, task)));
     }
 
     public Task task(Map options, Object task) {
@@ -1278,7 +1279,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public Task task(Map options, String task, Closure configureClosure) {
-        return taskContainer.create(addMaps(options, singletonMap(Task.TASK_NAME, task))).configure(configureClosure);
+        return taskContainer.create(addMaps(Cast.uncheckedNonnullCast(options), singletonMap(Task.TASK_NAME, task))).configure(configureClosure);
     }
 
     public Task task(Map options, Object task, Closure configureClosure) {

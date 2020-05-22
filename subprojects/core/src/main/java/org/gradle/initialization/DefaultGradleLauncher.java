@@ -164,6 +164,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         runWork();
     }
 
+    @SuppressWarnings("deprecation")
     private void doInstantExecution() {
         buildListener.buildStarted(gradle);
         instantExecution.loadScheduledWork();
@@ -201,6 +202,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void prepareSettings() {
         if (stage == null) {
             buildListener.buildStarted(gradle);

@@ -31,17 +31,15 @@ import spock.util.concurrent.PollingConditions
 class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
     def waitFor
-    def existingDaemonPids
 
     def setup() {
         waitFor = new PollingConditions(timeout: 60, initialDelay: 0, factor: 1.25)
-        existingDaemonPids = toolingApi.daemons.daemons.collect { it.context.pid }
+        toolingApi.requireIsolatedDaemons()
     }
 
     @TargetGradleVersion(">=6.5")
     def "disconnect during build stops daemon"() {
         setup:
-        toolingApi.requireDaemons()
         buildFile << """
             task hang {
                 doLast {
@@ -71,7 +69,6 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     @TargetGradleVersion(">=6.5")
     def "disconnect during tooling model query stops daemon"() {
         setup:
-        toolingApi.requireDaemons()
         buildFile << """
             apply plugin: 'eclipse'
             eclipse {
@@ -105,7 +102,6 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     @TargetGradleVersion(">=6.5")
     def "disconnect stops multiple daemons"() {
         setup:
-        toolingApi.requireDaemons()
         buildFile << """
             task hang {
                 doLast {
@@ -142,7 +138,6 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     }
 
     def "disconnect cancels the current build"() {
-        toolingApi.requireDaemons()
         buildFile << """
             task hang {
                 doLast {
@@ -181,7 +176,6 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     }
 
     def "can call disconnect after the build was cancelled"() {
-        toolingApi.requireDaemons()
         buildFile << """
             task hang {
                 doLast {
@@ -211,7 +205,6 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     }
 
     def "can call cancel after disconnect"() {
-        toolingApi.requireDaemons()
         buildFile << """
             task hang {
                 doLast {
@@ -241,7 +234,6 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     }
 
     def "can call close after disconnect"() {
-        toolingApi.requireDaemons()
         buildFile << """
             task hang {
                 doLast {
@@ -270,7 +262,6 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     }
 
     def "can call disconnect after project connection closed"() {
-        toolingApi.requireDaemons()
         buildFile << """
             task myTask {
                 doLast {
@@ -292,7 +283,6 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     }
 
     def "can call disconnect before project connection closed"() {
-        toolingApi.requireDaemons()
         buildFile << """
             task hang {
                 doLast {
@@ -355,7 +345,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
     void assertNumberOfRunningDaemons(number) {
         waitFor.eventually {
-            toolingApi.daemons.daemons.findAll { !existingDaemonPids.contains(it.context.pid) }.size() == number
+            toolingApi.daemons.daemons.size() == number
         }
         // `eventually` throws a runtime exception when the condition is never met
     }

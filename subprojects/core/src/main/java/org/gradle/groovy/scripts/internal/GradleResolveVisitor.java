@@ -85,7 +85,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
 
     private ClassNode currentClass;
     private final Map<String, List<String>> simpleNameToFQN;
-    private CompilationUnit compilationUnit;
+    private final CompilationUnit compilationUnit;
     private SourceUnit source;
     private VariableScope currentScope;
 
@@ -93,8 +93,8 @@ public class GradleResolveVisitor extends ResolveVisitor {
     private boolean inPropertyExpression;
     private boolean inClosure;
 
-    private Map<String, GenericsType> genericParameterNames = new HashMap<String, GenericsType>();
-    private Set<FieldNode> fieldTypesChecked = new HashSet<FieldNode>();
+    private Map<String, GenericsType> genericParameterNames = new HashMap<>();
+    private Set<FieldNode> fieldTypesChecked = new HashSet<>();
     private boolean checkingVariableTypeInDeclaration;
     private ImportNode currImportNode;
     private MethodNode currentMethod;
@@ -628,13 +628,13 @@ public class GradleResolveVisitor extends ResolveVisitor {
         // check module node imports aliases
         // the while loop enables a check for inner classes which are not fully imported,
         // but visible as the surrounding class is imported and the inner class is public/protected static
-        String pname = name;
+        String pname;
         int index = name.length();
-    /*
-     * we have a name foo.bar and an import foo.foo. This means foo.bar is possibly
-     * foo.foo.bar rather than foo.bar. This means to cut at the dot in foo.bar and
-     * foo for import
-     */
+        /*
+         * we have a name foo.bar and an import foo.foo. This means foo.bar is possibly
+         * foo.foo.bar rather than foo.bar. This means to cut at the dot in foo.bar and
+         * foo for import
+         */
         while (true) {
             pname = name.substring(0, index);
             ClassNode aliasedNode = null;
@@ -1360,8 +1360,8 @@ public class GradleResolveVisitor extends ResolveVisitor {
                 checkAnnotationMemberValue(newValue);
             }
             if (annType.isResolved()) {
-                Class annTypeClass = annType.getTypeClass();
-                Retention retAnn = (Retention) annTypeClass.getAnnotation(Retention.class);
+                Class<?> annTypeClass = annType.getTypeClass();
+                Retention retAnn = annTypeClass.getAnnotation(Retention.class);
                 if (retAnn != null && retAnn.value().equals(RetentionPolicy.RUNTIME)) {
                     AnnotationNode anyPrevAnnNode = tmpAnnotations.put(annTypeClass.getName(), an);
                     if (anyPrevAnnNode != null) {

@@ -17,6 +17,7 @@
 package org.gradle.instantexecution
 
 import groovy.json.JsonOutput
+import org.gradle.api.internal.DocumentationRegistry
 
 import org.gradle.api.logging.Logging
 
@@ -49,13 +50,13 @@ class InstantExecutionReport(
         val logger = Logging.getLogger(InstantExecutionReport::class.java)
 
         private
-        const val reportHtmlFileName = "instant-execution-report.html"
+        const val reportHtmlFileName = "configuration-cache-report.html"
     }
 
     private
     val outputDirectory: File by lazy {
         startParameter.rootDirectory.resolve(
-            "build/reports/instant-execution/${startParameter.instantExecutionCacheKey}"
+            "build/reports/configuration-cache/${startParameter.instantExecutionCacheKey}"
         ).let { base ->
             if (!base.exists()) base
             else generateSequence(1) { it + 1 }
@@ -76,7 +77,7 @@ class InstantExecutionReport(
     internal
     fun writeReportFiles(problems: List<PropertyProblem>) {
         require(outputDirectory.mkdirs()) {
-            "Could not create instant execution report directory '$outputDirectory'"
+            "Could not create configuration cache report directory '$outputDirectory'"
         }
         copyReportResources(outputDirectory)
         writeJsReportData(problems, outputDirectory)
@@ -86,8 +87,8 @@ class InstantExecutionReport(
     fun copyReportResources(outputDirectory: File) {
         listOf(
             reportHtmlFileName,
-            "instant-execution-report.js",
-            "instant-execution-report.css",
+            "configuration-cache-report.js",
+            "configuration-cache-report.css",
             "kotlin.js"
         ).forEach { resourceName ->
             copyURLToFile(
@@ -99,22 +100,27 @@ class InstantExecutionReport(
 
     private
     fun writeJsReportData(problems: List<PropertyProblem>, outputDirectory: File) {
-        outputDirectory.resolve("instant-execution-report-data.js").bufferedWriter().use { writer ->
+        val documentationRegistry = DocumentationRegistry()
+        outputDirectory.resolve("configuration-cache-report-data.js").bufferedWriter().use { writer ->
             writer.run {
-                appendln("function instantExecutionProblems() { return [")
+                appendln("function configurationCacheProblems() { return {")
+                appendln("documentationLink: \"${documentationRegistry.getDocumentationFor("configuration_cache")}\",")
+                appendln("problems: [")
                 problems.forEach {
                     append(
                         JsonOutput.toJson(
                             mapOf(
                                 "trace" to traceListOf(it),
                                 "message" to it.message.fragments,
+                                "documentationLink" to it.documentationSection?.let { documentationRegistry.getDocumentationFor("configuration_cache", it) },
                                 "error" to stackTraceStringOf(it)
                             )
                         )
                     )
                     appendln(",")
                 }
-                appendln("];}")
+                appendln("]")
+                appendln("};}")
             }
         }
     }

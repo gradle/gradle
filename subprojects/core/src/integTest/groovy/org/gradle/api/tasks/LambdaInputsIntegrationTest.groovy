@@ -108,7 +108,6 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5510")
-    @ToBeFixedForInstantExecution
     def "caching is disabled for task with nested property defined by Java lambda"() {
         setupTaskClassWithActionProperty()
         file("buildSrc/src/main/java/LambdaAction.java") << classWithLambda("LambdaAction", lambdaWritingFile("ACTION", "original"))
@@ -190,7 +189,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
         """
 
         buildFile << script <<
-        """
+            """
             myTask.doLast(project.hasProperty("changed") ? LambdaActionChanged.ACTION : LambdaActionOriginal.ACTION)
         """
         def outOfDateMessage = { String enclosingClass ->
@@ -216,14 +215,13 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5510")
-    @ToBeFixedForInstantExecution
     def "caching is disabled for task with Java lambda action"() {
         file("buildSrc/src/main/java/LambdaAction.java") << classWithLambda("LambdaAction", lambdaPrintingString("ACTION", "From Lambda: original"))
 
         setupCustomTask()
 
         buildFile <<
-        """
+            """
             task myTask(type: CustomTask) {
                 outputs.cacheIf { true }
             }

@@ -93,6 +93,6 @@ class InstantExecutionClassLoaderCachingIntegrationTest extends PersistentBuildP
     }
 
     private void instantRun(String... args) {
-        run(AbstractInstantExecutionIntegrationTest.INSTANT_EXECUTION_PROPERTY, *args)
+        run(AbstractInstantExecutionIntegrationTest.STRICT_CLI_OPTION, *args)
     }
 }

@@ -36,7 +36,8 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture {
     private final static long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
 
-    @Rule BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
 
     def setup() {
         settingsFile << """
@@ -50,7 +51,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         """
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "transform is applied to each file once per build"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks() << withLibJarDependency("lib3.jar")
@@ -311,7 +311,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transforming artifact lib2.jar (project :lib) with MakeGreen") == 2
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "each file is transformed once per set of configuration parameters"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << withLibJarDependency("lib3.jar") << """
@@ -414,7 +413,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "can use custom type that does not implement equals() for transform configuration"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << """
@@ -518,7 +516,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "can use configuration parameter of type #type"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << """
@@ -608,7 +605,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         "Named"        | "objects.named(Named, 'abc')"
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "each file is transformed once per transform class"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << withLibJarDependency("lib3.jar") << """
@@ -816,7 +812,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "transform is executed in different workspace for different file produced in chain"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << duplicatorTransform << """
@@ -1226,7 +1221,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         // change the implementation
         buildFile.text = ""
-        buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform(fileValue:  "'new value'", parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
+        buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform(fileValue: "'new value'", parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
         succeeds ":util:resolve", ":app:resolve"
 
         then:
@@ -1428,7 +1423,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         outputDir("snapshot-1.2-SNAPSHOT.jar", "snapshot-1.2-SNAPSHOT.jar.txt") != outputDir2
     }
 
-    @ToBeFixedForInstantExecution
     def "cleans up cache"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
@@ -1454,7 +1448,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         and:
         // start as new process so journal is not restored from in-memory cache
-        executer.withTasks("tasks").start().waitForFinish()
+        executer.withTasks("help").start().waitForFinish()
 
         then:
         outputDir1.assertDoesNotExist()

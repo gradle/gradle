@@ -407,6 +407,7 @@ task showBroken { doLast { println configurations.broken.files } }
         retries << (1..3)
     }
 
+    @ToBeFixedForInstantExecution
     public void "reports and recovers from failed artifact download"() {
         given:
         buildFile << """

@@ -9,6 +9,7 @@
 * [Installing Gradle](https://docs.gradle.org/current/userguide/installation.html)
 * [Building Android Apps](https://developer.android.com/training/basics/firstapp/)
 * [Building Java Libraries](https://guides.gradle.org/building-java-libraries/)
+* [Building Scala Libraries](https://guides.gradle.org/building-scala-libraries/)
 * [Building Kotlin JVM Libraries](https://guides.gradle.org/building-kotlin-jvm-libraries/)
 * [Building and Testing C++ Libraries](https://guides.gradle.org/building-cpp-libraries/)
 * [Building Spring Boot 2 Applications with Gradle](https://guides.gradle.org/building-spring-boot-2-projects-with-gradle/)
@@ -30,7 +31,7 @@ Enjoy first-class Gradle support in your IDE of choice.
 * Ask on the [forum](https://discuss.gradle.org/) or [StackOverflow](https://stackoverflow.com/questions/tagged/gradle)
 * Have a look at the [Samples](https://docs.gradle.org/current/samples/index.html)
 * Checkout the [Community Resources](https://gradle.org/resources/) as well
-* Join our [Slack Channel](https://gradl.es/slack-invite-2019)
+* Join our [Slack Channel](https://gradle.com/slack-invite)
 
 
 ## Contributing

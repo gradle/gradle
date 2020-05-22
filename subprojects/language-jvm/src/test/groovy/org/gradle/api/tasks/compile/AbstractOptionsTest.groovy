@@ -102,10 +102,5 @@ public class AbstractOptionsTest extends Specification {
     static class DeeplyInheritedOptions extends TestOptions {
       String deepProp
     }
-
-    @SuppressWarnings("ClassName")
-    static class TestOptions_Decorated extends TestOptions {
-        String decoratedProp
-    }
 }
 

@@ -17,4 +17,7 @@
 package org.gradle.internal.classpath;
 
 public class SystemPropertyAccessingThing {
+    public static String readProperty() {
+        return System.getProperty("prop");
+    }
 }

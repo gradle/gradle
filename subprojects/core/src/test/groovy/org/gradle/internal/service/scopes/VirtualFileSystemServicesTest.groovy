@@ -16,8 +16,8 @@
 
 package org.gradle.internal.service.scopes
 
-import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.event.ListenerManager
@@ -36,14 +36,14 @@ class VirtualFileSystemServicesTest extends Specification {
     def fileHasher = Mock(FileHasher)
     def fileSystem = Mock(FileSystem)
     def listenerManager = Mock(ListenerManager)
-    def startParameter = Mock(StartParameter)
+    def startParameter = Mock(StartParameterInternal)
     def stringInterner = Mock(StringInterner)
     def gradle = Mock(GradleInternal)
 
-    def "global virtual file system is not invalidated from the build session scope listener after the build completed (retention enabled: #retentionEnabled)"() {
+    def "global virtual file system is not invalidated from the build session scope listener after the build completed (watch-fs enabled: #watchFsEnabled)"() {
         def gradleUserHomeVirtualFileSystem = Mock(VirtualFileSystem)
         RootBuildLifecycleListener rootBuildLifecycleListener
-        _ * startParameter.getSystemPropertiesArgs() >> systemPropertyArgs(retentionEnabled)
+        _ * startParameter.isWatchFileSystem() >> watchFsEnabled
 
         when:
         def buildSessionScopedVirtualFileSystem = new VirtualFileSystemServices.BuildSessionServices().createVirtualFileSystem(
@@ -69,41 +69,30 @@ class VirtualFileSystemServicesTest extends Specification {
         0 * _
 
         where:
-        retentionEnabled << [true, false]
+        watchFsEnabled << [true, false]
     }
 
-    def "global virtual file system is informed about retention being #retentionEnabledString"() {
+    def "global virtual file system is informed about watching the file system being #watchFsEnabledString"() {
         _ * startParameter.getSystemPropertiesArgs() >> [:]
         _ * startParameter.getCurrentDir() >> new File("current/dir").absoluteFile
         _ * gradle.getStartParameter() >> startParameter
+        _ * startParameter.isWatchFileSystem() >> watchFsEnabled
         def virtualFileSystem = Mock(WatchingAwareVirtualFileSystem)
 
-        def buildLifecycleListener = new VirtualFileSystemBuildLifecycleListener(
-            virtualFileSystem,
-            { param -> retentionEnabled },
-            { param -> false },
-            { param -> null }
-        )
+        def buildLifecycleListener = new VirtualFileSystemBuildLifecycleListener(virtualFileSystem)
 
         when:
         buildLifecycleListener.afterStart(gradle)
         then:
-        1 * virtualFileSystem.afterBuildStarted(retentionEnabled)
+        1 * virtualFileSystem.afterBuildStarted(watchFsEnabled)
 
         when:
         buildLifecycleListener.beforeComplete(gradle)
         then:
-        1 * virtualFileSystem.beforeBuildFinished(retentionEnabled)
+        1 * virtualFileSystem.beforeBuildFinished(watchFsEnabled)
 
         where:
-        retentionEnabled << [true, false]
-        retentionEnabledString = retentionEnabled ? "enabled" : "disabled"
+        watchFsEnabled << [true, false]
+        watchFsEnabledString = watchFsEnabled ? "enabled" : "disabled"
     }
-
-    Map<String, String> systemPropertyArgs(boolean retentionEnabled) {
-        retentionEnabled
-            ? [(VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY): "true"]
-            : [:]
-    }
-
 }

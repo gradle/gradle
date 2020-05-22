@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.provider
 
+import org.gradle.api.Describable
 import org.gradle.api.GradleException
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.internal.state.Managed
+import spock.lang.Unroll
 
 import static org.gradle.api.internal.provider.ValueSourceProviderFactory.Listener.ObtainedValue
 
@@ -32,12 +34,81 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         def configured = false
 
         when:
-        def provider = createProviderOf(EchoValueSource) {
+        createProviderOf(EchoValueSource) {
             configured = true
         }
 
         then:
         configured
+    }
+
+    @Unroll
+    def "obtaining value at configuration time fails with message that includes source #nameKind name"() {
+
+        given:
+        configurationTimeBarrier.atConfigurationTime >> true
+        def provider = createProviderOf(sourceType) {
+            it.parameters.value.set('42')
+        }
+
+        when:
+        provider.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message.startsWith "Cannot obtain value from provider of $displayName at configuration time."
+
+        where:
+        nameKind  | sourceType                     | displayName
+        'type'    | EchoValueSource                | 'DefaultValueSourceProviderFactoryTest.EchoValueSource'
+        'display' | EchoValueSourceWithDisplayName | 'echo(42)'
+    }
+
+    def "provider forUseAtConfigurationTime succeeds at configuration time"() {
+
+        given:
+        configurationTimeBarrier.atConfigurationTime >> true
+        def provider = createProviderOf(EchoValueSource) {
+            it.parameters.value.set('42')
+        }
+        def configTimeProvider = provider.forUseAtConfigurationTime()
+
+        expect:
+        configTimeProvider.get() == '42'
+
+        when: "asking original provider for the value after it has been obtained"
+        provider.get()
+
+        then: "it still fails at configuration time"
+        thrown(IllegalStateException)
+    }
+
+    @Unroll
+    def "providers forUseAtConfigurationTime obtain value only once at #time time"() {
+
+        given:
+        configurationTimeBarrier.atConfigurationTime >> atConfigurationTime
+        def provider = createProviderOf(EchoValueSource) {
+            it.parameters.value.set('42')
+        }
+        def configTimeProvider1 = provider.forUseAtConfigurationTime()
+        def configTimeProvider2 = provider.forUseAtConfigurationTime()
+        def executionTimeProvider = atConfigurationTime ? provider.forUseAtConfigurationTime() : provider
+        def obtainedValueCount = 0
+        valueSourceProviderFactory.addListener {
+            obtainedValueCount += 1
+        }
+
+        expect:
+        configTimeProvider1.get() == '42'
+        configTimeProvider2.get() == '42'
+        executionTimeProvider.get() == '42'
+        obtainedValueCount == 1
+
+        where:
+        time            | atConfigurationTime
+        'configuration' | true
+        'execution'     | false
     }
 
     def "listener is notified when value is obtained"() {
@@ -97,9 +168,10 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
     }
 
     def "parameterless value source parameters cannot be configured"() {
+
         when:
         createProviderOf(NoParameters) {
-            it.parameters { }
+            it.parameters {}
         }
 
         then:
@@ -117,6 +189,15 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         @Override
         String obtain() {
             return getParameters().getValue().getOrNull()
+        }
+    }
+
+    static abstract class EchoValueSourceWithDisplayName extends EchoValueSource
+        implements Describable {
+
+        @Override
+        String getDisplayName() {
+            "echo(${parameters.value.orElse('?').get()})"
         }
     }
 

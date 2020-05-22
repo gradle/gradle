@@ -62,6 +62,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     }
 
     @Override
+    @Deprecated
     public <T extends DirectoryBuildCache> T local(Class<T> type) {
         DeprecationLogger.deprecateMethod(BuildCacheConfiguration.class, "local(Class)").replaceWith("getLocal()")
             .willBeRemovedInGradle7()
@@ -71,6 +72,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     }
 
     @Override
+    @Deprecated
     public <T extends DirectoryBuildCache> T local(Class<T> type, Action<? super T> configuration) {
         DeprecationLogger.deprecateMethod(BuildCacheConfiguration.class, "local(Class, Action)").replaceWith("local(Action)")
             .willBeRemovedInGradle7()

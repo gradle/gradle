@@ -67,7 +67,7 @@ public class ApiTextResourceAdapter implements TextResourceInternal {
             File file = getWrappedTextResource().getFile();
             if (file == null) {
                 file = tempFileProvider.createTemporaryFile("wrappedInternalText", ".txt", "resource");
-                Files.write(getWrappedTextResource().getText(), file, Charset.forName(targetCharset));
+                Files.asCharSink(file, Charset.forName(targetCharset)).write(getWrappedTextResource().getText());
                 return file;
             }
             Charset sourceCharset = getWrappedTextResource().getCharset();

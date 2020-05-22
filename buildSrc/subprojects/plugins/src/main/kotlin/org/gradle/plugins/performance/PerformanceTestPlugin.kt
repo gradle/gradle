@@ -32,6 +32,7 @@ import org.w3c.dom.Document
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.reflect.KClass
+import gitInfo
 
 
 object PropertyNames {
@@ -59,12 +60,7 @@ object Config {
     const val performanceTestResultsJson = "perf-results.json"
 
     const val teamCityUrl = "https://builds.gradle.org/"
-
-    const val adhocTestDbUrl = "jdbc:h2:./build/database"
 }
-
-
-fun Project.determineCurrentBranch() = System.getenv("BUILD_BRANCH") ?: execAndGetStdout("git", "rev-parse", "--abbrev-ref", "HEAD")
 
 
 private
@@ -219,6 +215,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             it.projectName = name
             it.reportGeneratorClass = "org.gradle.performance.results.report.DefaultReportGenerator"
             it.githubToken = stringPropertyOrEmpty("githubToken")
+            it.commitId = gitInfo.gradleBuildCommitId.get()
         }
 
     private
@@ -249,7 +246,6 @@ class PerformanceTestPlugin : Plugin<Project> {
         create("fullPerformanceTest")
 
         create("performanceAdhocTest") {
-            addDatabaseParameters(mapOf(PropertyNames.dbUrl to Config.adhocTestDbUrl))
             performanceReporter = createPerformanceReporter()
             channel = "adhoc"
             outputs.doNotCacheIf("Is adhoc performance test") { true }
@@ -319,10 +315,6 @@ class PerformanceTestPlugin : Plugin<Project> {
                 module {
                     testSourceDirs = testSourceDirs + performanceTestSourceSet.groovy.srcDirs
                     testResourceDirs = testResourceDirs + performanceTestSourceSet.resources.srcDirs
-                    scopes["TEST"]!!["plus"]!!.apply {
-                        add(performanceTestCompileClasspath)
-                        add(performanceTestRuntimeClasspath)
-                    }
                 }
             }
         }
@@ -341,7 +333,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             scenarioList = buildDir / Config.performanceTestScenarioListFileName
             buildTypeId = stringPropertyOrNull(PropertyNames.buildTypeId)
             workerTestTaskName = stringPropertyOrNull(PropertyNames.workerTestTaskName) ?: "fullPerformanceTest"
-            branchName = determineCurrentBranch()
+            branchName = gitInfo.gradleBuildBranch.get()
             teamCityUrl = Config.teamCityUrl
             teamCityToken = stringPropertyOrNull(PropertyNames.teamCityToken)
             distributedPerformanceReporter = createPerformanceReporter()

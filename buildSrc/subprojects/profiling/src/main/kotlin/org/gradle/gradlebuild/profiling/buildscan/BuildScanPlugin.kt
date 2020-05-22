@@ -20,6 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.Reporting
@@ -28,7 +29,6 @@ import org.gradle.build.ClasspathManifest
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
 import org.gradle.gradlebuild.BuildEnvironment.isJenkins
 import org.gradle.gradlebuild.BuildEnvironment.isTravis
-import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.kotlin.dsl.*
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
@@ -50,7 +50,7 @@ const val ciBuildTypeName = "CI Build Type"
 
 
 private
-const val vfsRetentionEnabledName = "vfsRetentionEnabled"
+const val watchFileSystemName = "watchFileSystem"
 
 
 @Suppress("unused") // consumed as plugin gradlebuild.buildscan
@@ -270,8 +270,8 @@ open class BuildScanPlugin : Plugin<Project> {
 
     private
     fun Project.extractVfsRetentionData() {
-        val vfsRetentionEnabled = VirtualFileSystemServices.isRetentionEnabled(gradle.startParameter.systemPropertiesArgs)
-        buildScan.value(vfsRetentionEnabledName, vfsRetentionEnabled.toString())
+        val watchFileSystem = (project.gradle.startParameter as StartParameterInternal).isWatchFileSystem
+        buildScan.value(watchFileSystemName, watchFileSystem.toString())
     }
 
     private

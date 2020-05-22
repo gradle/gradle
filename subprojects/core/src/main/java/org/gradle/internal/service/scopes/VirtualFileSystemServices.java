@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
@@ -99,36 +100,31 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     public static final String VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.partial-invalidation";
 
     /**
-     * Boolean system property to enable retaining VFS state between builds.
+     * Deprecated system property used to enable watching the file system.
      *
-     * Also enables partial VFS invalidation.
-     *
-     * @see #VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY
+     * Using this property causes Gradle to emit a deprecation warning.
      */
-    public static final String VFS_RETENTION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.retention";
-
-    /**
-     * When retention is enabled, this system property can be used to pass a comma-separated
-     * list of file paths that have changed since the last build.
-     *
-     * @see #VFS_RETENTION_ENABLED_PROPERTY
-     */
-    public static final String VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY = "org.gradle.unsafe.vfs.changes";
+    @Deprecated
+    public static final String DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.retention";
 
     /**
      * When retention is enabled, this system property can be used to invalidate the entire VFS.
      *
-     * @see #VFS_RETENTION_ENABLED_PROPERTY
+     * @see org.gradle.initialization.StartParameterBuildOptions.WatchFileSystemOption
      */
     public static final String VFS_DROP_PROPERTY = "org.gradle.unsafe.vfs.drop";
 
-    public static boolean isPartialInvalidationEnabled(Map<String, String> systemPropertiesArgs) {
-        return isSystemPropertyEnabled(VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, systemPropertiesArgs)
-            || isRetentionEnabled(systemPropertiesArgs);
+    public static boolean isPartialInvalidationEnabled(StartParameterInternal startParameter) {
+        return startParameter.isWatchFileSystem()
+            || isSystemPropertyEnabled(VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, startParameter.getSystemPropertiesArgs());
     }
 
-    public static boolean isRetentionEnabled(Map<String, String> systemPropertiesArgs) {
-        return isSystemPropertyEnabled(VFS_RETENTION_ENABLED_PROPERTY, systemPropertiesArgs);
+    public static boolean isDropVfs(StartParameter startParameter) {
+        return isSystemPropertyEnabled(VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs());
+    }
+
+    public static boolean isDeprecatedVfsRetentionPropertyPresent(StartParameter startParameter) {
+        return getSystemProperty(DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY, startParameter.getSystemPropertiesArgs()) != null;
     }
 
     private static boolean isSystemPropertyEnabled(String systemProperty, Map<String, String> systemPropertiesArgs) {
@@ -191,10 +187,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 ))
                 .orElse(new NonWatchingVirtualFileSystem(delegate));
             listenerManager.addListener(new VirtualFileSystemBuildLifecycleListener(
-                watchingAwareVirtualFileSystem,
-                startParameter -> isRetentionEnabled(startParameter.getSystemPropertiesArgs()),
-                startParameter -> isSystemPropertyEnabled(VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs()),
-                startParameter -> getSystemProperty(VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY, startParameter.getSystemPropertiesArgs())
+                watchingAwareVirtualFileSystem
             ));
             return watchingAwareVirtualFileSystem;
         }
@@ -265,6 +258,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             StringInterner stringInterner,
             VirtualFileSystem gradleUserHomeVirtualFileSystem
         ) {
+            StartParameterInternal startParameterInternal = (StartParameterInternal) startParameter;
             VirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(
                 hasher,
                 stringInterner,
@@ -277,7 +271,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 additiveCacheLocations,
                 gradleUserHomeVirtualFileSystem,
                 buildSessionsScopedVirtualFileSystem,
-                () -> isRetentionEnabled(startParameter.getSystemPropertiesArgs())
+                startParameterInternal::isWatchFileSystem
             );
 
             listenerManager.addListener(new RootBuildLifecycleListener() {

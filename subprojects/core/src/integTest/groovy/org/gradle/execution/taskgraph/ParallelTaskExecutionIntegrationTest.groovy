@@ -17,7 +17,6 @@
 package org.gradle.execution.taskgraph
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -164,6 +163,23 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    def "tasks that should run after are chosen last when there are more tasks than workers"() {
+        given:
+        withParallelThreads(2)
+
+        when:
+        buildFile << """
+            aPing.shouldRunAfter bPing, cPing
+        """
+
+        then:
+        2.times {
+            blockingServer.expectConcurrent(":bPing", ":cPing")
+            blockingServer.expectConcurrent(":aPing")
+            run ":aPing", ":bPing", ":cPing"
+        }
+    }
+
     def "two tasks that are dependencies of another task are executed in parallel"() {
         given:
         withParallelThreads(2)
@@ -198,7 +214,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "different task ordering", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "the number of tasks executed in parallel is limited by the number of parallel threads"() {
         given:
         withParallelThreads(2)
@@ -382,7 +397,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.mustRunAfter")
     def "explicit ordering relationships are honored even if it violates destroys/creates/consumes relationships"() {
         given:
         withParallelThreads(2)

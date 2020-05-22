@@ -45,12 +45,13 @@ class ClasspathBuilderTest extends Specification {
         builder.jar(file) {
             it.put("a.class", "bytes".bytes)
             it.put("dir/b.class", "bytes".bytes)
+            it.put("some/dir/c.class", "bytes".bytes)
         }
 
         then:
         def zip = new ZipTestFixture(file)
-        zip.hasDescendants("a.class", "dir/b.class")
-        zip.hasDirs("dir")
+        zip.hasDescendants("a.class", "dir/b.class", "some/dir/c.class")
+        zip.hasDirs("dir", "some", "some/dir")
     }
 
     def "can construct jar with multiple entries in directory"() {
@@ -61,11 +62,29 @@ class ClasspathBuilderTest extends Specification {
             it.put("a.class", "bytes".bytes)
             it.put("dir/b.class", "bytes".bytes)
             it.put("dir/c.class", "bytes".bytes)
+            it.put("dir/sub/d.class", "bytes".bytes)
         }
 
         then:
         def zip = new ZipTestFixture(file)
-        zip.hasDescendants("a.class", "dir/b.class", "dir/c.class")
+        zip.hasDescendants("a.class", "dir/b.class", "dir/c.class", "dir/sub/d.class")
+        zip.hasDirs("dir", "dir/sub")
+    }
+
+    def "can construct jar with duplicate entries"() {
+        def file = tmpDir.file("thing.zip")
+
+        when:
+        builder.jar(file) {
+            it.put("a.txt", "bytes".bytes)
+            it.put("a.txt", "other bytes".bytes)
+            it.put("dir/b.txt", "bytes".bytes)
+            it.put("dir/b.txt", "other bytes".bytes)
+        }
+
+        then:
+        def zip = new ZipTestFixture(file)
+        zip.hasDescendants("a.txt", "a.txt", "dir/b.txt", "dir/b.txt")
         zip.hasDirs("dir")
     }
 }

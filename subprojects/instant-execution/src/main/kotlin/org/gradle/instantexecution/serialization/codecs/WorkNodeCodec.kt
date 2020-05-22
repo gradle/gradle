@@ -18,13 +18,13 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.execution.plan.Node
+import org.gradle.execution.plan.TaskNode
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.readCollection
+import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withIsolate
-import org.gradle.instantexecution.serialization.writeCollection
 
 
 internal
@@ -40,60 +40,122 @@ class WorkNodeCodec(
         }
     }
 
-    private
-    suspend fun WriteContext.writeNodes(nodes: List<Node>) {
-        val nodesById = HashMap<Node, Int>(nodes.size)
-        writeSmallInt(nodes.size)
-        for (node in nodes) {
-            writeNode(node, nodesById)
-        }
-    }
-
-    private
-    suspend fun WriteContext.writeNode(node: Node, nodesById: MutableMap<Node, Int>) {
-        if (nodesById.containsKey(node)) {
-            // Already visited
-            return
-        }
-        for (successor in node.dependencySuccessors) {
-            writeNode(successor, nodesById)
-        }
-        val id = nodesById.size
-        writeSmallInt(id)
-        write(node)
-        writeCollection(node.dependencySuccessors) { writeSmallInt(nodesById.getValue(it)) }
-        nodesById[node] = id
-    }
-
-    suspend fun ReadContext.readWork(): List<Node> {
-        return withIsolate(IsolateOwner.OwnerGradle(owner), internalTypesCodec) {
+    suspend fun ReadContext.readWork(): List<Node> =
+        withIsolate(IsolateOwner.OwnerGradle(owner), internalTypesCodec) {
             readNodes()
         }
+
+    private
+    suspend fun WriteContext.writeNodes(nodes: List<Node>) {
+        val scheduledNodeIds = HashMap<Node, Int>(nodes.size)
+        writeSmallInt(nodes.size)
+        nodes.forEachIndexed { nodeId, node ->
+            scheduledNodeIds[node] = nodeId
+            writeNode(node, scheduledNodeIds)
+        }
     }
 
     private
-    suspend fun ReadContext.readNodes(): ArrayList<Node> {
+    suspend fun ReadContext.readNodes(): List<Node> {
         val count = readSmallInt()
         val nodesById = HashMap<Int, Node>(count)
         val nodes = ArrayList<Node>(count)
-        for (i in 0 until count) {
+        for (nodeId in 0 until count) {
             val node = readNode(nodesById)
             nodes.add(node)
+            nodesById[nodeId] = node
         }
         return nodes
     }
 
     private
-    suspend fun ReadContext.readNode(nodesById: MutableMap<Int, Node>): Node {
-        val id = readSmallInt()
-        val node = read() as Node
-        readCollection {
-            val depId = readSmallInt()
-            val dep = nodesById.getValue(depId)
-            node.addDependencySuccessor(dep)
+    suspend fun WriteContext.writeNode(
+        node: Node,
+        scheduledNodeIds: Map<Node, Int>
+    ) {
+        write(node)
+        writeSuccessorReferencesOf(node, scheduledNodeIds)
+        writeExecutionStateOf(node)
+    }
+
+    private
+    suspend fun ReadContext.readNode(nodesById: Map<Int, Node>): Node {
+        val node = readNonNull<Node>()
+        readSuccessorReferencesOf(node, nodesById)
+        readExecutionStateOf(node)
+        return node
+    }
+
+    private
+    fun WriteContext.writeExecutionStateOf(node: Node) {
+        // entry nodes are required, finalizer nodes and their dependencies are not
+        writeBoolean(node.isRequired)
+    }
+
+    private
+    fun ReadContext.readExecutionStateOf(node: Node) {
+        val isRequired = readBoolean()
+        when {
+            isRequired -> node.require()
+            else -> node.mustNotRun() // finalizer nodes and their dependencies
         }
         node.dependenciesProcessed()
-        nodesById[id] = node
-        return node
+    }
+
+    private
+    fun WriteContext.writeSuccessorReferencesOf(node: Node, scheduledNodeIds: Map<Node, Int>) {
+        writeSuccessorReferences(node.dependencySuccessors, scheduledNodeIds)
+        when (node) {
+            is TaskNode -> {
+                writeSuccessorReferences(node.shouldSuccessors, scheduledNodeIds)
+                writeSuccessorReferences(node.mustSuccessors, scheduledNodeIds)
+                writeSuccessorReferences(node.finalizingSuccessors, scheduledNodeIds)
+            }
+        }
+    }
+
+    private
+    fun ReadContext.readSuccessorReferencesOf(node: Node, nodesById: Map<Int, Node>) {
+        readSuccessorReferences(nodesById) {
+            node.addDependencySuccessor(it)
+        }
+        when (node) {
+            is TaskNode -> {
+                readSuccessorReferences(nodesById) {
+                    node.addShouldSuccessor(it)
+                }
+                readSuccessorReferences(nodesById) {
+                    require(it is TaskNode)
+                    node.addMustSuccessor(it)
+                }
+                readSuccessorReferences(nodesById) {
+                    require(it is TaskNode)
+                    node.addFinalizingSuccessor(it)
+                }
+            }
+        }
+    }
+
+    private
+    fun WriteContext.writeSuccessorReferences(
+        successors: Collection<Node>,
+        scheduledNodeIds: Map<Node, Int>
+    ) {
+        for (successor in successors) {
+            scheduledNodeIds[successor]?.let { successorId ->
+                writeSmallInt(successorId)
+            }
+        }
+        writeSmallInt(-1)
+    }
+
+    private
+    fun ReadContext.readSuccessorReferences(nodesById: Map<Int, Node>, onSuccessor: (Node) -> Unit) {
+        while (true) {
+            val successorId = readSmallInt()
+            if (successorId == -1) break
+            val successor = nodesById.getValue(successorId)
+            onSuccessor(successor)
+        }
     }
 }

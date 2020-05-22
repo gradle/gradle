@@ -6,6 +6,7 @@ dependencies {
     implementation(project(":performance"))
     implementation(project(":versioning"))
 
+    implementation("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
     implementation("org.jsoup:jsoup:1.11.3")
     implementation("com.google.guava:guava")
     implementation("org.ow2.asm:asm:7.1")
@@ -49,4 +50,5 @@ gradlePlugin {
 
 tasks.withType<Test> {
     environment("BUILD_BRANCH", "myBranch")
+    environment("BUILD_COMMIT_ID", "myCommitId")
 }

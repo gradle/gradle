@@ -15,38 +15,43 @@
  */
 package org.gradle.internal.nativeintegration.filesystem.jdk7;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.FileMetadata;
+import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
+@SuppressWarnings("Since15")
 public class NioFileMetadataAccessor implements FileMetadataAccessor {
     @Override
-    public FileMetadataSnapshot stat(File f) {
+    public FileMetadata stat(File file) {
+        Path path = file.toPath();
+        BasicFileAttributes attributes;
         try {
-            return stat(f.toPath());
+            attributes = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
         } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            return DefaultFileMetadata.missing(AccessType.DIRECT);
         }
-    }
-
-    @Override
-    public FileMetadataSnapshot stat(Path path) throws IOException {
-        try {
-            BasicFileAttributes bfa = Files.readAttributes(path, BasicFileAttributes.class);
-            if (bfa.isDirectory()) {
-                return DefaultFileMetadata.directory();
+        AccessType accessType = AccessType.viaSymlink(attributes.isSymbolicLink());
+        if (accessType == AccessType.VIA_SYMLINK) {
+            try {
+                attributes = Files.readAttributes(path, BasicFileAttributes.class);
+            } catch (IOException e) {
+                return DefaultFileMetadata.missing(AccessType.VIA_SYMLINK);
             }
-            return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
-        } catch (IOException e) {
-            return DefaultFileMetadata.missing();
         }
+        if (attributes.isDirectory()) {
+            return DefaultFileMetadata.directory(accessType);
+        }
+        if (attributes.isOther()) {
+            return DefaultFileMetadata.missing(accessType);
+        }
+        return DefaultFileMetadata.file(attributes.lastModifiedTime().toMillis(), attributes.size(), accessType);
     }
 }

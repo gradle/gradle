@@ -21,6 +21,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.hash.HashCode;
@@ -68,10 +69,10 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(normalizedCacheSize, true));
         PersistentIndexedCache<HashCode, V> store = cache.createCache(parameters);
 
-        DefaultFileContentCache<V> cache = (DefaultFileContentCache<V>) caches.get(name);
+        DefaultFileContentCache<V> cache = Cast.uncheckedCast(caches.get(name));
         if (cache == null) {
             cache = new DefaultFileContentCache<>(name, virtualFileSystem, store, calculator);
-            DefaultFileContentCache<V> existing = (DefaultFileContentCache<V>) caches.putIfAbsent(name, cache);
+            DefaultFileContentCache<V> existing = Cast.uncheckedCast(caches.putIfAbsent(name, cache));
             if (existing == null) {
                 listenerManager.addListener(cache);
             } else {

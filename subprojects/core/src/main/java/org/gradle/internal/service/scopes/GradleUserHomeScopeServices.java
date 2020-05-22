@@ -101,7 +101,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     }
 
     ListenerManager createListenerManager(ListenerManager parent) {
-        return parent.createChild();
+        return parent.createChild(Scopes.UserHome);
     }
 
     GlobalScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {
@@ -152,7 +152,9 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         FileAccessTimeJournal fileAccessTimeJournal,
         VirtualFileSystem virtualFileSystem,
         ClasspathWalker classpathWalker,
-        ClasspathBuilder classpathBuilder
+        ClasspathBuilder classpathBuilder,
+        ExecutorFactory executorFactory,
+        List<AdditiveCache> additiveCaches
     ) {
         return new DefaultCachedClasspathTransformer(
             cacheRepository,
@@ -160,7 +162,9 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
             fileAccessTimeJournal,
             classpathWalker,
             classpathBuilder,
-            virtualFileSystem);
+            virtualFileSystem,
+            executorFactory,
+            additiveCaches);
     }
 
     WorkerProcessFactory createWorkerProcessFactory(LoggingManagerInternal loggingManagerInternal, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,

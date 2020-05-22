@@ -16,6 +16,10 @@
 
 package org.gradle.process.internal.health.memory;
 
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
+
+@EventScope(Scopes.Global)
 public interface OsMemoryStatusListener {
     void onOsMemoryStatus(OsMemoryStatus osMemoryStatus);
 }

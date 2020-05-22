@@ -19,6 +19,7 @@ package org.gradle.process.internal.worker.request;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.dispatch.StreamCompletion;
@@ -30,6 +31,7 @@ import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.gradle.process.internal.worker.child.WorkerLogEventListener;
@@ -60,14 +62,14 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         try {
             ServiceRegistry parentServices = workerProcessContext.getServiceRegistry();
             if (instantiatorFactory == null) {
-                instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()), Collections.emptyList(), new OutputPropertyRoleAnnotationHandler(Collections.emptyList()));
+                instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager(Scopes.Global)), Collections.emptyList(), new OutputPropertyRoleAnnotationHandler(Collections.emptyList()));
             }
             DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry("worker-action-services", parentServices);
             // Make the argument serializers available so work implementations can register their own serializers
             serviceRegistry.add(RequestArgumentSerializers.class, argumentSerializers);
             serviceRegistry.add(InstantiatorFactory.class, instantiatorFactory);
             Class<?> workerImplementation = Class.forName(workerImplementationName);
-            implementation = (RequestHandler) instantiatorFactory.inject(serviceRegistry).newInstance(workerImplementation);
+            implementation = Cast.uncheckedNonnullCast(instantiatorFactory.inject(serviceRegistry).newInstance(workerImplementation));
         } catch (Exception e) {
             failure = e;
         }

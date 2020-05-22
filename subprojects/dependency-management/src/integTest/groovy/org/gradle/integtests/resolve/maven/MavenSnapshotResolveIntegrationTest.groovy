@@ -690,6 +690,7 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-2.0.jar')
     }
 
+    @ToBeFixedForInstantExecution
     def "reports and recovers from missing snapshot"() {
         given:
         def projectA = createModule('group', 'projectA', "1.0-SNAPSHOT")
@@ -729,6 +730,7 @@ Required by:
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar')
     }
 
+    @ToBeFixedForInstantExecution
     def "reports missing unique snapshot artifact"() {
         given:
         def projectA = publishModule('group', 'projectA', "1.0-SNAPSHOT")
@@ -772,6 +774,7 @@ Searched in the following locations:
     ${projectA.artifact.uri}""")
     }
 
+    @ToBeFixedForInstantExecution
     def "reports and recovers from broken maven-metadata.xml"() {
         given:
         def projectA = publishModule('group', 'projectA', "1.0-SNAPSHOT")
@@ -946,6 +949,7 @@ dependencies {
         file('libs').assertHasDescendants("projectA-1.0.jar")
     }
 
+    @ToBeFixedForInstantExecution
     def "reports failure to find a missing unique snapshot in a Maven HTTP repository"() {
         given:
         def projectA = createModule("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")

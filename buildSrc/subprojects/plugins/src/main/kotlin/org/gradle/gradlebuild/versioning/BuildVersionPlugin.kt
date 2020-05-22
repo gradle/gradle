@@ -33,13 +33,27 @@ import org.gradle.gradlebuild.BuildEnvironment.CI_ENVIRONMENT_VARIABLE
 import org.gradle.kotlin.dsl.*
 import java.text.SimpleDateFormat
 import java.util.Date
+import GitInformationExtension
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 
 class BuildVersionPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         require(project === project.rootProject)
         project.setBuildVersion()
+        project.setGitInformation()
     }
+}
+
+
+private
+fun Project.setGitInformation() {
+    val repository by lazy { FileRepositoryBuilder().setGitDir(rootProject.projectDir.resolve(".git")).build() }
+    extensions.create<GitInformationExtension>("gitInfo",
+        environmentVariable(BuildEnvironment.BUILD_BRANCH).orElse(providers.provider { repository.branch }),
+        environmentVariable(BuildEnvironment.BUILD_COMMIT_ID).orElse(providers.provider { repository.resolve(repository.fullBranch).name }
+        )
+    )
 }
 
 
@@ -153,7 +167,7 @@ fun Logger.logBuildVersion(
  */
 private
 fun Project.trimmedContentsOfFile(path: String): String =
-    fileContentsOf(path).asText.get().trim()
+    fileContentsOf(path).asText.forUseAtConfigurationTime().get().trim()
 
 
 private
@@ -172,14 +186,14 @@ fun Project.buildTimestamp(): Provider<String> =
                 gradleProperty("buildTimestamp")
             )
             runningOnCi.set(
-                providers.environmentVariable(CI_ENVIRONMENT_VARIABLE)
+                environmentVariable(CI_ENVIRONMENT_VARIABLE)
                     .presence()
             )
             runningInstallTask.set(provider {
                 isRunningInstallTask()
             })
         }
-    }
+    }.forUseAtConfigurationTime()
 
 
 private
@@ -196,9 +210,10 @@ fun Project.buildTimestampFromBuildReceipt(): Provider<String> =
                     .file(BuildReceipt.BUILD_RECEIPT_FILE_NAME)
                     .let(providers::fileContents)
                     .asText
+                    .forUseAtConfigurationTime()
             )
         }
-    }
+    }.forUseAtConfigurationTime()
 
 
 abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampValueSource.Parameters>, Describable {
@@ -296,8 +311,13 @@ fun Date.withoutTime(): Date = SimpleDateFormat("yyyy-MM-dd").run {
 
 
 private
+fun Project.environmentVariable(variableName: String): Provider<String> =
+    providers.environmentVariable(variableName).forUseAtConfigurationTime()
+
+
+private
 fun Project.gradleProperty(propertyName: String): Provider<String> =
-    providers.gradleProperty(propertyName)
+    providers.gradleProperty(propertyName).forUseAtConfigurationTime()
 
 
 /**

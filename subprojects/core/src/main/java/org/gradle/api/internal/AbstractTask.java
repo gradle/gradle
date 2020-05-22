@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -63,6 +62,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskLocalState;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
@@ -77,13 +77,10 @@ import org.gradle.internal.resources.SharedResource;
 import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.Path;
 
-import javax.annotation.Nullable;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -147,7 +144,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final TaskOutputsInternal taskOutputs;
     private final TaskDestroyables taskDestroyables;
     private final TaskLocalStateInternal taskLocalState;
-    private LoggingManagerInternal loggingManager;
+    @SuppressWarnings("deprecation")
+    private org.gradle.logging.LoggingManagerInternal loggingManager;
 
     private Set<Provider<? extends BuildService<?>>> requiredServices;
 
@@ -180,8 +178,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator = new TaskMutator(this);
         taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, fileCollectionFactory);
         taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertyWalker, fileCollectionFactory);
-        taskDestroyables = new DefaultTaskDestroyables(taskMutator);
-        taskLocalState = new DefaultTaskLocalState(taskMutator);
+        taskDestroyables = new DefaultTaskDestroyables(taskMutator, fileCollectionFactory);
+        taskLocalState = new DefaultTaskLocalState(taskMutator, fileCollectionFactory);
 
         this.dependencies = new DefaultTaskDependency(tasks, ImmutableSet.of(taskInputs));
 
@@ -240,7 +238,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 }
             });
         }
-        return observableActionList;
+        return Cast.uncheckedNonnullCast(observableActionList);
     }
 
     @Override
@@ -462,7 +460,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public LoggingManagerInternal getLogging() {
+    @SuppressWarnings("deprecation")
+    public org.gradle.logging.LoggingManagerInternal  getLogging() {
         if (loggingManager == null) {
             loggingManager = new LoggingManagerInternalCompatibilityBridge(services.getFactory(org.gradle.internal.logging.LoggingManagerInternal.class).create());
         }
@@ -475,7 +474,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public StandardOutputCapture getStandardOutputCapture() {
+    @SuppressWarnings("deprecation")
+    public org.gradle.logging.StandardOutputCapture getStandardOutputCapture() {
         return getLogging();
     }
 
@@ -866,7 +866,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             if (action == null) {
                 throw new InvalidUserDataException("Action must not be null!");
             }
-            return super.add(wrap((Action<? super Task>) action));
+            return super.add(wrap(Cast.uncheckedNonnullCast(action)));
         }
 
         @Override
@@ -874,7 +874,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             if (action == null) {
                 throw new InvalidUserDataException("Action must not be null!");
             }
-            super.add(index, wrap((Action<? super Task>) action));
+            super.add(index, wrap(Cast.uncheckedNonnullCast(action)));
         }
 
         @Override
@@ -882,7 +882,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             if (actions == null) {
                 throw new InvalidUserDataException("Actions must not be null!");
             }
-            return super.addAll(transformToContextAwareTaskActions(actions));
+            return super.addAll(transformToContextAwareTaskActions(Cast.uncheckedNonnullCast(actions)));
         }
 
         @Override
@@ -890,7 +890,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             if (actions == null) {
                 throw new InvalidUserDataException("Actions must not be null!");
             }
-            return super.addAll(index, transformToContextAwareTaskActions(actions));
+            return super.addAll(index, transformToContextAwareTaskActions(Cast.uncheckedNonnullCast(actions)));
         }
 
         @Override
@@ -898,26 +898,21 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             if (action == null) {
                 throw new InvalidUserDataException("Action must not be null!");
             }
-            return super.set(index, wrap((Action<? super Task>) action));
+            return super.set(index, wrap(Cast.uncheckedNonnullCast(action)));
         }
 
         @Override
         public boolean removeAll(Collection actions) {
-            return super.removeAll(transformToContextAwareTaskActions(actions));
+            return super.removeAll(transformToContextAwareTaskActions(Cast.uncheckedNonnullCast(actions)));
         }
 
         @Override
         public boolean remove(Object action) {
-            return super.remove(wrap((Action<? super Task>) action));
+            return super.remove(wrap(Cast.uncheckedNonnullCast(action)));
         }
 
         private Collection<InputChangesAwareTaskAction> transformToContextAwareTaskActions(Collection<Object> c) {
-            return Collections2.transform(c, new Function<Object, InputChangesAwareTaskAction>() {
-                @Override
-                public InputChangesAwareTaskAction apply(@Nullable Object input) {
-                    return wrap((Action<? super Task>) input);
-                }
-            });
+            return Collections2.transform(c, input -> wrap(Cast.uncheckedCast(input)));
         }
     }
 

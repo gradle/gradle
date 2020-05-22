@@ -24,10 +24,16 @@ import org.gradle.instantexecution.TooManyInstantExecutionProblemsException
 import org.gradle.instantexecution.extensions.getBroadcaster
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import java.util.concurrent.CopyOnWriteArrayList
 
 
-@ServiceScope(ServiceScope.Value.BuildTree)
+private
+const val maxCauses = 5
+
+
+@ServiceScope(Scopes.BuildTree)
 class InstantExecutionProblems(
 
     private
@@ -51,7 +57,10 @@ class InstantExecutionProblems(
     val buildFinishedHandler = BuildFinishedProblemsHandler()
 
     private
-    val problems = mutableListOf<PropertyProblem>()
+    val problems = CopyOnWriteArrayList<PropertyProblem>()
+
+    private
+    var isFailOnProblems = startParameter.failOnProblems
 
     init {
         listenerManager.addListener(problemHandler)
@@ -67,32 +76,18 @@ class InstantExecutionProblems(
         broadcaster.onProblem(problem)
     }
 
+    fun failingBuildDueToSerializationError() {
+        isFailOnProblems = false
+    }
+
     private
-    var isConsoleSummaryRequested = false
-
-    internal
-    fun requestConsoleSummary() {
-        isConsoleSummaryRequested = true
-    }
-
-    fun runIfProblems(action: () -> Unit) {
-        if (problems.isNotEmpty()) action()
-    }
+    fun List<PropertyProblem>.causes() = mapNotNull { it.exception }.take(maxCauses)
 
     private
     inner class ProblemHandler : ProblemsListener {
 
         override fun onProblem(problem: PropertyProblem) {
             problems.add(problem)
-            when {
-                problems.size >= startParameter.maxProblems -> {
-                    isConsoleSummaryRequested = false
-                    throw TooManyInstantExecutionProblemsException(problems, report.htmlReportFile)
-                }
-                !startParameter.failOnProblems -> {
-                    requestConsoleSummary()
-                }
-            }
         }
     }
 
@@ -104,13 +99,13 @@ class InstantExecutionProblems(
                 return
             }
             report.writeReportFiles(problems)
-            when {
-                isConsoleSummaryRequested -> {
-                    report.logConsoleSummary(problems)
-                }
-                startParameter.failOnProblems -> {
-                    throw InstantExecutionProblemsException(problems, report.htmlReportFile)
-                }
+            if (isFailOnProblems) {
+                // TODO - always include this as a build failure; currently it is disabled when a serialization problem happens
+                throw InstantExecutionProblemsException(problems.causes(), problems, report.htmlReportFile)
+            } else if (problems.size > startParameter.maxProblems) {
+                throw TooManyInstantExecutionProblemsException(problems.causes(), problems, report.htmlReportFile)
+            } else {
+                report.logConsoleSummary(problems)
             }
         }
     }

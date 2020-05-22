@@ -107,7 +107,7 @@ image::commandLineTutorialTasks.png[]
 .Excluding tasks
 ----
 $ gradle dist --exclude-task test
-include::{snippetsPath}/tutorial/excludeTasks/excludeTask.out[]
+include::{snippetsPath}/tutorial/excludeTasks/tests/excludeTask.out
 ----
 
 You can see that the `test` task is not executed, even though it is a dependency of the `dist` task. The `test` task's dependencies such as `compileTest` are not executed either. Those dependencies of `test` that are required by another task, such as `compile`, are still executed.
@@ -145,7 +145,7 @@ You can also abbreviate each word in a camel case task name. For example, you ca
 .Abbreviated camel case task name
 ----
 $ gradle cT
-include::{snippetsPath}/tutorial/excludeTasks/abbreviateCamelCaseTaskName.out[]
+include::{snippetsPath}/tutorial/excludeTasks/tests/abbreviateCamelCaseTaskName.out
 ----
 
 You can also use these abbreviations with the -x command-line option.
@@ -232,7 +232,7 @@ Running `gradle help --task someTask` gives you detailed information about a spe
 .Obtaining detailed help for tasks
 ----
 $ gradle -q help --task libs
-include::{snippetsPath}/tutorial/projectReports/taskHelp.out[]
+include::{snippetsPath}/tutorial/projectReports/tests/taskHelp.out
 ----
 
 This information includes the full task path, the task type, possible command line options and the description of the given task.
@@ -283,7 +283,7 @@ Running `gradle properties` gives you a list of the properties of the selected p
 .Information about properties
 ----
 $ gradle -q api:properties
-include::{snippetsPath}/tutorial/projectReports/propertyListReport.out[]
+include::{snippetsPath}/tutorial/projectReports/tests/propertyListReport.out
 ----
 
 === Software Model reports
@@ -357,6 +357,11 @@ Generates a high-level performance report in the `$buildDir/reports/profile` dir
 Generate a build scan with detailed performance diagnostics.
 
 image::gradle-core-test-build-scan-performance.png[Build Scan performance report]
+
+`--watch-fs`, `--no-watch-fs`::
+Toggles <<gradle_daemon.adoc#sec:daemon_watch_fs,watching the file system>>.
+Allows Gradle to re-use data about the file system in the next build.
+_Default is off_.
 
 === Gradle daemon options
 You can manage the <<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>> through the following command line options.

@@ -1,4 +1,4 @@
 # tag::registering-incremental-annotation-processors[]
-EntityProcessor,isolating
-ServiceRegistryProcessor,dynamic
+org.gradle.EntityProcessor,isolating
+org.gradle.ServiceRegistryProcessor,dynamic
 # end::registering-incremental-annotation-processors[]

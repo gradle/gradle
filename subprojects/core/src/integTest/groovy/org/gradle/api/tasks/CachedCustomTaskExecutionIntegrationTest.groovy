@@ -19,7 +19,6 @@ package org.gradle.api.tasks
 import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
@@ -33,7 +32,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("buildSrc/settings.gradle") << localCacheConfiguration()
     }
 
-    @ToBeFixedForInstantExecution(because = "TaskReportTask")
     def "buildSrc is loaded from cache"() {
         configureCacheForBuildSrc()
         file("buildSrc/src/main/groovy/MyTask.groovy") << """
@@ -43,7 +41,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
         assert listCacheFiles().size() == 0
         when:
-        withBuildCache().run "tasks"
+        withBuildCache().run "help"
         then:
         result.assertTaskNotSkipped(":buildSrc:compileGroovy")
         listCacheFiles().size() == 1 // compileGroovy
@@ -52,7 +50,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("buildSrc/build").assertIsDir().deleteDir()
 
         when:
-        withBuildCache().run "tasks"
+        withBuildCache().run "help"
         then:
         result.groupedOutput.task(":buildSrc:compileGroovy").outcome == "FROM-CACHE"
     }
@@ -131,7 +129,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.cacheIf")
     def "cacheable task with cache disabled doesn't get cached"() {
         configureCacheForBuildSrc()
         file("input.txt") << "data"
@@ -169,7 +166,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         executedAndNotSkipped ":customTask"
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.cacheIf")
     def "cacheable task with multiple outputs declared via runtime API with matching cardinality get cached"() {
         buildFile << """
             task customTask {
@@ -232,7 +228,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             task customTask {
                 outputs.cacheIf { true }
                 def fileList
-                if (providers.systemProperty("changedCardinality").present) {
+                if (providers.systemProperty("changedCardinality").forUseAtConfigurationTime().present) {
                     fileList = ["build/output1.txt"]
                 } else {
                     fileList = ["build/output1.txt", "build/output2.txt"]
@@ -262,7 +258,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         executedAndNotSkipped ":customTask"
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.cacheIf")
     def "non-cacheable task with cache enabled gets cached"() {
         file("input.txt") << "data"
         buildFile << """
@@ -303,7 +298,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         taskIsNotCached ':adHocTask'
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.cacheIf")
     def "ad hoc tasks are cached when explicitly requested"() {
         given:
         file("input.txt") << "data"
@@ -477,7 +471,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "Task.cacheIf")
     def "missing #type output from runtime API is not cached"() {
         given:
         file("input.txt") << "data"
@@ -570,7 +563,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         type << ["OutputFile", "OutputDirectory"]
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.cacheIf")
     def "empty output directory is cached properly"() {
         given:
         buildFile << """
@@ -805,7 +797,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3043")
-    @ToBeFixedForInstantExecution(because = "Task.cacheIf")
     def "URL-quoted characters in file names are handled properly"() {
         def weirdOutputPath = 'build/bad&dir/bad! Dezső %20.txt'
         def expectedOutput = file(weirdOutputPath)
@@ -836,7 +827,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "Task.cacheIf", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "local state declared via #api API is destroyed when task is loaded from cache"() {
         def localStateFile = file("local-state.json")
         buildFile << defineTaskWithLocalState(useRuntimeApi)

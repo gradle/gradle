@@ -16,13 +16,17 @@
 
 package org.gradle.internal.classpath;
 
+import com.google.common.collect.AbstractIterator;
 import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
+import org.codehaus.groovy.runtime.wrappers.Wrapper;
 
 import javax.annotation.Nullable;
+import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -51,21 +55,28 @@ public class Instrumented {
                 array.array[callSite.getIndex()] = new SystemPropertyCallSite(callSite);
             } else if (callSite.getName().equals("properties")) {
                 array.array[callSite.getIndex()] = new SystemPropertiesCallSite(callSite);
+            } else if (callSite.getName().equals("getInteger")) {
+                array.array[callSite.getIndex()] = new IntegerSystemPropertyCallSite(callSite);
+            } else if (callSite.getName().equals("getLong")) {
+                array.array[callSite.getIndex()] = new LongSystemPropertyCallSite(callSite);
+            } else if (callSite.getName().equals("getBoolean")) {
+                array.array[callSite.getIndex()] = new BooleanSystemPropertyCallSite(callSite);
             }
         }
     }
 
     // Called by generated code.
     public static String systemProperty(String key, String consumer) {
-        String value = System.getProperty(key);
-        LISTENER.get().systemPropertyQueried(key, value, consumer);
-        return value;
+        return systemProperty(key, null, consumer);
     }
 
     // Called by generated code.
-    public static String systemProperty(String key, String defaultValue, String consumer) {
-        String value = System.getProperty(key, defaultValue);
+    public static String systemProperty(String key, @Nullable String defaultValue, String consumer) {
+        String value = System.getProperty(key);
         LISTENER.get().systemPropertyQueried(key, value, consumer);
+        if (value == null) {
+            return defaultValue;
+        }
         return value;
     }
 
@@ -74,11 +85,60 @@ public class Instrumented {
         return new DecoratingProperties(System.getProperties(), consumer);
     }
 
+    // Called by generated code.
+    public static Integer getInteger(String key, String consumer) {
+        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        return Integer.getInteger(key);
+    }
+
+    // Called by generated code.
+    public static Integer getInteger(String key, int defaultValue, String consumer) {
+        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        return Integer.getInteger(key, defaultValue);
+    }
+
+    // Called by generated code.
+    public static Integer getInteger(String key, Integer defaultValue, String consumer) {
+        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        return Integer.getInteger(key, defaultValue);
+    }
+
+    // Called by generated code.
+    public static Long getLong(String key, String consumer) {
+        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        return Long.getLong(key);
+    }
+
+    // Called by generated code.
+    public static Long getLong(String key, long defaultValue, String consumer) {
+        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        return Long.getLong(key, defaultValue);
+    }
+
+    // Called by generated code.
+    public static Long getLong(String key, Long defaultValue, String consumer) {
+        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        return Long.getLong(key, defaultValue);
+    }
+
+    // Called by generated code.
+    public static boolean getBoolean(String key, String consumer) {
+        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        return Boolean.getBoolean(key);
+    }
+
+    private static Object unwrap(Object obj) {
+        if (obj instanceof Wrapper) {
+            return ((Wrapper) obj).unwrap();
+        }
+        return obj;
+    }
+
     public interface Listener {
         /**
          * @param consumer The name of the class that is reading the property value
          */
-        void systemPropertyQueried(String key, @Nullable String value, String consumer);
+        void systemPropertyQueried(String key, @Nullable Object value, String consumer);
     }
 
     private static class DecoratingProperties extends Properties {
@@ -132,17 +192,15 @@ public class Instrumented {
 
         @Override
         public Set<Map.Entry<Object, Object>> entrySet() {
-            return delegate.entrySet();
-        }
-
-        @Override
-        public Object getOrDefault(Object key, Object defaultValue) {
-            return delegate.getOrDefault(key, defaultValue);
+            return new DecoratingEntrySet(delegate.entrySet(), consumer);
         }
 
         @Override
         public void forEach(BiConsumer<? super Object, ? super Object> action) {
-            delegate.forEach(action);
+            delegate.forEach((k, v) -> {
+                LISTENER.get().systemPropertyQueried((String) k, v, consumer);
+                action.accept(k, v);
+            });
         }
 
         @Override
@@ -232,21 +290,121 @@ public class Instrumented {
 
         @Override
         public String getProperty(String key) {
-            String value = delegate.getProperty(key);
-            LISTENER.get().systemPropertyQueried(key, value, consumer);
-            return value;
+            return getProperty(key, null);
         }
 
         @Override
         public String getProperty(String key, String defaultValue) {
-            String value = delegate.getProperty(key, defaultValue);
+            String value = delegate.getProperty(key);
             LISTENER.get().systemPropertyQueried(key, value, consumer);
+            if (value == null) {
+                return defaultValue;
+            }
             return value;
+        }
+
+        @Override
+        public Object getOrDefault(Object key, Object defaultValue) {
+            return getProperty((String) key, (String) defaultValue);
         }
 
         @Override
         public Object get(Object key) {
             return getProperty((String) key);
+        }
+    }
+
+    private static class DecoratingEntrySet extends AbstractSet<Map.Entry<Object, Object>> {
+        private final Set<Map.Entry<Object, Object>> delegate;
+        private final String consumer;
+
+        public DecoratingEntrySet(Set<Map.Entry<Object, Object>> delegate, String consumer) {
+            this.delegate = delegate;
+            this.consumer = consumer;
+        }
+
+        @Override
+        public Iterator<Map.Entry<Object, Object>> iterator() {
+            Iterator<Map.Entry<Object, Object>> iterator = delegate.iterator();
+            return new AbstractIterator<Map.Entry<Object, Object>>() {
+                @Override
+                protected Map.Entry<Object, Object> computeNext() {
+                    if (!iterator.hasNext()) {
+                        return endOfData();
+                    }
+                    Map.Entry<Object, Object> entry = iterator.next();
+                    LISTENER.get().systemPropertyQueried((String) entry.getKey(), entry.getValue(), consumer);
+                    return entry;
+                }
+            };
+        }
+
+        @Override
+        public int size() {
+            return delegate.size();
+        }
+    }
+
+    private static class IntegerSystemPropertyCallSite extends AbstractCallSite {
+        public IntegerSystemPropertyCallSite(CallSite callSite) {
+            super(callSite);
+        }
+
+        @Override
+        public Object call(Object receiver, Object arg) throws Throwable {
+            if (receiver.equals(Integer.class)) {
+                return getInteger((String) arg, array.owner.getName());
+            } else {
+                return super.call(receiver, arg);
+            }
+        }
+
+        @Override
+        public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
+            if (receiver.equals(Integer.class)) {
+                return getInteger((String) arg1, (Integer) unwrap(arg2), array.owner.getName());
+            } else {
+                return super.call(receiver, arg1, arg2);
+            }
+        }
+    }
+
+    private static class LongSystemPropertyCallSite extends AbstractCallSite {
+        public LongSystemPropertyCallSite(CallSite callSite) {
+            super(callSite);
+        }
+
+        @Override
+        public Object call(Object receiver, Object arg) throws Throwable {
+            if (receiver.equals(Long.class)) {
+                return getLong((String) arg, array.owner.getName());
+            } else {
+                return super.call(receiver, arg);
+            }
+        }
+
+        @Override
+        public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
+            if (receiver.equals(Long.class)) {
+                return getLong((String) arg1, (Long) unwrap(arg2), array.owner.getName());
+            } else {
+                return super.call(receiver, arg1, arg2);
+            }
+        }
+    }
+
+    private static class BooleanSystemPropertyCallSite extends AbstractCallSite {
+        public BooleanSystemPropertyCallSite(CallSite callSite) {
+            super(callSite);
+        }
+
+        @Override
+        public Object call(Object receiver, Object arg) throws Throwable {
+            if (receiver.equals(Boolean.class)) {
+                return getBoolean((String) arg, array.owner.getName());
+            } else {
+                return super.call(receiver, arg);
+            }
         }
     }
 

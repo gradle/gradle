@@ -61,7 +61,7 @@ public interface DomainObjectCollectionFactory {
     /**
      * Creates a {@link CompositeDomainObjectSet} for managing a collection of {@link DomainObjectCollection} of the specified type.
      */
-    <T> CompositeDomainObjectSet<T> newDomainObjectSet(Class<T> elementType, DomainObjectCollection<? extends T>... collections);
+    <T> CompositeDomainObjectSet<T> newDomainObjectSet(Class<T> elementType, DomainObjectCollection<? extends T> collection);
 
     <T> ExtensiblePolymorphicDomainObjectContainer<T> newPolymorphicDomainObjectContainer(Class<T> elementType);
 }

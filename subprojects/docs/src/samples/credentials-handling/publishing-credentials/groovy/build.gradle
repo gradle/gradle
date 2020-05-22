@@ -1,0 +1,47 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+
+    // this plugin comes from an included build - it fakes a maven repository to allow executing the authentication flow
+    id 'maven-repository-stub'
+}
+
+version = '1.0.2'
+group = 'com.example'
+
+// tag::publication[]
+publishing {
+    publications {
+        library(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            name = 'mySecure'
+            // url = uri(<<some repository url>>)
+        }
+    }
+}
+// end::publication[]
+
+// tag::credentials[]
+gradle.taskGraph.whenReady { taskGraph ->
+    if (taskGraph.allTasks.any { it.name == 'publishLibraryPublicationToMySecureRepository' }) {
+        def MAVEN_USERNAME_PROPERTY = 'mavenUser'
+        def MAVEN_PASSWORD_PROPERTY = 'mavenPassword'
+        def mavenUser = providers.gradleProperty(MAVEN_USERNAME_PROPERTY)
+        def mavenPassword = providers.gradleProperty(MAVEN_PASSWORD_PROPERTY)
+        if (!mavenUser.present || !mavenPassword.present) {
+            throw new GradleException("Publishing requires '$MAVEN_USERNAME_PROPERTY' and '$MAVEN_PASSWORD_PROPERTY' properties")
+        }
+        publishing.repositories.named('mySecure') {
+            credentials {
+                username = mavenUser.get()
+                password = mavenPassword.get()
+            }
+        }
+    }
+}
+// end::credentials[]
+

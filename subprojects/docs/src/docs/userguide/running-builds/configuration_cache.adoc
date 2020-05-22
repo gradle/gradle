@@ -1,0 +1,245 @@
+[[config_cache]]
+= Configuration cache
+
+[NOTE]
+====
+The configuration cache is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, and the details described here may change.
+====
+
+== Introduction
+
+The configuration cache is a feature that significantly improves build performance by caching the result of the configuration phase and reusing this for subsequent builds.
+Using the configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration, such as build scripts, has changed.
+Gradle also applies some performance improvements to task execution as well. (TODO - link to build lifecycle reference)
+
+The configuration cache is conceptually similar to the build cache, but caches different information.
+The build cache takes care of caching the outputs and intermediate files of the build, such as task outputs or artifact transform outputs.
+The configuration cache takes care of caching the build configuration for a particular set of tasks.
+In other words, the configuration cache caches the output of the configuration phase, and the build cache caches the outputs of the execution phase.
+
+This feature is currently experimental and not enabled by default.
+
+=== How does it work?
+
+When the configuration cache is enabled and you run Gradle for a particular set of tasks, for example by running `gradlew check`, Gradle checks whether a configuration cache entry is available for
+the requested set of tasks. If available, Gradle uses this entry instead of running the configuration phase.
+The cache entry contains information about the set of tasks to run, along with their configuration and dependency information.
+
+The first time you run a particular set of tasks, there will be no entry in the configuration cache for these tasks and so Gradle will run the configuration phase as normal:
+
+1. Run init scripts.
+2. Run the settings script for the build, applying any requested settings plugins.
+3. Configure and build the `buildSrc` project, if present.
+4. Run the builds scripts for the build, applying any requested project plugins.
+5. Calculate the task graph for the requested tasks, running any deferred configuration actions.
+
+Following the configuration phase, Gradle writes the state of the task graph to the configuration cache, taking a snapshot for later Gradle invocations. The execution phase then runs as normal.
+This means you will not see any build performance improvement the first time you run a particular set of tasks.
+
+When you subsequently run Gradle with this same set of tasks, for example by running `gradlew check` again, Gradle will load the tasks and their configuration directly from the configuration cache
+and skip the configuration phase entirely.
+Before using a configuration cache entry, Gradle checks that none of the "build inputs", such as build scripts, for the entry have changed.
+If a build input has changed, Gradle will not use the entry and will run the configuration phase again as above, saving the result for later reuse.
+
+Build inputs include:
+
+- Init scripts, settings scripts, build scripts.
+- System properties, Gradle properties and configuration files used during the configuration phase, accessed using value suppliers (TODO - add docs for this).
+- build inputs and source files for `buildSrc` projects.
+
+=== Performance improvements
+
+Apart from skipping the configuration phase, the configuration cache provides some additional performance improvements:
+
+- All tasks run in parallel by default.
+- Dependency resolution is cached.
+
+
+== Using the configuration cache
+
+[[enable]]
+=== Enabling the configuration cache
+
+By default, the configuration cache is not enabled. It can be enabled from the command line:
+
+[source,bash]
+----
+gradle --configuration-cache=on
+----
+
+It can also be enabled persistently in a `gradle.properties` file:
+
+[source,properties]
+----
+org.gradle.unsafe.configuration-cache=on
+----
+
+If it is enabled in a `gradle.properties` file, it can be disabled on the command line for one build invocation:
+
+[source,bash]
+----
+gradle --configuration-cache=off
+----
+
+[[ignore_problems]]
+=== Ignoring problems
+
+By default, Gradle will fail the build if any configuration cache problems are encountered.
+Configuration cache problems can be turned into warnings on the command line:
+
+[source,bash]
+----
+gradle --configuration-cache=warn
+----
+
+or in a `gradle.properties` file:
+
+[source,properties]
+----
+org.gradle.unsafe.configuration-cache=warn
+----
+
+[[max_problems]]
+=== Allowing a maximum number of problems
+
+When configuration cache problems are turned into warnings, Gradle will fail the build if `512` problems are found by default.
+
+This can be adjusted by specifying an allowed maximum number of problems on the command line:
+
+[source,bash]
+----
+gradle -Dorg.gradle.unsafe.configuration-cache.max-problems=5
+----
+
+or in a `gradle.properties` file:
+
+[source,properties]
+----
+org.gradle.unsafe.configuration-cache.max-problems=5
+----
+
+
+== Constraints
+
+In order to capture the state of the task graph to the configuration cache and reload it again in a later build, Gradle applies certain constraints to tasks and other
+build logic. Each of these constraints is treated as a configuration cache "problem" and fail the build if violations are present.
+
+The following sections describe each of the constraints and how to change your build to fix the problems.
+
+[[disallowed_types]]
+=== Certain types must not be referenced by tasks
+
+There are a number of types that task instances must not reference from their fields. Usually these types are used to carry some task input that should be explicitly
+declared instead.
+
+To fix: you can often replace such a field with a `Property` or `Provider` typed field that exposes the exact information that the task will need at execution time.
+
+TODO - examples, more details
+
+[[use_project_during_execution]]
+=== Using the `Project` object
+
+A task must not use any `Project` objects at execution time. This includes calling `Task.getProject()` while the task is running.
+
+to fix: some cases can be fixed in the same way as the previous constraint.
+
+to fix: use injected services instead of the methods of `Project`.
+
+TODO - examples, more details
+
+[[task_access]]
+=== Accessing a task instance from another instance
+
+Tasks should not directly access the state of another instance. Instead, tasks should be connected using inputs and outputs.
+
+to fix: connect tasks using input and output relationships. `Property` and `Provider` types can be useful for this.
+
+TODO - examples, more details
+
+[[build_listeners]]
+== Using build listeners
+
+Plugins and build scripts must not register any build listeners.
+
+to fix: use a build service.
+
+TODO - examples
+
+[[undeclared_sys_prop_read]]
+=== Undeclared reading of system properties
+
+Plugins and build scripts should not read system properties directly using the Java APIs. Instead, these system properties must be declared as a potential build input by
+using the value supplier APIs.
+
+To fix: before:
+
+```
+def enabled = System.getProperty("some-property")
+```
+
+After:
+
+```
+def enabled = providers.systemProperty("some-property").forUseAtConfigurationTime().present
+```
+
+In general, you should avoid reading the value of system properties at configuration time, to avoid invalidating configuration cache entries when the system property value changes.
+Instead, you can connect the `Provider` returned by `providers.systemProperty()` to task properties.
+
+[[undeclared_env_var_read]]
+=== Reading environment variables
+
+Plugins and build scripts should not read environment variables directly using the Java APIs. Instead, declare environment variables as potential build inputs using the
+value supplier APIs.
+
+to fix: use `providers.environmentVariable(x)`
+
+TODO - examples, more details
+
+[[undeclared_file_read]]
+=== Reading files at configuration time
+
+Plugins and build scripts should not read files directly using the Java APIs. Instead, declare files as potential build inputs using the
+value supplier APIs.
+
+to fix: use `providers.fileContents(x)`
+
+TODO - examples, more details
+
+[[not_yet_implemented]]
+== Not yet implemented
+
+Support for using configuration caching with certain Gradle features is not yet implemented. Support for these features will be added in later Gradle releases.
+
+- Composite builds
+
+[[testkit]]
+== Testing Build Logic with TestKit
+
+The Gradle TestKit (a.k.a. just TestKit) is a library that aids in testing Gradle plugins and build logic generally.
+For general guidance on how to use TestKit see the <<test_kit.adoc#test_kit,dedicated chapter>>.
+
+To enable configuration caching in your tests, you can pass the `--configuration-cache=on` argument to link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner] or use one of the other methods described in <<configuration_cache.adoc#enable,Enabling the configuration cache>>.
+
+You need to run your tasks twice.
+Once to prime the configuration cache.
+Once to reuse the configuration cache.
+
+.Testing the configuration cache
+====
+include::sample[dir="snippets/configurationCache/testKit/groovy",files="src/test/groovy/org/example/BuildLogicFunctionalTest.groovy[tags=functional-test-configuration-cache]"]
+include::sample[dir="snippets/configurationCache/testKit/kotlin",files="src/test/kotlin/org/example/BuildLogicFunctionalTest.kt[tags=functional-test-configuration-cache]"]
+====
+<1> First run primes the configuration cache.
+<2> Second run reuses the configuration cache.
+<3> Assert that the configuration cache gets reused.
+
+If problems with the configuration cache are found then Gradle will fail the build reporting the problems, and the test will fail.
+
+When gradually improving your plugin or build logic to support the configuration cache it can be useful to temporarily <<configuration_cache.adoc#ignore_problems,ignore problems>> or <<configuration_cache.adoc#max_problems,allow a given number of problems>>.
+
+== Troubleshooting
+
+Upon failure to serialize the state required to run the tasks, an HTML report of detected problems is generated. The Gradle failure output includes a clickable link to the report.
+
+The report displays the set of problems twice. First grouped by error message, then grouped by task. The former allows to quickly see what classes of problems your build is facing. The latter allows to quickly see which tasks are problematic. In both cases you can expand the tree in order to discover where in the object graph is the culprit.

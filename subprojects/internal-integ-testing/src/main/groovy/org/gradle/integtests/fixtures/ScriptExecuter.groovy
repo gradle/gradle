@@ -34,6 +34,7 @@ class ScriptExecuter {
         } else {
             executable = "${workingDir}/${executable}"
         }
+        builder.environment("JAVA_HOME", System.getProperty("java.home"))
         return builder.build()
     }
 

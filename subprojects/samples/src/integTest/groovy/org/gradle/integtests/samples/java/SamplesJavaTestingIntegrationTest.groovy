@@ -86,7 +86,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("testing/testReport/groovy")
-    @ToBeFixedForInstantExecution
     def "can create a custom TestReport task"() {
         given:
         executer.inDirectory(sample.dir)

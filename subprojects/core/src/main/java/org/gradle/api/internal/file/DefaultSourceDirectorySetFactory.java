@@ -19,6 +19,7 @@ package org.gradle.api.internal.file;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
+@SuppressWarnings("deprecation")
 public class DefaultSourceDirectorySetFactory implements SourceDirectorySetFactory {
     private final ObjectFactory objectFactory;
 

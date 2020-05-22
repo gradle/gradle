@@ -182,4 +182,9 @@ public interface ExecutionResult {
      * Asserts that the given task has not been skipped.
      */
     ExecutionResult assertTaskNotSkipped(String taskPath);
+
+    /**
+     * Asserts that the important information from this result has been verified by the test.
+     */
+    void assertResultVisited();
 }

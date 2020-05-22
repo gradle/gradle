@@ -7,6 +7,8 @@ import org.gradle.internal.os.OperatingSystem
 object BuildEnvironment {
 
     const val CI_ENVIRONMENT_VARIABLE = "CI"
+    const val BUILD_BRANCH = "BUILD_BRANCH"
+    const val BUILD_COMMIT_ID = "BUILD_COMMIT_ID"
 
     val isCiServer = CI_ENVIRONMENT_VARIABLE in System.getenv()
     val isTravis = "TRAVIS" in System.getenv()

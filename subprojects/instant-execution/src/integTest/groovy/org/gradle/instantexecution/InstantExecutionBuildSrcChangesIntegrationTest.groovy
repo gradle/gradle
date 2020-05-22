@@ -39,9 +39,10 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
 
         when:
         if (isKotlinBuildSrc) {
-            problems.withDoNotFailOnProblems()
+            instantRunLenient()
+        } else {
+            instantRun()
         }
-        instantRun()
 
         then:
         outputContains ORIGINAL_GREETING
@@ -49,9 +50,10 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
         when:
         fixture.applyChange()
         if (isKotlinBuildSrc) {
-            problems.withDoNotFailOnProblems()
+            instantRunLenient()
+        } else {
+            instantRun()
         }
-        instantRun()
 
         then:
         outputContains fixture.expectedOutputAfterChange
@@ -94,10 +96,10 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
                 override fun obtain(): String? = parameters.value.orNull
             }
             val ciProvider = providers.of(IsCi::class.java) {
-                parameters.value.set(providers.systemProperty("test_is_ci"))
+                parameters.value.set(providers.systemProperty("test_is_ci").forUseAtConfigurationTime())
             }
 
-            val isCi = $inputExpression
+            val isCi = ${inputExpression}.forUseAtConfigurationTime()
             tasks {
                 if (isCi.isPresent) {
                     register("run") {
@@ -153,6 +155,10 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
 
     private instantRun() {
         instantRun TASK_NAME
+    }
+
+    private instantRunLenient() {
+        instantRunLenient TASK_NAME
     }
 
     static class BuildSrcChangeFixture {

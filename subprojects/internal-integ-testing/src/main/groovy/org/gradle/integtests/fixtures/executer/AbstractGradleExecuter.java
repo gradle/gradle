@@ -48,7 +48,6 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
-import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.process.internal.streams.SafeStreams;
@@ -123,6 +122,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     private final Set<File> isolatedDaemonBaseDirs = new HashSet<>();
     private final Set<GradleHandle> running = new HashSet<>();
+    private final List<ExecutionResult> results = new ArrayList<>();
     private final List<String> args = new ArrayList<>();
     private final List<String> tasks = new ArrayList<>();
     private boolean allowExtraLogging = true;
@@ -131,8 +131,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean quiet;
     private boolean taskList;
     private boolean dependencyList;
-    private Map<String, String> environmentVars = new HashMap<>();
-    private List<File> initScripts = new ArrayList<>();
+    private final Map<String, String> environmentVars = new HashMap<>();
+    private final List<File> initScripts = new ArrayList<>();
     private String executable;
     private TestFile gradleUserHomeDir;
     private File userHomeDir;
@@ -156,7 +156,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected WarningMode warningMode = WarningMode.All;
     private boolean showStacktrace = true;
     private boolean renderWelcomeMessage;
-    private boolean usePartialVfsInvalidation;
 
     private int expectedGenericDeprecationWarnings;
     private final List<String> expectedDeprecationWarnings = new ArrayList<>();
@@ -241,7 +240,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         durationMeasurement = null;
         consoleType = null;
         warningMode = WarningMode.All;
-        usePartialVfsInvalidation = false;
         return this;
     }
 
@@ -404,8 +402,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         executer.withTestConsoleAttached(consoleAttachment);
-
-        executer.withPartialVfsInvalidation(usePartialVfsInvalidation);
 
         return executer;
     }
@@ -834,6 +830,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public void cleanup() {
         stopRunningBuilds();
         cleanupIsolatedDaemons();
+        for (ExecutionResult result : results) {
+            result.assertResultVisited();
+        }
     }
 
     private void stopRunningBuilds() {
@@ -1033,10 +1032,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             properties.put(TestOverrideConsoleDetector.INTERACTIVE_TOGGLE, "true");
         }
 
-        if (usePartialVfsInvalidation) {
-            properties.put(VirtualFileSystemServices.VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, "true");
-        }
-
         properties.put(DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
 
         return properties;
@@ -1049,17 +1044,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public final GradleHandle start() {
         assert afterExecute.isEmpty() : "afterExecute actions are not implemented for async execution";
-        return startHandle();
-    }
-
-    protected GradleHandle startHandle() {
-        fireBeforeExecute();
-        assertCanExecute();
-        collectStateBeforeExecution();
+        beforeBuildSetup();
         try {
             GradleHandle handle = createGradleHandle();
             running.add(handle);
-            return handle;
+            return new ResultCollectingHandle(handle);
         } finally {
             reset();
         }
@@ -1067,15 +1056,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     @Override
     public final ExecutionResult run() {
-        fireBeforeExecute();
-        assertCanExecute();
-        collectStateBeforeExecution();
+        beforeBuildSetup();
         try {
             ExecutionResult result = doRun();
             if (errorsShouldAppearOnStdout()) {
                 result = new ErrorsOnStdoutScrapingExecutionResult(result);
             }
-            afterExecute.execute(this);
+            afterBuildCleanup(result);
             return result;
         } finally {
             finished();
@@ -1088,15 +1075,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     @Override
     public final ExecutionFailure runWithFailure() {
-        fireBeforeExecute();
-        assertCanExecute();
-        collectStateBeforeExecution();
+        beforeBuildSetup();
         try {
             ExecutionFailure executionFailure = doRunWithFailure();
             if (errorsShouldAppearOnStdout()) {
                 executionFailure = new ErrorsOnStdoutScrapingExecutionFailure(executionFailure);
             }
-            afterExecute.execute(this);
+            afterBuildCleanup(executionFailure);
             return executionFailure;
         } finally {
             finished();
@@ -1109,8 +1094,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
     }
 
-    private void fireBeforeExecute() {
+    private void beforeBuildSetup() {
+        for (ExecutionResult result : results) {
+            result.assertResultVisited();
+        }
         beforeExecute.execute(this);
+        assertCanExecute();
+        collectStateBeforeExecution();
+    }
+
+    private void afterBuildCleanup(ExecutionResult result) {
+        afterExecute.execute(this);
+        results.add(result);
     }
 
     protected GradleHandle createGradleHandle() {
@@ -1152,7 +1147,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     @Override
     public GradleExecuter withPartialVfsInvalidation(boolean enabled) {
-        this.usePartialVfsInvalidation = enabled;
         return this;
     }
 
@@ -1221,6 +1215,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                 }
                 int i = 0;
                 boolean insideVariantDescriptionBlock = false;
+                boolean insideKotlinCompilerFlakyStacktrace = false;
                 while (i < lines.size()) {
                     String line = lines.get(i);
                     if (insideVariantDescriptionBlock && line.contains("]")) {
@@ -1228,7 +1223,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                     } else if (!insideVariantDescriptionBlock && line.contains("variant \"")) {
                         insideVariantDescriptionBlock = true;
                     }
-                    if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
+
+                    // https://youtrack.jetbrains.com/issue/KT-29546
+                    if (line.contains("Compilation with Kotlin compile daemon was not successful")) {
+                        insideKotlinCompilerFlakyStacktrace = true;
+                        i++;
+                    } else if (insideKotlinCompilerFlakyStacktrace &&
+                        (line.contains("java.rmi.UnmarshalException") || line.contains("java.io.EOFException"))) {
+                        i++;
+                        i = skipStackTrace(lines, i);
+                    } else if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
                         // A javac warning, ignore
                         i++;
                     } else if (line.matches(".*w: .* is deprecated\\..*")) {
@@ -1486,5 +1490,67 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean errorsShouldAppearOnStdout() {
         // If stdout and stderr are attached to the console
         return consoleAttachment.isStderrAttached() && consoleAttachment.isStdoutAttached();
+    }
+
+    private class ResultCollectingHandle implements GradleHandle {
+        private final GradleHandle delegate;
+
+        public ResultCollectingHandle(GradleHandle delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public PipedOutputStream getStdinPipe() {
+            return delegate.getStdinPipe();
+        }
+
+        @Override
+        public String getStandardOutput() {
+            return delegate.getStandardOutput();
+        }
+
+        @Override
+        public String getErrorOutput() {
+            return delegate.getErrorOutput();
+        }
+
+        @Override
+        public GradleHandle abort() {
+            return delegate.abort();
+        }
+
+        @Override
+        public GradleHandle cancel() {
+            return delegate.cancel();
+        }
+
+        @Override
+        public GradleHandle cancelWithEOT() {
+            return delegate.cancelWithEOT();
+        }
+
+        @Override
+        public ExecutionResult waitForFinish() {
+            ExecutionResult result = delegate.waitForFinish();
+            results.add(result);
+            return result;
+        }
+
+        @Override
+        public ExecutionFailure waitForFailure() {
+            ExecutionFailure failure = delegate.waitForFailure();
+            results.add(failure);
+            return failure;
+        }
+
+        @Override
+        public void waitForExit() {
+            delegate.waitForExit();
+        }
+
+        @Override
+        public boolean isRunning() {
+            return delegate.isRunning();
+        }
     }
 }

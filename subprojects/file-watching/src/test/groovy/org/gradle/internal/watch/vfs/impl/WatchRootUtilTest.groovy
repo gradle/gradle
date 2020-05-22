@@ -16,9 +16,10 @@
 
 package org.gradle.internal.watch.vfs.impl
 
+import org.gradle.internal.file.FileMetadata.AccessType
+import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
-import org.gradle.internal.snapshot.FileMetadata
 import org.gradle.internal.snapshot.PathUtil
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.watch.registry.impl.WatchRootUtil
@@ -80,11 +81,11 @@ class WatchRootUtilTest extends Specification {
     }
 
     private static RegularFileSnapshot fileSnapshot(String absolutePath) {
-        new RegularFileSnapshot(absolutePath, absolutePath.substring(absolutePath.lastIndexOf('/') + 1), Hashing.md5().hashString(absolutePath), new FileMetadata(1, 1))
+        new RegularFileSnapshot(absolutePath, absolutePath.substring(absolutePath.lastIndexOf('/') + 1), Hashing.md5().hashString(absolutePath), DefaultFileMetadata.file(1, 1, AccessType.DIRECT))
     }
 
     private static CompleteDirectorySnapshot directorySnapshot(String absolutePath) {
-        new CompleteDirectorySnapshot(absolutePath, PathUtil.getFileName(absolutePath), [], Hashing.md5().hashString(absolutePath))
+        new CompleteDirectorySnapshot(absolutePath, PathUtil.getFileName(absolutePath), [], Hashing.md5().hashString(absolutePath), AccessType.DIRECT)
     }
 
     private static List<String> resolveRecursiveRoots(List<String> directories) {

@@ -56,6 +56,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
             usingExecutable('gradlew')
             withTasks('binZip')
             withArguments("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
+            withEnvironmentVars([BUILD_BRANCH: System.getProperty("gradleBuildBranch"), BUILD_COMMIT_ID: System.getProperty("gradleBuildCommitId")])
             withWarningMode(null)
         }.run()
 

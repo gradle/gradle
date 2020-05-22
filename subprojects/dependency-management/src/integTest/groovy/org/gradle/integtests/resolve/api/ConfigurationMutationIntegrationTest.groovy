@@ -164,6 +164,7 @@ configurations.compile.withDependencies { deps ->
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "provides useful error message when withDependencies action fails to execute"() {
         when:
         buildFile << """

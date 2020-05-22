@@ -84,6 +84,7 @@ public class NodeState implements DependencyGraphNode {
     private final boolean dependenciesMayChange;
     private boolean doesNotHaveDependencies;
 
+    @Nullable
     ExcludeSpec previousTraversalExclusions;
 
     // In opposite to outgoing edges, virtual edges are for now pretty rare, so they are created lazily

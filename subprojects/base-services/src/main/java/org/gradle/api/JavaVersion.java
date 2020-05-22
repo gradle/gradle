@@ -48,7 +48,6 @@ public enum JavaVersion {
      *
      * @since 6.0
      */
-    @Incubating
     VERSION_13,
 
     /**
@@ -56,7 +55,6 @@ public enum JavaVersion {
      *
      * @since 6.3
      */
-    @Incubating
     VERSION_14,
 
     /**

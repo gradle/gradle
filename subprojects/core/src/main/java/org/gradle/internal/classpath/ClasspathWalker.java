@@ -20,9 +20,10 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.archive.FileZipInput;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
-import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
@@ -34,7 +35,7 @@ import java.util.Comparator;
 /**
  * Allows the classes and resources of a classpath element such as a jar or directory to be visited.
  */
-@ServiceScope(ServiceScope.Value.UserHome)
+@ServiceScope(Scopes.UserHome)
 public class ClasspathWalker {
     private final Stat stat;
 
@@ -46,10 +47,10 @@ public class ClasspathWalker {
      * Visits the entries of the given classpath element.
      */
     public void visit(File root, ClasspathEntryVisitor visitor) throws IOException {
-        FileMetadataSnapshot snapshot = stat.stat(root);
-        if (snapshot.getType() == FileType.RegularFile) {
+        FileMetadata fileMetadata = stat.stat(root);
+        if (fileMetadata.getType() == FileType.RegularFile) {
             visitJarContents(root, visitor);
-        } else if (snapshot.getType() == FileType.Directory) {
+        } else if (fileMetadata.getType() == FileType.Directory) {
             visitDirectoryContents(root, visitor);
         }
     }
@@ -65,10 +66,10 @@ public class ClasspathWalker {
         Arrays.sort(files, Comparator.comparing(File::getName));
 
         for (File file : files) {
-            FileMetadataSnapshot snapshot = stat.stat(file);
-            if (snapshot.getType() == FileType.RegularFile) {
+            FileMetadata fileMetadata = stat.stat(file);
+            if (fileMetadata.getType() == FileType.RegularFile) {
                 visitFile(file, prefix + file.getName(), visitor);
-            } else if (snapshot.getType() == FileType.Directory) {
+            } else if (fileMetadata.getType() == FileType.Directory) {
                 visitDir(file, prefix + file.getName() + "/", visitor);
             }
         }

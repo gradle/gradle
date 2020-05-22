@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.rules
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import spock.lang.Unroll
@@ -25,6 +26,7 @@ import spock.lang.Unroll
 class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     @Unroll("#outcome if attribute is #mutation via component metadata rule")
+    @ToBeFixedForInstantExecution(iterationMatchers = ["fails.*"])
     def "check that attribute rules modify the result of dependency resolution"() {
         given:
         repository {
@@ -97,6 +99,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    @ToBeFixedForInstantExecution(iterationMatchers = [".*component level = false.*"])
     @Unroll
     def "variant attributes take precedence over component attributes (component level = #componentLevel)"() {
         given:
@@ -230,6 +233,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    @ToBeFixedForInstantExecution(iterationMatchers = [".*fix applied = false.*"])
     @Unroll
     def "published component metadata can be overwritten (fix applied = #fixApplied)"() {
         given:

@@ -213,7 +213,7 @@ include::sample[dir="snippets/java/customDirs/kotlin",files="build.gradle.kts[ta
 .Output of **`gradle -q showDirs`**
 ----
 > gradle -q showDirs
-include::{snippetsPath}/java/customDirs/javaCustomReportDirs.out[]
+include::{snippetsPath}/java/customDirs/tests/javaCustomReportDirs.out
 ----
 
 Follow the link to the convention properties for more details.
@@ -334,8 +334,6 @@ include::sample[dir="snippets/testing/junitplatform-mix/kotlin",files="build.gra
 
 In this way, you can use `gradle test` to test JUnit 3/4 tests on JUnit Platform, without the need to rewrite them.
 
-A sample of mixed tests can be found at `samples/testing/junitplatform-mix` in the '-all' distribution of Gradle.
-
 [[filtering_test_engine]]
 === Filtering test engine
 
@@ -351,8 +349,6 @@ To control specific test engine implementations explicitly, you can add the foll
 include::sample[dir="snippets/testing/junitplatform-engine/groovy",files="build.gradle[tags=filter-engine]"]
 include::sample[dir="snippets/testing/junitplatform-engine/kotlin",files="build.gradle.kts[tags=filter-engine]"]
 ====
-
-A test engine filtering sample can be found at `samples/testing/junitplatform-engine` in the '-all' distribution of Gradle.
 
 [[test_execution_order]]
 == Test execution order in TestNG
@@ -637,7 +633,7 @@ It's worth noting that if the external project is _not_ publishing Gradle Module
 .Output of **`gradle dependencyInsight --configuration functionalTestClasspath --dependency gson`**
 ----
 > gradle dependencyInsight --configuration functionalTestClasspath --dependency gson
-include::{snippetsPath}/java/fixtures/dependencyInsight.out[]
+include::{snippetsPath}/java/fixtures/tests/dependencyInsight.out
 ----
 
 The error message mentions the missing `com.google.code.gson:gson-test-fixtures` capability, which is indeed not defined for this library.

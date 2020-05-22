@@ -16,6 +16,8 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.internal.DocumentationRegistry
+
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.buildConsoleSummary
 
@@ -40,7 +42,7 @@ class InstantExecutionError internal constructor(
     error: String,
     cause: Throwable? = null
 ) : Exception(
-    "Instant execution state could not be cached: $error",
+    "Configuration cache state could not be cached: $error",
     cause
 ), InstantExecutionThrowable
 
@@ -55,22 +57,35 @@ sealed class InstantExecutionException private constructor(
 open class InstantExecutionProblemsException : InstantExecutionException {
 
     protected
+    object Documentation {
+
+        val ignoreProblems: String
+            get() = DocumentationRegistry().getDocumentationFor("configuration_cache", "ignore_problems")
+
+        val maxProblems: String
+            get() = DocumentationRegistry().getDocumentationFor("configuration_cache", "max_problems")
+    }
+
+    protected
     constructor(
         message: String,
+        causes: List<Throwable>,
         problems: List<PropertyProblem>,
         htmlReportFile: File
     ) : super(
         { "$message\n${buildConsoleSummary(problems, htmlReportFile)}" },
-        problems.mapNotNull(PropertyProblem::exception)
+        causes
     )
 
     internal
     constructor(
+        causes: List<Throwable>,
         problems: List<PropertyProblem>,
         htmlReportFile: File
     ) : this(
-        "Instant execution problems found in this build.\n" +
-            "Failing because -D${SystemProperties.failOnProblems} is 'true'.",
+        "Configuration cache problems found in this build.\n" +
+            "Gradle can be made to ignore these problems, see ${Documentation.ignoreProblems}.",
+        causes,
         problems,
         htmlReportFile
     )
@@ -78,11 +93,13 @@ open class InstantExecutionProblemsException : InstantExecutionException {
 
 
 class TooManyInstantExecutionProblemsException internal constructor(
+    causes: List<Throwable>,
     problems: List<PropertyProblem>,
     htmlReportFile: File
 ) : InstantExecutionProblemsException(
-    "Maximum number of instant execution problems has been reached.\n" +
-        "This behavior can be adjusted via -D${SystemProperties.maxProblems}=<integer>.",
+    "Maximum number of configuration cache problems has been reached.\n" +
+        "This behavior can be adjusted, see ${Documentation.maxProblems}.",
+    causes,
     problems,
     htmlReportFile
 )

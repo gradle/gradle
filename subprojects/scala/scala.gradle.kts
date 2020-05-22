@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 plugins {
     gradlebuild.distribution.`plugins-api-java`
@@ -35,6 +36,7 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":reporting"))
     implementation(project(":dependencyManagement"))
+    implementation(project(":processServices"))
 
     implementation(library("groovy"))
     implementation(library("guava"))
@@ -42,7 +44,6 @@ dependencies {
 
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(project(":files"))
-    testImplementation(project(":processServices"))
     testImplementation(project(":resources"))
     testImplementation(library("slf4j_api"))
     testImplementation(library("commons_io"))
@@ -69,3 +70,5 @@ classycle {
 tasks.named<Test>("integTest") {
     jvmArgs("-XX:MaxPermSize=1500m") // AntInProcessScalaCompilerIntegrationTest needs lots of permgen
 }
+
+integrationTestUsesSampleDir("subprojects/scala/src/main")

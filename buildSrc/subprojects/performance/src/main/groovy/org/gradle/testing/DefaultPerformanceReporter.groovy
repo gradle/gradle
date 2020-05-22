@@ -42,6 +42,8 @@ class DefaultPerformanceReporter implements PerformanceReporter {
 
     String githubToken
 
+    String commitId
+
     @Inject
     DefaultPerformanceReporter(ProcessOperations processOperations, FileOperations fileOperations) {
         this.processOperations = processOperations
@@ -62,6 +64,11 @@ class DefaultPerformanceReporter implements PerformanceReporter {
                 spec.systemProperties(performanceTest.databaseParameters)
                 spec.systemProperty("org.gradle.performance.execution.channel", performanceTest.channel)
                 spec.systemProperty("org.gradle.performance.execution.branch", performanceTest.branchName)
+
+                // For org.gradle.performance.util.Git
+                spec.systemProperty("gradleBuildBranch", performanceTest.branchName)
+                spec.systemProperty("gradleBuildCommitId", commitId)
+
                 spec.systemProperty("githubToken", githubToken)
                 spec.setClasspath(performanceTest.classpath)
 

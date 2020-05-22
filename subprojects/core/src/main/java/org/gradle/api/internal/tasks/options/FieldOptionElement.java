@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.options;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.model.internal.type.ModelType;
 
@@ -135,7 +136,7 @@ public class FieldOptionElement {
 
         @Override
         public void setValue(Object target, Object value) {
-            Property property = (Property) JavaMethod.of(Object.class, getter).invoke(target);
+            Property<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getter).invoke(target));
             property.set(value);
         }
     }

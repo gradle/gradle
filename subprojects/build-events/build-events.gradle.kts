@@ -36,6 +36,7 @@ dependencies {
     integTestImplementation(project(":logging")) {
         because("This isn't declared as part of integtesting's API, but should be as logging's classes are in fact visible on the API")
     }
+    integTestImplementation(project(":buildOption"))
 
     integTestRuntimeOnly(project(":runtimeApiInfo"))
     integTestRuntimeOnly(project(":toolingApiBuilders")) {

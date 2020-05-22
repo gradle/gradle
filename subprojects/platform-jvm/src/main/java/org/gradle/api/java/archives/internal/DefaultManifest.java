@@ -142,25 +142,25 @@ public class DefaultManifest implements ManifestInternal {
     }
 
     private static void addMainAttributesToJavaManifest(org.gradle.api.java.archives.Manifest gradleManifest, Manifest javaManifest) {
-        for (Map.Entry<String, Object> entry : gradleManifest.getAttributes().entrySet()) {
-            String mainAttributeName = entry.getKey();
-            String mainAttributeValue = resolveValueToString(entry.getValue());
-            javaManifest.getMainAttributes().putValue(mainAttributeName, mainAttributeValue);
-        }
+        fillAttributes(gradleManifest.getAttributes(), javaManifest.getMainAttributes());
     }
 
     private static void addSectionAttributesToJavaManifest(org.gradle.api.java.archives.Manifest gradleManifest, Manifest javaManifest) {
         for (Map.Entry<String, Attributes> entry : gradleManifest.getSections().entrySet()) {
             String sectionName = entry.getKey();
-            java.util.jar.Attributes sectionAttributes = new java.util.jar.Attributes();
-            for (Map.Entry<String, Object> attribute : entry.getValue().entrySet()) {
-                String attributeName = attribute.getKey();
-                String attributeValue = resolveValueToString(attribute.getValue());
-                if (attributeValue != null) {
-                    sectionAttributes.putValue(attributeName, attributeValue);
-                }
+            java.util.jar.Attributes targetAttributes = new java.util.jar.Attributes();
+            fillAttributes(entry.getValue(), targetAttributes);
+            javaManifest.getEntries().put(sectionName, targetAttributes);
+        }
+    }
+
+    private static void fillAttributes(Attributes attributes, java.util.jar.Attributes targetAttributes) {
+        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+            String mainAttributeName = entry.getKey();
+            String mainAttributeValue = resolveValueToString(entry.getValue());
+            if (mainAttributeValue != null) {
+                targetAttributes.putValue(mainAttributeName, mainAttributeValue);
             }
-            javaManifest.getEntries().put(sectionName, sectionAttributes);
         }
     }
 
