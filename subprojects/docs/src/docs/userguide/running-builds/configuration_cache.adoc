@@ -150,9 +150,9 @@ The following sections describe each of the constraints and how to change your b
 There are a number of types that task instances must not reference from their fields.
 Usually these types are used to carry some task input that should be explicitly declared instead.
 
-To fix: you can often replace such a field with a `Property` or `Provider` typed field that exposes the exact information that the task will need at execution time.
+To fix, you can often replace such a field with a `Property` or `Provider` typed field that exposes the exact information that the task will need at execution time.
 
-TODO - examples, more details
+// TODO - examples, more details
 
 [[use_project_during_execution]]
 === Using the `Project` object
@@ -160,16 +160,20 @@ TODO - examples, more details
 A task must not use any `Project` objects at execution time.
 This includes calling `Task.getProject()` while the task is running.
 
-to fix: some cases can be fixed in the same way as the previous constraint.
+Some cases can be fixed in the same way as the previous constraint.
 
-to fix: use <<custom_gradle_types#service_injection,injected services>> instead of the methods of `Project`.
+Otherwise, to fix, use <<custom_gradle_types#service_injection,injected services>> instead of the methods of `Project`:
 
-* `project.file()` -> `ProjectLayout`
-* `project.files()` / `project.fileTree()` -> `ObjectFactory`
-* `project.exec {}` / `project.javaexec {}` -> `ExecOperations`
-* `project.copy {}` / `project.sync {}` / `project.delete {}` -> `FileSystemOperations`
+* `project.file(path)` -> `ProjectLayout.projectDirectory.file(path)` or `ProjectLayout.buildDirectory.file(path)
+* `project.files(paths)` -> `ObjectFactory.fileCollection().from(paths)`
+* `project.fileTree(dir)` -> `ObjectFactory.fileTree().from(dir)`
+* `project.exec {}`  -> `ExecOperations.exec {}`
+* `project.javaexec {}` -> `ExecOperations.javaexec {}`
+* `project.copy {}` -> `FileSystemOperations.copy {}`
+* `project.sync {}` -> `FileSystemOperations.sync {}`
+* `project.delete {}` -> `FileSystemOperations.delete {}`
 
-TODO - examples, more details
+// TODO - examples, more details
 
 [[task_access]]
 === Accessing a task instance from another instance
@@ -177,23 +181,24 @@ TODO - examples, more details
 Tasks should not directly access the state of another instance.
 Instead, tasks should be connected using inputs and outputs.
 
-to fix: connect tasks using input and output relationships. `Property` and `Provider` types can be useful for this.
+To fix, connect tasks using input and output relationships.
+`Property` and `Provider` types can be useful for this.
 
-TODO - examples, more details
+// TODO - examples, more details
 
 [[build_listeners]]
 === Using build listeners
 
 Plugins and build scripts must not register any build listeners.
 
-to fix: use a <<build_services#build_services,build service>>.
+To fix, use a <<build_services#build_services,build service>>.
 
-TODO - examples
+// TODO - examples, more details
 
 [[undeclared_sys_prop_read]]
 === Undeclared reading of system properties
 
-Plugins and build scripts should not read system properties directly using the Java APIs.
+Plugins and build scripts should not read system properties directly using the Java APIs at configuration time.
 Instead, these system properties must be declared as a potential build input by using the value supplier APIs.
 
 This problem is caused by build logic similar to this:
@@ -246,7 +251,7 @@ Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradl
 [[undeclared_env_var_read]]
 === Undeclared reading of environment variables
 
-Plugins and build scripts should not read environment variables directly using the Java APIs.
+Plugins and build scripts should not read environment variables directly using the Java APIs at configuration time.
 Instead, declare environment variables as potential build inputs using the value supplier APIs.
 
 This problem is caused by build logic similar to this:
