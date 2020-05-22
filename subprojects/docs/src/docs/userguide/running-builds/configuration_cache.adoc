@@ -21,8 +21,8 @@ This feature is currently experimental and not enabled by default.
 
 === How does it work?
 
-When the configuration cache is enabled and you run Gradle for a particular set of tasks, for example by running `gradlew check`, Gradle checks whether a configuration cache entry is available for
-the requested set of tasks. If available, Gradle uses this entry instead of running the configuration phase.
+When the configuration cache is enabled and you run Gradle for a particular set of tasks, for example by running `gradlew check`, Gradle checks whether a configuration cache entry is available for the requested set of tasks.
+If available, Gradle uses this entry instead of running the configuration phase.
 The cache entry contains information about the set of tasks to run, along with their configuration and dependency information.
 
 The first time you run a particular set of tasks, there will be no entry in the configuration cache for these tasks and so Gradle will run the configuration phase as normal:
@@ -33,11 +33,11 @@ The first time you run a particular set of tasks, there will be no entry in the 
 4. Run the builds scripts for the build, applying any requested project plugins.
 5. Calculate the task graph for the requested tasks, running any deferred configuration actions.
 
-Following the configuration phase, Gradle writes the state of the task graph to the configuration cache, taking a snapshot for later Gradle invocations. The execution phase then runs as normal.
+Following the configuration phase, Gradle writes the state of the task graph to the configuration cache, taking a snapshot for later Gradle invocations.
+The execution phase then runs as normal.
 This means you will not see any build performance improvement the first time you run a particular set of tasks.
 
-When you subsequently run Gradle with this same set of tasks, for example by running `gradlew check` again, Gradle will load the tasks and their configuration directly from the configuration cache
-and skip the configuration phase entirely.
+When you subsequently run Gradle with this same set of tasks, for example by running `gradlew check` again, Gradle will load the tasks and their configuration directly from the configuration cache and skip the configuration phase entirely.
 Before using a configuration cache entry, Gradle checks that none of the "build inputs", such as build scripts, for the entry have changed.
 If a build input has changed, Gradle will not use the entry and will run the configuration phase again as above, saving the result for later reuse.
 
@@ -60,7 +60,8 @@ Apart from skipping the configuration phase, the configuration cache provides so
 [[enable]]
 === Enabling the configuration cache
 
-By default, the configuration cache is not enabled. It can be enabled from the command line:
+By default, the configuration cache is not enabled.
+It can be enabled from the command line:
 
 [source,bash]
 ----
@@ -121,16 +122,16 @@ org.gradle.unsafe.configuration-cache.max-problems=5
 
 == Constraints
 
-In order to capture the state of the task graph to the configuration cache and reload it again in a later build, Gradle applies certain constraints to tasks and other
-build logic. Each of these constraints is treated as a configuration cache "problem" and fail the build if violations are present.
+In order to capture the state of the task graph to the configuration cache and reload it again in a later build, Gradle applies certain constraints to tasks and other build logic.
+Each of these constraints is treated as a configuration cache "problem" and fail the build if violations are present.
 
 The following sections describe each of the constraints and how to change your build to fix the problems.
 
 [[disallowed_types]]
 === Certain types must not be referenced by tasks
 
-There are a number of types that task instances must not reference from their fields. Usually these types are used to carry some task input that should be explicitly
-declared instead.
+There are a number of types that task instances must not reference from their fields.
+Usually these types are used to carry some task input that should be explicitly declared instead.
 
 To fix: you can often replace such a field with a `Property` or `Provider` typed field that exposes the exact information that the task will need at execution time.
 
@@ -139,7 +140,8 @@ TODO - examples, more details
 [[use_project_during_execution]]
 === Using the `Project` object
 
-A task must not use any `Project` objects at execution time. This includes calling `Task.getProject()` while the task is running.
+A task must not use any `Project` objects at execution time.
+This includes calling `Task.getProject()` while the task is running.
 
 to fix: some cases can be fixed in the same way as the previous constraint.
 
@@ -150,7 +152,8 @@ TODO - examples, more details
 [[task_access]]
 === Accessing a task instance from another instance
 
-Tasks should not directly access the state of another instance. Instead, tasks should be connected using inputs and outputs.
+Tasks should not directly access the state of another instance.
+Instead, tasks should be connected using inputs and outputs.
 
 to fix: connect tasks using input and output relationships. `Property` and `Provider` types can be useful for this.
 
@@ -168,8 +171,8 @@ TODO - examples
 [[undeclared_sys_prop_read]]
 === Undeclared reading of system properties
 
-Plugins and build scripts should not read system properties directly using the Java APIs. Instead, these system properties must be declared as a potential build input by
-using the value supplier APIs.
+Plugins and build scripts should not read system properties directly using the Java APIs.
+Instead, these system properties must be declared as a potential build input by using the value supplier APIs.
 
 To fix: before:
 
@@ -189,8 +192,8 @@ Instead, you can connect the `Provider` returned by `providers.systemProperty()`
 [[undeclared_env_var_read]]
 === Reading environment variables
 
-Plugins and build scripts should not read environment variables directly using the Java APIs. Instead, declare environment variables as potential build inputs using the
-value supplier APIs.
+Plugins and build scripts should not read environment variables directly using the Java APIs.
+Instead, declare environment variables as potential build inputs using the value supplier APIs.
 
 to fix: use `providers.environmentVariable(x)`
 
@@ -199,8 +202,8 @@ TODO - examples, more details
 [[undeclared_file_read]]
 === Reading files at configuration time
 
-Plugins and build scripts should not read files directly using the Java APIs. Instead, declare files as potential build inputs using the
-value supplier APIs.
+Plugins and build scripts should not read files directly using the Java APIs.
+Instead, declare files as potential build inputs using the value supplier APIs.
 
 to fix: use `providers.fileContents(x)`
 
@@ -209,7 +212,8 @@ TODO - examples, more details
 [[not_yet_implemented]]
 == Not yet implemented
 
-Support for using configuration caching with certain Gradle features is not yet implemented. Support for these features will be added in later Gradle releases.
+Support for using configuration caching with certain Gradle features is not yet implemented.
+Support for these features will be added in later Gradle releases.
 
 - Composite builds
 
@@ -240,6 +244,11 @@ When gradually improving your plugin or build logic to support the configuration
 
 == Troubleshooting
 
-Upon failure to serialize the state required to run the tasks, an HTML report of detected problems is generated. The Gradle failure output includes a clickable link to the report.
+Upon failure to serialize the state required to run the tasks, an HTML report of detected problems is generated.
+The Gradle failure output includes a clickable link to the report.
 
-The report displays the set of problems twice. First grouped by error message, then grouped by task. The former allows to quickly see what classes of problems your build is facing. The latter allows to quickly see which tasks are problematic. In both cases you can expand the tree in order to discover where in the object graph is the culprit.
+The report displays the set of problems twice.
+First grouped by error message, then grouped by task.
+The former allows to quickly see what classes of problems your build is facing.
+The latter allows to quickly see which tasks are problematic.
+In both cases you can expand the tree in order to discover where in the object graph is the culprit.
