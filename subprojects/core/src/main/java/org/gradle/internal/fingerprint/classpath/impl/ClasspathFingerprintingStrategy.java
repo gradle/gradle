@@ -20,10 +20,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.ManifestFileZipEntryHasher;
+import org.gradle.api.internal.changedetection.state.PropertiesFileZipEntryHasher;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
+import org.gradle.api.internal.changedetection.state.MetaInfAwareClasspathResourceHasher;
 import org.gradle.api.internal.changedetection.state.ZipHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.FileType;
@@ -73,14 +76,14 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     private final StringInterner stringInterner;
     private final HashCode zipHasherConfigurationHash;
 
-    private ClasspathFingerprintingStrategy(String identifier, NonJarFingerprintingStrategy nonZipFingerprintingStrategy, ResourceHasher classpathResourceHasher, ClasspathResourceFilters classpathResourceFilters, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
+    private ClasspathFingerprintingStrategy(String identifier, NonJarFingerprintingStrategy nonZipFingerprintingStrategy, ResourceHasher classpathResourceHasher, ResourceFilter classpathResourceFilter, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
         super(identifier);
         this.nonZipFingerprintingStrategy = nonZipFingerprintingStrategy;
-        this.classpathResourceFilter = classpathResourceFilters.getResourceFilter();
+        this.classpathResourceFilter = classpathResourceFilter;
         this.classpathResourceHasher = classpathResourceHasher;
         this.cacheService = cacheService;
         this.stringInterner = stringInterner;
-        this.zipHasher = new ZipHasher(classpathResourceHasher, classpathResourceFilter, classpathResourceFilters.getManifestAttributeEntryFilter(), classpathResourceFilters.getManifestPropertyEntryFilter());
+        this.zipHasher = new ZipHasher(classpathResourceHasher, classpathResourceFilter);
 
         Hasher hasher = Hashing.newHasher();
         zipHasher.appendConfigurationToHasher(hasher);
@@ -88,11 +91,19 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     }
 
     public static ClasspathFingerprintingStrategy runtimeClasspath(ClasspathResourceFilters classpathResourceFilters, RuntimeClasspathResourceHasher runtimeClasspathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        return new ClasspathFingerprintingStrategy("CLASSPATH", USE_FILE_HASH, runtimeClasspathResourceHasher, classpathResourceFilters, cacheService, stringInterner);
+        return new ClasspathFingerprintingStrategy("CLASSPATH", USE_FILE_HASH, metaInfAwareClasspathResourceHasher(runtimeClasspathResourceHasher, classpathResourceFilters), classpathResourceFilters.getResourceFilter(), cacheService, stringInterner);
     }
 
     public static ClasspathFingerprintingStrategy compileClasspath(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        return new ClasspathFingerprintingStrategy("COMPILE_CLASSPATH", IGNORE, classpathResourceHasher, ClasspathResourceFilters.NONE, cacheService, stringInterner);
+        return new ClasspathFingerprintingStrategy("COMPILE_CLASSPATH", IGNORE, classpathResourceHasher, ResourceFilter.FILTER_NOTHING, cacheService, stringInterner);
+    }
+
+    private static ResourceHasher metaInfAwareClasspathResourceHasher(ResourceHasher resourceHasher, ClasspathResourceFilters classpathResourceFilters) {
+        return new MetaInfAwareClasspathResourceHasher(
+            resourceHasher,
+            new ManifestFileZipEntryHasher(classpathResourceFilters.getManifestAttributeEntryFilter()),
+            new PropertiesFileZipEntryHasher(classpathResourceFilters.getManifestPropertyEntryFilter())
+        );
     }
 
     @Override
