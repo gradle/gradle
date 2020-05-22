@@ -239,14 +239,57 @@ In general, you should avoid reading the value of system properties at configura
 Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#systemProperty-java.lang.String-[providers.systemProperty()] to task properties.
 
 [[undeclared_env_var_read]]
-=== Reading environment variables
+=== Undeclared reading of environment variables
 
 Plugins and build scripts should not read environment variables directly using the Java APIs.
 Instead, declare environment variables as potential build inputs using the value supplier APIs.
 
-to fix: use `providers.environmentVariable(x)`
+This problem is caused by build logic similar to this:
 
-TODO - examples, more details
+.Read environment variables directly using the Java API
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
+----
+def enabled = System.getenv("SOME_ENV_VAR")
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source, kotlin]
+----
+val enabled = System.getenv("SOME_ENV_VAR")
+----
+=====
+====
+
+To fix this problem, read environment variables using link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#environmentVariable-java.lang.String-[providers.environmentVariable()] instead:
+
+.Read environment variables using the value supplier API
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
+----
+def enabled = providers.environmentVariable("SOME_ENV_VAR").forUseAtConfigurationTime().present
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source, kotlin]
+----
+val enabled = providers.environmentVariable("SOME_ENV_VAR").forUseAtConfigurationTime().isPresent
+----
+=====
+====
+
+In general, you should avoid reading the value of environment variables at configuration time, to avoid invalidating configuration cache entries when the environment variable value changes.
+Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#environmentVariable-java.lang.String-[providers.environmentVariable()] to task properties.
 
 [[undeclared_file_read]]
 === Reading files at configuration time
