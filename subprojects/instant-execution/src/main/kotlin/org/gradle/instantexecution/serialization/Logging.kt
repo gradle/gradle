@@ -38,7 +38,12 @@ fun IsolateContext.logPropertyInfo(action: String, value: Any?) {
 }
 
 
-fun IsolateContext.logUnsupported(action: String, baseType: KClass<*>, actualType: Class<*>) {
+fun IsolateContext.logUnsupported(
+    action: String,
+    baseType: KClass<*>,
+    actualType: Class<*>,
+    documentationSection: String = "disallowed_types"
+) {
     logPropertyProblem(action, PropertyProblem(trace,
         build {
             text("cannot ")
@@ -48,11 +53,15 @@ fun IsolateContext.logUnsupported(action: String, baseType: KClass<*>, actualTyp
             text(", a subtype of ")
             reference(baseType)
             text(", as these are not supported with the configuration cache.")
-        }, null, "disallowed_types"))
+        }, null, documentationSection))
 }
 
 
-fun IsolateContext.logUnsupported(action: String, baseType: KClass<*>) {
+fun IsolateContext.logUnsupported(
+    action: String,
+    baseType: KClass<*>,
+    documentationSection: String = "disallowed_types"
+) {
     logPropertyProblem(action, PropertyProblem(trace,
         build {
             text("cannot ")
@@ -60,7 +69,7 @@ fun IsolateContext.logUnsupported(action: String, baseType: KClass<*>) {
             text(" object of type ")
             reference(baseType)
             text(" as these are not supported with the configuration cache.")
-        }, null, "disallowed_types"))
+        }, null, documentationSection))
 }
 
 
