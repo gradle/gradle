@@ -8,9 +8,9 @@ The configuration cache is an <<feature_lifecycle.adoc#feature_lifecycle,incubat
 
 == Introduction
 
-The configuration cache is a feature that significantly improves build performance by caching the result of the configuration phase and reusing this for subsequent builds.
+The configuration cache is a feature that significantly improves build performance by caching the result of the <<build_lifecycle#build_lifecycle,configuration phase>> and reusing this for subsequent builds.
 Using the configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration, such as build scripts, has changed.
-Gradle also applies some performance improvements to task execution as well. (TODO - link to build lifecycle reference)
+Gradle also applies some performance improvements to task execution as well.
 
 The configuration cache is conceptually similar to the build cache, but caches different information.
 The build cache takes care of caching the outputs and intermediate files of the build, such as task outputs or artifact transform outputs.
