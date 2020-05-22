@@ -239,6 +239,7 @@ When it comes to link:https://gradle.com/build-scans/[build scans], only the `--
 The build scan plugin is currently ignored when applied via an init script or build script, as is any configuration done via the build scan extension (server location, accept license, tags, etc).
 This means that scans will be published to the public `scans.gradle.com` instance by default.
 
+[[composite_builds]]
 === Composite builds
 
 When using the configuration cache on a <<composite_builds#composite_builds,composite build>> a problem will be reported.
@@ -308,4 +309,4 @@ The former allows to quickly see what classes of problems your build is facing.
 The latter allows to quickly see which tasks are problematic.
 In both cases you can expand the tree in order to discover where in the object graph is the culprit.
 
-Problems displayed in the report have links to the corresponding <<configuration_cache#constraints,constraint>> above where you can find guidance on how to fix the problem.
+Problems displayed in the report have links to the corresponding <<configuration_cache#constraints,constraint>> where you can find guidance on how to fix the problem or to the corresponding <<configuration_cache#not_yet_implemented,not yet implemented>> feature.
