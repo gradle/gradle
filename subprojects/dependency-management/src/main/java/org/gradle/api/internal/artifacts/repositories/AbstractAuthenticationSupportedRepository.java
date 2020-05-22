@@ -77,6 +77,7 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
         delegate.credentials(credentialsType, action);
     }
 
+    @Override
     public void credentials(Class<? extends Credentials> credentialsType) {
         invalidateDescriptor();
         delegate.credentials(credentialsType, this::getName);
