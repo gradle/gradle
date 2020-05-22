@@ -120,6 +120,20 @@ or in a `gradle.properties` file:
 org.gradle.unsafe.configuration-cache.max-problems=5
 ----
 
+=== Invalidating the cache
+
+The configuration cache is automatically invalidated when inputs to the configuration phase change.
+But, you may have to manually invalidate the configuration cache when untracked inputs to the configuration phase change.
+This can happen if you <<configuration_cache#ignore_problems,ignored problems>>, or when remote dependencies changed for example, see the <<configuration_cache#not_yet_implemented>> section below for more information.
+
+The configuration cache state is stored on disk in a directory named `.gradle/configuration-cache` in the root directory of the Gradle build in use.
+If you need to invalidate the cache, simply delete that directory:
+
+[source,bash]
+----
+$ rm -rf .gradle/configuration-cache
+----
+
 
 == Constraints
 
