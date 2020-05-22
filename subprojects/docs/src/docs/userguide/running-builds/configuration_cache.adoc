@@ -160,7 +160,7 @@ to fix: connect tasks using input and output relationships. `Property` and `Prov
 TODO - examples, more details
 
 [[build_listeners]]
-== Using build listeners
+=== Using build listeners
 
 Plugins and build scripts must not register any build listeners.
 
