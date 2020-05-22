@@ -35,7 +35,7 @@ public interface RuntimeClasspathNormalization extends InputNormalization {
     /**
      * Configures the normalization strategy for the {@code META-INF} directory in archives.
      *
-     * @since 6.5
+     * @since 6.6
      */
     @Incubating
     void metaInf(Action<? super MetaInfNormalization> configuration);

@@ -21,14 +21,14 @@ import org.gradle.api.Incubating;
 /**
  * Configuration of manifest normalization.
  *
- * @since 6.5
+ * @since 6.6
  */
 @Incubating
 public interface MetaInfNormalization {
     /**
      * Ignore all files and subdirectories in the {@code META-INF} directory within archives.
      *
-     * @since 6.5
+     * @since 6.6
      */
     @Incubating
     void ignoreCompletely();
@@ -36,7 +36,7 @@ public interface MetaInfNormalization {
     /**
      * Ignore the {@code META-INF/MANIFEST.MF} file within archives.
      *
-     * @since 6.5
+     * @since 6.6
      */
     @Incubating
     void ignoreManifest();
@@ -44,7 +44,7 @@ public interface MetaInfNormalization {
     /**
      * Ignore attributes in {@code META-INF/MANIFEST.MF} within archives matching {@code name}. {@code name} is matched case-insensitively with the manifest attribute name.
      *
-     * @since 6.5
+     * @since 6.6
      */
     @Incubating
     void ignoreAttribute(String name);
@@ -52,7 +52,7 @@ public interface MetaInfNormalization {
     /**
      * Ignore keys in properties files stored in {@code META-INF} within archives matching {@code name}. {@code name} is matched case-sensitively with the property key.
      *
-     * @since 6.5
+     * @since 6.6
      */
     @Incubating
     void ignoreProperty(String name);

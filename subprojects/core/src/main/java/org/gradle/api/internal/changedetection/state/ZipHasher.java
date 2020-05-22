@@ -150,9 +150,4 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
             return FilePathUtil.getPathSegments(zipEntry.getName());
         }
     }
-
-    private interface ByteContentHasher {
-        @Nullable
-        HashCode hash(byte[] bytes) throws IOException;
-    }
 }
