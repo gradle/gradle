@@ -203,7 +203,6 @@ samples {
         }
     }
 
-
     // TODO: Do this lazily so we don't need to walk the filesystem during configuration
     // iterate through each snippets and record their names and locations
     FileFilter directoriesOnly = { it.directory }
@@ -507,6 +506,30 @@ samples {
             displayName = "Supply credentials to external tool"
             description = "Pass credentials to an external tool via stdin using Gradle properties."
             category = "Using Credentials"
+        }
+
+        compositeBuildsBasics {
+            sampleDirectory = samplesRoot.dir("build-organization/composite-builds/basic")
+            description = "Defining and using a composite build"
+            category = "Build organization"
+        }
+
+        compositeBuildsDeclaredSubstitutions {
+            sampleDirectory = samplesRoot.dir("build-organization/composite-builds/declared-substitution")
+            description = "Applying and testing changes in downstream dependencies without publishing."
+            category = "Build organization"
+        }
+
+        compositeBuildsHierarchicalMultiRepo {
+            sampleDirectory = samplesRoot.dir("build-organization/composite-builds/hierarchical-multirepo")
+            description = "Defining and using a composite build to combine multiple independent builds."
+            category = "Build organization"
+        }
+
+        compositeBuildsPluginDevelopment {
+            sampleDirectory = samplesRoot.dir("build-organization/composite-builds/plugin-dev")
+            description = "Developing a Gradle plugin in a build without publishing."
+            category = "Build organization"
         }
     }
 }

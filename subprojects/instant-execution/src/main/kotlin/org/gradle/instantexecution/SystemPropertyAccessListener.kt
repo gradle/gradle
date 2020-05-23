@@ -69,6 +69,6 @@ class SystemPropertyAccessListener(
             reference(consumer)
         }
         val exception = InvalidUserCodeException(message.toString().capitalize())
-        problems.onProblem(PropertyProblem(PropertyTrace.Unknown, message, exception, "undeclared_sys_prop_reads"))
+        problems.onProblem(PropertyProblem(PropertyTrace.Unknown, message, exception, "undeclared_sys_prop_read"))
     }
 }
