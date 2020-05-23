@@ -28,6 +28,7 @@ import org.gradle.caching.configuration.BuildCache
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.initialization.InstantExecution
+import org.gradle.instantexecution.InstantExecutionCache.CheckedFingerprint
 import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.extensions.unsafeLazy
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprintController
@@ -63,13 +64,13 @@ import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.util.IncubationLogger
 import java.io.File
 import java.io.OutputStream
-import java.nio.file.Files
 import java.util.ArrayList
 
 
 class DefaultInstantExecution internal constructor(
     private val host: Host,
     private val startParameter: InstantExecutionStartParameter,
+    private val cache: InstantExecutionCache,
     private val problems: InstantExecutionProblems,
     private val systemPropertyListener: SystemPropertyAccessListener,
     private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
@@ -103,24 +104,27 @@ class DefaultInstantExecution internal constructor(
             )
             false
         }
-        !instantExecutionFingerprintFile.isFile -> {
-            logBootstrapSummary(
-                "Calculating task graph as no configuration cache is available for tasks: {}",
-                startParameter.requestedTaskNames.joinToString(" ")
-            )
-            false
-        }
         else -> {
-            val fingerprintChangedReason = checkFingerprint()
-            when {
-                fingerprintChangedReason != null -> {
+            val checkedFingerprint = cache.useForFingerprintCheck(
+                startParameter.instantExecutionCacheKey,
+                this::checkFingerprint
+            )
+            when (checkedFingerprint) {
+                is CheckedFingerprint.NotFound -> {
                     logBootstrapSummary(
-                        "Calculating task graph as configuration cache cannot be reused because {}.",
-                        fingerprintChangedReason
+                        "Calculating task graph as no configuration cache is available for tasks: {}",
+                        startParameter.requestedTaskNames.joinToString(" ")
                     )
                     false
                 }
-                else -> {
+                is CheckedFingerprint.Invalid -> {
+                    logBootstrapSummary(
+                        "Calculating task graph as configuration cache cannot be reused because {}.",
+                        checkedFingerprint.reason
+                    )
+                    false
+                }
+                is CheckedFingerprint.Valid -> {
                     logBootstrapSummary("Reusing configuration cache.")
                     true
                 }
@@ -149,13 +153,15 @@ class DefaultInstantExecution internal constructor(
         stopCollectingCacheFingerprint()
 
         buildOperationExecutor.withStoreOperation {
-            try {
-                writeInstantExecutionFiles()
-            } catch (error: InstantExecutionError) {
-                // Invalidate state on problems that fail the build
-                invalidateInstantExecutionState()
-                problems.failingBuildDueToSerializationError()
-                throw error
+            cache.useForWrite(startParameter.instantExecutionCacheKey) { layout ->
+                try {
+                    writeInstantExecutionFiles(layout)
+                } catch (error: InstantExecutionError) {
+                    // Invalidate state on problems that fail the build
+                    invalidateInstantExecutionState(layout)
+                    problems.failingBuildDueToSerializationError()
+                    throw error
+                }
             }
         }
     }
@@ -169,21 +175,22 @@ class DefaultInstantExecution internal constructor(
         scopeRegistryListener.dispose()
 
         buildOperationExecutor.withLoadOperation {
-            readInstantExecutionState()
+            cache.useForStateLoad(startParameter.instantExecutionCacheKey) { stateFile ->
+                readInstantExecutionState(stateFile)
+            }
         }
     }
 
     private
-    fun writeInstantExecutionFiles() {
-        instantExecutionStateFile.createParentDirectories()
-        writeInstantExecutionState()
-        writeInstantExecutionCacheFingerprint()
+    fun writeInstantExecutionFiles(layout: InstantExecutionCache.Layout) {
+        writeInstantExecutionState(layout.state)
+        writeInstantExecutionCacheFingerprint(layout.fingerprint)
     }
 
     private
-    fun writeInstantExecutionState() {
+    fun writeInstantExecutionState(stateFile: File) {
         service<ProjectStateRegistry>().withLenientState {
-            withWriteContextFor(instantExecutionStateFile) {
+            withWriteContextFor(stateFile) {
                 encodeScheduledWork()
                 writeInt(0x1ecac8e)
             }
@@ -191,8 +198,8 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    fun readInstantExecutionState() {
-        withReadContextFor(instantExecutionStateFile) {
+    fun readInstantExecutionState(stateFile: File) {
+        withReadContextFor(stateFile) {
             decodeScheduledWork()
             require(readInt() == 0x1ecac8e) {
                 "corrupt state file"
@@ -247,11 +254,8 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    fun writeInstantExecutionCacheFingerprint() {
-        cacheFingerprintController.commitFingerprintTo(
-            instantExecutionFingerprintFile
-        )
-    }
+    fun writeInstantExecutionCacheFingerprint(fingerprintFile: File) =
+        cacheFingerprintController.commitFingerprintTo(fingerprintFile)
 
     private
     fun cacheFingerprintWriterContextFor(outputStream: OutputStream) =
@@ -260,14 +264,14 @@ class DefaultInstantExecution internal constructor(
         }
 
     private
-    fun checkFingerprint(): InvalidationReason? {
+    fun checkFingerprint(fingerprintFile: File): InvalidationReason? {
         loadGradleProperties()
-        return checkInstantExecutionFingerprintFile()
+        return checkInstantExecutionFingerprintFile(fingerprintFile)
     }
 
     private
-    fun checkInstantExecutionFingerprintFile(): InvalidationReason? =
-        withReadContextFor(instantExecutionFingerprintFile) {
+    fun checkInstantExecutionFingerprintFile(fingerprintFile: File): InvalidationReason? =
+        withReadContextFor(fingerprintFile) {
             withHostIsolate {
                 cacheFingerprintController.run {
                     checkFingerprint()
@@ -283,8 +287,8 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    fun invalidateInstantExecutionState() {
-        instantExecutionFingerprintFile.delete()
+    fun invalidateInstantExecutionState(layout: InstantExecutionCache.Layout) {
+        layout.fingerprint.delete()
     }
 
     private
@@ -461,30 +465,6 @@ class DefaultInstantExecution internal constructor(
     inline fun <reified T> factory() =
         host.factory(T::class.java)
 
-    private
-    fun File.createParentDirectories() {
-        Files.createDirectories(parentFile.toPath())
-    }
-
-    private
-    val instantExecutionFingerprintFile by unsafeLazy {
-        instantExecutionCacheEntryBaseDirectory.resolve("fingerprint.bin")
-    }
-
-    private
-    val instantExecutionStateFile by unsafeLazy {
-        instantExecutionCacheEntryBaseDirectory.resolve("state.bin")
-    }
-
-    private
-    val instantExecutionCacheEntryBaseDirectory by unsafeLazy {
-        absoluteFile(".gradle/configuration-cache/${startParameter.instantExecutionCacheKey}")
-    }
-
-    private
-    fun absoluteFile(path: String) =
-        File(rootDirectory, path).absoluteFile
-
     // Skip instant execution for buildSrc for now.
     // TODO Should instead collect up the inputs of its tasks and treat as task graph cache inputs
     private
@@ -498,10 +478,6 @@ class DefaultInstantExecution internal constructor(
             true -> LogLevel.INFO
             else -> LogLevel.LIFECYCLE
         }
-
-    private
-    val rootDirectory
-        get() = startParameter.rootDirectory
 }
 
 

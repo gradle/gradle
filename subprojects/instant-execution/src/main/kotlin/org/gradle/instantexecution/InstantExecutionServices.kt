@@ -57,6 +57,7 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
 
     override fun registerGradleServices(registration: ServiceRegistration) {
         registration.run {
+            add(InstantExecutionCache::class.java)
             add(InstantExecutionCacheFingerprintController::class.java)
             add(InstantExecutionHost::class.java)
             add(DefaultInstantExecution::class.java)
