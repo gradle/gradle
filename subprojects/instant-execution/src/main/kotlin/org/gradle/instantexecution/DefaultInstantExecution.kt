@@ -485,7 +485,8 @@ class DefaultInstantExecution internal constructor(
     fun absoluteFile(path: String) =
         File(rootDirectory, path).absoluteFile
 
-    // Skip instant execution for buildSrc for now. Should instead collect up the inputs of its tasks and treat as task graph cache inputs
+    // Skip instant execution for buildSrc for now.
+    // TODO Should instead collect up the inputs of its tasks and treat as task graph cache inputs
     private
     val isInstantExecutionEnabled: Boolean by unsafeLazy {
         startParameter.isEnabled && !host.currentBuild.buildSrc
@@ -504,6 +505,7 @@ class DefaultInstantExecution internal constructor(
 }
 
 
+internal
 inline fun <reified T> DefaultInstantExecution.Host.service(): T =
     service(T::class.java)
 
