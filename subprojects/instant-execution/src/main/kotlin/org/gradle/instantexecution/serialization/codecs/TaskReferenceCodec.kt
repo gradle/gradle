@@ -30,7 +30,7 @@ object TaskReferenceCodec : Codec<Task> {
         if (value === isolate.owner.delegate) {
             writeBoolean(true)
         } else {
-            logUnsupported("serialize", Task::class, value.javaClass)
+            logUnsupported("serialize", Task::class, value.javaClass, "task_access")
             writeBoolean(false)
         }
     }
@@ -39,7 +39,7 @@ object TaskReferenceCodec : Codec<Task> {
         if (readBoolean()) {
             isolate.owner.delegate as Task
         } else {
-            logUnsupported("deserialize", Task::class)
+            logUnsupported("deserialize", Task::class, "task_access")
             null
         }
 }

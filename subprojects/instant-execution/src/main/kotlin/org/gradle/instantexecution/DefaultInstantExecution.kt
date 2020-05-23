@@ -368,7 +368,7 @@ class DefaultInstantExecution internal constructor(
     suspend fun DefaultWriteContext.writeGradleState(gradle: GradleInternal) {
         withGradleIsolate(gradle) {
             if (gradle.includedBuilds.isNotEmpty()) {
-                logNotImplemented("included builds")
+                logNotImplemented("included builds", "composite_builds")
             }
             gradle.settings.buildCache.let { buildCache ->
                 write(buildCache.local)
