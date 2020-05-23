@@ -469,17 +469,17 @@ class DefaultInstantExecution internal constructor(
 
     private
     val instantExecutionFingerprintFile by unsafeLazy {
-        instantExecutionStateFile.run {
-            resolveSibling("$name.fingerprint")
-        }
+        instantExecutionCacheEntryBaseDirectory.resolve("fingerprint.bin")
     }
 
     private
     val instantExecutionStateFile by unsafeLazy {
-        val cacheDir = absoluteFile(".gradle/configuration-cache/${currentGradleVersion()}")
-        val baseName = startParameter.instantExecutionCacheKey
-        val cacheFileName = "$baseName.bin"
-        File(cacheDir, cacheFileName)
+        instantExecutionCacheEntryBaseDirectory.resolve("state.bin")
+    }
+
+    private
+    val instantExecutionCacheEntryBaseDirectory by unsafeLazy {
+        absoluteFile(".gradle/configuration-cache/${currentGradleVersion()}/${startParameter.instantExecutionCacheKey}")
     }
 
     private
