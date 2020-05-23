@@ -28,6 +28,7 @@ import org.gradle.internal.hash.HashUtil.createCompactMD5
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.GFileUtils
+import org.gradle.util.GradleVersion
 import java.io.File
 
 
@@ -81,7 +82,8 @@ class InstantExecutionStartParameter(
         // and can be used as separators: /, \, :, <, >, ", ?, *, |
         // except we also accept qualified task names with :, so colon is out.
         val cacheKey = StringBuilder()
-        requestedTaskNames.joinTo(cacheKey, separator = "/")
+        cacheKey.append(GradleVersion.current().version)
+        requestedTaskNames.joinTo(cacheKey, separator = "/", prefix = ">")
         val excludedTaskNames = startParameter.excludedTaskNames
         if (excludedTaskNames.isNotEmpty()) {
             excludedTaskNames.joinTo(cacheKey, prefix = "<", separator = "/")

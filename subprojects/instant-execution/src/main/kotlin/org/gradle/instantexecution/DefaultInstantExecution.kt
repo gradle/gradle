@@ -60,7 +60,6 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.tooling.events.OperationCompletionListener
-import org.gradle.util.GradleVersion
 import org.gradle.util.IncubationLogger
 import java.io.File
 import java.io.OutputStream
@@ -479,12 +478,8 @@ class DefaultInstantExecution internal constructor(
 
     private
     val instantExecutionCacheEntryBaseDirectory by unsafeLazy {
-        absoluteFile(".gradle/configuration-cache/${currentGradleVersion()}/${startParameter.instantExecutionCacheKey}")
+        absoluteFile(".gradle/configuration-cache/${startParameter.instantExecutionCacheKey}")
     }
-
-    private
-    fun currentGradleVersion(): String =
-        GradleVersion.current().version
 
     private
     fun absoluteFile(path: String) =
