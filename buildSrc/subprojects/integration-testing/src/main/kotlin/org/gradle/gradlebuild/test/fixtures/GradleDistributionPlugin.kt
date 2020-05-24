@@ -142,6 +142,11 @@ open class GradleDistributionPlugin : Plugin<Project> {
                     }
                 }
             }
+            tasks.register<RunEmbeddedGradle>("runDevGradle") {
+                group = "verification"
+                description = "Runs an embedded Gradle using the partial distribution for ${project.path}."
+                gradleClasspath.from(coreRuntimeClasspath, partialDistributionPluginsClasspath)
+            }
         }
     }
 
