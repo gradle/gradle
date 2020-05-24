@@ -64,7 +64,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         executer.requireOwnGradleUserHomeDir()
         mavenHttpRepository.module("org", "foo", '1.0').publish().allowAll()
 
-        file('init.gradle') << """
+        def initScript = file('init.gradle') << """
             logger.warn 'from init.gradle'
         """
         settingsFile << """
@@ -108,20 +108,20 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 
         then:
 
-        def applyInitScriptProgress = operations.only('Apply script init.gradle to build').progress
+        def applyInitScriptProgress = operations.only("Apply initialization script '$initScript' to build").progress
         applyInitScriptProgress.size() == 1
         applyInitScriptProgress[0].details.logLevel == 'WARN'
         applyInitScriptProgress[0].details.category == 'org.gradle.api.Script'
         applyInitScriptProgress[0].details.message == 'from init.gradle'
 
-        def applySettingsScriptProgress = operations.only(Pattern.compile('Apply script settings.gradle .*')).progress
+        def applySettingsScriptProgress = operations.only("Apply settings file '$settingsFile' to settings '$testDirectory.name'").progress
         applySettingsScriptProgress.size() == 1
         applySettingsScriptProgress[0].details.logLevel == 'QUIET'
         applySettingsScriptProgress[0].details.category == 'system.out'
         applySettingsScriptProgress[0].details.spans[0].styleName == 'Normal'
         applySettingsScriptProgress[0].details.spans[0].text == "from settings file${getPlatformLineSeparator()}"
 
-        def applyBuildScriptProgress = operations.only("Apply script build.gradle to root project 'root'").progress
+        def applyBuildScriptProgress = operations.only("Apply build file '$buildFile' to root project 'root'").progress
         applyBuildScriptProgress.size() == 1
         applyBuildScriptProgress[0].details.logLevel == 'LIFECYCLE'
         applyBuildScriptProgress[0].details.category == 'org.gradle.api.Project'
@@ -201,7 +201,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         succeeds("all")
 
         then:
-        10.times {  projectCount ->
+        10.times { projectCount ->
             def allExecutionOp = operations.only("Execute doLast {} action for :project-${projectCount}:all")
             def allExecutionOpTaskProgresses = allExecutionOp.progress
 

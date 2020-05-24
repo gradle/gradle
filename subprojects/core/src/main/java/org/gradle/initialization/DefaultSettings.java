@@ -61,7 +61,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     private ProjectDescriptor defaultProjectDescriptor;
 
-    private GradleInternal gradle;
+    private final GradleInternal gradle;
 
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope baseClassLoaderScope;

@@ -52,7 +52,7 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForInstantExecution
     def "captures lifecycle operations"() {
         given:
-        file('buildSrc/buildSrcWhenReady.gradle') << ""
+        def buildSrcWhenReady = file('buildSrc/buildSrcWhenReady.gradle') << ""
         file('buildSrc/build.gradle') << """
             gradle.taskGraph.whenReady {
                 project(':').apply from: 'buildSrcWhenReady.gradle'
@@ -63,7 +63,7 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
             rootProject.name = 'included-build'
         """
 
-        file('included-build/includedWhenReady.gradle') << ""
+        def includedWhenReady = file('included-build/includedWhenReady.gradle') << ""
         file('included-build/build.gradle') << """
             apply plugin: AcmePlugin
 
@@ -86,9 +86,9 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         """
 
         file("foo/build.gradle")
-        file("foo/before.gradle") << ""
-        file("foo/after.gradle") << ""
-        file("foo/whenReady.gradle") << ""
+        def before = file("foo/before.gradle") << ""
+        def after = file("foo/after.gradle") << ""
+        def whenReady = file("foo/whenReady.gradle") << ""
         buildFile << """
             project(':foo').beforeEvaluate {
                 project(':foo').apply from: 'before.gradle'
@@ -114,34 +114,34 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         with(operations.only(NotifyProjectBeforeEvaluatedBuildOperationType, { it.details.projectPath == ':foo' })) {
             displayName == 'Notify beforeEvaluate listeners of :foo'
             children*.displayName == ["Execute Project.beforeEvaluate listener"]
-            children.first().children*.displayName == ["Apply script before.gradle to project ':foo'"]
+            children.first().children*.displayName == ["Apply script '${before}' to project ':foo'"]
             parentId == configOp.id
         }
         with(operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':foo' })) {
             displayName == 'Notify afterEvaluate listeners of :foo'
             children*.displayName == ["Execute Project.afterEvaluate listener"]
-            children.first().children*.displayName == ["Apply script after.gradle to project ':foo'"]
+            children.first().children*.displayName == ["Apply script '$after' to project ':foo'"]
             parentId == configOp.id
         }
 
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':buildSrc' })) {
             displayName == 'Notify task graph whenReady listeners (:buildSrc)'
             children*.displayName == ["Execute TaskExecutionGraph.whenReady listener"]
-            children.first().children*.displayName == ["Apply script buildSrcWhenReady.gradle to project ':buildSrc'"]
+            children.first().children*.displayName == ["Apply script '$buildSrcWhenReady' to project ':buildSrc'"]
             parentId == operations.first("Calculate task graph (:buildSrc)").id
         }
 
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':included-build' })) {
             displayName == 'Notify task graph whenReady listeners (:included-build)'
             children*.displayName == ["Execute TaskExecutionGraph.whenReady listener"]
-            children.first().children*.displayName == ["Apply script includedWhenReady.gradle to project ':included-build'"]
+            children.first().children*.displayName == ["Apply script '$includedWhenReady' to project ':included-build'"]
             parentId == operations.first("Calculate task graph (:included-build)").id
         }
 
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':' })) {
             displayName == 'Notify task graph whenReady listeners'
             children*.displayName == ["Execute TaskExecutionGraph.whenReady listener"]
-            children.first().children*.displayName == ["Apply script whenReady.gradle to project ':foo'"]
+            children.first().children*.displayName == ["Apply script '$whenReady' to project ':foo'"]
             parentId == operations.first("Calculate task graph").id
         }
 

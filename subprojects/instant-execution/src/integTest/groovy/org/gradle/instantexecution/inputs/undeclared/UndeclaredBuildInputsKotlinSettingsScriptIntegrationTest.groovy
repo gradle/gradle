@@ -18,6 +18,11 @@ package org.gradle.instantexecution.inputs.undeclared
 
 class UndeclaredBuildInputsKotlinSettingsScriptIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
+    String getLocation() {
+        return "settings file '$settingsKotlinFile'"
+    }
+
+    @Override
     void buildLogicApplication(SystemPropertyRead read) {
         settingsKotlinFile << """
             println("apply = " + ${read.kotlinExpression})

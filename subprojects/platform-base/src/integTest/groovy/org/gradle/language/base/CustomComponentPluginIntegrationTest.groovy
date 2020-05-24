@@ -286,7 +286,7 @@ BUILD SUCCESSFUL"""
 
         then:
         failure.assertHasDescription "A problem occurred evaluating root project 'custom-component'."
-        failure.assertHasCause "Failed to apply plugin [class 'MySamplePlugin']"
+        failure.assertHasCause "Failed to apply plugin class 'MySamplePlugin'"
         failure.assertHasCause '''Type MySamplePlugin is not a valid rule source:
 - Method register(org.gradle.platform.base.TypeBuilder<SampleComponent>, java.lang.String) is not a valid rule method: A method annotated with @ComponentType must have a single parameter of type org.gradle.platform.base.TypeBuilder.'''
     }

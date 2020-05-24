@@ -140,7 +140,7 @@ model {
         fails "tasks"
 
         and:
-        failure.assertHasCause("Failed to apply plugin [class 'MyPlugin']")
+        failure.assertHasCause("Failed to apply plugin class 'MyPlugin'")
         failure.assertHasCause('''Type MyPlugin.Rules is not a valid rule source:
 - Enclosed classes must be static and non private
 - Cannot declare a constructor that takes arguments''')
@@ -171,7 +171,7 @@ model {
         fails "tasks"
 
         and:
-        failure.assertHasCause("Failed to apply plugin [class 'MyOtherPlugin']")
+        failure.assertHasCause("Failed to apply plugin class 'MyOtherPlugin'")
         failure.assertHasCause("Cannot create 'string' using creation rule 'MyOtherPlugin.Rules#string()' as the rule 'MyPlugin.Rules#string()' is already registered to create this model element.")
     }
 
@@ -211,7 +211,7 @@ model {
         fails "loadPlugin"
 
         and:
-        failure.assertHasCause("Failed to apply plugin [class 'MyOtherPlugin']")
+        failure.assertHasCause("Failed to apply plugin class 'MyOtherPlugin'")
         failure.assertHasCause("Cannot create 'string' using creation rule 'MyOtherPlugin.Rules#string()' as the rule 'MyPlugin.Rules#string()' has already been used to create this model element.")
     }
 

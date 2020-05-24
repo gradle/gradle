@@ -22,6 +22,11 @@ import spock.lang.Ignore
 
 class UndeclaredBuildInputsKotlinBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
+    String getLocation() {
+        return "plugin class 'SneakyPlugin'"
+    }
+
+    @Override
     void buildLogicApplication(SystemPropertyRead read) {
         file("buildSrc/build.gradle.kts").text = KotlinDslTestUtil.kotlinDslBuildSrcScript
         kotlinPlugin(file("buildSrc/src/main/kotlin/SneakyPlugin.kt"), read)

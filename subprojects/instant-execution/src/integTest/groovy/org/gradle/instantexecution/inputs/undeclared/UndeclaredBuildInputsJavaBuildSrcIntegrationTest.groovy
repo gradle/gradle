@@ -18,6 +18,11 @@ package org.gradle.instantexecution.inputs.undeclared
 
 class UndeclaredBuildInputsJavaBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements JavaPluginImplementation {
     @Override
+    String getLocation() {
+        return "plugin class 'SneakyPlugin'"
+    }
+
+    @Override
     void buildLogicApplication(SystemPropertyRead read) {
         javaPlugin(file("buildSrc/src/main/java/SneakyPlugin.java"), read)
         buildFile << """

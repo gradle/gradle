@@ -38,6 +38,11 @@ class UndeclaredBuildInputsTestKitInjectedJavaPluginIntegrationTest extends Abst
     TestFile testKitDir
 
     @Override
+    String getLocation() {
+        return "plugin 'sneaky'"
+    }
+
+    @Override
     GradleExecuter createExecuter() {
         testKitDir = file("test-kit")
         def executer = new TestKitBackedGradleExecuter(distribution, temporaryFolder, getBuildContext(), testKitDir)

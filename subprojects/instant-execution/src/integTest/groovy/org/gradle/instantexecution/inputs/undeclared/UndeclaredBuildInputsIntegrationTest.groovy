@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.inputs.undeclared
 
-
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
@@ -37,11 +36,11 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem("unknown location: read system property 'CI' from class 'build_")
+            withProblem("unknown location: read system property 'CI' from build file '$buildFile'")
         }
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(3)
-        failure.assertThatCause(containsNormalizedString("Read system property 'CI' from class 'build_"))
+        failure.assertThatCause(containsNormalizedString("Read system property 'CI' from build file '$buildFile'"))
 
         where:
         mechanism << SystemPropertyInjection.all("CI", "false")
@@ -49,7 +48,8 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
 
     @Unroll
     def "reports buildSrc build logic and tasks reading a system property set #mechanism.description via the Java API"() {
-        file("buildSrc/build.gradle") << """
+        def buildSrcBuildFile = file("buildSrc/build.gradle")
+        buildSrcBuildFile << """
             System.getProperty("CI")
             tasks.classes.doLast {
                 System.getProperty("CI2")
@@ -62,12 +62,12 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem("unknown location: read system property 'CI' from class 'build_")
+            withProblem("unknown location: read system property 'CI' from build file '${buildSrcBuildFile}'")
             withProblem("unknown location: read system property 'CI2' from class 'build_")
         }
-        failure.assertHasFileName("Build file '${file("buildSrc/build.gradle").absolutePath}'")
+        failure.assertHasFileName("Build file '${buildSrcBuildFile}'")
         failure.assertHasLineNumber(2)
-        failure.assertThatCause(containsNormalizedString("Read system property 'CI' from class 'build_"))
+        failure.assertThatCause(containsNormalizedString("Read system property 'CI' from build file '${buildSrcBuildFile}'"))
         failure.assertThatCause(containsNormalizedString("Read system property 'CI2' from class 'build_"))
 
         where:
@@ -109,7 +109,9 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         instantFails(*mechanism.gradleArgs)
 
         then:
-        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from class '"))
+        problems.assertFailureHasProblems(failure) {
+            withProblem("unknown location: read system property 'CI' from plugin class 'SneakyPlugin'")
+        }
 
         where:
         mechanism << SystemPropertyInjection.all("CI", "false")
@@ -150,7 +152,9 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
 
         then:
         fixture.assertStateStored()
-        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from class '"))
+        problems.assertFailureHasProblems(failure) {
+            withProblem("unknown location: read system property 'CI' from plugin class 'SneakyPlugin'")
+        }
 
         when:
         instantRun("-DCI=$newValue") // undeclared inputs are not treated as inputs, but probably should be

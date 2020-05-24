@@ -20,6 +20,7 @@ package org.gradle.api.internal
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.configuration.internal.UserCodeApplicationId
 import org.gradle.internal.Actions
+import org.gradle.internal.DisplayName
 import spock.lang.Unroll
 
 abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDomainObjectCollectionSpec<T> {
@@ -91,13 +92,13 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
         UserCodeApplicationId id1 = null
         UserCodeApplicationId id2 = null
         List<UserCodeApplicationId> ids = []
-        userCodeApplicationContext.apply {
+        userCodeApplicationContext.apply(Stub(DisplayName)) {
             id1 = it
             container.register("a") {
                 ids << userCodeApplicationContext.current()
             }
         }
-        userCodeApplicationContext.apply {
+        userCodeApplicationContext.apply(Stub(DisplayName)) {
             id2 = it
             container.named("a").configure {
                 ids << userCodeApplicationContext.current()

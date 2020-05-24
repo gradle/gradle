@@ -18,6 +18,11 @@ package org.gradle.instantexecution.inputs.undeclared
 
 class UndeclaredBuildInputsDynamicGroovyBuildScriptBlockIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
     @Override
+    String getLocation() {
+        return "build file '$buildFile'"
+    }
+
+    @Override
     void buildLogicApplication(SystemPropertyRead read) {
         buildFile << """
             buildscript {

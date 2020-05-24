@@ -22,6 +22,8 @@ import spock.lang.Unroll
 abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
     abstract void buildLogicApplication(SystemPropertyRead read)
 
+    abstract String getLocation()
+
     @Unroll
     def "reports undeclared system property read using #propertyRead.groovyExpression prior to task execution from plugin"() {
         buildLogicApplication(propertyRead)
@@ -33,7 +35,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
         then:
         fixture.assertStateStored()
         // TODO - use problems fixture, need to be able to ignore problems from the Kotlin plugin
-        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from class '"))
+        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from $location"))
         outputContains("apply = $value")
         outputContains("task = $value")
 
