@@ -164,7 +164,7 @@ Some cases can be fixed in the same way as the previous constraint.
 
 Otherwise, to fix, use <<custom_gradle_types#service_injection,injected services>> instead of the methods of `Project`:
 
-* `project.file(path)` -> `ProjectLayout.projectDirectory.file(path)` or `ProjectLayout.buildDirectory.file(path)
+* `project.file(path)` -> `ProjectLayout.projectDirectory.file(path)` or `ProjectLayout.buildDirectory.file(path)`
 * `project.files(paths)` -> `ObjectFactory.fileCollection().from(paths)`
 * `project.fileTree(dir)` -> `ObjectFactory.fileTree().from(dir)`
 * `project.exec {}`  -> `ExecOperations.exec {}`
@@ -203,7 +203,6 @@ Instead, these system properties must be declared as a potential build input by 
 
 This problem is caused by build logic similar to this:
 
-.Read system properties directly using the Java API
 ====
 [.multi-language-sample]
 =====
@@ -225,7 +224,6 @@ val enabled = System.getProperty("some-property")
 
 To fix this problem, read system properties using link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#systemProperty-java.lang.String-[providers.systemProperty()] instead:
 
-.Read system properties using the value supplier API
 ====
 [.multi-language-sample]
 =====
@@ -256,7 +254,6 @@ Instead, declare environment variables as potential build inputs using the value
 
 This problem is caused by build logic similar to this:
 
-.Read environment variables directly using the Java API
 ====
 [.multi-language-sample]
 =====
@@ -278,7 +275,6 @@ val enabled = System.getenv("SOME_ENV_VAR")
 
 To fix this problem, read environment variables using link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#environmentVariable-java.lang.String-[providers.environmentVariable()] instead:
 
-.Read environment variables using the value supplier API
 ====
 [.multi-language-sample]
 =====
@@ -309,7 +305,6 @@ Instead, declare files as potential build inputs using the value supplier APIs.
 
 This problem is caused by build logic similar to this:
 
-.Read files directly using the language API
 ====
 [.multi-language-sample]
 =====
@@ -331,7 +326,6 @@ val config = file("some.conf").readText()
 
 To fix this problem, read files using link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#fileContents-org.gradle.api.file.RegularFile-[providers.fileContents()] instead:
 
-.Read files using the value supplier API
 ====
 [.multi-language-sample]
 =====
