@@ -56,7 +56,8 @@ public class Download implements IDownload {
     }
 
     private void configureProxyAuthentication() {
-        if (System.getProperty("http.proxyUser") != null) {
+        if (System.getProperty("http.proxyUser") != null || System.getProperty("https.proxyUser") != null) {
+            // Only an authenticator for proxies needs to be set. Basic authentication is supported by directly setting the request header field.
             Authenticator.setDefault(new ProxyAuthenticator());
         }
     }
@@ -74,7 +75,10 @@ public class Download implements IDownload {
         URL safeUrl = safeUri(address).toURL();
         try {
             out = new BufferedOutputStream(new FileOutputStream(destination));
+
+            // No proxy is passed here as proxies are set globally using the HTTP(S) proxy system properties. The respective protocol handler implementation then makes use of these properties.
             conn = safeUrl.openConnection();
+
             addBasicAuthentication(address, conn);
             final String userAgentValue = calculateUserAgent();
             conn.setRequestProperty("User-Agent", userAgentValue);
@@ -190,9 +194,17 @@ public class Download implements IDownload {
     private static class ProxyAuthenticator extends Authenticator {
         @Override
         protected PasswordAuthentication getPasswordAuthentication() {
-            return new PasswordAuthentication(
-                System.getProperty("http.proxyUser"), System.getProperty(
-                "http.proxyPassword", "").toCharArray());
+            if (getRequestorType() == RequestorType.PROXY) {
+                // Note: Do not use getRequestingProtocol() here, which is "http" even for HTTPS proxies.
+                String protocol = getRequestingURL().getProtocol();
+                String proxyUser = System.getProperty(protocol + ".proxyUser");
+                if (proxyUser != null) {
+                    String proxyPassword = System.getProperty(protocol + ".proxyPassword", "");
+                    return new PasswordAuthentication(proxyUser, proxyPassword.toCharArray());
+                }
+            }
+
+            return super.getPasswordAuthentication();
         }
     }
 
