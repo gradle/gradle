@@ -35,13 +35,14 @@ import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.configuration.ImportsReader
 import org.gradle.groovy.scripts.ScriptCompilationException
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.groovy.scripts.StringScriptSource
+import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.groovy.scripts.Transformer
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.internal.Actions
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.reflect.JavaReflectionUtil
+import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Serializer
@@ -55,9 +56,9 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.instanceOf
+import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertFalse
-import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertTrue
 
 class DefaultScriptCompilationHandlerTest extends Specification {
@@ -259,7 +260,7 @@ println 'hi'
     }
 
     def testCompileToDirWithSyntaxError() {
-        ScriptSource source = new StringScriptSource("script.gradle", "\n\nnew invalid syntax")
+        ScriptSource source = new TextResourceScriptSource(new StringTextResource("script.gradle", "\n\nnew invalid syntax"))
 
         when:
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
@@ -406,7 +407,7 @@ println 'hi'
     @Unroll
     @Issue('GRADLE-3382')
     def "test compile with #unknownClass"() {
-        ScriptSource source = new StringScriptSource("script.gradle", "new ${unknownClass}()")
+        ScriptSource source = new TextResourceScriptSource(new StringTextResource("script.gradle", "new ${unknownClass}()"))
 
         when:
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
@@ -420,12 +421,12 @@ println 'hi'
         checkScriptCacheEmpty()
 
         where:
-        unknownClass << [ 'unknownClass', 'fully.qualified.unknownClass', 'not.java.util.Map.Entry' ]
+        unknownClass << ['unknownClass', 'fully.qualified.unknownClass', 'not.java.util.Map.Entry']
     }
 
     @Issue('GRADLE-3423')
     def testCompileWithInnerClassReference() {
-        ScriptSource source = new StringScriptSource("script.gradle", innerClass)
+        ScriptSource source = new TextResourceScriptSource(new StringTextResource("script.gradle", innerClass))
 
         when:
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
@@ -453,7 +454,7 @@ Outer.Inner entry = null
     @Issue('GRADLE-3423')
     @Ignore
     def testCompileWithInnerInnerClassReference() {
-        ScriptSource source = new StringScriptSource("script.gradle", innerClass)
+        ScriptSource source = new TextResourceScriptSource(new StringTextResource("script.gradle", innerClass))
 
         when:
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)

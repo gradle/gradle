@@ -16,9 +16,9 @@
 
 package org.gradle.groovy.scripts;
 
+import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 import org.gradle.internal.resource.EmptyFileTextResource;
 import org.gradle.internal.resource.StringTextResource;
-import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 import org.gradle.internal.resource.UriTextResource;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
@@ -33,8 +33,14 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 
 import static org.gradle.util.Matchers.matchesRegexp;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class TextResourceScriptSourceTest {
     private final DefaultTextFileResourceLoader resourceLoader = new DefaultTextFileResourceLoader();
@@ -124,18 +130,21 @@ public class TextResourceScriptSourceTest {
     public void usesScriptFileNameToBuildDescription() {
         ScriptSource source = forFile(scriptFile);
         assertThat(source.getDisplayName(), equalTo(String.format("<file-type> '%s'", scriptFile.getAbsolutePath())));
+        assertThat(source.displayName().getDisplayName(), equalTo(String.format("<file-type> '%s'", scriptFile.getAbsolutePath())));
     }
 
     @Test
     public void usesScriptFileNameToBuildDescriptionWhenUsingFileUri() {
         ScriptSource source = forUri(scriptFileUri);
         assertThat(source.getDisplayName(), equalTo(String.format("<file-type> '%s'", scriptFile.getAbsolutePath())));
+        assertThat(source.displayName().getDisplayName(), equalTo(String.format("<file-type> '%s'", scriptFile.getAbsolutePath())));
     }
 
     @Test
     public void usesScriptFileNameToBuildDescriptionWhenUsingHttpUri() throws URISyntaxException {
         ScriptSource source = forUri(new URI("http://www.gradle.org/unknown.txt"));
         assertThat(source.getDisplayName(), equalTo(String.format("<file-type> 'http://www.gradle.org/unknown.txt'")));
+        assertThat(source.displayName().getDisplayName(), equalTo(String.format("<file-type> 'http://www.gradle.org/unknown.txt'")));
     }
 
     @Test
@@ -218,6 +227,13 @@ public class TextResourceScriptSourceTest {
         assertThat(source.getResource().getLocation().getURI(), nullValue());
         assertThat(source.getDisplayName(), equalTo("<string>"));
         assertThat(source.getClassName(), equalTo("script_5z2up7fl2zfks7lm6sqlalp1q"));
+    }
+
+    @Test
+    public void stringResourcesWithDifferentContentHaveDifferentClassNames() {
+        ScriptSource source1 = new TextResourceScriptSource(new StringTextResource("<string>", "resource content 1"));
+        ScriptSource source2 = new TextResourceScriptSource(new StringTextResource("<string>", "resource content 2"));
+        assertFalse(source1.getClassName().equals(source2.getClassName()));
     }
 
     private ScriptSource forFile(File scriptFile) {
