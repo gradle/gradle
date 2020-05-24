@@ -17,15 +17,24 @@
 package org.gradle.configuration.internal;
 
 import org.gradle.api.Action;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 
 /**
  * Assigns and stores an ID for the application of some user code (e.g. scripts and plugins).
  */
+@ServiceScope(Scopes.BuildSession)
 public interface UserCodeApplicationContext {
-
-    void apply(Action<? super UserCodeApplicationId> action);
+    /**
+     * Applies some user code, assigning an ID for this particular application.
+     *
+     * @param displayName A display name for the user code.
+     * @param action The action to run to apply the user code.
+     */
+    void apply(DisplayName displayName, Action<? super UserCodeApplicationId> action);
 
     void reapply(UserCodeApplicationId id, Runnable runnable);
 
@@ -33,4 +42,7 @@ public interface UserCodeApplicationContext {
 
     @Nullable
     UserCodeApplicationId current();
+
+    @Nullable
+    DisplayName currentDisplayName();
 }

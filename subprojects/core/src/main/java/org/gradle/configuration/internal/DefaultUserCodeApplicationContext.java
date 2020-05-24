@@ -16,50 +16,52 @@
 
 package org.gradle.configuration.internal;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
+import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class DefaultUserCodeApplicationContext implements UserCodeApplicationContext {
 
     private static final AtomicLong COUNTER = new AtomicLong();
 
-    private final ThreadLocal<Deque<UserCodeApplicationId>> stackThreadLocal = new ThreadLocal<Deque<UserCodeApplicationId>>() {
-        @Override
-        protected Deque<UserCodeApplicationId> initialValue() {
-            return new ArrayDeque<UserCodeApplicationId>();
-        }
-    };
+    private final ThreadLocal<CurrentApplication> currentApplication = new ThreadLocal<>();
 
     @Override
     @Nullable
     public UserCodeApplicationId current() {
-        return stackThreadLocal.get().peek();
+        CurrentApplication current = this.currentApplication.get();
+        return current == null ? null : current.id;
+    }
+
+    @Nullable
+    @Override
+    public DisplayName currentDisplayName() {
+        CurrentApplication current = this.currentApplication.get();
+        return current == null ? null : current.displayName;
     }
 
     @Override
-    public void apply(Action<? super UserCodeApplicationId> action) {
-        Deque<UserCodeApplicationId> stack = stackThreadLocal.get();
-        UserCodeApplicationId id = push(stack);
+    public void apply(DisplayName displayName, Action<? super UserCodeApplicationId> action) {
+        CurrentApplication current = currentApplication.get();
+        UserCodeApplicationId id = id();
+        currentApplication.set(new CurrentApplication(id, displayName));
         try {
             action.execute(id);
         } finally {
-            stack.pop();
+            currentApplication.set(current);
         }
     }
 
     @Override
     public void reapply(UserCodeApplicationId id, Runnable runnable) {
-        Deque<UserCodeApplicationId> stack = stackThreadLocal.get();
-        stack.push(id);
+        CurrentApplication current = currentApplication.get();
+        currentApplication.set(new CurrentApplication(id, null));
         try {
             runnable.run();
         } finally {
-            stack.pop();
+            currentApplication.set(current);
         }
     }
 
@@ -73,35 +75,29 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
         return new Action<T>() {
             @Override
             public void execute(T t) {
-                Deque<UserCodeApplicationId> stack = stackThreadLocal.get();
-                stack.push(id);
+                CurrentApplication current = currentApplication.get();
+                currentApplication.set(new CurrentApplication(id, null));
                 try {
                     action.execute(t);
                 } finally {
-                    stack.pop();
+                    currentApplication.set(current);
                 }
             }
         };
-    }
-
-    @VisibleForTesting
-    UserCodeApplicationId push() {
-        return push(stackThreadLocal.get());
-    }
-
-    @VisibleForTesting
-    void pop() {
-        stackThreadLocal.get().pop();
-    }
-
-    private UserCodeApplicationId push(Deque<UserCodeApplicationId> stack) {
-        UserCodeApplicationId id = id();
-        stack.push(id);
-        return id;
     }
 
     private static UserCodeApplicationId id() {
         return new UserCodeApplicationId(COUNTER.incrementAndGet());
     }
 
+    private static class CurrentApplication {
+        final UserCodeApplicationId id;
+        @Nullable
+        final DisplayName displayName;
+
+        public CurrentApplication(UserCodeApplicationId id, @Nullable DisplayName displayName) {
+            this.id = id;
+            this.displayName = displayName;
+        }
+    }
 }

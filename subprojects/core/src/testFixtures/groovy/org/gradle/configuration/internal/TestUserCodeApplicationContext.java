@@ -16,16 +16,52 @@
 
 package org.gradle.configuration.internal;
 
-public class TestUserCodeApplicationContext extends DefaultUserCodeApplicationContext {
+import org.gradle.api.Action;
+import org.gradle.internal.DisplayName;
+
+import javax.annotation.Nullable;
+import java.util.ArrayDeque;
+import java.util.Deque;
+
+public class TestUserCodeApplicationContext implements UserCodeApplicationContext {
+    private long current = 0;
+    private final Deque<UserCodeApplicationId> stack = new ArrayDeque<>();
 
     @Override
-    public UserCodeApplicationId push() {
-        return super.push();
+    public void apply(DisplayName displayName, Action<? super UserCodeApplicationId> action) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
+    public void reapply(UserCodeApplicationId id, Runnable runnable) {
+        runnable.run();
+    }
+
+    @Override
+    public <T> Action<T> decorateWithCurrent(Action<T> action) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Nullable
+    @Override
+    public UserCodeApplicationId current() {
+        return stack.peekFirst();
+    }
+
+    @Nullable
+    @Override
+    public DisplayName currentDisplayName() {
+        throw new UnsupportedOperationException();
+    }
+
+    public UserCodeApplicationId push() {
+        UserCodeApplicationId id = new UserCodeApplicationId(current++);
+        stack.push(id);
+        return id;
+    }
+
     public void pop() {
-        super.pop();
+        stack.pop();
     }
 
 }

@@ -56,7 +56,6 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         def buildListener = new InternalBuildAdapter()
         def projectEvaluationListener = Mock(InternalProjectEvaluationListener)
         def graphListener = Mock(InternalTaskExecutionGraphListener)
-        context.push()
 
         expect:
         decorator.decorate('foo', action) is action
