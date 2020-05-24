@@ -55,6 +55,7 @@ class UriTextResourceTest extends Specification {
         UriTextResource resource = new UriTextResource('<display-name>', file);
 
         then:
+        resource.displayName == "<display-name> '$file'"
         resource.file == file
         resource.location.file == file
         resource.location.URI == fileUri
@@ -66,6 +67,7 @@ class UriTextResourceTest extends Specification {
         UriTextResource resource = new UriTextResource('<display-name>', fileUri);
 
         then:
+        resource.displayName == "<display-name> '$file'"
         resource.file == file
         resource.location.file == file
         resource.location.URI == fileUri
@@ -77,6 +79,7 @@ class UriTextResourceTest extends Specification {
         UriTextResource resource = new UriTextResource('<display-name>', jarUri);
 
         then:
+        resource.displayName == "<display-name> '$jarUri'"
         resource.file == null
         resource.charset == null
         resource.location.file == null

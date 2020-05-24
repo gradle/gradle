@@ -15,6 +15,7 @@
  */
 package org.gradle.groovy.scripts;
 
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -45,4 +46,6 @@ public interface ScriptSource extends Serializable {
      * Returns the description for this script. Never returns null.
      */
     String getDisplayName();
+
+    DisplayName displayName();
 }
