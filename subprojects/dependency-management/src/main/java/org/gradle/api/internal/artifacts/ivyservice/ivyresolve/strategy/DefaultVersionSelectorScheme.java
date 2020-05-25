@@ -88,7 +88,7 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
     }
 
     public void configure() {
-        if (featurePreviews != null && featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.VERSION_SORTING_V2)) {
+        if (featurePreviews != null && featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.VERSION_ORDERING_V2)) {
             smartExcludeOnUpperBound = true;
         }
     }
