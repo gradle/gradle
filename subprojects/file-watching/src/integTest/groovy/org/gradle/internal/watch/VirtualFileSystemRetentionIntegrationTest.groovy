@@ -327,6 +327,46 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         retainedFilesInCurrentBuild == 10 // 8 script classes + 2 task files
     }
 
+    def "works with composite build"() {
+        buildTestFixture.withBuildInSubDir()
+        def includedBuild = singleProjectBuild("includedBuild") {
+            buildFile << """
+                apply plugin: 'java'
+            """
+        }
+        def consumer = singleProjectBuild("consumer") {
+            buildFile << """
+                apply plugin: 'java'
+
+                dependencies {
+                    implementation "org.test:includedBuild:1.0"
+                }
+            """
+            settingsFile << """
+                includeBuild("../includedBuild")
+            """
+        }
+        executer.beforeExecute {
+            inDirectory(consumer)
+        }
+
+        when:
+        withRetention().run("assemble")
+        then:
+        executedAndNotSkipped(":includedBuild:jar")
+
+        when:
+        withRetention().run("assemble")
+        then:
+        skipped(":includedBuild:jar")
+
+        when:
+        includedBuild.file("src/main/java/NewClass.java")  << "public class NewClass {}"
+        withRetention().run("assemble")
+        then:
+        executedAndNotSkipped(":includedBuild:jar")
+    }
+
     private void runWithRetentionAndDoChangesWhen(String task, String expectedCall, Closure action) {
         def handle = withRetention().executer.withTasks(task).start()
         def userInput = server.expectAndBlock(expectedCall)

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.collect.ImmutableList;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.RootBuildLifecycleListener;
@@ -24,6 +24,10 @@ import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem;
 import org.gradle.util.IncubationLogger;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListener {
 
@@ -53,7 +57,15 @@ class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListe
             }
         }
         virtualFileSystem.afterBuildStarted(watchFileSystem);
-        gradle.settingsEvaluated(settings -> virtualFileSystem.updateProjectRootDirectories(ImmutableList.of(settings.getRootDir())));
+        gradle.projectsLoaded(loadedGradle -> {
+            GradleInternal gradleInternal = (GradleInternal) loadedGradle;
+            List<File> rootProjects = new ArrayList<>();
+            rootProjects.add(gradleInternal.getRootProject().getProjectDir());
+            for (IncludedBuild includedBuild : gradleInternal.getIncludedBuilds()) {
+                rootProjects.add(includedBuild.getProjectDir());
+            }
+            virtualFileSystem.updateProjectRootDirectories(rootProjects);
+        });
     }
 
     @Override
