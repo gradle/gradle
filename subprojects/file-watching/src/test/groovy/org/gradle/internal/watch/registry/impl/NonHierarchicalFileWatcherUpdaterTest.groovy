@@ -26,13 +26,12 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         new NonHierarchicalFileWatcherUpdater(watcher)
     }
 
-    def "ignores project root directory"() {
-        def projectRootDirectory = file("first").createDir()
-        def secondProjectRootDirectory = file("second").createDir()
-        def fileInProjectRootDirectory = projectRootDirectory.file("inside/root/dir/file.txt")
+    def "ignores project root directories"() {
+        def projectRootDirectories = ["first", "second", "third"].collect { file(it).createDir() }
+        def fileInProjectRootDirectory = file("first/inside/root/dir/file.txt")
 
         when:
-        updater.updateProjectRootDirectory(projectRootDirectory)
+        updater.updateProjectRootDirectories(projectRootDirectories)
         then:
         0 * _
 
@@ -44,7 +43,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         0 * _
 
         when:
-        updater.updateProjectRootDirectory(secondProjectRootDirectory)
+        updater.updateProjectRootDirectories([])
         then:
         0 * _
     }

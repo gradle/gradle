@@ -28,9 +28,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -41,9 +43,9 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private final Map<String, ImmutableList<Path>> watchedRootsForSnapshot = new HashMap<>();
     private final Multiset<Path> shouldWatchDirectories = HashMultiset.create();
     private final Set<Path> watchedRoots = new HashSet<>();
+    private final List<Path> projectRootDirectories = new ArrayList<>();
+    private final List<String> projectRootDirectoryPrefixes = new ArrayList<>();
     private final FileWatcher watcher;
-    private Path projectRootDirectory;
-    private String projectRootDirectoryPrefix;
 
     public HierarchicalFileWatcherUpdater(FileWatcher watcher) {
         this.watcher = watcher;
@@ -64,19 +66,32 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void updateProjectRootDirectory(File projectRoot) {
-        projectRootDirectory = projectRoot.toPath().toAbsolutePath();
-        projectRootDirectoryPrefix = projectRootDirectory.toString() + File.separator;
+    public void updateProjectRootDirectories(Collection<File> updatedProjectRootDirectories) {
+        Set<Path> rootPaths = updatedProjectRootDirectories.stream()
+            .map(File::toPath)
+            .map(Path::toAbsolutePath)
+            .collect(Collectors.toSet());
+        projectRootDirectories.clear();
+        projectRootDirectories.addAll(WatchRootUtil.resolveRootsToWatch(rootPaths));
+        projectRootDirectoryPrefixes.clear();
+        projectRootDirectories.stream()
+            .map(path -> path.toString() + File.separator)
+            .forEach(projectRootDirectoryPrefixes::add);
 
         updateWatchedDirectories();
     }
 
     private void updateWatchedDirectories() {
-        Set<Path> directoriesToWatch = shouldWatchDirectories.elementSet().stream()
-            .map(shouldWatchDirectory -> projectRootDirectoryPrefix != null && shouldWatchDirectory.toString().startsWith(projectRootDirectoryPrefix)
-                ? projectRootDirectory
-                : shouldWatchDirectory)
-            .collect(Collectors.toSet());
+        Set<Path> directoriesToWatch = new HashSet<>();
+        shouldWatchDirectories.elementSet().forEach(shouldWatchDirectory -> {
+            for (int i = 0; i < projectRootDirectoryPrefixes.size(); i++) {
+                String prefix = projectRootDirectoryPrefixes.get(i);
+                if (shouldWatchDirectory.toString().startsWith(prefix)) {
+                    directoriesToWatch.add(projectRootDirectories.get(i));
+                }
+            }
+            directoriesToWatch.add(shouldWatchDirectory);
+        });
 
         updateWatchedDirectories(WatchRootUtil.resolveRootsToWatch(directoriesToWatch));
     }
