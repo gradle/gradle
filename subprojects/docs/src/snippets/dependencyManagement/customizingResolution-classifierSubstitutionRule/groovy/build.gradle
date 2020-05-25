@@ -19,7 +19,7 @@ dependencies {
 // tag::substitution_rule[]
 configurations.all {
     resolutionStrategy.dependencySubstitution {
-        substitute module('co.paralleluniverse:quasar-core') to module('co.paralleluniverse:quasar-core:0.8.0') withoutClassifier()
+        substitute module('co.paralleluniverse:quasar-core') using module('co.paralleluniverse:quasar-core:0.8.0') withoutClassifier()
     }
 }
 // end::substitution_rule[]

@@ -20,7 +20,7 @@ dependencies {
 configurations.all {
     resolutionStrategy.dependencySubstitution {
         substitute(module("co.paralleluniverse:quasar-core"))
-            .to(module("co.paralleluniverse:quasar-core:0.8.0"))
+            .using(module("co.paralleluniverse:quasar-core:0.8.0"))
             .withoutClassifier()
     }
 }
