@@ -327,6 +327,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         retainedFilesInCurrentBuild == 10 // 8 script classes + 2 task files
     }
 
+    @ToBeFixedForInstantExecution(because = "composite build not yet supported")
     def "works with composite build"() {
         buildTestFixture.withBuildInSubDir()
         def includedBuild = singleProjectBuild("includedBuild") {
