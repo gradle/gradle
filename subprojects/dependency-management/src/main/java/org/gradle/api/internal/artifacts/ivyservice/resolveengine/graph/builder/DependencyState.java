@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import org.gradle.api.artifacts.ArtifactVariantSelector;
+import org.gradle.api.artifacts.DependencyArtifactSelector;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -88,18 +88,18 @@ class DependencyState {
     }
 
 
-    public DependencyState withTargetAndArtifacts(ComponentSelector target, List<ArtifactVariantSelector> targetSelectors, List<ComponentSelectionDescriptorInternal> ruleDescriptors) {
+    public DependencyState withTargetAndArtifacts(ComponentSelector target, List<DependencyArtifactSelector> targetSelectors, List<ComponentSelectionDescriptorInternal> ruleDescriptors) {
         DependencyMetadata targeted = dependency.withTargetAndArtifacts(target, toIvyArtifacts(target, targetSelectors));
         return new DependencyState(targeted, requested, ruleDescriptors, componentSelectorConverter);
     }
 
-    private List<IvyArtifactName> toIvyArtifacts(ComponentSelector target, List<ArtifactVariantSelector> targetSelectors) {
+    private List<IvyArtifactName> toIvyArtifacts(ComponentSelector target, List<DependencyArtifactSelector> targetSelectors) {
         return targetSelectors.stream()
             .map(avs -> createArtifact(target, avs))
             .collect(Collectors.toList());
     }
 
-    private DefaultIvyArtifactName createArtifact(ComponentSelector target, ArtifactVariantSelector avs) {
+    private DefaultIvyArtifactName createArtifact(ComponentSelector target, DependencyArtifactSelector avs) {
         String extension = avs.getExtension() != null ? avs.getExtension() : avs.getType();
         return new DefaultIvyArtifactName(
             nameOf(target),

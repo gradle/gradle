@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.gradle.api.artifacts.ArtifactVariantSelector;
+import org.gradle.api.artifacts.DependencyArtifactSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -29,13 +29,13 @@ import java.util.stream.Collectors;
 public class DefaultArtifactSelectionDetails implements ArtifactSelectionDetailsInternal {
 
     private final DefaultDependencySubstitution owner;
-    private final List<ArtifactVariantSelector> requestedSelectors;
-    private List<ArtifactVariantSelector> targetSelectors;
+    private final List<DependencyArtifactSelector> requestedSelectors;
+    private List<DependencyArtifactSelector> targetSelectors;
 
     public DefaultArtifactSelectionDetails(DefaultDependencySubstitution defaultDependencySubstitution, List<IvyArtifactName> requested) {
         this.owner = defaultDependencySubstitution;
         this.requestedSelectors = requested.isEmpty() ? ImmutableList.of():ImmutableList.copyOf(requested.stream()
-            .map(e -> new DefaultArtifactVariantSelector(e.getType(), e.getExtension(), e.getClassifier()))
+            .map(e -> new DefaultDependencyArtifactSelector(e.getType(), e.getExtension(), e.getClassifier()))
             .collect(Collectors.toList()));
     }
 
@@ -45,17 +45,17 @@ public class DefaultArtifactSelectionDetails implements ArtifactSelectionDetails
     }
 
     @Override
-    public List<ArtifactVariantSelector> getRequestedSelectors() {
+    public List<DependencyArtifactSelector> getRequestedSelectors() {
         return requestedSelectors;
     }
 
     @Override
     public void selectArtifact(String type, @Nullable String extension, @Nullable String classifier) {
-        selectArtifact(new DefaultArtifactVariantSelector(type, extension, classifier));
+        selectArtifact(new DefaultDependencyArtifactSelector(type, extension, classifier));
     }
 
     @Override
-    public void selectArtifact(ArtifactVariantSelector selector) {
+    public void selectArtifact(DependencyArtifactSelector selector) {
         if (targetSelectors == null) {
             targetSelectors = Lists.newArrayList();
             owner.addRuleDescriptor(ComponentSelectionReasons.SELECTED_BY_RULE);
@@ -69,7 +69,7 @@ public class DefaultArtifactSelectionDetails implements ArtifactSelectionDetails
     }
 
     @Override
-    public List<ArtifactVariantSelector> getTargetSelectors() {
+    public List<DependencyArtifactSelector> getTargetSelectors() {
         return targetSelectors == null ? Collections.emptyList() : ImmutableList.copyOf(targetSelectors);
     }
 }

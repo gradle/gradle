@@ -15,16 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
-import org.gradle.api.artifacts.ArtifactVariantSelector;
+import org.gradle.api.artifacts.DependencyArtifactSelector;
 
 import javax.annotation.Nullable;
 
-public class DefaultArtifactVariantSelector implements ArtifactVariantSelector {
+public class DefaultDependencyArtifactSelector implements DependencyArtifactSelector {
     private final String type;
     private final String extension;
     private final String classifier;
 
-    public DefaultArtifactVariantSelector(String type, @Nullable String extension, @Nullable String classifier) {
+    public DefaultDependencyArtifactSelector(String type, @Nullable String extension, @Nullable String classifier) {
         this.type = type;
         this.classifier = classifier;
         this.extension = extension;
