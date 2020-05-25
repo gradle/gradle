@@ -165,7 +165,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             }
 
             @Override
-            public Substitution usingClassifier(String classifier) {
+            public Substitution withClassifier(String classifier) {
                 artifactAction = Actions.composite(artifactAction, new SetClassifier(classifier));
                 return this;
             }
@@ -177,7 +177,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             }
 
             @Override
-            public Substitution to(ComponentSelector notation) {
+            public Substitution using(ComponentSelector notation) {
                 with(notation);
                 return this;
             }

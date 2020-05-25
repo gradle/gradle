@@ -49,7 +49,7 @@ public interface ArtifactSelectionDetails {
      * {@link #selectArtifact(DependencyArtifactSelector)}.
      *
      * @param type the type of the artifact being queried
-     * @param extension the extension, defaults to "jar"
+     * @param extension the extension, defaults to the type
      * @param classifier the classifier, defaults to null (no classifier)
      */
     void selectArtifact(String type, @Nullable String extension, @Nullable String classifier);
