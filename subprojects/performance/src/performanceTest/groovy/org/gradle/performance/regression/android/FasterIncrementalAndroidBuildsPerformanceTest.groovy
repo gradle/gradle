@@ -130,7 +130,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
 
     enum Optimization {
         INSTANT_EXECUTION("--${ConfigurationCacheOption.LONG_OPTION}=warn"), // TODO on
-        VFS_RETENTION("-D${StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY}=true")
+        VFS_RETENTION("--${StartParameterBuildOptions.WatchFileSystemOption.LONG_OPTION}")
 
         Optimization(String argument) {
             this.argument = argument
