@@ -38,7 +38,6 @@ import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskLocalState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
-import org.gradle.api.internal.tasks.ImplementationAwareTaskAction;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
@@ -62,6 +61,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskLocalState;
+import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerManager;
@@ -81,6 +81,7 @@ import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -461,7 +462,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     @SuppressWarnings("deprecation")
-    public org.gradle.logging.LoggingManagerInternal  getLogging() {
+    public org.gradle.logging.LoggingManagerInternal getLogging() {
         if (loggingManager == null) {
             loggingManager = new LoggingManagerInternalCompatibilityBridge(services.getFactory(org.gradle.internal.logging.LoggingManagerInternal.class).create());
         }
@@ -615,7 +616,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private InputChangesAwareTaskAction convertClosureToAction(Closure actionClosure, String actionName) {
-        return new ClosureTaskAction(actionClosure, actionName);
+        return new ClosureTaskAction(actionClosure, actionName, getServices().get(UserCodeApplicationContext.class).current());
     }
 
     private InputChangesAwareTaskAction wrap(final Action<? super Task> action) {
@@ -640,12 +641,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private static class ClosureTaskAction implements InputChangesAwareTaskAction {
-        private final Closure closure;
+        private final Closure<?> closure;
         private final String actionName;
+        @Nullable
+        private final UserCodeApplicationContext.Application application;
 
-        private ClosureTaskAction(Closure closure, String actionName) {
+        private ClosureTaskAction(Closure<?> closure, String actionName, @Nullable UserCodeApplicationContext.Application application) {
             this.closure = closure;
             this.actionName = actionName;
+            this.application = application;
         }
 
         @Override
@@ -658,6 +662,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public void execute(Task task) {
+            if (application == null) {
+                doExecute(task);
+            } else {
+                application.reapply(() -> doExecute(task));
+            }
+        }
+
+        private void doExecute(Task task) {
             closure.setDelegate(task);
             closure.setResolveStrategy(Closure.DELEGATE_FIRST);
             ClassLoader original = Thread.currentThread().getContextClassLoader();
@@ -706,16 +718,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public void setInputChanges(InputChangesInternal inputChanges) {
-            if (action instanceof InputChangesAwareTaskAction) {
-                ((InputChangesAwareTaskAction) action).setInputChanges(inputChanges);
-            }
         }
 
         @Override
         public void clearInputChanges() {
-            if (action instanceof InputChangesAwareTaskAction) {
-                ((InputChangesAwareTaskAction) action).clearInputChanges();
-            }
         }
 
         @Override
@@ -731,9 +737,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
-            if (action instanceof ImplementationAwareTaskAction) {
-                return ((ImplementationAwareTaskAction) action).getActionImplementation(hasher);
-            }
             return ImplementationSnapshot.of(AbstractTask.getActionClassName(action), hasher.getClassLoaderHash(action.getClass().getClassLoader()));
         }
 
@@ -747,17 +750,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             }
 
             TaskActionWrapper that = (TaskActionWrapper) o;
-
-            if (action != null ? !action.equals(that.action) : that.action != null) {
-                return false;
-            }
-
-            return true;
+            return action.equals(that.action);
         }
 
         @Override
         public int hashCode() {
-            return action != null ? action.hashCode() : 0;
+            return action.hashCode();
         }
 
         @Override

@@ -55,8 +55,14 @@ class DefaultInstantExecutionProblemsListener internal constructor(
         val exception = InvalidUserCodeException(
             "Invocation of '$invocationDescription' by $task at execution time is unsupported."
         )
+        val currentApplication = userCodeApplicationContext.current()
+        val location = if (currentApplication != null) {
+            PropertyTrace.BuildLogic(currentApplication.displayName)
+        } else {
+            PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
+        }
         problems.onProblem(taskExecutionAccessProblem(
-            PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path),
+            location,
             invocationDescription,
             exception
         ))

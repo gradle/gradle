@@ -19,7 +19,6 @@ package org.gradle.instantexecution.inputs.undeclared
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
-import org.gradle.util.Matchers
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -64,8 +63,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         then:
         problems.assertFailureHasProblems(failure) {
             withProblem("build file '${buildSrcBuildFile}': read system property 'CI'")
-            // TODO - decorate task actions
-            withProblem(Matchers.matchesRegexp("class `.*`: read system property 'CI2'"))
+            withProblem("build file '${buildSrcBuildFile}': read system property 'CI2'")
         }
         failure.assertHasFileName("Build file '${buildSrcBuildFile}'")
         failure.assertHasLineNumber(2)

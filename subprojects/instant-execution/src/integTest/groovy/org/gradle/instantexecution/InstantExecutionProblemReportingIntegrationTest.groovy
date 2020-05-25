@@ -278,8 +278,8 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         executed(':all')
         instantExecution.assertStateStored() // does not fail
         problems.assertFailureHasProblems(failure) {
-            withProblem("task `:anotherBroken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("task `:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("build file '$buildFile': invocation of 'Task.project' at execution time is unsupported.")
+            withTotalProblemsCount(2)
         }
         failure.assertHasFailures(1)
 
@@ -290,6 +290,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         executed(':all')
         instantExecution.assertStateLoaded()
         problems.assertResultHasProblems(result) {
+            // TODO - retain the location information
             withProblem("task `:anotherBroken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("task `:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
         }
@@ -329,7 +330,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         instantExecution.assertStateStored() // does not fail
         problems.assertFailureHasProblems(failure) {
-            withProblem("task `:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("build file '$buildFile': invocation of 'Task.project' at execution time is unsupported.")
         }
         failure.assertHasDescription("Execution failed for task ':broken'.")
         failure.assertHasCause("BOOM")
@@ -548,36 +549,51 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
                 }
             }
 
+            class MyAction implements Action<Task> {
+                void execute(Task task) {
+                    task.$code
+                }
+            }
+
             tasks.register("a", MyTask)
-            tasks.register("b", MyTask)
+            tasks.register("b", MyTask) {
+                doLast(new MyAction())
+            }
+            tasks.register("c") {
+                doFirst(new MyAction())
+            }
+            tasks.register("d") {
+                doFirst { $code }
+            }
         """
 
-        and:
-        def expectedProblems = [
-            "task `:a` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.",
-            "task `:b` of type `MyTask`: invocation of '$invocation' at execution time is unsupported."
-        ]
-
         when:
-        instantFails "a", "b"
+        instantFails "a", "b", "c", "d"
 
         then:
         instantExecution.assertStateStored()
         problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(expectedProblems)
-            withProblemsWithStackTraceCount(2)
+            withProblem("build file '$buildFile': invocation of '$invocation' at execution time is unsupported.")
+            withProblem("task `:a` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("task `:b` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("task `:c` of type `org.gradle.api.DefaultTask`: invocation of '$invocation' at execution time is unsupported.")
+            withTotalProblemsCount(5)
         }
 
         when:
-        instantRunLenient "a", "b"
+        instantRunLenient "a", "b", "c", "d"
 
         then:
         instantExecution.assertStateLoaded()
 
         and:
         problems.assertResultHasProblems(result) {
-            withUniqueProblems(expectedProblems)
-            withProblemsWithStackTraceCount(2)
+            withProblem("task `:a` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("task `:b` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("task `:c` of type `org.gradle.api.DefaultTask`: invocation of '$invocation' at execution time is unsupported.")
+            // TODO - should retain the location information
+            withProblem("task `:d` of type `org.gradle.api.DefaultTask`: invocation of '$invocation' at execution time is unsupported.")
+            withTotalProblemsCount(5)
         }
 
         where:
@@ -600,7 +616,6 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         problems.assertFailureHasProblems(failure) {
             withUniqueProblems("build file '$buildFile': registration of listener on '$registrationPoint' is unsupported")
-            withProblemsWithStackTraceCount(1)
         }
 
         where:
@@ -733,11 +748,9 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         instantFails("ok", "-DPROP=12")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withProblem("script '$script': read system property 'PROP'")
-            withProblem("script '$script': registration of listener on 'Gradle.buildFinished' is unsupported")
-            totalProblemsCount = 28
-        }
+        // TODO - use fixture. Need to be able to accept a range of expected problem counts
+        failure.assertThatDescription(containsNormalizedString("script '$script': read system property 'PROP'"))
+        failure.assertThatDescription(containsNormalizedString("script '$script': registration of listener on 'Gradle.buildFinished' is unsupported"))
     }
 
     def "reports problems from deferred task configuration action block"() {
@@ -791,7 +804,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         for (i in 1..530) {
             buildFile << """
                 task broken$i {
-                    doLast { println ("project = " + project) }
+                    doLast({ println ("project = " + project) } as Action)
                 }
                 tasks.all.dependsOn("broken$i")
             """
