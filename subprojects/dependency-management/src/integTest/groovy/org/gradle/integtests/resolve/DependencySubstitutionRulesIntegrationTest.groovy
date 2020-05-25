@@ -1555,7 +1555,7 @@ configurations.all {
         where:
         notation << [
             """dependencySubstitution {
-                  substitute module('org:lib:1.0') to module('org:lib:1.0') withoutClassifier()
+                  substitute module('org:lib:1.0') using module('org:lib:1.0') withoutClassifier()
                }""",
             """dependencySubstitution.all { DependencySubstitution dependency ->
                   if (dependency.requested instanceof ModuleComponentSelector && dependency.requested.module == 'lib') {
@@ -1595,7 +1595,7 @@ configurations.all {
             configurations {
                 conf {
                     resolutionStrategy.dependencySubstitution {
-                        substitute module('org:lib') to module('org:lib:1.1') usingClassifier('classy')
+                        substitute module('org:lib') using module('org:lib:1.1') withClassifier('classy')
                     }
                 }
             }

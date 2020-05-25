@@ -111,7 +111,7 @@ public interface DependencySubstitutions {
          * @since 6.6
          */
         @Incubating
-        Substitution usingClassifier(String classifier);
+        Substitution withClassifier(String classifier);
 
         /**
          * Specifies that the substituted dependency mustn't have any classifier.
@@ -138,6 +138,6 @@ public interface DependencySubstitutions {
          * @since 6.6
          */
         @Incubating
-        Substitution to(ComponentSelector notation);
+        Substitution using(ComponentSelector notation);
     }
 }
