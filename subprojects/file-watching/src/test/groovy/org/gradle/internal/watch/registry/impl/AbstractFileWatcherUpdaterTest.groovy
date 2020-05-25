@@ -50,7 +50,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     def decorator = new DelegatingDiffCapturingUpdateFunctionDecorator({ String path -> true})
     def root = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
 
-    def updater
+    FileWatcherUpdater updater
 
     def setup() {
         updater = createUpdater(watcher)

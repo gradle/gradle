@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.RootBuildLifecycleListener;
@@ -53,7 +52,6 @@ class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListe
             }
         }
         virtualFileSystem.afterBuildStarted(watchFileSystem);
-        gradle.settingsEvaluated(settings -> virtualFileSystem.updateProjectRootDirectories(ImmutableList.of(settings.getRootDir())));
     }
 
     @Override

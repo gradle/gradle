@@ -16,6 +16,7 @@
 
 package org.gradle.internal.watch
 
+import com.google.common.collect.ImmutableSet
 import org.apache.commons.io.FileUtils
 import org.gradle.initialization.StartParameterBuildOptions.WatchFileSystemOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -23,6 +24,7 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.VfsRetentionFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.Requires
@@ -59,18 +61,20 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         mainSourceFile.text = sourceFileWithGreeting("Hello World!")
 
         when:
-        withRetention().run "run"
+        withRetention().run "run", "--info"
         then:
         outputContains "Hello World!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
+        assertWatchedRootDirectories([ImmutableSet.of(testDirectory)])
 
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
         waitForChangesToBePickedUp()
-        withRetention().run "run"
+        withRetention().run "run", "--info"
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
+        assertWatchedRootDirectories([ImmutableSet.of(testDirectory)])
     }
 
     // TODO: Delete this test when the `run` task is supported by instant execution, since the coverage is already handled by the test above.
@@ -85,16 +89,18 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         mainSourceFile.text = sourceFileWithGreeting("Hello World!")
 
         when:
-        withRetention().run "classes"
+        withRetention().run "classes", "--info"
         then:
         executedAndNotSkipped ":compileJava", ":classes"
+        assertWatchedRootDirectories([ImmutableSet.of(testDirectory)])
 
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
         waitForChangesToBePickedUp()
-        withRetention().run "classes"
+        withRetention().run "classes", "--info"
         then:
         executedAndNotSkipped ":compileJava", ":classes"
+        assertWatchedRootDirectories([ImmutableSet.of(testDirectory)])
     }
 
     def "buildSrc changes are recognized"() {
@@ -106,16 +112,18 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         """
 
         when:
-        withRetention().run "hello"
+        withRetention().run "hello", "--info"
         then:
         outputContains "Hello from original task!"
+        assertWatchedRootDirectories([ImmutableSet.of(testDirectory)] * 2)
 
         when:
         taskSourceFile.text = taskWithGreeting("Hello from modified task!")
         waitForChangesToBePickedUp()
-        withRetention().run "hello"
+        withRetention().run "hello", "--info"
         then:
         outputContains "Hello from modified task!"
+        assertWatchedRootDirectories([ImmutableSet.of(testDirectory)] * 2)
     }
 
     def "Groovy build script changes get recognized"() {
@@ -334,6 +342,89 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         action()
         userInput.releaseAll()
         result = handle.waitForFinish()
+    }
+
+    @ToBeFixedForInstantExecution(because = "composite build not yet supported")
+    def "works with composite build"() {
+        buildTestFixture.withBuildInSubDir()
+        def includedBuild = singleProjectBuild("includedBuild") {
+            buildFile << """
+                apply plugin: 'java'
+            """
+        }
+        def consumer = singleProjectBuild("consumer") {
+            buildFile << """
+                apply plugin: 'java'
+
+                dependencies {
+                    implementation "org.test:includedBuild:1.0"
+                }
+            """
+            settingsFile << """
+                includeBuild("../includedBuild")
+            """
+        }
+        executer.beforeExecute {
+            inDirectory(consumer)
+        }
+        def expectedBuildRootDirectories = [
+            ImmutableSet.of(consumer),
+            ImmutableSet.of(consumer, includedBuild)
+        ]
+
+        when:
+        withRetention().run "assemble", "--info"
+        then:
+        executedAndNotSkipped(":includedBuild:jar")
+        assertWatchedRootDirectories(expectedBuildRootDirectories)
+
+        when:
+        withRetention().run("assemble", "--info")
+        then:
+        skipped(":includedBuild:jar")
+        assertWatchedRootDirectories(expectedBuildRootDirectories)
+
+        when:
+        includedBuild.file("src/main/java/NewClass.java")  << "public class NewClass {}"
+        withRetention().run("assemble")
+        then:
+        executedAndNotSkipped(":includedBuild:jar")
+    }
+
+    @ToBeFixedForInstantExecution(because = "GradleBuild task is not yet supported")
+    def "works with GradleBuild task"() {
+        buildTestFixture.withBuildInSubDir()
+        def buildInBuild = singleProjectBuild("buildInBuild") {
+            buildFile << """
+                apply plugin: 'java'
+            """
+        }
+        def consumer = singleProjectBuild("consumer") {
+            buildFile << """
+                apply plugin: 'java'
+
+                task buildInBuild(type: GradleBuild) {
+                    startParameter.currentDir = file('../buildInBuild')
+                }
+            """
+        }
+        executer.beforeExecute {
+            inDirectory(consumer)
+        }
+        def expectedBuildRootDirectories = [
+            ImmutableSet.of(consumer),
+            ImmutableSet.of(consumer, buildInBuild)
+        ]
+
+        when:
+        withRetention().run "buildInBuild", "--info"
+        then:
+        assertWatchedRootDirectories(expectedBuildRootDirectories)
+
+        when:
+        withRetention().run "buildInBuild", "--info"
+        then:
+        assertWatchedRootDirectories(expectedBuildRootDirectories)
     }
 
     def "incubating message is shown for watching the file system"() {
@@ -822,5 +913,23 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
         """
+    }
+
+    void assertWatchedRootDirectories(List<Set<File>> expectedWatchedRootDirectories) {
+        if (OperatingSystem.current().linux) {
+            // There is no info logging for non-hierarchical watchers
+            return
+        }
+        assert determineWatchedBuildRootDirectories(output) == expectedWatchedRootDirectories
+    }
+
+    private static List<Set<File>> determineWatchedBuildRootDirectories(String output) {
+        output.readLines()
+            .findAll { it.contains("] as root directories to watch") }
+            .collect { line ->
+                def matcher = line =~ /Now considering \[(.*)\] as root directories to watch/
+                String directories = matcher[0][1]
+                return directories.split(', ').collect { new File(it) } as Set
+            }
     }
 }
