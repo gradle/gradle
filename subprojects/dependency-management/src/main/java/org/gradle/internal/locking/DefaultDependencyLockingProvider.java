@@ -21,7 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactSelectionDetails;
-import org.gradle.api.artifacts.ArtifactVariantSelector;
+import org.gradle.api.artifacts.DependencyArtifactSelector;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -291,7 +291,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             }
 
             @Override
-            public List<ArtifactVariantSelector> getTargetSelectors() {
+            public List<DependencyArtifactSelector> getTargetSelectors() {
                 return Collections.emptyList();
             }
 
@@ -301,7 +301,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             }
 
             @Override
-            public List<ArtifactVariantSelector> getRequestedSelectors() {
+            public List<DependencyArtifactSelector> getRequestedSelectors() {
                 return Collections.emptyList();
             }
 
@@ -311,7 +311,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             }
 
             @Override
-            public void selectArtifact(ArtifactVariantSelector selector) {
+            public void selectArtifact(DependencyArtifactSelector selector) {
 
             }
         }

@@ -16,11 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import org.gradle.api.artifacts.ArtifactSelectionDetails;
-import org.gradle.api.artifacts.ArtifactVariantSelector;
+import org.gradle.api.artifacts.DependencyArtifactSelector;
 
 import java.util.List;
 
 public interface ArtifactSelectionDetailsInternal extends ArtifactSelectionDetails {
     boolean isUpdated();
-    List<ArtifactVariantSelector> getTargetSelectors();
+    List<DependencyArtifactSelector> getTargetSelectors();
 }

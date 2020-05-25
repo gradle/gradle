@@ -34,7 +34,7 @@ import javax.annotation.Nullable;
  * @since 6.6
  */
 @Incubating
-public interface ArtifactVariantSelector {
+public interface DependencyArtifactSelector {
     /**
      * Returns the type of the artifact to select
      */

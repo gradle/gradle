@@ -40,13 +40,13 @@ public interface ArtifactSelectionDetails {
     /**
      * Returns the list of requested artifacts for the dependency
      */
-    List<ArtifactVariantSelector> getRequestedSelectors();
+    List<DependencyArtifactSelector> getRequestedSelectors();
 
     /**
      * Adds an artifact to substitute. The first time this method is called, the original artifacts
      * are replaced with the artifact defined by this method call. If you wish to add artifacts to
      * the original query, you need to call {@link #getRequestedSelectors()} and add them using
-     * {@link #selectArtifact(ArtifactVariantSelector)}.
+     * {@link #selectArtifact(DependencyArtifactSelector)}.
      *
      * @param type the type of the artifact being queried
      * @param extension the extension, defaults to "jar"
@@ -62,5 +62,5 @@ public interface ArtifactSelectionDetails {
      *
      * In most cases, the appropriate method to call is {@link #selectArtifact(String, String, String)}
      */
-    void selectArtifact(ArtifactVariantSelector selector);
+    void selectArtifact(DependencyArtifactSelector selector);
 }
