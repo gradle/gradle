@@ -6,6 +6,7 @@ There are also several other improvements including a [better version ordering](
 
 We would like to thank the following community contributors to this release of Gradle:
 
+[SheliakLyr](https://github.com/SheliakLyr),
 [Daniil Popov](https://github.com/int02h),
 [Scott Robinson](https://github.com/quad),
 [Cristian Garcia](https://github.com/CristianGM),
@@ -14,6 +15,7 @@ We would like to thank the following community contributors to this release of G
 [Gregor Dschung](https://github.com/chkpnt),
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
 [kerr](https://github.com/hepin1989),
+[Chris Doré](https://github.com/oesolutions),
 and [Erhard Pointl](https://github.com/epeee).
 
 ## Upgrade Instructions
@@ -43,10 +45,10 @@ You can enable this feature by supplying the parameter `--watch-fs` on the comma
 <a name="features"></a>
 ## New features and usability improvements
 
-<a name="dependency-ordering"><a>
+<a name="dependency-ordering"></a>
 ### Improved dependency version ordering
 
-Gradle users an implicit [version ordering](userguide/single_versions.html#version_ordering) in order to determine which version is newest when performing dependency version conflict resolution and deciding what versions are included in a version range.
+Gradle uses an implicit [version ordering](userguide/single_versions.html#version_ordering) in order to determine which version is newest when performing dependency version conflict resolution and deciding what versions are included in a version range.
 
 The current version ordering algorithm can lead to potentially confusing results in certain cases. 
 
@@ -67,7 +69,7 @@ This ordering will be enabled by default in Gradle 7.0.
 
 ## Documentation improvements
 
-<a name="new-samples"><a>
+<a name="new-samples"></a>
 ### New samples
 
 The [sample index](samples/) includes new samples covering the following use cases:
@@ -77,7 +79,7 @@ The [sample index](samples/) includes new samples covering the following use cas
 
 ## Improvements for plugin authors
 
-<a name="lazy-dependencies"><a>
+<a name="lazy-dependencies"></a>
 ### Derive dependencies from user configuration
 
 Gradle now supports using a [`org.gradle.api.provider.Provider`](javadoc/org/gradle/api/provider/Provider.html) when adding dependencies. 
