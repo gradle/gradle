@@ -440,7 +440,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
     }
 
-    private static class TaskListenerImpl implements TaskExecutionListener {
+    private static class TaskListenerImpl implements TaskExecutionListener, InternalListener {
         private final List<Task> planned;
         private final List<String> executedTasks;
         private final Set<String> skippedTasks;
