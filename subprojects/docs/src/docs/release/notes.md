@@ -87,8 +87,10 @@ This is useful for plugin authors that need to supply different dependencies bas
 For example:
 ```groovy
 dependencies {
-    // Version of Guava defaults to 28.0-jre but can be changed via Gradle property (-PguavaVersion=...)
-    def guavaVersion = providers.gradleProperty("guavaVersion").orElse("28.0-jre")
+    // Version of Guava defaults to 28.0-jre but can be changed 
+    // via Gradle property (-PguavaVersion=...)
+    def guavaVersion = providers.gradleProperty("guavaVersion")
+        .orElse("28.0-jre")
 
     api(guavaVersion.map { "com.google.guava:guava:" + it })
 }
