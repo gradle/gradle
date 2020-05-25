@@ -44,7 +44,7 @@ You can enable this feature by supplying the parameter `--watch-fs` on the comma
 ## New features and usability improvements
 
 <a name="dependency-ordering"><a>
-## Improved dependency version ordering
+### Improved dependency version ordering
 
 Gradle users an implicit [version ordering](userguide/single_versions.html#version_ordering) in order to determine which version is newest when performing dependency version conflict resolution and deciding what versions are included in a version range.
 
