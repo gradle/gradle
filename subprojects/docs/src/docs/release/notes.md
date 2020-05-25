@@ -1,10 +1,11 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features the [start of several improvements](#incremental-improvements) for faster feedback using [file watching](#file-watching). This release also has a [feature preview](#dependency-ordering) for changes to version ordering and many [bug fixes](#fixed-issues). 
+This release includes an experimental opt-in for [file-system watching](#file-watching) feature that significantly improves build times, particularly in incremental scenarios. This is the first in a series of major improvements in the area planned over the course of several upcoming releases.
+
+There are also several other improvements including a [better version ordering](#dependency-ordering), [new samples](#new-samples) and many [bug fixes](#fixed-issues). 
 
 We would like to thank the following community contributors to this release of Gradle:
 
-[SheliakLyr](https://github.com/SheliakLyr),
 [Daniil Popov](https://github.com/int02h),
 [Scott Robinson](https://github.com/quad),
 [Cristian Garcia](https://github.com/CristianGM),
@@ -13,7 +14,6 @@ We would like to thank the following community contributors to this release of G
 [Gregor Dschung](https://github.com/chkpnt),
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
 [kerr](https://github.com/hepin1989),
-[Chris Doré](https://github.com/oesolutions),
 and [Erhard Pointl](https://github.com/epeee).
 
 ## Upgrade Instructions
@@ -26,59 +26,63 @@ See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@b
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
-<a name="incremental-improvements"></a>
-## Fast feedback improvements
+<a name="performance-improvements"></a>
+## Performance improvements
 
-A large part of the day in the life of a software developer is typically spent making small changes to the code, then rebuilding it, checking the results, and then going back to make other small changes.
-We call this the _incremental development use case,_ and ensuring fast feedback for it is a critically important for great developer experience and productivity. 
-
-Starting with the current release we will embark on a mission focused on heavily decreasing the overhead Gradle puts on this use case.
-Each forthcoming release in the coming months will include new improvements that we hope will each significantly improve the developer experience.
-Taken together we are hoping to see a quantum leap in how developers work with Gradle, especially from inside an IDE.
+Fast feedback in local incremental builds is crucial for developer productivity. This is especially true if your IDE uses Gradle to build and run your project and run tests, which IntelliJ IDEA does by default. That’s why this scenario is the primary focus of performance improvements in this and several upcoming Gradle releases. 
 
 <a name="file-watching"></a>
-### File watching
+### File-system watching
 
-In this release, we've introduced _[file-system watching](userguide/gradle_daemon.html#sec:daemon_watch_fs)_.
-This experimental feature allows Gradle to keep what it has learned about the file-system in memory between builds.
-This significantly reduces the amount of disk I/O needed to figure out what has changed since the previous build.
+In an [incremental build](userguide/more_about_tasks.html#sec:up_to_date_checks), input and output files are checked on every build to determine what needs to be rebuilt. This feature typically saves a lot of time. However, it adds some I/O overhead, which can be noticeable in large projects, especially when not much has changed since the previous build. 
 
-You can enable this feature by supplying the parameter `--watch-fs` on the command-line.
+In this release, we've introduced an experimental _[file-system watching](userguide/gradle_daemon.html#sec:daemon_watch_fs)_ feature. When enabled, it allows Gradle to keep what it has learned about the file-system in memory during and between builds instead of polling the file system on each build. This significantly reduces the amount of disk I/O needed to determine what has changed since the previous build.
 
-Enabling this feature reduced the time it takes to build small changes to the [Santa Tracker Android application](https://github.com/gradle/santa-tracker-performance):
+You can enable this feature by supplying the parameter `--watch-fs` on the command-line. Eventually, this optimization will be enabled by default.
 
-TBD image for the comparison
-
-<!-- TODO Need to insert link to blog post here -->
-Read more about this new feature and its impact [on the Gradle blog](https://blog.gradle.org)!
+<a name="features"></a>
+## New features and usability improvements
 
 <a name="dependency-ordering"><a>
-## Feature Preview: Dependency version ordering
+## Improved dependency version ordering
 
-There are multiple version ordering schemes used in the Java ecosystem.
-A number relies on `SNAPSHOT` versions, a concept from Maven.
-These versions are special cased in the way they are sorted by Maven, amongst a number of other special suffixes.
-With this version, Gradle provides an opt-in feature preview that does the following changes to version sorting:
+Gradle users an implicit [version ordering](userguide/single_versions.html#version_ordering) in order to determine which version is newest when performing dependency version conflict resolution and deciding what versions are included in a version range.
 
-* Consider `SNAPSHOT` to be a special suffix and sort it after `RC` but before `FINAL` and `RELEASE`
-* Consider `GA` to be a special suffix and sort it alphabetically with `FINAL` and `RELEASE`
-* Consider `SP` to be a special suffix and sort it higher than `RELEASE`
+The current version ordering algorithm can lead to potentially confusing results in certain cases. 
 
-In addition, this feature preview will also cause version ranges to behave different when the upper bound is an exclusion.
-In a range like `[1.2, 2.0[`, versions like `2.0-SNAPSHOT` or `2.0-alpha1` are now excluded.
+For example, `RC` is considered a higher version than `SNAPSHOT` by Gradle. As a result, a user that intends to integrate with the latest version will get the `RC` version through version conflict resolution instead of the `SNAPSHOT` once the `RC` version is released.  
 
-Activating the feature preview `VERSION_SORTING_V2` in `settings.gradle(.kts)` enables these changes:
+Additionally, versions like `2.0-RC1` or `2.0-SNAPSHOT` are unexpectedly included in a version range with an exclusive bound ending with `2.0[` because they are considered to be lower than `2.0`.
+
+With this version, Gradle provides an opt-in feature that improves version ordering to address the issues like the ones explained above. For example, `SNAPSHOT` is considered to be a higher version than `RC`. Also, versions like `2.0-RC1` or `2.0-SNAPSHOT` are excluded from a range ending with `2.0[`. 
+
+Activating the feature preview `VERSION_ORDERING_V2` in `settings.gradle(.kts)` enables these changes:
 ```
-enableFeaturePreview("VERSION_SORTING_V2")
+enableFeaturePreview("VERSION_ORDERING_V2")
 ```
 
-Have a look at the [full documentation on version sorting](userguide/single_versions.html) to understand all the implications.
-These changes will become the default in Gradle 7.0.  
+See the [full documentation on version ordering](userguide/single_versions.html) for the details of the improved algorithm.
+
+This ordering will be enabled by default in Gradle 7.0.  
+
+## Documentation improvements
+
+<a name="new-samples"><a>
+### New samples
+
+The [sample index](samples/) includes new samples covering the following use cases:
+- [How to safely use credentials in a Gradle build](samples/sample_credentials_for_external_tool_via_stdin.html)
+- [How to develop local changes to two independent projects with a composite build](samples/sample_composite_builds_declared_substitutions.html)
+- [How to develop a custom Gradle plugin and test it with a real build](samples/sample_composite_builds_plugin_development.html)
+
+## Improvements for plugin authors
 
 <a name="lazy-dependencies"><a>
-## Usability: Derive dependencies from user configuration
+### Derive dependencies from user configuration
 
 Gradle now supports using a [`org.gradle.api.provider.Provider`](javadoc/org/gradle/api/provider/Provider.html) when adding dependencies. 
+
+This is useful for plugin authors that need to supply different dependencies based on user-provided configuration.
 
 For example:
 ```groovy
@@ -90,18 +94,9 @@ dependencies {
 }
 ```
 
-This is useful for plugin authors that need to supply different dependencies based upon other configuration that may be set by the user.
+## Improvements for tooling providers
 
-## Documentation: New samples available
-
-This release demonstrates a few new use cases as samples:
-- How to safely use credentials in a Gradle build
-- How to develop local changes to two independent projects with a composite build
-- How to develop a custom Gradle plugin and test it with a real build
-
-## Tooling: Improvements for tooling providers
-
-Tooling API clients (like [Eclipse Buildship](https://projects.eclipse.org/projects/tools.buildship) or [IntelliJ IDEA](https://www.jetbrains.com/idea/)) can now use a new method from [`GradleConnector`](javadoc/org/gradle/tooling/GradleConnector.html) to asynchronously cancel all Tooling API connections without waiting for the current build to finish. 
+IDEs can now use a new method from [`GradleConnector`](javadoc/org/gradle/tooling/GradleConnector.html) to gracefully and asynchronously shut down Gradle daemons so that they don't continue to use memory and other resources. This new method is expected to be used when the user exits the IDE.
 
 ## Fixed issues
 
@@ -119,3 +114,4 @@ If you find a problem with this release, please file a bug on [GitHub Issues](ht
 If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
 
 We hope you will build happiness with Gradle, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).
+
