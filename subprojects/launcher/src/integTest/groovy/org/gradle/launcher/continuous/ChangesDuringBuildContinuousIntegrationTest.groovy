@@ -83,6 +83,7 @@ jar.dependsOn postCompile
         assert classloader.loadClass('Thing').getDeclaredFields()*.name == ["CHANGED"]
     }
 
+    @ToBeFixedForInstantExecution(because = "taskGraph.afterTask")
     def "new build should be triggered when input files to tasks are changed after each task has been executed, but before the build has completed"(changingInput) {
         given:
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }
