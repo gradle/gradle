@@ -30,16 +30,8 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
 
     @Override
     @Nullable
-    public UserCodeApplicationId current() {
-        CurrentApplication current = this.currentApplication.get();
-        return current == null ? null : current.id;
-    }
-
-    @Nullable
-    @Override
-    public DisplayName currentDisplayName() {
-        CurrentApplication current = this.currentApplication.get();
-        return current == null ? null : current.displayName;
+    public Application current() {
+        return this.currentApplication.get();
     }
 
     @Override
@@ -55,49 +47,62 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
     }
 
     @Override
-    public void reapply(UserCodeApplicationId id, Runnable runnable) {
-        CurrentApplication current = currentApplication.get();
-        currentApplication.set(new CurrentApplication(id, null));
-        try {
-            runnable.run();
-        } finally {
-            currentApplication.set(current);
-        }
-    }
-
-    @Override
-    public <T> Action<T> decorateWithCurrent(final Action<T> action) {
-        final UserCodeApplicationId id = current();
-        if (id == null) {
+    public <T> Action<T> reapplyCurrentLater(final Action<T> action) {
+        final CurrentApplication current = currentApplication.get();
+        if (current == null) {
             return action;
         }
-
-        return new Action<T>() {
-            @Override
-            public void execute(T t) {
-                CurrentApplication current = currentApplication.get();
-                currentApplication.set(new CurrentApplication(id, null));
-                try {
-                    action.execute(t);
-                } finally {
-                    currentApplication.set(current);
-                }
-            }
-        };
+        return current.reapplyLater(action);
     }
 
     private static UserCodeApplicationId id() {
         return new UserCodeApplicationId(COUNTER.incrementAndGet());
     }
 
-    private static class CurrentApplication {
+    private class CurrentApplication implements Application {
         final UserCodeApplicationId id;
-        @Nullable
         final DisplayName displayName;
 
-        public CurrentApplication(UserCodeApplicationId id, @Nullable DisplayName displayName) {
+        public CurrentApplication(UserCodeApplicationId id, DisplayName displayName) {
             this.id = id;
             this.displayName = displayName;
+        }
+
+        @Override
+        public UserCodeApplicationId getId() {
+            return id;
+        }
+
+        @Override
+        public DisplayName getDisplayName() {
+            return displayName;
+        }
+
+        @Override
+        public void reapply(Runnable runnable) {
+            CurrentApplication current = currentApplication.get();
+            currentApplication.set(this);
+            try {
+                runnable.run();
+            } finally {
+                currentApplication.set(current);
+            }
+        }
+
+        @Override
+        public <T> Action<T> reapplyLater(Action<T> action) {
+            return new Action<T>() {
+                @Override
+                public void execute(T t) {
+                    CurrentApplication current = currentApplication.get();
+                    currentApplication.set(CurrentApplication.this);
+                    try {
+                        action.execute(t);
+                    } finally {
+                        currentApplication.set(current);
+                    }
+                }
+            };
         }
     }
 }

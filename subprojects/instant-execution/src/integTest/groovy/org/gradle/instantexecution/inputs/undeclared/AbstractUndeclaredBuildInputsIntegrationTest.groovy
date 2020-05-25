@@ -35,7 +35,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
         then:
         fixture.assertStateStored()
         // TODO - use problems fixture, need to be able to ignore problems from the Kotlin plugin
-        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from $location"))
+        failure.assertThatDescription(containsNormalizedString("$location: read system property 'CI'"))
         outputContains("apply = $value")
         outputContains("task = $value")
 

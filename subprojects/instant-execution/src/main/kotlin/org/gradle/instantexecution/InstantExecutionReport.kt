@@ -169,6 +169,14 @@ class InstantExecutionReport(
             "kind" to "Bean",
             "type" to trace.type.name
         )
+        is PropertyTrace.BuildLogic -> mapOf(
+            "kind" to "BuildLogic",
+            "location" to trace.displayName.displayName
+        )
+        is PropertyTrace.BuildLogicClass -> mapOf(
+            "kind" to "Class",
+            "type" to trace.name
+        )
         PropertyTrace.Gradle -> mapOf(
             "kind" to "Gradle"
         )

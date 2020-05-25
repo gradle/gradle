@@ -1756,7 +1756,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         userCodeApplicationContext.apply(Stub(DisplayName)) {
             id1 = it
             container.whenObjectAdded {
-                assert userCodeApplicationContext.current() == id1
+                assert userCodeApplicationContext.current().id == id1
             }
         }
 
@@ -1773,7 +1773,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         userCodeApplicationContext.apply(Stub(DisplayName)) {
             id2 = it
             container.whenObjectAdded {
-                assert userCodeApplicationContext.current() == id2
+                assert userCodeApplicationContext.current().id == id2
             }
         }
 
@@ -1834,7 +1834,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         userCodeApplicationContext.apply(Stub(DisplayName)) {
             id = it
             container.matching { !it.is(a) }.all {
-                ids << userCodeApplicationContext.current()
+                ids << userCodeApplicationContext.current().id
             }
         }
 

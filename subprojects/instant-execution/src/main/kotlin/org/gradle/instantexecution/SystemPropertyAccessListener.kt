@@ -20,8 +20,8 @@ import org.gradle.api.InvalidUserCodeException
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.instantexecution.problems.InstantExecutionProblems
 import org.gradle.instantexecution.problems.PropertyProblem
-import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.problems.StructuredMessage
+import org.gradle.instantexecution.problems.location
 import org.gradle.instantexecution.serialization.Workarounds
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.event.ListenerManager
@@ -67,16 +67,9 @@ class SystemPropertyAccessListener(
         val message = StructuredMessage.build {
             text("read system property ")
             reference(key)
-            val currentApplication = userCodeContext.currentDisplayName()
-            if (currentApplication != null) {
-                text(" from ")
-                text(currentApplication.displayName)
-            } else {
-                text(" from class ")
-                reference(consumer)
-            }
         }
+        val location = userCodeContext.location(consumer)
         val exception = InvalidUserCodeException(message.toString().capitalize())
-        problems.onProblem(PropertyProblem(PropertyTrace.Unknown, message, exception, "undeclared_sys_prop_read"))
+        problems.onProblem(PropertyProblem(location, message, exception, "undeclared_sys_prop_read"))
     }
 }

@@ -36,13 +36,31 @@ public interface UserCodeApplicationContext {
      */
     void apply(DisplayName displayName, Action<? super UserCodeApplicationId> action);
 
-    void reapply(UserCodeApplicationId id, Runnable runnable);
-
-    <T> Action<T> decorateWithCurrent(Action<T> action);
+    /**
+     * Returns an action that represents some deferred execution of the current application. While the returned action is running, the details of the current application are restored.
+     * Returns the given action when there is no current application.
+     */
+    <T> Action<T> reapplyCurrentLater(Action<T> action);
 
     @Nullable
-    UserCodeApplicationId current();
+    Application current();
 
-    @Nullable
-    DisplayName currentDisplayName();
+    /**
+     * Immutable representation of a user code application.
+     */
+    interface Application {
+        UserCodeApplicationId getId();
+
+        DisplayName getDisplayName();
+
+        /**
+         * Returns an action that represents some deferred execution of this application. While the returned action is running, the details of this application are restored.
+         */
+        <T> Action<T> reapplyLater(Action<T> action);
+
+        /**
+         * Runs an action that represents some deferred execution of this application. While the action is running, the details of this application are restored.
+         */
+        void reapply(Runnable runnable);
+    }
 }

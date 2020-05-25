@@ -224,7 +224,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         executed(':all')
         instantExecution.assertStateStored() // does not fail
         problems.assertFailureHasProblems(failure) {
-            withProblem("unknown location: registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("build file '$buildFile': registration of listener on 'Gradle.buildFinished' is unsupported")
             withTotalProblemsCount(2)
         }
         failure.assertHasFailures(1)
@@ -505,7 +505,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
             gradle.buildFinished { }
             classes.doLast { t -> t.project }
         """
-        file("build.gradle") << """
+        buildFile << """
             gradle.addListener(new BuildAdapter())
             task broken {
                 inputs.property('p', project)
@@ -517,8 +517,8 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         then:
         problems.assertFailureHasProblems(failure) {
+            withProblem("build file '$buildFile': registration of listener on 'Gradle.addListener' is unsupported")
             withProblem("input property 'p' of ':broken': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("unknown location: registration of listener on 'Gradle.addListener' is unsupported")
             problemsWithStackTraceCount = 1
         }
         failure.assertHasFailures(1)
@@ -599,7 +599,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withUniqueProblems("unknown location: registration of listener on '$registrationPoint' is unsupported")
+            withUniqueProblems("build file '$buildFile': registration of listener on '$registrationPoint' is unsupported")
             withProblemsWithStackTraceCount(1)
         }
 
@@ -714,6 +714,73 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
                 "field 'p1' from type 'Bean': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with the configuration cache."
             )
             problemsWithStackTraceCount = 0
+        }
+    }
+
+    def "reports problems from container all { } block"() {
+        def script = file("script.gradle") << """
+            tasks.all {
+                System.getProperty("PROP")
+                gradle.buildFinished { }
+            }
+        """
+        buildFile << """
+            apply from: 'script.gradle'
+            task ok
+        """
+
+        when:
+        instantFails("ok", "-DPROP=12")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblem("script '$script': read system property 'PROP'")
+            withProblem("script '$script': registration of listener on 'Gradle.buildFinished' is unsupported")
+            totalProblemsCount = 28
+        }
+    }
+
+    def "reports problems from deferred task configuration action block"() {
+        def script = file("script.gradle") << """
+            tasks.configureEach {
+                System.getProperty("PROP")
+                gradle.buildFinished { }
+            }
+        """
+        buildFile << """
+            apply from: 'script.gradle'
+            task ok
+        """
+
+        when:
+        instantFails("ok", "-DPROP=12")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblem("script '$script': read system property 'PROP'")
+            withProblem("script '$script': registration of listener on 'Gradle.buildFinished' is unsupported")
+        }
+    }
+
+    def "reports problems from afterEvaluate { } block"() {
+        def script = file("script.gradle") << """
+            afterEvaluate {
+                System.getProperty("PROP")
+                gradle.buildFinished { }
+            }
+        """
+        buildFile << """
+            apply from: 'script.gradle'
+            task ok
+        """
+
+        when:
+        instantFails("ok", "-DPROP=12")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblem("script '$script': read system property 'PROP'")
+            withProblem("script '$script': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }
 

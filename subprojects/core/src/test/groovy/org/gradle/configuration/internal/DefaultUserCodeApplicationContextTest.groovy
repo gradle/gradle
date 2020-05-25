@@ -29,20 +29,18 @@ class DefaultUserCodeApplicationContextTest extends Specification {
 
         expect:
         context.current() == null
-        context.currentDisplayName() == null
 
         when:
         context.apply(displayName, action)
 
         then:
         1 * action.execute(_) >> { UserCodeApplicationId id ->
-            assert context.current() == id
-            assert context.currentDisplayName() == displayName
+            assert context.current().id == id
+            assert context.current().displayName == displayName
         }
 
         and:
         context.current() == null
-        context.currentDisplayName() == null
     }
 
     def "can nest application"() {
@@ -59,16 +57,17 @@ class DefaultUserCodeApplicationContextTest extends Specification {
         1 * action.execute(_) >> { UserCodeApplicationId id ->
             id1 = id
             context.apply(displayName2, action2)
+            assert context.current().id == id
+            assert context.current().displayName == displayName
         }
         1 * action2.execute(_) >> { UserCodeApplicationId id ->
             assert id != id1
-            assert context.current() == id
-            assert context.currentDisplayName() == displayName2
+            assert context.current().id == id
+            assert context.current().displayName == displayName2
         }
 
         and:
         context.current() == null
-        context.currentDisplayName() == null
     }
 
     def "can run actions registered by previous application"() {
@@ -77,7 +76,41 @@ class DefaultUserCodeApplicationContextTest extends Specification {
         def action = Mock(Action)
         def runnable = Mock(Runnable)
         def action2 = Mock(Action)
+        def application1
+
+        when:
+        context.apply(displayName, action)
+
+        then:
+        1 * action.execute(_) >> { UserCodeApplicationId id ->
+            application1 = context.current()
+            context.apply(displayName2, action2)
+        }
+        1 * action2.execute(_) >> { UserCodeApplicationId id ->
+            assert id != application1.id
+            assert context.current().id == id
+            assert context.current().displayName == displayName2
+
+            application1.reapply(runnable)
+
+            assert context.current().id == id
+            assert context.current().displayName == displayName2
+        }
+        1 * runnable.run() >> {
+            assert context.current().id == application1.id
+            assert context.current().displayName == displayName
+        }
+
+        and:
+        context.current() == null
+    }
+
+    def "can create actions for current application that can be run later"() {
+        def displayName = Describables.of("thing 1")
+        def action = Mock(Action)
+        def deferred = Mock(Action)
         def id1
+        def decorated
 
         when:
         context.apply(displayName, action)
@@ -85,24 +118,23 @@ class DefaultUserCodeApplicationContextTest extends Specification {
         then:
         1 * action.execute(_) >> { UserCodeApplicationId id ->
             id1 = id
-            context.apply(displayName2, action2)
+            decorated = context.current().reapplyLater(deferred)
         }
-        1 * action2.execute(_) >> { UserCodeApplicationId id ->
-            assert context.current() != id1
-            assert context.currentDisplayName() == displayName2
+        0 * deferred._
 
-            context.reapply(id1, runnable)
+        and:
+        context.current() == null
 
-            assert context.current() == id
-            assert context.currentDisplayName() == displayName2
-        }
-        1 * runnable.run() >> {
-            assert context.current() == id1
-            assert context.currentDisplayName() == null // currently not tracked
+        when:
+        decorated.execute("arg")
+
+        then:
+        1 * deferred.execute("arg") >> {
+            context.current().id == id1
+            context.current().displayName == displayName
         }
 
         and:
         context.current() == null
-        context.currentDisplayName() == null
     }
 }

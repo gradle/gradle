@@ -19,6 +19,7 @@ package org.gradle.instantexecution.inputs.undeclared
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
+import org.gradle.util.Matchers
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -36,11 +37,11 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem("unknown location: read system property 'CI' from build file '$buildFile'")
+            withProblem("build file '$buildFile': read system property 'CI'")
         }
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(3)
-        failure.assertThatCause(containsNormalizedString("Read system property 'CI' from build file '$buildFile'"))
+        failure.assertThatCause(containsNormalizedString("Read system property 'CI'"))
 
         where:
         mechanism << SystemPropertyInjection.all("CI", "false")
@@ -62,13 +63,14 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem("unknown location: read system property 'CI' from build file '${buildSrcBuildFile}'")
-            withProblem("unknown location: read system property 'CI2' from class 'build_")
+            withProblem("build file '${buildSrcBuildFile}': read system property 'CI'")
+            // TODO - decorate task actions
+            withProblem(Matchers.matchesRegexp("class `.*`: read system property 'CI2'"))
         }
         failure.assertHasFileName("Build file '${buildSrcBuildFile}'")
         failure.assertHasLineNumber(2)
-        failure.assertThatCause(containsNormalizedString("Read system property 'CI' from build file '${buildSrcBuildFile}'"))
-        failure.assertThatCause(containsNormalizedString("Read system property 'CI2' from class 'build_"))
+        failure.assertThatCause(containsNormalizedString("Read system property 'CI'"))
+        failure.assertThatCause(containsNormalizedString("Read system property 'CI2'"))
 
         where:
         mechanism << SystemPropertyInjection.all("CI", "false")
@@ -110,7 +112,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem("unknown location: read system property 'CI' from plugin class 'SneakyPlugin'")
+            withProblem("plugin class 'SneakyPlugin': read system property 'CI'")
         }
 
         where:
@@ -153,7 +155,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         then:
         fixture.assertStateStored()
         problems.assertFailureHasProblems(failure) {
-            withProblem("unknown location: read system property 'CI' from plugin class 'SneakyPlugin'")
+            withProblem("plugin class 'SneakyPlugin': read system property 'CI'")
         }
 
         when:
