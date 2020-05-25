@@ -188,10 +188,10 @@ Dependency substitution rules take care of replacing the module dependency with 
 
 While external modules are in general addressed via their group/artifact/version coordinates, it is common that such modules are published with additional artifacts that you may want to use in place of the main artifact.
 This is typically the case for _classified_ artifacts, but you may also need to select an artifact with a different file type or extension.
-Gradle discourages use of classifiers in dependencies and prefers to model such artifacts as <<variant_model.adoc#understanding-variant-selection,variants of the same thing>>.
+Gradle discourages use of classifiers in dependencies and prefers to model such artifacts as <<variant_model.adoc#understanding-variant-selection,variants additional variants of a module>>.
 There are lots of advantages of using variants instead of classified artifacts, including, but not only, a different set of dependencies for those artifacts.
 
-However, in order to help bridging the two models, Gradle provides means to select a different classifier in a substitution rule, or, on the contrary, replace a dependency which uses a classifier with a dependency which doesn't.
+However, in order to help bridging the two models, Gradle provides means to change or remove a classifier in a substitution rule.
 
 .Dependencies which will lead to a resolution error
 ====
