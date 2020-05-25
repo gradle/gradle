@@ -32,8 +32,13 @@ abstract class RunEmbeddedGradle : DefaultTask() {
     @get:Classpath
     abstract val gradleClasspath: ConfigurableFileCollection
 
+    @Option(option = "args", description = "Arguments for invoking Gradle, separated by spaces.")
+    fun setAllArgs(args: String) {
+        this.args = args.split(' ').filter { it.isNotEmpty() }
+    }
+
     @get:Input
-    @set:Option(option = "arg", description = "Arguments for invoking Gradle")
+    @set:Option(option = "arg", description = "Argument for invoking Gradle, can be specified multiple times.")
     var args: List<String> = listOf()
 
     @get:Input
