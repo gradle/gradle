@@ -31,13 +31,13 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     boolean checked
     TestResultOutputAssociation outputAssociation
 
-    def JUnitTestClassExecutionResult(GPathResult testClassNode, String testClassName, TestResultOutputAssociation outputAssociation) {
+    JUnitTestClassExecutionResult(GPathResult testClassNode, String testClassName, TestResultOutputAssociation outputAssociation) {
         this.outputAssociation = outputAssociation
         this.testClassNode = testClassNode
         this.testClassName = testClassName
     }
 
-    def JUnitTestClassExecutionResult(String content, String testClassName, TestResultOutputAssociation outputAssociation) {
+    JUnitTestClassExecutionResult(String content, String testClassName, TestResultOutputAssociation outputAssociation) {
         this(new XmlSlurper().parse(new StringReader(content)), testClassName, outputAssociation)
     }
 
@@ -110,7 +110,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         }
 
         for (int i = 0; i < messageMatchers.length; i++) {
-            if (!messageMatchers[i].matches(failures[i].@message.text())) {
+            if (!messageMatchers[i].matches(failures[i].@message.text()) && !messageMatchers[i].matches(failures[i].text())) {
                 return false
             }
         }

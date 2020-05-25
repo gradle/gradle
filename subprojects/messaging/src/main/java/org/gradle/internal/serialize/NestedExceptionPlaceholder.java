@@ -18,15 +18,26 @@ package org.gradle.internal.serialize;
 
 import java.io.Serializable;
 
-class CausePlaceholder implements Serializable {
+class NestedExceptionPlaceholder implements Serializable {
     private static final long serialVersionUID = 1L;
-    private final int causeIndex;
+    private final Kind kind;
+    private final int index;
 
-    CausePlaceholder(int causeIndex) {
-        this.causeIndex = causeIndex;
+    NestedExceptionPlaceholder(Kind kind, int index) {
+        this.kind = kind;
+        this.index = index;
     }
 
-    public int getCauseIndex() {
-        return causeIndex;
+    public Kind getKind() {
+        return kind;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    enum Kind {
+        cause,
+        suppressed
     }
 }
