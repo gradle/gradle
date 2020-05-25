@@ -198,7 +198,7 @@ A significant part of the story for modern JVM performance is runtime code optim
 The Daemon also allows more effective in memory caching across builds. For example, the classes needed by the build (e.g. plugins, build scripts) can be held in memory between builds. Similarly, Gradle can maintain in-memory caches of build data such as the hashes of task inputs and outputs, used for incremental building.
 
 To detect changes on the file-system, and to calculate what needs to be rebuilt, Gradle collects a lot of information about the state of the file-system during every build.
-When <<sec:daemon_watch_fs,watching the file-system>> is enabled, the Daemon can re-use information about the file-system from the last build.
+When <<sec:daemon_watch_fs,watching the file-system>> is enabled, the Daemon can re-use the already collected information from the last build.
 This can save a significant amount of time for incremental builds, where the number of changes to the file-system between two builds is typically low.
 
 [[sec:daemon_watch_fs]]
