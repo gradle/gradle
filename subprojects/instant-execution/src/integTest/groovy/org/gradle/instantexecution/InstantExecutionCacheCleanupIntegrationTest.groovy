@@ -17,6 +17,7 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 
 
@@ -36,7 +37,9 @@ class InstantExecutionCacheCleanupIntegrationTest
         instantRun 'help'
 
         then:
-        !outdated.isDirectory()
+        ConcurrentTestUtil.poll {
+            assert !outdated.isDirectory()
+        }
         cacheDir.listFiles().length == 3 // gc file + cache properties + 'help' state
     }
 
