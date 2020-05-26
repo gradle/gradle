@@ -16,6 +16,8 @@
 
 package org.gradle.groovy.scripts;
 
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 import org.gradle.internal.resource.EmptyFileTextResource;
 import org.gradle.internal.resource.StringTextResource;
@@ -43,12 +45,13 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class TextResourceScriptSourceTest {
-    private final DefaultTextFileResourceLoader resourceLoader = new DefaultTextFileResourceLoader();
     private TestFile testDir;
     private File scriptFile;
     private URI scriptFileUri;
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
+    private final FileResolver resolver = TestFiles.resolver(tmpDir.getTestDirectory());
+    private final DefaultTextFileResourceLoader resourceLoader = new DefaultTextFileResourceLoader(resolver);
 
     @Before
     public void setUp() throws URISyntaxException {
@@ -130,21 +133,24 @@ public class TextResourceScriptSourceTest {
     public void usesScriptFileNameToBuildDescription() {
         ScriptSource source = forFile(scriptFile);
         assertThat(source.getDisplayName(), equalTo(String.format("<file-type> '%s'", scriptFile.getAbsolutePath())));
-        assertThat(source.displayName().getDisplayName(), equalTo(String.format("<file-type> '%s'", scriptFile.getAbsolutePath())));
+        assertThat(source.getShortDisplayName().getDisplayName(), equalTo(String.format("<file-type> 'scripts%s%s'", File.separator, scriptFile.getName())));
+        assertThat(source.getLongDisplayName().getDisplayName(), equalTo(String.format("<file-type> '%s'", scriptFile.getAbsolutePath())));
     }
 
     @Test
     public void usesScriptFileNameToBuildDescriptionWhenUsingFileUri() {
         ScriptSource source = forUri(scriptFileUri);
         assertThat(source.getDisplayName(), equalTo(String.format("<file-type> '%s'", scriptFile.getAbsolutePath())));
-        assertThat(source.displayName().getDisplayName(), equalTo(String.format("<file-type> '%s'", scriptFile.getAbsolutePath())));
+        assertThat(source.getShortDisplayName().getDisplayName(), equalTo(String.format("<file-type> 'scripts%s%s'", File.separator, scriptFile.getName())));
+        assertThat(source.getLongDisplayName().getDisplayName(), equalTo(String.format("<file-type> '%s'", scriptFile.getAbsolutePath())));
     }
 
     @Test
     public void usesScriptFileNameToBuildDescriptionWhenUsingHttpUri() throws URISyntaxException {
         ScriptSource source = forUri(new URI("http://www.gradle.org/unknown.txt"));
-        assertThat(source.getDisplayName(), equalTo(String.format("<file-type> 'http://www.gradle.org/unknown.txt'")));
-        assertThat(source.displayName().getDisplayName(), equalTo(String.format("<file-type> 'http://www.gradle.org/unknown.txt'")));
+        assertThat(source.getDisplayName(), equalTo("<file-type> 'http://www.gradle.org/unknown.txt'"));
+        assertThat(source.getShortDisplayName().getDisplayName(), equalTo("<file-type> 'http://www.gradle.org/unknown.txt'"));
+        assertThat(source.getLongDisplayName().getDisplayName(), equalTo("<file-type> 'http://www.gradle.org/unknown.txt'"));
     }
 
     @Test
@@ -219,13 +225,15 @@ public class TextResourceScriptSourceTest {
     }
 
     @Test
-    public void canConstructSourceFromStringResource() throws IOException {
+    public void canConstructSourceFromStringResource() {
         ScriptSource source = new TextResourceScriptSource(new StringTextResource("<string>", "resource content"));
         assertThat(source.getResource(), instanceOf(StringTextResource.class));
         assertThat(source.getResource().getFile(), nullValue());
         assertThat(source.getResource().getLocation().getFile(), nullValue());
         assertThat(source.getResource().getLocation().getURI(), nullValue());
         assertThat(source.getDisplayName(), equalTo("<string>"));
+        assertThat(source.getLongDisplayName().getDisplayName(), equalTo("<string>"));
+        assertThat(source.getShortDisplayName().getDisplayName(), equalTo("<string>"));
         assertThat(source.getClassName(), equalTo("script_5z2up7fl2zfks7lm6sqlalp1q"));
     }
 
@@ -241,7 +249,7 @@ public class TextResourceScriptSourceTest {
     }
 
     private ScriptSource forUri(URI scriptFileUri) {
-        return new TextResourceScriptSource(new UriTextResource("<file-type>", scriptFileUri));
+        return new TextResourceScriptSource(new UriTextResource("<file-type>", scriptFileUri, resolver));
     }
 
 }

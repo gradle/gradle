@@ -36,7 +36,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem("build file '$buildFile': read system property 'CI'")
+            withProblem("build file 'build.gradle': read system property 'CI'")
         }
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(3)
@@ -62,8 +62,8 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem("build file '${buildSrcBuildFile}': read system property 'CI'")
-            withProblem("build file '${buildSrcBuildFile}': read system property 'CI2'")
+            withProblem("build file '${relativePath('buildSrc/build.gradle')}': read system property 'CI'")
+            withProblem("build file '${relativePath('buildSrc/build.gradle')}': read system property 'CI2'")
         }
         failure.assertHasFileName("Build file '${buildSrcBuildFile}'")
         failure.assertHasLineNumber(2)

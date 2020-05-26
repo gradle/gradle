@@ -18,6 +18,7 @@
 package org.gradle.internal.resource
 
 import org.gradle.api.resources.MissingResourceException
+import org.gradle.internal.file.RelativeFilePathResolver
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -27,32 +28,36 @@ import java.nio.charset.Charset
 
 import static org.gradle.internal.resource.UriTextResource.extractCharacterEncoding
 import static org.hamcrest.CoreMatchers.equalTo
-import static org.junit.Assert.*
+import static org.junit.Assert.assertFalse
+import static org.junit.Assert.assertNull
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.fail
 
 class UriTextResourceTest extends Specification {
-    private TestFile testDir;
-    private File file;
-    private URI fileUri;
+    private TestFile testDir
+    private File file
+    private URI fileUri
+    private RelativeFilePathResolver resolver = Mock()
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def setup() {
-        testDir = tmpDir.createDir('dir');
-        file = new File(testDir, 'build.script');
-        fileUri = file.toURI();
+        testDir = tmpDir.createDir('dir')
+        file = new File(testDir, 'build.script')
+        fileUri = file.toURI()
     }
 
     private URI createJar() throws URISyntaxException {
-        TestFile jarFile = tmpDir.testDirectory.file('test.jar');
-        testDir.file('ignoreme').write('content');
-        testDir.zipTo(jarFile);
+        TestFile jarFile = tmpDir.testDirectory.file('test.jar')
+        testDir.file('ignoreme').write('content')
+        testDir.zipTo(jarFile)
         return new URI("jar:${jarFile.toURI()}!/build.script")
     }
 
     def canConstructResourceFromFile() {
         when:
         file.createNewFile()
-        UriTextResource resource = new UriTextResource('<display-name>', file);
+        UriTextResource resource = new UriTextResource('<display-name>', file, resolver)
 
         then:
         resource.displayName == "<display-name> '$file'"
@@ -64,7 +69,7 @@ class UriTextResourceTest extends Specification {
     def canConstructResourceFromFileURI() {
         when:
         file.createNewFile()
-        UriTextResource resource = new UriTextResource('<display-name>', fileUri);
+        UriTextResource resource = new UriTextResource('<display-name>', fileUri, resolver)
 
         then:
         resource.displayName == "<display-name> '$file'"
@@ -76,7 +81,7 @@ class UriTextResourceTest extends Specification {
     def canConstructResourceFromJarURI() {
         when:
         URI jarUri = createJar()
-        UriTextResource resource = new UriTextResource('<display-name>', jarUri);
+        UriTextResource resource = new UriTextResource('<display-name>', jarUri, resolver)
 
         then:
         resource.displayName == "<display-name> '$jarUri'"
@@ -89,7 +94,7 @@ class UriTextResourceTest extends Specification {
     def readsFileContentWhenFileExists() throws IOException {
         when:
         file.text = '<content>'
-        UriTextResource resource = new UriTextResource('<display-name>', file);
+        UriTextResource resource = new UriTextResource('<display-name>', file, resolver)
 
         then:
         resource.exists
@@ -102,7 +107,7 @@ class UriTextResourceTest extends Specification {
         when:
         file.setText('\u03b1', 'utf-8')
 
-        UriTextResource resource = new UriTextResource('<display-name>', file);
+        UriTextResource resource = new UriTextResource('<display-name>', file, resolver)
 
         then:
         resource.exists
@@ -113,7 +118,7 @@ class UriTextResourceTest extends Specification {
 
     def hasNoContentWhenFileDoesNotExist() {
         when:
-        UriTextResource resource = new UriTextResource('<display-name>', file);
+        UriTextResource resource = new UriTextResource('<display-name>', file, resolver)
 
         then:
         !resource.exists
@@ -143,7 +148,7 @@ class UriTextResourceTest extends Specification {
     def hasNoContentWhenFileIsADirectory() {
         when:
         TestFile dir = testDir.file('somedir').createDir()
-        UriTextResource resource = new UriTextResource('<display-name>', dir);
+        UriTextResource resource = new UriTextResource('<display-name>', dir, resolver)
 
         then:
         resource.exists
@@ -174,7 +179,7 @@ class UriTextResourceTest extends Specification {
         when:
         file.text = '<content>'
 
-        UriTextResource resource = new UriTextResource('<display-name>', fileUri);
+        UriTextResource resource = new UriTextResource('<display-name>', fileUri, resolver)
 
         then:
         resource.exists
@@ -183,7 +188,7 @@ class UriTextResourceTest extends Specification {
     }
 
     def hasNoContentWhenUsingFileUriAndFileDoesNotExist() {
-        UriTextResource resource = new UriTextResource('<display-name>', fileUri);
+        UriTextResource resource = new UriTextResource('<display-name>', fileUri, resolver)
         assertFalse(resource.exists)
         assertNull(resource.file)
         try {
@@ -198,7 +203,7 @@ class UriTextResourceTest extends Specification {
         when:
         file.text = '<content>'
 
-        UriTextResource resource = new UriTextResource('<display-name>', createJar());
+        UriTextResource resource = new UriTextResource('<display-name>', createJar(), resolver)
 
         then:
         resource.exists
@@ -208,7 +213,7 @@ class UriTextResourceTest extends Specification {
     def hasNoContentWhenUsingJarUriAndFileDoesNotExistInJar() {
         when:
         URI jarUri = createJar()
-        UriTextResource resource = new UriTextResource('<display-name>', jarUri);
+        UriTextResource resource = new UriTextResource('<display-name>', jarUri, resolver)
 
         then:
         !resource.exists
@@ -236,27 +241,39 @@ class UriTextResourceTest extends Specification {
     }
 
     def usesFilePathToBuildDisplayNameWhenUsingFile() {
+        given:
+        resolver.resolveAsRelativePath(file) >> "a/b/file"
+
         when:
-        UriTextResource resource = new UriTextResource("<file-type>", file);
+        UriTextResource resource = new UriTextResource("<file-type>", file, resolver)
 
         then:
         resource.displayName == "<file-type> '${file.absolutePath}'" as String
+        resource.longDisplayName.displayName == "<file-type> '${file.absolutePath}'" as String
+        resource.shortDisplayName.displayName == "<file-type> 'a/b/file'" as String
     }
 
     def usesFilePathToBuildDisplayNameWhenUsingFileUri() {
+        given:
+        resolver.resolveAsRelativePath(file) >> "a/b/file"
+
         when:
-        UriTextResource resource = new UriTextResource("<file-type>", fileUri);
+        UriTextResource resource = new UriTextResource("<file-type>", fileUri, resolver)
 
         then:
         resource.displayName == "<file-type> '${file.absolutePath}'" as String
+        resource.longDisplayName.displayName == "<file-type> '${file.absolutePath}'" as String
+        resource.shortDisplayName.displayName == "<file-type> 'a/b/file'" as String
     }
 
     def usesUriToBuildDisplayNameWhenUsingHttpUri() {
         when:
-        UriTextResource resource = new UriTextResource("<file-type>", new URI("http://www.gradle.org/unknown.txt"));
+        UriTextResource resource = new UriTextResource("<file-type>", new URI("http://www.gradle.org/unknown.txt"), resolver)
 
         then:
         resource.displayName == '<file-type> \'http://www.gradle.org/unknown.txt\''
+        resource.longDisplayName.displayName == '<file-type> \'http://www.gradle.org/unknown.txt\''
+        resource.shortDisplayName.displayName == '<file-type> \'http://www.gradle.org/unknown.txt\''
     }
 
     def extractsCharacterEncodingFromContentType() {

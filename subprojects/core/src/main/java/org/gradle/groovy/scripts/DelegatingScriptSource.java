@@ -40,8 +40,13 @@ public class DelegatingScriptSource implements ScriptSource {
     }
 
     @Override
-    public DisplayName displayName() {
-        return source.displayName();
+    public DisplayName getLongDisplayName() {
+        return source.getLongDisplayName();
+    }
+
+    @Override
+    public DisplayName getShortDisplayName() {
+        return source.getShortDisplayName();
     }
 
     @Override

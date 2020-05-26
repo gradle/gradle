@@ -43,9 +43,17 @@ public interface ScriptSource extends Serializable {
     String getFileName();
 
     /**
-     * Returns the description for this script. Never returns null.
+     * Returns a long description for this script. Same as {@link #getLongDisplayName()} but here for backwards compatibility.
      */
     String getDisplayName();
 
-    DisplayName displayName();
+    /**
+     * Returns a long display name for this script. The long description should use absolute paths and assume no particular context.
+     */
+    DisplayName getLongDisplayName();
+
+    /**
+     * Returns a short display name for this script. The short description may use relative paths.
+     */
+    DisplayName getShortDisplayName();
 }

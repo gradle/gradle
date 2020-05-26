@@ -39,6 +39,7 @@ import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.groovy.scripts.Transformer
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.internal.Actions
+import org.gradle.internal.Describables
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.reflect.JavaReflectionUtil
@@ -112,6 +113,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         _ * source.className >> scriptClassName
         _ * source.fileName >> scriptFileName
         _ * source.displayName >> "script-display-name"
+        _ * source.longDisplayName >> Describables.of("script-display-name")
         _ * source.resource >> resource
         _ * resource.text >> scriptText
         return source

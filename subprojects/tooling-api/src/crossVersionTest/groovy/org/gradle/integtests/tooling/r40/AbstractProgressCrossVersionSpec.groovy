@@ -23,7 +23,7 @@ class AbstractProgressCrossVersionSpec extends ToolingApiSpecification {
 
     String applyInitScript(File script) {
         if (targetVersion.baseVersion >= GradleVersion.version("6.6")) {
-            return "Apply initialization script '${script}' to build"
+            return "Apply initialization script '${pathOfScript(script)}' to build"
         } else {
             return "Apply script ${script.name} to build"
         }
@@ -31,7 +31,7 @@ class AbstractProgressCrossVersionSpec extends ToolingApiSpecification {
 
     String applyInitScriptPlugin(File script) {
         if (targetVersion.baseVersion >= GradleVersion.version("6.6")) {
-            return "Apply script '${script}' to build"
+            return "Apply script '${pathOfScript(script)}' to build"
         } else {
             return "Apply script ${script.name} to build"
         }
@@ -39,7 +39,7 @@ class AbstractProgressCrossVersionSpec extends ToolingApiSpecification {
 
     String applySettingsFile() {
         if (targetVersion.baseVersion >= GradleVersion.version("6.6")) {
-            return "Apply settings file '${settingsFile}' to settings '${projectDir.name}'"
+            return "Apply settings file '${pathOfScript(settingsFile)}' to settings '${projectDir.name}'"
         } else {
             return "Apply script settings.gradle to settings '${projectDir.name}'"
         }
@@ -47,7 +47,7 @@ class AbstractProgressCrossVersionSpec extends ToolingApiSpecification {
 
     String applySettingsScriptPlugin(File script, String name) {
         if (targetVersion.baseVersion >= GradleVersion.version("6.6")) {
-            return "Apply script '${script}' to settings '${name}'"
+            return "Apply script '${pathOfScript(script)}' to settings '${name}'"
         } else {
             return "Apply script ${script.name} to settings '${name}'"
         }
@@ -55,7 +55,7 @@ class AbstractProgressCrossVersionSpec extends ToolingApiSpecification {
 
     String applyBuildScriptRootProject(String project = 'single') {
         if (targetVersion.baseVersion >= GradleVersion.version("6.6")) {
-            return "Apply build file '${buildFile}' to root project '$project'"
+            return "Apply build file '${pathOfScript(buildFile)}' to root project '$project'"
         } else {
             return "Apply script build.gradle to root project '$project'"
         }
@@ -63,7 +63,7 @@ class AbstractProgressCrossVersionSpec extends ToolingApiSpecification {
 
     String applyBuildScriptPluginRootProject(File script, String project = 'single') {
         if (targetVersion.baseVersion >= GradleVersion.version("6.6")) {
-            return "Apply script '${script}' to root project '$project'"
+            return "Apply script '${pathOfScript(script)}' to root project '$project'"
         } else {
             return "Apply script ${script.name} to root project '$project'"
         }
@@ -71,7 +71,7 @@ class AbstractProgressCrossVersionSpec extends ToolingApiSpecification {
 
     String applyBuildScript(File script, String project) {
         if (targetVersion.baseVersion >= GradleVersion.version("6.6")) {
-            return "Apply build file '${script}' to project '$project'"
+            return "Apply build file '${pathOfScript(script)}' to project '$project'"
         } else {
             return "Apply script ${script.name} to project '$project'"
         }
@@ -79,9 +79,13 @@ class AbstractProgressCrossVersionSpec extends ToolingApiSpecification {
 
     String applyBuildScriptPlugin(File script, String project) {
         if (targetVersion.baseVersion >= GradleVersion.version("6.6")) {
-            return "Apply script '${script}' to project '$project'"
+            return "Apply script '${pathOfScript(script)}' to project '$project'"
         } else {
             return "Apply script ${script.name} to project '$project'"
         }
+    }
+
+    private String pathOfScript(File script) {
+        return temporaryFolder.testDirectory.relativePath(script).replace('/', File.separator)
     }
 }

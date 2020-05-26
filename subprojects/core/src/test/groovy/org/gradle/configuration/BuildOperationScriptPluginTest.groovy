@@ -18,6 +18,7 @@ package org.gradle.configuration
 
 import org.gradle.configuration.internal.DefaultUserCodeApplicationContext
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.Describables
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resource.ResourceLocation
 import org.gradle.internal.resource.TextResource
@@ -44,7 +45,7 @@ class BuildOperationScriptPluginTest extends Specification {
         1 * scriptSourceResource.isContentCached() >> true
         1 * scriptSourceResource.getHasEmptyContent() >> false
         3 * decoratedScriptPlugin.getSource() >> scriptSource
-        1 * scriptSource.displayName >> "<test.source>"
+        2 * scriptSource.shortDisplayName >> Describables.of("<test.source>")
         1 * decoratedScriptPlugin.apply(target)
         0 * decoratedScriptPlugin._
 

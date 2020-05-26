@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.invocation.Gradle
@@ -224,7 +225,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         executed(':all')
         instantExecution.assertStateStored() // does not fail
         problems.assertFailureHasProblems(failure) {
-            withProblem("build file '$buildFile': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
             withTotalProblemsCount(2)
         }
         failure.assertHasFailures(1)
@@ -278,7 +279,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         executed(':all')
         instantExecution.assertStateStored() // does not fail
         problems.assertFailureHasProblems(failure) {
-            withProblem("build file '$buildFile': invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
             withTotalProblemsCount(2)
         }
         failure.assertHasFailures(1)
@@ -330,7 +331,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         instantExecution.assertStateStored() // does not fail
         problems.assertFailureHasProblems(failure) {
-            withProblem("build file '$buildFile': invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
         }
         failure.assertHasDescription("Execution failed for task ':broken'.")
         failure.assertHasCause("BOOM")
@@ -518,7 +519,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem("build file '$buildFile': registration of listener on 'Gradle.addListener' is unsupported")
+            withProblem("build file 'build.gradle': registration of listener on 'Gradle.addListener' is unsupported")
             withProblem("input property 'p' of ':broken': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
             problemsWithStackTraceCount = 1
         }
@@ -573,7 +574,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         instantExecution.assertStateStored()
         problems.assertFailureHasProblems(failure) {
-            withProblem("build file '$buildFile': invocation of '$invocation' at execution time is unsupported.")
+            withProblem("build file 'build.gradle': invocation of '$invocation' at execution time is unsupported.")
             withProblem("task `:a` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
             withProblem("task `:b` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
             withProblem("task `:c` of type `org.gradle.api.DefaultTask`: invocation of '$invocation' at execution time is unsupported.")
@@ -615,7 +616,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withUniqueProblems("build file '$buildFile': registration of listener on '$registrationPoint' is unsupported")
+            withUniqueProblems("build file 'build.gradle': registration of listener on '$registrationPoint' is unsupported")
         }
 
         where:
@@ -749,8 +750,8 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         then:
         // TODO - use fixture. Need to be able to accept a range of expected problem counts
-        failure.assertThatDescription(containsNormalizedString("script '$script': read system property 'PROP'"))
-        failure.assertThatDescription(containsNormalizedString("script '$script': registration of listener on 'Gradle.buildFinished' is unsupported"))
+        failure.assertThatDescription(containsNormalizedString("script 'script.gradle': read system property 'PROP'"))
+        failure.assertThatDescription(containsNormalizedString("script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported"))
     }
 
     def "reports problems from deferred task configuration action block"() {
@@ -770,8 +771,8 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem("script '$script': read system property 'PROP'")
-            withProblem("script '$script': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("script 'script.gradle': read system property 'PROP'")
+            withProblem("script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }
 
@@ -792,8 +793,85 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem("script '$script': read system property 'PROP'")
-            withProblem("script '$script': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("script 'script.gradle': read system property 'PROP'")
+            withProblem("script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+        }
+    }
+
+    def "reports problems in project build scripts"() {
+        settingsFile << """
+            include 'a'
+        """
+        file("a/build.gradle") << """
+            gradle.buildFinished { }
+            task broken {
+                doFirst {
+                    println project.name
+                }
+            }
+        """
+
+        when:
+        instantFails("broken")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblem("build file '${relativePath('a/build.gradle')}': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("build file '${relativePath('a/build.gradle')}': invocation of 'Task.project' at execution time is unsupported.")
+        }
+    }
+
+    def "reports problems in project Kotlin build scripts"() {
+        settingsFile << """
+            include 'a'
+        """
+        file("a/build.gradle.kts") << """
+            gradle.buildFinished { }
+            tasks.register("broken") {
+                doFirst {
+                    println(project.name)
+                }
+            }
+        """
+
+        when:
+        instantFails("broken")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblem("build file '${relativePath('a/build.gradle.kts')}': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("task `:a:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+        }
+    }
+
+    def "reports problems in buildSrc plugin"() {
+        file("buildSrc/src/main/java/SneakyPlugin.java") << """
+            import ${Project.name};
+            import ${Plugin.name};
+
+            public class SneakyPlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    project.getGradle().buildFinished(r -> {});
+                    project.getTasks().register("broken", t -> {
+                        t.doLast(t2 -> {
+                            System.out.println(t2.getProject().getName());
+                        });
+                    });
+                }
+            }
+        """
+        file("buildSrc/src/main/resources/META-INF/gradle-plugins/sneaky.properties") << "implementation-class: SneakyPlugin"
+        buildFile << """
+            plugins { id("sneaky") }
+        """
+
+        when:
+        instantFails("broken")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblem("plugin 'sneaky': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("task `:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
         }
     }
 

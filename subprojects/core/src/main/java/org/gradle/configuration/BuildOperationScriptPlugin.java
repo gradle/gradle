@@ -59,7 +59,7 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
             //no operation, if there is no script code provided
             decorated.apply(target);
         } else {
-            userCodeApplicationContext.apply(getSource().displayName(), userCodeApplicationId -> buildOperationExecutor.run(new RunnableBuildOperation() {
+            userCodeApplicationContext.apply(getSource().getShortDisplayName(), userCodeApplicationId -> buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
                     decorated.apply(target);
@@ -71,7 +71,7 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
                     final ScriptSource source = getSource();
                     final ResourceLocation resourceLocation = source.getResource().getLocation();
                     final File file = resourceLocation.getFile();
-                    String name = "Apply " + source.getDisplayName();
+                    String name = "Apply " + source.getShortDisplayName();
                     final String displayName = name + " to " + target;
 
                     return BuildOperationDescriptor.displayName(displayName)

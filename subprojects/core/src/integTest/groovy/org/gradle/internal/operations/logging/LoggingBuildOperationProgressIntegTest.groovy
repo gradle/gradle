@@ -64,7 +64,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         executer.requireOwnGradleUserHomeDir()
         mavenHttpRepository.module("org", "foo", '1.0').publish().allowAll()
 
-        def initScript = file('init.gradle') << """
+        file('init/init.gradle') << """
             logger.warn 'from init.gradle'
         """
         settingsFile << """
@@ -104,24 +104,24 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds("build", '-I', 'init.gradle')
+        succeeds("build", '-I', 'init/init.gradle')
 
         then:
 
-        def applyInitScriptProgress = operations.only("Apply initialization script '$initScript' to build").progress
+        def applyInitScriptProgress = operations.only("Apply initialization script 'init${File.separator}init.gradle' to build").progress
         applyInitScriptProgress.size() == 1
         applyInitScriptProgress[0].details.logLevel == 'WARN'
         applyInitScriptProgress[0].details.category == 'org.gradle.api.Script'
         applyInitScriptProgress[0].details.message == 'from init.gradle'
 
-        def applySettingsScriptProgress = operations.only("Apply settings file '$settingsFile' to settings '$testDirectory.name'").progress
+        def applySettingsScriptProgress = operations.only("Apply settings file 'settings.gradle' to settings '$testDirectory.name'").progress
         applySettingsScriptProgress.size() == 1
         applySettingsScriptProgress[0].details.logLevel == 'QUIET'
         applySettingsScriptProgress[0].details.category == 'system.out'
         applySettingsScriptProgress[0].details.spans[0].styleName == 'Normal'
         applySettingsScriptProgress[0].details.spans[0].text == "from settings file${getPlatformLineSeparator()}"
 
-        def applyBuildScriptProgress = operations.only("Apply build file '$buildFile' to root project 'root'").progress
+        def applyBuildScriptProgress = operations.only("Apply build file 'build.gradle' to root project 'root'").progress
         applyBuildScriptProgress.size() == 1
         applyBuildScriptProgress[0].details.logLevel == 'LIFECYCLE'
         applyBuildScriptProgress[0].details.category == 'org.gradle.api.Project'
