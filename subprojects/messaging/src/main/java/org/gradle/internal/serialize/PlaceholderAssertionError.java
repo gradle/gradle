@@ -17,24 +17,24 @@
 package org.gradle.internal.serialize;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 
 /**
- * A {@code PlaceholderException} is used when an exception cannot be serialized or deserialized.
+ * A {@code PlaceholderException} is used when an assertion error cannot be serialized or deserialized.
  */
-@UsedByScanPlugin
-public class PlaceholderException extends RuntimeException implements PlaceholderExceptionSupport {
+public class PlaceholderAssertionError extends AssertionError implements PlaceholderExceptionSupport {
     private final String exceptionClassName;
     private final Throwable getMessageException;
     private final String toString;
     private final Throwable toStringRuntimeEx;
 
-    @UsedByScanPlugin("test-distribution")
-    public PlaceholderException(String exceptionClassName, @Nullable String message, @Nullable Throwable getMessageException, @Nullable String toString,
-                                @Nullable Throwable toStringException, @Nullable Throwable cause) {
-        super(message, cause);
+    public PlaceholderAssertionError(String exceptionClassName,
+                                     @Nullable String message,
+                                     @Nullable Throwable getMessageException,
+                                     @Nullable String toString,
+                                     @Nullable Throwable toStringException) {
+        super(message);
         this.exceptionClassName = exceptionClassName;
         this.getMessageException = getMessageException;
         this.toString = toString;

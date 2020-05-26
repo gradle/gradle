@@ -57,6 +57,7 @@ class ExceptionPlaceholder implements Serializable {
     private String message;
     private String toString;
     private final boolean contextual;
+    private final boolean assertionError;
     private final List<ExceptionPlaceholder> causes;
     private final List<ExceptionPlaceholder> suppressed;
     private StackTraceElement[] stackTrace;
@@ -67,7 +68,7 @@ class ExceptionPlaceholder implements Serializable {
         Throwable throwable = original;
         type = throwable.getClass().getName();
         contextual = throwable.getClass().getAnnotation(Contextual.class) != null;
-
+        assertionError = throwable instanceof AssertionError;
         try {
             stackTrace = throwable.getStackTrace() == null ? new StackTraceElement[0] : throwable.getStackTrace();
         } catch (Throwable ignored) {
@@ -225,9 +226,14 @@ class ExceptionPlaceholder implements Serializable {
         Throwable placeholder;
         if (causes.size() <= 1) {
             if (contextual) {
+                // there are no @Contextual assertion errors in Gradle so we're safe to use this type only
                 placeholder = new ContextualPlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
             } else {
-                placeholder = new PlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
+                if (assertionError) {
+                    placeholder = new PlaceholderAssertionError(type, message, getMessageExec, toString, toStringRuntimeExec);
+                } else {
+                    placeholder = new PlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
+                }
             }
         } else {
             placeholder = new DefaultMultiCauseException(message, causes);
