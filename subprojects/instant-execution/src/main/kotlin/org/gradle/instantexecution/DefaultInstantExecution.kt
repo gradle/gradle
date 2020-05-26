@@ -466,7 +466,6 @@ class DefaultInstantExecution internal constructor(
         host.factory(T::class.java)
 
     // Skip instant execution for buildSrc for now.
-    // TODO Should instead collect up the inputs of its tasks and treat as task graph cache inputs
     private
     val isInstantExecutionEnabled: Boolean by unsafeLazy {
         startParameter.isEnabled && !host.currentBuild.buildSrc
