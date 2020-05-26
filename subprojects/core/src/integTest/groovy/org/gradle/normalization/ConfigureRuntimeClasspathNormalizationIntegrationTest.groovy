@@ -99,6 +99,49 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
     }
 
     @ToBeFixedForInstantExecution
+    def "can ignore entire manifest on runtime classpath"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(true).withManifestIgnored()
+
+        when:
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        project.jarManifest.replaceContents("Manifest-Version: 1.0\nImplementation-Version: 1.0.1")
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+    }
+
+    @ToBeFixedForInstantExecution
+    def "can ignore all meta-inf files on runtime classpath"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(true).withAllMetaInfIgnored()
+
+        when:
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        project.jarManifest.replaceContents("Manifest-Version: 1.0\nImplementation-Version: 1.0.1")
+        project.jarManifestProperties.replaceContents("implementation-version=1.0.1")
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+    }
+
+    @ToBeFixedForInstantExecution
     def "can ignore manifest properties on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(true).withManifestPropertiesIgnored()
 
@@ -263,6 +306,32 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
                 normalization {
                     runtimeClasspath {
                         ignore "**/ignored.txt"
+                    }
+                }
+            """.stripIndent()
+            return this
+        }
+
+        ProjectWithRuntimeClasspathNormalization withAllMetaInfIgnored() {
+            root.file('build.gradle') << """
+                normalization {
+                    runtimeClasspath {
+                        metaInf {
+                            ignoreCompletely()
+                        }
+                    }
+                }
+            """.stripIndent()
+            return this
+        }
+
+        ProjectWithRuntimeClasspathNormalization withManifestIgnored() {
+            root.file('build.gradle') << """
+                normalization {
+                    runtimeClasspath {
+                        metaInf {
+                            ignoreManifest()
+                        }
                     }
                 }
             """.stripIndent()
