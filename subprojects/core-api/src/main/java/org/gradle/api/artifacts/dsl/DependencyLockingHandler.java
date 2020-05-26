@@ -17,9 +17,8 @@
 package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
-
-import java.io.File;
 
 /**
  * A {@code DependencyLockingHandler} manages the behaviour and configuration of dependency locking.
@@ -68,6 +67,6 @@ public interface DependencyLockingHandler {
      * @since 6.4
      */
     @Incubating
-    Property<File> getLockFile();
+    RegularFileProperty getLockFile();
 
 }
