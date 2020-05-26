@@ -223,6 +223,14 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
+    public LocalOriginDependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
+        if (selector.equals(target) && artifacts.equals(getArtifacts())) {
+            return this;
+        }
+        return copyWithTargetAndArtifacts(target, artifacts);
+    }
+
+    @Override
     public LocalOriginDependencyMetadata forced() {
         if (force) {
             return this;
@@ -244,6 +252,10 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector) {
+        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, fromLock, reason);
+    }
+
+    private LocalOriginDependencyMetadata copyWithTargetAndArtifacts(ComponentSelector selector, List<IvyArtifactName> artifactNames) {
         return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, fromLock, reason);
     }
 

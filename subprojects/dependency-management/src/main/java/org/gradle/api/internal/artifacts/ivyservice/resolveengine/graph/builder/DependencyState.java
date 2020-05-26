@@ -15,18 +15,23 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import org.gradle.api.artifacts.DependencyArtifactSelector;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.Describables;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.BY_ANCESTOR;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.CONSTRAINT;
@@ -81,6 +86,36 @@ class DependencyState {
         DependencyMetadata targeted = dependency.withTarget(target);
         return new DependencyState(targeted, requested, ruleDescriptors, componentSelectorConverter);
     }
+
+
+    public DependencyState withTargetAndArtifacts(ComponentSelector target, List<DependencyArtifactSelector> targetSelectors, List<ComponentSelectionDescriptorInternal> ruleDescriptors) {
+        DependencyMetadata targeted = dependency.withTargetAndArtifacts(target, toIvyArtifacts(target, targetSelectors));
+        return new DependencyState(targeted, requested, ruleDescriptors, componentSelectorConverter);
+    }
+
+    private List<IvyArtifactName> toIvyArtifacts(ComponentSelector target, List<DependencyArtifactSelector> targetSelectors) {
+        return targetSelectors.stream()
+            .map(avs -> createArtifact(target, avs))
+            .collect(Collectors.toList());
+    }
+
+    private DefaultIvyArtifactName createArtifact(ComponentSelector target, DependencyArtifactSelector avs) {
+        String extension = avs.getExtension() != null ? avs.getExtension() : avs.getType();
+        return new DefaultIvyArtifactName(
+            nameOf(target),
+            avs.getType(),
+            extension,
+            avs.getClassifier()
+        );
+    }
+
+    private static String nameOf(ComponentSelector target) {
+        if (target instanceof ModuleComponentSelector) {
+            return ((ModuleComponentSelector) target).getModule();
+        }
+        throw new IllegalStateException("Substitution with artifacts for something else than a module is not supported");
+    }
+
 
     public boolean isForced() {
         if (!ruleDescriptors.isEmpty()) {

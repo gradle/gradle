@@ -48,7 +48,7 @@ gradlePlugin {
     }
 }
 
-tasks.withType<Test> {
+tasks.withType<Test>().configureEach {
     environment("BUILD_BRANCH", "myBranch")
     environment("BUILD_COMMIT_ID", "myCommitId")
 }

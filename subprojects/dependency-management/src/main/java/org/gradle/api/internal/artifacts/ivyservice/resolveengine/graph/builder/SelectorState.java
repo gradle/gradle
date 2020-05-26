@@ -81,8 +81,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private boolean reusable;
     private boolean markedReusableAlready;
 
-    // The following state needs to be tracked to consistently construct `ComponentOverrideMetadata` independent of the order dependencies are visited
-    private IvyArtifactName firstDependencyArtifact;
     private ClientModule clientModule;
     private boolean changing;
 
@@ -337,7 +335,8 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     @Override
     public IvyArtifactName getFirstDependencyArtifact() {
-        return firstDependencyArtifact;
+        List<IvyArtifactName> artifacts = dependencyState.getDependency().getArtifacts();
+        return artifacts == null || artifacts.isEmpty() ? null : artifacts.get(0);
     }
 
     @Override
@@ -399,12 +398,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     private void trackDetailsForOverrideMetadata(DependencyState dependencyState) {
-        if (firstDependencyArtifact == null) {
-            List<IvyArtifactName> artifacts = dependencyState.getDependency().getArtifacts();
-            if (!artifacts.isEmpty()) {
-                firstDependencyArtifact = artifacts.get(0);
-            }
-        }
         ClientModule nextClientModule = DefaultComponentOverrideMetadata.extractClientModule(dependencyState.getDependency());
         if (nextClientModule != null && !nextClientModule.equals(clientModule)) {
             if (clientModule == null) {

@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Defau
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.reflect.Instantiator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,10 +30,14 @@ public class IncludedBuildDependencySubstitutionsBuilder {
 
     private final CompositeBuildContext context;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final Instantiator instantiator;
 
-    public IncludedBuildDependencySubstitutionsBuilder(CompositeBuildContext context, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public IncludedBuildDependencySubstitutionsBuilder(CompositeBuildContext context,
+                                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                       Instantiator instantiator) {
         this.context = context;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.instantiator = instantiator;
     }
 
     public void build(IncludedBuildState build) {
@@ -48,7 +53,7 @@ public class IncludedBuildDependencySubstitutionsBuilder {
     }
 
     private DependencySubstitutionsInternal resolveDependencySubstitutions(IncludedBuildState build) {
-        DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(build, moduleIdentifierFactory);
+        DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(build, moduleIdentifierFactory, instantiator);
         build.getRegisteredDependencySubstitutions().execute(dependencySubstitutions);
         return dependencySubstitutions;
     }

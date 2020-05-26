@@ -79,9 +79,9 @@ class DefaultTestExecutionResult implements TestExecutionResult {
     }
 
     private class DefaultTestClassExecutionResult implements TestClassExecutionResult {
-        def testClassResults
+        List<TestClassExecutionResult> testClassResults
 
-        private DefaultTestClassExecutionResult(def classExecutionResults) {
+        private DefaultTestClassExecutionResult(List<TestClassExecutionResult> classExecutionResults) {
             this.testClassResults = classExecutionResults;
         }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.serialize;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
@@ -35,6 +36,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -56,11 +58,13 @@ class ExceptionPlaceholder implements Serializable {
     private String toString;
     private final boolean contextual;
     private final List<ExceptionPlaceholder> causes;
+    private final List<ExceptionPlaceholder> suppressed;
     private StackTraceElement[] stackTrace;
     private Throwable toStringRuntimeExec;
     private Throwable getMessageExec;
 
-    public ExceptionPlaceholder(final Throwable throwable, Transformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator) {
+    public ExceptionPlaceholder(Throwable original, Transformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator) {
+        Throwable throwable = original;
         type = throwable.getClass().getName();
         contextual = throwable.getClass().getAnnotation(Contextual.class) != null;
 
@@ -78,6 +82,10 @@ class ExceptionPlaceholder implements Serializable {
             getMessageExec = failure;
         }
 
+        if (isJava14()) {
+            throwable = Java14NullPointerExceptionUsefulMessageSupport.maybeReplaceUsefulNullPointerMessage(throwable);
+        }
+
         try {
             toString = throwable.toString();
         } catch (Throwable failure) {
@@ -85,6 +93,7 @@ class ExceptionPlaceholder implements Serializable {
         }
 
         final List<? extends Throwable> causes = extractCauses(throwable);
+        final List<? extends Throwable> suppressed = extractSuppressed(throwable);
 
         StreamByteBuffer buffer = new StreamByteBuffer();
         ExceptionReplacingObjectOutputStream oos = objectOutputStreamCreator.transform(buffer.getOutputStream());
@@ -100,7 +109,11 @@ class ExceptionPlaceholder implements Serializable {
                 // Don't serialize the causes - we'll serialize them separately later
                 int causeIndex = causes.indexOf(obj);
                 if (causeIndex >= 0) {
-                    return new CausePlaceholder(causeIndex);
+                    return new NestedExceptionPlaceholder(NestedExceptionPlaceholder.Kind.cause, causeIndex);
+                }
+                int suppressedIndex = suppressed.indexOf(obj);
+                if (suppressedIndex >= 0) {
+                    return new NestedExceptionPlaceholder(NestedExceptionPlaceholder.Kind.suppressed, causeIndex);
                 }
                 return obj;
             }
@@ -115,21 +128,44 @@ class ExceptionPlaceholder implements Serializable {
 //                LOGGER.debug("Ignoring failure to serialize throwable.", ignored);
         }
 
-        if (causes.isEmpty()) {
-            this.causes = Collections.emptyList();
-        } else if (causes.size() == 1) {
-            this.causes = Collections.singletonList(new ExceptionPlaceholder(causes.get(0), objectOutputStreamCreator));
+        this.causes = convertToExceptionPlaceholderList(causes, objectOutputStreamCreator);
+        this.suppressed = convertToExceptionPlaceholderList(suppressed, objectOutputStreamCreator);
+
+    }
+
+    @SuppressWarnings("Since15")
+    private static List<? extends Throwable> extractSuppressed(Throwable throwable) {
+        if (isJava7()) {
+            return Arrays.asList(throwable.getSuppressed());
+        }
+        return Collections.emptyList();
+    }
+
+    private static List<ExceptionPlaceholder> convertToExceptionPlaceholderList(List<? extends Throwable> throwables, Transformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator) {
+        if (throwables.isEmpty()) {
+            return Collections.emptyList();
+        } else if (throwables.size() == 1) {
+            return Collections.singletonList(new ExceptionPlaceholder(throwables.get(0), objectOutputStreamCreator));
         } else {
-            List<ExceptionPlaceholder> placeholders = new ArrayList<ExceptionPlaceholder>(causes.size());
-            for (Throwable cause : causes) {
+            List<ExceptionPlaceholder> placeholders = new ArrayList<ExceptionPlaceholder>(throwables.size());
+            for (Throwable cause : throwables) {
                 placeholders.add(new ExceptionPlaceholder(cause, objectOutputStreamCreator));
             }
-            this.causes = placeholders;
+            return placeholders;
         }
     }
 
+    private static boolean isJava7() {
+        return JavaVersion.current().isJava7Compatible();
+    }
+
+    private static boolean isJava14() {
+        return JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14);
+    }
+
     public Throwable read(Transformer<Class<?>, String> classNameTransformer, Transformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
-        final List<Throwable> causes = recreateCauses(classNameTransformer, objectInputStreamCreator);
+        final List<Throwable> causes = recreateExceptions(this.causes, classNameTransformer, objectInputStreamCreator);
+        final List<Throwable> suppressed = recreateExceptions(this.suppressed, classNameTransformer, objectInputStreamCreator);
 
         if (serializedException != null) {
             // try to deserialize the original exception
@@ -137,9 +173,15 @@ class ExceptionPlaceholder implements Serializable {
             ois.setObjectTransformer(new Transformer<Object, Object>() {
                 @Override
                 public Object transform(Object obj) {
-                    if (obj instanceof CausePlaceholder) {
-                        CausePlaceholder placeholder = (CausePlaceholder) obj;
-                        return causes.get(placeholder.getCauseIndex());
+                    if (obj instanceof NestedExceptionPlaceholder) {
+                        NestedExceptionPlaceholder placeholder = (NestedExceptionPlaceholder) obj;
+                        int index = placeholder.getIndex();
+                        switch (placeholder.getKind()) {
+                            case cause:
+                                return causes.get(index);
+                            case suppressed:
+                                return suppressed.get(index);
+                        }
                     }
                     return obj;
                 }
@@ -164,6 +206,12 @@ class ExceptionPlaceholder implements Serializable {
                     reconstructed.initCause(causes.get(0));
                 }
                 reconstructed.setStackTrace(stackTrace);
+                if (!suppressed.isEmpty()) {
+                    for (Throwable throwable : suppressed) {
+                        //noinspection Since15
+                        reconstructed.addSuppressed(throwable);
+                    }
+                }
                 return reconstructed;
             }
         } catch (UncheckedException ignore) {
@@ -269,16 +317,43 @@ class ExceptionPlaceholder implements Serializable {
         return null;
     }
 
-    private List<Throwable> recreateCauses(Transformer<Class<?>, String> classNameTransformer, Transformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
-        if (causes.isEmpty()) {
+    private static List<Throwable> recreateExceptions(List<ExceptionPlaceholder> exceptions, Transformer<Class<?>, String> classNameTransformer, Transformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
+        if (exceptions.isEmpty()) {
             return Collections.emptyList();
-        } else if (causes.size() == 1) {
-            return Collections.singletonList(causes.get(0).read(classNameTransformer, objectInputStreamCreator));
+        } else if (exceptions.size() == 1) {
+            return Collections.singletonList(exceptions.get(0).read(classNameTransformer, objectInputStreamCreator));
         }
         List<Throwable> result = new ArrayList<Throwable>();
-        for (ExceptionPlaceholder placeholder : causes) {
+        for (ExceptionPlaceholder placeholder : exceptions) {
             result.add(placeholder.read(classNameTransformer, objectInputStreamCreator));
         }
         return result;
+    }
+
+    /**
+     * A support utility which will replace the message of NullPointerException
+     * thrown in Java 14+ with the "useful" one when it's not using a custom
+     * message.
+     *
+     * We have to do this because Java 14 will not serialize the required context
+     * and therefore when the exception is sent back to the daemon, it loses
+     * information required to create a "useful message".
+     */
+    private static class Java14NullPointerExceptionUsefulMessageSupport {
+
+        private static Throwable maybeReplaceUsefulNullPointerMessage(Throwable throwable) {
+            if (throwable instanceof NullPointerException) {
+                StackTraceElement[] stackTrace = throwable.getStackTrace();
+                try {
+                    throwable = new NullPointerException(throwable.getMessage());
+                } catch (Exception e) {
+                    // if calling `getMessage()` fails for whatever reason, just ignore
+                    // the replacement
+                    return throwable;
+                }
+                throwable.setStackTrace(stackTrace);
+            }
+            return throwable;
+        }
     }
 }

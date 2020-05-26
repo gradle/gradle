@@ -604,11 +604,14 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         }
 
         where:
-        registrationPoint         | code
-        "Gradle.addBuildListener" | "gradle.addBuildListener(new BuildAdapter())"
-        "Gradle.addListener"      | "gradle.addListener(new BuildAdapter())"
-        "Gradle.buildStarted"     | "gradle.buildStarted {}"
-        "Gradle.buildFinished"    | "gradle.buildFinished {}"
+        registrationPoint                             | code
+        "Gradle.addBuildListener"                     | "gradle.addBuildListener(new BuildAdapter())"
+        "Gradle.addListener"                          | "gradle.addListener(new BuildAdapter())"
+        "Gradle.buildStarted"                         | "gradle.buildStarted {}"
+        "Gradle.buildFinished"                        | "gradle.buildFinished {}"
+        "TaskExecutionGraph.addTaskExecutionListener" | "gradle.taskGraph.addTaskExecutionListener(new TaskExecutionAdapter())"
+        "TaskExecutionGraph.beforeTask"               | "gradle.taskGraph.beforeTask {}"
+        "TaskExecutionGraph.afterTask"                | "gradle.taskGraph.afterTask {}"
     }
 
     @Unroll

@@ -110,6 +110,11 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     }
 
     @Override
+    public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
+        return this;
+    }
+
+    @Override
     public boolean isChanging() {
         return false;
     }

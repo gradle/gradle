@@ -26,7 +26,8 @@ import javax.annotation.Nullable;
  * is going to be different) or a failure.
  */
 public interface DependencySubstitutionApplicator {
-    DependencySubstitutionApplicator NO_OP = dependency -> SubstitutionResult.of(new DefaultDependencySubstitution(dependency.getSelector()));
+    SubstitutionResult NO_OP_SUBSTITUTION_RESULT = SubstitutionResult.of(NoOpSubstitution.INSTANCE);
+    DependencySubstitutionApplicator NO_OP = dependency -> NO_OP_SUBSTITUTION_RESULT;
 
     SubstitutionResult apply(DependencyMetadata dependency);
 
@@ -61,4 +62,5 @@ public interface DependencySubstitutionApplicator {
             return failure != null;
         }
     }
+
 }

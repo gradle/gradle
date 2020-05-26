@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.serialize;
-
-import java.io.Serializable;
-
-class CausePlaceholder implements Serializable {
-    private static final long serialVersionUID = 1L;
-    private final int causeIndex;
-
-    CausePlaceholder(int causeIndex) {
-        this.causeIndex = causeIndex;
-    }
-
-    public int getCauseIndex() {
-        return causeIndex;
-    }
+plugins {
+    id 'java-library'
 }
+
+// tag::dependencies[]
+dependencies {
+    implementation "co.paralleluniverse:quasar-core:0.7.12_r3:jdk8"
+}
+// end::dependencies[]

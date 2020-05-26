@@ -177,8 +177,9 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
     @Nullable
     public IvyArtifactName getFirstDependencyArtifact() {
         for (T selector: selectors) {
-            if (selector.getFirstDependencyArtifact() != null) {
-                return selector.getFirstDependencyArtifact();
+            IvyArtifactName artifact = selector.getFirstDependencyArtifact();
+            if (artifact != null) {
+                return artifact;
             }
         }
         return null;

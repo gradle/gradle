@@ -50,7 +50,7 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     private static class CompositeBuildTreeScopeServices {
         public BuildStateRegistry createIncludedBuildRegistry(CompositeBuildContext context, Instantiator instantiator, WorkerLeaseService workerLeaseService, ImmutableModuleIdentifierFactory moduleIdentifierFactory, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, ServiceRegistry rootServices) {
             IncludedBuildFactory includedBuildFactory = new DefaultIncludedBuildFactory(instantiator, workerLeaseService);
-            IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, moduleIdentifierFactory);
+            IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, moduleIdentifierFactory, instantiator);
             return new DefaultIncludedBuildRegistry(includedBuildFactory, dependencySubstitutionsBuilder, gradleLauncherFactory, listenerManager, (BuildTreeScopeServices) rootServices);
         }
 
