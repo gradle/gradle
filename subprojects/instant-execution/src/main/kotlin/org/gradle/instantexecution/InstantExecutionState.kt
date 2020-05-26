@@ -102,10 +102,8 @@ class InstantExecutionState(
         withGradleIsolate(gradle) {
             writeIncludedBuilds(gradle)
             writeBuildCacheConfiguration(gradle)
-            val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
-            writeCollection(eventListenerRegistry.subscriptions)
-            val buildOutputCleanupRegistry = service<BuildOutputCleanupRegistry>()
-            writeCollection(buildOutputCleanupRegistry.registeredOutputs)
+            writeBuildEventListenerSubscriptions()
+            writeBuildOutputCleanupRegistrations()
         }
     }
 
@@ -114,16 +112,8 @@ class InstantExecutionState(
         withGradleIsolate(gradle) {
             readIncludedBuilds()
             readBuildCacheConfiguration(gradle)
-            val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
-            readCollection {
-                val provider = readNonNull<Provider<OperationCompletionListener>>()
-                eventListenerRegistry.subscribe(provider)
-            }
-            val buildOutputCleanupRegistry = service<BuildOutputCleanupRegistry>()
-            readCollection {
-                val files = readNonNull<FileCollection>()
-                buildOutputCleanupRegistry.registerOutputs(files)
-            }
+            readBuildEventListenerSubscriptions()
+            readBuildOutputCleanupRegistrations()
         }
     }
 
@@ -159,6 +149,36 @@ class InstantExecutionState(
         gradle.settings.buildCache.let { buildCache ->
             buildCache.local = readNonNull()
             buildCache.remote = read() as BuildCache?
+        }
+    }
+
+    private
+    suspend fun DefaultWriteContext.writeBuildEventListenerSubscriptions() {
+        val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
+        writeCollection(eventListenerRegistry.subscriptions)
+    }
+
+    private
+    suspend fun DefaultReadContext.readBuildEventListenerSubscriptions() {
+        val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
+        readCollection {
+            val provider = readNonNull<Provider<OperationCompletionListener>>()
+            eventListenerRegistry.subscribe(provider)
+        }
+    }
+
+    private
+    suspend fun DefaultWriteContext.writeBuildOutputCleanupRegistrations() {
+        val buildOutputCleanupRegistry = service<BuildOutputCleanupRegistry>()
+        writeCollection(buildOutputCleanupRegistry.registeredOutputs)
+    }
+
+    private
+    suspend fun DefaultReadContext.readBuildOutputCleanupRegistrations() {
+        val buildOutputCleanupRegistry = service<BuildOutputCleanupRegistry>()
+        readCollection {
+            val files = readNonNull<FileCollection>()
+            buildOutputCleanupRegistry.registerOutputs(files)
         }
     }
 
