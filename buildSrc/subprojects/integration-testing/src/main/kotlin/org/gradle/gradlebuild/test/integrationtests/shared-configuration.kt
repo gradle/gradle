@@ -97,7 +97,7 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
  * Distributed test requires all dependencies to be declared
  */
 fun Project.integrationTestUsesSampleDir(vararg sampleDirs: String) {
-    tasks.withType<IntegrationTest>() {
+    tasks.withType<IntegrationTest>().configureEach {
         systemProperty("declaredSampleInputs", sampleDirs.joinToString(";"))
         inputs.files(rootProject.files(sampleDirs))
             .withPropertyName("autoTestedSamples")

@@ -16,7 +16,7 @@ dependencies {
     testImplementation(library("guava"))
 }
 
-tasks.withType<Test> {
+tasks.withType<Test>().configureEach {
     // Looks like loading all the classes requires more than the default 512M
     maxHeapSize = "700M"
 
