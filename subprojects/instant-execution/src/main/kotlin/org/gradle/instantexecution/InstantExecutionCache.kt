@@ -121,7 +121,7 @@ class InstantExecutionCache(
 
     class Layout(val fingerprint: File, val state: File)
 
-    fun useForWrite(cacheKey: String, action: (Layout) -> Unit) {
+    fun useForStore(cacheKey: String, action: (Layout) -> Unit) {
         withBaseCacheDirFor(cacheKey) { cacheDir ->
             // TODO AdditiveCache require(!cacheDir.isDirectory)
             cacheDir.mkdirs()

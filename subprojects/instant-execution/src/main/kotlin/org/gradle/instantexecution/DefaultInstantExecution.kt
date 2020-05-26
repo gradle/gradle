@@ -135,7 +135,7 @@ class DefaultInstantExecution internal constructor(
         stopCollectingCacheFingerprint()
 
         buildOperationExecutor.withStoreOperation {
-            cache.useForWrite(startParameter.instantExecutionCacheKey) { layout ->
+            cache.useForStore(startParameter.instantExecutionCacheKey) { layout ->
                 try {
                     writeInstantExecutionFiles(layout)
                 } catch (error: InstantExecutionError) {
