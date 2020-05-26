@@ -1,6 +1,6 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release includes an experimental opt-in for [file-system watching](#file-watching) feature that significantly improves build times, particularly in incremental scenarios. This is the first in a series of major improvements in the area planned over the course of several upcoming releases.
+This release includes an experimental opt-in for the [file-system watching](#file-watching) feature that significantly improves build times, particularly in incremental scenarios. This is the first in a series of major improvements in the area planned over the course of several upcoming releases.
 
 There are also several other improvements including a [better version ordering](#dependency-ordering), [new samples](#new-samples) and many [bug fixes](#fixed-issues). 
 
@@ -36,7 +36,7 @@ Fast feedback in local incremental builds is crucial for developer productivity.
 <a name="file-watching"></a>
 ### File-system watching
 
-In an [incremental build](userguide/more_about_tasks.html#sec:up_to_date_checks), input and output files are checked on every build to determine what needs to be rebuilt. This feature typically saves a lot of time. However, it adds some I/O overhead, which can be noticeable in large projects, especially when not much has changed since the previous build. 
+In an [incremental build](userguide/more_about_tasks.html#sec:up_to_date_checks), input and output files are checked to determine what needs to be rebuilt. This feature typically saves a lot of time; however, it adds some I/O overhead, which can be noticeable in large projects when not much has changed since the previous build. 
 
 In this release, we've introduced an experimental _[file-system watching](userguide/gradle_daemon.html#sec:daemon_watch_fs)_ feature. When enabled, it allows Gradle to keep what it has learned about the file-system in memory during and between builds instead of polling the file system on each build. This significantly reduces the amount of disk I/O needed to determine what has changed since the previous build.
 
@@ -48,22 +48,22 @@ You can enable this feature by supplying the parameter `--watch-fs` on the comma
 <a name="dependency-ordering"></a>
 ### Improved dependency version ordering
 
-Gradle uses an implicit [version ordering](userguide/single_versions.html#version_ordering) in order to determine which version is newest when performing dependency version conflict resolution and deciding what versions are included in a version range.
+Gradle uses an implicit [version ordering](userguide/single_versions.html#version_ordering) to determine which version is considered newest when performing dependency version conflict resolution and when deciding which versions are included in a version range.
 
 The current version ordering algorithm can lead to potentially confusing results in certain cases. 
 
-For example, `RC` is considered a higher version than `SNAPSHOT` by Gradle. As a result, a user that intends to integrate with the latest version will get the `RC` version through version conflict resolution instead of the `SNAPSHOT` once the `RC` version is released.  
+For example, `RC` is considered a higher version than `SNAPSHOT` by Gradle. As a result, a user that intends to integrate with the latest version of a dependency will get the `RC` version through version conflict resolution instead of the `SNAPSHOT` once the `RC` version is released.  
 
-Additionally, versions like `2.0-RC1` or `2.0-SNAPSHOT` are unexpectedly included in a version range with an exclusive bound ending with `2.0[` because they are considered to be lower than `2.0`.
+Additionally, versions like `2.0-RC1` or `2.0-SNAPSHOT` are included in a version range with an exclusive bound ending with `2.0[` because they are considered to be lower than `2.0`.
 
-With this version, Gradle provides an opt-in feature that improves version ordering to address the issues like the ones explained above. For example, `SNAPSHOT` is considered to be a higher version than `RC`. Also, versions like `2.0-RC1` or `2.0-SNAPSHOT` are excluded from a range ending with `2.0[`. 
+With this version, Gradle provides an opt-in feature that changes version ordering to address these issues. For example, `SNAPSHOT` is considered to be a higher version than `RC` and versions like `2.0-RC1` or `2.0-SNAPSHOT` are excluded from a range ending with `2.0[`. 
 
 Activating the feature preview `VERSION_ORDERING_V2` in `settings.gradle(.kts)` enables these changes:
 ```
 enableFeaturePreview("VERSION_ORDERING_V2")
 ```
 
-See the [full documentation on version ordering](userguide/single_versions.html) for the details of the improved algorithm.
+See the [full documentation on version ordering](userguide/single_versions.html) for the details of the new algorithm.
 
 This ordering will be enabled by default in Gradle 7.0.  
 
