@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.dsl.LockMode;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.FeaturePreviews;
@@ -38,6 +39,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ArtifactSelectionDetailsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.logging.Logger;
@@ -46,7 +48,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -76,11 +77,11 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private final DependencySubstitutionRules dependencySubstitutionRules;
     private final boolean uniqueLockStateEnabled;
     private final Property<LockMode> lockMode;
-    private final Property<File> lockFile;
+    private final RegularFileProperty lockFile;
     private boolean uniqueLockStateLoaded;
     private Map<String, List<String>> allLockState;
 
-    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, DependencySubstitutionRules dependencySubstitutionRules, FeaturePreviews featurePreviews, PropertyFactory propertyFactory) {
+    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, DependencySubstitutionRules dependencySubstitutionRules, FeaturePreviews featurePreviews, PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory) {
         this.context = context;
         this.dependencySubstitutionRules = dependencySubstitutionRules;
         this.writeLocks = startParameter.isWriteDependencyLocks();
@@ -93,7 +94,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         uniqueLockStateEnabled = featurePreviews.isFeatureEnabled(ONE_LOCKFILE_PER_PROJECT);
         lockMode = propertyFactory.property(LockMode.class);
         lockMode.convention(LockMode.DEFAULT);
-        lockFile = propertyFactory.property(File.class);
+        lockFile = filePropertyFactory.newFileProperty();
         this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver, context, lockFile);
     }
 
@@ -223,7 +224,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     }
 
     @Override
-    public Property<File> getLockFile() {
+    public RegularFileProperty getLockFile() {
         return lockFile;
     }
 

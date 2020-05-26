@@ -126,7 +126,7 @@ class InstantExecutionState(
     private
     suspend fun DefaultWriteContext.writeIncludedBuilds(gradle: GradleInternal) {
         if (gradle.includedBuilds.isNotEmpty()) {
-            logNotImplemented("included builds")
+            logNotImplemented("included builds", "composite_builds")
         }
         // TODO write if there were any included build so we can report when reading
     }

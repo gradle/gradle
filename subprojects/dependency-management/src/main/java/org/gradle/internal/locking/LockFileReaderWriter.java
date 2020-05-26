@@ -17,15 +17,14 @@
 package org.gradle.internal.locking;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.provider.Property;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -56,15 +55,16 @@ public class LockFileReaderWriter {
 
     private final Path lockFilesRoot;
     private final DomainObjectContext context;
-    private final Property<File> lockFile;
+    private final RegularFileProperty lockFile;
 
-    public LockFileReaderWriter(FileResolver fileResolver, DomainObjectContext context, Property<File> lockFile) {
+    public LockFileReaderWriter(FileResolver fileResolver, DomainObjectContext context, RegularFileProperty lockFile) {
         this.context = context;
         this.lockFile = lockFile;
         Path resolve = null;
         if (fileResolver.canResolveRelativePath()) {
             resolve = fileResolver.resolve(DEPENDENCY_LOCKING_FOLDER).toPath();
-            lockFile.convention(fileResolver.resolve(decorate(UNIQUE_LOCKFILE_NAME)));
+            // TODO: Can I find a way to use a convention here instead?
+            lockFile.set(fileResolver.resolve(decorate(UNIQUE_LOCKFILE_NAME)));
         }
         this.lockFilesRoot = resolve;
         LOGGER.debug("Lockfiles root: {}", lockFilesRoot);
@@ -185,7 +185,7 @@ public class LockFileReaderWriter {
     }
 
     private Path getUniqueLockfilePath() {
-        return lockFile.map(File::toPath).get();
+        return lockFile.get().getAsFile().toPath();
     }
 
     private void parseLine(String line, Map<String, List<String>> result) {

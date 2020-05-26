@@ -18,11 +18,11 @@ package org.gradle.internal.locking;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.dsl.LockMode;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.provider.Property;
 
-import java.io.File;
 import java.util.Set;
 
 public class NoOpDependencyLockingProvider implements DependencyLockingProvider {
@@ -53,7 +53,7 @@ public class NoOpDependencyLockingProvider implements DependencyLockingProvider 
     }
 
     @Override
-    public Property<File> getLockFile() {
+    public RegularFileProperty getLockFile() {
         throw new IllegalStateException("Should not be invoked on the no-op instance");
     }
 
