@@ -1187,8 +1187,8 @@ include::sample[dir="snippets/tasks/inputNormalizationMetaInf/kotlin",files="bui
 
 .Ignore all files and directories inside `META-INF`
 ====
-include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="build.gradle[tags=ignore-meta-inf-completely]"]
-include::sample[dir="snippets/tasks/inputNormalizationMetaInf/kotlin",files="build.gradle.kts[tags=ignore-meta-inf-completely]"]
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="build.gradle[tags=ignore-metainf-completely]"]
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/kotlin",files="build.gradle.kts[tags=ignore-metainf-completely]"]
 ====
 
 
