@@ -26,12 +26,25 @@ class InstantExecutionCompositeBuildsIntegrationTest extends AbstractInstantExec
         settingsFile << """includeBuild("included")"""
         file("included/settings.gradle") << ""
 
+        and:
+        def expectedProblem = "Gradle runtime: support for included builds is not yet implemented with the configuration cache."
+
         when:
         instantFails("help")
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withUniqueProblems("Gradle runtime: support for included builds is not yet implemented with the configuration cache.")
+            withUniqueProblems(expectedProblem)
+            withProblemsWithStackTraceCount(0)
+        }
+
+        when:
+        instantFails("help")
+
+        then:
+        instantExecution.assertStateLoaded()
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems(expectedProblem)
             withProblemsWithStackTraceCount(0)
         }
 
@@ -41,16 +54,8 @@ class InstantExecutionCompositeBuildsIntegrationTest extends AbstractInstantExec
         then:
         instantExecution.assertStateLoaded()
         problems.assertResultHasProblems(result) {
-            // TODO - should inform the user that composite builds do not work
-        }
-
-        when:
-        instantRun("help")
-
-        then:
-        instantExecution.assertStateLoaded()
-        problems.assertResultHasProblems(result) {
-            // TODO - should inform the user that composite builds do not work
+            withUniqueProblems(expectedProblem)
+            withProblemsWithStackTraceCount(0)
         }
     }
 }
