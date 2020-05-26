@@ -25,13 +25,12 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.tasks.FileNormalizer
-import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readClassOf
 import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withCodec
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.Isolatable
@@ -76,10 +75,10 @@ class DefaultTransformerCodec(
     }
 
     override suspend fun ReadContext.decode(): DefaultTransformer? {
-        val implementationClass = readClass().asSubclass(TransformAction::class.java)
+        val implementationClass = readClassOf<TransformAction<*>>()
         val fromAttributes = readNonNull<ImmutableAttributes>()
-        val inputArtifactNormalizer = readClass().asSubclass(FileNormalizer::class.java)
-        val inputArtifactDependenciesNormalizer= readClass().asSubclass(FileNormalizer::class.java)
+        val inputArtifactNormalizer = readClassOf<FileNormalizer>()
+        val inputArtifactDependenciesNormalizer = readClassOf<FileNormalizer>()
         val isCacheable = readBoolean()
 
         val isolated = readBoolean()

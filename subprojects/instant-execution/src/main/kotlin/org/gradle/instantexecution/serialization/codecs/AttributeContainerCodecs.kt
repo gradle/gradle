@@ -119,8 +119,8 @@ fun WriteContext.writeAttribute(attribute: Attribute<*>) {
 private
 fun ReadContext.readAttribute(): Attribute<Any> {
     val name = readString()
-    val type = readClass().uncheckedCast<Class<Any>>()
-    return Attribute.of(name, type)
+    val type = readClass()
+    return Attribute.of(name, type.uncheckedCast())
 }
 
 
