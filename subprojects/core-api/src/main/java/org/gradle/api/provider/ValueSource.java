@@ -31,10 +31,11 @@ import javax.inject.Inject;
  * among others.
  *
  * <p>
- * Representing external sources as {@link ValueSource}s allows Gradle to
- * transparently manage <a href="https://gradle.github.io/instant-execution/">the work graph cache</a>as values obtained from those sources
- * change. For example, a build might run a different set of tasks depending on whether
- * the {@code CI} environment variable is set or not.
+ * Representing external sources as {@link ValueSource}s allows Gradle to transparently manage
+ * <a href="https://docs.gradle.org/current/userguide/configuration_cache.html" target="_top">the configuration cache</a>
+ * as values obtained from those sources change.
+ * For example, a build might run a different set of tasks depending on whether the {@code CI}
+ * environment variable is set or not.
  * </p>
  *
  * <p>
@@ -62,7 +63,7 @@ import javax.inject.Inject;
  * @see ProviderFactory#systemProperty(String)
  * @see ProviderFactory#fileContents(RegularFile)
  * @see ProviderFactory#of(Class, Action)
- * @see <a href="https://gradle.github.io/instant-execution/">Instant Execution</a>
+ * @see <a href="https://docs.gradle.org/current/userguide/configuration_cache.html">Configuration Cache</a>
  * @since 6.1
  */
 @Incubating
