@@ -92,16 +92,16 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     }
 
     private static Map<String, Set<Optimization>> supportedOptimizations(IncrementalAndroidTestProject testProject) {
-        // Kotlin is not supported for instant execution
+        // Kotlin is not supported for configuration caching
         return testProject == SANTA_TRACKER_KOTLIN
             ? [
             "no optimizations": EnumSet.noneOf(Optimization),
-            "VFS retention": EnumSet.of(Optimization.VFS_RETENTION)
+            "FS watching": EnumSet.of(Optimization.WATCH_FS)
         ]
             : [
             "no optimizations": EnumSet.noneOf(Optimization),
-            "VFS retention": EnumSet.of(Optimization.VFS_RETENTION),
-            "instant execution": EnumSet.of(Optimization.INSTANT_EXECUTION),
+            "FS watching": EnumSet.of(Optimization.WATCH_FS),
+            "configuration caching": EnumSet.of(Optimization.CONFIGURATION_CACHING),
             "all optimizations": EnumSet.allOf(Optimization)
         ]
     }
@@ -129,8 +129,8 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     }
 
     enum Optimization {
-        INSTANT_EXECUTION("--${ConfigurationCacheOption.LONG_OPTION}=warn"), // TODO on
-        VFS_RETENTION("-D${StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY}=true")
+        CONFIGURATION_CACHING("--${ConfigurationCacheOption.LONG_OPTION}=warn"), // TODO on
+        WATCH_FS("--${StartParameterBuildOptions.WatchFileSystemOption.LONG_OPTION}")
 
         Optimization(String argument) {
             this.argument = argument
