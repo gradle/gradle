@@ -167,6 +167,7 @@ abstract class AbstractUserTypeCodecTest {
         patternSetFactory = mock(),
         fileOperations = mock(),
         fileSystem = mock(),
-        fileFactory = mock()
+        fileFactory = mock(),
+        managedFactory = mock()
     )
 }
