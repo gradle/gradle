@@ -15,7 +15,7 @@
  */
 
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    gradlebuild.distribution.`plugins-implementation-java`
     gradlebuild.classycle
 }
 
