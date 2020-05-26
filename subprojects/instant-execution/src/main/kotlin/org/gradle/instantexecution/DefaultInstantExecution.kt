@@ -308,7 +308,8 @@ class DefaultInstantExecution internal constructor(
             patternSetFactory = factory(),
             fileOperations = service(),
             fileSystem = service(),
-            fileFactory = service()
+            fileFactory = service(),
+            managedFactory = service()
         )
     }
 

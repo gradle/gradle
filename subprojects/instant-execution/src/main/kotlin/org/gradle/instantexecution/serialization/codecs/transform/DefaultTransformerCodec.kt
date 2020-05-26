@@ -54,6 +54,7 @@ class DefaultTransformerCodec(
 
     override suspend fun WriteContext.encode(value: DefaultTransformer) {
         writeClass(value.implementationClass)
+        write(value.fromAttributes)
 
         // TODO - isolate now and discard node, if isolation is scheduled and has no dependencies
         // Write isolated parameters, if available, and discard the parameters
@@ -71,6 +72,7 @@ class DefaultTransformerCodec(
 
     override suspend fun ReadContext.decode(): DefaultTransformer? {
         val implementationClass = readClass().asSubclass(TransformAction::class.java)
+        val fromAttributes = readNonNull<ImmutableAttributes>()
 
         val isolated = readBoolean()
         val parametersObject: TransformParameters?
@@ -88,7 +90,7 @@ class DefaultTransformerCodec(
             implementationClass,
             parametersObject,
             isolatedParametersObject,
-            ImmutableAttributes.EMPTY,
+            fromAttributes,
             AbsolutePathInputNormalizer::class.java,
             AbsolutePathInputNormalizer::class.java,
             false,
