@@ -96,11 +96,11 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         return testProject == SANTA_TRACKER_KOTLIN
             ? [
             "no optimizations": EnumSet.noneOf(Optimization),
-            "fs watching": EnumSet.of(Optimization.WATCH_FS)
+            "FS watching": EnumSet.of(Optimization.WATCH_FS)
         ]
             : [
             "no optimizations": EnumSet.noneOf(Optimization),
-            "fs watching": EnumSet.of(Optimization.WATCH_FS),
+            "FS watching": EnumSet.of(Optimization.WATCH_FS),
             "configuration caching": EnumSet.of(Optimization.CONFIGURATION_CACHING),
             "all optimizations": EnumSet.allOf(Optimization)
         ]
