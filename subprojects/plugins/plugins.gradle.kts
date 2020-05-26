@@ -51,13 +51,13 @@ dependencies {
     implementation(library("commons_lang"))
     implementation(library("inject"))
 
-    // This dependency makes the services provided by `:compositeBuilds` available at runtime for all integration tests in all subprojects
-    // Making this better would likely involve a separate `:gradleRuntime` module that brings in `:core`, `:dependencyManagement` and other key subprojects
-    runtimeOnly(project(":compositeBuilds"))
-
     testImplementation(project(":messaging"))
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
+    testImplementation(library("gson")) {
+        because("for unknown reason (bug in the Groovy/Spock compiler?) requires it to be present to use the Gradle Module Metadata test fixtures")
+    }
+    testImplementation(testLibrary("jsoup"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependencyManagement")))
     testImplementation(testFixtures(project(":resourcesHttp")))
@@ -78,14 +78,7 @@ dependencies {
     testFixturesImplementation(project(":resources"))
     testFixturesImplementation(library("guava"))
 
-    testImplementation(testLibrary("jsoup"))
-
-    integTestRuntimeOnly(project(":maven"))
-
-    testImplementation(library("gson")) {
-        because("for unknown reason (bug in the Groovy/Spock compiler?) requires it to be present to use the Gradle Module Metadata test fixtures")
-    }
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
+    integTestRuntimeOnly(project(":distributionsMinimal")) //TODO publishing?
 }
 
 strictCompile {

@@ -31,6 +31,10 @@ gradlePlugin {
             id = "gradlebuild.api-metadata"
             implementationClass = "org.gradle.gradlebuild.packaging.ApiMetadataPlugin"
         }
+        register("distributions") {
+            id = "gradlebuild.distributions"
+            implementationClass = "org.gradle.gradlebuild.packaging.GradleDistributionsPlugin"
+        }
     }
 }
 

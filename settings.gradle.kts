@@ -34,11 +34,18 @@ apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 // ./gradlew generateSubprojectsInfo
 // task to update metadata about the build for CI
 
+include("distributionsDependencies") // platform
+
+include("distributionsCore")
+include("distributionsMinimal")
+include("distributionsPublishing")
+include("distributionsJvm")
+include("distributionsNative")
+include("distributionsFull")
+
 include("instantExecution")
 include("instantExecutionReport")
 include("apiMetadata")
-include("distributionsDependencies")
-include("distributions")
 include("baseServices")
 include("baseServicesGroovy")
 include("logging")

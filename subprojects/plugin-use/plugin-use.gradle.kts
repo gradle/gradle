@@ -29,8 +29,6 @@ dependencies {
     implementation(project(":dependencyManagement"))
     implementation(project(":buildOption"))
 
-    runtimeOnly(project(":resourcesHttp"))
-
     implementation(library("groovy"))
     implementation(library("guava"))
 
@@ -39,15 +37,7 @@ dependencies {
     integTestImplementation(project(":baseServicesGroovy"))
     integTestImplementation(library("jetbrains_annotations"))
 
-    integTestRuntimeOnly(project(":plugins"))
-    integTestRuntimeOnly(project(":pluginDevelopment"))
-    integTestRuntimeOnly(project(":testKit"))
-    integTestRuntimeOnly(project(":toolingApiBuilders"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
-    integTestRuntimeOnly(project(":apiMetadata"))
-    integTestRuntimeOnly(project(":kotlinDsl"))
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    integTestRuntimeOnly(project(":distributionsMinimal"))
 }
 
 testFilesCleanup {

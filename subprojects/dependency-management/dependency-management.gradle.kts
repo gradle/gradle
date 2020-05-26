@@ -55,11 +55,6 @@ dependencies {
     implementation(library("ivy"))
     implementation(library("maven3"))
 
-    runtimeOnly(library("bouncycastle_provider"))
-    runtimeOnly(project(":installationBeacon"))
-    runtimeOnly(project(":compositeBuilds"))
-    runtimeOnly(project(":versionControl"))
-
     testImplementation(project(":processServices"))
     testImplementation(project(":diagnostics"))
     testImplementation(project(":buildCachePackaging"))
@@ -82,16 +77,6 @@ dependencies {
         because("tests use HttpServlet directly")
     }
     integTestImplementation(testFixtures(project(":security")))
-    integTestRuntimeOnly(project(":ivy"))
-    integTestRuntimeOnly(project(":maven"))
-    integTestRuntimeOnly(project(":resourcesS3"))
-    integTestRuntimeOnly(project(":resourcesSftp"))
-    integTestRuntimeOnly(project(":testKit"))
-
-    integTestRuntimeOnly(project(":apiMetadata"))
-    integTestRuntimeOnly(project(":kotlinDsl"))
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
-    integTestRuntimeOnly(project(":pluginDevelopment"))
 
     testFixturesApi(project(":baseServices")) {
         because("Test fixtures export the Action class")
@@ -120,7 +105,9 @@ dependencies {
     testFixturesImplementation(project(":jvmServices")) {
         because("Groovy compiler bug leaks internals")
     }
-    crossVersionTestRuntimeOnly(project(":maven"))
+
+    integTestRuntimeOnly(project(":distributionsMinimal"))
+    integTestRuntimeOnly(project(":distributionsMinimal")) // TODO publishing?
 }
 
 classycle {

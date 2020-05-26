@@ -28,8 +28,6 @@ dependencies {
     implementation(project(":toolingApi"))
     implementation(library("commons_io"))
 
-    runtimeOnly(project(":native"))
-
     testImplementation(library("guava"))
     testImplementation(testFixtures(project(":core")))
 
@@ -39,10 +37,8 @@ dependencies {
     integTestImplementation(project(":buildOption"))
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(library("slf4j_api"))
-    integTestRuntimeOnly(project(":toolingApiBuilders"))
-    integTestRuntimeOnly(project(":pluginDevelopment"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
+
+    integTestRuntimeOnly(project(":distributionsNative"))
 }
 
 classycle {

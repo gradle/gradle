@@ -65,8 +65,6 @@ dependencies {
     implementation(library("commons_compress"))
     implementation(library("xmlApis"))
 
-    runtimeOnly(project(":docs"))
-
     testImplementation(project(":plugins"))
     testImplementation(project(":testingBase"))
     testImplementation(project(":platformNative"))
