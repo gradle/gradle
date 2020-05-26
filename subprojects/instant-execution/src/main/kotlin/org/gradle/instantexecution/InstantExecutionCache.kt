@@ -69,11 +69,15 @@ class InstantExecutionCache(
 
     private
     fun CacheBuilder.withLruCacheCleanup(): CacheBuilder =
-        withCleanup(cacheCleanupFactory.create(LeastRecentlyUsedCacheCleanup(
-            SingleDepthFilesFinder(cleanupDepth),
-            fileAccessTimeJournal,
-            cleanupMaxAgeDays
-        )))
+        withCleanup(
+            cacheCleanupFactory.create(
+                LeastRecentlyUsedCacheCleanup(
+                    SingleDepthFilesFinder(cleanupDepth),
+                    fileAccessTimeJournal,
+                    cleanupMaxAgeDays
+                )
+            )
+        )
 
     override fun stop() {
         cache.close()
@@ -91,8 +95,8 @@ class InstantExecutionCache(
     }
 
     fun useForFingerprintCheck(cacheKey: String, check: (File) -> String?): CheckedFingerprint =
-        cache.withFileLock(Factory {
-            val fingerprint = cache.baseDirFor(cacheKey).fingerprintFile
+        withBaseCacheDirFor(cacheKey) { cacheDir ->
+            val fingerprint = cacheDir.fingerprintFile
             when {
                 !fingerprint.isFile -> CheckedFingerprint.NotFound
                 else -> {
@@ -105,11 +109,11 @@ class InstantExecutionCache(
                     }
                 }
             }
-        })
+        }
 
     fun useForStateLoad(cacheKey: String, action: (File) -> Unit) {
-        cache.withFileLock {
-            val stateFile = cache.baseDirFor(cacheKey).stateFile
+        withBaseCacheDirFor(cacheKey) { cacheDir ->
+            val stateFile = cacheDir.stateFile
             fileAccessTracker.markAccessed(stateFile)
             action(stateFile)
         }
@@ -118,15 +122,19 @@ class InstantExecutionCache(
     class Layout(val fingerprint: File, val state: File)
 
     fun useForWrite(cacheKey: String, action: (Layout) -> Unit) {
-        cache.withFileLock {
-            cache.baseDirFor(cacheKey).let { baseDir ->
-                // TODO AdditiveCache require(!baseDir.isDirectory)
-                baseDir.mkdirs()
-                fileAccessTracker.markAccessed(baseDir)
-                action(Layout(baseDir.fingerprintFile, baseDir.stateFile))
-            }
+        withBaseCacheDirFor(cacheKey) { cacheDir ->
+            // TODO AdditiveCache require(!cacheDir.isDirectory)
+            cacheDir.mkdirs()
+            fileAccessTracker.markAccessed(cacheDir)
+            action(Layout(cacheDir.fingerprintFile, cacheDir.stateFile))
         }
     }
+
+    private
+    fun <T> withBaseCacheDirFor(cacheKey: String, action: (File) -> T): T =
+        cache.withFileLock(Factory {
+            action(cache.baseDirFor(cacheKey))
+        })
 
     private
     fun PersistentCache.baseDirFor(cacheKey: String) =
