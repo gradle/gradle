@@ -15,7 +15,7 @@
  */
 
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-
+import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesToolingApiJar
 
 plugins {
     gradlebuild.distribution.`plugins-implementation-kotlin`
@@ -54,3 +54,4 @@ dependencies {
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
+integrationTestUsesToolingApiJar()
