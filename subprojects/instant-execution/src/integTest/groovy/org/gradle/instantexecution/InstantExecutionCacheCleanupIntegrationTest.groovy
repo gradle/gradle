@@ -27,11 +27,12 @@ class InstantExecutionCacheCleanupIntegrationTest
 
     def "cleanup deletes old entries"() {
         given:
+        writeJournalInceptionTimestamp(daysAgo(8))
+        gcFile.createFile().lastModified = daysAgo(8)
+
+        and:
         def outdated = createCacheEntryDir("outdated")
         writeLastFileAccessTimeToJournal(outdated, daysAgo(15))
-
-        and: 'trigger cleanup'
-        gcFile.createFile().lastModified = daysAgo(2)
 
         when:
         instantRun 'help'
