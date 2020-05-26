@@ -18,8 +18,14 @@ package org.gradle.plugins.lifecycle
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.gradlebuild.BuildEnvironment
+import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.kotlin.dsl.*
+import java.util.Timer
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.timerTask
 
 
 /**
@@ -70,6 +76,7 @@ class LifecyclePlugin : Plugin<Project> {
     val forceRealizeDependencyManagementTest = "forceRealizeDependencyManagementTest"
 
     override fun apply(project: Project): Unit = project.run {
+        setupTimeoutMonitorOnCI()
         setupGlobalState()
         sharedDependencyAndQualityConfigs()
 
@@ -95,6 +102,46 @@ class LifecyclePlugin : Plugin<Project> {
             }
         }
         tasks.registerDistributionsPromotionTasks()
+    }
+
+    /**
+     * Print all stacktraces of running JVMs on the machine upon timeout. Helps us diagnose deadlock issues.
+     */
+    private
+    fun Project.setupTimeoutMonitorOnCI() {
+        if (BuildEnvironment.isCiServer) {
+            val timer = Timer(true).apply {
+                schedule(timerTask {
+                    javaexec {
+                        classpath = findOutIntegrationTestClasspath()
+                        main = "org.gradle.integtests.fixtures.timeout.JavaProcessStackTracesMonitor"
+                    }
+                }, determineTimeoutMillis())
+            }
+            gradle.buildFinished {
+                timer.cancel()
+            }
+        }
+    }
+
+    private
+    fun Project.determineTimeoutMillis() =
+        if (isRequestedTask(compileAllBuild) || isRequestedTask(sanityCheck) || isRequestedTask(quickTest)) {
+            TimeUnit.MINUTES.toMillis(30)
+        } else {
+            TimeUnit.MINUTES.toMillis(165) // 2h45m
+        }
+
+    private
+    fun Project.findOutIntegrationTestClasspath(): FileCollection {
+        subprojects.forEach {
+            tasks.withType(IntegrationTest::class).forEach {
+                if (it.didWork) {
+                    return it.classpath
+                }
+            }
+        }
+        throw IllegalStateException("Can't find integration test classpath!")
     }
 
     private
