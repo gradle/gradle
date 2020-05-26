@@ -22,27 +22,28 @@ include::sample[dir="groovy",files="build.gradle[]"]
 include::sample[dir="kotlin",files="build.gradle.kts[]"]
 ====
 
-The tasks are using link:{userManualPath}/build_environment.html#sec:project_properties[project properties] to capture the required credentials.
+The `login` task declares an input property and connects it with a credentials provider.
+The credentials provider will fetch the credentials pieces from the link:{userManualPath}/build_environment.html#sec:project_properties[project properties].
 
-Credentials can be passed to a task in multiple ways now:
+Credentials can be passed to a task in multiple ways:
 
  * via command-line properties:
 =====
 ----
-$ ./gradlew doAuthenticated -Pusername=secret-user -Ppassword=secret-password
+$ ./gradlew doAuthenticated -PloginUsername=secret-user -PloginPassword=secret-password
 ----
 =====
  * via environment variables:
 =====
 ----
-$ ORG_GRADLE_PROJECT_username=secret-user ORG_GRADLE_PROJECT_password=secret-password ./gradlew doAuthenticated
+$ ORG_GRADLE_PROJECT_loginUsername=secret-user ORG_GRADLE_PROJECT_loginPassword=secret-password ./gradlew doAuthenticated
 ----
 =====
  * by setting the properties in `gradle.properties` file:
 =====
 ----
-username=secret-user
-password=secret-password
+loginUsername=secret-user
+loginPassword=secret-password
 ----
 =====
 and running

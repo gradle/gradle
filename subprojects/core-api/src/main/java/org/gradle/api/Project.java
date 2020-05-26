@@ -31,6 +31,7 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.credentials.CredentialsProviderFactory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
@@ -971,6 +972,14 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @since 4.0
      */
     ProviderFactory getProviders();
+
+    /**
+     * Provides access to methods to create providers for credentials.
+     *
+     * @since 6.6
+     */
+    @Incubating
+    CredentialsProviderFactory getCredentials();
 
     /**
      * Provides access to methods to create various kinds of model objects.

@@ -39,6 +39,7 @@ import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.credentials.CredentialsProviderFactory
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.LoggingManager
@@ -450,6 +451,9 @@ abstract class ProjectDelegate : Project {
 
     override fun getProviders(): ProviderFactory =
         delegate.providers
+
+    override fun getCredentials(): CredentialsProviderFactory =
+        delegate.credentials
 
     override fun getSubprojects(): MutableSet<Project> =
         delegate.subprojects
