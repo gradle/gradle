@@ -20,9 +20,8 @@ dependencies {
         exclude(module = "slf4j-simple")
     }
     integTestImplementation(testFixtures(project(":core")))
-}
-configurations.integTestRuntimeClasspath {
-    extendsFrom(configurations.fullGradleRuntime.get())
+
+    integTestRuntimeOnly(project(":distributionsFull"))
 }
 
 tasks.withType<IntegrationTest>().configureEach {

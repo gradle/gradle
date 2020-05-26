@@ -44,12 +44,9 @@ dependencies {
     integTestImplementation(testFixtures(project(":diagnostics")))
     integTestImplementation(testFixtures(project(":platformNative")))
     integTestImplementation(library("jgit"))
-}
-configurations.integTestRuntimeClasspath {
-    extendsFrom(configurations.fullGradleRuntime.get())
-}
-configurations.crossVersionTestRuntimeClasspath {
-    extendsFrom(configurations.fullGradleRuntime.get())
+
+    integTestRuntimeOnly(project(":distributionsFull"))
+    crossVersionTestRuntimeOnly(project(":distributionsFull"))
 }
 
 tasks.withType<IntegrationTest>().configureEach {

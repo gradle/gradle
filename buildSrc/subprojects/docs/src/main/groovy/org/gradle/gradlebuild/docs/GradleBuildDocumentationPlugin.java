@@ -88,7 +88,7 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
 
         extension.getRenderedDocumentation().from(stageDocs);
 
-        extension.getClasspath().from(project.getConfigurations().getByName("gradleApi"));
+        extension.getClasspath().from(project.getConfigurations().getByName("runtimeClasspath"));
 
         // TODO: This should not reach across project boundaries
         for (Project subproject : project.getRootProject().getSubprojects()) {

@@ -57,10 +57,7 @@ dependencies {
 
     testFixturesImplementation(project(":internalTesting"))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-}
-configurations.integTestRuntimeClasspath {
-    extendsFrom(configurations.fullGradleRuntime.get())
+    integTestRuntimeOnly(project(":distributionsFull"))
 }
 
 tasks {

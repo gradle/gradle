@@ -56,8 +56,9 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":versionControl")))
+
+    smokeTestRuntimeOnly(project(":distributionsFull"))
 }
-smokeTestRuntimeClasspath.extendsFrom(configurations.fullGradleRuntime.get())
 
 fun SmokeTest.configureForSmokeTest() {
     group = "Verification"

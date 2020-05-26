@@ -25,7 +25,6 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
-import org.gradle.api.tasks.Sync
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanupExtension
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.DefaultClassPath
@@ -80,11 +79,10 @@ class DistributionTestingPlugin : Plugin<Project> {
         val projectDirectory = layout.projectDirectory
 
         gradleInstallationForTest.apply {
-            val intTestImage: Sync by project.tasks
-            gradleUserHomeDir.set(projectDirectory.dir("intTestHomeDir"))
+            gradleUserHomeDir.set(projectDirectory.dir("intTestHomeDir/unknown"))
             gradleGeneratedApiJarCacheDir.set(defaultGradleGeneratedApiJarCacheDirProvider(providers, layout))
             daemonRegistry.set(layout.buildDirectory.dir("daemon"))
-            gradleHomeDir.set(dirWorkaround(providers, layout, objects) { intTestImage.destinationDir })
+            gradleHomeDir.set(layout.buildDirectory.dir("distributions"))
             gradleSnippetsDir.set(layout.projectDirectory.dir("subprojects/docs/src/snippets"))
         }
 

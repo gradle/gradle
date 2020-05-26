@@ -25,7 +25,6 @@ plugins {
     id("gradlebuild.unittest-and-compile")
     id("gradlebuild.test-fixtures")
     id("gradlebuild.distribution-testing")
-    id("gradlebuild.gradle-distribution")
     id("gradlebuild.incubation-report")
     id("gradlebuild.task-properties-validation")
     id("gradlebuild.strict-compile")

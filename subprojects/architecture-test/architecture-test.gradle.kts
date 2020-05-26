@@ -4,16 +4,14 @@ plugins {
     gradlebuild.internal.java
 }
 
-configurations {
-    testRuntimeClasspath.get().extendsFrom(fullGradleRuntimeClasspath.get())
-}
-
 dependencies {
     testImplementation(project(":baseServices"))
     testImplementation(project(":modelCore"))
 
     testImplementation(testLibrary("archunit_junit4"))
     testImplementation(library("guava"))
+
+    testRuntimeOnly(project(":distributionsFull"))
 }
 
 tasks.withType<Test>().configureEach {
