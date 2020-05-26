@@ -1,6 +1,5 @@
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
-import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesToolingApiJar
 
 plugins {
     gradlebuild.distribution.`plugins-api-java`
@@ -82,4 +81,3 @@ testFilesCleanup {
 }
 
 integrationTestUsesSampleDir("subprojects/language-java/src/main")
-integrationTestUsesToolingApiJar()

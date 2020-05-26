@@ -1,6 +1,5 @@
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
-import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesToolingApiJar
 
 /*
  * Copyright 2010 the original author or authors.
@@ -87,4 +86,3 @@ testFilesCleanup {
 }
 
 integrationTestUsesSampleDir("subprojects/ide/src/main")
-integrationTestUsesToolingApiJar()
