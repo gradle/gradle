@@ -24,6 +24,8 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformer
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
+import org.gradle.api.tasks.FileNormalizer
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -55,6 +57,9 @@ class DefaultTransformerCodec(
     override suspend fun WriteContext.encode(value: DefaultTransformer) {
         writeClass(value.implementationClass)
         write(value.fromAttributes)
+        writeClass(value.inputArtifactNormalizer)
+        writeClass(value.inputArtifactDependenciesNormalizer)
+        writeBoolean(value.isCacheable)
 
         // TODO - isolate now and discard node, if isolation is scheduled and has no dependencies
         // Write isolated parameters, if available, and discard the parameters
@@ -73,6 +78,9 @@ class DefaultTransformerCodec(
     override suspend fun ReadContext.decode(): DefaultTransformer? {
         val implementationClass = readClass().asSubclass(TransformAction::class.java)
         val fromAttributes = readNonNull<ImmutableAttributes>()
+        val inputArtifactNormalizer = readClass().asSubclass(FileNormalizer::class.java)
+        val inputArtifactDependenciesNormalizer= readClass().asSubclass(FileNormalizer::class.java)
+        val isCacheable = readBoolean()
 
         val isolated = readBoolean()
         val parametersObject: TransformParameters?
@@ -91,9 +99,9 @@ class DefaultTransformerCodec(
             parametersObject,
             isolatedParametersObject,
             fromAttributes,
-            AbsolutePathInputNormalizer::class.java,
-            AbsolutePathInputNormalizer::class.java,
-            false,
+            inputArtifactNormalizer,
+            inputArtifactDependenciesNormalizer,
+            isCacheable,
             buildOperationExecutor,
             classLoaderHierarchyHasher,
             isolatableFactory,
