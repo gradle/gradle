@@ -17,6 +17,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -242,10 +243,25 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         TaskDependencyResolver dependencyResolver,
         ListenerBroadcast<TaskExecutionListener> taskListeners,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
+        ListenerManager listenerManager,
         ProjectStateRegistry projectStateRegistry,
         ServiceRegistry gradleScopedServices
     ) {
-        return new DefaultTaskExecutionGraph(planExecutor, nodeExecutors, buildOperationExecutor, listenerBuildOperationDecorator, coordinationService, gradleInternal, taskNodeFactory, dependencyResolver, graphListeners, taskListeners, projectStateRegistry, gradleScopedServices);
+        return new DefaultTaskExecutionGraph(
+            planExecutor,
+            nodeExecutors,
+            buildOperationExecutor,
+            listenerBuildOperationDecorator,
+            coordinationService,
+            gradleInternal,
+            taskNodeFactory,
+            dependencyResolver,
+            graphListeners,
+            taskListeners,
+            listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class),
+            projectStateRegistry,
+            gradleScopedServices
+        );
     }
 
     ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
