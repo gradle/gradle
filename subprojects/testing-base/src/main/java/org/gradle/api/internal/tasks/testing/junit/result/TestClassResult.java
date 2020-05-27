@@ -29,12 +29,13 @@ public class TestClassResult {
     private int failuresCount;
     private int skippedCount;
     private long id;
+    private boolean hasDisplayNameAnnotation;
 
     public TestClassResult(long id, String className, long startTime) {
-        this(id, className, className, startTime);
+        this(id, className, className, startTime, false);
     }
 
-    public TestClassResult(long id, String className, String classDisplayName, long startTime) {
+    public TestClassResult(long id, String className, String classDisplayName, long startTime, boolean hasDisplayNameAnnotation) {
         if (id < 1) {
             throw new IllegalArgumentException("id must be > 0");
         }
@@ -42,6 +43,7 @@ public class TestClassResult {
         this.className = className;
         this.startTime = startTime;
         this.classDisplayName = classDisplayName;
+        this.hasDisplayNameAnnotation = hasDisplayNameAnnotation;
     }
 
     public long getId() {
@@ -54,6 +56,10 @@ public class TestClassResult {
 
     public String getClassDisplayName() {
         return classDisplayName;
+    }
+
+    public boolean hasDisplayNameAnnotation() {
+        return hasDisplayNameAnnotation;
     }
 
     public TestClassResult add(TestMethodResult methodResult) {

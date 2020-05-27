@@ -182,7 +182,8 @@ public class TestEventSerializer {
             Object id = idSerializer.read(decoder);
             String name = decoder.readString();
             String displayName = decoder.readString();
-            return new DefaultTestClassDescriptor(id, name, displayName);
+            boolean hasDisplayNameAnnotation = decoder.readBoolean();
+            return new DefaultTestClassDescriptor(id, name, displayName, hasDisplayNameAnnotation);
         }
 
         @Override
@@ -190,6 +191,7 @@ public class TestEventSerializer {
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
             encoder.writeString(value.getName());
             encoder.writeString(value.getDisplayName());
+            encoder.writeBoolean(value.hasDisplayNameAnnotation());
         }
     }
 
@@ -203,7 +205,8 @@ public class TestEventSerializer {
             String classDisplayName = decoder.readString();
             String name = decoder.readString();
             String displayName = decoder.readString();
-            return new DefaultTestDescriptor(id, className, name, classDisplayName, displayName);
+            boolean hasDisplayNameAnnotation = decoder.readBoolean();
+            return new DefaultTestDescriptor(id, className, name, classDisplayName, displayName, hasDisplayNameAnnotation);
         }
 
         @Override
@@ -213,6 +216,7 @@ public class TestEventSerializer {
             encoder.writeString(value.getClassDisplayName());
             encoder.writeString(value.getName());
             encoder.writeString(value.getDisplayName());
+            encoder.writeBoolean(value.hasDisplayNameAnnotation());
         }
     }
 

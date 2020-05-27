@@ -41,4 +41,10 @@ public interface TestDescriptorInternal extends TestDescriptor {
      * @return the class name for display.
      */
     String getClassDisplayName();
+
+    /**
+     * Whether or not the class has a @DisplayName annotation.
+     * @return true if the class has @DisplayName annotation; false otherwise.
+     */
+    boolean hasDisplayNameAnnotation();
 }

@@ -21,15 +21,17 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 @UsedByScanPlugin("test-distribution")
 public class DefaultTestClassDescriptor extends DefaultTestSuiteDescriptor {
     private final String classDisplayName;
+    private final boolean hasDisplayNameAnnotation;
 
     public DefaultTestClassDescriptor(Object id, String className) {
-        this(id, className, className);
+        this(id, className, className, false);
     }
 
     @UsedByScanPlugin("test-distribution")
-    public DefaultTestClassDescriptor(Object id, String className, String classDisplayName) {
+    public DefaultTestClassDescriptor(Object id, String className, String classDisplayName, boolean hasDisplayNameAnnotation) {
         super(id, className);
         this.classDisplayName = classDisplayName;
+        this.hasDisplayNameAnnotation = hasDisplayNameAnnotation;
     }
 
     @Override
@@ -45,6 +47,11 @@ public class DefaultTestClassDescriptor extends DefaultTestSuiteDescriptor {
     @Override
     public String getClassDisplayName() {
         return classDisplayName;
+    }
+
+    @Override
+    public boolean hasDisplayNameAnnotation() {
+        return hasDisplayNameAnnotation;
     }
 
     @Override

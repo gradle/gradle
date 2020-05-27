@@ -41,7 +41,13 @@ public class JUnitXmlResultWriter {
      * @param output The destination, unbuffered
      */
     public void write(TestClassResult result, OutputStream output) {
-        String className = result.getClassName();
+        String className;
+        if(result.hasDisplayNameAnnotation()) {
+            className = result.getClassDisplayName();
+        } else {
+            className = result.getClassName();
+        }
+
         long classId = result.getId();
 
         try {
@@ -59,7 +65,7 @@ public class JUnitXmlResultWriter {
             writer.startElement("properties");
             writer.endElement();
 
-            writeTests(writer, result.getResults(), className, classId);
+            writeTests(writer, result.getResults(), result.getClassName(), classId);
 
             writer.startElement("system-out");
             writeOutputs(writer, classId, outputAssociation.equals(TestOutputAssociation.WITH_SUITE), TestOutputEvent.Destination.StdOut);
@@ -93,7 +99,7 @@ public class JUnitXmlResultWriter {
     private void writeTests(SimpleXmlWriter writer, Iterable<TestMethodResult> methodResults, String className, long classId) throws IOException {
         for (TestMethodResult methodResult : methodResults) {
             writer.startElement("testcase")
-                    .attribute("name", methodResult.getName())
+                    .attribute("name", methodResult.getDisplayName())
                     .attribute("classname", className)
                     .attribute("time", String.valueOf(methodResult.getDuration() / 1000.0));
 

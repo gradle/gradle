@@ -20,16 +20,18 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor {
     private final String displayName;
     private final String className;
     private final String classDisplayName;
+    private final boolean hasDisplayNameAnnotation;
 
     public DefaultTestDescriptor(Object id, String className, String name) {
-        this(id, className, name, className, name);
+        this(id, className, name, className, name, false);
     }
 
-    public DefaultTestDescriptor(Object id, String className, String name, String classDisplayName, String displayName) {
+    public DefaultTestDescriptor(Object id, String className, String name, String classDisplayName, String displayName, boolean hasDisplayNameAnnotation) {
         super(id, name);
         this.className = className;
         this.classDisplayName = classDisplayName;
         this.displayName = displayName;
+        this.hasDisplayNameAnnotation = hasDisplayNameAnnotation;
     }
 
     @Override
@@ -55,5 +57,10 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor {
     @Override
     public String getClassDisplayName() {
         return classDisplayName;
+    }
+
+    @Override
+    public boolean hasDisplayNameAnnotation() {
+        return hasDisplayNameAnnotation;
     }
 }

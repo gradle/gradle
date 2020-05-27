@@ -84,13 +84,14 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
         String className = testDescriptor.getClassName();
         String classDisplayName = ((TestDescriptorInternal) testDescriptor).getClassDisplayName();
+        boolean hasDisplayNameAnnotation = ((TestDescriptorInternal) testDescriptor).hasDisplayNameAnnotation();
         TestMethodResult methodResult = currentTestMethods.remove(testDescriptor).completed(result);
         for (Throwable throwable : result.getExceptions()) {
             methodResult.addFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable));
         }
         TestClassResult classResult = results.get(className);
         if (classResult == null) {
-            classResult = new TestClassResult(internalIdCounter++, className, classDisplayName, result.getStartTime());
+            classResult = new TestClassResult(internalIdCounter++, className, classDisplayName, result.getStartTime(), hasDisplayNameAnnotation);
             results.put(className, classResult);
         } else if (classResult.getStartTime() == 0) {
             //class results may be created earlier, where we don't yet have access to the start time
@@ -141,7 +142,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             //it's possible that we receive an output for a suite here
             //in this case we will create the test result for a suite that normally would not be created
             //feels like this scenario should modelled more explicitly
-            classResult = new TestClassResult(internalIdCounter++, className, ((TestDescriptorInternal) testDescriptor).getClassDisplayName(), 0);
+            classResult = new TestClassResult(internalIdCounter++, className, ((TestDescriptorInternal) testDescriptor).getClassDisplayName(), 0,  ((TestDescriptorInternal) testDescriptor).hasDisplayNameAnnotation());
             results.put(className, classResult);
         }
 

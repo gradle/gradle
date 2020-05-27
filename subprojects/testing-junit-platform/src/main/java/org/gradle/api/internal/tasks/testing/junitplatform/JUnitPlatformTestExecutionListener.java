@@ -31,6 +31,7 @@ import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
+import org.junit.jupiter.api.DisplayName;
 
 import java.util.LinkedHashSet;
 import java.util.Objects;
@@ -163,7 +164,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
                 TestIdentifier classIdentifier = findClassSource(node);
                 String className = className(classIdentifier);
                 String classDisplayName = classDisplayName(classIdentifier);
-                return new DefaultTestClassDescriptor(idGenerator.generateId(), className, classDisplayName);
+                boolean hasDisplayNameAnnotation = hasDisplayNameAnnotation(classIdentifier);
+                return new DefaultTestClassDescriptor(idGenerator.generateId(), className, classDisplayName, hasDisplayNameAnnotation);
             }
             return createTestDescriptor(node, node.getLegacyReportingName(), node.getDisplayName());
         });
@@ -180,7 +182,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         TestIdentifier classIdentifier = findClassSource(test);
         String className = className(classIdentifier);
         String classDisplayName = classDisplayName(classIdentifier);
-        return new DefaultTestDescriptor(idGenerator.generateId(), className, name, classDisplayName, displayName);
+        boolean hasDisplayNameAnnotation = hasDisplayNameAnnotation(classIdentifier);
+        return new DefaultTestDescriptor(idGenerator.generateId(), className, name, classDisplayName, displayName, hasDisplayNameAnnotation);
     }
 
     private Object getId(TestIdentifier testIdentifier) {
@@ -243,4 +246,11 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         }
     }
 
+    private boolean hasDisplayNameAnnotation(TestIdentifier testClassIdentifier) {
+        if (testClassIdentifier != null && isClass(testClassIdentifier)) {
+            return ((ClassSource) testClassIdentifier.getSource().get()).getJavaClass().getAnnotation(DisplayName.class) != null;
+        } else {
+            return false;
+        }
+    }
 }

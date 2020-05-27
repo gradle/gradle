@@ -67,6 +67,7 @@ public class TestResultSerializer {
         encoder.writeSmallLong(classResult.getId());
         encoder.writeString(classResult.getClassName());
         encoder.writeString(classResult.getClassDisplayName());
+        encoder.writeBoolean(classResult.hasDisplayNameAnnotation());
         encoder.writeLong(classResult.getStartTime());
         encoder.writeSmallInt(classResult.getResults().size());
         for (TestMethodResult methodResult : classResult.getResults()) {
@@ -126,8 +127,9 @@ public class TestResultSerializer {
         long id = decoder.readSmallLong();
         String className = decoder.readString();
         String classDisplayName = decoder.readString();
+        boolean hasDisplayNameAnnotation = decoder.readBoolean();
         long startTime = decoder.readLong();
-        TestClassResult result = new TestClassResult(id, className, classDisplayName, startTime);
+        TestClassResult result = new TestClassResult(id, className, classDisplayName, startTime, hasDisplayNameAnnotation);
         int testMethodCount = decoder.readSmallInt();
         for (int i = 0; i < testMethodCount; i++) {
             TestMethodResult methodResult = readMethodResult(decoder);
