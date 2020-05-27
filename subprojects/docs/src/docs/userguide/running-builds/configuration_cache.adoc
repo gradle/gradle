@@ -13,7 +13,7 @@ The configuration cache is a feature that significantly improves build performan
 Using the configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration, such as build scripts, has changed.
 Gradle also applies some performance improvements to task execution as well.
 
-The configuration cache is conceptually similar to the build cache, but caches different information.
+The configuration cache is conceptually similar to the <<build_cache#build_cache,build cache>>, but caches different information.
 The build cache takes care of caching the outputs and intermediate files of the build, such as task outputs or artifact transform outputs.
 The configuration cache takes care of caching the build configuration for a particular set of tasks.
 In other words, the configuration cache caches the output of the configuration phase, and the build cache caches the outputs of the execution phase.
