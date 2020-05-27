@@ -31,8 +31,8 @@ import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
-import org.junit.jupiter.api.DisplayName;
 
+import java.lang.annotation.Annotation;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Optional;
@@ -46,6 +46,9 @@ import static org.junit.platform.engine.TestExecutionResult.Status.ABORTED;
 import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
 
 public class JUnitPlatformTestExecutionListener implements TestExecutionListener {
+    // We use a constant name instead of a class reference to avoid unnecessary dependencies
+    private static final String DISPLAY_NAME = "org.junit.jupiter.api.DisplayName";
+
     private final ConcurrentMap<String, TestDescriptorInternal> descriptorsByUniqueId = new ConcurrentHashMap<>();
     private final TestResultProcessor resultProcessor;
     private final Clock clock;
@@ -185,7 +188,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     private TestDescriptorInternal createSyntheticTestDescriptorForContainer(TestIdentifier node) {
         boolean testsStarted = currentTestPlan.getDescendants(node).stream().anyMatch(this::wasStarted);
-        String name = testsStarted ? "executionError": "initializationError";
+        String name = testsStarted ? "executionError" : "initializationError";
         return createTestDescriptor(node, name, name);
     }
 
@@ -263,9 +266,14 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     private boolean hasDisplayNameAnnotation(TestIdentifier testClassIdentifier) {
         if (testClassIdentifier != null && isClass(testClassIdentifier)) {
-            return (classSourceFor(testClassIdentifier)).getJavaClass().getAnnotation(DisplayName.class) != null;
-        } else {
-            return false;
+            Class<?> javaClass = (classSourceFor(testClassIdentifier)).getJavaClass();
+            Annotation[] annotations = javaClass.getAnnotations();
+            for (Annotation annotation : annotations) {
+                if (DISPLAY_NAME.equals(annotation.annotationType().getName())) {
+                    return true;
+                }
+            }
         }
+        return false;
     }
 }
