@@ -100,7 +100,7 @@ class InstantExecutionArtifactTransformIntegrationTest extends AbstractInstantEx
 
             ConfigurableFileCollection combinedInputs = project.files(includedConfiguration, myTaskProvider.map { it.outputFile })
             Configuration myConfiguration = configurations.create("myConfiguration")
-            dependencies.add(myConfiguration.name, project.files(project.provider { combinedInputs }))
+            dependencies.add(myConfiguration.name, combinedInputs)
 
             tasks.register("consumerTask", ConsumerTask.class) {
                 it.artifactCollection = myConfiguration.incoming.artifactView { ArtifactView.ViewConfiguration viewConfiguration ->
