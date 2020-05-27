@@ -183,7 +183,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
     @Issue("gradle/gradle#11445")
     def "writes xml JUnit result displayName"() {
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest displayName", startTime, true)
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest displayName", startTime)
         result.add(new TestMethodResult(1, "some test", "some test displayName", SUCCESS, 15, startTime + 25))
         result.add(new TestMethodResult(2, "some test two", "some test two displayName", SUCCESS, 15, startTime + 30))
         result.add(new TestMethodResult(3, "some failing test", "some failing test displayName", FAILURE, 10, startTime + 40).addFailure("failure message", "[stack-trace]", "ExceptionType"))
