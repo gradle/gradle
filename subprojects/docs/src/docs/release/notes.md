@@ -5,6 +5,7 @@ This release features [1](), [2](), ... [n](), and more.
 We would like to thank the following community contributors to this release of Gradle:
 
 [Danny Thomas](https://github.com/DanielThomas),
+[Daiki Hirabayashi](https://github.com/dhirabayashi),
 [Sebastian Schuberth](https://github.com/sschuberth)
 
 <!-- 
@@ -76,8 +77,6 @@ Known issues are problems that were discovered post release that are directly re
 ## External contributions
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
-
-[Daiki Hirabayashi](https://github.com/dhirabayashi)
 
 ## Reporting Problems
 
