@@ -51,7 +51,7 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
     private final String consumerName;
     private final ImmutableAttributes consumerAttributes;
 
-    public static ModuleComponentRepository of(ModuleComponentRepository delegate, Action<? super ArtifactResolutionDetails> action, String consumerName, AttributeContainer attributes) {
+    public static ModuleComponentRepository of(ModuleComponentRepository delegate, @Nullable Action<? super ArtifactResolutionDetails> action, String consumerName, AttributeContainer attributes) {
         if (action == null) {
             return delegate;
         }
@@ -148,7 +148,7 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
                     () -> MetadataFetchingCost.FAST);
         }
 
-        private void whenModulePresent(ModuleIdentifier id, ModuleComponentIdentifier moduleComponentIdentifier, Runnable present, Runnable absent) {
+        private void whenModulePresent(ModuleIdentifier id, @Nullable ModuleComponentIdentifier moduleComponentIdentifier, Runnable present, Runnable absent) {
             DefaultArtifactResolutionDetails details = new DefaultArtifactResolutionDetails(id, moduleComponentIdentifier, consumerName, consumerAttributes);
             filterAction.execute(details);
             if (details.notFound) {
@@ -175,7 +175,7 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         private final ImmutableAttributes consumerAttributes;
         private boolean notFound;
 
-        private DefaultArtifactResolutionDetails(ModuleIdentifier moduleIdentifier, ModuleComponentIdentifier componentId, String consumerName, ImmutableAttributes consumerAttributes) {
+        private DefaultArtifactResolutionDetails(ModuleIdentifier moduleIdentifier, @Nullable ModuleComponentIdentifier componentId, String consumerName, ImmutableAttributes consumerAttributes) {
             this.consumerName = consumerName;
             this.moduleIdentifier = moduleIdentifier;
             this.moduleComponentIdentifier = componentId;
