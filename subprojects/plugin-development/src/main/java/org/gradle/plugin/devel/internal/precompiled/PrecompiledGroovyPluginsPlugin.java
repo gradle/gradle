@@ -27,13 +27,15 @@ import org.gradle.api.tasks.GroovySourceSet;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin;
 
+import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
+public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(GroovyBasePlugin.class);
@@ -42,6 +44,9 @@ class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
         project.afterEvaluate(this::exposeScriptsAsPlugins);
     }
 
+    @Inject
+    protected abstract TextFileResourceLoader getTextFileResourceLoader();
+
     private void exposeScriptsAsPlugins(Project project) {
         GradlePluginDevelopmentExtension pluginExtension = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
 
@@ -49,7 +54,7 @@ class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
         FileTree scriptPluginFiles = pluginSourceSet.getAllSource().matching(PrecompiledGroovyScript::filterPluginFiles);
 
         List<PrecompiledGroovyScript> scriptPlugins = scriptPluginFiles.getFiles().stream()
-            .map(PrecompiledGroovyScript::new)
+            .map(file -> new PrecompiledGroovyScript(file, getTextFileResourceLoader()))
             .collect(Collectors.toList());
 
         declarePluginMetadata(pluginExtension, scriptPlugins);
@@ -85,7 +90,7 @@ class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
 
     private void declarePluginMetadata(GradlePluginDevelopmentExtension pluginExtension, List<PrecompiledGroovyScript> scriptPlugins) {
         pluginExtension.plugins(pluginDeclarations ->
-                scriptPlugins.forEach(scriptPlugin ->
-                        pluginDeclarations.create(scriptPlugin.getId(), scriptPlugin::declarePlugin)));
+            scriptPlugins.forEach(scriptPlugin ->
+                pluginDeclarations.create(scriptPlugin.getId(), scriptPlugin::declarePlugin)));
     }
 }

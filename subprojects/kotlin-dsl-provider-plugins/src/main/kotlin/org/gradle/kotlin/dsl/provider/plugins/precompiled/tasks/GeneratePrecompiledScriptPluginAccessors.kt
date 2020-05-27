@@ -39,36 +39,27 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.concurrent.CompositeStoppable.stoppable
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.resource.DefaultTextFileResourceLoader
-
+import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.kotlin.dsl.accessors.AccessorFormats
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.accessors.buildAccessorsFor
 import org.gradle.kotlin.dsl.accessors.hashCodeFor
 import org.gradle.kotlin.dsl.accessors.schemaFor
-
 import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.writeFile
-
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
-
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.scriptPluginFilesOf
-
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.useToRun
-
 import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.management.internal.PluginRequests
-
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequestCollector
-
 import org.gradle.testfixtures.ProjectBuilder
-
 import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Files
@@ -85,7 +76,10 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     val classLoaderScopeRegistry: ClassLoaderScopeRegistry,
 
     private
-    val asyncIOScopeFactory: AsyncIOScopeFactory
+    val asyncIOScopeFactory: AsyncIOScopeFactory,
+
+    private
+    val textFileResourceLoader: TextFileResourceLoader
 
 ) : ClassPathSensitiveCodeGenerationTask() {
 
@@ -257,7 +251,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun scriptSourceFor(plugin: PrecompiledScriptPlugin) =
         TextResourceScriptSource(
-            DefaultTextFileResourceLoader().loadFile("Precompiled script plugin", plugin.scriptFile)
+            textFileResourceLoader.loadFile("Precompiled script plugin", plugin.scriptFile)
         )
 
     private

@@ -22,10 +22,12 @@ import org.gradle.api.internal.BuildScopeListenerRegistrationListener
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
+import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.instantexecution.problems.InstantExecutionProblems
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.problems.StructuredMessage
+import org.gradle.instantexecution.problems.location
 import org.gradle.internal.InternalListener
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
@@ -36,9 +38,8 @@ interface InstantExecutionProblemsListener : TaskExecutionAccessListener, BuildS
 
 
 class DefaultInstantExecutionProblemsListener internal constructor(
-    private
-    val problems: InstantExecutionProblems
-
+    private val problems: InstantExecutionProblems,
+    private val userCodeApplicationContext: UserCodeApplicationContext
 ) : InstantExecutionProblemsListener {
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
@@ -54,8 +55,14 @@ class DefaultInstantExecutionProblemsListener internal constructor(
         val exception = InvalidUserCodeException(
             "Invocation of '$invocationDescription' by $task at execution time is unsupported."
         )
+        val currentApplication = userCodeApplicationContext.current()
+        val location = if (currentApplication != null) {
+            PropertyTrace.BuildLogic(currentApplication.displayName)
+        } else {
+            PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
+        }
         problems.onProblem(taskExecutionAccessProblem(
-            PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path),
+            location,
             invocationDescription,
             exception
         ))
@@ -80,7 +87,7 @@ class DefaultInstantExecutionProblemsListener internal constructor(
                 "Listener registration '$invocationDescription' by $invocationSource is unsupported."
             )
             problems.onProblem(listenerRegistrationProblem(
-                PropertyTrace.Unknown,
+                userCodeApplicationContext.location(null),
                 invocationDescription,
                 exception
             ))

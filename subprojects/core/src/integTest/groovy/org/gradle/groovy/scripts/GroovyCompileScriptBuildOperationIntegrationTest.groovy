@@ -47,16 +47,16 @@ class GroovyCompileScriptBuildOperationIntegrationTest extends AbstractIntegrati
         then:
         def scriptCompiles = operations.all(CompileScriptBuildOperationType)
 
-        scriptCompiles*.displayName == [
-            'Compile script init.gradle (CLASSPATH)',
-            'Compile script init.gradle (BODY)',
-            'Compile script settings.gradle (CLASSPATH)',
-            'Compile script settings.gradle (BODY)',
-            'Compile script build.gradle (CLASSPATH)',
-            'Compile script build.gradle (BODY)',
-            'Compile script script.gradle (CLASSPATH)',
-            'Compile script script.gradle (BODY)'
-        ]
+        scriptCompiles*.displayName == relativePaths(
+            "Compile initialization script 'init.gradle' (CLASSPATH)",
+            "Compile initialization script 'init.gradle' (BODY)",
+            "Compile settings file 'settings.gradle' (CLASSPATH)",
+            "Compile settings file 'settings.gradle' (BODY)",
+            "Compile build file 'build.gradle' (CLASSPATH)",
+            "Compile build file 'build.gradle' (BODY)",
+            "Compile script 'script.gradle' (CLASSPATH)",
+            "Compile script 'script.gradle' (BODY)"
+        )
 
         scriptCompiles.details*.language == [
             'GROOVY',
@@ -92,10 +92,10 @@ class GroovyCompileScriptBuildOperationIntegrationTest extends AbstractIntegrati
 
         then: // affected build script is recompiled
         scriptCompiles.size() == 2
-        scriptCompiles*.displayName == [
-            'Compile script build.gradle (CLASSPATH)',
-            'Compile script build.gradle (BODY)'
-        ]
+        scriptCompiles*.displayName == relativePaths(
+            "Compile build file 'build.gradle' (CLASSPATH)",
+            "Compile build file 'build.gradle' (BODY)"
+        )
     }
 
     def "captures shared scripts with same classpath"() {
@@ -117,10 +117,10 @@ class GroovyCompileScriptBuildOperationIntegrationTest extends AbstractIntegrati
         def scriptCompiles = operations.all(CompileScriptBuildOperationType)
 
         then:
-        scriptCompiles*.displayName == [
-            'Compile script build.gradle (CLASSPATH)',
-            'Compile script build.gradle (BODY)',
-        ]
+        scriptCompiles*.displayName == relativePaths(
+            "Compile build file 'build.gradle' (CLASSPATH)",
+            "Compile build file 'build.gradle' (BODY)",
+        )
     }
 
     def "captures shared scripts with different classpath"() {
@@ -150,13 +150,21 @@ class GroovyCompileScriptBuildOperationIntegrationTest extends AbstractIntegrati
         def scriptCompiles = operations.all(CompileScriptBuildOperationType)
 
         then:
-        scriptCompiles*.displayName == [
-            'Compile script build.gradle (CLASSPATH)',
-            'Compile script build.gradle (BODY)',
-            'Compile script build.gradle (CLASSPATH)',
-            'Compile script build.gradle (BODY)',
-            'Compile script shared.gradle (CLASSPATH)',
-            'Compile script shared.gradle (BODY)'
-        ]
+        scriptCompiles*.displayName == relativePaths(
+            "Compile build file 'buildSrc/build.gradle' (CLASSPATH)",
+            "Compile build file 'buildSrc/build.gradle' (BODY)",
+            "Compile build file 'build.gradle' (CLASSPATH)",
+            "Compile build file 'build.gradle' (BODY)",
+            "Compile script '../shared.gradle' (CLASSPATH)",
+            "Compile script '../shared.gradle' (BODY)"
+        )
+    }
+
+    List<String> relativePaths(String... paths) {
+        return relativePaths(paths.toList())
+    }
+
+    List<String> relativePaths(List<String> paths) {
+        return paths.collect { it.replace('/', File.separator) }
     }
 }

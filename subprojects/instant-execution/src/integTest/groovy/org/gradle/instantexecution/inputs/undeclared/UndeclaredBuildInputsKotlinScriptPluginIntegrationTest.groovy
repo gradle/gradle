@@ -17,9 +17,15 @@
 package org.gradle.instantexecution.inputs.undeclared
 
 class UndeclaredBuildInputsKotlinScriptPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
+    def script = file("plugin.gradle.kts")
+
+    @Override
+    String getLocation() {
+        return "script 'plugin.gradle.kts'"
+    }
+
     @Override
     void buildLogicApplication(SystemPropertyRead read) {
-        def script = file("plugin.gradle.kts")
         kotlinDsl(script, read)
         buildFile << """
             apply from: "plugin.gradle.kts"

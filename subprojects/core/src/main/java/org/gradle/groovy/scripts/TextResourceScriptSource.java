@@ -15,6 +15,7 @@
  */
 package org.gradle.groovy.scripts;
 
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.internal.resource.TextResource;
@@ -56,7 +57,17 @@ public class TextResourceScriptSource implements ScriptSource {
 
     @Override
     public String getDisplayName() {
-        return resource.getDisplayName();
+        return getLongDisplayName().getDisplayName();
+    }
+
+    @Override
+    public DisplayName getLongDisplayName() {
+        return resource.getLongDisplayName();
+    }
+
+    @Override
+    public DisplayName getShortDisplayName() {
+        return resource.getShortDisplayName();
     }
 
     /**

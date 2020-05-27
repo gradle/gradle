@@ -18,6 +18,11 @@ package org.gradle.instantexecution.inputs.undeclared
 
 class UndeclaredBuildInputsKotlinBuildScriptPluginsBlockIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
+    String getLocation() {
+        return "build file 'build.gradle.kts'"
+    }
+
+    @Override
     void buildLogicApplication(SystemPropertyRead read) {
         buildKotlinFile << """
             plugins {

@@ -105,7 +105,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * projectStateRegistry.newExclusiveOperationLock() >> safeLock
         _ * safeLock.withLock(_) >> { args -> args[0].run() }
         _ * domainObjectCollectioncallbackActionDecorator.decorate(_) >> { args -> args[0] }
-        _ * userCodeApplicationContext.decorateWithCurrent(_) >> { args -> args[0] }
+        _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
     }
 
     void defaultValues() {

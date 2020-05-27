@@ -30,6 +30,7 @@ import org.gradle.api.internal.InternalAction
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.testing.TestListener
 import org.gradle.initialization.BuildCompletionListener
+import org.gradle.internal.DisplayName
 import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.InternalListener
 import org.gradle.internal.event.DefaultListenerManager
@@ -47,7 +48,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
     private static interface ComboListener extends BuildListener, ProjectEvaluationListener, TaskExecutionGraphListener, BuildCompletionListener {}
 
     def buildOperationExecutor = new TestBuildOperationExecutor()
-    def context = new TestUserCodeApplicationContext()
+    def context = new DefaultUserCodeApplicationContext()
     def decorator = new DefaultListenerBuildOperationDecorator(buildOperationExecutor, context)
 
     def 'ignores implementers of InternalListener'() {
@@ -56,7 +57,6 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         def buildListener = new InternalBuildAdapter()
         def projectEvaluationListener = Mock(InternalProjectEvaluationListener)
         def graphListener = Mock(InternalTaskExecutionGraphListener)
-        context.push()
 
         expect:
         decorator.decorate('foo', action) is action
@@ -87,10 +87,15 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         given:
         def action = Mock(Action)
         def arg = new Object()
-        def id = context.push()
+        def id
+        def decoratedAction
 
         when:
-        def decoratedAction = decorator.decorate('foo', action)
+
+        context.apply(Stub(DisplayName)) {
+            id = it
+            decoratedAction = decorator.decorate('foo', action)
+        }
 
         then:
         !decoratedAction.is(action)
@@ -110,9 +115,12 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         def action = Mock(Action)
         def failure = new RuntimeException()
         def arg = new Object()
-        def id = context.push()
-
-        def decoratedAction = decorator.decorate('foo', action)
+        def id
+        def decoratedAction
+        context.apply(Stub(DisplayName)) {
+            id = it
+            decoratedAction = decorator.decorate('foo', action)
+        }
 
         when:
         decoratedAction.execute(arg)
@@ -136,10 +144,14 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
             assert passedArg == arg
             called = true
         }
-        def id = context.push()
+        def id
+        def decoratedClosure
 
         when:
-        def decoratedClosure = decorator.decorate('foo', closure)
+        context.apply(Stub(DisplayName)) {
+            id = it
+            decoratedClosure = decorator.decorate('foo', closure)
+        }
 
         then:
         !decoratedClosure.is(closure)
@@ -164,10 +176,14 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
             assert passedArg2 == arg2
             called = true
         }
-        def id = context.push()
+        def id
+        def decoratedClosure
 
         when:
-        def decoratedClosure = decorator.decorate('foo', closure)
+        context.apply(Stub(DisplayName)) {
+            id = it
+            decoratedClosure = decorator.decorate('foo', closure)
+        }
 
         then:
         !decoratedClosure.is(closure)
@@ -191,10 +207,14 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
             assert passedArg == arg1
             called = true
         }
-        def id = context.push()
+        def id
+        def decoratedClosure
 
         when:
-        def decoratedClosure = decorator.decorate('foo', closure)
+        context.apply(Stub(DisplayName)) {
+            id = it
+            decoratedClosure = decorator.decorate('foo', closure)
+        }
 
         then:
         !decoratedClosure.is(closure)
@@ -216,10 +236,14 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         def closure = { ->
             called = true
         }
-        def id = context.push()
+        def id
+        def decoratedClosure
 
         when:
-        def decoratedClosure = decorator.decorate('foo', closure)
+        context.apply(Stub(DisplayName)) {
+            id = it
+            decoratedClosure = decorator.decorate('foo', closure)
+        }
 
         then:
         !decoratedClosure.is(closure)
@@ -241,9 +265,13 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         def closure = { passedArg ->
             throw failure
         }
-        def id = context.push()
+        def id
+        def decoratedClosure
 
-        def decoratedClosure = decorator.decorate('foo', closure)
+        context.apply(Stub(DisplayName)) {
+            id = it
+            decoratedClosure = decorator.decorate('foo', closure)
+        }
 
         when:
         decoratedClosure.call(arg)
@@ -265,10 +293,14 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         def projectsEvaluatedArg = Mock(Gradle)
         def buildFinishedArg = new BuildResult(null, null)
         def listener = Mock(BuildListener)
-        def id = context.push()
+        def id
+        def decoratedListener
 
         when:
-        def decoratedListener = decorateAsObject ? decorator.decorateUnknownListener('foo', listener) as BuildListener : decorator.decorate('foo', BuildListener, listener)
+        context.apply(Stub(DisplayName)) {
+            id = it
+            decoratedListener = decorateAsObject ? decorator.decorateUnknownListener('foo', listener) as BuildListener : decorator.decorate('foo', BuildListener, listener)
+        }
 
         then:
         !decoratedListener.is(listener)
@@ -342,9 +374,13 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         def buildFinishedArg = new BuildResult(null, null)
         def listener = Mock(BuildListener)
         def failure = new RuntimeException()
-        def id = context.push()
+        def id
+        def decoratedListener
 
-        def decoratedListener = decorator.decorate('foo', BuildListener, listener)
+        context.apply(Stub(DisplayName)) {
+            id = it
+            decoratedListener = decorator.decorate('foo', BuildListener, listener)
+        }
 
         when:
         decoratedListener.buildStarted(buildStartedArg)
@@ -421,10 +457,14 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         def afterEvaluateArg1 = Mock(Project)
         def afterEvaluateArg2 = Mock(ProjectState)
         def listener = Mock(ProjectEvaluationListener)
-        def id = context.push()
+        def id
+        def decoratedListener
 
         when:
-        def decoratedListener = decorateAsObject ? decorator.decorateUnknownListener('foo', listener) as ProjectEvaluationListener : decorator.decorate('foo', ProjectEvaluationListener, listener)
+        context.apply(Stub(DisplayName)) {
+            id = it
+            decoratedListener = decorateAsObject ? decorator.decorateUnknownListener('foo', listener) as ProjectEvaluationListener : decorator.decorate('foo', ProjectEvaluationListener, listener)
+        }
 
         then:
         !decoratedListener.is(listener)
@@ -457,10 +497,14 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         given:
         def arg = Mock(TaskExecutionGraph)
         def listener = Mock(TaskExecutionGraphListener)
-        def id = context.push()
+        def id
+        def decoratedListener
 
         when:
-        def decoratedListener = decorateAsObject ? decorator.decorateUnknownListener('foo', listener) as TaskExecutionGraphListener : decorator.decorate('foo', TaskExecutionGraphListener, listener)
+        context.apply(Stub(DisplayName)) {
+            id = it
+            decoratedListener = decorateAsObject ? decorator.decorateUnknownListener('foo', listener) as TaskExecutionGraphListener : decorator.decorate('foo', TaskExecutionGraphListener, listener)
+        }
 
         then:
         !decoratedListener.is(listener)
@@ -485,10 +529,14 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         def beforeEvaluateArg = Mock(Project)
         def graphPopulatedArg = Mock(TaskExecutionGraph)
         def listener = Mock(ComboListener)
-        def id = context.push()
+        def id
+        def decoratedListener
 
         when:
-        def decoratedListener = decorator.decorateUnknownListener('foo', listener) as ComboListener
+        context.apply(Stub(DisplayName)) {
+            id = it
+            decoratedListener = decorator.decorateUnknownListener('foo', listener) as ComboListener
+        }
 
         then:
         !decoratedListener.is(listener)
@@ -554,11 +602,12 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
             }
         }
         def broadcast = listenerManager.getBroadcaster(BuildListener)
+        def decorated
 
         when:
-        context.push()
-        def decorated = decorator.decorate('foo', BuildListener, undecorated)
-        context.pop()
+        context.apply(Stub(DisplayName)) {
+            decorated = decorator.decorate('foo', BuildListener, undecorated)
+        }
         listenerManager.addListener(decorated)
         broadcast.projectsLoaded(gradle)
 
