@@ -452,8 +452,8 @@ abstract class ProjectDelegate : Project {
     override fun getProviders(): ProviderFactory =
         delegate.providers
 
-    override fun getCredentials(): CredentialsProviderFactory =
-        delegate.credentials
+    override fun getCredentialsProviders(): CredentialsProviderFactory =
+        delegate.credentialsProviders
 
     override fun getSubprojects(): MutableSet<Project> =
         delegate.subprojects

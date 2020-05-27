@@ -1,5 +1,5 @@
 def login = tasks.register('login', Exec) {
-    def loginProvider = credentials.provideCredentials(PasswordCredentials, 'login')
+    def loginProvider = credentialsProviders.provide(PasswordCredentials, 'login')
     inputs.property('credentials', loginProvider)
 
     commandLine = ['sh', 'login.sh']

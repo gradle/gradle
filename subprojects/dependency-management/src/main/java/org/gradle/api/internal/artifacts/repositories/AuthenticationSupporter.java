@@ -91,7 +91,7 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
 
     public void credentials(Class<? extends Credentials> credentialsType, Supplier<String> identity) {
         this.usesCredentials = true;
-        this.credentials.set(credentialsProviderFactory.provideCredentials(credentialsType, identity));
+        this.credentials.set(credentialsProviderFactory.provide(credentialsType, identity));
     }
 
     @Override

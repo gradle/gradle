@@ -1,5 +1,5 @@
 val login = tasks.register<Exec>("login") {
-    val loginProvider = credentials.provideCredentials(PasswordCredentials::class.java, "login")
+    val loginProvider = credentialsProviders.provide(PasswordCredentials::class.java, "login")
     inputs.property("credentials", loginProvider)
 
     commandLine = listOf("sh", "login.sh")

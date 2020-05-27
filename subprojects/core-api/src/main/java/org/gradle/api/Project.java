@@ -979,7 +979,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @since 6.6
      */
     @Incubating
-    CredentialsProviderFactory getCredentials();
+    CredentialsProviderFactory getCredentialsProviders();
 
     /**
      * Provides access to methods to create various kinds of model objects.

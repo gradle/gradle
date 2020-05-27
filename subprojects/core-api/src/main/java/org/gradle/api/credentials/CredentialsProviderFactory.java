@@ -17,6 +17,7 @@
 package org.gradle.api.credentials;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
 
 import java.util.function.Supplier;
@@ -34,7 +35,7 @@ import java.util.function.Supplier;
  * For example, {@link PasswordCredentials} provider with identity "myService" will look for properties named "myServiceUsername" and "myServicePassword".
  *
  * An instance of the factory can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}.
- * It is also available via {@link org.gradle.api.Project#getCredentials()}.
+ * It is also available via {@link Project#getCredentialsProviders()} ()}.
  *
  * <p>
  * The following credential types are currently supported:
@@ -55,7 +56,7 @@ public interface CredentialsProviderFactory {
      * @param identity identity to be associated with the credentials.
      * @return The provider. Never returns null.
      */
-    <T extends Credentials> Provider<T> provideCredentials(Class<T> credentialsType, String identity);
+    <T extends Credentials> Provider<T> provide(Class<T> credentialsType, String identity);
 
     /**
      * Creates a {@link Provider} for the given {@link Credentials} type.
@@ -64,6 +65,6 @@ public interface CredentialsProviderFactory {
      * @param identity a function returning the identity to be associated with the credentials.
      * @return The provider. Never returns null.
      */
-    <T extends Credentials> Provider<T> provideCredentials(Class<T> credentialsType, Supplier<String> identity);
+    <T extends Credentials> Provider<T> provide(Class<T> credentialsType, Supplier<String> identity);
 
 }

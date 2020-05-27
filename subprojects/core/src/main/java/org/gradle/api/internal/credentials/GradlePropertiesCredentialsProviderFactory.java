@@ -57,7 +57,7 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends Credentials> Provider<T> provideCredentials(Class<T> credentialsType, String identity) {
+    public <T extends Credentials> Provider<T> provide(Class<T> credentialsType, String identity) {
         validateIdentity(identity);
 
         if (PasswordCredentials.class.isAssignableFrom(credentialsType)) {
@@ -71,8 +71,8 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
     }
 
     @Override
-    public <T extends Credentials> Provider<T> provideCredentials(Class<T> credentialsType, Supplier<String> identity) {
-        return evaluateAtConfigurationTime(() -> provideCredentials(credentialsType, identity.get()).get());
+    public <T extends Credentials> Provider<T> provide(Class<T> credentialsType, Supplier<String> identity) {
+        return evaluateAtConfigurationTime(() -> provide(credentialsType, identity.get()).get());
     }
 
     @Override

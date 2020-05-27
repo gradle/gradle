@@ -870,7 +870,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     @Inject
-    public CredentialsProviderFactory getCredentials() {
+    public CredentialsProviderFactory getCredentialsProviders() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }
