@@ -53,6 +53,8 @@ Known issues are problems that were discovered post release that are directly re
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
+[Daiki Hirabayashi](https://github.com/dhirabayashi)
+
 ## Reporting Problems
 
 If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines. 
