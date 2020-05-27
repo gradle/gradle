@@ -36,7 +36,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModul
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.credentials.CredentialsProviderFactory;
+import org.gradle.api.credentials.CredentialsProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;

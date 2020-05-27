@@ -43,7 +43,7 @@ import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.ProjectBackedModule
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory
-import org.gradle.api.internal.credentials.CredentialsProviderFactory
+import org.gradle.api.credentials.CredentialsProviderFactory
 import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileOperations

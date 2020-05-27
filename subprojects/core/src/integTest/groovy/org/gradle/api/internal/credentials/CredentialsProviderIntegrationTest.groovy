@@ -43,7 +43,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             def taskWithCredentials = tasks.register('taskWithCredentials', TaskWithCredentials) {
-                credentials.set(project.services.get(org.gradle.api.internal.credentials.CredentialsProviderFactory)
+                credentials.set(project.services.get(org.gradle.api.credentials.CredentialsProviderFactory)
                     .provideCredentials(PasswordCredentials, 'testCredentials'))
             }
         """
@@ -66,7 +66,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
             def taskWithCredentials = tasks.register('taskWithCredentials', TaskWithCredentials) {
                 dependsOn(firstTask)
-                credentials.set(project.services.get(org.gradle.api.internal.credentials.CredentialsProviderFactory)
+                credentials.set(project.services.get(org.gradle.api.credentials.CredentialsProviderFactory)
                     .provideCredentials(PasswordCredentials, 'testCredentials'))
             }
         """
@@ -83,7 +83,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
             tasks.register('taskWithCredentials', TaskWithCredentials) {
                 dependsOn(firstTask)
-                credentials.set(project.services.get(org.gradle.api.internal.credentials.CredentialsProviderFactory)
+                credentials.set(project.services.get(org.gradle.api.credentials.CredentialsProviderFactory)
                     .provideCredentials(PasswordCredentials, 'testCredentials'))
             }
         """
@@ -107,7 +107,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
             def taskWithCredentials = tasks.register('taskWithCredentials', TaskWithCredentials) {
                 dependsOn(firstTask)
-                credentials.set(project.services.get(org.gradle.api.internal.credentials.CredentialsProviderFactory)
+                credentials.set(project.services.get(org.gradle.api.credentials.CredentialsProviderFactory)
                     .provideCredentials(PasswordCredentials, 'testCredentials'))
             }
 
@@ -132,12 +132,12 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildFile << """
             tasks.register('lazyTask', TaskWithCredentials) {
-                credentials.set(project.services.get(org.gradle.api.internal.credentials.CredentialsProviderFactory)
+                credentials.set(project.services.get(org.gradle.api.credentials.CredentialsProviderFactory)
                     .provideCredentials(PasswordCredentials, 'testCredentials'))
             }
 
             task eagerTask(type: TaskWithCredentials) {
-                credentials.set(project.services.get(org.gradle.api.internal.credentials.CredentialsProviderFactory)
+                credentials.set(project.services.get(org.gradle.api.credentials.CredentialsProviderFactory)
                     .provideCredentials(PasswordCredentials, 'testCredentials'))
             }
         """
@@ -155,13 +155,13 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
             def taskWithCredentials = tasks.register('taskWithCredentials', TaskWithCredentials) {
                 dependsOn(firstTask)
-                credentials.set(project.services.get(org.gradle.api.internal.credentials.CredentialsProviderFactory)
+                credentials.set(project.services.get(org.gradle.api.credentials.CredentialsProviderFactory)
                     .provideCredentials(PasswordCredentials, 'someCredentials'))
             }
 
             def anotherTaskWithCredentials = tasks.register('anotherTaskWithCredentials', TaskWithCredentials) {
                 dependsOn(taskWithCredentials)
-                credentials.set(project.services.get(org.gradle.api.internal.credentials.CredentialsProviderFactory)
+                credentials.set(project.services.get(org.gradle.api.credentials.CredentialsProviderFactory)
                     .provideCredentials(PasswordCredentials, 'someOtherCredentials'))
             }
 
@@ -192,7 +192,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
             tasks.register('taskWithCredentials') {
                 dependsOn(firstTask)
-                inputs.property('credentials', project.services.get(org.gradle.api.internal.credentials.CredentialsProviderFactory)
+                inputs.property('credentials', project.services.get(org.gradle.api.credentials.CredentialsProviderFactory)
                     .provideCredentials(PasswordCredentials, 'testCredentials'))
             }
         """
@@ -218,7 +218,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
             def taskWithCredentials = tasks.register('taskWithCredentials', TaskWithCredentials) {
                 dependsOn(firstTask)
-                credentials.set(project.services.get(org.gradle.api.internal.credentials.CredentialsProviderFactory)
+                credentials.set(project.services.get(org.gradle.api.credentials.CredentialsProviderFactory)
                     .provideCredentials(PasswordCredentials, 'testCredentials'))
             }
 

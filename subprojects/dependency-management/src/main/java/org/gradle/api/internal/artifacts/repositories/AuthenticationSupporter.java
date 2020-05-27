@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.credentials.HttpHeaderCredentials;
-import org.gradle.api.internal.credentials.CredentialsProviderFactory;
+import org.gradle.api.credentials.CredentialsProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.authentication.Authentication;

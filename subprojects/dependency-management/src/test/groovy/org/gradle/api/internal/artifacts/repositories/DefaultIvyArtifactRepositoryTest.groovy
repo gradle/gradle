@@ -35,7 +35,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore
 import org.gradle.api.internal.model.NamedObjectInstantiator
-import org.gradle.api.internal.credentials.CredentialsProviderFactory
+import org.gradle.api.credentials.CredentialsProviderFactory
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore
 import org.gradle.internal.resource.local.FileResourceRepository

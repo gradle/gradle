@@ -66,7 +66,7 @@ import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
-import org.gradle.api.internal.credentials.CredentialsProviderFactory;
+import org.gradle.api.credentials.CredentialsProviderFactory;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;

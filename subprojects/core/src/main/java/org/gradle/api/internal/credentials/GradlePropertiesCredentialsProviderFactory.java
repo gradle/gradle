@@ -19,6 +19,7 @@ package org.gradle.api.internal.credentials;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
+import org.gradle.api.credentials.CredentialsProviderFactory;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;

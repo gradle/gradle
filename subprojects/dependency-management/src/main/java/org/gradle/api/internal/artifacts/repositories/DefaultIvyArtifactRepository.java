@@ -58,7 +58,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResol
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.credentials.CredentialsProviderFactory;
+import org.gradle.api.credentials.CredentialsProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
