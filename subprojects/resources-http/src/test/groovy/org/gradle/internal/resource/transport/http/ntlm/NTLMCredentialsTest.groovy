@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.resource.transport.http.ntlm
 
-import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
