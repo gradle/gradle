@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -30,7 +29,6 @@ import org.junit.Rule
 
 @IntegrationTestTimeout(300)
 @TargetGradleVersion('>=4.0')
-@ToolingApiVersion(">=5.1")
 class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgressCrossVersionSpec {
 
     @Rule
