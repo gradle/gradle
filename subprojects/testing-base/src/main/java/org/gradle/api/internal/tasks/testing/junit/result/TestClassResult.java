@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.gradle.api.tasks.testing.TestResult;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,21 +30,19 @@ public class TestClassResult {
     private int failuresCount;
     private int skippedCount;
     private long id;
-    private boolean hasDisplayNameAnnotation;
 
     public TestClassResult(long id, String className, long startTime) {
-        this(id, className, className, startTime, false);
+        this(id, className, null, startTime);
     }
 
-    public TestClassResult(long id, String className, String classDisplayName, long startTime, boolean hasDisplayNameAnnotation) {
+    public TestClassResult(long id, String className, @Nullable String classDisplayName, long startTime) {
         if (id < 1) {
             throw new IllegalArgumentException("id must be > 0");
         }
         this.id = id;
         this.className = className;
         this.startTime = startTime;
-        this.classDisplayName = classDisplayName;
-        this.hasDisplayNameAnnotation = hasDisplayNameAnnotation;
+        this.classDisplayName = classDisplayName == null ? className : classDisplayName;
     }
 
     public long getId() {
@@ -56,10 +55,6 @@ public class TestClassResult {
 
     public String getClassDisplayName() {
         return classDisplayName;
-    }
-
-    public boolean hasDisplayNameAnnotation() {
-        return hasDisplayNameAnnotation;
     }
 
     public TestClassResult add(TestMethodResult methodResult) {

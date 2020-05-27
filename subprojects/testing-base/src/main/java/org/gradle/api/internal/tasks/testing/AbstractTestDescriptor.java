@@ -66,8 +66,4 @@ public abstract class AbstractTestDescriptor implements TestDescriptorInternal {
         return getClassName();
     }
 
-    @Override
-    public boolean hasDisplayNameAnnotation() {
-        return false;
-    }
 }

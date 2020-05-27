@@ -68,11 +68,6 @@ public class DecoratingTestDescriptor implements TestDescriptorInternal {
     }
 
     @Override
-    public boolean hasDisplayNameAnnotation() {
-        return descriptor.hasDisplayNameAnnotation();
-    }
-
-    @Override
     public String getName() {
         return descriptor.getName();
     }

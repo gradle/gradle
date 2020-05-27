@@ -62,8 +62,4 @@ public class UnknownTestDescriptor implements TestDescriptorInternal {
         return getClassName();
     }
 
-    @Override
-    public boolean hasDisplayNameAnnotation() {
-        return false;
-    }
 }

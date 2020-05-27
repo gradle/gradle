@@ -28,7 +28,4 @@ class SimpleTestDescriptor implements TestDescriptorInternal {
     Object getId() {
         "${parent?.id}$className$name" as String
     }
-    boolean hasDisplayNameAnnotation() {
-        return false
-    }
 }

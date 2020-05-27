@@ -41,13 +41,7 @@ public class JUnitXmlResultWriter {
      * @param output The destination, unbuffered
      */
     public void write(TestClassResult result, OutputStream output) {
-        String className;
-        if(result.hasDisplayNameAnnotation()) {
-            className = result.getClassDisplayName();
-        } else {
-            className = result.getClassName();
-        }
-
+        String className = result.getClassDisplayName();
         long classId = result.getId();
 
         try {

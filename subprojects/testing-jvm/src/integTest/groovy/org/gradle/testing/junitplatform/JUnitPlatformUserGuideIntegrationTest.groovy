@@ -59,7 +59,7 @@ class DisplayNameDemo2 {
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecutedJudgementByHtml('org.gradle.DisplayNameDemo', 'org.gradle.DisplayNameDemo2')
+        result.assertTestClassesExecutedJudgementByHtml('org.gradle.DisplayNameDemo', 'org.gradle.DisplayNameDemo2')
             .assertTestClassesExecutedJudgementByXml('A special test case', 'A special test case2')
         result.testClassByHtml('org.gradle.DisplayNameDemo')
             .assertDisplayName('A special test case')

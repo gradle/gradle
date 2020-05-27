@@ -69,12 +69,12 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         new DefaultTestClassExecutionResult(results.collect {it.testClass(testClass)})
     }
 
-    DefaultTestClassExecutionResult testClassByHtml(String testClass) {
-        new DefaultTestClassExecutionResult(htmlResult.testClass(testClass))
+    TestClassExecutionResult testClassByHtml(String testClass) {
+        htmlResult.testClass(testClass)
     }
 
-    DefaultTestClassExecutionResult testClassByXml(String testClass) {
-        new DefaultTestClassExecutionResult(xmlResult.testClass(testClass))
+    TestClassExecutionResult testClassByXml(String testClass) {
+        xmlResult.testClass(testClass)
     }
 
     TestClassExecutionResult testClassStartsWith(String testClass) {
