@@ -46,13 +46,12 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
     def "assemble on #testProject #action instant execution state with #daemon daemon"() {
 
         given:
-        runner.targetVersions = ["6.5-20200512182414+0000"]
+        runner.targetVersions = ["6.6-branch-eskatos_cc_rework_build_options-20200527184619+0000"]
         runner.minimumBaseVersion = "5.6"
         runner.testProject = testProject.projectName
         runner.tasksToRun = ["assemble"]
         runner.args = [
-            "-Dorg.gradle.unsafe.instant-execution=true", // TODO remove on rebaseline
-            "-D${ConfigurationCacheOption.PROPERTY_NAME}=on"
+            "-D${ConfigurationCacheOption.PROPERTY_NAME}=on" // TODO remove property argument on rebaseline
         ]
 
         and:
