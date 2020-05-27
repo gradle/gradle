@@ -18,18 +18,20 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import javax.annotation.Nullable;
+
 @UsedByScanPlugin("test-distribution")
 public class DefaultTestClassDescriptor extends DefaultTestSuiteDescriptor {
     private final String classDisplayName;
 
     public DefaultTestClassDescriptor(Object id, String className) {
-        this(id, className, className);
+        this(id, className, null);
     }
 
     @UsedByScanPlugin("test-distribution")
-    public DefaultTestClassDescriptor(Object id, String className, String classDisplayName) {
+    public DefaultTestClassDescriptor(Object id, String className, @Nullable String classDisplayName) {
         super(id, className);
-        this.classDisplayName = classDisplayName;
+        this.classDisplayName = classDisplayName == null ? className : classDisplayName;
     }
 
     @Override

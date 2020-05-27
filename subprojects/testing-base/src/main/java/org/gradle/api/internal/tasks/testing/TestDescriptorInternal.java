@@ -41,4 +41,5 @@ public interface TestDescriptorInternal extends TestDescriptor {
      * @return the class name for display.
      */
     String getClassDisplayName();
+
 }
