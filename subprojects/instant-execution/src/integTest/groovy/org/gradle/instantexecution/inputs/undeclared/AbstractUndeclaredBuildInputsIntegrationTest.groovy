@@ -40,7 +40,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
         outputContains("task = $value")
 
         when:
-        instantRunLenient("thing", "-DCI=$value")
+        instantRun WARN_PROBLEMS_CLI_OPT, "thing", "-DCI=$value"
 
         then:
         fixture.assertStateLoaded()

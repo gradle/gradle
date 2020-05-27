@@ -686,7 +686,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         """
 
         when:
-        instantFailsLenient "broken"
+        instantFails  WARN_PROBLEMS_CLI_OPT,"broken"
 
         then:
         problems.assertResultHasProblems(result) {

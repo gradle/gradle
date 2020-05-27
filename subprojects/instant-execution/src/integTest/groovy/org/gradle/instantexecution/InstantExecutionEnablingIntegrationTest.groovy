@@ -27,6 +27,9 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
 
         given:
         def fixture = newInstantExecutionFixture()
+        if (deprecation) {
+            expectDeprecatedProperty(ConfigurationCacheOption.PROPERTY_NAME, 'on')
+        }
 
         when:
         run 'help', argument
@@ -43,80 +46,115 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
         fixture.assertStateLoaded()
 
         where:
-        origin            | argument
-        "long option"     | STRICT_CLI_OPTION
-        "system property" | "-D${ConfigurationCacheOption.PROPERTY_NAME}=on"
-    }
-
-    def "can enable with a property in root directory gradle.properties"() {
-
-        given:
-        def fixture = newInstantExecutionFixture()
-        file('gradle.properties') << """
-            ${ConfigurationCacheOption.PROPERTY_NAME}=on
-        """
-
-        when:
-        run 'help'
-
-        then:
-        outputContainsIncubatingFeatureUsage()
-        fixture.assertStateStored()
-
-        when:
-        run 'help'
-
-        then:
-        outputContainsIncubatingFeatureUsage()
-        fixture.assertStateLoaded()
-    }
-
-    def "can enable with a property in gradle user home gradle.properties"() {
-
-        given:
-        def fixture = newInstantExecutionFixture()
-        executer.requireOwnGradleUserHomeDir()
-        executer.gradleUserHomeDir.file('gradle.properties') << """
-            ${ConfigurationCacheOption.PROPERTY_NAME}=on
-        """
-
-        when:
-        run 'help'
-
-        then:
-        outputContainsIncubatingFeatureUsage()
-        fixture.assertStateStored()
-
-        when:
-        run 'help'
-
-        then:
-        outputContainsIncubatingFeatureUsage()
-        fixture.assertStateLoaded()
+        origin                       | deprecation | argument
+        "long option"                | false       | ENABLE_CLI_OPT
+        "system property"            | false       | ENABLE_SYS_PROP
+        "deprecated system property" | true        | "-D${ConfigurationCacheOption.PROPERTY_NAME}=on"
     }
 
     @Unroll
-    def "can disable with a command line #origin when enabled in gradle.properties"() {
+    def "can enable with a #origin in root directory gradle.properties"() {
 
         given:
         def fixture = newInstantExecutionFixture()
+        if (deprecation) {
+            expectDeprecatedProperty(ConfigurationCacheOption.PROPERTY_NAME, 'on')
+        }
+
+        and:
         file('gradle.properties') << """
-            ${ConfigurationCacheOption.PROPERTY_NAME}=on
+            $propertyLine
         """
 
         when:
-        run 'help', argument
+        run 'help'
+
+        then:
+        outputContainsIncubatingFeatureUsage()
+        fixture.assertStateStored()
+
+        when:
+        run 'help'
+
+        then:
+        outputContainsIncubatingFeatureUsage()
+        fixture.assertStateLoaded()
+
+        where:
+        origin                | deprecation | propertyLine
+        "property"            | false       | ENABLE_GRADLE_PROP
+        "deprecated property" | true        | "${ConfigurationCacheOption.PROPERTY_NAME}=on"
+    }
+
+    @Unroll
+    def "can enable with a #origin in gradle user home gradle.properties"() {
+
+        given:
+        def fixture = newInstantExecutionFixture()
+        if (deprecation) {
+            expectDeprecatedProperty(ConfigurationCacheOption.PROPERTY_NAME, 'on')
+        }
+
+        and:
+        executer.requireOwnGradleUserHomeDir()
+        executer.gradleUserHomeDir.file('gradle.properties') << """
+            $propertyLine
+        """
+
+        when:
+        run 'help'
+
+        then:
+        outputContainsIncubatingFeatureUsage()
+        fixture.assertStateStored()
+
+        when:
+        run 'help'
+
+        then:
+        outputContainsIncubatingFeatureUsage()
+        fixture.assertStateLoaded()
+
+        where:
+        origin                | deprecation | propertyLine
+        "property"            | false       | ENABLE_GRADLE_PROP
+        "deprecated property" | true        | "${ConfigurationCacheOption.PROPERTY_NAME}=on"
+    }
+
+    @Unroll
+    def "can disable with a command line #cliOrigin when enabled in gradle.properties"() {
+
+        given:
+        def fixture = newInstantExecutionFixture()
+        if (deprecation) {
+            expectDeprecatedProperty(ConfigurationCacheOption.PROPERTY_NAME, 'off')
+        }
+
+        and:
+        file('gradle.properties') << """
+            ${ConfigurationCacheOption.PROPERTY_NAME}=true
+        """
+
+        when:
+        run 'help', cliArgument
 
         then:
         fixture.assertNoInstantExecution()
 
         where:
-        origin            | argument
-        "long option"     | "--${ConfigurationCacheOption.LONG_OPTION}=off"
-        "system property" | "-D${ConfigurationCacheOption.PROPERTY_NAME}=off"
+        cliOrigin                    | deprecation | cliArgument
+        "long option"                | false       | DISABLE_CLI_OPT
+        "system property"            | false       | DISABLE_SYS_PROP
+        "deprecated system property" | true        | "-D${ConfigurationCacheOption.PROPERTY_NAME}=off"
     }
 
     private void outputContainsIncubatingFeatureUsage() {
         outputContains("Configuration cache is an incubating feature.")
+    }
+
+    private void expectDeprecatedProperty(String name, String value) {
+        executer.beforeExecute {
+            expectDeprecationWarning("Property '$name' with value '$value' has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+        }
     }
 }

@@ -20,8 +20,6 @@ import groovy.transform.PackageScope
 import junit.framework.AssertionFailedError
 import org.gradle.api.Action
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -49,10 +47,6 @@ import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertTrue
 
 final class InstantExecutionProblemsFixture {
-
-    static final String STRICT_CLI_OPTION = "--${ConfigurationCacheOption.LONG_OPTION}=on"
-    static final String LENIENT_CLI_OPTION = "--${ConfigurationCacheOption.LONG_OPTION}=warn"
-    static final String MAX_PROBLEMS_CLI_OPTION = "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}"
 
     protected static final String PROBLEMS_REPORT_HTML_FILE_NAME = "configuration-cache-report.html"
 

@@ -57,7 +57,7 @@ class InstantExecutionToolingApiInvocationIntegrationTest extends AbstractInstan
         try {
             connection.newBuild()
                 .forTasks(tasks)
-                .withArguments(STRICT_CLI_OPTION)
+                .withArguments(ENABLE_CLI_OPT)
                 .setStandardOutput(output)
                 .setStandardError(error)
                 .run()
