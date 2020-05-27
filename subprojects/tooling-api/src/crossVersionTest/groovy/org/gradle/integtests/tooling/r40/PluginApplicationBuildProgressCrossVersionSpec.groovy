@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r40
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
 import spock.lang.Issue
@@ -25,6 +26,7 @@ import spock.lang.Issue
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 
 @TargetGradleVersion(">=4.0")
+@ToolingApiVersion(">=5.1")
 class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCrossVersionSpec {
 
     def "generates plugin application events for single project build"() {
