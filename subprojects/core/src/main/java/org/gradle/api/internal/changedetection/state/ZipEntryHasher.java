@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,18 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.internal.hash.HashCode;
+
+import javax.annotation.Nullable;
+import java.io.IOException;
+
 /**
- * Hashes resources (e.g., a class file in a jar or a class file in a directory)
+ * Hashes a zip entry (e.g. a class file in a jar, a manifest file, a properties file)
  */
-public interface ResourceHasher extends ConfigurableNormalizer, RegularFileHasher, ZipEntryHasher {
+public interface ZipEntryHasher {
+    /**
+     * Returns {@code null} if the zip entry should be ignored.
+     */
+    @Nullable
+    HashCode hash(ZipEntryContext zipEntryContext) throws IOException;
 }

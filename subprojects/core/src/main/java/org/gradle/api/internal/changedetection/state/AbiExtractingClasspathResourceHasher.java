@@ -63,7 +63,8 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     }
 
     @Override
-    public HashCode hash(ZipEntry zipEntry) throws IOException {
+    public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
+        ZipEntry zipEntry = zipEntryContext.getEntry();
         if (!isClassFile(zipEntry.getName())) {
             return null;
         }

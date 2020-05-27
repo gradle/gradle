@@ -78,6 +78,90 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'nested jars' | 'ignoredResourceInNestedJar' | 'notIgnoredResourceInNestedJar' | false
     }
 
+    def "can ignore manifest attributes on runtime classpath"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(true).withManifestAttributesIgnored()
+
+        when:
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        project.jarManifest.replaceContents("Manifest-Version: 1.0\nImplementation-Version: 1.0.1")
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+    }
+
+    @ToBeFixedForInstantExecution
+    def "can ignore entire manifest on runtime classpath"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(true).withManifestIgnored()
+
+        when:
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        project.jarManifest.replaceContents("Manifest-Version: 1.0\nImplementation-Version: 1.0.1")
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+    }
+
+    @ToBeFixedForInstantExecution
+    def "can ignore all meta-inf files on runtime classpath"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(true).withAllMetaInfIgnored()
+
+        when:
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        project.jarManifest.replaceContents("Manifest-Version: 1.0\nImplementation-Version: 1.0.1")
+        project.jarManifestProperties.replaceContents("implementation-version=1.0.1")
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+    }
+
+    @ToBeFixedForInstantExecution
+    def "can ignore manifest properties on runtime classpath"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(true).withManifestPropertiesIgnored()
+
+        when:
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        project.jarManifestProperties.replaceContents("implementation-version=1.0.1")
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+    }
+
     @ToBeFixedForInstantExecution
     def "can configure ignore rules per project (using runtime API: #useRuntimeApi)"() {
         def projectWithIgnores = new ProjectWithRuntimeClasspathNormalization('a', useRuntimeApi).withFilesIgnored()
@@ -105,7 +189,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
     @UnsupportedWithInstantExecution(because = "Task.getProject() during execution")
     def "runtime classpath normalization cannot be changed after first usage (using runtime API: #useRuntimeApi)"() {
         def project = new ProjectWithRuntimeClasspathNormalization(useRuntimeApi)
-        project.buildFile << """ 
+        project.buildFile << """
             task configureNormalization() {
                 dependsOn '${project.customTask}'
                 doLast {
@@ -136,6 +220,8 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         TestResource ignoredResourceInNestedJar
         TestResource notIgnoredResourceInJar
         TestResource notIgnoredResourceInNestedJar
+        TestResource jarManifest
+        TestResource jarManifestProperties
         TestFile libraryJar
         TestFile nestedJar
         private TestFile libraryJarContents
@@ -162,6 +248,8 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
                 notIgnoredResourceInNestedJar = new TestResource(file('some/package/not-ignored.txt') << "This should not be ignored", this.&createJar)
             }
             libraryJarContents = root.file('libraryContents').create {
+                jarManifest = new TestResource(file('META-INF/MANIFEST.MF') << "Manifest-Version: 1.0\nImplementation-Version: 1.0.0", this.&createJar)
+                jarManifestProperties = new TestResource(file('META-INF/build-info.properties') << "implementation-version=1.0.0", this.&createJar)
                 ignoredResourceInJar = new TestResource(file('some/package/ignored.txt') << "This should be ignored", this.&createJar)
                 notIgnoredResourceInJar = new TestResource(file('some/package/not-ignored.txt') << "This should not be ignored", this.&createJar)
                 nestedJar = file('nested.jar')
@@ -191,12 +279,12 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
                     class CustomTask extends DefaultTask {
                         @OutputFile File outputFile = new File(temporaryDir, "output.txt")
                         @Classpath FileCollection classpath = project.layout.files("classpath/dirEntry", "library.jar")
-    
+
                         @TaskAction void generate() {
                             outputFile.text = "done"
-                        } 
+                        }
                     }
-                    
+
                     task customTask(type: CustomTask)
                 """
             }
@@ -224,6 +312,58 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
             return this
         }
 
+        ProjectWithRuntimeClasspathNormalization withAllMetaInfIgnored() {
+            root.file('build.gradle') << """
+                normalization {
+                    runtimeClasspath {
+                        metaInf {
+                            ignoreCompletely()
+                        }
+                    }
+                }
+            """.stripIndent()
+            return this
+        }
+
+        ProjectWithRuntimeClasspathNormalization withManifestIgnored() {
+            root.file('build.gradle') << """
+                normalization {
+                    runtimeClasspath {
+                        metaInf {
+                            ignoreManifest()
+                        }
+                    }
+                }
+            """.stripIndent()
+            return this
+        }
+
+        ProjectWithRuntimeClasspathNormalization withManifestAttributesIgnored() {
+            root.file('build.gradle') << """
+                normalization {
+                    runtimeClasspath {
+                        metaInf {
+                            ignoreAttribute "Implementation-Version"
+                        }
+                    }
+                }
+            """.stripIndent()
+            return this
+        }
+
+        ProjectWithRuntimeClasspathNormalization withManifestPropertiesIgnored() {
+            root.file('build.gradle') << """
+                normalization {
+                    runtimeClasspath {
+                        metaInf {
+                            ignoreProperty "implementation-version"
+                        }
+                    }
+                }
+            """.stripIndent()
+            return this
+        }
+
         String getCustomTask() {
             return "${projectName ? ":${projectName}" : ''}:customTask"
         }
@@ -236,6 +376,13 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         TestResource(TestFile backingFile, Closure finalizedBy = {}) {
             this.backingFile = backingFile
             this.finalizedBy = finalizedBy
+        }
+
+        void replaceContents(String contents) {
+            backingFile.withWriter { w ->
+                w << contents
+            }
+            finalizedBy()
         }
 
         void changeContents() {

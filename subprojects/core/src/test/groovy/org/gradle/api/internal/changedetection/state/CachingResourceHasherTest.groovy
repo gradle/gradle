@@ -77,21 +77,22 @@ class CachingResourceHasherTest extends Specification {
     def "does not cache zip entries"() {
         def expectedHash = HashCode.fromInt(123)
         def zipEntry = Mock(ZipEntry)
+        def zipEntryContext = new ZipEntryContext(zipEntry, "foo", "foo.zip")
 
         when:
-        def actualHash = cachingHasher.hash(zipEntry)
+        def actualHash = cachingHasher.hash(zipEntryContext)
 
         then:
-        1 * delegate.hash(zipEntry) >> expectedHash
+        1 * delegate.hash(zipEntryContext) >> expectedHash
         0 * _
 
         actualHash == expectedHash
 
         when:
-        actualHash = cachingHasher.hash(zipEntry)
+        actualHash = cachingHasher.hash(zipEntryContext)
 
         then:
-        1 * delegate.hash(zipEntry) >> expectedHash
+        1 * delegate.hash(zipEntryContext) >> expectedHash
         0 * _
 
         actualHash == expectedHash

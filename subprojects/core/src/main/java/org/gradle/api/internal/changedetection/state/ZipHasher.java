@@ -93,19 +93,24 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
         }
     }
 
+    private HashCode hashMalformedZip(RegularFileSnapshot zipFileSnapshot, Exception e) {
+        LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", zipFileSnapshot.getName(), e);
+        return zipFileSnapshot.getHash();
+    }
+
     private List<FileSystemLocationFingerprint> fingerprintZipEntries(String zipFile) throws IOException {
         ZipInput input = null;
         try {
             input = FileZipInput.create(new File(zipFile));
             List<FileSystemLocationFingerprint> fingerprints = Lists.newArrayList();
-            fingerprintZipEntries("", fingerprints, input);
+            fingerprintZipEntries("", zipFile, fingerprints, input);
             return fingerprints;
         } finally {
             IoActions.closeQuietly(input);
         }
     }
 
-    private void fingerprintZipEntries(String parentName, List<FileSystemLocationFingerprint> fingerprints, ZipInput input) throws IOException {
+    private void fingerprintZipEntries(String parentName, String rootParentName, List<FileSystemLocationFingerprint> fingerprints, ZipInput input) throws IOException {
         fingerprints.add(newZipMarker(parentName));
         for (ZipEntry zipEntry : input) {
             ZipEntryRelativePath relativePath = new ZipEntryRelativePath(zipEntry);
@@ -113,14 +118,19 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
                 continue;
             }
             String fullName = parentName.isEmpty() ? zipEntry.getName() : parentName + "/" + zipEntry.getName();
+            ZipEntryContext zipEntryContext = new ZipEntryContext(zipEntry, fullName, rootParentName);
             if (isZipFile(zipEntry.getName())) {
-                fingerprintZipEntries(fullName, fingerprints, new StreamZipInput(zipEntry.getInputStream()));
+                fingerprintZipEntries(fullName, rootParentName, fingerprints, new StreamZipInput(zipEntry.getInputStream()));
             } else {
-                HashCode hash = resourceHasher.hash(zipEntry);
-                if (hash != null) {
-                    fingerprints.add(new DefaultFileSystemLocationFingerprint(fullName, FileType.RegularFile, hash));
-                }
+                fingerprintZipEntry(zipEntryContext, fingerprints);
             }
+        }
+    }
+
+    private void fingerprintZipEntry(ZipEntryContext zipEntryContext, List<FileSystemLocationFingerprint> fingerprints) throws IOException {
+        HashCode hash = resourceHasher.hash(zipEntryContext);
+        if (hash != null) {
+            fingerprints.add(new DefaultFileSystemLocationFingerprint(zipEntryContext.getFullName(), FileType.RegularFile, hash));
         }
     }
 
@@ -129,7 +139,6 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
     }
 
     private static class ZipEntryRelativePath implements Factory<String[]> {
-
         private final ZipEntry zipEntry;
 
         private ZipEntryRelativePath(ZipEntry zipEntry) {
@@ -140,10 +149,5 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
         public String[] create() {
             return FilePathUtil.getPathSegments(zipEntry.getName());
         }
-    }
-
-    private HashCode hashMalformedZip(RegularFileSnapshot zipFileSnapshot, Exception e) {
-        LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", zipFileSnapshot.getName(), e);
-        return zipFileSnapshot.getHash();
     }
 }
