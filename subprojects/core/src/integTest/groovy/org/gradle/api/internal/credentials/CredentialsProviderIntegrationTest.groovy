@@ -132,8 +132,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task eagerTask(type: TaskWithCredentials) {
-                credentials.set(project.services.get(CredentialsProviderFactory)
-                    .provideCredentials(PasswordCredentials, 'testCredentials'))
+                credentials.set(credentialsProviders.provide(PasswordCredentials, 'testCredentials'))
             }
         """
 
