@@ -13,12 +13,15 @@ The configuration cache is a feature that significantly improves build performan
 Using the configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration, such as build scripts, has changed.
 Gradle also applies some performance improvements to task execution as well.
 
-The configuration cache is conceptually similar to the build cache, but caches different information.
+The configuration cache is conceptually similar to the <<build_cache#build_cache,build cache>>, but caches different information.
 The build cache takes care of caching the outputs and intermediate files of the build, such as task outputs or artifact transform outputs.
 The configuration cache takes care of caching the build configuration for a particular set of tasks.
 In other words, the configuration cache caches the output of the configuration phase, and the build cache caches the outputs of the execution phase.
 
-This feature is currently experimental and not enabled by default.
+[IMPORTANT]
+====
+This feature is currently *experimental* and not enabled by default.
+====
 
 === How does it work?
 
@@ -125,7 +128,7 @@ org.gradle.unsafe.configuration-cache.max-problems=5
 The configuration cache is automatically invalidated when inputs to the configuration phase change.
 But, you may have to manually invalidate the configuration cache when untracked inputs to the configuration phase change.
 This can happen if you <<configuration_cache#ignore_problems,ignored problems>>, or when remote dependencies changed for example.
-See the <<configuration_cache#constraints>> and <<configuration_cache#not_yet_implemented>> sections below for more information.
+See the <<configuration_cache#requirements>> and <<configuration_cache#not_yet_implemented>> sections below for more information.
 
 The configuration cache state is stored on disk in a directory named `.gradle/configuration-cache` in the root directory of the Gradle build in use.
 If you need to invalidate the cache, simply delete that directory:
@@ -136,13 +139,13 @@ $ rm -rf .gradle/configuration-cache
 ----
 
 
-[[constraints]]
-== Constraints
+[[requirements]]
+== Requirements
 
-In order to capture the state of the task graph to the configuration cache and reload it again in a later build, Gradle applies certain constraints to tasks and other build logic.
-Each of these constraints is treated as a configuration cache "problem" and fail the build if violations are present.
+In order to capture the state of the task graph to the configuration cache and reload it again in a later build, Gradle applies certain requirements to tasks and other build logic.
+Each of these requirements is treated as a configuration cache "problem" and fail the build if violations are present.
 
-The following sections describe each of the constraints and how to change your build to fix the problems.
+The following sections describe each of the requirements and how to change your build to fix the problems.
 
 [[disallowed_types]]
 === Certain types must not be referenced by tasks
@@ -160,7 +163,7 @@ To fix, you can often replace such a field with a `Property` or `Provider` typed
 A task must not use any `Project` objects at execution time.
 This includes calling `Task.getProject()` while the task is running.
 
-Some cases can be fixed in the same way as the previous constraint.
+Some cases can be fixed in the same way as the previous requirement.
 
 Otherwise, to fix, use <<custom_gradle_types#service_injection,injected services>> instead of the methods of `Project`:
 
@@ -433,4 +436,4 @@ The former allows to quickly see what classes of problems your build is facing.
 The latter allows to quickly see which tasks are problematic.
 In both cases you can expand the tree in order to discover where in the object graph is the culprit.
 
-Problems displayed in the report have links to the corresponding <<configuration_cache#constraints,constraint>> where you can find guidance on how to fix the problem or to the corresponding <<configuration_cache#not_yet_implemented,not yet implemented>> feature.
+Problems displayed in the report have links to the corresponding <<configuration_cache#requirements,requirement>> where you can find guidance on how to fix the problem or to the corresponding <<configuration_cache#not_yet_implemented,not yet implemented>> feature.
