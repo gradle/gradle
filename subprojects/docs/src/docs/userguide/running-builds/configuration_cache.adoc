@@ -18,7 +18,10 @@ The build cache takes care of caching the outputs and intermediate files of the 
 The configuration cache takes care of caching the build configuration for a particular set of tasks.
 In other words, the configuration cache caches the output of the configuration phase, and the build cache caches the outputs of the execution phase.
 
-This feature is currently experimental and not enabled by default.
+[IMPORTANT]
+====
+This feature is currently *experimental* and not enabled by default.
+====
 
 === How does it work?
 
