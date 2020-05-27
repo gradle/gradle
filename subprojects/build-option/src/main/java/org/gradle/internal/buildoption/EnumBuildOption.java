@@ -19,6 +19,7 @@ package org.gradle.internal.buildoption;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -31,15 +32,11 @@ import java.util.Map;
  */
 public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuildOption<T, CommandLineOptionConfiguration> {
 
-    private final String displayName;
-    private final Class<E> enumClass;
-    private final List<E> possibleValues;
+    private final EnumParser<E> enumParser;
 
     public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
         super(gradleProperty, commandLineOptionConfigurations);
-        this.displayName = displayName;
-        this.enumClass = enumClass;
-        this.possibleValues = Collections.unmodifiableList(Arrays.asList(possibleValues));
+        this.enumParser = new EnumParser<E>(displayName, enumClass, possibleValues);
     }
 
     @Override
@@ -69,33 +66,51 @@ public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuil
     }
 
     private void applyTo(String value, T settings, Origin origin) {
-        applyTo(getValue(value), settings, origin);
-    }
-
-    private E getValue(String value) {
-        E enumValue = null;
-        if (value != null) {
-            enumValue = tryGetValue(value);
-            if (enumValue == null) {
-                enumValue = tryGetValue(value.toLowerCase());
-            }
-            if (enumValue == null) {
-                enumValue = tryGetValue(value.toUpperCase());
-            }
-        }
-        if (enumValue == null) {
-            throw new RuntimeException("Option " + displayName + " doesn't accept value '" + value + "'. Possible values are " + possibleValues);
-        }
-        return enumValue;
-    }
-
-    private E tryGetValue(String value) {
-        try {
-            return Enum.valueOf(enumClass, value);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+        applyTo(enumParser.getValue(value), settings, origin);
     }
 
     public abstract void applyTo(E value, T settings, Origin origin);
+
+    public static class EnumParser<E extends Enum<E>> {
+        private final String displayName;
+        private final Class<E> enumClass;
+        private final List<E> possibleValues;
+
+        public EnumParser(String displayName, Class<E> enumClass, E[] possibleValues) {
+            this.displayName = displayName;
+            this.enumClass = enumClass;
+            this.possibleValues = Collections.unmodifiableList(Arrays.asList(possibleValues));
+        }
+
+        public E getValue(String value) {
+            E enumValue = getValueOrNull(value);
+            if (enumValue == null) {
+                throw new RuntimeException("Option " + displayName + " doesn't accept value '" + value + "'. Possible values are " + possibleValues);
+            }
+            return enumValue;
+        }
+
+        @Nullable
+        public E getValueOrNull(String value) {
+            E enumValue = null;
+            if (value != null) {
+                enumValue = tryGetValue(value);
+                if (enumValue == null) {
+                    enumValue = tryGetValue(value.toLowerCase());
+                }
+                if (enumValue == null) {
+                    enumValue = tryGetValue(value.toUpperCase());
+                }
+            }
+            return enumValue;
+        }
+
+        private E tryGetValue(String value) {
+            try {
+                return Enum.valueOf(enumClass, value);
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        }
+    }
 }

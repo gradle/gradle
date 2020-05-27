@@ -38,6 +38,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class StartParameterBuildOptions {
@@ -71,6 +72,7 @@ public class StartParameterBuildOptions {
         options.add(new DependencyLockingUpdateOption());
         options.add(new RefreshKeysOption());
         options.add(new ExportKeysOption());
+        options.add(new ConfigurationCacheProblemsOption());
         options.add(new ConfigurationCacheOption());
         options.add(new ConfigurationCacheMaxProblemsOption());
         options.add(new ConfigurationCacheRecreateOption());
@@ -311,6 +313,7 @@ public class StartParameterBuildOptions {
             startParameter.setWatchFileSystem(value);
         }
     }
+
     public static class BuildScanOption extends BooleanBuildOption<StartParameterInternal> {
         public static final String LONG_OPTION = "scan";
 
@@ -432,8 +435,9 @@ public class StartParameterBuildOptions {
         }
     }
 
-    public static class ConfigurationCacheOption extends EnumBuildOption<ConfigurationCacheOption.Value, StartParameterInternal> {
+    public static class ConfigurationCacheOption extends BooleanBuildOption<StartParameterInternal> {
 
+        @Deprecated
         public enum Value {
             OFF, ON, WARN
         }
@@ -441,7 +445,68 @@ public class StartParameterBuildOptions {
         public static final String PROPERTY_NAME = "org.gradle.unsafe.configuration-cache";
         public static final String LONG_OPTION = "configuration-cache";
 
+        private final EnumBuildOption.EnumParser<ConfigurationCacheOption.Value> enumParser;
+
         public ConfigurationCacheOption() {
+            super(
+                PROPERTY_NAME,
+                BooleanCommandLineOptionConfiguration.create(
+                    LONG_OPTION,
+                    "Enables the configuration cache. Gradle will try to reuse the build configuration from previous builds.",
+                    "Disables the configuration cache."
+                ).incubating()
+            );
+            this.enumParser = new EnumBuildOption.EnumParser<>(
+                LONG_OPTION,
+                ConfigurationCacheOption.Value.class,
+                ConfigurationCacheOption.Value.values()
+            );
+        }
+
+        @Override
+        public void applyFromProperty(Map<String, String> properties, StartParameterInternal settings) {
+            ConfigurationCacheOption.Value enumValue = enumParser.getValueOrNull(properties.get(gradleProperty));
+            if (enumValue != null) {
+                applyTo(enumValue, settings);
+            } else {
+                super.applyFromProperty(properties, settings);
+            }
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCache(value);
+        }
+
+        private void applyTo(ConfigurationCacheOption.Value value, StartParameterInternal settings) {
+            settings.addDeprecation("Property '" + PROPERTY_NAME + "' with value '" + value.name().toLowerCase() + "'");
+            switch (value) {
+                case OFF:
+                    settings.setConfigurationCache(false);
+                    settings.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.FAIL);
+                    break;
+                case ON:
+                    settings.setConfigurationCache(true);
+                    settings.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.FAIL);
+                    break;
+                case WARN:
+                    settings.setConfigurationCache(true);
+                    settings.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.WARN);
+                    break;
+            }
+        }
+    }
+
+    public static class ConfigurationCacheProblemsOption extends EnumBuildOption<ConfigurationCacheProblemsOption.Value, StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.unsafe.configuration-cache-problems";
+        public static final String LONG_OPTION = "configuration-cache-problems";
+
+        public enum Value {
+            FAIL, WARN
+        }
+
+        public ConfigurationCacheProblemsOption() {
             super(
                 LONG_OPTION,
                 Value.class,
@@ -449,14 +514,14 @@ public class StartParameterBuildOptions {
                 PROPERTY_NAME,
                 CommandLineOptionConfiguration.create(
                     LONG_OPTION,
-                    "Enables the configuration cache (off, on, or warn). Gradle will try to reuse the build configuration from previous builds."
+                    "Configures how the configuration cache handles problems (fail or warn). Defaults to fail."
                 ).incubating()
             );
         }
 
         @Override
         public void applyTo(Value value, StartParameterInternal settings, Origin origin) {
-            settings.setConfigurationCache(value);
+            settings.setConfigurationCacheProblems(value);
         }
     }
 
