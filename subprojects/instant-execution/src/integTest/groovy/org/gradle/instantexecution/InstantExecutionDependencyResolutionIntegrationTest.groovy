@@ -524,11 +524,14 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         instantRun(":resolve")
 
         then:
-        output.count("processing") == 3
-        outputContains("processing c.jar using []")
-        outputContains("processing b.jar using []")
-        outputContains("processing a.jar using [b.jar, c.jar]")
-        outputContains("result = [a.jar.green, b.jar.green, c.jar.green]")
+        output.count("processing") == 6
+        outputContains("processing a.jar")
+        outputContains("processing b.jar")
+        outputContains("processing c.jar")
+        outputContains("processing b.jar.red using []")
+        outputContains("processing c.jar.red using []")
+        outputContains("processing a.jar.red using [b.jar.red, c.jar.red]")
+        outputContains("result = [a.jar.red.green, b.jar.red.green, c.jar.red.green]")
 
         when:
         instantRun(":resolve")
@@ -542,7 +545,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         result.assertTaskSkipped(":b:producer")
         result.assertTaskSkipped(":c:producer")
         output.count("processing") == 0
-        outputContains("result = [a.jar.green, b.jar.green, c.jar.green]")
+        outputContains("result = [a.jar.red.green, b.jar.red.green, c.jar.red.green]")
 
         when:
         instantRun(":resolve", "-PbContent=changed")
@@ -555,9 +558,10 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         result.assertTaskSkipped(":a:producer")
         result.assertTaskNotSkipped(":b:producer")
         result.assertTaskSkipped(":c:producer")
-        output.count("processing") == 2
-        outputContains("processing b.jar using []")
-        outputContains("processing a.jar using [b.jar, c.jar]")
-        outputContains("result = [a.jar.green, b.jar.green, c.jar.green]")
+        output.count("processing") == 3
+        outputContains("processing b.jar")
+        outputContains("processing b.jar.red using []")
+        outputContains("processing a.jar.red using [b.jar.red, c.jar.red]")
+        outputContains("result = [a.jar.red.green, b.jar.red.green, c.jar.red.green]")
     }
 }
