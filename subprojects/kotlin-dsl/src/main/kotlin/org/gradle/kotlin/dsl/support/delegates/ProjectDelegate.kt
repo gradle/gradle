@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.support.delegates
 
 import groovy.lang.Closure
-
 import org.gradle.api.Action
 import org.gradle.api.AntBuilder
 import org.gradle.api.NamedDomainObjectContainer
@@ -39,7 +38,6 @@ import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.credentials.CredentialsProviderFactory
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.LoggingManager
@@ -58,11 +56,8 @@ import org.gradle.normalization.InputNormalizationHandler
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec
-
 import java.io.File
-
 import java.net.URI
-
 import java.util.concurrent.Callable
 
 
@@ -451,9 +446,6 @@ abstract class ProjectDelegate : Project {
 
     override fun getProviders(): ProviderFactory =
         delegate.providers
-
-    override fun getCredentialsProviders(): CredentialsProviderFactory =
-        delegate.credentialsProviders
 
     override fun getSubprojects(): MutableSet<Project> =
         delegate.subprojects

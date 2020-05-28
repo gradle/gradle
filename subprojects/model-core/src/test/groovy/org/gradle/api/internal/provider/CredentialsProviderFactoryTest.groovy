@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.credentials
+package org.gradle.api.internal.provider
 
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.credentials.PasswordCredentials
-import org.gradle.api.internal.provider.DefaultProvider
-import org.gradle.api.internal.provider.MissingValueException
-import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import spock.lang.Specification
 
-class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
+class CredentialsProviderFactoryTest extends Specification {
 
     def providerFactory = Mock(ProviderFactory)
-    def factory = new GradlePropertiesCredentialsProviderFactory(providerFactory)
+    def factory = new CredentialsProviderFactory(providerFactory)
 
     def "does not allow non-letters and non-digits for identity"() {
         when:

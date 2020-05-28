@@ -19,6 +19,9 @@ package org.gradle.api.provider;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.credentials.AwsCredentials;
+import org.gradle.api.credentials.Credentials;
+import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.file.FileContents;
 import org.gradle.api.file.RegularFile;
 
@@ -175,4 +178,58 @@ public interface ProviderFactory {
         Class<? extends ValueSource<T, P>> valueSourceType,
         Action<? super ValueSourceSpec<P>> configuration
     );
+
+    /**
+     * Creates a {@link Provider} for the given {@link Credentials} type.
+     *
+     * <p>
+     * The provider returned by this method should be attached to a task's input property.
+     * This way, the presence of credentials will be validated before any of the tasks are executed if and only if the task with credentials property is to be executed.
+     *
+     * <p>
+     * Values for the requested Credentials type will be sourced from the project's properties using the pattern "identity" + credentials field.
+     * For example, {@link PasswordCredentials} provider with identity "myService" will look for properties named "myServiceUsername" and "myServicePassword".
+     *
+     * <p>
+     * The following credential types are currently supported:
+     * <ul>
+     * <li>{@link PasswordCredentials}</li>
+     * <li>{@link AwsCredentials}</li>
+     * </ul>
+     *
+     * @param credentialsType type of credentials to be provided.
+     * @param identity identity to be associated with the credentials.
+     * @return The provider. Never returns null.
+     *
+     * @since 6.6
+     */
+    @Incubating
+    <T extends Credentials> Provider<T> credentials(Class<T> credentialsType, String identity);
+
+    /**
+     * Creates a {@link Provider} for the given {@link Credentials} type.
+     *
+     * <p>
+     * The provider returned by this method should be attached to a task's input property.
+     * This way, the presence of credentials will be validated before any of the tasks are executed if and only if the task with credentials property is to be executed.
+     *
+     * <p>
+     * Values for the requested Credentials type will be sourced from the project's properties using the pattern "identity" + credentials field.
+     * For example, {@link PasswordCredentials} provider with identity "myService" will look for properties named "myServiceUsername" and "myServicePassword".
+     *
+     * <p>
+     * The following credential types are currently supported:
+     * <ul>
+     * <li>{@link PasswordCredentials}</li>
+     * <li>{@link AwsCredentials}</li>
+     * </ul>
+     *
+     * @param credentialsType type of credentials to be provided.
+     * @param identity a provider returning the identity to be associated with the credentials.
+     * @return The provider. Never returns null.
+     *
+     * @since 6.6
+     */
+    @Incubating
+    <T extends Credentials> Provider<T> credentials(Class<T> credentialsType, Provider<String> identity);
 }

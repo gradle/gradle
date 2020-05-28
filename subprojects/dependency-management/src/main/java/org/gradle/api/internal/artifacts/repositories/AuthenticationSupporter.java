@@ -22,9 +22,10 @@ import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.credentials.HttpHeaderCredentials;
-import org.gradle.api.credentials.CredentialsProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
@@ -37,21 +38,20 @@ import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.function.Supplier;
 
 public class AuthenticationSupporter implements AuthenticationSupportedInternal {
     private final Instantiator instantiator;
     private final AuthenticationContainer authenticationContainer;
-    private final CredentialsProviderFactory credentialsProviderFactory;
+    private final ProviderFactory providerFactory;
 
     private final Property<Credentials> credentials;
     private boolean usesCredentials = false;
 
-    public AuthenticationSupporter(Instantiator instantiator, ObjectFactory objectFactory, AuthenticationContainer authenticationContainer, CredentialsProviderFactory credentialsProviderFactory) {
+    public AuthenticationSupporter(Instantiator instantiator, ObjectFactory objectFactory, AuthenticationContainer authenticationContainer, ProviderFactory providerFactory) {
         this.instantiator = instantiator;
         this.authenticationContainer = authenticationContainer;
         this.credentials = objectFactory.property(Credentials.class);
-        this.credentialsProviderFactory = credentialsProviderFactory;
+        this.providerFactory = providerFactory;
     }
 
     @Override
@@ -89,9 +89,9 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
         action.execute(getCredentials(credentialsType));
     }
 
-    public void credentials(Class<? extends Credentials> credentialsType, Supplier<String> identity) {
+    public void credentials(Class<? extends Credentials> credentialsType, Provider<String> identity) {
         this.usesCredentials = true;
-        this.credentials.set(credentialsProviderFactory.provide(credentialsType, identity));
+        this.credentials.set(providerFactory.credentials(credentialsType, identity));
     }
 
     @Override

@@ -32,7 +32,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore
-import org.gradle.api.credentials.CredentialsProviderFactory
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore
 import org.gradle.internal.resource.local.FileResourceRepository
@@ -55,13 +55,13 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final AuthenticationContainer authenticationContainer = Stub()
     final MavenMutableModuleMetadataFactory mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
     final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(resolver)
-    final CredentialsProviderFactory credentialsProviderFactory = Mock()
+    final ProviderFactory providerFactory = Mock()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
         resolver, transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(),
         artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, externalResourceFileStore,
         Mock(FileResourceRepository), mavenMetadataFactory, SnapshotTestUtil.valueSnapshotter(),
-        TestUtil.objectFactory(), urlArtifactRepositoryFactory, TestUtil.checksumService, credentialsProviderFactory)
+        TestUtil.objectFactory(), urlArtifactRepositoryFactory, TestUtil.checksumService, providerFactory)
 
     def "creates local repository"() {
         given:

@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":coreApi"))
     implementation(project(":core"))
+    implementation(project(":modelCore"))
     implementation(project(":logging"))
 
     implementation(library("commons_httpclient"))

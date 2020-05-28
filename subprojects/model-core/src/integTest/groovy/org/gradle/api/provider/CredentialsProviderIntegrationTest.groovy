@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.credentials
+package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
@@ -43,7 +43,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             def taskWithCredentials = tasks.register('taskWithCredentials', TaskWithCredentials) {
-                credentials.set(credentialsProviders.provide(PasswordCredentials, 'testCredentials'))
+                credentials.set(providers.credentials(PasswordCredentials, 'testCredentials'))
             }
         """
 
@@ -65,7 +65,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
             def taskWithCredentials = tasks.register('taskWithCredentials', TaskWithCredentials) {
                 dependsOn(firstTask)
-                credentials.set(credentialsProviders.provide(PasswordCredentials, 'testCredentials'))
+                credentials.set(providers.credentials(PasswordCredentials, 'testCredentials'))
             }
         """
 
@@ -81,7 +81,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
             tasks.register('taskWithCredentials', TaskWithCredentials) {
                 dependsOn(firstTask)
-                credentials.set(credentialsProviders.provide(PasswordCredentials, 'testCredentials'))
+                credentials.set(providers.credentials(PasswordCredentials, 'testCredentials'))
             }
         """
 
@@ -104,7 +104,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
             def taskWithCredentials = tasks.register('taskWithCredentials', TaskWithCredentials) {
                 dependsOn(firstTask)
-                credentials.set(credentialsProviders.provide(PasswordCredentials, 'testCredentials'))
+                credentials.set(providers.credentials(PasswordCredentials, 'testCredentials'))
             }
 
             tasks.register('finalTask') {
@@ -128,11 +128,11 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildFile << """
             tasks.register('lazyTask', TaskWithCredentials) {
-                credentials.set(credentialsProviders.provide(PasswordCredentials, 'testCredentials'))
+                credentials.set(providers.credentials(PasswordCredentials, 'testCredentials'))
             }
 
             task eagerTask(type: TaskWithCredentials) {
-                credentials.set(credentialsProviders.provide(PasswordCredentials, 'testCredentials'))
+                credentials.set(providers.credentials(PasswordCredentials, 'testCredentials'))
             }
         """
 
@@ -149,12 +149,12 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
             def taskWithCredentials = tasks.register('taskWithCredentials', TaskWithCredentials) {
                 dependsOn(firstTask)
-                credentials.set(credentialsProviders.provide(PasswordCredentials, 'someCredentials'))
+                credentials.set(providers.credentials(PasswordCredentials, 'someCredentials'))
             }
 
             def anotherTaskWithCredentials = tasks.register('anotherTaskWithCredentials', TaskWithCredentials) {
                 dependsOn(taskWithCredentials)
-                credentials.set(credentialsProviders.provide(PasswordCredentials, 'someOtherCredentials'))
+                credentials.set(providers.credentials(PasswordCredentials, 'someOtherCredentials'))
             }
 
             tasks.register('finalTask') {
@@ -184,7 +184,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
             tasks.register('taskWithCredentials') {
                 dependsOn(firstTask)
-                inputs.property('credentials', credentialsProviders.provide(PasswordCredentials, 'testCredentials'))
+                inputs.property('credentials', providers.credentials(PasswordCredentials, 'testCredentials'))
             }
         """
 
@@ -209,7 +209,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
             def taskWithCredentials = tasks.register('taskWithCredentials', TaskWithCredentials) {
                 dependsOn(firstTask)
-                credentials.set(credentialsProviders.provide(PasswordCredentials, 'testCredentials'))
+                credentials.set(providers.credentials(PasswordCredentials, 'testCredentials'))
             }
 
             tasks.register('finalTask') {
