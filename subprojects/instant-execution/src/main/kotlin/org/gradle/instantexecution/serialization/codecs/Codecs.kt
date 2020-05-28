@@ -18,7 +18,6 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
@@ -93,7 +92,6 @@ class Codecs(
     projectStateRegistry: ProjectStateRegistry,
     taskNodeFactory: TaskNodeFactory,
     fingerprinterRegistry: FileCollectionFingerprinterRegistry,
-    projectFinder: ProjectFinder,
     buildOperationExecutor: BuildOperationExecutor,
     classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     isolatableFactory: IsolatableFactory,
@@ -187,7 +185,7 @@ class Codecs(
         bind(ChainedTransformationNodeCodec(buildOperationExecutor, transformListener))
         bind(ActionNodeCodec)
         bind(ResolvableArtifactCodec)
-        bind(TransformationStepCodec(projectStateRegistry, fingerprinterRegistry, projectFinder))
+        bind(TransformationStepCodec(projectStateRegistry, fingerprinterRegistry))
         bind(DefaultTransformerCodec(userTypesCodec, buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, parameterScheme, actionScheme))
         bind(LegacyTransformerCodec(actionScheme))
 
