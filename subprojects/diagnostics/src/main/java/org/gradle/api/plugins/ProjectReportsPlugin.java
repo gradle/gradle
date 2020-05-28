@@ -17,7 +17,6 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.plugins.internal.DefaultProjectReportsPluginConvention;
 import org.gradle.api.reporting.dependencies.HtmlDependencyReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
@@ -42,31 +41,34 @@ public class ProjectReportsPlugin implements Plugin<Project> {
         final ProjectReportsPluginConvention convention = new DefaultProjectReportsPluginConvention(project);
         project.getConvention().getPlugins().put("projectReports", convention);
 
-        TaskReportTask taskReportTask = project.getTasks().create(TASK_REPORT, TaskReportTask.class);
-        taskReportTask.setDescription("Generates a report about your tasks.");
-        taskReportTask.conventionMapping("outputFile", () -> new File(convention.getProjectReportDir(), "tasks.txt"));
-        taskReportTask.conventionMapping("projects", convention::getProjects);
+        project.getTasks().register(TASK_REPORT, TaskReportTask.class, taskReportTask -> {
+            taskReportTask.setDescription("Generates a report about your tasks.");
+            taskReportTask.conventionMapping("outputFile", () -> new File(convention.getProjectReportDir(), "tasks.txt"));
+            taskReportTask.conventionMapping("projects", convention::getProjects);
+        });
 
-        PropertyReportTask propertyReportTask = project.getTasks().create(PROPERTY_REPORT, PropertyReportTask.class);
-        propertyReportTask.setDescription("Generates a report about your properties.");
-        propertyReportTask.conventionMapping("outputFile", () -> new File(convention.getProjectReportDir(), "properties.txt"));
-        propertyReportTask.conventionMapping("projects", convention::getProjects);
+        project.getTasks().register(PROPERTY_REPORT, PropertyReportTask.class, propertyReportTask -> {
+            propertyReportTask.setDescription("Generates a report about your properties.");
+            propertyReportTask.conventionMapping("outputFile", () -> new File(convention.getProjectReportDir(), "properties.txt"));
+            propertyReportTask.conventionMapping("projects", convention::getProjects);
+        });
 
-        DependencyReportTask dependencyReportTask = project.getTasks().create(DEPENDENCY_REPORT,
-                DependencyReportTask.class);
-        dependencyReportTask.setDescription("Generates a report about your library dependencies.");
-        dependencyReportTask.conventionMapping("outputFile", () -> new File(convention.getProjectReportDir(), "dependencies.txt"));
-        dependencyReportTask.conventionMapping("projects", convention::getProjects);
+        project.getTasks().register(DEPENDENCY_REPORT, DependencyReportTask.class, dependencyReportTask -> {
+            dependencyReportTask.setDescription("Generates a report about your library dependencies.");
+            dependencyReportTask.conventionMapping("outputFile", () -> new File(convention.getProjectReportDir(), "dependencies.txt"));
+            dependencyReportTask.conventionMapping("projects", convention::getProjects);
+        });
 
-        HtmlDependencyReportTask htmlDependencyReportTask = project.getTasks().create(HTML_DEPENDENCY_REPORT,
-                HtmlDependencyReportTask.class);
-        htmlDependencyReportTask.setDescription("Generates an HTML report about your library dependencies.");
-        htmlDependencyReportTask.getReports().getHtml().getOutputLocation().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getProjectReportDir(), "dependencies").getAbsolutePath())));
-        htmlDependencyReportTask.conventionMapping("projects", convention::getProjects);
+        project.getTasks().create(HTML_DEPENDENCY_REPORT, HtmlDependencyReportTask.class, htmlDependencyReportTask -> {
+            htmlDependencyReportTask.setDescription("Generates an HTML report about your library dependencies.");
+            htmlDependencyReportTask.getReports().getHtml().getOutputLocation().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getProjectReportDir(), "dependencies").getAbsolutePath())));
+            htmlDependencyReportTask.conventionMapping("projects", convention::getProjects);
+        });
 
-        Task projectReportTask = project.getTasks().create(PROJECT_REPORT);
-        projectReportTask.dependsOn(TASK_REPORT, PROPERTY_REPORT, DEPENDENCY_REPORT, HTML_DEPENDENCY_REPORT);
-        projectReportTask.setDescription("Generates a report about your project.");
-        projectReportTask.setGroup("reporting");
+        project.getTasks().register(PROJECT_REPORT, projectReportTask -> {
+            projectReportTask.dependsOn(TASK_REPORT, PROPERTY_REPORT, DEPENDENCY_REPORT, HTML_DEPENDENCY_REPORT);
+            projectReportTask.setDescription("Generates a report about your project.");
+            projectReportTask.setGroup("reporting");
+        });
     }
 }
