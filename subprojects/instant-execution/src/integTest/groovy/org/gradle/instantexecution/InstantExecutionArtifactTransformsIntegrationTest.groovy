@@ -16,8 +16,11 @@
 
 package org.gradle.instantexecution
 
+import spock.lang.Ignore
+
 class InstantExecutionArtifactTransformsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
+    @Ignore("wip")
     def 'transform action is re-executed when input artifact changes'() {
         given:
         buildKotlinFile '''
