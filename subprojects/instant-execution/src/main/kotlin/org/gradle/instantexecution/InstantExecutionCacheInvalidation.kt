@@ -18,7 +18,9 @@ package org.gradle.instantexecution
 
 import org.gradle.instantexecution.extensions.unsafeLazy
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
-import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.hash.HashValue
+import org.gradle.internal.hash.Hasher
+import org.gradle.internal.hash.Hashing
 import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import java.io.File
@@ -29,29 +31,38 @@ class InstantExecutionCacheInvalidation(
 ) {
 
     val cacheKey: String by unsafeLazy {
-        // The following characters are not valid in task names
-        // and can be used as separators: /, \, :, <, >, ", ?, *, |
-        // except we also accept qualified task names with :, so colon is out.
-        val cacheKey = StringBuilder()
-        cacheKey.append(GradleVersion.current().version)
-        val requestedTaskNames = startParameter.requestedTaskNames
-        requestedTaskNames.joinTo(cacheKey, separator = "/", prefix = ">")
-        val excludedTaskNames = startParameter.excludedTaskNames
-        if (excludedTaskNames.isNotEmpty()) {
-            excludedTaskNames.joinTo(cacheKey, prefix = "<", separator = "/")
-        }
-        val taskNames = startParameter.requestedTaskNames.asSequence() + excludedTaskNames.asSequence()
-        val hasRelativeTaskName = taskNames.any { !it.startsWith(':') }
-        if (hasRelativeTaskName) {
-            // Because unqualified task names are resolved relative to the enclosing
-            // sub-project according to `invocationDirectory`,
-            // the relative invocation directory information must be part of the key.
-            relativeChildPathOrNull(startParameter.currentDirectory, startParameter.rootDirectory)?.let { relativeSubDir ->
-                cacheKey.append('*')
-                cacheKey.append(relativeSubDir)
+
+        HashValue(Hashing.md5().newHasher().apply {
+
+            putString(GradleVersion.current().version)
+
+            val requestedTaskNames = startParameter.requestedTaskNames
+            putAll(requestedTaskNames)
+
+            val excludedTaskNames = startParameter.excludedTaskNames
+            putAll(excludedTaskNames)
+
+            val taskNames = requestedTaskNames.asSequence() + excludedTaskNames.asSequence()
+            val hasRelativeTaskName = taskNames.any { !it.startsWith(':') }
+            if (hasRelativeTaskName) {
+                // Because unqualified task names are resolved relative to the enclosing
+                // sub-project according to `invocationDirectory`,
+                // the relative invocation directory information must be part of the key.
+                relativeChildPathOrNull(
+                    startParameter.currentDirectory,
+                    startParameter.rootDirectory
+                )?.let { relativeSubDir ->
+                    putString(relativeSubDir)
+                }
             }
-        }
-        HashUtil.createCompactMD5(cacheKey.toString())
+
+        }.hash().toByteArray()).asCompactString()
+    }
+
+    private
+    fun Hasher.putAll(list: Collection<String>) {
+        putInt(list.size)
+        list.forEach(::putString)
     }
 
     /**
