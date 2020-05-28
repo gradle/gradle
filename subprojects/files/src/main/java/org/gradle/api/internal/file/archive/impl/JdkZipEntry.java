@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.archive;
+package org.gradle.api.internal.file.archive.impl;
 
 import com.google.common.io.ByteStreams;
+import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.file.FileException;
 
 import java.io.IOException;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.archive
+package org.gradle.api.internal.file.archive.impl
 
 import org.gradle.api.JavaVersion
 import org.junit.Rule
