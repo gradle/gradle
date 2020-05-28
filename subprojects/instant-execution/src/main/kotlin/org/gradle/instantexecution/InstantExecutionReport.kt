@@ -40,7 +40,10 @@ import java.net.URL
 class InstantExecutionReport(
 
     private
-    val startParameter: InstantExecutionStartParameter
+    val startParameter: InstantExecutionStartParameter,
+
+    private
+    val cacheInvalidation: InstantExecutionCacheInvalidation
 
 ) {
 
@@ -56,7 +59,7 @@ class InstantExecutionReport(
     private
     val outputDirectory: File by lazy {
         startParameter.rootDirectory.resolve(
-            "build/reports/configuration-cache/${startParameter.instantExecutionCacheKey}"
+            "build/reports/configuration-cache/${cacheInvalidation.cacheKey}"
         ).let { base ->
             if (!base.exists()) base
             else generateSequence(1) { it + 1 }
