@@ -99,8 +99,8 @@ public class DefaultConnection implements ConnectionVersion4, org.gradle.tooling
             gradleUserHomeDir = new BuildLayoutParameters().getGradleUserHomeDir();
         }
         initializeServices(gradleUserHomeDir);
-        connection.configure(providerConnectionParameters);
         consumerVersion = GradleVersion.version(providerConnectionParameters.getConsumerVersion());
+        connection.configure(providerConnectionParameters, consumerVersion);
     }
 
     private void assertUsingSupportedJavaVersion() {
