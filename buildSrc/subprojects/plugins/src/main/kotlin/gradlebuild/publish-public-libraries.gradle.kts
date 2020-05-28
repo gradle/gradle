@@ -17,6 +17,7 @@ package gradlebuild
 
 import accessors.base
 import org.gradle.gradlebuild.versioning.buildVersion
+import java.time.Year
 
 plugins {
     `maven-publish`
@@ -59,6 +60,12 @@ fun Project.configurePublishingTasks() {
                 // Make sure artifacts do not pile up locally
                 moduleBaseDir.deleteRecursively()
             }
+        }
+
+        doLast {
+            val mavenMetadataXml = rootProject.file("build/repo/org/gradle/${base.archivesBaseName}/maven-metadata.xml")
+            val content = mavenMetadataXml.readText()
+            mavenMetadataXml.writeText(content.replace("\\Q<lastUpdated>\\E\\d+\\Q</lastUpdated>\\E".toRegex(), "<lastUpdated>${Year.now().value}0101000000</lastUpdated>"))
         }
     }
 }

@@ -11,6 +11,7 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.gradlebuild.versioning.buildVersion
+import java.util.concurrent.Executors.callable
 
 
 enum class TestType(val prefix: String, val executers: List<String>, val libRepoRequired: Boolean) {
@@ -106,29 +107,31 @@ fun Project.integrationTestUsesSampleDir(vararg sampleDirs: String) {
 }
 
 
+/**
+ * kotlin-dsl-plugins integration test depends on jars published to local repository
+ */
 fun Project.integrationTestUsesKotlinDslPlugins() {
     tasks.withType<IntegrationTest>().configureEach {
-        inputs.dir(project(":kotlinDslPlugins").buildDir.resolve("repository"))
-            .withPropertyName("localRepository")
-            .withPathSensitivity(PathSensitivity.RELATIVE)
-    }
-}
-
-
-fun Project.integrationTestUsesToolingApiFatJar() {
-    tasks.withType<IntegrationTest>().configureEach {
-        inputs.file(project(":toolingApi").buildDir.resolve("shaded-jar/gradle-tooling-api-shaded-${rootProject.buildVersion.baseVersion}.jar"))
-            .withPropertyName("fatToolingApiJar")
+        inputs.files(callable {
+            project(":kotlinDslPlugins")
+                .fileTree("build/repository")
+                .matching { include("**/*.jar") }
+                .files
+                .toSortedSet()
+        }).withPropertyName("localKotlinDslPluginJars")
             .withPathSensitivity(PathSensitivity.RELATIVE)
             .withNormalizer(ClasspathNormalizer::class)
-    }
-}
 
-
-fun Project.integrationTestUsesToolingApiJar() {
-    tasks.withType<IntegrationTest>().configureEach {
-        inputs.dir(rootProject.buildDir.resolve("repo"))
-            .withPropertyName("toolingApiJarRepo")
+        inputs.files(callable {
+            project(":kotlinDslPlugins")
+                .fileTree("build/repository")
+                .matching {
+                    include("**/*.pom")
+                    include("**/*.xml")
+                }
+                .files
+                .toSortedSet()
+        }).withPropertyName("localKotlinDslPluginPoms")
             .withPathSensitivity(PathSensitivity.RELATIVE)
     }
 }
