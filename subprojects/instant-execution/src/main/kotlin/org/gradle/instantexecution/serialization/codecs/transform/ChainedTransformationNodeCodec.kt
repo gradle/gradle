@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.api.internal.artifacts.transform.TransformationStep
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.internal.operations.BuildOperationExecutor
 
 
@@ -37,9 +38,9 @@ class ChainedTransformationNodeCodec(
     }
 
     override suspend fun ReadContext.doDecode(): TransformationNode.ChainedTransformationNode {
-        val transformationStep = read() as TransformationStep
+        val transformationStep = readNonNull<TransformationStep>()
         val resolver = readDependenciesResolver()
-        val previousStep = read() as TransformationNode
+        val previousStep = readNonNull<TransformationNode>()
         return TransformationNode.chained(transformationStep, previousStep, resolver, buildOperationExecutor, transformListener)
     }
 }
