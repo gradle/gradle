@@ -45,9 +45,10 @@ abstract class AbstractTransformationNodeCodec<T : TransformationNode> : Codec<T
 
     protected
     suspend fun WriteContext.writeDependenciesResolver(value: TransformationNode) {
-        if (value.transformationStep.transformer.requiresDependencies()) {
+        val transformer = value.transformationStep.transformer
+        if (transformer.requiresDependencies()) {
             writeBoolean(true)
-            write(value.dependenciesResolver.forTransformer(value.transformationStep.transformer).get().files)
+            write(value.dependenciesResolver.forTransformer(transformer).get().files)
         } else {
             writeBoolean(false)
         }
