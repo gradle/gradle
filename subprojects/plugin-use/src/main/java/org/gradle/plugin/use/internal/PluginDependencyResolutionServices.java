@@ -36,7 +36,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Factory;
 
-import javax.annotation.Nullable;
 import java.util.stream.Collectors;
 
 public class PluginDependencyResolutionServices implements DependencyResolutionServices {
@@ -86,13 +85,9 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
     public AttributesSchema getAttributesSchema() {
         return getDependencyResolutionServices().getAttributesSchema();
     }
+
     public PluginRepositoryHandlerProvider getPluginRepositoryHandlerProvider() {
-        return new PluginRepositoryHandlerProvider() {
-            @Override
-            public RepositoryHandler getPluginRepositoryHandler() {
-                return getResolveRepositoryHandler();
-            }
-        };
+        return this::getResolveRepositoryHandler;
     }
 
     @Override
@@ -130,7 +125,6 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
             configureAction.execute(repositoryContentDescriptor);
         }
 
-        @Nullable
         @Override
         public Action<? super ArtifactResolutionDetails> getContentFilter() {
             return repositoryContentDescriptor.toContentFilter();

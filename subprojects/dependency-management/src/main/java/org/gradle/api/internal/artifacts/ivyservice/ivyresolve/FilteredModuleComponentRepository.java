@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingC
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
@@ -51,8 +52,8 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
     private final String consumerName;
     private final ImmutableAttributes consumerAttributes;
 
-    public static ModuleComponentRepository of(ModuleComponentRepository delegate, @Nullable Action<? super ArtifactResolutionDetails> action, String consumerName, AttributeContainer attributes) {
-        if (action == null) {
+    public static ModuleComponentRepository of(ModuleComponentRepository delegate, Action<? super ArtifactResolutionDetails> action, String consumerName, AttributeContainer attributes) {
+        if (action == Actions.doNothing()) {
             return delegate;
         }
         return new FilteredModuleComponentRepository(delegate, action, consumerName, attributes);

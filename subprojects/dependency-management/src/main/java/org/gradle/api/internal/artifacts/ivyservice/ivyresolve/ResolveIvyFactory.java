@@ -39,6 +39,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceR
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.Actions;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -148,7 +149,7 @@ public class ResolveIvyFactory {
     }
 
     private ModuleComponentRepository filterRepository(ResolutionAwareRepository repository, ModuleComponentRepository moduleComponentRepository, String consumerName, AttributeContainer consumerAttributes) {
-        Action<? super ArtifactResolutionDetails> filter = null;
+        Action<? super ArtifactResolutionDetails> filter = Actions.doNothing();
         if (repository instanceof ContentFilteringRepository) {
             filter = ((ContentFilteringRepository) repository).getContentFilter();
         }

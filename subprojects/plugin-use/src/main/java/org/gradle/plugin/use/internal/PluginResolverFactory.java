@@ -62,7 +62,7 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
     }
 
     private List<PluginResolver> createDefaultResolvers() {
-        List<PluginResolver> resolvers = new LinkedList<PluginResolver>();
+        List<PluginResolver> resolvers = new LinkedList<>();
         addDefaultResolvers(resolvers);
         return resolvers;
     }

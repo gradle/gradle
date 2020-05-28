@@ -18,10 +18,7 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.Action;
 
-import javax.annotation.Nullable;
-
 public interface ContentFilteringRepository {
 
-    @Nullable
     Action<? super ArtifactResolutionDetails> getContentFilter();
 }
