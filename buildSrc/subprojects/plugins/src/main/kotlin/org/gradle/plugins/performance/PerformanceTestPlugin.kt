@@ -449,6 +449,9 @@ class PerformanceTestPlugin : Plugin<Project> {
             testClassesDirs = performanceSourceSet.output.classesDirs
             classpath = performanceSourceSet.runtimeClasspath
 
+            systemProperty("gradleBuildBranch", gitInfo.gradleBuildBranch.get())
+            systemProperty("gradleBuildCommitId", gitInfo.gradleBuildCommitId.get())
+
             binaryDistributions.binZipRequired = true
             libsRepository.required = true
             maxParallelForks = 1
