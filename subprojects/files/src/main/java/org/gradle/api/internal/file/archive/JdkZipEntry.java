@@ -17,17 +17,18 @@
 package org.gradle.api.internal.file.archive;
 
 import com.google.common.io.ByteStreams;
+import org.gradle.internal.file.FileException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.function.Supplier;
+import java.util.concurrent.Callable;
 
 class JdkZipEntry implements ZipEntry {
 
     private final java.util.zip.ZipEntry entry;
-    private final Supplier<InputStream> inputStreamSupplier;
+    private final Callable<InputStream> inputStreamSupplier;
 
-    public JdkZipEntry(java.util.zip.ZipEntry entry, Supplier<InputStream> inputStreamSupplier) {
+    public JdkZipEntry(java.util.zip.ZipEntry entry, Callable<InputStream> inputStreamSupplier) {
         this.entry = entry;
         this.inputStreamSupplier = inputStreamSupplier;
     }
@@ -56,7 +57,11 @@ class JdkZipEntry implements ZipEntry {
 
     @Override
     public InputStream getInputStream() {
-        return inputStreamSupplier.get();
+        try {
+            return inputStreamSupplier.call();
+        } catch (Exception e) {
+            throw new FileException(e);
+        }
     }
 
     @Override

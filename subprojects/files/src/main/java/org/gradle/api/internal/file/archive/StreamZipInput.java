@@ -17,12 +17,12 @@
 package org.gradle.api.internal.file.archive;
 
 import com.google.common.collect.AbstractIterator;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.file.FileException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
-import java.util.function.Supplier;
+import java.util.concurrent.Callable;
 import java.util.zip.ZipInputStream;
 
 public class StreamZipInput implements ZipInput {
@@ -42,11 +42,11 @@ public class StreamZipInput implements ZipInput {
                 try {
                     nextEntry = in.getNextEntry();
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw new FileException(e);
                 }
-                return nextEntry == null ? endOfData() : new JdkZipEntry(nextEntry, new Supplier<InputStream>() {
+                return nextEntry == null ? endOfData() : new JdkZipEntry(nextEntry, new Callable<InputStream>() {
                     @Override
-                    public InputStream get() {
+                    public InputStream call() throws Exception {
                         return in;
                     }
                 });

@@ -17,17 +17,16 @@
 package org.gradle.api.internal.file.archive;
 
 import com.google.common.collect.AbstractIterator;
-import org.gradle.api.JavaVersion;
+import org.gradle.internal.file.FileException;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.function.Supplier;
+import java.util.concurrent.Callable;
 import java.util.zip.ZipFile;
 
 public class FileZipInput implements ZipInput {
@@ -42,7 +41,7 @@ public class FileZipInput implements ZipInput {
             try {
                 return new StreamZipInput(new FileInputStream(file));
             } catch (FileNotFoundException e) {
-                throw new UncheckedIOException(e);
+                throw new FileException(e);
             }
         }
     }
@@ -51,7 +50,12 @@ public class FileZipInput implements ZipInput {
      * {@link ZipFile} is more efficient, but causes memory leaks on older Java versions, so we only use it on more recent ones.
      */
     private static boolean isZipFileSafeToUse() {
-        return JavaVersion.current().isJava11Compatible();
+        return getJavaMajorVersion() >= 11;
+    }
+
+    private static int getJavaMajorVersion() {
+        String versionString = System.getProperty("java.version");
+        return Integer.parseInt(versionString.substring(0, versionString.indexOf('.')));
     }
 
     private final ZipFile file;
@@ -61,7 +65,7 @@ public class FileZipInput implements ZipInput {
         try {
             this.file = new ZipFile(file);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new FileException(e);
         }
         this.entries = this.file.entries();
     }
@@ -75,14 +79,10 @@ public class FileZipInput implements ZipInput {
                     return endOfData();
                 }
                 final java.util.zip.ZipEntry zipEntry = entries.nextElement();
-                return new JdkZipEntry(zipEntry, new Supplier<InputStream>() {
+                return new JdkZipEntry(zipEntry, new Callable<InputStream>() {
                     @Override
-                    public InputStream get() {
-                        try {
-                            return file.getInputStream(zipEntry);
-                        } catch (IOException e) {
-                            throw new UncheckedIOException(e);
-                        }
+                    public InputStream call() throws Exception {
+                        return file.getInputStream(zipEntry);
                     }
                 });
             }
