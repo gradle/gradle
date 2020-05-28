@@ -57,7 +57,11 @@ public class FileZipInput implements ZipInput {
 
     private static int getJavaMajorVersion() {
         String versionString = System.getProperty("java.version");
-        return Integer.parseInt(versionString.substring(0, versionString.indexOf('.')));
+        String[] versionParts = versionString.split("\\.");
+        if (versionParts.length < 1) {
+            throw new IllegalArgumentException("Could not determine java version from '" + versionString + "'.");
+        }
+        return Integer.parseInt(versionParts[0]);
     }
 
     private final ZipFile file;
