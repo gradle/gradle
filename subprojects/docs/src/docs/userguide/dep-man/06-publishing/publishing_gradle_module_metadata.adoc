@@ -123,6 +123,28 @@ The following rules are enforced:
 
 These rules ensure the quality of the metadata produced, and help confirm that consumption will not be problematic.
 
+[[sub:gmm-reproducible]]
+== Making Gradle Module Metadata reproducible
+
+By default, the Gradle Module Metadata file contains a unique id from the build that generated it.
+This means that the file will always be different.
+
+Users can choose to disable this unique identifier in their `publication`:
+
+.Configure the build identifier of a publication
+====
+include::sample[dir="snippets/publishing/javaLibrary/groovy",files="build.gradle[tags=disable-build-id]"]
+include::sample[dir="snippets/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=disable-build-id]"]
+====
+
+With the changes above, the generated Gradle Module Metadata file will always be the same, allowing downstream tasks to consider it up-to-date.
+
+[NOTE]
+====
+The task generating the module metadata files is currently never marked `UP-TO-DATE` by Gradle due to the way it is implemented.
+However, if the build identifier is skipped, and no build inputs nor build scripts changed, the task is effectively up-to-date (it always produces the same output).
+====
+
 [[sub:disabling-gmm-publication]]
 == Disabling Gradle Module Metadata publication
 

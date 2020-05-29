@@ -888,4 +888,41 @@ class TestCapability implements Capability {
         variant.dependencyConstraints[0].strictly == '1.1'
         variant.dependencyConstraints[0].rejectsVersion == []
     }
+
+    @ToBeFixedForInstantExecution
+    def 'can skip the build identifier'() {
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            def comp = new TestComponent()
+            comp.usages.add(new TestUsage(
+                    name: 'api',
+                    usage: objects.named(Usage, 'api'),
+                    attributes: testAttributes))
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from comp
+                        withoutBuildIdentifier()
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module('group', 'root', '1.0')
+        module.assertPublished()
+        module.parsedModuleMetadata.createdBy.buildId == null
+    }
 }

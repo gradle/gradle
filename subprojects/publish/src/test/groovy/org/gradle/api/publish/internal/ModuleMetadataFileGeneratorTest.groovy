@@ -1128,6 +1128,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         publication.component >> component
         publication.coordinates >> coords
         publication.versionMappingStrategy >> mappingStrategyInternal
+        publication.isPublishBuildId() >> true
         return publication
     }
 

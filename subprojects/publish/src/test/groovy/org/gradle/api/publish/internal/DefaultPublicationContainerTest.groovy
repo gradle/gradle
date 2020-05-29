@@ -97,5 +97,15 @@ class DefaultPublicationContainerTest extends Specification {
         TestPublication(name) {
             this.name = name
         }
+
+        @Override
+        void withoutBuildIdentifier() {
+            // No-op
+        }
+
+        @Override
+        void withBuildIdentifier() {
+            // No-op
+        }
     }
 }
