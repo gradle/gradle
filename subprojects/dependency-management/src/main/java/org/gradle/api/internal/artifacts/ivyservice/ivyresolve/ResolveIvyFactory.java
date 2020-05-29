@@ -32,13 +32,14 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCacheProvider;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultComponentSelectionRules;
-import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
+import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.Actions;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -148,9 +149,9 @@ public class ResolveIvyFactory {
     }
 
     private ModuleComponentRepository filterRepository(ResolutionAwareRepository repository, ModuleComponentRepository moduleComponentRepository, String consumerName, AttributeContainer consumerAttributes) {
-        Action<? super ArtifactResolutionDetails> filter = null;
-        if (repository instanceof AbstractArtifactRepository) {
-            filter = ((AbstractArtifactRepository) repository).getContentFilter();
+        Action<? super ArtifactResolutionDetails> filter = Actions.doNothing();
+        if (repository instanceof ContentFilteringRepository) {
+            filter = ((ContentFilteringRepository) repository).getContentFilter();
         }
         moduleComponentRepository = FilteredModuleComponentRepository.of(moduleComponentRepository, filter, consumerName, consumerAttributes);
         return moduleComponentRepository;

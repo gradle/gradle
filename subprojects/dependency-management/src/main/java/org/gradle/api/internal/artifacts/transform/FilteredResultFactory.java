@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories;
 
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
+package org.gradle.api.internal.artifacts.transform;
 
-public interface RepositoryContentDescriptorInternal extends RepositoryContentDescriptor {
-    Action<? super ArtifactResolutionDetails> toContentFilter();
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.specs.Spec;
+
+public interface FilteredResultFactory {
+    FileCollectionInternal resultsMatching(ImmutableAttributes attributes, Spec<? super ComponentIdentifier> filter);
 }

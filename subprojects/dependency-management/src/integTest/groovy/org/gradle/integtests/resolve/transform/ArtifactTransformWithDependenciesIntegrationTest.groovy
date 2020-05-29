@@ -679,6 +679,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
 
         then:
         assertTransformationsExecuted()
+        failure.assertHasDescription("Execution failed for task ':app:resolveGreen'") // failure is reported for task that takes the files as input
         failure.assertResolutionFailure(":app:implementation")
         failure.assertHasFailures(1)
         failure.assertThatCause(CoreMatchers.containsString("Could not find unknown:not-found:4.3"))
@@ -704,6 +705,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         fails ":app:resolveGreen"
 
         then:
+        failure.assertHasDescription("Execution failed for task ':app:resolveGreen'") // failure is reported for task that takes the files as input
         failure.assertResolutionFailure(":app:implementation")
         failure.assertHasFailures(1)
         failure.assertThatCause(CoreMatchers.containsString("Could not download cant-be-downloaded-4.3.jar (test:cant-be-downloaded:4.3)"))
@@ -729,6 +731,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         fails ":app:resolveGreen", '-DfailTransformOf=slf4j-api-1.7.25.jar'
 
         then:
+        failure.assertHasDescription("Execution failed for task ':app:resolveGreen'") // failure is reported for task that takes the files as input
         failure.assertResolutionFailure(":app:implementation")
         failure.assertHasFailures(1)
         failure.assertThatCause(CoreMatchers.containsString("Failed to transform slf4j-api-1.7.25.jar (org.slf4j:slf4j-api:1.7.25)"))

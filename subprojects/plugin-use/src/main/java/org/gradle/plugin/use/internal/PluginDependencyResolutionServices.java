@@ -27,14 +27,16 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
+import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
+import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
+import org.gradle.api.internal.artifacts.repositories.RepositoryContentDescriptorInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Factory;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.stream.Collectors;
 
 public class PluginDependencyResolutionServices implements DependencyResolutionServices {
 
@@ -83,13 +85,9 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
     public AttributesSchema getAttributesSchema() {
         return getDependencyResolutionServices().getAttributesSchema();
     }
+
     public PluginRepositoryHandlerProvider getPluginRepositoryHandlerProvider() {
-        return new PluginRepositoryHandlerProvider() {
-            @Override
-            public RepositoryHandler getPluginRepositoryHandler() {
-                return getResolveRepositoryHandler();
-            }
-        };
+        return this::getResolveRepositoryHandler;
     }
 
     @Override
@@ -98,26 +96,18 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
     }
 
     public PluginRepositoriesProvider getPluginRepositoriesProvider() {
-        return new PluginRepositoriesProvider() {
-            @Override
-            public List<ArtifactRepository> getPluginRepositories() {
-                RepositoryHandler repositories = getResolveRepositoryHandler();
-                List<ArtifactRepository> list = new ArrayList<ArtifactRepository>(repositories.size());
-                for (ArtifactRepository repository : repositories) {
-                    list.add(new PluginArtifactRepository(repository));
-                }
-                return list;
-            }
-        };
+        return () -> getResolveRepositoryHandler().stream().map(PluginArtifactRepository::new).collect(Collectors.toList());
     }
 
-    private static class PluginArtifactRepository implements ArtifactRepositoryInternal, ResolutionAwareRepository {
+    private static class PluginArtifactRepository implements ArtifactRepositoryInternal, ContentFilteringRepository, ResolutionAwareRepository {
         private final ArtifactRepositoryInternal delegate;
         private final ResolutionAwareRepository resolutionAwareDelegate;
+        private final RepositoryContentDescriptorInternal repositoryContentDescriptor;
 
         private PluginArtifactRepository(ArtifactRepository delegate) {
             this.delegate = (ArtifactRepositoryInternal) delegate;
             this.resolutionAwareDelegate = (ResolutionAwareRepository) delegate;
+            this.repositoryContentDescriptor = this.delegate.createRepositoryDescriptor();
         }
 
         @Override
@@ -132,7 +122,12 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
 
         @Override
         public void content(Action<? super RepositoryContentDescriptor> configureAction) {
-            delegate.content(configureAction);
+            configureAction.execute(repositoryContentDescriptor);
+        }
+
+        @Override
+        public Action<? super ArtifactResolutionDetails> getContentFilter() {
+            return repositoryContentDescriptor.toContentFilter();
         }
 
         @Override
@@ -153,6 +148,11 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
         @Override
         public void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container) {
             delegate.onAddToContainer(container);
+        }
+
+        @Override
+        public RepositoryContentDescriptorInternal createRepositoryDescriptor() {
+            return delegate.createRepositoryDescriptor();
         }
     }
 }

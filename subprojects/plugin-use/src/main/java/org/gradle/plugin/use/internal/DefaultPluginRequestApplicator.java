@@ -243,7 +243,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         private final String message;
         private final String detail;
 
-        private NotFound(String source, String message, String detail) {
+        private NotFound(String source, String message, @Nullable String detail) {
             this.source = source;
             this.message = message;
             this.detail = detail;
