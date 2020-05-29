@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 
 /**
- * A container of artifacts that match some criteria. Not every query method is available, depending on which details are available.
+ * A container of artifacts that match some criteria.
  */
 public interface SelectedArtifactSet extends TaskDependencyContainer {
     /**

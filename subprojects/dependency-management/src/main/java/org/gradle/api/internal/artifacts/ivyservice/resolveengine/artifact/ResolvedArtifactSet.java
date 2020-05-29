@@ -16,12 +16,15 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.internal.artifacts.transform.TransformationSubject;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
+
+import java.io.File;
 
 /**
  * A container for a set of files or artifacts. May or may not be immutable, and may require building and further resolution.
@@ -87,7 +90,19 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
         boolean requireArtifactFiles();
     }
 
+    interface LocalArtifactSet {
+        Object getId();
+
+        String getDisplayName();
+
+        TaskDependencyContainer getTaskDependencies();
+
+        TransformationSubject calculateSubject();
+
+        ResolvableArtifact transformedTo(File output);
+    }
+
     interface LocalArtifactVisitor {
-        void visitArtifact(ResolvableArtifact artifact);
+        void visitArtifact(LocalArtifactSet artifactSet);
     }
 }

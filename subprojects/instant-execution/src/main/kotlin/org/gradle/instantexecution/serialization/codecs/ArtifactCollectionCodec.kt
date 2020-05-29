@@ -54,6 +54,7 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
 
     override suspend fun ReadContext.decode(): ArtifactCollectionInternal {
         val elements = readList().uncheckedCast<List<Any>>()
+
         @Suppress("implicit_cast_to_any")
         val files = fileCollectionFactory.resolving(elements.map {
             when (it) {
@@ -146,7 +147,7 @@ class FixedArtifactCollection(
                 is ResolvedArtifactResultSpec -> result.add(DefaultResolvedArtifactResult(element.id, element.variantAttributes, element.variantDisplayName, Artifact::class.java, element.file))
                 is ConsumerProvidedVariantSpec -> {
                     for (output in element.node.transformedSubject.get().files) {
-                        val resolvedArtifact: ResolvableArtifact = element.node.inputArtifact.transformedTo(output)
+                        val resolvedArtifact: ResolvableArtifact = element.node.inputArtifacts.transformedTo(output)
                         result.add(DefaultResolvedArtifactResult(resolvedArtifact.id, element.variantDisplayName, element.variantAttributes, Artifact::class.java, output))
                     }
                     // Ignore

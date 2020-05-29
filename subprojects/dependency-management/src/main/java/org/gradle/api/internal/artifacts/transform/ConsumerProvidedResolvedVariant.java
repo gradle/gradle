@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -104,13 +103,11 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet, Con
     @Override
     public Collection<TransformationNode> getScheduledNodes() {
         // Only care about transformed project outputs. For everything else, calculate the value eagerly
-        AtomicReference<Boolean> hasProjectArtifacts = new AtomicReference<>(false);
+        AtomicReference<Boolean> hasLocalArtifacts = new AtomicReference<>(false);
         delegate.visitLocalArtifacts(artifact -> {
-            if (artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier) {
-                hasProjectArtifacts.set(true);
-            }
+            hasLocalArtifacts.set(true);
         });
-        if (hasProjectArtifacts.get()) {
+        if (hasLocalArtifacts.get()) {
             return transformationNodeRegistry.getOrCreate(delegate, transformation, getDependenciesResolver());
         } else {
             return Collections.emptySet();

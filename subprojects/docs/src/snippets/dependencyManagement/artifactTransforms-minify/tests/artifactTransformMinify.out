@@ -3,7 +3,7 @@
 > Task :producer:classes
 > Task :producer:jar
 
-> Transform artifact producer.jar (project :producer) with Minify
+> Transform producer.jar (project :producer) with Minify
 Nothing to minify - using producer.jar unchanged
 
 > Task :resolveRuntimeClasspath
