@@ -50,8 +50,6 @@ import org.gradle.gradlebuild.java.JavaInstallation
 import org.gradle.gradlebuild.versioning.buildVersion
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
-import org.gradle.plugins.ide.idea.IdeaPlugin
-import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.testretry.TestRetryPlugin
 import testLibrary
@@ -160,16 +158,6 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             }
         }
         java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
-        // Remove this IDEA import workaround once we completely migrated to the native IDEA import
-        // See: https://github.com/gradle/gradle-private/issues/1675
-        plugins.withType<IdeaPlugin> {
-            configure<IdeaModel> {
-                module {
-                    resourceDirs = resourceDirs + gradlebuildJava.generatedResourcesDir
-                    testResourceDirs = testResourceDirs + gradlebuildJava.generatedTestResourcesDir
-                }
-            }
-        }
     }
 
     private
