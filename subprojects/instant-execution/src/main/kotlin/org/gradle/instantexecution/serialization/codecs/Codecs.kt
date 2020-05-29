@@ -72,7 +72,6 @@ import org.gradle.internal.serialize.BaseSerializerFactory.PATH_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.snapshot.ValueSnapshotter
-import org.gradle.internal.state.ManagedFactory
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecActionFactory
@@ -106,8 +105,7 @@ class Codecs(
     patternSetFactory: Factory<PatternSet>,
     fileOperations: FileOperations,
     fileSystem: FileSystem,
-    fileFactory: FileFactory,
-    managedFactory: ManagedFactory
+    fileFactory: FileFactory
 ) {
 
     val userTypesCodec = BindingsBackedCodec {
@@ -133,8 +131,8 @@ class Codecs(
 
         // Dependency management types
         bind(ArtifactCollectionCodec(fileCollectionFactory))
-        bind(ImmutableAttributesCodec(attributesFactory, managedFactory))
-        bind(AttributeContainerCodec(attributesFactory, managedFactory))
+        bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
+        bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
         bind(TransformationNodeReferenceCodec)
 
         bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, instantiator))
@@ -189,7 +187,7 @@ class Codecs(
         bind(DefaultTransformerCodec(userTypesCodec, buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, parameterScheme, actionScheme))
         bind(LegacyTransformerCodec(actionScheme))
 
-        bind(ImmutableAttributesCodec(attributesFactory, managedFactory))
+        bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
 
         bind(IsolatedManagedValueCodec(managedFactoryRegistry))
         bind(IsolatedImmutableManagedValueCodec(managedFactoryRegistry))

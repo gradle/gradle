@@ -29,13 +29,13 @@ import org.gradle.instantexecution.serialization.readCollection
 import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.internal.state.Managed
-import org.gradle.internal.state.ManagedFactory
+import org.gradle.internal.state.ManagedFactoryRegistry
 
 
 internal
 class AttributeContainerCodec(
     private val attributesFactory: ImmutableAttributesFactory,
-    private val managedFactory: ManagedFactory
+    private val managedFactories: ManagedFactoryRegistry
 ) : Codec<AttributeContainer> {
 
     override suspend fun WriteContext.encode(value: AttributeContainer) {
@@ -43,14 +43,14 @@ class AttributeContainerCodec(
     }
 
     override suspend fun ReadContext.decode(): AttributeContainer? =
-        readAttributesUsing(attributesFactory, managedFactory)
+        readAttributesUsing(attributesFactory, managedFactories)
 }
 
 
 internal
 class ImmutableAttributesCodec(
     private val attributesFactory: ImmutableAttributesFactory,
-    private val managedFactory: ManagedFactory
+    private val managedFactories: ManagedFactoryRegistry
 ) : Codec<ImmutableAttributes> {
 
     override suspend fun WriteContext.encode(value: ImmutableAttributes) {
@@ -58,7 +58,7 @@ class ImmutableAttributesCodec(
     }
 
     override suspend fun ReadContext.decode(): ImmutableAttributes =
-        readAttributesUsing(attributesFactory, managedFactory).asImmutable()
+        readAttributesUsing(attributesFactory, managedFactories).asImmutable()
 }
 
 
@@ -75,12 +75,12 @@ suspend fun WriteContext.writeAttributes(container: AttributeContainer) {
 private
 suspend fun ReadContext.readAttributesUsing(
     attributesFactory: ImmutableAttributesFactory,
-    managedFactory: ManagedFactory
+    managedFactories: ManagedFactoryRegistry
 ): AttributeContainerInternal =
     attributesFactory.mutable().apply {
         readCollection {
             val attribute = readAttribute()
-            val value = readAttributeValue(managedFactory)
+            val value = readAttributeValue(managedFactories)
             attribute(attribute, value)
         }
     }
@@ -100,10 +100,10 @@ suspend fun WriteContext.writeAttributeValue(value: Any?) {
 
 
 private
-suspend fun ReadContext.readAttributeValue(managedFactory: ManagedFactory): Any =
+suspend fun ReadContext.readAttributeValue(managedFactories: ManagedFactoryRegistry): Any =
     if (readBoolean()) {
         // TODO: consider introducing a ManagedCodec
-        readManaged(managedFactory)
+        readManaged(managedFactories)
     } else {
         readNonNull()
     }
@@ -126,16 +126,18 @@ fun ReadContext.readAttribute(): Attribute<Any> {
 
 private
 suspend fun WriteContext.writeManaged(value: Managed) {
+    writeSmallInt(value.factoryId)
     writeClass(value.publicType())
     write(value.unpackState())
 }
 
 
 private
-suspend fun ReadContext.readManaged(managedFactory: ManagedFactory): Any {
+suspend fun ReadContext.readManaged(managedFactories: ManagedFactoryRegistry): Any {
+    val factoryId = readSmallInt()
     val type = readClass()
     val state = read()
-    return managedFactory.fromState(type, state).let {
+    return managedFactories.lookup(factoryId).fromState(type, state).let {
         require(it != null) {
             "Failed to recreate managed value of type $type from state $state"
         }
