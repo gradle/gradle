@@ -333,7 +333,6 @@ class PerformanceTestPlugin : Plugin<Project> {
             scenarioList = buildDir / Config.performanceTestScenarioListFileName
             buildTypeId = stringPropertyOrNull(PropertyNames.buildTypeId)
             workerTestTaskName = stringPropertyOrNull(PropertyNames.workerTestTaskName) ?: "fullPerformanceTest"
-            branchName = gitInfo.gradleBuildBranch.get()
             teamCityUrl = Config.teamCityUrl
             teamCityToken = stringPropertyOrNull(PropertyNames.teamCityToken)
             distributedPerformanceReporter = createPerformanceReporter()
@@ -449,8 +448,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             testClassesDirs = performanceSourceSet.output.classesDirs
             classpath = performanceSourceSet.runtimeClasspath
 
-            systemProperty("gradleBuildBranch", gitInfo.gradleBuildBranch.get())
-            systemProperty("gradleBuildCommitId", gitInfo.gradleBuildCommitId.get())
+            branchName = gitInfo.gradleBuildBranch.get()
 
             binaryDistributions.binZipRequired = true
             libsRepository.required = true
