@@ -72,11 +72,31 @@ class DefaultConfigurationContainerTest extends Specification {
     }
     private ComponentSelectorConverter componentSelectorConverter = Mock()
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
-            resolver, instantiator, new RootScriptDomainObjectContext(),
-            listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(),
-            globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
-            immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, lockingProvider, projectStateRegistry,
-            documentationRegistry, callbackActionDecorator, userCodeApplicationContext, TestUtil.domainObjectCollectionFactory())
+        resolver,
+        instantiator,
+        new RootScriptDomainObjectContext(),
+        listenerManager,
+        metaDataProvider,
+        projectAccessListener,
+        projectFinder,
+        metaDataBuilder,
+        TestFiles.fileCollectionFactory(),
+        globalSubstitutionRules,
+        vcsMappingsInternal,
+        componentIdentifierFactory,
+        buildOperationExecutor,
+        taskResolver,
+        immutableAttributesFactory,
+        moduleIdentifierFactory,
+        componentSelectorConverter,
+        lockingProvider,
+        projectStateRegistry,
+        documentationRegistry,
+        callbackActionDecorator,
+        userCodeApplicationContext,
+        TestUtil.domainObjectCollectionFactory(),
+        TestUtil.objectFactory()
+    )
 
     def addsNewConfigurationWhenConfiguringSelf() {
         when:

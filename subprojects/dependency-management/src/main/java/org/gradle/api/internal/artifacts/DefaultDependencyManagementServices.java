@@ -484,7 +484,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator, callbackDecorator);
         }
 
-        ConfigurationContainerInternal createConfigurationContainer(Instantiator instantiator, ConfigurationResolver configurationResolver, DomainObjectContext domainObjectContext,
+        ConfigurationContainerInternal createConfigurationContainer(Instantiator instantiator,
+                                                                    ConfigurationResolver configurationResolver, DomainObjectContext domainObjectContext,
                                                                     ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider, ProjectAccessListener projectAccessListener,
                                                                     ProjectFinder projectFinder, LocalComponentMetadataBuilder metaDataBuilder, FileCollectionFactory fileCollectionFactory,
                                                                     GlobalDependencyResolutionRules globalDependencyResolutionRules, VcsMappingsStore vcsMappingsStore, ComponentIdentifierFactory componentIdentifierFactory,
@@ -495,7 +496,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     DocumentationRegistry documentationRegistry,
                                                                     CollectionCallbackActionDecorator callbackDecorator,
                                                                     UserCodeApplicationContext userCodeApplicationContext,
-                                                                    DomainObjectCollectionFactory domainObjectCollectionFactory) {
+                                                                    DomainObjectCollectionFactory domainObjectCollectionFactory,
+                                                                    ObjectFactory objectFactory) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 configurationResolver,
                 instantiator,
@@ -519,7 +521,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 documentationRegistry,
                 callbackDecorator,
                 userCodeApplicationContext,
-                domainObjectCollectionFactory
+                domainObjectCollectionFactory,
+                objectFactory
             );
         }
 

@@ -18,9 +18,11 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.composite.internal.plugins.CompositeBuildPluginResolverContributor;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.build.BuildState;
@@ -48,9 +50,17 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     }
 
     private static class CompositeBuildTreeScopeServices {
-        public BuildStateRegistry createIncludedBuildRegistry(CompositeBuildContext context, Instantiator instantiator, WorkerLeaseService workerLeaseService, ImmutableModuleIdentifierFactory moduleIdentifierFactory, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, ServiceRegistry rootServices) {
+        public BuildStateRegistry createIncludedBuildRegistry(CompositeBuildContext context,
+                                                              Instantiator instantiator,
+                                                              WorkerLeaseService workerLeaseService,
+                                                              ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                              GradleLauncherFactory gradleLauncherFactory,
+                                                              ListenerManager listenerManager,
+                                                              ServiceRegistry rootServices,
+                                                              ObjectFactory objectFactory,
+                                                              ImmutableAttributesFactory attributesFactory) {
             IncludedBuildFactory includedBuildFactory = new DefaultIncludedBuildFactory(instantiator, workerLeaseService);
-            IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, moduleIdentifierFactory, instantiator);
+            IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, moduleIdentifierFactory, instantiator, objectFactory, attributesFactory);
             return new DefaultIncludedBuildRegistry(includedBuildFactory, dependencySubstitutionsBuilder, gradleLauncherFactory, listenerManager, (BuildTreeScopeServices) rootServices);
         }
 

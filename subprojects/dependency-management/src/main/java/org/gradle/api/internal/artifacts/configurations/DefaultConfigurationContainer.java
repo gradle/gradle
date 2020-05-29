@@ -46,6 +46,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
@@ -85,24 +86,29 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
     public DefaultConfigurationContainer(ConfigurationResolver resolver,
-                                         final Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager,
-                                         DependencyMetaDataProvider dependencyMetaDataProvider, ProjectAccessListener projectAccessListener,
-                                         ProjectFinder projectFinder, LocalComponentMetadataBuilder localComponentMetadataBuilder,
+                                         Instantiator instantiator,
+                                         DomainObjectContext context,
+                                         ListenerManager listenerManager,
+                                         DependencyMetaDataProvider dependencyMetaDataProvider,
+                                         ProjectAccessListener projectAccessListener,
+                                         ProjectFinder projectFinder,
+                                         LocalComponentMetadataBuilder localComponentMetadataBuilder,
                                          FileCollectionFactory fileCollectionFactory,
-                                         final DependencySubstitutionRules globalDependencySubstitutionRules,
-                                         final VcsMappingsStore vcsMappingsStore,
-                                         final ComponentIdentifierFactory componentIdentifierFactory,
+                                         DependencySubstitutionRules globalDependencySubstitutionRules,
+                                         VcsMappingsStore vcsMappingsStore,
+                                         ComponentIdentifierFactory componentIdentifierFactory,
                                          BuildOperationExecutor buildOperationExecutor,
                                          TaskResolver taskResolver,
                                          ImmutableAttributesFactory attributesFactory,
-                                         final ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                         final ComponentSelectorConverter componentSelectorConverter,
-                                         final DependencyLockingProvider dependencyLockingProvider,
+                                         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                         ComponentSelectorConverter componentSelectorConverter,
+                                         DependencyLockingProvider dependencyLockingProvider,
                                          ProjectStateRegistry projectStateRegistry,
                                          DocumentationRegistry documentationRegistry,
                                          CollectionCallbackActionDecorator callbackDecorator,
                                          UserCodeApplicationContext userCodeApplicationContext,
-                                         DomainObjectCollectionFactory domainObjectCollectionFactory) {
+                                         DomainObjectCollectionFactory domainObjectCollectionFactory,
+                                         ObjectFactory objectFactory) {
         super(Configuration.class, instantiator, new Configuration.Namer(), callbackDecorator);
         this.resolver = resolver;
         this.instantiator = instantiator;
@@ -122,7 +128,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.documentationRegistry = documentationRegistry;
         resolutionStrategyFactory = () -> {
             CapabilitiesResolutionInternal capabilitiesResolutionInternal = instantiator.newInstance(DefaultCapabilitiesResolution.class, new CapabilityNotationParserFactory(false).create(), new ComponentIdentifierParserFactory().create());
-            return instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, vcsMappingsStore, componentIdentifierFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, capabilitiesResolutionInternal, instantiator);
+            return instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, vcsMappingsStore, componentIdentifierFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, capabilitiesResolutionInternal, instantiator, objectFactory, attributesFactory);
         };
         this.rootComponentMetadataBuilder = new DefaultRootComponentMetadataBuilder(dependencyMetaDataProvider, componentIdentifierFactory, moduleIdentifierFactory, projectFinder, localComponentMetadataBuilder, this, projectStateRegistry, dependencyLockingProvider);
     }
