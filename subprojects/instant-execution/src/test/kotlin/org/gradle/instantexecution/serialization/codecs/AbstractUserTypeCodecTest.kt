@@ -152,7 +152,6 @@ abstract class AbstractUserTypeCodecTest {
         projectStateRegistry = mock(),
         taskNodeFactory = mock(),
         fingerprinterRegistry = mock(),
-        projectFinder = mock(),
         buildOperationExecutor = mock(),
         classLoaderHierarchyHasher = mock(),
         isolatableFactory = mock(),
@@ -167,7 +166,6 @@ abstract class AbstractUserTypeCodecTest {
         patternSetFactory = mock(),
         fileOperations = mock(),
         fileSystem = mock(),
-        fileFactory = mock(),
-        managedFactory = mock()
+        fileFactory = mock()
     )
 }

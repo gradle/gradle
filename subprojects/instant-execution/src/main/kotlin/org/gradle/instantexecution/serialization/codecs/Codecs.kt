@@ -18,7 +18,6 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
@@ -73,7 +72,6 @@ import org.gradle.internal.serialize.BaseSerializerFactory.PATH_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.snapshot.ValueSnapshotter
-import org.gradle.internal.state.ManagedFactory
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecActionFactory
@@ -93,7 +91,6 @@ class Codecs(
     projectStateRegistry: ProjectStateRegistry,
     taskNodeFactory: TaskNodeFactory,
     fingerprinterRegistry: FileCollectionFingerprinterRegistry,
-    projectFinder: ProjectFinder,
     buildOperationExecutor: BuildOperationExecutor,
     classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     isolatableFactory: IsolatableFactory,
@@ -108,8 +105,7 @@ class Codecs(
     patternSetFactory: Factory<PatternSet>,
     fileOperations: FileOperations,
     fileSystem: FileSystem,
-    fileFactory: FileFactory,
-    managedFactory: ManagedFactory
+    fileFactory: FileFactory
 ) {
 
     val userTypesCodec = BindingsBackedCodec {
@@ -135,8 +131,8 @@ class Codecs(
 
         // Dependency management types
         bind(ArtifactCollectionCodec(fileCollectionFactory))
-        bind(ImmutableAttributesCodec(attributesFactory, managedFactory))
-        bind(AttributeContainerCodec(attributesFactory, managedFactory))
+        bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
+        bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
         bind(TransformationNodeReferenceCodec)
 
         bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, instantiator))
@@ -187,11 +183,11 @@ class Codecs(
         bind(ChainedTransformationNodeCodec(buildOperationExecutor, transformListener))
         bind(ActionNodeCodec)
         bind(ResolvableArtifactCodec)
-        bind(TransformationStepCodec(projectStateRegistry, fingerprinterRegistry, projectFinder))
+        bind(TransformationStepCodec(projectStateRegistry, fingerprinterRegistry))
         bind(DefaultTransformerCodec(userTypesCodec, buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, parameterScheme, actionScheme))
         bind(LegacyTransformerCodec(actionScheme))
 
-        bind(ImmutableAttributesCodec(attributesFactory, managedFactory))
+        bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
 
         bind(IsolatedManagedValueCodec(managedFactoryRegistry))
         bind(IsolatedImmutableManagedValueCodec(managedFactoryRegistry))
