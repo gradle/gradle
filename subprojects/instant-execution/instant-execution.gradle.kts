@@ -88,6 +88,8 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
     integTestRuntimeOnly(project(":kotlinDsl"))
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+
+    crossVersionTestImplementation(project(":cli"))
 }
 
 classycle {
