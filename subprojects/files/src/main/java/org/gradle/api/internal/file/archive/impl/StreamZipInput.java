@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.archive.impl;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.AbstractIterator;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
@@ -24,7 +25,6 @@ import org.gradle.internal.file.FileException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
-import java.util.concurrent.Callable;
 import java.util.zip.ZipInputStream;
 
 public class StreamZipInput implements ZipInput {
@@ -46,9 +46,9 @@ public class StreamZipInput implements ZipInput {
                 } catch (IOException e) {
                     throw new FileException(e);
                 }
-                return nextEntry == null ? endOfData() : new JdkZipEntry(nextEntry, new Callable<InputStream>() {
+                return nextEntry == null ? endOfData() : new JdkZipEntry(nextEntry, new Supplier<InputStream>() {
                     @Override
-                    public InputStream call() throws Exception {
+                    public InputStream get() {
                         return in;
                     }
                 });
