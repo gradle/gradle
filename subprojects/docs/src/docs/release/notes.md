@@ -42,6 +42,8 @@ In this release, we've introduced an experimental _[file-system watching](usergu
 
 You can enable this feature by supplying the parameter `--watch-fs` on the command-line. Eventually, this optimization will be enabled by default.
 
+Read more about this new feature and its impact [on the Gradle blog](https://blog.gradle.org/introducing-file-system-watching)!
+
 <a name="features"></a>
 ## New features and usability improvements
 
