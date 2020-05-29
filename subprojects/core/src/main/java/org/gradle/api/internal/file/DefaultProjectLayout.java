@@ -23,6 +23,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
@@ -46,14 +47,26 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     private final PropertyHost propertyHost;
     private final FileCollectionFactory fileCollectionFactory;
     private final FileFactory fileFactory;
+    private final FileOperations fileOperations;
 
-    public DefaultProjectLayout(File projectDir, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileCollectionFactory fileCollectionFactory, FilePropertyFactory filePropertyFactory, FileFactory fileFactory) {
+    public DefaultProjectLayout(
+        File projectDir,
+        FileResolver fileResolver,
+        TaskDependencyFactory taskDependencyFactory,
+        Factory<PatternSet> patternSetFactory,
+        PropertyHost propertyHost,
+        FileCollectionFactory fileCollectionFactory,
+        FilePropertyFactory filePropertyFactory,
+        FileFactory fileFactory,
+        FileOperations fileOperations
+    ) {
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
         this.patternSetFactory = patternSetFactory;
         this.propertyHost = propertyHost;
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileFactory = fileFactory;
+        this.fileOperations = fileOperations;
         this.projectDir = fileFactory.dir(projectDir);
         this.buildDir = filePropertyFactory.newDirectoryProperty().fileValue(fileResolver.resolve(Project.DEFAULT_BUILD_DIR_NAME));
     }
@@ -101,6 +114,16 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     @Override
     public FileCollection files(Object... paths) {
         return fileCollectionFactory.resolving(paths);
+    }
+
+    @Override
+    public FileTree zipTree(Object zipPath) {
+        return fileOperations.zipTree(zipPath);
+    }
+
+    @Override
+    public FileTree tarTree(Object tarPath) {
+        return fileOperations.tarTree(tarPath);
     }
 
     @Override
