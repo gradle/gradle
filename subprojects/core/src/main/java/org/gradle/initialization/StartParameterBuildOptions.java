@@ -38,7 +38,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class StartParameterBuildOptions {
@@ -437,15 +436,8 @@ public class StartParameterBuildOptions {
 
     public static class ConfigurationCacheOption extends BooleanBuildOption<StartParameterInternal> {
 
-        @Deprecated
-        public enum Value {
-            OFF, ON, WARN
-        }
-
         public static final String PROPERTY_NAME = "org.gradle.unsafe.configuration-cache";
         public static final String LONG_OPTION = "configuration-cache";
-
-        private final EnumBuildOption.EnumParser<ConfigurationCacheOption.Value> enumParser;
 
         public ConfigurationCacheOption() {
             super(
@@ -456,44 +448,11 @@ public class StartParameterBuildOptions {
                     "Disables the configuration cache."
                 ).incubating()
             );
-            this.enumParser = new EnumBuildOption.EnumParser<>(
-                LONG_OPTION,
-                ConfigurationCacheOption.Value.class,
-                ConfigurationCacheOption.Value.values()
-            );
-        }
-
-        @Override
-        public void applyFromProperty(Map<String, String> properties, StartParameterInternal settings) {
-            ConfigurationCacheOption.Value enumValue = enumParser.getValueOrNull(properties.get(gradleProperty));
-            if (enumValue != null) {
-                applyTo(enumValue, settings);
-            } else {
-                super.applyFromProperty(properties, settings);
-            }
         }
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCache(value);
-        }
-
-        private void applyTo(ConfigurationCacheOption.Value value, StartParameterInternal settings) {
-            settings.addDeprecation("Property '" + PROPERTY_NAME + "' with value '" + value.name().toLowerCase() + "'");
-            switch (value) {
-                case OFF:
-                    settings.setConfigurationCache(false);
-                    settings.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.FAIL);
-                    break;
-                case ON:
-                    settings.setConfigurationCache(true);
-                    settings.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.FAIL);
-                    break;
-                case WARN:
-                    settings.setConfigurationCache(true);
-                    settings.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.WARN);
-                    break;
-            }
         }
     }
 

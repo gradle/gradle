@@ -51,7 +51,7 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
         runner.testProject = testProject.projectName
         runner.tasksToRun = ["assemble"]
         runner.args = [
-            "-D${ConfigurationCacheOption.PROPERTY_NAME}=on" // TODO remove property argument on rebaseline
+            "-D${ConfigurationCacheOption.PROPERTY_NAME}=true"
         ]
 
         and:
