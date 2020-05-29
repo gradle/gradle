@@ -123,7 +123,7 @@ class InstantExecutionReport(
         appendln("\"documentationLink\": \"${documentationRegistry.getDocumentationFor("configuration_cache")}\",")
         appendln("\"problems\": [") // begin problems
         problems.forEachIndexed { index, problem ->
-            if (index > 0) appendln(",")
+            if (index > 0) append(',')
             append(
                 JsonOutput.toJson(
                     mapOf(
