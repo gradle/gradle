@@ -23,14 +23,8 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ResolverResults;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
-import org.gradle.api.internal.artifacts.ivyservice.ResolvedFilesCollectingVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.WorkNodeAction;
-import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Try;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -57,38 +51,43 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
     private final Factory<ResolverResults> graphResults;
     private final Factory<ResolverResults> artifactResults;
     private final WorkNodeAction graphResolveAction;
-    private final FileCollectionFactory fileCollectionFactory;
+    private final FilteredResultFactory filteredResultFactory;
     private Set<ComponentIdentifier> buildDependencies;
     private Set<ComponentIdentifier> dependencies;
 
-    public DefaultExecutionGraphDependenciesResolver(ComponentIdentifier componentIdentifier, Factory<ResolverResults> graphResults, Factory<ResolverResults> artifactResults, WorkNodeAction graphResolveAction, FileCollectionFactory fileCollectionFactory) {
+    public DefaultExecutionGraphDependenciesResolver(ComponentIdentifier componentIdentifier, Factory<ResolverResults> graphResults, Factory<ResolverResults> artifactResults, WorkNodeAction graphResolveAction, FilteredResultFactory filteredResultFactory) {
         this.componentIdentifier = componentIdentifier;
         this.graphResults = graphResults;
         this.artifactResults = artifactResults;
         this.graphResolveAction = graphResolveAction;
-        this.fileCollectionFactory = fileCollectionFactory;
+        this.filteredResultFactory = filteredResultFactory;
     }
 
     @Override
-    public Try<ArtifactTransformDependencies> forTransformer(Transformer transformer) {
+    public FileCollection selectedArtifacts(Transformer transformer) {
         if (!transformer.requiresDependencies()) {
-            return Try.successful(MISSING_DEPENDENCIES);
+            return MISSING_DEPENDENCIES.getFiles();
         }
         ResolverResults results = artifactResults.create();
         if (dependencies == null) {
             dependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, results.getResolutionResult().getAllComponents(), false);
         }
-        VisitedArtifactSet visitedArtifacts = results.getVisitedArtifacts();
-        SelectedArtifactSet artifacts = visitedArtifacts.select(Specs.satisfyAll(), transformer.getFromAttributes(), element -> dependencies.contains(element), false);
-        ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
-        artifacts.visitArtifacts(visitor, false);
-        if (!visitor.getFailures().isEmpty()) {
-            if (visitor.getFailures().size() == 1) {
-                return Try.failure(visitor.getFailures().iterator().next());
-            }
-            return Try.failure(new DefaultLenientConfiguration.ArtifactResolveException("transform dependencies", transformer.getDisplayName(), "artifact transform dependencies", visitor.getFailures()));
+        return filteredResultFactory.resultsMatching(transformer.getFromAttributes(), element -> dependencies.contains(element));
+    }
+
+    @Override
+    public Try<ArtifactTransformDependencies> computeArtifacts(Transformer transformer) {
+        if (!transformer.requiresDependencies()) {
+            return Try.successful(MISSING_DEPENDENCIES);
         }
-        return Try.successful(new DefaultArtifactTransformDependencies(fileCollectionFactory.fixed(visitor.getFiles())));
+        try {
+            FileCollection files = selectedArtifacts(transformer);
+            // Trigger resolution failure
+            files.getFiles();
+            return Try.successful(new DefaultArtifactTransformDependencies(files));
+        } catch (Exception e) {
+            return Try.failure(e);
+        }
     }
 
     @Override
@@ -101,16 +100,7 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
             if (buildDependencies == null) {
                 buildDependencies = computeDependencies(componentIdentifier, ProjectComponentIdentifier.class, results.getResolutionResult().getAllComponents(), true);
             }
-            VisitedArtifactSet visitedArtifacts = results.getVisitedArtifacts();
-            if (!buildDependencies.isEmpty()) {
-                SelectedArtifactSet projectArtifacts = visitedArtifacts.select(
-                    Specs.satisfyAll(),
-                    transformationStep.getFromAttributes(),
-                    buildDependencies::contains,
-                    true
-                );
-                context.add(projectArtifacts);
-            }
+            context.add(filteredResultFactory.resultsMatching(transformationStep.getFromAttributes(), element -> buildDependencies.contains(element)));
             context.add(graphResolveAction);
         };
     }

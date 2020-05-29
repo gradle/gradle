@@ -17,6 +17,7 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.resolve.transform.ArtifactTransformTestFixture
+import spock.lang.Issue
 
 class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstantExecutionIntegrationTest implements ArtifactTransformTestFixture {
     def setup() {
@@ -496,5 +497,71 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         outputContains("processing b.jar using []")
         outputContains("processing a.jar using [b.jar, c.jar]")
         outputContains("result = [a.jar.green, b.jar.green, c.jar.green]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13245")
+    def "task input file collection can include output of artifact transform of project dependencies when transform takes transformed upstream artifacts"() {
+        def fixture = newInstantExecutionFixture()
+
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithChainedColorTransformThatTakesUpstreamArtifacts()
+
+        buildFile << """
+            dependencies {
+                implementation project(':a')
+            }
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+        """
+
+        when:
+        instantRun(":resolve")
+
+        then:
+        output.count("processing") == 6
+        outputContains("processing a.jar")
+        outputContains("processing b.jar")
+        outputContains("processing c.jar")
+        outputContains("processing b.jar.red using []")
+        outputContains("processing c.jar.red using []")
+        outputContains("processing a.jar.red using [b.jar.red, c.jar.red]")
+        outputContains("result = [a.jar.red.green, b.jar.red.green, c.jar.red.green]")
+
+        when:
+        instantRun(":resolve")
+
+        then: // everything is up-to-date
+        fixture.assertStateLoaded()
+        result.assertTaskOrder(":a:producer", ":resolve")
+        result.assertTaskOrder(":b:producer", ":resolve")
+        result.assertTaskOrder(":c:producer", ":resolve")
+        result.assertTaskSkipped(":a:producer")
+        result.assertTaskSkipped(":b:producer")
+        result.assertTaskSkipped(":c:producer")
+        output.count("processing") == 0
+        outputContains("result = [a.jar.red.green, b.jar.red.green, c.jar.red.green]")
+
+        when:
+        instantRun(":resolve", "-PbContent=changed")
+
+        then:
+        fixture.assertStateLoaded()
+        result.assertTaskOrder(":a:producer", ":resolve")
+        result.assertTaskOrder(":b:producer", ":resolve")
+        result.assertTaskOrder(":c:producer", ":resolve")
+        result.assertTaskSkipped(":a:producer")
+        result.assertTaskNotSkipped(":b:producer")
+        result.assertTaskSkipped(":c:producer")
+        output.count("processing") == 3
+        outputContains("processing b.jar")
+        outputContains("processing b.jar.red using []")
+        outputContains("processing a.jar.red using [b.jar.red, c.jar.red]")
+        outputContains("result = [a.jar.red.green, b.jar.red.green, c.jar.red.green]")
     }
 }
