@@ -196,7 +196,7 @@ class EdgeState implements DependencyGraphEdge {
 
     private ImmutableAttributes safeGetAttributes() throws AttributeMergingException {
         ModuleResolveState module = selector.getTargetModule();
-        cachedAttributes = module.mergedConstraintsAttributes(dependencyState.getRequested().getAttributes());
+        cachedAttributes = module.mergedConstraintsAttributes(dependencyState.getDependency().getSelector().getAttributes());
         return cachedAttributes;
     }
 

@@ -23,10 +23,13 @@ import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.VariantSelectionDetails;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -34,9 +37,13 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Describables;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
@@ -47,6 +54,7 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.util.Path;
 
+import javax.inject.Inject;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -57,6 +65,8 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     private final NotationParser<Object, ComponentSelector> projectSelectorNotationParser;
     private final ComponentSelectionDescriptor reason;
     private final Instantiator instantiator;
+    private final ObjectFactory objectFactory;
+    private final ImmutableAttributesFactory attributesFactory;
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
     private boolean hasDependencySubstitutionRule;
@@ -70,41 +80,58 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
 
     public static DefaultDependencySubstitutions forResolutionStrategy(ComponentIdentifierFactory componentIdentifierFactory,
                                                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                                       Instantiator instantiator) {
+                                                                       Instantiator instantiator,
+                                                                       ObjectFactory objectFactory,
+                                                                       ImmutableAttributesFactory attributesFactory) {
         NotationParser<Object, ComponentSelector> projectSelectorNotationParser = NotationParserBuilder
             .toType(ComponentSelector.class)
             .fromCharSequence(new ProjectPathConverter(componentIdentifierFactory))
             .toComposite();
-        return new DefaultDependencySubstitutions(ComponentSelectionReasons.SELECTED_BY_RULE, projectSelectorNotationParser, moduleIdentifierFactory, instantiator);
+        return instantiator.newInstance(DefaultDependencySubstitutions.class,
+            ComponentSelectionReasons.SELECTED_BY_RULE,
+            projectSelectorNotationParser,
+            moduleIdentifierFactory,
+            instantiator,
+            objectFactory,
+            attributesFactory);
     }
 
     public static DefaultDependencySubstitutions forIncludedBuild(IncludedBuildState build,
                                                                   ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                                  Instantiator instantiator) {
+                                                                  Instantiator instantiator,
+                                                                  ObjectFactory objectFactory,
+                                                                  ImmutableAttributesFactory attributesFactory) {
         NotationParser<Object, ComponentSelector> projectSelectorNotationParser = NotationParserBuilder
                 .toType(ComponentSelector.class)
                 .fromCharSequence(new CompositeProjectPathConverter(build))
                 .toComposite();
-        return new DefaultDependencySubstitutions(ComponentSelectionReasons.COMPOSITE_BUILD, projectSelectorNotationParser, moduleIdentifierFactory, instantiator);
+        return new DefaultDependencySubstitutions(ComponentSelectionReasons.COMPOSITE_BUILD, projectSelectorNotationParser, moduleIdentifierFactory, instantiator, objectFactory, attributesFactory);
     }
 
-    private DefaultDependencySubstitutions(ComponentSelectionDescriptor reason,
+    @Inject
+    public DefaultDependencySubstitutions(ComponentSelectionDescriptor reason,
                                            NotationParser<Object, ComponentSelector> projectSelectorNotationParser,
                                            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                           Instantiator instantiator) {
-        this(reason, new LinkedHashSet<>(), moduleSelectorNotationConverter(moduleIdentifierFactory), projectSelectorNotationParser, instantiator);
+                                           Instantiator instantiator,
+                                           ObjectFactory objectFactory,
+                                           ImmutableAttributesFactory attributesFactory) {
+        this(reason, new LinkedHashSet<>(), moduleSelectorNotationConverter(moduleIdentifierFactory), projectSelectorNotationParser, instantiator, objectFactory, attributesFactory);
     }
 
     private DefaultDependencySubstitutions(ComponentSelectionDescriptor reason,
                                            Set<Action<? super DependencySubstitution>> substitutionRules,
                                            NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
                                            NotationParser<Object, ComponentSelector> projectSelectorNotationParser,
-                                           Instantiator instantiator) {
+                                           Instantiator instantiator,
+                                           ObjectFactory objectFactory,
+                                           ImmutableAttributesFactory attributesFactory) {
         this.reason = reason;
         this.substitutionRules = substitutionRules;
         this.moduleSelectorNotationParser = moduleSelectorNotationParser;
         this.projectSelectorNotationParser = projectSelectorNotationParser;
         this.instantiator = instantiator;
+        this.objectFactory = objectFactory;
+        this.attributesFactory = attributesFactory;
     }
 
     @Override
@@ -150,6 +177,21 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     @Override
     public ComponentSelector project(final String path) {
         return projectSelectorNotationParser.parseNotation(path);
+    }
+
+    @Override
+    public ComponentSelector platform(ComponentSelector selector) {
+        return variant(selector, VariantSelectionDetails::platform);
+    }
+
+    @Override
+    public ComponentSelector variant(ComponentSelector selector, Action<? super VariantSelectionDetails> detailsAction) {
+        DefaultVariantSelectionDetails details = instantiator.newInstance(DefaultVariantSelectionDetails.class,
+            attributesFactory,
+            objectFactory,
+            selector);
+        detailsAction.execute(details);
+        return details.selector;
     }
 
     @Override
@@ -220,7 +262,9 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             new LinkedHashSet<>(substitutionRules),
             moduleSelectorNotationParser,
             projectSelectorNotationParser,
-            instantiator);
+            instantiator,
+            objectFactory,
+            attributesFactory);
     }
 
     private static class ProjectPathConverter implements NotationConverter<String, ProjectComponentSelector> {
@@ -359,6 +403,62 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         @Override
         public void execute(ArtifactSelectionDetails artifactSelectionDetails) {
             artifactSelectionDetails.selectArtifact("jar", null, null);
+        }
+    }
+
+    public static class DefaultVariantSelectionDetails implements VariantSelectionDetails {
+        private final ImmutableAttributesFactory attributesFactory;
+        private final ObjectFactory objectFactory;
+        private ComponentSelector selector;
+
+        @Inject
+        public DefaultVariantSelectionDetails(ImmutableAttributesFactory attributesFactory,
+                                              ObjectFactory objectFactory,
+                                              ComponentSelector selector) {
+            this.attributesFactory = attributesFactory;
+            this.objectFactory = objectFactory;
+            this.selector = selector;
+        }
+
+        private void createComponentOfCategory(String category) {
+            if (selector instanceof ProjectComponentSelector) {
+                AttributeContainerInternal container = createCategory(category);
+                selector = DefaultProjectComponentSelector.withAttributes((ProjectComponentSelector) selector, container.asImmutable());
+            } else if (selector instanceof ModuleComponentSelector) {
+                AttributeContainerInternal container = createCategory(category);
+                selector = DefaultModuleComponentSelector.withAttributes((ModuleComponentSelector) selector, container.asImmutable());
+            }
+        }
+
+        private AttributeContainerInternal createCategory(String category) {
+            return (AttributeContainerInternal) attributesFactory.mutable()
+                .attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, category));
+        }
+
+        @Override
+        public void platform() {
+            createComponentOfCategory(Category.REGULAR_PLATFORM);
+        }
+
+        @Override
+        public void enforcedPlatform() {
+            createComponentOfCategory(Category.ENFORCED_PLATFORM);
+        }
+
+        @Override
+        public void library() {
+            createComponentOfCategory(Category.LIBRARY);
+        }
+
+        @Override
+        public void attributes(Action<? super AttributeContainer> configurationAction) {
+            AttributeContainerInternal container = attributesFactory.mutable();
+            configurationAction.execute(container);
+            if (selector instanceof ProjectComponentSelector) {
+                selector = DefaultProjectComponentSelector.withAttributes((ProjectComponentSelector) selector, container.asImmutable());
+            } else if (selector instanceof ModuleComponentSelector) {
+                selector = DefaultModuleComponentSelector.withAttributes((ModuleComponentSelector) selector, container.asImmutable());
+            }
         }
     }
 }

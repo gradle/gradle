@@ -190,4 +190,14 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     public static ModuleComponentSelector newSelector(ModuleVersionSelector selector) {
         return new DefaultModuleComponentSelector(selector.getModule(), DefaultImmutableVersionConstraint.of(selector.getVersion()), ImmutableAttributes.EMPTY, ImmutableList.of());
     }
+
+    public static ModuleComponentSelector withAttributes(ModuleComponentSelector selector, ImmutableAttributes attributes) {
+        DefaultModuleComponentSelector cs = (DefaultModuleComponentSelector) selector;
+        return new DefaultModuleComponentSelector(
+            cs.moduleIdentifier,
+            cs.versionConstraint,
+            attributes,
+            cs.requestedCapabilities
+        );
+    }
 }

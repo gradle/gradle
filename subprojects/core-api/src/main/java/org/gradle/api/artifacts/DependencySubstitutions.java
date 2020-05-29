@@ -23,6 +23,7 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Allows replacing dependencies with other dependencies.
+ *
  * @since 2.5
  */
 @HasInternalProtocol
@@ -72,6 +73,25 @@ public interface DependencySubstitutions {
     ComponentSelector project(String path);
 
     /**
+     * Transforms the supplied selector into a specific variant selector.
+     * @param selector the origin selector
+     * @param detailsAction the variant selection details configuration
+     *
+     * @since 6.6
+     */
+    @Incubating
+    ComponentSelector variant(ComponentSelector selector, Action<? super VariantSelectionDetails> detailsAction);
+
+    /**
+     * Transforms the provided selector into a platform selector.
+     *
+     * @param selector the original selector
+     * @since 6.6
+     */
+    @Incubating
+    ComponentSelector platform(ComponentSelector selector);
+
+    /**
      * DSL-friendly mechanism to construct a dependency substitution for dependencies matching the provided selector.
      * <p>
      * Examples:
@@ -95,11 +115,10 @@ public interface DependencySubstitutions {
     interface Substitution {
         /**
          * Specify a reason for the substitution. This is optional
+         *
          * @param reason the reason for the selection
-         *
-         * @since 4.5
-         *
          * @return the substitution
+         * @since 4.5
          */
         Substitution because(String reason);
 

@@ -31,14 +31,14 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultRe
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
-import org.gradle.internal.locking.NoOpDependencyLockingProvider;
-import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.vcs.internal.VcsMappingsStore;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.locking.NoOpDependencyLockingProvider;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata;
 import org.gradle.platform.base.DependencySpec;
+import org.gradle.vcs.internal.VcsMappingsStore;
 
 import java.util.Set;
 
@@ -64,7 +64,7 @@ public class JvmLibraryResolveContext implements ResolveContext {
         this.displayName = displayName;
         this.variants = variants;
         this.dependencies = dependencies;
-        this.resolutionStrategy = new DefaultResolutionStrategy(DependencySubstitutionRules.NO_OP, VcsMappingsStore.NO_OP, null, moduleIdentifierFactory, null, NoOpDependencyLockingProvider.getInstance(), new DefaultCapabilitiesResolution(new CapabilityNotationParserFactory(false).create(), new ComponentIdentifierParserFactory().create()), DirectInstantiator.INSTANCE);
+        this.resolutionStrategy = new DefaultResolutionStrategy(DependencySubstitutionRules.NO_OP, VcsMappingsStore.NO_OP, null, moduleIdentifierFactory, null, NoOpDependencyLockingProvider.getInstance(), new DefaultCapabilitiesResolution(new CapabilityNotationParserFactory(false).create(), new ComponentIdentifierParserFactory().create()), DirectInstantiator.INSTANCE, null, null);
     }
 
     @Override

@@ -145,7 +145,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         """
         dependency buildB, "org.test:XXX:1.0"
         buildC.buildFile.text = """
-            buildscript { 
+            buildscript {
                 repositories { maven { url = "${mavenRepo.uri}" } }
                 dependencies { classpath "org.test:plugin:1.0" }
             }
@@ -236,6 +236,69 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
                 }
             }
         }
+    }
+
+    @ToBeFixedForInstantExecution
+    def "preserves the requested attributes when performing a composite substitution"() {
+        platformDependency 'org.test:platform:1.0'
+
+        def platform = file("platform")
+
+        file("platform/build.gradle") << """
+            plugins {
+                id 'java-platform'
+            }
+
+            group = 'org.test'
+            version = '2.0'
+        """
+        file("platform/settings.gradle") << """
+            rootProject.name = 'platform'
+        """
+
+        when:
+        includeBuild(platform)
+
+        then:
+        resolvedGraph {
+            edge("org.test:platform:1.0", "project :platform", "org.test:platform:2.0") {
+                configuration = "runtimeElements"
+                compositeSubstitute()
+                noArtifacts()
+            }
+        }
+
+    }
+
+    @ToBeFixedForInstantExecution
+    def "preserves the requested attributes when performing a composite substitution using mapping"() {
+        platformDependency 'org.test:platform:1.0'
+
+        def platform = file("platform")
+
+        file("platform/build.gradle") << """
+            plugins {
+                id 'java-platform'
+            }
+        """
+        file("platform/settings.gradle") << """
+            rootProject.name = 'platform'
+        """
+
+        when:
+        includeBuild(platform, """
+            substitute platform(module("org.test:platform")) with platform(project(":"))
+        """)
+
+        then:
+        resolvedGraph {
+            edge("org.test:platform:1.0", "project :platform", ":platform:") {
+                configuration = "runtimeElements"
+                compositeSubstitute()
+                noArtifacts()
+            }
+        }
+
     }
 
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {

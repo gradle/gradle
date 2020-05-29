@@ -154,6 +154,23 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         return new DefaultProjectComponentSelector(projectComponentIdentifier.getBuild(), projectComponentIdentifier.getIdentityPath(), projectComponentIdentifier.projectPath(), projectComponentIdentifier.getProjectName(), ImmutableAttributes.EMPTY, Collections.emptyList());
     }
 
+    public static ProjectComponentSelector newSelector(ProjectComponentIdentifier identifier, ImmutableAttributes attributes, List<Capability> requestedCapabilities) {
+        DefaultProjectComponentIdentifier projectComponentIdentifier = (DefaultProjectComponentIdentifier) identifier;
+        return new DefaultProjectComponentSelector(projectComponentIdentifier.getBuild(), projectComponentIdentifier.getIdentityPath(), projectComponentIdentifier.projectPath(), projectComponentIdentifier.getProjectName(), attributes, requestedCapabilities);
+    }
+
+    public static ProjectComponentSelector withAttributes(ProjectComponentSelector selector, ImmutableAttributes attributes) {
+        DefaultProjectComponentSelector current = (DefaultProjectComponentSelector) selector;
+        return new DefaultProjectComponentSelector(
+            current.buildIdentifier,
+            current.identityPath,
+            current.projectPath,
+            current.projectName,
+            attributes,
+            current.requestedCapabilities
+        );
+    }
+
     public ProjectComponentIdentifier toIdentifier() {
         return new DefaultProjectComponentIdentifier(buildIdentifier, identityPath, projectPath, projectName);
     }
