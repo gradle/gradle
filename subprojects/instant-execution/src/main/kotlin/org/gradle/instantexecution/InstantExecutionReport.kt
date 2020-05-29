@@ -31,6 +31,7 @@ import org.gradle.instantexecution.problems.taskPathFrom
 
 import org.gradle.util.GFileUtils.copyURLToFile
 
+import java.io.BufferedWriter
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -98,31 +99,44 @@ class InstantExecutionReport(
         }
     }
 
+    /**
+     * Writes the `configuration-cache-report-data.js` file to [outputDirectory].
+     *
+     * The file is laid out in such a way as to allow extracting the pure JSON model
+     * from it by skipping the first and last lines of the file.
+     */
     private
     fun writeJsReportData(problems: List<PropertyProblem>, outputDirectory: File) {
-        val documentationRegistry = DocumentationRegistry()
         outputDirectory.resolve("configuration-cache-report-data.js").bufferedWriter().use { writer ->
             writer.run {
-                appendln("function configurationCacheProblems() { return {")
-                appendln("documentationLink: \"${documentationRegistry.getDocumentationFor("configuration_cache")}\",")
-                appendln("problems: [")
-                problems.forEach {
-                    append(
-                        JsonOutput.toJson(
-                            mapOf(
-                                "trace" to traceListOf(it),
-                                "message" to it.message.fragments,
-                                "documentationLink" to it.documentationSection?.let { documentationRegistry.getDocumentationFor("configuration_cache", it) },
-                                "error" to stackTraceStringOf(it)
-                            )
-                        )
-                    )
-                    appendln(",")
-                }
-                appendln("]")
-                appendln("};}")
+                appendln("function configurationCacheProblems() { return (")
+                writeJsonModelFor(problems)
+                appendln(");}")
             }
         }
+    }
+
+    private
+    fun BufferedWriter.writeJsonModelFor(problems: List<PropertyProblem>) {
+        val documentationRegistry = DocumentationRegistry()
+        appendln("{") // begin JSON
+        appendln("\"documentationLink\": \"${documentationRegistry.getDocumentationFor("configuration_cache")}\",")
+        appendln("\"problems\": [") // begin problems
+        problems.forEachIndexed { index, problem ->
+            if (index > 0) appendln(",")
+            append(
+                JsonOutput.toJson(
+                    mapOf(
+                        "trace" to traceListOf(problem),
+                        "message" to problem.message.fragments,
+                        "documentationLink" to problem.documentationSection?.let { documentationRegistry.getDocumentationFor("configuration_cache", it) },
+                        "error" to stackTraceStringOf(problem)
+                    )
+                )
+            )
+        }
+        appendln("]") // end problems
+        appendln("}") // end JSON
     }
 
     private

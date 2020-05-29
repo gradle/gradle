@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.instantexecution
 
+import groovy.json.JsonSlurper
 import groovy.transform.PackageScope
 import junit.framework.AssertionFailedError
 import org.gradle.api.Action
@@ -34,8 +35,6 @@ import org.hamcrest.Description
 import org.hamcrest.Matcher
 
 import javax.annotation.Nullable
-import javax.script.ScriptEngine
-import javax.script.ScriptEngineManager
 import java.nio.file.Paths
 import java.util.regex.Pattern
 
@@ -297,19 +296,27 @@ final class InstantExecutionProblemsFixture {
             def jsFile = reportDir.file('configuration-cache-report-data.js')
             assertTrue("HTML report HTML file not found in '$reportDir'", htmlFile.isFile())
             assertTrue("HTML report JS model not found in '$reportDir'", jsFile.isFile())
+            Map<String, Object> jsModel = readJsModelFrom(jsFile)
             assertThat(
                 "HTML report JS model has wrong number of total problem(s)",
-                numberOfProblemsIn(jsFile),
+                numberOfProblemsIn(jsModel),
                 equalTo(totalProblemCount)
             )
             assertThat(
                 "HTML report JS model has wrong number of problem(s) with stacktrace",
-                numberOfProblemsWithStacktraceIn(jsFile),
+                numberOfProblemsWithStacktraceIn(jsModel),
                 equalTo(problemsWithStackTraceCount)
             )
         } else {
             assertThat("Unexpected HTML report URI found", reportDir, nullValue())
         }
+    }
+
+    private static Map<String, Object> readJsModelFrom(File reportDataFile) {
+        // InstantExecutionReport ensures the pure json model can be read
+        // by skipping the 1st and last line of the report data file
+        def jsonText = reportDataFile.readLines().with { subList(1, size() - 1) }.join('\n')
+        new JsonSlurper().parseText(jsonText) as Map<String, Object>
     }
 
     @Nullable
@@ -327,22 +334,12 @@ final class InstantExecutionProblemsFixture {
         new ConsoleRenderer().asClickableFileUrl(file)
     }
 
-    private static int numberOfProblemsIn(File jsFile) {
-        newJavaScriptEngine().with {
-            eval(jsFile.text)
-            eval("configurationCacheProblems().problems.length") as int
-        }
+    private static int numberOfProblemsIn(jsModel) {
+        return (jsModel.problems as List<Object>).size()
     }
 
-    protected static int numberOfProblemsWithStacktraceIn(File jsFile) {
-        newJavaScriptEngine().with {
-            eval(jsFile.text)
-            eval("configurationCacheProblems().problems.filter(function(problem) { return problem['error'] != null; }).length") as int
-        }
-    }
-
-    private static ScriptEngine newJavaScriptEngine() {
-        new ScriptEngineManager().getEngineByName("JavaScript")
+    protected static int numberOfProblemsWithStacktraceIn(jsModel) {
+        return (jsModel.problems as List<Object>).count { it['error'] != null }
     }
 
     private static ProblemsSummary extractSummary(String text) {
