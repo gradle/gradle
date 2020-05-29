@@ -348,7 +348,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     @Override
-    protected RepositoryContentDescriptorInternal createRepositoryDescriptor() {
+    public RepositoryContentDescriptorInternal createRepositoryDescriptor() {
         return new DefaultMavenRepositoryContentDescriptor(this::getDisplayName);
     }
 

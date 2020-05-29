@@ -16,7 +16,6 @@
 
 package org.gradle.integtests
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
@@ -133,7 +132,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         file("gradle.properties") << """
     systemProp.http.proxyHost=localhost
     systemProp.http.proxyPort=${proxyServer.port}
-    systemProp.http.nonProxyHosts=${JavaVersion.current() >= JavaVersion.VERSION_1_7 ? '' : '~localhost'}
+    systemProp.http.nonProxyHosts=
 """
         server.expect(server.get("/gradlew/dist").sendFile(distribution.binDistribution))
 
@@ -157,7 +156,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         file("gradle.properties") << """
     systemProp.http.proxyHost=localhost
     systemProp.http.proxyPort=${proxyServer.port}
-    systemProp.http.nonProxyHosts=${JavaVersion.current() >= JavaVersion.VERSION_1_7 ? '' : '~localhost'}
+    systemProp.http.nonProxyHosts=
     systemProp.http.proxyUser=my_user
     systemProp.http.proxyPassword=my_password
 """
@@ -257,7 +256,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         file("gradle.properties").writeProperties(
             'systemProp.http.proxyHost': 'localhost',
             'systemProp.http.proxyPort': proxyServer.port as String,
-            'systemProp.http.nonProxyHosts': JavaVersion.current() >= JavaVersion.VERSION_1_7 ? '' : '~localhost',
+            'systemProp.http.nonProxyHosts': '',
             'systemProp.http.proxyUser': proxyUsername,
             'systemProp.http.proxyPassword': proxyPassword
         )

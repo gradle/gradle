@@ -70,8 +70,6 @@ class DefaultTransformerCodec(
             writeBoolean(false)
             withCodec(userTypesCodec) { write(value.parameterObject) }
         }
-
-        // TODO - write more state
     }
 
     override suspend fun ReadContext.decode(): DefaultTransformer? {

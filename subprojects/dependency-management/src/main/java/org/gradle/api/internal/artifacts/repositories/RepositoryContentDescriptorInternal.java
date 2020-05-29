@@ -18,9 +18,6 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 
-import javax.annotation.Nullable;
-
 public interface RepositoryContentDescriptorInternal extends RepositoryContentDescriptor {
-    @Nullable
     Action<? super ArtifactResolutionDetails> toContentFilter();
 }

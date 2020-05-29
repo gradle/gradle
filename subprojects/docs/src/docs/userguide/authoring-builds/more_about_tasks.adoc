@@ -1160,6 +1160,38 @@ If adding such a file to your jar files is something you do for all of the proje
 The effect of this configuration would be that changes to `build-info.properties` would be ignored for up-to-date checks and <<build_cache.adoc#build_cache,build cache>> key calculations.
 Note that this will not change the runtime behavior of the `test` task — i.e. any test is still able to load `build-info.properties` and the runtime classpath is still the same as before.
 
+[[sec:meta_inf_normalization]]
+===== Java `META-INF` normalization
+
+For files in the `META-INF` directory of jar archives it's not always possible to ignore files completely due to their runtime impact.
+
+Manifests and properties files within `META-INF` are normalized to ignore comments, whitespace and order differences. Manifest attribute names are compared case-and-order insensitively. Properties file keys are order insensitive.
+
+.Ignore `META-INF` manifest attributes
+====
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="build.gradle[tags=ignore-metainf-attribute]"]
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/kotlin",files="build.gradle.kts[tags=ignore-metainf-attribute]"]
+====
+
+.Ignore `META-INF` property keys
+====
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="build.gradle[tags=ignore-metainf-properties]"]
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/kotlin",files="build.gradle.kts[tags=ignore-metainf-properties]"]
+====
+
+.Ignore `META-INF/MANIFEST.MF`
+====
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="build.gradle[tags=ignore-metainf-manifest]"]
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/kotlin",files="build.gradle.kts[tags=ignore-metainf-manifest]"]
+====
+
+.Ignore all files and directories inside `META-INF`
+====
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="build.gradle[tags=ignore-metainf-completely]"]
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/kotlin",files="build.gradle.kts[tags=ignore-metainf-completely]"]
+====
+
+
 [[sec:stale_task_outputs]]
 === Stale task outputs
 

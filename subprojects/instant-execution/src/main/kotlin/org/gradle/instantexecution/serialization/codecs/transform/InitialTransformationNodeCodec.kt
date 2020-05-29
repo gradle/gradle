@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.api.internal.artifacts.transform.TransformationStep
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.internal.operations.BuildOperationExecutor
 
 
@@ -38,9 +39,9 @@ class InitialTransformationNodeCodec(
     }
 
     override suspend fun ReadContext.doDecode(): TransformationNode.InitialTransformationNode {
-        val transformationStep = read() as TransformationStep
+        val transformationStep = readNonNull<TransformationStep>()
         val resolver = readDependenciesResolver()
-        val artifact = read() as ResolvableArtifact
+        val artifact = readNonNull<ResolvableArtifact>()
         return TransformationNode.initial(transformationStep, artifact, resolver, buildOperationExecutor, transformListener)
     }
 }

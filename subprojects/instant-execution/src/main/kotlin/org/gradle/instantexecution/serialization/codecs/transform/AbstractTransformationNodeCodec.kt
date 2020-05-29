@@ -45,9 +45,10 @@ abstract class AbstractTransformationNodeCodec<T : TransformationNode> : Codec<T
 
     protected
     suspend fun WriteContext.writeDependenciesResolver(value: TransformationNode) {
-        if (value.transformationStep.transformer.requiresDependencies()) {
+        val transformer = value.transformationStep.transformer
+        if (transformer.requiresDependencies()) {
             writeBoolean(true)
-            write(value.dependenciesResolver.forTransformer(value.transformationStep.transformer).get().files)
+            write(value.dependenciesResolver.selectedArtifacts(transformer))
         } else {
             writeBoolean(false)
         }
@@ -79,7 +80,11 @@ class FixedDependenciesResolver(private val dependencies: ArtifactTransformDepen
         throw IllegalStateException()
     }
 
-    override fun forTransformer(transformer: Transformer): Try<ArtifactTransformDependencies> {
+    override fun selectedArtifacts(transformer: Transformer): FileCollection {
+        return dependencies.files
+    }
+
+    override fun computeArtifacts(transformer: Transformer): Try<ArtifactTransformDependencies> {
         return Try.successful(dependencies)
     }
 }

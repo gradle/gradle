@@ -70,6 +70,12 @@ class LifecyclePlugin : Plugin<Project> {
     private
     val soakTest = "soakTest"
 
+    val ignoredSubprojects = listOf(
+        "soak", // soak test
+        "distributions", // build distributions
+        "architectureTest" // sanity check
+    )
+
     private
     val forceRealizeDependencyManagementTest = "forceRealizeDependencyManagementTest"
 
@@ -78,28 +84,46 @@ class LifecyclePlugin : Plugin<Project> {
         setupGlobalState()
         sharedDependencyAndQualityConfigs()
 
-        subprojects {
-            tasks.registerCITestDistributionLifecycleTasks()
-            plugins.withId("gradlebuild.java-library") {
-                tasks.registerEarlyFeedbackLifecycleTasks()
-                tasks.named(quickTest) {
-                    dependsOn("test")
-                }
-                tasks.named(platformTest) {
-                    dependsOn("test")
-                }
+        subprojects.filter { it.name !in ignoredSubprojects }.forEach { it.registerLifecycleTasks() }
+
+        project(":soak").registerSoakTest()
+
+        tasks.registerDistributionsPromotionTasks()
+    }
+
+    private
+    fun Project.registerLifecycleTasks() {
+        tasks.registerCITestDistributionLifecycleTasks()
+        plugins.withId("gradlebuild.java-library") {
+            tasks.registerEarlyFeedbackLifecycleTasks()
+            tasks.named(quickTest) {
+                dependsOn("test")
             }
-            plugins.withId("gradlebuild.integration-tests") {
-                tasks.configureCIIntegrationTestDistributionLifecycleTasks()
-            }
-            plugins.withId("gradlebuild.cross-version-tests") {
-                tasks.configureCICrossVersionTestDistributionLifecycleTasks()
-            }
-            plugins.withId("gradlebuild.publish-public-libraries") {
-                tasks.registerPublishLibrariesPromotionTasks()
+            tasks.named(platformTest) {
+                dependsOn("test")
             }
         }
-        tasks.registerDistributionsPromotionTasks()
+        plugins.withId("gradlebuild.integration-tests") {
+            tasks.configureCIIntegrationTestDistributionLifecycleTasks()
+        }
+        plugins.withId("gradlebuild.cross-version-tests") {
+            tasks.configureCICrossVersionTestDistributionLifecycleTasks()
+        }
+        plugins.withId("gradlebuild.publish-public-libraries") {
+            tasks.registerPublishLibrariesPromotionTasks()
+        }
+    }
+
+    private
+    fun Project.registerSoakTest() {
+        tasks.register(soakTest) {
+            description = "Run all soak tests defined in the :soak subproject"
+            group = ciGroup
+        }
+
+        tasks.named(soakTest) {
+            dependsOn(":soak:soakIntegTest")
+        }
     }
 
     /**
@@ -271,11 +295,6 @@ class LifecyclePlugin : Plugin<Project> {
             group = ciGroup
         }
 
-        register(soakTest) {
-            description = "Run all soak tests defined in the :soak subproject"
-            group = ciGroup
-        }
-
         register(forceRealizeDependencyManagementTest) {
             description = "Runs all integration tests with the dependency management engine in 'force component realization' mode"
             group = ciGroup
@@ -312,10 +331,6 @@ class LifecyclePlugin : Plugin<Project> {
 
         named(vfsRetentionTest) {
             dependsOn("vfsRetentionIntegTest")
-        }
-
-        named(soakTest) {
-            dependsOn(":soak:soakIntegTest")
         }
 
         named(forceRealizeDependencyManagementTest) {

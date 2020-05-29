@@ -50,8 +50,8 @@ public class CachingResourceHasher implements ResourceHasher {
     }
 
     @Override
-    public HashCode hash(ZipEntry zipEntry) throws IOException {
-        return delegate.hash(zipEntry);
+    public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
+        return delegate.hash(zipEntryContext);
     }
 
     @Override

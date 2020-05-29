@@ -201,8 +201,8 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('org.gradle.RepeatTest')
-            .testClass('org.gradle.RepeatTest')
+            .assertTestClassesExecutedJudgementByHtml('org.gradle.RepeatTest')
+            .testClassByHtml('org.gradle.RepeatTest')
             .assertTestCount(9, 1, 0)
             .assertTestPassed('ok()[1]', 'ok 1/3')
             .assertTestPassed('ok()[2]', 'ok 2/3')
