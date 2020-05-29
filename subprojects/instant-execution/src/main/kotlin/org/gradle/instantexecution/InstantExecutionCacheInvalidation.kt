@@ -55,7 +55,6 @@ class InstantExecutionCacheInvalidation(
                     putString(relativeSubDir)
                 }
             }
-
         }.hash().toByteArray()).asCompactString()
     }
 
