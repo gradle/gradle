@@ -38,7 +38,7 @@ class InstantExecutionCacheCleanupIntegrationTest
         instantRun 'help'
 
         then:
-        ConcurrentTestUtil.poll {
+        ConcurrentTestUtil.poll(20) {
             assert !outdated.isDirectory()
         }
         cacheDir.listFiles().length == 3 // gc file + cache properties + 'help' state
