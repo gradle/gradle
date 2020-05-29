@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r51
+package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.internal.hash.HashCode;
 
-@TargetGradleVersion('>=5.1')
-@ToolingApiVersion('>=5.1')
-class ProjectConfigurationChildrenProgressCrossVersionSpec extends org.gradle.integtests.tooling.r40.ProjectConfigurationChildrenProgressCrossVersionSpec {
+import javax.annotation.Nullable;
+import java.io.IOException;
+
+/**
+ * Hashes a zip entry (e.g. a class file in a jar, a manifest file, a properties file)
+ */
+public interface ZipEntryHasher {
+    /**
+     * Returns {@code null} if the zip entry should be ignored.
+     */
+    @Nullable
+    HashCode hash(ZipEntryContext zipEntryContext) throws IOException;
 }

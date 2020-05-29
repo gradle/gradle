@@ -17,6 +17,8 @@
 package org.gradle.internal.resource;
 
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.PrimitiveHasher;
@@ -43,6 +45,16 @@ public class StringTextResource implements TextResource {
     @Override
     public String getDisplayName() {
         return displayName;
+    }
+
+    @Override
+    public DisplayName getLongDisplayName() {
+        return Describables.of(displayName);
+    }
+
+    @Override
+    public DisplayName getShortDisplayName() {
+        return getLongDisplayName();
     }
 
     @Override

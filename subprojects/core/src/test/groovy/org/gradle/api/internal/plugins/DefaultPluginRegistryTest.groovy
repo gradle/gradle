@@ -49,7 +49,7 @@ class DefaultPluginRegistryTest extends Specification {
         def plugin = pluginRegistry.lookup(DefaultPluginId.of("somePlugin"))
         plugin.pluginId == DefaultPluginId.of("somePlugin")
         plugin.type == PotentialPlugin.Type.IMPERATIVE_CLASS
-        plugin.displayName == "id 'somePlugin'"
+        plugin.displayName.displayName == "plugin 'somePlugin'"
         plugin.asClass() == TestPlugin1
     }
 
@@ -64,7 +64,7 @@ class DefaultPluginRegistryTest extends Specification {
         def plugin = pluginRegistry.lookup(DefaultPluginId.of("someRuleSource"))
         plugin.pluginId == DefaultPluginId.of("someRuleSource")
         plugin.type == PotentialPlugin.Type.PURE_RULE_SOURCE_CLASS
-        plugin.displayName == "id 'someRuleSource'"
+        plugin.displayName.displayName == "plugin 'someRuleSource'"
         plugin.asClass() == TestRuleSource
     }
 
@@ -84,12 +84,12 @@ class DefaultPluginRegistryTest extends Specification {
         expect:
         def unqualified = pluginRegistry.lookup(DefaultPluginId.of("somePlugin"))
         unqualified.pluginId == DefaultPluginId.of("org.gradle.somePlugin")
-        unqualified.displayName == "id 'org.gradle.somePlugin'"
+        unqualified.displayName.displayName == "plugin 'org.gradle.somePlugin'"
         unqualified.asClass() == TestPlugin1
 
         def qualified = pluginRegistry.lookup(DefaultPluginId.of("org.gradle.somePlugin"))
         qualified.pluginId == DefaultPluginId.of("org.gradle.somePlugin")
-        unqualified.displayName == "id 'org.gradle.somePlugin'"
+        unqualified.displayName.displayName == "plugin 'org.gradle.somePlugin'"
         qualified.asClass() == TestPlugin1
     }
 
@@ -175,7 +175,7 @@ class DefaultPluginRegistryTest extends Specification {
         def plugin = pluginRegistry.inspect(TestPlugin1.class)
         plugin.type == PotentialPlugin.Type.IMPERATIVE_CLASS
         plugin.pluginId == null
-        plugin.displayName == "class '${TestPlugin1.name}'"
+        plugin.displayName.displayName == "plugin class '${TestPlugin1.name}'"
     }
 
     def "inspects imperative plugin implementation that has no id mapping"() {

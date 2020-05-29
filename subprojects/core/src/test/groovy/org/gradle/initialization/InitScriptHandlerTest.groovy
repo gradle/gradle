@@ -20,6 +20,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.configuration.InitScriptProcessor
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -32,7 +33,8 @@ class InitScriptHandlerTest extends Specification {
     def executor = new TestBuildOperationExecutor()
     def gradle = Mock(GradleInternal)
     def startParameter = Stub(StartParameter)
-    def handler = new InitScriptHandler(processor, executor)
+    def resourceLoader = Stub(TextFileResourceLoader)
+    def handler = new InitScriptHandler(processor, executor, resourceLoader)
 
     def setup() {
         _ * gradle.startParameter >> startParameter

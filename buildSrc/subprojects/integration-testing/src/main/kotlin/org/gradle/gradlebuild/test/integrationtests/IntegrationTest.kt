@@ -21,10 +21,6 @@ import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
-import org.gradle.gradlebuild.BuildEnvironment
-import java.util.Timer
-import java.util.concurrent.TimeUnit
-import kotlin.concurrent.timerTask
 
 
 /**
@@ -38,36 +34,6 @@ abstract class IntegrationTest : DistributionTest() {
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     val samplesDir = gradleInstallationForTest.gradleSnippetsDir
-
-    override fun executeTests() {
-        printStacktracesAfterTimeout { super.executeTests() }
-    }
-
-    private
-    fun printStacktracesAfterTimeout(work: () -> Unit) = if (BuildEnvironment.isCiServer) {
-        val timer = Timer(true).apply {
-            schedule(timerTask {
-                project.javaexec {
-                    classpath = this@IntegrationTest.classpath
-                    main = "org.gradle.integtests.fixtures.timeout.JavaProcessStackTracesMonitor"
-                }
-            }, determineTimeoutMillis())
-        }
-        try {
-            work()
-        } finally {
-            timer.cancel()
-        }
-    } else {
-        work()
-    }
-
-    private
-    fun determineTimeoutMillis() =
-        when (systemProperties["org.gradle.integtest.executer"]) {
-            "embedded" -> TimeUnit.MINUTES.toMillis(30)
-            else -> TimeUnit.MINUTES.toMillis(165) // 2h45m
-        }
 
     override fun setClasspath(classpath: FileCollection) {
         /*

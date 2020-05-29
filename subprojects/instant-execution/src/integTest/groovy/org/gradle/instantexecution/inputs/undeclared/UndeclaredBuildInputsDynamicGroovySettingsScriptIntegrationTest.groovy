@@ -18,6 +18,11 @@ package org.gradle.instantexecution.inputs.undeclared
 
 class UndeclaredBuildInputsDynamicGroovySettingsScriptIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
     @Override
+    String getLocation() {
+        return "settings file 'settings.gradle'"
+    }
+
+    @Override
     void buildLogicApplication(SystemPropertyRead read) {
         settingsFile << """
             println("apply = " + ${read.groovyExpression})

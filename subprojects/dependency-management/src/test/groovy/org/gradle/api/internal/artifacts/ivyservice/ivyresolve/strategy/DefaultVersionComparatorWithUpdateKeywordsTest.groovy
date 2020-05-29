@@ -22,7 +22,7 @@ class DefaultVersionComparatorWithUpdateKeywordsTest extends AbstractDefaultVers
 
     def setup() {
         def previews = new FeaturePreviews()
-        previews.enableFeature(FeaturePreviews.Feature.VERSION_SORTING_V2)
+        previews.enableFeature(FeaturePreviews.Feature.VERSION_ORDERING_V2)
         comparator = new DefaultVersionComparator(previews)
     }
 

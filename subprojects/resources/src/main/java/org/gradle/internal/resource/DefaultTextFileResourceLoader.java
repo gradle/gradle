@@ -15,18 +15,26 @@
  */
 package org.gradle.internal.resource;
 
+import org.gradle.internal.file.RelativeFilePathResolver;
+
 import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultTextFileResourceLoader implements TextFileResourceLoader {
+    private final RelativeFilePathResolver resolver;
+
+    public DefaultTextFileResourceLoader(RelativeFilePathResolver resolver) {
+        this.resolver = resolver;
+    }
+
     @Override
     public TextResource loadFile(String description, @Nullable File sourceFile) {
         if (sourceFile == null) {
             return new StringTextResource(description, "");
         }
         if (sourceFile.exists()) {
-            return new UriTextResource(description, sourceFile);
+            return new UriTextResource(description, sourceFile, resolver);
         }
-        return new EmptyFileTextResource(description, sourceFile);
+        return new EmptyFileTextResource(description, sourceFile, resolver);
     }
 }

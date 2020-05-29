@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration.internal;
+@NonNullApi
+package org.gradle.plugin.use.internal;
 
-public class TestUserCodeApplicationContext extends DefaultUserCodeApplicationContext {
-
-    @Override
-    public UserCodeApplicationId push() {
-        return super.push();
-    }
-
-    @Override
-    public void pop() {
-        super.pop();
-    }
-
-}
+import org.gradle.api.NonNullApi;

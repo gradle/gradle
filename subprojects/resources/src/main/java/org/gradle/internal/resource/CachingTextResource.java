@@ -18,6 +18,7 @@ package org.gradle.internal.resource;
 
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.PrimitiveHasher;
@@ -40,6 +41,16 @@ public class CachingTextResource implements TextResource {
     @Override
     public String getDisplayName() {
         return resource.getDisplayName();
+    }
+
+    @Override
+    public DisplayName getLongDisplayName() {
+        return resource.getLongDisplayName();
+    }
+
+    @Override
+    public DisplayName getShortDisplayName() {
+        return resource.getShortDisplayName();
     }
 
     @Override

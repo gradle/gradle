@@ -19,11 +19,11 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.configuration.InitScriptProcessor;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.resource.TextResource;
-import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 
 import java.io.File;
 import java.util.List;
@@ -34,10 +34,12 @@ import java.util.List;
 public class InitScriptHandler {
     private final InitScriptProcessor processor;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final TextFileResourceLoader resourceLoader;
 
-    public InitScriptHandler(InitScriptProcessor processor, BuildOperationExecutor buildOperationExecutor) {
+    public InitScriptHandler(InitScriptProcessor processor, BuildOperationExecutor buildOperationExecutor, TextFileResourceLoader resourceLoader) {
         this.processor = processor;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.resourceLoader = resourceLoader;
     }
 
     public void executeScripts(final GradleInternal gradle) {
@@ -49,7 +51,6 @@ public class InitScriptHandler {
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
-                DefaultTextFileResourceLoader resourceLoader = new DefaultTextFileResourceLoader();
                 for (File script : initScripts) {
                     TextResource resource = resourceLoader.loadFile("initialization script", script);
                     processor.process(new TextResourceScriptSource(resource), gradle);

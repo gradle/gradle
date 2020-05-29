@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r51;
+package org.gradle.api.internal.artifacts.repositories;
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion;
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion;
+import org.gradle.api.Action;
 
-@TargetGradleVersion(">=5.1")
-@ToolingApiVersion(">=5.1")
-class BasicProjectConfigurationProgressCrossVersionSpec extends org.gradle.integtests.tooling.r33.BasicProjectConfigurationProgressCrossVersionSpec {
+public interface ContentFilteringRepository {
+
+    Action<? super ArtifactResolutionDetails> getContentFilter();
 }

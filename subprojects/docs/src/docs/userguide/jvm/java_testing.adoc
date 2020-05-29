@@ -305,7 +305,7 @@ See link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform--
 
 [NOTE]
 ====
-There are some known limitations of using JUnit 5 with Gradle, for example that tests in static nested classes won't be discovered and classes are still displayed by their class name instead of `@DisplayName`. These will be fixed in future version of Gradle. If you find more, please tell us at https://github.com/gradle/gradle/issues/new
+There are some known limitations of using JUnit 5 with Gradle, for example that tests in static nested classes won't be discovered. These will be fixed in future version of Gradle. If you find more, please tell us at https://github.com/gradle/gradle/issues/new
 ====
 
 [[compiling_and_executing_junit_jupiter_tests]]
@@ -449,7 +449,7 @@ Sample: link:../samples/sample_java_modules_multi_project_with_integration_tests
 
 The simplest setup to write unit tests for functions or classes in modules is to _not_ use module specifics during test execution.
 For this, you just need to write tests the same way you would write them for normal libraries.
-If you don't have a `module-info.java` file in your test source set (`src/main/test`) this source set will be considered as traditional Java library during compilation and test runtime.
+If you don't have a `module-info.java` file in your test source set (`src/test/java`) this source set will be considered as traditional Java library during compilation and test runtime.
 This means, all dependencies, including Jars with module information, are put on the classpath.
 The advantage is that all internal classes of your (or other) modules are then accessible directly in tests.
 This may be a totally valid setup for unit testing, where we do not care about the larger module structure, but only about testing single functions.

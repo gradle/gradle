@@ -94,7 +94,7 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
         if (isJupiter()) {
             return "org.junit.jupiter:junit-jupiter-api:${dependencyVersion}','org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}"
         } else if (isVintage()) {
-            return "org.junit.vintage:junit-vintage-engine:${dependencyVersion}','junit:junit:4.13"
+            return "org.junit.vintage:junit-vintage-engine:${dependencyVersion}','junit:junit:4.13','org.junit.jupiter:junit-jupiter-api:${dependencyVersion}"
         } else {
             return "junit:junit:${version}"
         }

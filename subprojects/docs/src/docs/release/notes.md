@@ -3,6 +3,11 @@ The Gradle team is excited to announce Gradle @version@.
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
+
+[Danny Thomas](https://github.com/DanielThomas),
+[Daiki Hirabayashi](https://github.com/dhirabayashi),
+[Sebastian Schuberth](https://github.com/sschuberth)
+
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -32,6 +37,26 @@ details of 2
 
 ## n
 -->
+
+## Improved handling of ZIP archives on runtime classpaths
+Runtime classpath analysis can now inspect manifest and `META-INF` properties files, ignore changes to comments, and selectively ignore attributes or properties that don't impact the 
+runtime classpath.
+   
+```groovy
+normalization {
+    runtimeClasspath {
+        metaInf {
+            ignoreAttribute("Implementation-Version")
+            ignoreProperty("timestamp")
+        }
+    }
+}
+```
+
+This improves the likelihood of [build cache hits](userguide/build_cache.html) when jar and property files on the classpath are regenerated and only differ by unimportant values or comments.
+ 
+See the [userguide](userguide/more_about_tasks.html#sec:meta_inf_normalization) for further information.  Note that this API is incubating and will likely change in future releases as support 
+is expanded for normalizing properties files outside of `META-INF`.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

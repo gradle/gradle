@@ -50,6 +50,7 @@ import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.instantexecution.serialization.beans.readPropertyValue
 import org.gradle.instantexecution.serialization.beans.writeNextProperty
+import org.gradle.instantexecution.serialization.readClassOf
 import org.gradle.instantexecution.serialization.readCollection
 import org.gradle.instantexecution.serialization.readCollectionInto
 import org.gradle.instantexecution.serialization.readEnum
@@ -104,7 +105,7 @@ class TaskNodeCodec(
 
     private
     suspend fun ReadContext.readTask(): Task {
-        val taskType = readClass().asSubclass(Task::class.java)
+        val taskType = readClassOf<Task>()
         val projectPath = readString()
         val taskName = readString()
 

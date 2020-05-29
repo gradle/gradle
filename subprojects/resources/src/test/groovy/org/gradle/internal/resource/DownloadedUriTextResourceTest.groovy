@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource
 
+import org.gradle.internal.file.RelativeFilePathResolver
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -28,6 +29,7 @@ class DownloadedUriTextResourceTest extends Specification {
     private TestFile testDir
     private File downloadedFile
     private URI sourceUri
+    private RelativeFilePathResolver resolver = Mock()
 
     private TextResource underTest
 
@@ -43,7 +45,7 @@ class DownloadedUriTextResourceTest extends Specification {
 
     def "should return passed description as display name"() {
         when:
-        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile)
+        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile, resolver)
 
         then:
         underTest.getDisplayName() == "Test description '$sourceUri'"
@@ -51,7 +53,7 @@ class DownloadedUriTextResourceTest extends Specification {
 
     def "content should not be cached"() {
         when:
-        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile)
+        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile, resolver)
 
         then:
         !underTest.isContentCached()
@@ -60,7 +62,7 @@ class DownloadedUriTextResourceTest extends Specification {
     def "should have no content when downloaded file has no content"() {
         when:
         downloadedFile.text = ""
-        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile)
+        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile, resolver)
 
         then:
         underTest.getHasEmptyContent()
@@ -69,7 +71,7 @@ class DownloadedUriTextResourceTest extends Specification {
     def "should have content when downloaded file has content"() {
         when:
         downloadedFile.text = "Some content"
-        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile)
+        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile, resolver)
 
         then:
         !underTest.getHasEmptyContent()
@@ -78,7 +80,7 @@ class DownloadedUriTextResourceTest extends Specification {
     def "should return text from downloaded file"() {
         when:
         downloadedFile.text = "Some content"
-        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile)
+        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile, resolver)
 
         then:
         underTest.getText() == "Some content"
@@ -87,7 +89,7 @@ class DownloadedUriTextResourceTest extends Specification {
     def "should return reader from downloaded file"() {
         when:
         downloadedFile.text = "Some content"
-        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile)
+        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile, resolver)
 
         then:
         underTest.getAsReader().text == "Some content"
@@ -95,7 +97,7 @@ class DownloadedUriTextResourceTest extends Specification {
 
     def "should not exists when downloaded file is not initialized"() {
         when:
-        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile)
+        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile, resolver)
 
         then:
         !underTest.getExists()
@@ -104,7 +106,7 @@ class DownloadedUriTextResourceTest extends Specification {
     def "should exists when downloaded file is initialized"() {
         when:
         downloadedFile.text = "Some content"
-        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile)
+        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile, resolver)
 
         then:
         underTest.getExists()
@@ -113,7 +115,7 @@ class DownloadedUriTextResourceTest extends Specification {
     def "should not return downloaded file"() {
         when:
         downloadedFile.text = "Some content"
-        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile)
+        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile, resolver)
 
         then:
         underTest.getFile() == null
@@ -122,7 +124,7 @@ class DownloadedUriTextResourceTest extends Specification {
     def "should return charset of content type"() {
         when:
         downloadedFile.text = "Some content"
-        underTest = new DownloadedUriTextResource("Test description", sourceUri, "text/html; charset=ISO-8859-1", downloadedFile)
+        underTest = new DownloadedUriTextResource("Test description", sourceUri, "text/html; charset=ISO-8859-1", downloadedFile, resolver)
 
         then:
         underTest.getCharset() == Charset.forName("ISO-8859-1")
@@ -131,7 +133,7 @@ class DownloadedUriTextResourceTest extends Specification {
     def "should return default charset when charset is missing in content type"() {
         when:
         downloadedFile.text = "Some content"
-        underTest = new DownloadedUriTextResource("Test description", sourceUri, "text/html", downloadedFile)
+        underTest = new DownloadedUriTextResource("Test description", sourceUri, "text/html", downloadedFile, resolver)
 
         then:
         underTest.getCharset() == Charset.forName("UTF-8")
@@ -140,7 +142,7 @@ class DownloadedUriTextResourceTest extends Specification {
     def "should return default charset when content type is missing"() {
         when:
         downloadedFile.text = "Some content"
-        underTest = new DownloadedUriTextResource("Test description", sourceUri, null, downloadedFile)
+        underTest = new DownloadedUriTextResource("Test description", sourceUri, null, downloadedFile, resolver)
 
         then:
         underTest.getCharset() == Charset.forName("UTF-8")
@@ -149,7 +151,7 @@ class DownloadedUriTextResourceTest extends Specification {
     def "should return correct ResourceLocation"() {
         when:
         downloadedFile.text = "Some content"
-        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile)
+        underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile, resolver)
         def resourceLocation = underTest.getLocation()
 
         then:

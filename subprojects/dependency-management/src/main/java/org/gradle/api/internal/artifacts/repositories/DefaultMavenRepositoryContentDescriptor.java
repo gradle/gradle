@@ -54,11 +54,10 @@ class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDe
                     }
                     if (releases && version.endsWith("-SNAPSHOT")) {
                         details.notFound();
-                        return;
                     }
                 }
             };
-            if (filter == null) {
+            if (filter == Actions.doNothing()) {
                 return action;
             }
             return Actions.composite(filter, action);

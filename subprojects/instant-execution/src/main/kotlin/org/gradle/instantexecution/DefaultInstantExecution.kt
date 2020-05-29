@@ -297,7 +297,6 @@ class DefaultInstantExecution internal constructor(
             projectStateRegistry = service(),
             taskNodeFactory = service(),
             fingerprinterRegistry = service(),
-            projectFinder = service(),
             buildOperationExecutor = service(),
             classLoaderHierarchyHasher = service(),
             isolatableFactory = service(),

@@ -16,11 +16,10 @@
 
 package org.gradle.internal.locking
 
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.provider.DefaultProperty
-import org.gradle.api.internal.provider.PropertyHost
-import org.gradle.api.provider.Property
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
@@ -38,7 +37,7 @@ class LockFileReaderWriterTest extends Specification {
     LockFileReaderWriter lockFileReaderWriter
     FileResolver resolver = Mock()
     DomainObjectContext context = Mock()
-    Property<File> lockFile = new DefaultProperty<>(Stub(PropertyHost), File)
+    RegularFileProperty lockFile = TestFiles.filePropertyFactory().newFileProperty()
 
     def setup() {
         context.identityPath(_) >> { String value -> Path.path(value) }

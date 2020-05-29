@@ -24,12 +24,13 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformer
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
+import org.gradle.api.tasks.FileNormalizer
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readClassOf
 import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withCodec
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.Isolatable
@@ -54,6 +55,10 @@ class DefaultTransformerCodec(
 
     override suspend fun WriteContext.encode(value: DefaultTransformer) {
         writeClass(value.implementationClass)
+        write(value.fromAttributes)
+        writeClass(value.inputArtifactNormalizer)
+        writeClass(value.inputArtifactDependenciesNormalizer)
+        writeBoolean(value.isCacheable)
 
         // TODO - isolate now and discard node, if isolation is scheduled and has no dependencies
         // Write isolated parameters, if available, and discard the parameters
@@ -65,12 +70,14 @@ class DefaultTransformerCodec(
             writeBoolean(false)
             withCodec(userTypesCodec) { write(value.parameterObject) }
         }
-
-        // TODO - write more state
     }
 
     override suspend fun ReadContext.decode(): DefaultTransformer? {
-        val implementationClass = readClass().asSubclass(TransformAction::class.java)
+        val implementationClass = readClassOf<TransformAction<*>>()
+        val fromAttributes = readNonNull<ImmutableAttributes>()
+        val inputArtifactNormalizer = readClassOf<FileNormalizer>()
+        val inputArtifactDependenciesNormalizer = readClassOf<FileNormalizer>()
+        val isCacheable = readBoolean()
 
         val isolated = readBoolean()
         val parametersObject: TransformParameters?
@@ -88,10 +95,10 @@ class DefaultTransformerCodec(
             implementationClass,
             parametersObject,
             isolatedParametersObject,
-            ImmutableAttributes.EMPTY,
-            AbsolutePathInputNormalizer::class.java,
-            AbsolutePathInputNormalizer::class.java,
-            false,
+            fromAttributes,
+            inputArtifactNormalizer,
+            inputArtifactDependenciesNormalizer,
+            isCacheable,
             buildOperationExecutor,
             classLoaderHierarchyHasher,
             isolatableFactory,

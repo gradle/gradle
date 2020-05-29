@@ -20,7 +20,6 @@ import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.GroovyResourceLoader;
 import groovy.lang.Script;
-import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.classgen.Verifier;
@@ -146,8 +145,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             }
 
             if (packageDetector.hasPackageStatement) {
-                throw new UnsupportedOperationException(String.format("%s should not contain a package statement.",
-                    StringUtils.capitalize(source.getDisplayName())));
+                throw new UnsupportedOperationException(String.format("%s should not contain a package statement.", source.getLongDisplayName().getCapitalizedDisplayName()));
             }
             serializeMetadata(source, extractingTransformer, metadataDir, emptyScriptDetector.isEmptyScript(), emptyScriptDetector.getHasMethods());
         } finally {

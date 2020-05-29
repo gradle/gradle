@@ -22,8 +22,10 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readClassOf
+import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.impl.IsolatedArray
+import org.gradle.internal.isolation.Isolatable
 
 
 internal
@@ -34,19 +36,22 @@ class LegacyTransformerCodec(
     override suspend fun WriteContext.encode(value: LegacyTransformer) {
         writeClass(value.implementationClass)
         writeBinary(value.secondaryInputsHash.toByteArray())
-        // TODO - write more state, eg parameters
+        write(value.fromAttributes)
+        write(value.isolatableParameters)
     }
 
     override suspend fun ReadContext.decode(): LegacyTransformer? {
         @Suppress("deprecation")
-        val implementationClass = readClass().asSubclass(org.gradle.api.artifacts.transform.ArtifactTransform::class.java)
+        val implementationClass = readClassOf<org.gradle.api.artifacts.transform.ArtifactTransform>()
         val secondaryInputsHash = HashCode.fromBytes(readBinary())
+        val fromAttributes = readNonNull<ImmutableAttributes>()
+        val parameters = readNonNull<Isolatable<Array<Any>>>()
         return LegacyTransformer(
             implementationClass,
-            IsolatedArray.EMPTY,
+            parameters,
             secondaryInputsHash,
             actionScheme.instantiationScheme,
-            ImmutableAttributes.EMPTY
+            fromAttributes
         )
     }
 }
