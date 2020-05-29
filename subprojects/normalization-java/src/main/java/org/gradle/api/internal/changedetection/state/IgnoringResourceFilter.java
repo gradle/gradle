@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.file.pattern.PathMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
-import org.gradle.internal.Factory;
 import org.gradle.internal.hash.Hasher;
 
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class IgnoringResourceFilter implements ResourceFilter {
     private final Set<String> ignores;
@@ -56,10 +56,10 @@ public class IgnoringResourceFilter implements ResourceFilter {
     }
 
     @Override
-    public boolean shouldBeIgnored(Factory<String[]> relativePathFactory) {
+    public boolean shouldBeIgnored(Supplier<String[]> relativePathFactory) {
         if (ignoreMatchers.isEmpty()) {
             return false;
         }
-        return shouldBeIgnored(relativePathFactory.create());
+        return shouldBeIgnored(relativePathFactory.get());
     }
 }

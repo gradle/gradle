@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,27 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import org.gradle.api.internal.file.archive.ZipEntry
-import org.gradle.internal.file.FileMetadata.AccessType
+import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.testfixtures.internal.InMemoryIndexedCache
 import spock.lang.Specification
 
-class CachingResourceHasherTest extends Specification {
+
+class DefaultResourceSnapshotterCacheServiceTest extends Specification {
     def delegate = Mock(ResourceHasher)
     def path = "some"
-    def relativePath = ["relative", "path"]
-    private RegularFileSnapshot snapshot = new RegularFileSnapshot(path, "path", HashCode.fromInt(456), DefaultFileMetadata.file(3456, 456, AccessType.DIRECT))
-    def cachingHasher = new CachingResourceHasher(delegate, new DefaultResourceSnapshotterCacheService(new InMemoryIndexedCache(new HashCodeSerializer())))
+    def snapshot = new RegularFileSnapshot(path, "path", HashCode.fromInt(456), DefaultFileMetadata.file(3456, 456, FileMetadata.AccessType.DIRECT))
+    def snapshotterCache = new DefaultResourceSnapshotterCacheService(new InMemoryIndexedCache(new HashCodeSerializer()))
 
     def "returns result from delegate"() {
         def expectedHash = HashCode.fromInt(123)
+
         when:
-        def actualHash = cachingHasher.hash(snapshot)
+        def actualHash = snapshotterCache.hashFile(snapshot, delegate, configurationHash)
         then:
         1 * delegate.hash(snapshot) >> expectedHash
         actualHash == expectedHash
@@ -45,14 +46,14 @@ class CachingResourceHasherTest extends Specification {
     def "caches the result"() {
         def expectedHash = HashCode.fromInt(123)
         when:
-        def actualHash = cachingHasher.hash(snapshot)
+        def actualHash = snapshotterCache.hashFile(snapshot, delegate, configurationHash)
         then:
         1 * delegate.hash(snapshot) >> expectedHash
         actualHash == expectedHash
         0 * _
 
         when:
-        actualHash = cachingHasher.hash(snapshot)
+        actualHash = snapshotterCache.hashFile(snapshot, delegate, configurationHash)
         then:
         actualHash == expectedHash
         0 * _
@@ -61,40 +62,22 @@ class CachingResourceHasherTest extends Specification {
     def "caches 'no signature' results too"() {
         def noSignature = null
         when:
-        def actualHash = cachingHasher.hash(snapshot)
+        def actualHash = snapshotterCache.hashFile(snapshot, delegate, configurationHash)
         then:
         1 * delegate.hash(snapshot) >> noSignature
         actualHash == noSignature
         0 * _
 
         when:
-        actualHash = cachingHasher.hash(snapshot)
+        actualHash = snapshotterCache.hashFile(snapshot, delegate, configurationHash)
         then:
         actualHash == noSignature
         0 * _
     }
 
-    def "does not cache zip entries"() {
-        def expectedHash = HashCode.fromInt(123)
-        def zipEntry = Mock(ZipEntry)
-        def zipEntryContext = new ZipEntryContext(zipEntry, "foo", "foo.zip")
-
-        when:
-        def actualHash = cachingHasher.hash(zipEntryContext)
-
-        then:
-        1 * delegate.hash(zipEntryContext) >> expectedHash
-        0 * _
-
-        actualHash == expectedHash
-
-        when:
-        actualHash = cachingHasher.hash(zipEntryContext)
-
-        then:
-        1 * delegate.hash(zipEntryContext) >> expectedHash
-        0 * _
-
-        actualHash == expectedHash
+    private HashCode getConfigurationHash() {
+        def hasher = Hashing.newHasher()
+        hasher.putString(delegate.getClass().getName())
+        return hasher.hash()
     }
 }
