@@ -42,7 +42,7 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(BuildTreeListenerManager::class.java)
             add(InstantExecutionStartParameter::class.java)
-            add(InstantExecutionCacheInvalidation::class.java)
+            add(InstantExecutionCacheKey::class.java)
             add(InstantExecutionReport::class.java)
             add(InstantExecutionProblems::class.java)
         }

@@ -52,7 +52,7 @@ class DefaultInstantExecution internal constructor(
     private val host: Host,
     private val startParameter: InstantExecutionStartParameter,
     private val cache: InstantExecutionCache,
-    private val cacheInvalidation: InstantExecutionCacheInvalidation,
+    private val cacheKey: InstantExecutionCacheKey,
     private val problems: InstantExecutionProblems,
     private val systemPropertyListener: SystemPropertyAccessListener,
     private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
@@ -89,7 +89,7 @@ class DefaultInstantExecution internal constructor(
         }
         else -> {
             val checkedFingerprint = cache.useForFingerprintCheck(
-                cacheInvalidation.cacheKey,
+                cacheKey.string,
                 this::checkFingerprint
             )
             when (checkedFingerprint) {
@@ -136,7 +136,7 @@ class DefaultInstantExecution internal constructor(
         stopCollectingCacheFingerprint()
 
         buildOperationExecutor.withStoreOperation {
-            cache.useForStore(cacheInvalidation.cacheKey) { layout ->
+            cache.useForStore(cacheKey.string) { layout ->
                 try {
                     writeInstantExecutionFiles(layout)
                 } catch (error: InstantExecutionError) {
@@ -158,7 +158,7 @@ class DefaultInstantExecution internal constructor(
         scopeRegistryListener.dispose()
 
         buildOperationExecutor.withLoadOperation {
-            cache.useForStateLoad(cacheInvalidation.cacheKey) { stateFile ->
+            cache.useForStateLoad(cacheKey.string) { stateFile ->
                 readInstantExecutionState(stateFile)
             }
         }
