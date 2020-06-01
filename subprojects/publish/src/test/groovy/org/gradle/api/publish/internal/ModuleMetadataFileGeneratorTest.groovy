@@ -77,7 +77,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def publication = publication(component, id)
 
         when:
-        generator.generateTo(publication, [publication], writer)
+        generator.generateTo(writer, publication, [publication])
 
         then:
         InvalidUserCodeException ex = thrown()
@@ -97,7 +97,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         when:
         publication.attributes >> attributes(status: 'release', 'test': 'value')
-        generator.generateTo(publication, [publication], writer)
+        generator.generateTo(writer, publication, [publication])
 
         then:
         writer.toString() == """{
@@ -163,7 +163,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         component.usages >> [v1, v2]
 
         when:
-        generator.generateTo(publication, [publication], writer)
+        generator.generateTo(writer, publication, [publication])
 
         then:
         writer.toString() == """{
@@ -298,7 +298,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         component.usages >> [v1, v2]
 
         when:
-        generator.generateTo(publication, [publication], writer)
+        generator.generateTo(writer, publication, [publication])
 
         then:
         writer.toString() == """{
@@ -478,7 +478,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         component.usages >> [v1, v2]
 
         when:
-        generator.generateTo(publication, [publication], writer)
+        generator.generateTo(writer, publication, [publication])
 
         then:
         writer.toString() == """{
@@ -575,7 +575,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         component.usages >> [v1, v2]
 
         when:
-        generator.generateTo(publication, [publication], writer)
+        generator.generateTo(writer, publication, [publication])
 
         then:
         writer.toString() == """{
@@ -649,7 +649,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         comp2.usages >> [v2]
 
         when:
-        generator.generateTo(rootPublication, [rootPublication, publication1, publication2], writer)
+        generator.generateTo(writer, rootPublication, [rootPublication, publication1, publication2])
 
         then:
         writer.toString() == """{
@@ -721,7 +721,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         childComponent.usages >> [variant]
 
         when:
-        generator.generateTo(childPublication, [rootPublication, childPublication], writer)
+        generator.generateTo(writer, childPublication, [rootPublication, childPublication])
 
         then:
         writer.toString() == """{
@@ -782,7 +782,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         component.usages >> [v1, v2]
 
         when:
-        generator.generateTo(publication, [publication], writer)
+        generator.generateTo(writer, publication, [publication])
 
         then:
         writer.toString() == """{
@@ -878,7 +878,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         component.usages >> [v1, v2]
 
         when:
-        generator.generateTo(publication, [publication], writer)
+        generator.generateTo(writer, publication, [publication])
 
         then:
         writer.toString().contains """
@@ -960,7 +960,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         component.usages >> [v1]
 
         when:
-        generator.generateTo(publication, [publication], writer)
+        generator.generateTo(writer, publication, [publication])
 
         and:
         writer.toString()
@@ -1037,7 +1037,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         component.usages >> [v1, v2]
 
         when:
-        generator.generateTo(publication, [publication], writer)
+        generator.generateTo(writer, publication, [publication])
 
         then:
         writer.toString() == """{

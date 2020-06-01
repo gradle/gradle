@@ -96,7 +96,7 @@ public class GradleModuleMetadataWriter {
         this.checksumService = checksumService;
     }
 
-    public void generateTo(PublicationInternal<?> publication, Collection<? extends PublicationInternal<?>> publications, Writer writer) throws IOException {
+    public void generateTo(Writer writer, PublicationInternal<?> publication, Collection<? extends PublicationInternal<?>> publications) throws IOException {
         InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName());
         // Collect a map from component to coordinates. This might be better to move to the component or some publications model
         Map<SoftwareComponent, ComponentData> coordinates = new HashMap<>();
