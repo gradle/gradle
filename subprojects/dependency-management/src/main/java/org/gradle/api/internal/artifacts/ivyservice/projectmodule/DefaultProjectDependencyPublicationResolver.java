@@ -23,6 +23,8 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -35,6 +37,7 @@ import java.util.Set;
  * A service that will resolve a ProjectDependency into publication coordinates, to use for publishing.
  * For now is a simple implementation, but at some point could utilise components in the dependency project, usage in the referencing project, etc.
  */
+@ServiceScope(Scopes.Build)
 public class DefaultProjectDependencyPublicationResolver implements ProjectDependencyPublicationResolver {
     private final ProjectPublicationRegistry publicationRegistry;
     private final ProjectConfigurer projectConfigurer;
