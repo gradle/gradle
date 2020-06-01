@@ -29,7 +29,6 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
@@ -60,6 +59,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * Generates a Gradle metadata file to represent a published {@link org.gradle.api.component.SoftwareComponent} instance.
  *
@@ -69,7 +69,6 @@ public class GenerateModuleMetadata extends DefaultTask {
     private final Property<Publication> publication;
     private final ListProperty<Publication> publications;
     private final RegularFileProperty outputFile;
-    private final ChecksumService checksumService;
 
     public GenerateModuleMetadata() {
         ObjectFactory objectFactory = getProject().getObjects();
@@ -79,8 +78,6 @@ public class GenerateModuleMetadata extends DefaultTask {
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.<Task>satisfyNone());
         mustHaveAttachedComponent();
-        // injected here in order to avoid exposing in public API
-        checksumService = ((ProjectInternal)getProject()).getServices().get(ChecksumService.class);
     }
 
     private void mustHaveAttachedComponent() {
@@ -151,6 +148,16 @@ public class GenerateModuleMetadata extends DefaultTask {
     }
 
     /**
+     * Returns the {@link ChecksumService} to use.
+     *
+     * @since 6.6
+     */
+    @Inject
+    protected ChecksumService getChecksumService() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Returns the output file location.
      */
     @OutputFile
@@ -164,15 +171,22 @@ public class GenerateModuleMetadata extends DefaultTask {
         PublicationInternal<?> publication = Cast.uncheckedNonnullCast(this.publication.get());
         List<PublicationInternal<?>> publications = Cast.uncheckedCast(this.publications.get());
         try {
-            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf8"));
-            try {
-                new GradleModuleMetadataWriter(getBuildInvocationScopeId(), getProjectDependencyPublicationResolver(), checksumService).generateTo(publication, publications, writer);
-            } finally {
-                writer.close();
+            try (Writer writer = bufferedWriterFor(file)) {
+                new GradleModuleMetadataWriter(
+                    getBuildInvocationScopeId(),
+                    getProjectDependencyPublicationResolver(),
+                    getChecksumService()
+                ).generateTo(
+                    publication, publications, writer
+                );
             }
         } catch (IOException e) {
             throw new UncheckedIOException("Could not generate metadata file " + outputFile.get(), e);
         }
+    }
+
+    private BufferedWriter bufferedWriterFor(File file) throws FileNotFoundException {
+        return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), UTF_8));
     }
 
     private class VariantFiles implements MinimalFileSet, Buildable {
