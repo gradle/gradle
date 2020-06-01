@@ -11,7 +11,7 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.gradlebuild.versioning.buildVersion
-import java.util.concurrent.Executors.callable
+import java.util.concurrent.Callable
 
 
 enum class TestType(val prefix: String, val executers: List<String>, val libRepoRequired: Boolean) {
@@ -112,7 +112,7 @@ fun Project.integrationTestUsesSampleDir(vararg sampleDirs: String) {
  */
 fun Project.integrationTestUsesKotlinDslPlugins() {
     tasks.withType<IntegrationTest>().configureEach {
-        inputs.files(callable {
+        inputs.files(Callable {
             project(":kotlinDslPlugins")
                 .fileTree("build/repository")
                 .matching { include("**/*.jar") }
@@ -122,7 +122,7 @@ fun Project.integrationTestUsesKotlinDslPlugins() {
             .withPathSensitivity(PathSensitivity.RELATIVE)
             .withNormalizer(ClasspathNormalizer::class)
 
-        inputs.files(callable {
+        inputs.files(Callable {
             project(":kotlinDslPlugins")
                 .fileTree("build/repository")
                 .matching {
