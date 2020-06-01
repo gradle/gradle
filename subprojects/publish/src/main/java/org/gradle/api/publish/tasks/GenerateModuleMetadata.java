@@ -60,6 +60,8 @@ import java.util.List;
 import java.util.Set;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
+
 /**
  * Generates a Gradle metadata file to represent a published {@link org.gradle.api.component.SoftwareComponent} instance.
  *
@@ -76,19 +78,21 @@ public class GenerateModuleMetadata extends DefaultTask {
         publications = objectFactory.listProperty(Publication.class);
         outputFile = objectFactory.fileProperty();
         // TODO - should be incremental
-        getOutputs().upToDateWhen(Specs.<Task>satisfyNone());
+        getOutputs().upToDateWhen(Specs.satisfyNone());
         mustHaveAttachedComponent();
     }
 
     private void mustHaveAttachedComponent() {
-        setOnlyIf(element -> {
-            PublicationInternal<?> publication = Cast.uncheckedNonnullCast(GenerateModuleMetadata.this.publication.get());
-            if (publication.getComponent() == null) {
-                getLogger().warn(publication.getDisplayName() + " isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)");
-                return false;
-            }
-            return true;
-        });
+        setOnlyIf(spec(element -> hasAttachedComponent()));
+    }
+
+    private boolean hasAttachedComponent() {
+        PublicationInternal<?> publication = publication();
+        if (publication.getComponent() == null) {
+            getLogger().warn(publication.getDisplayName() + " isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)");
+            return false;
+        }
+        return true;
     }
 
     // TODO - this should be an input
