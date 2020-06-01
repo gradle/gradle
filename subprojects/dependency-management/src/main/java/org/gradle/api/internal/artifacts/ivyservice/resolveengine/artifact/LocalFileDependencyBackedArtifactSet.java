@@ -17,9 +17,16 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact;
+import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
+import org.gradle.api.internal.artifacts.transform.TransformCompletion;
+import org.gradle.api.internal.artifacts.transform.Transformation;
+import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry;
+import org.gradle.api.internal.artifacts.transform.TransformationResult;
+import org.gradle.api.internal.artifacts.transform.TransformingAsyncArtifactListener;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -41,9 +48,10 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
-public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet, LocalDependencyFiles {
+public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet, LocalDependencyFiles, VariantSelector.Factory {
     private static final DisplayName LOCAL_FILE = Describables.of("local file");
 
     private final LocalFileDependencyMetadata dependencyMetadata;
@@ -92,7 +100,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
             AttributeContainerInternal variantAttributes = artifactTypeRegistry.mapAttributesFor(file);
             SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, LOCAL_FILE, variantAttributes, dependencyMetadata);
-            selectedArtifacts.add(selector.select(variant));
+            selectedArtifacts.add(selector.select(variant, this));
         }
         Completion result = CompositeResolvedArtifactSet.of(selectedArtifacts.build()).startVisit(actions, listener);
         if (visitType == FileCollectionStructureVisitor.VisitType.Spec) {
@@ -105,6 +113,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
+    public ResolvedArtifactSet asTransformed(ResolvedArtifactSet artifacts, AttributeContainerInternal targetAttributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformationNodeRegistry transformationNodeRegistry) {
+        return new TransformedLocalFileArtifactSet((SingletonFileResolvedVariant) artifacts, targetAttributes, transformation, dependenciesResolver, transformationNodeRegistry);
+    }
+
+    @Override
     public void visitLocalArtifacts(LocalArtifactVisitor listener) {
         // Artifacts are not known until the file collection is queried
     }
@@ -114,7 +127,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         context.add(dependencyMetadata.getFiles().getBuildDependencies());
     }
 
-    public static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion, ResolvedVariantSet {
+    private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion, ResolvedVariantSet {
         private final ComponentArtifactIdentifier artifactIdentifier;
         private final DisplayName variantName;
         private final AttributeContainerInternal variantAttributes;
@@ -142,7 +155,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             return !dependencyMetadata.getFiles().getBuildDependencies().getDependencies(null).isEmpty();
         }
 
-        @Override
         public ComponentIdentifier getComponentId() {
             return artifactIdentifier.getComponentIdentifier();
         }
@@ -196,6 +208,57 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         @Override
         public AttributeContainerInternal getAttributes() {
             return variantAttributes;
+        }
+    }
+
+    public static class TransformedLocalFileArtifactSet implements ResolvedArtifactSet, FileCollectionInternal.Source {
+        private final SingletonFileResolvedVariant delegate;
+        private final AttributeContainerInternal attributes;
+        private final Transformation transformation;
+        private final ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver;
+        private final TransformationNodeRegistry transformationNodeRegistry;
+
+        public TransformedLocalFileArtifactSet(SingletonFileResolvedVariant delegate, AttributeContainerInternal attributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformationNodeRegistry transformationNodeRegistry) {
+            this.delegate = delegate;
+            this.attributes = attributes;
+            this.transformation = transformation;
+            this.dependenciesResolver = dependenciesResolver;
+            this.transformationNodeRegistry = transformationNodeRegistry;
+        }
+
+        public File getFile() {
+            return delegate.getFile();
+        }
+
+        public Transformation getTransformation() {
+            return transformation;
+        }
+
+        public boolean isBuildable() {
+            return delegate.isBuildable();
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            // Should not be called
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public void visitLocalArtifacts(LocalArtifactVisitor listener) {
+            // Should not be called
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
+            FileCollectionStructureVisitor.VisitType visitType = listener.prepareForVisit(this);
+            if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
+                return visitor -> visitor.endVisitCollection(TransformedLocalFileArtifactSet.this);
+            }
+            Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
+            Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, actions, artifactResults, dependenciesResolver.create(delegate.getComponentId()), transformationNodeRegistry));
+            return new TransformCompletion(result, attributes, artifactResults);
         }
     }
 }

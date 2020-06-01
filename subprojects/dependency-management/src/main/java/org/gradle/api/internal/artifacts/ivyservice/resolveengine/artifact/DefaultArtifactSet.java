@@ -24,8 +24,13 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
+import org.gradle.api.internal.artifacts.transform.ConsumerProvidedResolvedVariant;
+import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
+import org.gradle.api.internal.artifacts.transform.Transformation;
+import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
@@ -50,7 +55,7 @@ import java.util.Set;
 /**
  * Contains zero or more variants of a particular component.
  */
-public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariantSet {
+public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariantSet, VariantSelector.Factory {
     private final ComponentIdentifier componentIdentifier;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributes selectionAttributes;
@@ -59,11 +64,6 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
         this.componentIdentifier = componentIdentifier;
         this.schema = schema;
         this.selectionAttributes = selectionAttributes;
-    }
-
-    @Override
-    public ComponentIdentifier getComponentId() {
-        return componentIdentifier;
     }
 
     @Override
@@ -131,11 +131,16 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
     }
 
     @Override
+    public ResolvedArtifactSet asTransformed(ResolvedArtifactSet artifacts, AttributeContainerInternal targetAttributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformationNodeRegistry transformationNodeRegistry) {
+        return new ConsumerProvidedResolvedVariant(componentIdentifier, artifacts, targetAttributes, transformation, dependenciesResolver, transformationNodeRegistry);
+    }
+
+    @Override
     public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
         if (!componentFilter.isSatisfiedBy(componentIdentifier)) {
             return ResolvedArtifactSet.EMPTY;
         } else {
-            return selector.select(this);
+            return selector.select(this, this);
         }
     }
 

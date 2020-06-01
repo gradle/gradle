@@ -74,7 +74,6 @@ abstract class AbstractTransformationNodeCodec<T : TransformationNode> : Codec<T
 }
 
 
-private
 class FixedDependenciesResolver(private val dependencies: ArtifactTransformDependencies) : ExecutionGraphDependenciesResolver {
     override fun computeDependencyNodes(transformationStep: TransformationStep): TaskDependencyContainer {
         throw IllegalStateException()

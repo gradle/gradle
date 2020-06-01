@@ -19,15 +19,11 @@ package org.gradle.instantexecution.serialization.codecs
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFiles
-import org.gradle.api.internal.artifacts.transform.DefaultExecutionGraphDependenciesResolver.MISSING_DEPENDENCIES
-import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesResolver
+import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.transform.Transformation
 import org.gradle.api.internal.artifacts.transform.TransformationNode
-import org.gradle.api.internal.artifacts.transform.TransformationStep
 import org.gradle.api.internal.artifacts.transform.TransformationSubject
-import org.gradle.api.internal.artifacts.transform.Transformer
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
@@ -36,16 +32,15 @@ import org.gradle.api.internal.file.FilteredFileCollection
 import org.gradle.api.internal.file.SubtractingFileCollection
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.file.collections.MinimalFileSet
-import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.codecs.transform.FixedDependenciesResolver
 import org.gradle.instantexecution.serialization.decodePreservingIdentity
 import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
 import org.gradle.instantexecution.serialization.logPropertyProblem
-import org.gradle.internal.Try
 import java.io.File
 import java.util.concurrent.Callable
 
@@ -90,19 +85,7 @@ class FileCollectionCodec(
                         is FileTree -> element
                         is TransformedLocalFileSpec -> {
                             fileCollectionFactory.resolving {
-                                element.transformation.createInvocation(TransformationSubject.initial(element.origin), object : ExecutionGraphDependenciesResolver {
-                                    override fun computeDependencyNodes(transformationStep: TransformationStep): TaskDependencyContainer {
-                                        throw IllegalStateException()
-                                    }
-
-                                    override fun selectedArtifacts(transformer: Transformer): FileCollection {
-                                        throw IllegalStateException()
-                                    }
-
-                                    override fun computeArtifacts(transformer: Transformer): Try<ArtifactTransformDependencies> {
-                                        return Try.successful(MISSING_DEPENDENCIES)
-                                    }
-                                }, null).invoke().get().files
+                                element.transformation.createInvocation(TransformationSubject.initial(element.origin), FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty())), null).invoke().get().files
                             }
                         }
                         else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
@@ -156,23 +139,19 @@ class CollectingVisitor : FileCollectionStructureVisitor {
                 // Some transforms are scheduled, so visit the source rather than the files
                 return FileCollectionStructureVisitor.VisitType.NoContents
             }
-            val backingVariant = source.source
-            if (backingVariant is LocalFileDependencyBackedArtifactSet.SingletonFileResolvedVariant && backingVariant.isBuildable) {
-                // Some transforms have task outputs as inputs, so visit the source rather than the files
-                return FileCollectionStructureVisitor.VisitType.NoContents
-            }
+        }
+        if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet && source.isBuildable) {
+            // Some transforms have task outputs as inputs, so visit the source rather than the files
+            return FileCollectionStructureVisitor.VisitType.NoContents
         }
         return FileCollectionStructureVisitor.VisitType.Visit
     }
 
     override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) {
         if (source is ConsumerProvidedVariantFiles) {
-            if (source.scheduledNodes.isNotEmpty()) {
-                elements.addAll(source.scheduledNodes)
-            } else {
-                val backingVariant = source.source as LocalFileDependencyBackedArtifactSet.SingletonFileResolvedVariant
-                elements.add(TransformedLocalFileSpec(backingVariant.file, source.transformation))
-            }
+            elements.addAll(source.scheduledNodes)
+        } else if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet) {
+            elements.add(TransformedLocalFileSpec(source.file, source.transformation))
         } else {
             elements.addAll(contents)
         }
