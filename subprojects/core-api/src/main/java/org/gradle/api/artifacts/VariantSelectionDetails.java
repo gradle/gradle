@@ -46,9 +46,16 @@ public interface VariantSelectionDetails {
 
     /**
      * Replaces the provided selector attributes with the attributes configured
-     * in the configuration action.
+     * via the configuration action.
      * @param configurationAction the configuration action
      */
     void attributes(Action<? super AttributeContainer> configurationAction);
+
+    /**
+     * Replaces the provided selector capabilities with the capabilities configured
+     * via the configuration action.
+     * @param configurationAction the configuration action
+     */
+    void capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configurationAction);
 
 }

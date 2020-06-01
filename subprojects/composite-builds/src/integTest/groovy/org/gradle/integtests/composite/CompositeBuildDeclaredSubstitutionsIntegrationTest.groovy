@@ -310,6 +310,78 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         'module("org.test:platform")'           | 'project(":")'
     }
 
+    @ToBeFixedForInstantExecution
+    def "preserves the requested capabilities when performing a composite substitution"() {
+        buildA.buildFile << """
+            dependencies {
+                implementation('org.test:buildB:1.0') {
+                    capabilities {
+                        requireCapability 'org.test:buildB-test-fixtures'
+                    }
+                }
+            }
+        """
+
+        buildB.buildFile << """
+            apply plugin: 'java-test-fixtures'
+        """
+        when:
+        includeBuild buildB
+
+        then:
+        resolvedGraph {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "testFixturesRuntimeElements"
+                compositeSubstitute()
+                artifact name: 'buildB'
+                artifact classifier: 'test-fixtures'
+                project(":buildB", "org.test:buildB:2.0") {
+                }
+            }
+        }
+
+    }
+
+    @ToBeFixedForInstantExecution
+    def "preserves the requested capabilities when performing a composite substitution using mapping"() {
+        buildA.buildFile << """
+            dependencies {
+                implementation('org.test:buildB:1.0') {
+                    capabilities {
+                        requireCapability 'org.test:buildB-test-fixtures'
+                    }
+                }
+            }
+        """
+
+        buildB.buildFile << """
+            apply plugin: 'java-test-fixtures'
+        """
+
+        when:
+        includeBuild buildB, """
+            substitute $source with $dest
+        """
+
+        then:
+        resolvedGraph {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "testFixturesRuntimeElements"
+                compositeSubstitute()
+                artifact name: 'buildB'
+                artifact classifier: 'test-fixtures'
+                project(":buildB", "org.test:buildB:2.0") {
+                }
+            }
+        }
+
+        where:
+        source                                                                                                  | dest
+        "module('org.test:buildB')"                                                                             | "project(':')"
+        "variant(module('org.test:buildB')) { capabilities { requireCapability('org:buildB-test-fixtures') } }" | "project(':')"
+        "module('org.test:buildB')"                                                                             | "variant(project(':')) { capabilities { requireCapability('org:should-not-be-used') } }"
+    }
+
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
         resolve.prepare()
         execute(buildA, ":checkDeps", buildArgs)
