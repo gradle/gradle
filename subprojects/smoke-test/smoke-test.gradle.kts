@@ -131,6 +131,8 @@ tasks {
     withType<SmokeTest>().configureEach {
         dependsOn(remoteProjects)
         inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
-        inputs.files(Callable { remoteProjects.map { it.outputDirectory } }).withPropertyName("remoteProjectsSource")
+        inputs.files(Callable { remoteProjects.map { it.outputDirectory } })
+            .withPropertyName("remoteProjectsSource")
+            .withPathSensitivity(PathSensitivity.RELATIVE)
     }
 }
