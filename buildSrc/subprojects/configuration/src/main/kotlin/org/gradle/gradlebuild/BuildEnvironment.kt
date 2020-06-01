@@ -11,6 +11,7 @@ object BuildEnvironment {
     const val BUILD_COMMIT_ID = "BUILD_COMMIT_ID"
 
     val isCiServer = CI_ENVIRONMENT_VARIABLE in System.getenv()
+    val isIntelliJIDEA = System.getProperty("idea.version") != null
     val isTravis = "TRAVIS" in System.getenv()
     val isJenkins = "JENKINS_HOME" in System.getenv()
     val jvm = org.gradle.internal.jvm.Jvm.current()
