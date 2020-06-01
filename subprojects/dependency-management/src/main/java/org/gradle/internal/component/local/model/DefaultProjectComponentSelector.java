@@ -18,6 +18,7 @@ package org.gradle.internal.component.local.model;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
@@ -168,6 +169,18 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
             current.projectName,
             attributes,
             current.requestedCapabilities
+        );
+    }
+
+    public static ComponentSelector withCapabilities(ProjectComponentSelector selector, List<Capability> requestedCapabilities) {
+        DefaultProjectComponentSelector current = (DefaultProjectComponentSelector) selector;
+        return new DefaultProjectComponentSelector(
+            current.buildIdentifier,
+            current.identityPath,
+            current.projectPath,
+            current.projectName,
+            current.attributes,
+            requestedCapabilities
         );
     }
 

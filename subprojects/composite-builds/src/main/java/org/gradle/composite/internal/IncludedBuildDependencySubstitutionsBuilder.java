@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
@@ -24,6 +25,7 @@ import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,17 +37,20 @@ public class IncludedBuildDependencySubstitutionsBuilder {
     private final Instantiator instantiator;
     private final ObjectFactory objectFactory;
     private final ImmutableAttributesFactory attributesFactory;
+    private final NotationParser<Object, Capability> capabilitiesParser;
 
     public IncludedBuildDependencySubstitutionsBuilder(CompositeBuildContext context,
                                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                        Instantiator instantiator,
                                                        ObjectFactory objectFactory,
-                                                       ImmutableAttributesFactory attributesFactory) {
+                                                       ImmutableAttributesFactory attributesFactory,
+                                                       NotationParser<Object, Capability> capabilitiesParser) {
         this.context = context;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.instantiator = instantiator;
         this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
+        this.capabilitiesParser = capabilitiesParser;
     }
 
     public void build(IncludedBuildState build) {
@@ -61,7 +66,7 @@ public class IncludedBuildDependencySubstitutionsBuilder {
     }
 
     private DependencySubstitutionsInternal resolveDependencySubstitutions(IncludedBuildState build) {
-        DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(build, moduleIdentifierFactory, instantiator, objectFactory, attributesFactory);
+        DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(build, moduleIdentifierFactory, instantiator, objectFactory, attributesFactory, capabilitiesParser);
         build.getRegisteredDependencySubstitutions().execute(dependencySubstitutions);
         return dependencySubstitutions;
     }

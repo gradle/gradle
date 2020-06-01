@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ArtifactSelectionDetails;
 import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.DependencySubstitutions;
+import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VariantSelectionDetails;
@@ -31,11 +32,14 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableModuleDependencyCapabilitiesHandler;
+import org.gradle.api.internal.artifacts.dependencies.ModuleDependencyCapabilitiesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -69,6 +73,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     private final Instantiator instantiator;
     private final ObjectFactory objectFactory;
     private final ImmutableAttributesFactory attributesFactory;
+    private final NotationParser<Object, Capability> capabilityNotationParser;
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
     private boolean hasDependencySubstitutionRule;
@@ -84,7 +89,8 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
                                                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                                        Instantiator instantiator,
                                                                        ObjectFactory objectFactory,
-                                                                       ImmutableAttributesFactory attributesFactory) {
+                                                                       ImmutableAttributesFactory attributesFactory,
+                                                                       NotationParser<Object, Capability> capabilityNotationParser) {
         NotationParser<Object, ComponentSelector> projectSelectorNotationParser = NotationParserBuilder
             .toType(ComponentSelector.class)
             .fromCharSequence(new ProjectPathConverter(componentIdentifierFactory))
@@ -95,25 +101,21 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             moduleIdentifierFactory,
             instantiator,
             objectFactory,
-            attributesFactory);
+            attributesFactory,
+            capabilityNotationParser);
     }
 
     public static DefaultDependencySubstitutions forIncludedBuild(IncludedBuildState build,
                                                                   ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                                   Instantiator instantiator,
                                                                   ObjectFactory objectFactory,
-                                                                  ImmutableAttributesFactory attributesFactory) {
+                                                                  ImmutableAttributesFactory attributesFactory,
+                                                                  NotationParser<Object, Capability> capabilityNotationParser) {
         NotationParser<Object, ComponentSelector> projectSelectorNotationParser = NotationParserBuilder
             .toType(ComponentSelector.class)
             .fromCharSequence(new CompositeProjectPathConverter(build))
             .toComposite();
-        return new DefaultDependencySubstitutions(ComponentSelectionReasons.COMPOSITE_BUILD, projectSelectorNotationParser, moduleIdentifierFactory, instantiator, objectFactory, attributesFactory) {
-            @Override
-            protected void addSubstitution(Action<? super DependencySubstitution> rule, boolean projectInvolved) {
-                CompositeBuildSubstitutionAction decorated = new CompositeBuildSubstitutionAction(rule, build);
-                super.addSubstitution(decorated, projectInvolved);
-            }
-        };
+        return instantiator.newInstance(CompositeBuildAwareSubstitutions.class, projectSelectorNotationParser, moduleIdentifierFactory, instantiator, objectFactory, attributesFactory, capabilityNotationParser, build);
     }
 
     @Inject
@@ -122,8 +124,9 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                           Instantiator instantiator,
                                           ObjectFactory objectFactory,
-                                          ImmutableAttributesFactory attributesFactory) {
-        this(reason, new LinkedHashSet<>(), moduleSelectorNotationConverter(moduleIdentifierFactory), projectSelectorNotationParser, instantiator, objectFactory, attributesFactory);
+                                          ImmutableAttributesFactory attributesFactory,
+                                          NotationParser<Object, Capability> capabilityNotationParser) {
+        this(reason, new LinkedHashSet<>(), moduleSelectorNotationConverter(moduleIdentifierFactory), projectSelectorNotationParser, instantiator, objectFactory, attributesFactory, capabilityNotationParser);
     }
 
     private DefaultDependencySubstitutions(ComponentSelectionDescriptor reason,
@@ -132,7 +135,8 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
                                            NotationParser<Object, ComponentSelector> projectSelectorNotationParser,
                                            Instantiator instantiator,
                                            ObjectFactory objectFactory,
-                                           ImmutableAttributesFactory attributesFactory) {
+                                           ImmutableAttributesFactory attributesFactory,
+                                           NotationParser<Object, Capability> capabilityNotationParser) {
         this.reason = reason;
         this.substitutionRules = substitutionRules;
         this.moduleSelectorNotationParser = moduleSelectorNotationParser;
@@ -140,6 +144,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         this.instantiator = instantiator;
         this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
+        this.capabilityNotationParser = capabilityNotationParser;
     }
 
     @Override
@@ -197,6 +202,8 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         DefaultVariantSelectionDetails details = instantiator.newInstance(DefaultVariantSelectionDetails.class,
             attributesFactory,
             objectFactory,
+            capabilityNotationParser,
+            instantiator,
             selector);
         detailsAction.execute(details);
         return details.selector;
@@ -273,7 +280,8 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             projectSelectorNotationParser,
             instantiator,
             objectFactory,
-            attributesFactory);
+            attributesFactory,
+            capabilityNotationParser);
     }
 
     private static class ProjectPathConverter implements NotationConverter<String, ProjectComponentSelector> {
@@ -355,7 +363,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
                 }
 
                 // Implicitly set the substituted dependency attributes as the target dependency attributes
-                private Object addImplicitRequestAttributes(Object notation) {
+                private Object addImplicitRequestAttributesAndCapabilities(Object notation) {
                     if (notation instanceof ProjectComponentSelector) {
                         ProjectComponentIdentifier id = CompositeProjectPathConverter.identifierForProject(build, ((ProjectComponentSelector) notation).getProjectPath());
                         ComponentSelector requested = getRequested();
@@ -370,17 +378,17 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
 
                 @Override
                 public void useTarget(Object notation, ComponentSelectionDescriptor ruleDescriptor) {
-                    ds.useTarget(addImplicitRequestAttributes(notation), ruleDescriptor);
+                    ds.useTarget(addImplicitRequestAttributesAndCapabilities(notation), ruleDescriptor);
                 }
 
                 @Override
                 public void useTarget(Object notation) {
-                    ds.useTarget(addImplicitRequestAttributes(notation));
+                    ds.useTarget(addImplicitRequestAttributesAndCapabilities(notation));
                 }
 
                 @Override
                 public void useTarget(Object notation, String reason) {
-                    ds.useTarget(addImplicitRequestAttributes(notation), reason);
+                    ds.useTarget(addImplicitRequestAttributesAndCapabilities(notation), reason);
                 }
 
                 @Override
@@ -497,14 +505,20 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     public static class DefaultVariantSelectionDetails implements VariantSelectionDetails {
         private final ImmutableAttributesFactory attributesFactory;
         private final ObjectFactory objectFactory;
+        private final NotationParser<Object, Capability> capabilityNotationParser;
+        private final Instantiator instantatior;
         private ComponentSelector selector;
 
         @Inject
         public DefaultVariantSelectionDetails(ImmutableAttributesFactory attributesFactory,
                                               ObjectFactory objectFactory,
+                                              NotationParser<Object, Capability> capabilityNotationParser,
+                                              Instantiator instantatior,
                                               ComponentSelector selector) {
             this.attributesFactory = attributesFactory;
             this.objectFactory = objectFactory;
+            this.capabilityNotationParser = capabilityNotationParser;
+            this.instantatior = instantatior;
             this.selector = selector;
         }
 
@@ -547,6 +561,35 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             } else if (selector instanceof ModuleComponentSelector) {
                 selector = DefaultModuleComponentSelector.withAttributes((ModuleComponentSelector) selector, container.asImmutable());
             }
+        }
+
+        @Override
+        public void capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configurationAction) {
+            ModuleDependencyCapabilitiesInternal handler = instantatior.newInstance(DefaultMutableModuleDependencyCapabilitiesHandler.class,
+                capabilityNotationParser
+            );
+            configurationAction.execute(handler);
+            if (selector instanceof ProjectComponentSelector) {
+                selector = DefaultProjectComponentSelector.withCapabilities((ProjectComponentSelector) selector, handler.getRequestedCapabilities());
+            } else if (selector instanceof ModuleComponentSelector) {
+                selector = DefaultModuleComponentSelector.withCapabilities((ModuleComponentSelector) selector, handler.getRequestedCapabilities());
+            }
+        }
+    }
+
+    public static class CompositeBuildAwareSubstitutions extends DefaultDependencySubstitutions {
+        private final IncludedBuildState build;
+
+        @Inject
+        public CompositeBuildAwareSubstitutions(NotationParser<Object, ComponentSelector> projectSelectorNotationParser, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Instantiator instantiator, ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory, NotationParser<Object, Capability> capabilityNotationParser, IncludedBuildState build) {
+            super(ComponentSelectionReasons.COMPOSITE_BUILD, projectSelectorNotationParser, moduleIdentifierFactory, instantiator, objectFactory, attributesFactory, capabilityNotationParser);
+            this.build = build;
+        }
+
+        @Override
+        protected void addSubstitution(Action<? super DependencySubstitution> rule, boolean projectInvolved) {
+            CompositeBuildSubstitutionAction decorated = new CompositeBuildSubstitutionAction(rule, build);
+            super.addSubstitution(decorated, projectInvolved);
         }
     }
 }

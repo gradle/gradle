@@ -18,6 +18,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -139,5 +140,177 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
             'variant(module("org:lib:1.0")) { attributes { attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.REGULAR_PLATFORM)) } }',
         ]
 
+    }
+
+    @ToBeFixedForInstantExecution(because = "fails serialization of resolution error")
+    def "can substitute a dependency without capabilities with a dependency with capabilities"() {
+        mavenRepo.module("org", "lib", "1.0").publish()
+
+        buildFile << """
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf {
+                    resolutionStrategy.dependencySubstitution {
+                        substitute module('org:lib:1.0') with variant(module('org:lib:1.0')) {
+                            capabilities {
+                                requireCapability 'org:lib-test-fixtures'
+                            }
+                        }
+                    }
+                }
+            }
+
+            dependencies {
+                conf 'org:lib:1.0'
+            }
+        """
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause "Unable to find a variant of org:lib:1.0 providing the requested capability org:lib-test-fixtures:"
+    }
+
+    def "can substitute a project dependency without capabilities with a dependency with capabilities"() {
+        mavenRepo.module("org", "lib", "1.0").publish()
+
+        buildFile << """
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf {
+                    resolutionStrategy.dependencySubstitution {
+                        substitute project(':other') with variant(module('org:lib:1.0')) {
+                            capabilities {
+                                requireCapability 'org:lib-test-fixtures'
+                            }
+                        }
+                    }
+                }
+            }
+
+            dependencies {
+                conf project(":other")
+            }
+        """
+
+        settingsFile << """
+            include 'other'
+        """
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause "Unable to find a variant of org:lib:1.0 providing the requested capability org:lib-test-fixtures:"
+    }
+
+    def "can substitute a dependency with capabilities with a dependency without capabilities"() {
+        mavenRepo.module("org", "lib", "1.0").publish()
+
+        buildFile << """
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf {
+                    resolutionStrategy.dependencySubstitution {
+                        substitute variant(module('org:lib:1.0')) {
+                            capabilities {
+                                requireCapability 'org:lib-test-fixtures'
+                            }
+                        } with module('org:lib:1.0')
+                    }
+                }
+            }
+
+            dependencies {
+                conf('org:lib:1.0') {
+                    capabilities {
+                        requireCapability 'org:lib-test-fixtures'
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":depsub:") {
+                edge('org:lib:1.0', 'org:lib:1.0') {
+                    variant('runtime', [
+                        'org.gradle.category': 'library',
+                        'org.gradle.libraryelements': 'jar',
+                        'org.gradle.status': 'release',
+                        'org.gradle.usage': 'java-runtime'
+                    ])
+                    selectedByRule()
+                }
+            }
+        }
+    }
+
+    def "can substitute a dependency with capabilities with a project dependency without capabilities"() {
+        buildFile << """
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf {
+                    resolutionStrategy.dependencySubstitution {
+                        substitute variant(module('org:lib:1.0')) {
+                            capabilities {
+                                requireCapability 'org:lib-test-fixtures'
+                            }
+                        } with project(':other')
+                    }
+                }
+            }
+
+            dependencies {
+                conf('org:lib:1.0') {
+                    capabilities {
+                        requireCapability 'org:lib-test-fixtures'
+                    }
+                }
+            }
+        """
+
+        settingsFile << """
+            include 'other'
+        """
+        file("other/build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+            group = 'org'
+        """
+
+        when:
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":depsub:") {
+                edge('org:lib:1.0', 'project :other', 'org:other:') {
+                    configuration = 'runtimeElements'
+                    selectedByRule()
+                }
+            }
+        }
     }
 }

@@ -64,7 +64,7 @@ public class JvmLibraryResolveContext implements ResolveContext {
         this.displayName = displayName;
         this.variants = variants;
         this.dependencies = dependencies;
-        this.resolutionStrategy = new DefaultResolutionStrategy(DependencySubstitutionRules.NO_OP, VcsMappingsStore.NO_OP, null, moduleIdentifierFactory, null, NoOpDependencyLockingProvider.getInstance(), new DefaultCapabilitiesResolution(new CapabilityNotationParserFactory(false).create(), new ComponentIdentifierParserFactory().create()), DirectInstantiator.INSTANCE, null, null);
+        this.resolutionStrategy = new DefaultResolutionStrategy(DependencySubstitutionRules.NO_OP, VcsMappingsStore.NO_OP, null, moduleIdentifierFactory, null, NoOpDependencyLockingProvider.getInstance(), new DefaultCapabilitiesResolution(new CapabilityNotationParserFactory(false).create(), new ComponentIdentifierParserFactory().create()), DirectInstantiator.INSTANCE, null, null, new CapabilityNotationParserFactory(false).create());
     }
 
     @Override

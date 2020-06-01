@@ -16,7 +16,9 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
@@ -35,6 +37,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.service.scopes.BuildTreeScopeServices;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 
@@ -60,7 +63,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
                                                               ObjectFactory objectFactory,
                                                               ImmutableAttributesFactory attributesFactory) {
             IncludedBuildFactory includedBuildFactory = new DefaultIncludedBuildFactory(instantiator, workerLeaseService);
-            IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, moduleIdentifierFactory, instantiator, objectFactory, attributesFactory);
+            NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
+            IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, moduleIdentifierFactory, instantiator, objectFactory, attributesFactory, capabilityNotationParser);
             return new DefaultIncludedBuildRegistry(includedBuildFactory, dependencySubstitutionsBuilder, gradleLauncherFactory, listenerManager, (BuildTreeScopeServices) rootServices);
         }
 
