@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
+import spock.lang.Unroll
 
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
@@ -271,6 +272,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
     }
 
     @ToBeFixedForInstantExecution
+    @Unroll
     def "preserves the requested attributes when performing a composite substitution using mapping"() {
         platformDependency 'org.test:platform:1.0'
 
@@ -287,7 +289,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         when:
         includeBuild(platform, """
-            substitute platform(module("org.test:platform")) with platform(project(":"))
+            substitute $source with $dest
         """)
 
         then:
@@ -299,6 +301,13 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
             }
         }
 
+        where:
+        source                                  | dest
+        'platform(module("org.test:platform"))' | 'platform(project(":"))'
+        'module("org.test:platform")'           | 'platform(project(":"))'
+        'platform(module("org.test:platform"))' | 'project(":")'
+        'module("org.test:platform")'           | 'project(":")'
+        'module("org.test:platform")'           | 'project(":")'
     }
 
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
