@@ -172,13 +172,17 @@ class CommonFileSystemTest extends Specification {
     }
 
     def lastModified(File file) {
-        return Files.getFileAttributeView(file.toPath(), BasicFileAttributeView, LinkOption.NOFOLLOW_LINKS).readAttributes().lastModifiedTime().toMillis()
+        return normalize(Files.getFileAttributeView(file.toPath(), BasicFileAttributeView, LinkOption.NOFOLLOW_LINKS).readAttributes().lastModifiedTime().toMillis())
     }
 
     def lastModified(FileMetadata fileMetadata) {
+        return normalize(fileMetadata.lastModified)
+    }
+
+    def normalize(long time) {
         // Java 8 on Unix only captures the seconds in lastModified, so we cut it off the value returned from the filesystem as well
         return (JavaVersion.current().java9Compatible || OperatingSystem.current().windows)
-            ? fileMetadata.lastModified
-            : fileMetadata.lastModified.intdiv(1000) * 1000
+            ? time
+            : time.intdiv(1000) * 1000
     }
 }
