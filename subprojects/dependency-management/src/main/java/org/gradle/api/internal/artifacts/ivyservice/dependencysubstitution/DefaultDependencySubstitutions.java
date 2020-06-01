@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VariantSelectionDetails;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.attributes.AttributeContainer;
@@ -56,6 +57,7 @@ import org.gradle.util.Path;
 
 import javax.inject.Inject;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -102,19 +104,25 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
                                                                   ObjectFactory objectFactory,
                                                                   ImmutableAttributesFactory attributesFactory) {
         NotationParser<Object, ComponentSelector> projectSelectorNotationParser = NotationParserBuilder
-                .toType(ComponentSelector.class)
-                .fromCharSequence(new CompositeProjectPathConverter(build))
-                .toComposite();
-        return new DefaultDependencySubstitutions(ComponentSelectionReasons.COMPOSITE_BUILD, projectSelectorNotationParser, moduleIdentifierFactory, instantiator, objectFactory, attributesFactory);
+            .toType(ComponentSelector.class)
+            .fromCharSequence(new CompositeProjectPathConverter(build))
+            .toComposite();
+        return new DefaultDependencySubstitutions(ComponentSelectionReasons.COMPOSITE_BUILD, projectSelectorNotationParser, moduleIdentifierFactory, instantiator, objectFactory, attributesFactory) {
+            @Override
+            protected void addSubstitution(Action<? super DependencySubstitution> rule, boolean projectInvolved) {
+                CompositeBuildSubstitutionAction decorated = new CompositeBuildSubstitutionAction(rule, build);
+                super.addSubstitution(decorated, projectInvolved);
+            }
+        };
     }
 
     @Inject
     public DefaultDependencySubstitutions(ComponentSelectionDescriptor reason,
-                                           NotationParser<Object, ComponentSelector> projectSelectorNotationParser,
-                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                           Instantiator instantiator,
-                                           ObjectFactory objectFactory,
-                                           ImmutableAttributesFactory attributesFactory) {
+                                          NotationParser<Object, ComponentSelector> projectSelectorNotationParser,
+                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                          Instantiator instantiator,
+                                          ObjectFactory objectFactory,
+                                          ImmutableAttributesFactory attributesFactory) {
         this(reason, new LinkedHashSet<>(), moduleSelectorNotationConverter(moduleIdentifierFactory), projectSelectorNotationParser, instantiator, objectFactory, attributesFactory);
     }
 
@@ -144,7 +152,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         return Actions.composite(substitutionRules);
     }
 
-    private void addSubstitution(Action<? super DependencySubstitution> rule, boolean projectInvolved) {
+    protected void addSubstitution(Action<? super DependencySubstitution> rule, boolean projectInvolved) {
         addRule(rule);
         if (projectInvolved) {
             hasDependencySubstitutionRule = true;
@@ -200,6 +208,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             Action<? super ArtifactSelectionDetails> artifactAction = Actions.doNothing();
 
             ComponentSelectionDescriptorInternal substitutionReason = (ComponentSelectionDescriptorInternal) reason;
+
             @Override
             public Substitution because(String description) {
                 substitutionReason = substitutionReason.withDescription(Describables.of(description));
@@ -299,7 +308,86 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
 
         @Override
         public void convert(String notation, NotationConvertResult<? super ProjectComponentSelector> result) throws TypeConversionException {
-            result.converted(DefaultProjectComponentSelector.newSelector(build.getIdentifierForProject(Path.path(notation))));
+            result.converted(DefaultProjectComponentSelector.newSelector(identifierForProject(build, notation)));
+        }
+
+        static ProjectComponentIdentifier identifierForProject(IncludedBuildState build, String notation) {
+            return build.getIdentifierForProject(Path.path(notation));
+        }
+    }
+
+    private static class CompositeBuildSubstitutionAction implements Action<DependencySubstitution> {
+        private final Action<? super DependencySubstitution> delegate;
+        private final IncludedBuildState build;
+
+        private CompositeBuildSubstitutionAction(Action<? super DependencySubstitution> delegate, IncludedBuildState build) {
+            this.delegate = delegate;
+            this.build = build;
+        }
+
+        @Override
+        public void execute(DependencySubstitution dependencySubstitution) {
+            DependencySubstitutionInternal ds = (DependencySubstitutionInternal) dependencySubstitution;
+            delegate.execute(new DependencySubstitutionInternal() {
+                @Override
+                public ComponentSelector getTarget() {
+                    return ds.getTarget();
+                }
+
+                @Override
+                public List<ComponentSelectionDescriptorInternal> getRuleDescriptors() {
+                    return ds.getRuleDescriptors();
+                }
+
+                @Override
+                public boolean isUpdated() {
+                    return ds.isUpdated();
+                }
+
+                @Override
+                public ArtifactSelectionDetailsInternal getArtifactSelectionDetails() {
+                    return ds.getArtifactSelectionDetails();
+                }
+
+                @Override
+                public ComponentSelector getRequested() {
+                    return ds.getRequested();
+                }
+
+                // Implicitly set the substituted dependency attributes as the target dependency attributes
+                private Object addImplicitRequestAttributes(Object notation) {
+                    if (notation instanceof ProjectComponentSelector) {
+                        ProjectComponentIdentifier id = CompositeProjectPathConverter.identifierForProject(build, ((ProjectComponentSelector) notation).getProjectPath());
+                        ComponentSelector requested = getRequested();
+                        return DefaultProjectComponentSelector.newSelector(
+                            id,
+                            ((AttributeContainerInternal) requested.getAttributes()).asImmutable(),
+                            requested.getRequestedCapabilities()
+                        );
+                    }
+                    return notation;
+                }
+
+                @Override
+                public void useTarget(Object notation, ComponentSelectionDescriptor ruleDescriptor) {
+                    ds.useTarget(addImplicitRequestAttributes(notation), ruleDescriptor);
+                }
+
+                @Override
+                public void useTarget(Object notation) {
+                    ds.useTarget(addImplicitRequestAttributes(notation));
+                }
+
+                @Override
+                public void useTarget(Object notation, String reason) {
+                    ds.useTarget(addImplicitRequestAttributes(notation), reason);
+                }
+
+                @Override
+                public void artifactSelection(Action<? super ArtifactSelectionDetails> action) {
+                    ds.artifactSelection(action);
+                }
+            });
         }
     }
 
