@@ -23,6 +23,8 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
 import javax.annotation.Nullable;
@@ -30,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@ServiceScope(Scopes.BuildSession)
 public class DefaultImmutableAttributesFactory implements ImmutableAttributesFactory {
     private final ImmutableAttributes root;
     private final Map<ImmutableAttributes, List<DefaultImmutableAttributes>> children;
