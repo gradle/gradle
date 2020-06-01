@@ -57,10 +57,11 @@ import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInte
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
-import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
@@ -70,6 +71,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+
+import static java.lang.String.format;
+import static org.gradle.util.GUtil.elvis;
 
 /**
  * <p>The Gradle module metadata file generator is responsible for generating a JSON file
@@ -97,7 +101,6 @@ public class GradleModuleMetadataWriter {
     }
 
     public void generateTo(Writer writer, PublicationInternal<?> publication, Collection<? extends PublicationInternal<?>> publications) throws IOException {
-        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName());
         // Collect a map from component to coordinates. This might be better to move to the component or some publications model
         Map<SoftwareComponent, ComponentData> coordinates = new HashMap<>();
         collectCoordinates(publications, coordinates);
@@ -106,13 +109,28 @@ public class GradleModuleMetadataWriter {
         Map<SoftwareComponent, SoftwareComponent> owners = new HashMap<>();
         collectOwners(publications, owners);
 
+        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName());
+
         // Write the output
         JsonWriter jsonWriter = new JsonWriter(writer);
         jsonWriter.setHtmlSafe(false);
         jsonWriter.setIndent("  ");
-        writeComponentWithVariants(publication, publication.getComponent(), coordinates, owners, jsonWriter, checker);
+
+        new ModuleMetadataJsonWriter(
+            jsonWriter,
+            checker,
+            checksumService,
+            projectDependencyResolver,
+            buildInvocationScopeId.getId().asString(),
+            publication,
+            publication.getComponent(),
+            coordinates,
+            owners
+        ).write();
+
         jsonWriter.flush();
         writer.append('\n');
+
         checker.validate();
     }
 
@@ -129,489 +147,479 @@ public class GradleModuleMetadataWriter {
 
     private void collectCoordinates(Collection<? extends PublicationInternal<?>> publications, Map<SoftwareComponent, ComponentData> coordinates) {
         for (PublicationInternal<?> publication : publications) {
-            if (publication.getComponent() != null) {
-                ModuleVersionIdentifier moduleVersionIdentifier = publication.getCoordinates();
-                ImmutableAttributes attributes = publication.getAttributes();
-                coordinates.put(publication.getComponent(), new ComponentData(moduleVersionIdentifier, attributes));
+            SoftwareComponentInternal component = publication.getComponent();
+            if (component != null) {
+                coordinates.put(
+                    component,
+                    new ComponentData(publication.getCoordinates(), publication.getAttributes())
+                );
             }
         }
     }
 
-    private void writeComponentWithVariants(PublicationInternal<?> publication, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, Map<SoftwareComponent, SoftwareComponent> owners, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
-        jsonWriter.beginObject();
-        writeFormat(jsonWriter);
-        writeIdentity(publication.getCoordinates(), publication.getAttributes(), component, componentCoordinates, owners, jsonWriter);
-        writeCreator(publication, jsonWriter);
-        writeVariants(publication, component, componentCoordinates, jsonWriter, checker);
-        jsonWriter.endObject();
-    }
+    class ModuleMetadataJsonWriter extends JsonWriterScope {
 
-    private void writeVersionConstraint(ImmutableVersionConstraint immutableVersionConstraint, String resolvedVersion, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
-        checker.sawDependencyOrConstraint();
-        if (resolvedVersion == null && DefaultImmutableVersionConstraint.of().equals(immutableVersionConstraint)) {
-            return;
+        private final String buildId;
+        private final PublicationInternal<?> publication;
+        private final SoftwareComponentInternal component;
+        private final Map<SoftwareComponent, ComponentData> componentCoordinates;
+        private final Map<SoftwareComponent, SoftwareComponent> owners;
+        private final InvalidPublicationChecker checker;
+        private final ProjectDependencyPublicationResolver projectDependencyResolver;
+        private final ChecksumService checksumService;
+
+        public ModuleMetadataJsonWriter(
+            JsonWriter jsonWriter,
+            InvalidPublicationChecker checker,
+            ChecksumService checksumService,
+            ProjectDependencyPublicationResolver projectDependencyResolver,
+            String buildId,
+            PublicationInternal<?> publication,
+            SoftwareComponentInternal component,
+            Map<SoftwareComponent, ComponentData> componentCoordinates,
+            Map<SoftwareComponent, SoftwareComponent> owners
+        ) {
+            super(jsonWriter);
+            this.buildId = buildId;
+            this.publication = publication;
+            this.component = component;
+            this.componentCoordinates = componentCoordinates;
+            this.owners = owners;
+            this.checker = checker;
+            this.projectDependencyResolver = projectDependencyResolver;
+            this.checksumService = checksumService;
         }
-        checker.sawVersion();
 
-        jsonWriter.name("version");
-        jsonWriter.beginObject();
-
-        boolean isStrict = !immutableVersionConstraint.getStrictVersion().isEmpty();
-        String version = isStrict ? immutableVersionConstraint.getStrictVersion() : !immutableVersionConstraint.getRequiredVersion().isEmpty() ? immutableVersionConstraint.getRequiredVersion() : null;
-        String preferred = !immutableVersionConstraint.getPreferredVersion().isEmpty() ? immutableVersionConstraint.getPreferredVersion() : null;
-        if (resolvedVersion != null) {
-            version = resolvedVersion;
-            preferred = null;
+        private void write() throws IOException {
+            SoftwareComponent owner = owners.get(component);
+            ComponentData ownerData = owner == null ? null : componentCoordinates.get(owner);
+            ComponentData componentData = componentCoordinates.get(component);
+            writeObject(() -> {
+                writeFormat();
+                writeIdentity(componentData, ownerData);
+                writeCreator();
+                writeVariants();
+            });
         }
 
-        if (version != null) {
-            if (isStrict) {
-                jsonWriter.name("strictly");
-                jsonWriter.value(version);
+        private void writeVersionConstraint(
+            ImmutableVersionConstraint versionConstraint,
+            String resolvedVersion
+        ) throws IOException {
+            checker.sawDependencyOrConstraint();
+            if (resolvedVersion == null && isEmpty(versionConstraint)) {
+                return;
             }
-            jsonWriter.name("requires");
-            jsonWriter.value(version);
-        }
-        if (preferred != null) {
-            jsonWriter.name("prefers");
-            jsonWriter.value(preferred);
-        }
-        List<String> rejectedVersions = immutableVersionConstraint.getRejectedVersions();
-        if (!rejectedVersions.isEmpty()) {
-            jsonWriter.name("rejects");
-            jsonWriter.beginArray();
-            for (String reject : rejectedVersions) {
-                jsonWriter.value(reject);
-            }
-            jsonWriter.endArray();
-        }
-        jsonWriter.endObject();
-    }
+            checker.sawVersion();
 
-    private void writeIdentity(ModuleVersionIdentifier coordinates, ImmutableAttributes attributes, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, Map<SoftwareComponent, SoftwareComponent> owners, JsonWriter jsonWriter) throws IOException {
-        SoftwareComponent owner = owners.get(component);
-        if (owner == null) {
-            jsonWriter.name("component");
-            jsonWriter.beginObject();
-            jsonWriter.name("group");
-            jsonWriter.value(coordinates.getGroup());
-            jsonWriter.name("module");
-            jsonWriter.value(coordinates.getName());
-            jsonWriter.name("version");
-            jsonWriter.value(coordinates.getVersion());
-            writeAttributes(attributes, jsonWriter);
-            jsonWriter.endObject();
-        } else {
-            ComponentData componentData = componentCoordinates.get(owner);
-            ModuleVersionIdentifier ownerCoordinates = componentData.coordinates;
-            jsonWriter.name("component");
-            jsonWriter.beginObject();
-            jsonWriter.name("url");
-            jsonWriter.value(relativeUrlTo(coordinates, ownerCoordinates));
-            jsonWriter.name("group");
-            jsonWriter.value(ownerCoordinates.getGroup());
-            jsonWriter.name("module");
-            jsonWriter.value(ownerCoordinates.getName());
-            jsonWriter.name("version");
-            jsonWriter.value(ownerCoordinates.getVersion());
-            writeAttributes(componentData.attributes, jsonWriter);
-            jsonWriter.endObject();
-        }
-    }
-
-    private void writeVariants(PublicationInternal<?> publication, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
-        boolean started = false;
-        for (UsageContext usageContext : ((SoftwareComponentInternal) component).getUsages()) {
-            checker.registerVariant(usageContext.getName(), usageContext.getAttributes(),  usageContext.getCapabilities());
-            if (!started) {
-                jsonWriter.name("variants");
-                jsonWriter.beginArray();
-                started = true;
-            }
-            writeVariantHostedInThisModule(publication, usageContext, jsonWriter, checker);
-        }
-        if (component instanceof ComponentWithVariants) {
-            for (SoftwareComponent childComponent : ((ComponentWithVariants) component).getVariants()) {
-                ModuleVersionIdentifier childCoordinates;
-                if (childComponent instanceof ComponentWithCoordinates) {
-                    childCoordinates = ((ComponentWithCoordinates) childComponent).getCoordinates();
-                } else {
-                    ComponentData componentData = componentCoordinates.get(childComponent);
-                    childCoordinates = componentData == null ? null : componentData.coordinates;
+            writeObject("version", () -> {
+                boolean isStrict = !versionConstraint.getStrictVersion().isEmpty();
+                String version = isStrict ? versionConstraint.getStrictVersion() : !versionConstraint.getRequiredVersion().isEmpty() ? versionConstraint.getRequiredVersion() : null;
+                String preferred = !versionConstraint.getPreferredVersion().isEmpty() ? versionConstraint.getPreferredVersion() : null;
+                if (resolvedVersion != null) {
+                    version = resolvedVersion;
+                    preferred = null;
                 }
+                if (version != null) {
+                    if (isStrict) {
+                        write("strictly", version);
+                    }
+                    write("requires", version);
+                }
+                if (preferred != null) {
+                    write("prefers", preferred);
+                }
+                List<String> rejectedVersions = versionConstraint.getRejectedVersions();
+                if (!rejectedVersions.isEmpty()) {
+                    writeArray("rejects", rejectedVersions);
+                }
+            });
+        }
 
-                assert childCoordinates != null;
-                if (childComponent instanceof SoftwareComponentInternal) {
-                    for (UsageContext usageContext : ((SoftwareComponentInternal) childComponent).getUsages()) {
-                        checker.registerVariant(usageContext.getName(), usageContext.getAttributes(),  usageContext.getCapabilities());
-                        if (!started) {
-                            jsonWriter.name("variants");
-                            jsonWriter.beginArray();
-                            started = true;
+        private boolean isEmpty(ImmutableVersionConstraint versionConstraint) {
+            return DefaultImmutableVersionConstraint.of().equals(versionConstraint);
+        }
+
+        private void writeIdentity(
+            ComponentData component,
+            @Nullable ComponentData owner
+        ) throws IOException {
+            if (owner != null) {
+                String relativeUrl = relativeUrlTo(component.coordinates, owner.coordinates);
+                writeComponentRef(owner, relativeUrl);
+            } else {
+                writeComponentRef(component, null);
+            }
+        }
+
+        private void writeComponentRef(ComponentData data, @Nullable String relativeUrl) throws IOException {
+            writeObject("component", () -> {
+                if (relativeUrl != null) {
+                    write("url", relativeUrl);
+                }
+                writeCoordinates(data.coordinates);
+                writeAttributes(data.attributes);
+            });
+        }
+
+        private void writeVariants() throws IOException {
+            boolean started = false;
+            for (UsageContext usageContext : component.getUsages()) {
+                checker.registerVariant(usageContext.getName(), usageContext.getAttributes(), usageContext.getCapabilities());
+                if (!started) {
+                    beginArray("variants");
+                    started = true;
+                }
+                writeVariantHostedInThisModule(usageContext);
+            }
+            if (component instanceof ComponentWithVariants) {
+                for (SoftwareComponent childComponent : ((ComponentWithVariants) component).getVariants()) {
+                    ModuleVersionIdentifier childCoordinates;
+                    if (childComponent instanceof ComponentWithCoordinates) {
+                        childCoordinates = ((ComponentWithCoordinates) childComponent).getCoordinates();
+                    } else {
+                        ComponentData componentData = componentCoordinates.get(childComponent);
+                        childCoordinates = componentData == null ? null : componentData.coordinates;
+                    }
+
+                    assert childCoordinates != null;
+                    if (childComponent instanceof SoftwareComponentInternal) {
+                        for (UsageContext usageContext : ((SoftwareComponentInternal) childComponent).getUsages()) {
+                            checker.registerVariant(usageContext.getName(), usageContext.getAttributes(), usageContext.getCapabilities());
+                            if (!started) {
+                                beginArray("variants");
+                                started = true;
+                            }
+                            writeVariantHostedInAnotherModule(publication.getCoordinates(), childCoordinates, usageContext);
                         }
-                        writeVariantHostedInAnotherModule(publication.getCoordinates(), childCoordinates, usageContext, jsonWriter);
                     }
                 }
             }
-        }
-        if (started) {
-            jsonWriter.endArray();
-        }
-    }
-
-    private void writeCreator(PublicationInternal<?> publication, JsonWriter jsonWriter) throws IOException {
-        jsonWriter.name("createdBy");
-        jsonWriter.beginObject();
-        jsonWriter.name("gradle");
-        jsonWriter.beginObject();
-        jsonWriter.name("version");
-        jsonWriter.value(GradleVersion.current().getVersion());
-        if (publication.isPublishBuildId()) {
-            jsonWriter.name("buildId");
-            jsonWriter.value(buildInvocationScopeId.getId().asString());
-        }
-        jsonWriter.endObject();
-        jsonWriter.endObject();
-    }
-
-    private void writeFormat(JsonWriter jsonWriter) throws IOException {
-        jsonWriter.name("formatVersion");
-        jsonWriter.value(GradleModuleMetadataParser.FORMAT_VERSION);
-    }
-
-    private void writeVariantHostedInAnotherModule(ModuleVersionIdentifier coordinates, ModuleVersionIdentifier targetCoordinates, UsageContext variant, JsonWriter jsonWriter) throws IOException {
-        jsonWriter.beginObject();
-        jsonWriter.name("name");
-        jsonWriter.value(variant.getName());
-        writeAttributes(variant.getAttributes(), jsonWriter);
-        writeAvailableAt(coordinates, targetCoordinates, jsonWriter);
-        writeCapabilities("capabilities", variant.getCapabilities(), jsonWriter);
-        jsonWriter.endObject();
-    }
-
-    private void writeAvailableAt(ModuleVersionIdentifier coordinates, ModuleVersionIdentifier targetCoordinates, JsonWriter jsonWriter) throws IOException {
-        jsonWriter.name("available-at");
-        jsonWriter.beginObject();
-
-        jsonWriter.name("url");
-        jsonWriter.value(relativeUrlTo(coordinates, targetCoordinates));
-
-        jsonWriter.name("group");
-        jsonWriter.value(targetCoordinates.getGroup());
-        jsonWriter.name("module");
-        jsonWriter.value(targetCoordinates.getName());
-        jsonWriter.name("version");
-        jsonWriter.value(targetCoordinates.getVersion());
-        jsonWriter.endObject();
-    }
-
-    private String relativeUrlTo(ModuleVersionIdentifier from, ModuleVersionIdentifier to) {
-        // TODO - do not assume Maven layout
-        StringBuilder path = new StringBuilder();
-        path.append("../../");
-        path.append(to.getName());
-        path.append("/");
-        path.append(to.getVersion());
-        path.append("/");
-        path.append(to.getName());
-        path.append("-");
-        path.append(to.getVersion());
-        path.append(".module");
-        return path.toString();
-    }
-
-    private void writeVariantHostedInThisModule(PublicationInternal<?> publication, UsageContext variant, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
-        jsonWriter.beginObject();
-        jsonWriter.name("name");
-        jsonWriter.value(variant.getName());
-        writeAttributes(variant.getAttributes(), jsonWriter);
-        VersionMappingStrategyInternal versionMappingStrategy = publication.getVersionMappingStrategy();
-        writeDependencies(variant, versionMappingStrategy, jsonWriter, checker);
-        writeDependencyConstraints(variant, jsonWriter, versionMappingStrategy, checker);
-        writeArtifacts(publication, variant, jsonWriter);
-        writeCapabilities("capabilities", variant.getCapabilities(), jsonWriter);
-
-        jsonWriter.endObject();
-    }
-
-    private void writeAttributes(AttributeContainer attributes, JsonWriter jsonWriter) throws IOException {
-        if (attributes.isEmpty()) {
-            return;
-        }
-        jsonWriter.name("attributes");
-        jsonWriter.beginObject();
-        Map<String, Attribute<?>> sortedAttributes = new TreeMap<>();
-        for (Attribute<?> attribute : attributes.keySet()) {
-            sortedAttributes.put(attribute.getName(), attribute);
-        }
-        for (Attribute<?> attribute : sortedAttributes.values()) {
-            jsonWriter.name(attribute.getName());
-            Object value = attributes.getAttribute(attribute);
-            if (value instanceof Boolean) {
-                Boolean b = (Boolean) value;
-                jsonWriter.value(b);
-            } else if (value instanceof Integer) {
-                Integer i = (Integer) value;
-                jsonWriter.value(i);
-            } else if (value instanceof String) {
-                String s = (String) value;
-                jsonWriter.value(s);
-            } else if (value instanceof Named) {
-                Named named = (Named) value;
-                jsonWriter.value(named.getName());
-            } else if (value instanceof Enum) {
-                Enum<?> enumValue = (Enum<?>) value;
-                jsonWriter.value(enumValue.name());
-            } else {
-                throw new IllegalArgumentException(String.format("Cannot write attribute %s with unsupported value %s of type %s.", attribute.getName(), value, value.getClass().getName()));
+            if (started) {
+                endArray();
             }
         }
-        jsonWriter.endObject();
-    }
 
-    private void writeArtifacts(PublicationInternal<?> publication, UsageContext variant, JsonWriter jsonWriter) throws IOException {
-        if (variant.getArtifacts().isEmpty()) {
-            return;
+        private void writeCreator() throws IOException {
+            writeObject("createdBy", () ->
+                writeObject("gradle", () -> {
+                    write("version", GradleVersion.current().getVersion());
+                    if (publication.isPublishBuildId()) {
+                        write("buildId", buildId);
+                    }
+                })
+            );
         }
-        jsonWriter.name("files");
-        jsonWriter.beginArray();
-        for (PublishArtifact artifact : variant.getArtifacts()) {
-            writeArtifact(publication, artifact, jsonWriter);
-        }
-        jsonWriter.endArray();
-    }
 
-    private void writeArtifact(PublicationInternal<?> publication, PublishArtifact artifact, JsonWriter jsonWriter) throws IOException {
-        if (artifact instanceof PublishArtifactInternal) {
-            if (!((PublishArtifactInternal) artifact).shouldBePublished()) {
+        private void writeFormat() throws IOException {
+            write("formatVersion", GradleModuleMetadataParser.FORMAT_VERSION);
+        }
+
+        private void writeVariantHostedInAnotherModule(ModuleVersionIdentifier coordinates, ModuleVersionIdentifier targetCoordinates, UsageContext variant) throws IOException {
+            writeObject(() -> {
+                write("name", variant.getName());
+                writeAttributes(variant.getAttributes());
+                writeAvailableAt(coordinates, targetCoordinates);
+                writeCapabilities("capabilities", variant.getCapabilities());
+            });
+        }
+
+        private void writeAvailableAt(ModuleVersionIdentifier coordinates, ModuleVersionIdentifier targetCoordinates) throws IOException {
+            writeObject("available-at", () -> {
+                write("url", relativeUrlTo(coordinates, targetCoordinates));
+                writeCoordinates(targetCoordinates);
+            });
+        }
+
+        private String relativeUrlTo(
+            @SuppressWarnings("unused") ModuleVersionIdentifier from,
+            ModuleVersionIdentifier to
+        ) {
+            // TODO - do not assume Maven layout
+            StringBuilder path = new StringBuilder();
+            path.append("../../");
+            path.append(to.getName());
+            path.append("/");
+            path.append(to.getVersion());
+            path.append("/");
+            path.append(to.getName());
+            path.append("-");
+            path.append(to.getVersion());
+            path.append(".module");
+            return path.toString();
+        }
+
+        private void writeVariantHostedInThisModule(UsageContext variant) throws IOException {
+            writeObject(() -> {
+                write("name", variant.getName());
+                writeAttributes(variant.getAttributes());
+                VersionMappingStrategyInternal versionMappingStrategy = publication.getVersionMappingStrategy();
+                writeDependencies(variant, versionMappingStrategy);
+                writeDependencyConstraints(variant, versionMappingStrategy);
+                writeArtifacts(publication, variant);
+                writeCapabilities("capabilities", variant.getCapabilities());
+            });
+        }
+
+        private void writeCoordinates(ModuleVersionIdentifier coordinates) throws IOException {
+            write("group", coordinates.getGroup());
+            write("module", coordinates.getName());
+            write("version", coordinates.getVersion());
+        }
+
+        private void writeAttributes(AttributeContainer attributes) throws IOException {
+            if (attributes.isEmpty()) {
                 return;
             }
+            writeObject("attributes", () -> {
+                for (Attribute<?> attribute : sorted(attributes).values()) {
+                    String name = attribute.getName();
+                    Object value = attributes.getAttribute(attribute);
+                    if (!writeAttribute(name, value)) {
+                        throw new IllegalArgumentException(
+                            format("Cannot write attribute %s with unsupported value %s of type %s.", name, value, value.getClass().getName())
+                        );
+                    }
+                }
+            });
         }
-        PublicationInternal.PublishedFile publishedFile = publication.getPublishedFile(artifact);
 
-        jsonWriter.beginObject();
-        jsonWriter.name("name");
-        jsonWriter.value(publishedFile.getName());
-        jsonWriter.name("url");
-        jsonWriter.value(publishedFile.getUri());
-
-        jsonWriter.name("size");
-        jsonWriter.value(artifact.getFile().length());
-        writeChecksums(artifact, jsonWriter);
-
-        jsonWriter.endObject();
-    }
-
-    private void writeChecksums(PublishArtifact artifact, JsonWriter jsonWriter) throws IOException {
-        jsonWriter.name("sha512");
-        jsonWriter.value(checksumService.sha512(artifact.getFile()).toString());
-        jsonWriter.name("sha256");
-        jsonWriter.value(checksumService.sha256(artifact.getFile()).toString());
-        jsonWriter.name("sha1");
-        jsonWriter.value(checksumService.sha1(artifact.getFile()).toString());
-        jsonWriter.name("md5");
-        jsonWriter.value(checksumService.md5(artifact.getFile()).toString());
-    }
-
-    private void writeDependencies(UsageContext variant, VersionMappingStrategyInternal versionMappingStrategy, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
-        if (variant.getDependencies().isEmpty()) {
-            return;
-        }
-        jsonWriter.name("dependencies");
-        jsonWriter.beginArray();
-        Set<ExcludeRule> additionalExcludes = variant.getGlobalExcludes();
-        VariantVersionMappingStrategyInternal variantVersionMappingStrategy = findVariantVersionMappingStrategy(variant, versionMappingStrategy);
-        for (ModuleDependency moduleDependency : variant.getDependencies()) {
-            if (moduleDependency.getArtifacts().isEmpty()) {
-                writeDependency(moduleDependency, additionalExcludes, jsonWriter, variantVersionMappingStrategy, null, checker);
+        private boolean writeAttribute(String name, Object value) throws IOException {
+            if (value instanceof Boolean) {
+                write(name, (Boolean) value);
+            } else if (value instanceof Integer) {
+                write(name, (Integer) value);
+            } else if (value instanceof String) {
+                write(name, (String) value);
+            } else if (value instanceof Named) {
+                write(name, ((Named) value).getName());
+            } else if (value instanceof Enum) {
+                write(name, ((Enum<?>) value).name());
             } else {
-                for (DependencyArtifact dependencyArtifact : moduleDependency.getArtifacts()) {
-                    writeDependency(moduleDependency, additionalExcludes, jsonWriter, variantVersionMappingStrategy, dependencyArtifact, checker);
+                return false;
+            }
+            return true;
+        }
+
+        private Map<String, Attribute<?>> sorted(AttributeContainer attributes) {
+            Map<String, Attribute<?>> sortedAttributes = new TreeMap<>();
+            for (Attribute<?> attribute : attributes.keySet()) {
+                sortedAttributes.put(attribute.getName(), attribute);
+            }
+            return sortedAttributes;
+        }
+
+        private void writeArtifacts(PublicationInternal<?> publication, UsageContext variant) throws IOException {
+            if (variant.getArtifacts().isEmpty()) {
+                return;
+            }
+            writeArray("files", () -> {
+                for (PublishArtifact artifact : variant.getArtifacts()) {
+                    writeArtifact(publication, artifact);
+                }
+            });
+        }
+
+        private void writeArtifact(PublicationInternal<?> publication, PublishArtifact artifact) throws IOException {
+            if (artifact instanceof PublishArtifactInternal) {
+                if (!((PublishArtifactInternal) artifact).shouldBePublished()) {
+                    return;
                 }
             }
-        }
-        jsonWriter.endArray();
-    }
+            PublicationInternal.PublishedFile publishedFile = publication.getPublishedFile(artifact);
+            File artifactFile = artifact.getFile();
 
-    private VariantVersionMappingStrategyInternal findVariantVersionMappingStrategy(UsageContext variant, VersionMappingStrategyInternal versionMappingStrategy) {
-        VariantVersionMappingStrategyInternal variantVersionMappingStrategy = null;
-        if (versionMappingStrategy != null) {
-            ImmutableAttributes attributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
-            variantVersionMappingStrategy = versionMappingStrategy.findStrategyForVariant(attributes);
+            writeObject(() -> {
+                write("name", publishedFile.getName());
+                write("url", publishedFile.getUri());
+                write("size", artifactFile.length());
+                writeChecksumsOf(artifactFile);
+            });
         }
-        return variantVersionMappingStrategy;
-    }
 
-    private void writeDependency(ModuleDependency dependency, Set<ExcludeRule> additionalExcludes, JsonWriter jsonWriter, VariantVersionMappingStrategyInternal variantVersionMappingStrategy, DependencyArtifact dependencyArtifact, InvalidPublicationChecker checker) throws IOException {
-        jsonWriter.beginObject();
-        String resolvedVersion = null;
-        if (dependency instanceof ProjectDependency) {
-            ProjectDependency projectDependency = (ProjectDependency) dependency;
-            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, projectDependency);
-            if (variantVersionMappingStrategy != null) {
-                ModuleVersionIdentifier resolved = variantVersionMappingStrategy.maybeResolveVersion(identifier.getGroup(), identifier.getName());
-                if (resolved != null) {
-                    identifier = resolved;
+        private void writeChecksumsOf(File artifactFile) throws IOException {
+            write("sha512", checksumService.sha512(artifactFile).toString());
+            write("sha256", checksumService.sha256(artifactFile).toString());
+            write("sha1", checksumService.sha1(artifactFile).toString());
+            write("md5", checksumService.md5(artifactFile).toString());
+        }
+
+        private void writeDependencies(UsageContext variant, VersionMappingStrategyInternal versionMappingStrategy) throws IOException {
+            if (variant.getDependencies().isEmpty()) {
+                return;
+            }
+            writeArray("dependencies", () -> {
+                Set<ExcludeRule> additionalExcludes = variant.getGlobalExcludes();
+                VariantVersionMappingStrategyInternal variantVersionMappingStrategy = findVariantVersionMappingStrategy(variant, versionMappingStrategy);
+                for (ModuleDependency moduleDependency : variant.getDependencies()) {
+                    if (moduleDependency.getArtifacts().isEmpty()) {
+                        writeDependency(moduleDependency, additionalExcludes, variantVersionMappingStrategy, null);
+                    } else {
+                        for (DependencyArtifact dependencyArtifact : moduleDependency.getArtifacts()) {
+                            writeDependency(moduleDependency, additionalExcludes, variantVersionMappingStrategy, dependencyArtifact);
+                        }
+                    }
+                }
+            });
+        }
+
+        private VariantVersionMappingStrategyInternal findVariantVersionMappingStrategy(UsageContext variant, VersionMappingStrategyInternal versionMappingStrategy) {
+            VariantVersionMappingStrategyInternal variantVersionMappingStrategy = null;
+            if (versionMappingStrategy != null) {
+                ImmutableAttributes attributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
+                variantVersionMappingStrategy = versionMappingStrategy.findStrategyForVariant(attributes);
+            }
+            return variantVersionMappingStrategy;
+        }
+
+        private void writeDependency(ModuleDependency dependency, Set<ExcludeRule> additionalExcludes, VariantVersionMappingStrategyInternal variantVersionMappingStrategy, DependencyArtifact dependencyArtifact) throws IOException {
+            writeObject(() -> {
+                String resolvedVersion = null;
+                if (dependency instanceof ProjectDependency) {
+                    ProjectDependency projectDependency = (ProjectDependency) dependency;
+                    ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, projectDependency);
+                    if (variantVersionMappingStrategy != null) {
+                        ModuleVersionIdentifier resolved = variantVersionMappingStrategy.maybeResolveVersion(identifier.getGroup(), identifier.getName());
+                        if (resolved != null) {
+                            identifier = resolved;
+                            resolvedVersion = identifier.getVersion();
+                        }
+                    }
+                    write("group", identifier.getGroup());
+                    write("module", identifier.getName());
+                    writeVersionConstraint(DefaultImmutableVersionConstraint.of(identifier.getVersion()), resolvedVersion);
+                } else {
+                    String group = dependency.getGroup();
+                    String name = dependency.getName();
+                    if (variantVersionMappingStrategy != null) {
+                        ModuleVersionIdentifier resolvedVersionId = variantVersionMappingStrategy.maybeResolveVersion(group, name);
+                        if (resolvedVersionId != null) {
+                            group = resolvedVersionId.getGroup();
+                            name = resolvedVersionId.getName();
+                            resolvedVersion = resolvedVersionId.getVersion();
+                        }
+                    }
+                    write("group", group);
+                    write("module", name);
+                    ImmutableVersionConstraint vc;
+                    if (dependency instanceof ExternalDependency) {
+                        vc = DefaultImmutableVersionConstraint.of(((ExternalDependency) dependency).getVersionConstraint());
+                    } else {
+                        vc = DefaultImmutableVersionConstraint.of(Strings.nullToEmpty(dependency.getVersion()));
+                    }
+                    writeVersionConstraint(vc, resolvedVersion);
+                }
+                writeExcludes(dependency, additionalExcludes);
+                writeAttributes(dependency.getAttributes());
+                writeCapabilities("requestedCapabilities", dependency.getRequestedCapabilities());
+
+                boolean endorsing = dependency.isEndorsingStrictVersions();
+                if (endorsing) {
+                    write("endorseStrictVersions", true);
+                }
+                String reason = dependency.getReason();
+                if (StringUtils.isNotEmpty(reason)) {
+                    write("reason", reason);
+                }
+                if (dependencyArtifact != null) {
+                    writeDependencyArtifact(dependencyArtifact);
+                }
+            });
+        }
+
+        private void writeDependencyArtifact(DependencyArtifact dependencyArtifact) throws IOException {
+            writeObject("thirdPartyCompatibility", () -> {
+                writeObject("artifactSelector", () -> {
+                    write("name", dependencyArtifact.getName());
+                    write("type", dependencyArtifact.getType());
+                    if (!Strings.isNullOrEmpty(dependencyArtifact.getExtension())) {
+                        write("extension", dependencyArtifact.getExtension());
+                    }
+                    if (!Strings.isNullOrEmpty(dependencyArtifact.getClassifier())) {
+                        write("classifier", dependencyArtifact.getClassifier());
+                    }
+                });
+            });
+        }
+
+        private void writeDependencyConstraints(UsageContext variant, VersionMappingStrategyInternal versionMappingStrategy) throws IOException {
+            if (variant.getDependencyConstraints().isEmpty()) {
+                return;
+            }
+            VariantVersionMappingStrategyInternal variantVersionMappingStrategy = findVariantVersionMappingStrategy(variant, versionMappingStrategy);
+            writeArray("dependencyConstraints", () -> {
+                for (DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
+                    writeDependencyConstraint(dependencyConstraint, variantVersionMappingStrategy);
+                }
+            });
+        }
+
+        private void writeDependencyConstraint(DependencyConstraint dependencyConstraint, VariantVersionMappingStrategyInternal variantVersionMappingStrategy) throws IOException {
+            writeObject(() -> {
+                String group;
+                String module;
+                String resolvedVersion = null;
+                if (dependencyConstraint instanceof DefaultProjectDependencyConstraint) {
+                    DefaultProjectDependencyConstraint dependency = (DefaultProjectDependencyConstraint) dependencyConstraint;
+                    ProjectDependency projectDependency = dependency.getProjectDependency();
+                    ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, projectDependency);
+                    group = identifier.getGroup();
+                    module = identifier.getName();
                     resolvedVersion = identifier.getVersion();
+                } else {
+                    group = dependencyConstraint.getGroup();
+                    module = dependencyConstraint.getName();
                 }
-            }
-            jsonWriter.name("group");
-            jsonWriter.value(identifier.getGroup());
-            jsonWriter.name("module");
-            jsonWriter.value(identifier.getName());
-            writeVersionConstraint(DefaultImmutableVersionConstraint.of(identifier.getVersion()), resolvedVersion, jsonWriter, checker);
-        } else {
-            String group = dependency.getGroup();
-            String name = dependency.getName();
-            if (variantVersionMappingStrategy != null) {
-                ModuleVersionIdentifier resolvedVersionId = variantVersionMappingStrategy.maybeResolveVersion(group, name);
-                if (resolvedVersionId != null) {
-                    group = resolvedVersionId.getGroup();
-                    name = resolvedVersionId.getName();
-                    resolvedVersion = resolvedVersionId.getVersion();
+                ModuleVersionIdentifier resolvedVersionId = variantVersionMappingStrategy != null ? variantVersionMappingStrategy.maybeResolveVersion(group, module) : null;
+                write("group", resolvedVersionId != null ? resolvedVersionId.getGroup() : group);
+                write("module", resolvedVersionId != null ? resolvedVersionId.getName() : module);
+                writeVersionConstraint(DefaultImmutableVersionConstraint.of(dependencyConstraint.getVersionConstraint()), resolvedVersionId != null ? resolvedVersionId.getVersion() : resolvedVersion);
+                writeAttributes(dependencyConstraint.getAttributes());
+                String reason = dependencyConstraint.getReason();
+                if (StringUtils.isNotEmpty(reason)) {
+                    write("reason", reason);
                 }
+            });
+        }
+
+        private void writeExcludes(ModuleDependency moduleDependency, Set<ExcludeRule> additionalExcludes) throws IOException {
+            Set<ExcludeRule> excludeRules = excludedRulesFor(moduleDependency, additionalExcludes);
+            if (excludeRules.isEmpty()) {
+                return;
             }
-            jsonWriter.name("group");
-            jsonWriter.value(group);
-            jsonWriter.name("module");
-            jsonWriter.value(name);
-            ImmutableVersionConstraint vc;
-            if (dependency instanceof ExternalDependency) {
-                vc = DefaultImmutableVersionConstraint.of(((ExternalDependency) dependency).getVersionConstraint());
-            } else {
-                vc = DefaultImmutableVersionConstraint.of(Strings.nullToEmpty(dependency.getVersion()));
-            }
-            writeVersionConstraint(vc, resolvedVersion, jsonWriter, checker);
-        }
-        writeExcludes(dependency, additionalExcludes, jsonWriter);
-        writeAttributes(dependency.getAttributes(), jsonWriter);
-        writeCapabilities("requestedCapabilities", dependency.getRequestedCapabilities(), jsonWriter);
-
-        boolean endorsing = dependency.isEndorsingStrictVersions();
-        if (endorsing) {
-            jsonWriter.name("endorseStrictVersions");
-            jsonWriter.value(true);
-        }
-        String reason = dependency.getReason();
-        if (StringUtils.isNotEmpty(reason)) {
-            jsonWriter.name("reason");
-            jsonWriter.value(reason);
-        }
-        if (dependencyArtifact != null) {
-            writeDependencyArtifact(dependencyArtifact, jsonWriter);
-        }
-        jsonWriter.endObject();
-    }
-
-    private void writeDependencyArtifact(DependencyArtifact dependencyArtifact, JsonWriter jsonWriter) throws IOException {
-        jsonWriter.name("thirdPartyCompatibility");
-        jsonWriter.beginObject();
-
-        jsonWriter.name("artifactSelector");
-        jsonWriter.beginObject();
-        jsonWriter.name("name");
-        jsonWriter.value(dependencyArtifact.getName());
-        jsonWriter.name("type");
-        jsonWriter.value(dependencyArtifact.getType());
-        if (!Strings.isNullOrEmpty(dependencyArtifact.getExtension())) {
-            jsonWriter.name("extension");
-            jsonWriter.value(dependencyArtifact.getExtension());
-        }
-        if (!Strings.isNullOrEmpty(dependencyArtifact.getClassifier())) {
-            jsonWriter.name("classifier");
-            jsonWriter.value(dependencyArtifact.getClassifier());
-        }
-        jsonWriter.endObject();
-
-        jsonWriter.endObject();
-    }
-
-    private void writeDependencyConstraints(UsageContext variant, JsonWriter jsonWriter, VersionMappingStrategyInternal versionMappingStrategy, InvalidPublicationChecker checker) throws IOException {
-        if (variant.getDependencyConstraints().isEmpty()) {
-            return;
-        }
-        VariantVersionMappingStrategyInternal variantVersionMappingStrategy = findVariantVersionMappingStrategy(variant, versionMappingStrategy);
-        jsonWriter.name("dependencyConstraints");
-        jsonWriter.beginArray();
-        for (DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
-            writeDependencyConstraint(dependencyConstraint, variantVersionMappingStrategy, jsonWriter, checker);
-        }
-        jsonWriter.endArray();
-    }
-
-    private void writeDependencyConstraint(DependencyConstraint dependencyConstraint, VariantVersionMappingStrategyInternal variantVersionMappingStrategy, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
-        jsonWriter.beginObject();
-        String group;
-        String module;
-        String resolvedVersion = null;
-        if (dependencyConstraint instanceof DefaultProjectDependencyConstraint) {
-            DefaultProjectDependencyConstraint dependency = (DefaultProjectDependencyConstraint) dependencyConstraint;
-            ProjectDependency projectDependency = dependency.getProjectDependency();
-            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, projectDependency);
-            group = identifier.getGroup();
-            module = identifier.getName();
-            resolvedVersion = identifier.getVersion();
-        } else {
-            group = dependencyConstraint.getGroup();
-            module = dependencyConstraint.getName();
-        }
-        ModuleVersionIdentifier resolvedVersionId = variantVersionMappingStrategy != null ? variantVersionMappingStrategy.maybeResolveVersion(group, module) : null;
-        jsonWriter.name("group");
-        jsonWriter.value(resolvedVersionId != null ? resolvedVersionId.getGroup() : group);
-        jsonWriter.name("module");
-        jsonWriter.value(resolvedVersionId != null ? resolvedVersionId.getName() : module);
-        writeVersionConstraint(DefaultImmutableVersionConstraint.of(dependencyConstraint.getVersionConstraint()), resolvedVersionId != null ? resolvedVersionId.getVersion() : resolvedVersion, jsonWriter, checker);
-        writeAttributes(dependencyConstraint.getAttributes(), jsonWriter);
-        String reason = dependencyConstraint.getReason();
-        if (StringUtils.isNotEmpty(reason)) {
-            jsonWriter.name("reason");
-            jsonWriter.value(reason);
-        }
-        jsonWriter.endObject();
-    }
-
-    private void writeExcludes(ModuleDependency moduleDependency, Set<ExcludeRule> additionalExcludes, JsonWriter jsonWriter) throws IOException {
-        Set<ExcludeRule> excludeRules;
-        if (!moduleDependency.isTransitive()) {
-            excludeRules = Collections.singleton(new DefaultExcludeRule(null, null));
-        } else {
-            excludeRules = Sets.union(additionalExcludes, moduleDependency.getExcludeRules());
-        }
-        if (excludeRules.isEmpty()) {
-            return;
-        }
-
-        jsonWriter.name("excludes");
-        jsonWriter.beginArray();
-        for (ExcludeRule excludeRule : excludeRules) {
-            jsonWriter.beginObject();
-            jsonWriter.name("group");
-            String group = GUtil.elvis(excludeRule.getGroup(), "*");
-            jsonWriter.value(group);
-            jsonWriter.name("module");
-            String module = GUtil.elvis(excludeRule.getModule(), "*");
-            jsonWriter.value(module);
-
-            jsonWriter.endObject();
-        }
-        jsonWriter.endArray();
-    }
-
-    private void writeCapabilities(String key, Collection<? extends Capability> capabilities, JsonWriter jsonWriter) throws IOException {
-        if (!capabilities.isEmpty()) {
-            jsonWriter.name(key);
-            jsonWriter.beginArray();
-            for (Capability capability : capabilities) {
-                jsonWriter.beginObject();
-                jsonWriter.name("group").value(capability.getGroup());
-                jsonWriter.name("name").value(capability.getName());
-                if (StringUtils.isNotEmpty(capability.getVersion())) {
-                    jsonWriter.name("version").value(capability.getVersion());
+            writeArray("excludes", () -> {
+                for (ExcludeRule excludeRule : excludeRules) {
+                    writeObject(() -> {
+                        write("group", elvis(excludeRule.getGroup(), "*"));
+                        write("module", elvis(excludeRule.getModule(), "*"));
+                    });
                 }
-                jsonWriter.endObject();
-            }
-            jsonWriter.endArray();
+            });
         }
+
+        private Set<ExcludeRule> excludedRulesFor(ModuleDependency moduleDependency, Set<ExcludeRule> additionalExcludes) {
+            return moduleDependency.isTransitive()
+                ? Sets.union(additionalExcludes, moduleDependency.getExcludeRules())
+                : Collections.singleton(new DefaultExcludeRule(null, null));
+        }
+
+        private void writeCapabilities(String key, Collection<? extends Capability> capabilities) throws IOException {
+            if (capabilities.isEmpty()) {
+                return;
+            }
+            writeArray(key, () -> {
+                for (Capability capability : capabilities) {
+                    writeObject(() -> {
+                        write("group", capability.getGroup());
+                        write("name", capability.getName());
+                        if (StringUtils.isNotEmpty(capability.getVersion())) {
+                            write("version", capability.getVersion());
+                        }
+                    });
+                }
+            });
+        }
+
     }
 
     private static class ComponentData {
@@ -724,5 +732,76 @@ public class GradleModuleMetadataWriter {
                 return Objects.hashCode(attributes, capabilities);
             }
         }
+    }
+}
+
+/**
+ * Simplifies the task of writing to a JsonWriter.
+ */
+abstract class JsonWriterScope {
+
+    protected interface Contents {
+        void write() throws IOException;
+    }
+
+    private final JsonWriter jsonWriter;
+
+    protected JsonWriterScope(JsonWriter jsonWriter) {
+        this.jsonWriter = jsonWriter;
+    }
+
+    protected void writeArray(String name, List<String> elements) throws IOException {
+        writeArray(name, () -> {
+            for (String element : elements) {
+                jsonWriter.value(element);
+            }
+        });
+    }
+
+    protected void writeArray(String name, Contents contents) throws IOException {
+        jsonWriter.name(name);
+        writeArray(contents);
+    }
+
+    protected void writeArray(Contents contents) throws IOException {
+        jsonWriter.beginArray();
+        contents.write();
+        endArray();
+    }
+
+    protected void beginArray(String name) throws IOException {
+        jsonWriter.name(name);
+        jsonWriter.beginArray();
+    }
+
+    protected void endArray() throws IOException {
+        jsonWriter.endArray();
+    }
+
+    protected void writeObject(String name, Contents contents) throws IOException {
+        jsonWriter.name(name);
+        writeObject(contents);
+    }
+
+    protected void writeObject(Contents contents) throws IOException {
+        jsonWriter.beginObject();
+        contents.write();
+        jsonWriter.endObject();
+    }
+
+    protected void write(String name, Number number) throws IOException {
+        jsonWriter.name(name).value(number);
+    }
+
+    protected void write(String name, long length) throws IOException {
+        jsonWriter.name(name).value(length);
+    }
+
+    protected void write(String name, boolean value) throws IOException {
+        jsonWriter.name(name).value(value);
+    }
+
+    protected void write(String name, String value) throws IOException {
+        jsonWriter.name(name).value(value);
     }
 }
