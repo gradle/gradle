@@ -17,8 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 
 public interface LocalDependencyFiles extends FileCollectionInternal.Source {
-    void visitSpec(FileCollectionStructureVisitor visitor);
 }

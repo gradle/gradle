@@ -59,11 +59,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
-    public void visitSpec(FileCollectionStructureVisitor visitor) {
-        dependencyMetadata.getFiles().visitStructure(visitor);
-    }
-
-    @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
         FileCollectionStructureVisitor.VisitType visitType = listener.prepareForVisit(this);
         if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
@@ -119,7 +114,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         context.add(dependencyMetadata.getFiles().getBuildDependencies());
     }
 
-    private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion, ResolvedVariantSet {
+    public static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion, ResolvedVariantSet {
         private final ComponentArtifactIdentifier artifactIdentifier;
         private final DisplayName variantName;
         private final AttributeContainerInternal variantAttributes;
@@ -137,6 +132,14 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         @Override
         public String toString() {
             return asDescribable().getDisplayName();
+        }
+
+        public File getFile() {
+            return artifact.getFile();
+        }
+
+        public boolean isBuildable() {
+            return !dependencyMetadata.getFiles().getBuildDependencies().getDependencies(null).isEmpty();
         }
 
         @Override

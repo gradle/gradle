@@ -88,6 +88,16 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet, Con
     }
 
     @Override
+    public Transformation getTransformation() {
+        return transformation;
+    }
+
+    @Override
+    public Object getSource() {
+        return delegate;
+    }
+
+    @Override
     public void visitLocalArtifacts(LocalArtifactVisitor listener) {
         // Cannot visit local artifacts until transform has been executed
     }
@@ -102,7 +112,6 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet, Con
 
     @Override
     public Collection<TransformationNode> getScheduledNodes() {
-        // Only care about transformed project outputs. For everything else, calculate the value eagerly
         AtomicReference<Boolean> hasLocalArtifacts = new AtomicReference<>(false);
         delegate.visitLocalArtifacts(artifact -> {
             hasLocalArtifacts.set(true);

@@ -17,7 +17,6 @@
 package org.gradle.instantexecution.serialization.codecs.transform
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedResolvedVariant
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.api.internal.artifacts.transform.TransformationStep

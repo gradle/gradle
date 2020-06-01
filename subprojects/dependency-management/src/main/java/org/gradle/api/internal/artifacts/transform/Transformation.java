@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 
+import javax.annotation.Nullable;
+
 /**
  * The internal API equivalent of {@link org.gradle.api.artifacts.transform.TransformAction}, which is also aware of our cache infrastructure.
  *
@@ -37,7 +39,7 @@ public interface Transformation extends Describable {
      * Creating the invocation is not for free, since the workspace identity needs to be determined.
      * This requires snapshotting the input artifact and its dependencies.
      */
-    CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, NodeExecutionContext context);
+    CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, @Nullable NodeExecutionContext context);
 
     /**
      * Whether the transformation requires dependencies of the transformed artifact to be injected.

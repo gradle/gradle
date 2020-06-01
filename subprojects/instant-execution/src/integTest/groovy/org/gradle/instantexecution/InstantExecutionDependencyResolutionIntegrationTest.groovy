@@ -377,7 +377,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         instantRun(":resolve")
 
         then:
-        assertTransformed("root.blue", "root.additional.blue", "a.blue", "a.jar")
+        assertTransformed("root.blue", "root.additional.blue", "a.additional.blue", "a.jar")
         outputContains("result = [root.additional.blue.green, root.blue.green, a.jar.green, a.additional.blue.green]")
 
         when:
