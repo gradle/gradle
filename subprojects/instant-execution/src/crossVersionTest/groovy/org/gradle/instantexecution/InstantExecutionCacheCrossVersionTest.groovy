@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.instantexecution.InstantExecutionBuildOperationsFixture
+import org.gradle.util.GradleVersion
 
 import static org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption.LONG_OPTION
 
@@ -34,11 +35,17 @@ class InstantExecutionCacheCrossVersionTest extends CrossVersionIntegrationSpec 
     def currentFixture = new InstantExecutionBuildOperationsFixture(new BuildOperationsFixture(currentExecuter, temporaryFolder))
 
     void runPrevious() {
-        previousExecuter.withArguments("--${LONG_OPTION}=on", 'help').run()
+        previousExecuter.withArguments(argFor(previous.version), 'help').run()
     }
 
     void runCurrent() {
-        currentExecuter.withArguments("--${LONG_OPTION}=on", 'help').run()
+        currentExecuter.withArguments(argFor(current.version), 'help').run()
+    }
+
+    private static String argFor(GradleVersion version) {
+        version.baseVersion == GradleVersion.version("6.5")
+            ? "--${LONG_OPTION}=on"
+            : "--$LONG_OPTION"
     }
 
     def "does not reuse cached state from previous version"() {
