@@ -16,8 +16,10 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
+import org.gradle.api.internal.file.DefaultArchiveOperations;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
@@ -105,6 +107,10 @@ public class WorkerSharedProjectScopeServices {
 
     protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {
         return instantiator.newInstance(DefaultFileSystemOperations.class, fileOperations);
+    }
+
+    protected ArchiveOperations createArchiveOperations(Instantiator instantiator, FileOperations fileOperations) {
+        return instantiator.newInstance(DefaultArchiveOperations.class, fileOperations);
     }
 
     protected ExecOperations createExecOperations(Instantiator instantiator, ExecFactory execFactory) {
