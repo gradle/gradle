@@ -42,6 +42,7 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(BuildTreeListenerManager::class.java)
             add(InstantExecutionStartParameter::class.java)
+            add(InstantExecutionCacheKey::class.java)
             add(InstantExecutionReport::class.java)
             add(InstantExecutionProblems::class.java)
         }
@@ -58,6 +59,7 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
 
     override fun registerGradleServices(registration: ServiceRegistration) {
         registration.run {
+            add(InstantExecutionCache::class.java)
             add(InstantExecutionCacheFingerprintController::class.java)
             add(InstantExecutionHost::class.java)
             add(DefaultInstantExecution::class.java)

@@ -24,10 +24,8 @@ import org.gradle.instantexecution.extensions.unsafeLazy
 import org.gradle.internal.classpath.BuildLogicTransformStrategy
 import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
 import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.None
-import org.gradle.internal.hash.HashUtil.createCompactMD5
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.util.GFileUtils
 import java.io.File
 
 
@@ -55,6 +53,9 @@ class InstantExecutionStartParameter(
     val recreateCache: Boolean
         get() = startParameter.isConfigurationCacheRecreateCache
 
+    val currentDirectory: File
+        get() = startParameter.currentDir
+
     val settingsDirectory: File
         get() = buildLayout.settingsDir
 
@@ -68,6 +69,9 @@ class InstantExecutionStartParameter(
         startParameter.taskNames
     }
 
+    val excludedTaskNames: Set<String>
+        get() = startParameter.excludedTaskNames
+
     override fun transformToApplyToBuildLogic() = if (isEnabled) {
         BuildLogic
     } else {
@@ -76,39 +80,6 @@ class InstantExecutionStartParameter(
         None
     }
 
-    val instantExecutionCacheKey: String by unsafeLazy {
-        // The following characters are not valid in task names
-        // and can be used as separators: /, \, :, <, >, ", ?, *, |
-        // except we also accept qualified task names with :, so colon is out.
-        val cacheKey = StringBuilder()
-        requestedTaskNames.joinTo(cacheKey, separator = "/")
-        val excludedTaskNames = startParameter.excludedTaskNames
-        if (excludedTaskNames.isNotEmpty()) {
-            excludedTaskNames.joinTo(cacheKey, prefix = "<", separator = "/")
-        }
-        val taskNames = requestedTaskNames.asSequence() + excludedTaskNames.asSequence()
-        val hasRelativeTaskName = taskNames.any { !it.startsWith(':') }
-        if (hasRelativeTaskName) {
-            // Because unqualified task names are resolved relative to the enclosing
-            // sub-project according to `invocationDirectory`,
-            // the relative invocation directory information must be part of the key.
-            relativeChildPathOrNull(startParameter.currentDir, rootDirectory)?.let { relativeSubDir ->
-                cacheKey.append('*')
-                cacheKey.append(relativeSubDir)
-            }
-        }
-        createCompactMD5(cacheKey.toString())
-    }
-
     val allInitScripts: List<File>
         get() = startParameter.allInitScripts
-
-    /**
-     * Returns the path of [target] relative to [base] if
-     * [target] is a child of [base] or `null` otherwise.
-     */
-    private
-    fun relativeChildPathOrNull(target: File, base: File): String? =
-        GFileUtils.relativePathOf(target, base)
-            .takeIf { !it.startsWith('.') }
 }

@@ -26,7 +26,6 @@ import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Sync
-import org.gradle.gradlebuild.packaging.ShadedJar
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanupExtension
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.DefaultClassPath
@@ -54,15 +53,6 @@ class DistributionTestingPlugin : Plugin<Project> {
                 rootProject.objects
             )
             addSetUpAndTearDownActions(project)
-        }
-
-        tasks.withType<DistributionTest>().configureEach {
-            gradleInstallationForTest.toolingApiShadedJarDir.set(dirWorkaround(providers, layout, objects) {
-                // TODO Refactor to not reach into tasks of another project
-                val toolingApi = rootProject.project(":toolingApi")
-                val toolingApiShadedJar: ShadedJar by toolingApi.tasks
-                toolingApiShadedJar.jarFile.get().asFile.parentFile
-            })
         }
     }
 
