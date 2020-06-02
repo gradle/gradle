@@ -81,14 +81,6 @@ public class DefaultClassPath implements ClassPath, Serializable {
         this(ImmutableUniqueList.<File>empty());
     }
 
-    /**
-     * @deprecated Only here for the Kotlin DSL, use {@link #of(File...)} instead.
-     */
-    @Deprecated
-    public DefaultClassPath(File... files) {
-        this(new ImmutableUniqueList<File>(Arrays.asList(files)));
-    }
-
     protected DefaultClassPath(ImmutableUniqueList<File> files) {
         this.files = files;
     }

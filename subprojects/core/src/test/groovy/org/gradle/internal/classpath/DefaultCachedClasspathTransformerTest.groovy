@@ -300,7 +300,65 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         0 * fileAccessTimeJournal._
     }
 
-    def "applies transform to file"() {
+    def "removes entries with duplicate content when usage is none"() {
+        given:
+        def dir = testDir.file("thing.dir")
+        classesDir(dir)
+        def file = testDir.file("thing.jar")
+        jar(file)
+        def dir2 = testDir.file("thing2.dir")
+        classesDir(dir2)
+        def file2 = testDir.file("thing2.jar")
+        jar(file2)
+        def dir3 = testDir.file("thing3.dir")
+        classesDir(dir3)
+        def file3 = testDir.file("thing3.jar")
+        jar(file3)
+        def classpath = DefaultClassPath.of(dir, file, dir2, file2, dir3, file3)
+        def cachedFile = testDir.file("cached/o_e161f24809571a55f09d3f820c8e5942/thing.jar")
+
+        when:
+        def cachedClasspath = transformer.transform(classpath, None)
+
+        then:
+        cachedClasspath.asFiles == [dir, cachedFile]
+
+        and:
+        1 * fileAccessTimeJournal.setLastAccessTime(cachedFile.parentFile, _)
+        0 * fileAccessTimeJournal._
+    }
+
+    def "removes entries with duplicate content when usage is build logic"() {
+        given:
+        def dir = testDir.file("thing.dir")
+        classesDir(dir)
+        def file = testDir.file("thing.jar")
+        jar(file)
+        def dir2 = testDir.file("thing2.dir")
+        classesDir(dir2)
+        def file2 = testDir.file("thing2.jar")
+        jar(file2)
+        def dir3 = testDir.file("thing3.dir")
+        classesDir(dir3)
+        def file3 = testDir.file("thing3.jar")
+        jar(file3)
+        def classpath = DefaultClassPath.of(dir, file, dir2, file2, dir3, file3)
+        def cachedDir = testDir.file("cached/242050944f8d64367cc4fb4427e7968a/thing.dir.jar")
+        def cachedFile = testDir.file("cached/530c6bbffbdcca1d28d8e9445ae3d710/thing.jar")
+
+        when:
+        def cachedClasspath = transformer.transform(classpath, BuildLogic)
+
+        then:
+        cachedClasspath.asFiles == [cachedDir, cachedFile]
+
+        and:
+        1 * fileAccessTimeJournal.setLastAccessTime(cachedDir.parentFile, _)
+        1 * fileAccessTimeJournal.setLastAccessTime(cachedFile.parentFile, _)
+        0 * fileAccessTimeJournal._
+    }
+
+    def "applies client provided transform to file"() {
         given:
         def transform = Mock(CachedClasspathTransformer.Transform)
         def file = testDir.file("thing.jar")
