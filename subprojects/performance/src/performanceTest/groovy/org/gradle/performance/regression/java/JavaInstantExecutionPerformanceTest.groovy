@@ -23,7 +23,6 @@ import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.measure.MeasuredOperation
-import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -36,10 +35,14 @@ import static org.junit.Assert.assertTrue
 @Category(PerformanceRegressionTest)
 class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
-    private TestFile instantExecutionStateDir
+    // TODO simplify on rebaseline
+    private File[] stateDirectories
 
     def setup() {
-        instantExecutionStateDir = temporaryFolder.file(".instant-execution-state")
+        stateDirectories = [
+            temporaryFolder.file(".instant-execution-state"),
+            temporaryFolder.file(".gradle/configuration-cache")
+        ]
     }
 
     @Unroll
@@ -80,7 +83,7 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
     }
 
     private BuildExperimentListener listenerFor(String action) {
-        return instantInvocationListenerFor(action, instantExecutionStateDir)
+        return instantInvocationListenerFor(action, stateDirectories)
     }
 
     static String loading = "loading"
@@ -88,13 +91,15 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
     static String hot = "hot"
     static String cold = "cold"
 
-    static BuildExperimentListener instantInvocationListenerFor(String action, File stateDir) {
+    static BuildExperimentListener instantInvocationListenerFor(String action, File[] stateDirectories) {
         return new BuildExperimentListenerAdapter() {
 
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
                 if (action == storing) {
-                    stateDir.deleteDir()
+                    stateDirectories.each { dir ->
+                        dir.deleteDir()
+                    }
                 }
             }
 
