@@ -223,6 +223,7 @@ samples {
     }
 
     publishedSamples {
+        /* TODO re-enable the android sample
         androidApplication {
             description = "Build a simple Android application."
             category = "Android"
@@ -230,6 +231,7 @@ samples {
                 from(templates.javaAndroidApplication)
             }
         }
+        */
         springBootWebApplication {
             description = "Build a simple Spring Boot application."
             category = "Spring"
