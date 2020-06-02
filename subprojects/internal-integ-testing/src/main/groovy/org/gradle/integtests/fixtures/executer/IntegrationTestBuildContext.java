@@ -86,17 +86,6 @@ public class IntegrationTestBuildContext {
         return GradleVersion.version(System.getProperty("integTest.distZipVersion", GradleVersion.current().getVersion()));
     }
 
-    public TestFile getFatToolingApiJar() {
-        TestFile toolingApiShadedJarDir = file("integTest.toolingApiShadedJarDir", "subprojects/tooling-api/build/shaded-jar");
-        TestFile fatToolingApiJar = new TestFile(toolingApiShadedJarDir, String.format("gradle-tooling-api-shaded-%s.jar", getVersion().getBaseVersion().getVersion()));
-
-        if (!fatToolingApiJar.exists()) {
-            throw new IllegalStateException(String.format("The fat Tooling API JAR file does not exist: %s", fatToolingApiJar.getAbsolutePath()));
-        }
-
-        return fatToolingApiJar;
-    }
-
     public GradleDistribution distribution(String version) {
         if (version.equals(getVersion().getVersion())) {
             return new UnderDevelopmentGradleDistribution();

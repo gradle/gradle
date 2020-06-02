@@ -20,12 +20,11 @@ import groovy.transform.TupleConstructor
 import org.gradle.api.Action
 import org.gradle.internal.ErroringAction
 import org.gradle.internal.IoActions
+import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
-
-import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
@@ -107,6 +106,11 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
         buildFile << applyGroovyPlugin()
         buildFile << jcenterRepository()
         buildFile << spockDependency()
+        buildFile << """
+            repositories {
+                maven { url '${buildContext.libsRepo.toURI().toURL()}' }
+            }
+        """
 
         dependencyPermutations.each {
             buildFile << """
@@ -158,7 +162,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
         where:
         dependencyPermutations << [new GradleDependency('Gradle API', 'implementation', 'dependencies.gradleApi()'),
                                    new GradleDependency('TestKit', 'testImplementation', 'dependencies.gradleTestKit()'),
-                                   new GradleDependency('Tooling API', 'implementation', "project.files('${normaliseFileSeparators(buildContext.fatToolingApiJar.absolutePath)}')")].permutations()
+                                   new GradleDependency('Tooling API', 'implementation', "'org.gradle:gradle-tooling-api:${GradleVersion.current().version}'")].permutations()
     }
 
     static void writeClassesInZipFileToTextFile(File zipFile, File txtFile) {
