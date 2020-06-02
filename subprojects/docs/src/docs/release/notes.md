@@ -3,6 +3,7 @@ The Gradle team is excited to announce Gradle @version@.
 This release includes an experimental opt-in for the [file-system watching](#file-watching) feature that significantly improves build times, particularly in incremental scenarios. This is the first in a series of major improvements in the area planned over the course of several upcoming releases.
 
 There are also several other improvements including a [better version ordering](#dependency-ordering), [new samples](#new-samples) and many [bug fixes](#fixed-issues). 
+This release also contains an important [security fix](#security) for builds that sign artifacts.
 
 We would like to thank the following community contributors to this release of Gradle:
 
@@ -72,6 +73,14 @@ enableFeaturePreview("VERSION_ORDERING_V2")
 See the [full documentation on version ordering](userguide/single_versions.html) for the details of the new algorithm.
 
 This ordering will be enabled by default in Gradle 7.0.  
+
+<a name="security"></a>
+## Security 
+
+### Signing: GnuPG key passphrase captured in INFO and DEBUG logs (CVE-2020-13165)
+
+Gradle 6.5 contains a fix for [CVE-2020-13165](https://github.com/gradle/gradle/security/advisories/GHSA-ww7h-4fx5-8c2j). 
+Users that sign artifacts using the built-in signing plugin with gpg-agent may be affected. If you do not sign your artifacts, you are not affected.
 
 ## Documentation improvements
 
