@@ -22,7 +22,6 @@ import spock.lang.Unroll
 
 class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     private static final String STRING_CALLABLE = 'new java.util.concurrent.Callable<String>() { String call() { return "src/resource/file.txt" } }'
-    private static final String STRING_ZIP_CALLABLE = 'new java.util.concurrent.Callable<String>() { String call() { return "src/resource/archive.zip" } }'
 
     def "can access the project dir and build dir"() {
         buildFile << """
@@ -195,9 +194,6 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     def 'can create #collectionType containing #content'() {
         given:
         file('src/resource/file.txt') << "some text"
-        createZip("src/resource/archive.zip") {
-            file("file.txt") << "some text"
-        }
 
         buildFile << """
             def fileCollection = $expression
@@ -242,16 +238,6 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         'ConfigurableFileCollection' | 'Callable'       | "project.layout.configurableFiles($STRING_CALLABLE)"
         'ConfigurableFileCollection' | 'Provider'       | "project.layout.configurableFiles(provider($STRING_CALLABLE))"
         'ConfigurableFileCollection' | 'nested objects' | "project.layout.configurableFiles({[{$STRING_CALLABLE}]})"
-
-        'archive FileTree'           | 'String'         | 'project.layout.zipTree("src/resource/archive.zip")'
-        'archive FileTree'           | 'File'           | 'project.layout.zipTree(new File("src/resource/archive.zip"))'
-        'archive FileTree'           | 'Path'           | 'project.layout.zipTree(java.nio.file.Paths.get("src/resource/archive.zip"))'
-        'archive FileTree'           | 'URI'            | 'project.layout.zipTree(new File(projectDir, "/src/resource/archive.zip").toURI())'
-        'archive FileTree'           | 'URL'            | 'project.layout.zipTree(new File(projectDir, "/src/resource/archive.zip").toURI().toURL())'
-        'archive FileTree'           | 'RegularFile'    | 'project.layout.zipTree(project.layout.projectDirectory.file("src/resource/archive.zip"))'
-        'archive FileTree'           | 'Closure'        | 'project.layout.zipTree({ "src/resource/archive.zip" })'
-        'archive FileTree'           | 'Callable'       | "project.layout.zipTree($STRING_ZIP_CALLABLE)"
-        'archive FileTree'           | 'Provider'       | "project.layout.zipTree(provider($STRING_ZIP_CALLABLE))"
     }
 
     @Unroll
@@ -282,51 +268,6 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         'FileCollection'             | 'TaskOutputs'  | 'project.layout.files(project.tasks.myTask.outputs)'
         'ConfigurableFileCollection' | 'Task'         | 'project.layout.configurableFiles(project.tasks.myTask)'
         'ConfigurableFileCollection' | 'TaskOutputs'  | 'project.layout.configurableFiles(project.tasks.myTask.outputs)'
-    }
-
-    @Unroll
-    def 'can create #archiveType FileTree in task action'() {
-
-        given:
-        file("src/resources/file.txt") << "some text"
-
-        and:
-        buildFile << """
-            import javax.inject.Inject
-
-            def producer = tasks.register("producer", ${archiveType.capitalize()}) {
-                archiveFileName.set("archive.$archiveType")
-                destinationDirectory.set(layout.buildDirectory.dir("resources"))
-                from("src/resources")
-            }
-
-            abstract class ConsumerTask extends DefaultTask {
-                @InputFile abstract RegularFileProperty getArchiveFile()
-                @OutputDirectory abstract DirectoryProperty getUnpackDir()
-                @Inject abstract ProjectLayout getLayout()
-                @Inject abstract FileSystemOperations getFs()
-                @TaskAction void action() {
-                    fs.copy {
-                        from(layout.${archiveType}Tree(archiveFile))
-                        into(unpackDir)
-                    }
-                }
-            }
-
-            tasks.register("consumer", ConsumerTask) {
-                archiveFile = producer.flatMap { it.archiveFile }
-                unpackDir = layout.buildDirectory.dir("unpacked")
-            }
-        """
-
-        when:
-        run('consumer')
-
-        then:
-        file("build/unpacked/file.txt").isFile()
-
-        where:
-        archiveType << ['zip', 'tar']
     }
 
     @Unroll

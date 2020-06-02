@@ -125,26 +125,8 @@ public class WorkerSharedProjectScopeServices {
                 domainObjectCollectionFactory);
     }
 
-    DefaultProjectLayout createProjectLayout(
-        FileResolver fileResolver,
-        FileCollectionFactory fileCollectionFactory,
-        TaskDependencyFactory taskDependencyFactory,
-        FilePropertyFactory filePropertyFactory,
-        Factory<PatternSet> patternSetFactory,
-        PropertyHost propertyHost,
-        FileFactory fileFactory,
-        FileOperations fileOperations
-    ) {
-        return new DefaultProjectLayout(
-            projectDir,
-            fileResolver,
-            taskDependencyFactory,
-            patternSetFactory,
-            propertyHost,
-            fileCollectionFactory,
-            filePropertyFactory,
-            fileFactory,
-            fileOperations
-        );
+    DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
+                                             FilePropertyFactory filePropertyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory) {
+        return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
     }
 }
