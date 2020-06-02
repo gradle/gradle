@@ -34,7 +34,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.Publication;
-import org.gradle.api.publish.internal.GradleModuleMetadataWriter;
+import org.gradle.api.publish.internal.metadata.GradleModuleMetadataWriter;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.InputFiles;
@@ -178,16 +178,14 @@ public class GenerateModuleMetadata extends DefaultTask {
         File file = outputFile.get().getAsFile();
         PublicationInternal<?> publication = publication();
         List<PublicationInternal<?>> publications = Cast.uncheckedCast(this.publications.get());
-        try {
-            try (Writer writer = bufferedWriterFor(file)) {
-                new GradleModuleMetadataWriter(
-                    getBuildInvocationScopeId(),
-                    getProjectDependencyPublicationResolver(),
-                    getChecksumService()
-                ).generateTo(
-                    writer, publication, publications
-                );
-            }
+        try (Writer writer = bufferedWriterFor(file)) {
+            new GradleModuleMetadataWriter(
+                getBuildInvocationScopeId(),
+                getProjectDependencyPublicationResolver(),
+                getChecksumService()
+            ).writeTo(
+                writer, publication, publications
+            );
         } catch (IOException e) {
             throw new UncheckedIOException("Could not generate metadata file " + outputFile.get(), e);
         }
