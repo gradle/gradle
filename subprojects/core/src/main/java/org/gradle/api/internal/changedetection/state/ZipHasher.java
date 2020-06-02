@@ -18,8 +18,8 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.compress.utils.Lists;
-import org.gradle.api.internal.file.archive.FileZipInput;
-import org.gradle.api.internal.file.archive.StreamZipInput;
+import org.gradle.api.internal.file.archive.impl.FileZipInput;
+import org.gradle.api.internal.file.archive.impl.StreamZipInput;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.internal.Factory;

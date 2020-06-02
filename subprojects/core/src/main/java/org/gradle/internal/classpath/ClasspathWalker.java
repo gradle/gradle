@@ -17,7 +17,7 @@
 package org.gradle.internal.classpath;
 
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.archive.FileZipInput;
+import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.internal.file.FileMetadata;

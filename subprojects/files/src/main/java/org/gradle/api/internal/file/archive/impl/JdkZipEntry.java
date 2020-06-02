@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.archive;
+package org.gradle.api.internal.file.archive.impl;
 
+import com.google.common.base.Supplier;
 import com.google.common.io.ByteStreams;
+import org.gradle.api.internal.file.archive.ZipEntry;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.function.Supplier;
 
 class JdkZipEntry implements ZipEntry {
 

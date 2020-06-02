@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.archive;
+package org.gradle.api.internal.file.archive.impl;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.AbstractIterator;
-import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.file.archive.ZipEntry;
+import org.gradle.api.internal.file.archive.ZipInput;
+import org.gradle.internal.file.FileException;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.function.Supplier;
 import java.util.zip.ZipFile;
 
 public class FileZipInput implements ZipInput {
@@ -42,7 +43,7 @@ public class FileZipInput implements ZipInput {
             try {
                 return new StreamZipInput(new FileInputStream(file));
             } catch (FileNotFoundException e) {
-                throw new UncheckedIOException(e);
+                throw new FileException(e);
             }
         }
     }
@@ -51,7 +52,16 @@ public class FileZipInput implements ZipInput {
      * {@link ZipFile} is more efficient, but causes memory leaks on older Java versions, so we only use it on more recent ones.
      */
     private static boolean isZipFileSafeToUse() {
-        return JavaVersion.current().isJava11Compatible();
+        return getJavaMajorVersion() >= 11;
+    }
+
+    private static int getJavaMajorVersion() {
+        String versionString = System.getProperty("java.version");
+        String[] versionParts = versionString.split("\\.");
+        if (versionParts.length < 1) {
+            throw new IllegalArgumentException("Could not determine java version from '" + versionString + "'.");
+        }
+        return Integer.parseInt(versionParts[0]);
     }
 
     private final ZipFile file;
@@ -61,7 +71,7 @@ public class FileZipInput implements ZipInput {
         try {
             this.file = new ZipFile(file);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new FileException(e);
         }
         this.entries = this.file.entries();
     }
@@ -81,7 +91,7 @@ public class FileZipInput implements ZipInput {
                         try {
                             return file.getInputStream(zipEntry);
                         } catch (IOException e) {
-                            throw new UncheckedIOException(e);
+                            throw new FileException(e);
                         }
                     }
                 });
