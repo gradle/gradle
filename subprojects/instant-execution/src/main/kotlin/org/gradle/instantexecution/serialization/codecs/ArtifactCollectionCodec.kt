@@ -17,16 +17,21 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.component.Artifact
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFiles
+import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
+import org.gradle.api.internal.artifacts.transform.Transformation
 import org.gradle.api.internal.artifacts.transform.TransformationNode
+import org.gradle.api.internal.artifacts.transform.TransformationSubject
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
@@ -35,9 +40,11 @@ import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.codecs.transform.FixedDependenciesResolver
 import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.internal.DisplayName
+import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import java.io.File
 import java.util.concurrent.Callable
 
@@ -59,12 +66,17 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
         val files = fileCollectionFactory.resolving(elements.map {
             when (it) {
                 is ResolvedArtifactResultSpec -> it.file
-                is ConsumerProvidedVariantSpec -> Callable { it.node.transformedSubject.get().files }
+                is ConsumerProvidedVariantSpec -> Callable {
+                    it.node.transformedSubject.get().files
+                }
+                is TransformedLocalArtifactSpec -> Callable {
+                    it.transformation.createInvocation(TransformationSubject.initial(it.origin), FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty())), null).invoke().get().files
+                }
                 else -> throw IllegalArgumentException("Unexpected element $it in artifact collection")
             }
         })
         val failures = readList().uncheckedCast<List<Throwable>>()
-        return FixedArtifactCollection(files, elements, failures)
+        return FixedArtifactCollection(files, elements, failures, fileCollectionFactory)
     }
 }
 
@@ -87,16 +99,30 @@ class ConsumerProvidedVariantSpec(
 
 
 private
+class
+TransformedLocalArtifactSpec(
+    val ownerId: ComponentIdentifier,
+    val origin: File,
+    val transformation: Transformation,
+    val variantDisplayName: DisplayName,
+    val variantAttributes: ImmutableAttributes
+)
+
+
+private
 class CollectingArtifactVisitor : ArtifactVisitor {
     val elements = mutableListOf<Any>()
     val failures = mutableListOf<Throwable>()
 
-    override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType =
-        if (source is ConsumerProvidedVariantFiles && source.scheduledNodes.isNotEmpty()) {
+    override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType {
+        return if (source is ConsumerProvidedVariantFiles && source.scheduledNodes.isNotEmpty()) {
+            FileCollectionStructureVisitor.VisitType.NoContents
+        } else if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet && source.isBuildable) {
             FileCollectionStructureVisitor.VisitType.NoContents
         } else {
             FileCollectionStructureVisitor.VisitType.Visit
         }
+    }
 
     override fun requireArtifactFiles(): Boolean {
         return true
@@ -111,7 +137,7 @@ class CollectingArtifactVisitor : ArtifactVisitor {
     }
 
     override fun endVisitCollection(source: FileCollectionInternal.Source) {
-        if (source is ConsumerProvidedVariantFiles && source.scheduledNodes.isNotEmpty()) {
+        if (source is ConsumerProvidedVariantFiles) {
             for (node in source.scheduledNodes) {
                 elements.add(
                     ConsumerProvidedVariantSpec(
@@ -121,6 +147,8 @@ class CollectingArtifactVisitor : ArtifactVisitor {
                     )
                 )
             }
+        } else if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet) {
+            elements.add(TransformedLocalArtifactSpec(source.ownerId, source.file, source.transformation, source.targetVariantName, source.targetVariantAttributes))
         }
     }
 }
@@ -130,7 +158,8 @@ private
 class FixedArtifactCollection(
     private val artifactFiles: FileCollection,
     private val elements: List<Any>,
-    private val failures: List<Throwable>
+    private val failures: List<Throwable>,
+    private val fileCollectionFactory: FileCollectionFactory
 ) : ArtifactCollectionInternal {
 
     override fun getFailures() = failures
@@ -150,7 +179,12 @@ class FixedArtifactCollection(
                         val resolvedArtifact: ResolvableArtifact = element.node.inputArtifacts.transformedTo(output)
                         result.add(DefaultResolvedArtifactResult(resolvedArtifact.id, element.variantDisplayName, element.variantAttributes, Artifact::class.java, output))
                     }
-                    // Ignore
+                }
+                is TransformedLocalArtifactSpec -> {
+                    for (output in element.transformation.createInvocation(TransformationSubject.initial(element.origin), FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty())), null).invoke().get().files) {
+                        val artifactId = ComponentFileArtifactIdentifier(element.ownerId, output.name)
+                        result.add(DefaultResolvedArtifactResult(artifactId, element.variantDisplayName, element.variantAttributes, Artifact::class.java, output))
+                    }
                 }
                 else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
             }

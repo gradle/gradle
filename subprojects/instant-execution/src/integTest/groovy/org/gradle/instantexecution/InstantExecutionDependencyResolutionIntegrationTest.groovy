@@ -392,6 +392,59 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         outputContains("result = [root.additional.blue.green, root.blue.green, a.jar.green, a.additional.blue.green]")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/13200")
+    def "task input artifact collection can include the output of artifact transforms of file dependencies that include task outputs"() {
+        def fixture = newInstantExecutionFixture()
+
+        settingsFile << """
+            rootProject.name = 'root'
+            include 'a'
+        """
+        setupBuildWithSimpleColorTransform()
+        buildFile << """
+            allprojects {
+                task additionalFile(type: FileProducer) {
+                    output = layout.buildDirectory.file("\${project.name}.additional.blue")
+                }
+            }
+            dependencies.artifactTypes {
+                blue {
+                    attributes.attribute(color, 'blue')
+                }
+            }
+            dependencies {
+                implementation files(tasks.additionalFile.output, 'root.blue')
+                implementation project(':a')
+            }
+            project(':a') {
+                dependencies {
+                    implementation files(tasks.additionalFile.output)
+                }
+            }
+        """
+        file('root.blue') << 'root'
+
+        when:
+        instantRun(":resolveArtifacts")
+
+        then:
+        assertTransformed("root.blue", "root.additional.blue", "a.additional.blue", "a.jar")
+        outputContains("files = [root.additional.blue.green, root.blue.green, a.jar.green, a.additional.blue.green]")
+        outputContains("artifacts = [root.additional.blue.green (root.additional.blue), root.blue.green (root.blue), a.jar.green (project :a), a.additional.blue.green (a.additional.blue)]")
+
+        when:
+        instantRun(":resolveArtifacts")
+
+        then: // everything up-to-date
+        fixture.assertStateLoaded()
+        result.assertTaskOrder(":a:producer", ":resolveArtifacts")
+        result.assertTaskOrder(":a:additionalFile", ":resolveArtifacts")
+        result.assertTaskOrder(":additionalFile", ":resolveArtifacts")
+        assertTransformed()
+        outputContains("files = [root.additional.blue.green, root.blue.green, a.jar.green, a.additional.blue.green]")
+        outputContains("artifacts = [root.additional.blue.green (root.additional.blue), root.blue.green (root.blue), a.jar.green (project :a), a.additional.blue.green (a.additional.blue)]")
+    }
+
     def "task input file collection can include the output of chained artifact transform of project dependencies"() {
         def fixture = newInstantExecutionFixture()
 

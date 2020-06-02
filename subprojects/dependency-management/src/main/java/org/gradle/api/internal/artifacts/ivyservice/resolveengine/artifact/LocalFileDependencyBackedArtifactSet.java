@@ -98,7 +98,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
                 artifactIdentifier = new ComponentFileArtifactIdentifier(componentIdentifier, file.getName());
             }
 
-            AttributeContainerInternal variantAttributes = artifactTypeRegistry.mapAttributesFor(file);
+            ImmutableAttributes variantAttributes = artifactTypeRegistry.mapAttributesFor(file);
             SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, LOCAL_FILE, variantAttributes, dependencyMetadata);
             selectedArtifacts.add(selector.select(variant, this));
         }
@@ -130,11 +130,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion, ResolvedVariantSet {
         private final ComponentArtifactIdentifier artifactIdentifier;
         private final DisplayName variantName;
-        private final AttributeContainerInternal variantAttributes;
+        private final ImmutableAttributes variantAttributes;
         private final LocalFileDependencyMetadata dependencyMetadata;
         private final ResolvableArtifact artifact;
 
-        SingletonFileResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainerInternal variantAttributes, LocalFileDependencyMetadata dependencyMetadata) {
+        SingletonFileResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, ImmutableAttributes variantAttributes, LocalFileDependencyMetadata dependencyMetadata) {
             this.artifactIdentifier = artifactIdentifier;
             this.variantName = variantName;
             this.variantAttributes = variantAttributes;
@@ -226,6 +226,10 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             this.transformationNodeRegistry = transformationNodeRegistry;
         }
 
+        public ComponentIdentifier getOwnerId() {
+            return delegate.getComponentId();
+        }
+
         public File getFile() {
             return delegate.getFile();
         }
@@ -236,6 +240,14 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         public boolean isBuildable() {
             return delegate.isBuildable();
+        }
+
+        public DisplayName getTargetVariantName() {
+            return delegate.variantName;
+        }
+
+        public ImmutableAttributes getTargetVariantAttributes() {
+            return delegate.variantAttributes;
         }
 
         @Override

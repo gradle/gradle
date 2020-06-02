@@ -83,10 +83,8 @@ class FileCollectionCodec(
                         is SubtractingFileCollectionSpec -> element.left.minus(element.right)
                         is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
                         is FileTree -> element
-                        is TransformedLocalFileSpec -> {
-                            fileCollectionFactory.resolving {
-                                element.transformation.createInvocation(TransformationSubject.initial(element.origin), FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty())), null).invoke().get().files
-                            }
+                        is TransformedLocalFileSpec -> Callable {
+                            element.transformation.createInvocation(TransformationSubject.initial(element.origin), FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty())), null).invoke().get().files
                         }
                         else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
                     }
@@ -134,13 +132,10 @@ class CollectingVisitor : FileCollectionStructureVisitor {
     }
 
     override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType {
-        if (source is ConsumerProvidedVariantFiles) {
-            if (source.scheduledNodes.isNotEmpty()) {
-                // Some transforms are scheduled, so visit the source rather than the files
-                return FileCollectionStructureVisitor.VisitType.NoContents
-            }
-        }
-        if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet && source.isBuildable) {
+        if (source is ConsumerProvidedVariantFiles && source.scheduledNodes.isNotEmpty()) {
+            // Some transforms are scheduled, so visit the source rather than the files
+            return FileCollectionStructureVisitor.VisitType.NoContents
+        } else if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet && source.isBuildable) {
             // Some transforms have task outputs as inputs, so visit the source rather than the files
             return FileCollectionStructureVisitor.VisitType.NoContents
         }
