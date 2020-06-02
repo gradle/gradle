@@ -42,6 +42,10 @@ In this release, we've introduced an experimental _[file-system watching](usergu
 
 You can enable this feature by supplying the parameter `--watch-fs` on the command-line. Eventually, this optimization will be enabled by default.
 
+![Build time improvements using Santa Tracker Android with file-system watching enabled, Linux with OpenJDK 8.](https://blog.gradle.org/images/introducing-file-system-watching/watch-fs-santa-tracker-linux.png)
+
+_Build time improvements using [Santa Tracker Android](https://github.com/gradle/santa-tracker-performance) with file-system watching enabled, Linux with OpenJDK 8._
+
 <a name="features"></a>
 ## New features and usability improvements
 
