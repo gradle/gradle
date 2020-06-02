@@ -127,6 +127,7 @@
             <trusting group="org.junit.jupiter"/>
          </trusted-key>
          <trusted-key id="ff986d345395d4ad1dc48137bb6fd5ad91d01857" group="org.seleniumhq.selenium"/>
+         <trusted-key id="314fe82e5a4c5377bca2edec5208812e1e4a6db0" group="com.gradle" />
       </trusted-keys>
    </configuration>
    <components>
