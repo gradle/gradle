@@ -163,6 +163,7 @@ import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
@@ -249,8 +250,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectRegistry<ProjectInternal>();
     }
 
-    protected IProjectFactory createProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry, BuildState owner, ProjectStateRegistry projectStateRegistry) {
-        return new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(), projectRegistry, owner, projectStateRegistry);
+    protected TextFileResourceLoader createTextFileResourceLoader(RelativeFilePathResolver resolver) {
+        return new DefaultTextFileResourceLoader(resolver);
+    }
+
+    protected IProjectFactory createProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry, BuildState owner, ProjectStateRegistry projectStateRegistry, TextFileResourceLoader resourceLoader) {
+        return new ProjectFactory(instantiator, resourceLoader, projectRegistry, owner, projectStateRegistry);
     }
 
     protected ProjectDescriptorRegistry createProjectDescriptorRegistry() {
@@ -426,13 +431,14 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             publicBuildPath);
     }
 
-    protected InitScriptHandler createInitScriptHandler(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor) {
+    protected InitScriptHandler createInitScriptHandler(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor, TextFileResourceLoader resourceLoader) {
         return new InitScriptHandler(
             new DefaultInitScriptProcessor(
                 scriptPluginFactory,
                 scriptHandlerFactory
             ),
-            buildOperationExecutor
+            buildOperationExecutor,
+            resourceLoader
         );
     }
 

@@ -1,15 +1,13 @@
 package org.gradle.kotlin.dsl
 
-import org.gradle.groovy.scripts.StringScriptSource
-
+import org.gradle.groovy.scripts.TextResourceScriptSource
+import org.gradle.internal.resource.StringTextResource
 import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestCollector
-
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.junit.Test
 
 
@@ -85,7 +83,7 @@ fun expecting(vararg expected: Plugin, block: PluginDependenciesSpec.() -> Unit)
 
 fun plugins(block: PluginDependenciesSpecScope.() -> Unit): List<PluginRequestInternal> =
     PluginRequestCollector(
-        StringScriptSource("script", "")
+        TextResourceScriptSource(StringTextResource("script", ""))
     ).run {
         PluginDependenciesSpecScope(createSpec(1)).block()
         pluginRequests.toList()

@@ -32,7 +32,7 @@ enableFeaturePreview('ONE_LOCKFILE_PER_PROJECT')
 
     static void enableUpdatedVersionSorting(File settings) {
         settings << """
-            enableFeaturePreview('VERSION_SORTING_V2')
+            enableFeaturePreview('VERSION_ORDERING_V2')
 """
     }
 }

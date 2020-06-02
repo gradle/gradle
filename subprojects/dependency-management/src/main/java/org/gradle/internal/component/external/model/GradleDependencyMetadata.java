@@ -104,6 +104,13 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     }
 
     @Override
+    public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
+        if (target instanceof ModuleComponentSelector) {
+            return new GradleDependencyMetadata((ModuleComponentSelector) target, excludes, constraint, endorsing, reason, force, artifacts);
+        }
+        return new DefaultProjectDependencyMetadata((ProjectComponentSelector) target, this);
+    }
+    @Override
     public ModuleComponentSelector getSelector() {
         return selector;
     }

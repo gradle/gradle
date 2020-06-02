@@ -39,7 +39,7 @@ class VersionRangeSelectorTest extends AbstractStringVersionSelectorTest {
 
     def "excluded upper bound corner cases"() {
         given:
-        featurePreviews.enableFeature(FeaturePreviews.Feature.VERSION_SORTING_V2)
+        featurePreviews.enableFeature(FeaturePreviews.Feature.VERSION_ORDERING_V2)
         expect:
         !accept("[1.0,2.0)", "2.0-final")
         !accept("[1.0,2.0)", "2.0-dev")
@@ -176,6 +176,6 @@ class VersionRangeSelectorTest extends AbstractStringVersionSelectorTest {
 
     @Override
     VersionSelector getSelector(String selector) {
-        return new VersionRangeSelector(selector, new DefaultVersionComparator(featurePreviews).asVersionComparator(), new VersionParser(), featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.VERSION_SORTING_V2))
+        return new VersionRangeSelector(selector, new DefaultVersionComparator(featurePreviews).asVersionComparator(), new VersionParser(), featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.VERSION_ORDERING_V2))
     }
 }

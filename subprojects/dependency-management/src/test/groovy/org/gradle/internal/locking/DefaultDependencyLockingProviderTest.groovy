@@ -25,7 +25,9 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
+import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
@@ -53,6 +55,7 @@ class DefaultDependencyLockingProviderTest extends Specification {
     DependencySubstitutionRules dependencySubstitutionRules = Mock()
     FeaturePreviews featurePreviews = new FeaturePreviews()
     PropertyFactory propertyFactory = new DefaultPropertyFactory(Stub(PropertyHost))
+    FilePropertyFactory filePropertyFactory = TestFiles.filePropertyFactory()
 
     @Subject
     DefaultDependencyLockingProvider provider
@@ -269,7 +272,7 @@ empty=
     }
 
     private DefaultDependencyLockingProvider newProvider() {
-        new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, featurePreviews, propertyFactory)
+        new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, featurePreviews, propertyFactory, filePropertyFactory)
     }
 
     def writeLockFile(List<String> modules, boolean unique = true, String configuration = 'conf') {

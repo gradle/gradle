@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.component.model.IvyArtifactName
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.SELECTED_BY_RULE
@@ -185,8 +186,8 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         return details.delegate.ruleDescriptors[0]
     }
 
-    private static def newDependencyResolveDetails(String group, String name, String version, String reason = null) {
-        return new DefaultDependencyResolveDetails(new DefaultDependencySubstitution(newComponentSelector(group, name, version)), newVersionSelector(group, name, version))
+    private static def newDependencyResolveDetails(String group, String name, String version, String reason = null, List<IvyArtifactName> artifacts = []) {
+        return new DefaultDependencyResolveDetails(new DefaultDependencySubstitution(newComponentSelector(group, name, version), artifacts), newVersionSelector(group, name, version))
     }
 
     private static ModuleComponentSelector newComponentSelector(String group, String module, String version) {

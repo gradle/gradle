@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
@@ -69,7 +70,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
                 excludeSpecs == null &&
                 requiredAttributes == null) {
             // no filtering in place
-            return null;
+            return Actions.doNothing();
         }
         cachedAction = new RepositoryFilterAction(createSpecMatchers(includeSpecs), createSpecMatchers(excludeSpecs));
         return cachedAction;

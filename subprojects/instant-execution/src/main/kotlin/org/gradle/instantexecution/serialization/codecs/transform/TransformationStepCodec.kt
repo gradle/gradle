@@ -17,7 +17,6 @@
 package org.gradle.instantexecution.serialization.codecs.transform
 
 import org.gradle.api.internal.DomainObjectContext
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.transform.TransformationStep
 import org.gradle.api.internal.artifacts.transform.Transformer
 import org.gradle.api.internal.artifacts.transform.TransformerInvocationFactory
@@ -25,14 +24,14 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 
 
 internal
 class TransformationStepCodec(
     private val projectStateRegistry: ProjectStateRegistry,
-    private val fingerprinterRegistry: FileCollectionFingerprinterRegistry,
-    private val projectFinder: ProjectFinder
+    private val fingerprinterRegistry: FileCollectionFingerprinterRegistry
 ) : Codec<TransformationStep> {
 
     override suspend fun WriteContext.encode(value: TransformationStep) {
@@ -43,9 +42,15 @@ class TransformationStepCodec(
 
     override suspend fun ReadContext.decode(): TransformationStep {
         val path = readString()
-        val transformer = read() as Transformer
-        val project = projectFinder.getProject(path)
-        val owner = project.services.get(DomainObjectContext::class.java)
-        return TransformationStep(transformer, project.services.get(TransformerInvocationFactory::class.java), owner, projectStateRegistry, fingerprinterRegistry)
+        val transformer = readNonNull<Transformer>()
+        val project = getProject(path)
+        val services = project.services
+        return TransformationStep(
+            transformer,
+            services[TransformerInvocationFactory::class.java],
+            services[DomainObjectContext::class.java],
+            projectStateRegistry,
+            fingerprinterRegistry
+        )
     }
 }

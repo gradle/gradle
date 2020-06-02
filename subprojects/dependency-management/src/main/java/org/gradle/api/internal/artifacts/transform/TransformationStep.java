@@ -109,7 +109,7 @@ public class TransformationStep implements Transformation, TaskDependencyContain
         FileCollectionFingerprinterRegistry fingerprinterRegistry = context != null ? context.getService(FileCollectionFingerprinterRegistry.class) : globalFingerprinterRegistry;
         isolateTransformerParameters(fingerprinterRegistry);
 
-        Try<ArtifactTransformDependencies> resolvedDependencies = dependenciesResolver.forTransformer(transformer);
+        Try<ArtifactTransformDependencies> resolvedDependencies = dependenciesResolver.computeArtifacts(transformer);
         return resolvedDependencies
             .map(dependencies -> {
                 ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();

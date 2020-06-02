@@ -256,7 +256,7 @@
     "name": "instantExecution",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "dirName": "instant-execution-report",

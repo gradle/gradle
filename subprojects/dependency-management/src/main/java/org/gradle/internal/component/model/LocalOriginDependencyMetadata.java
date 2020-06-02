@@ -19,6 +19,7 @@ package org.gradle.internal.component.model;
 import org.gradle.api.artifacts.component.ComponentSelector;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * A dependency that is defined locally in a build script, not resolved from a repository.
@@ -32,6 +33,9 @@ public interface LocalOriginDependencyMetadata extends ForcingDependencyMetadata
 
     @Override
     LocalOriginDependencyMetadata withTarget(ComponentSelector target);
+
+    @Override
+    LocalOriginDependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts);
 
     @Override
     LocalOriginDependencyMetadata forced();

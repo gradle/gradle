@@ -316,6 +316,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    @VisibleForTesting
     public InternalState getResolvedState() {
         return resolvedState;
     }
@@ -559,6 +560,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         assertIsResolvable();
         warnIfConfigurationIsDeprecatedForResolving();
 
+        if (resolvedState.compareTo(requestedState) >= 0) {
+            return;
+        }
+
         if (!owner.getModel().hasMutableState()) {
             if (!GradleThread.isManaged()) {
                 // Error if we are executing in a user-managed thread.
@@ -702,7 +707,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
-        return new DefaultExtraExecutionGraphDependenciesResolverFactory(this::getResultsForBuildDependencies, this::getResultsForArtifacts, new ResolveGraphAction(this), fileCollectionFactory);
+        return new DefaultExtraExecutionGraphDependenciesResolverFactory(this::getResultsForBuildDependencies, this::getResultsForArtifacts, new ResolveGraphAction(this),
+            (attributes, filter) -> new ConfigurationFileCollection(Specs.satisfyAll(), attributes, filter, false, false));
     }
 
     private ResolverResults getResultsForBuildDependencies() {
@@ -1443,7 +1449,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public void beforeResolve(Action<? super ResolvableDependencies> action) {
-            dependencyResolutionListeners.add("beforeResolve", userCodeApplicationContext.decorateWithCurrent(action));
+            dependencyResolutionListeners.add("beforeResolve", userCodeApplicationContext.reapplyCurrentLater(action));
         }
 
         @Override
@@ -1453,7 +1459,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public void afterResolve(Action<? super ResolvableDependencies> action) {
-            dependencyResolutionListeners.add("afterResolve", userCodeApplicationContext.decorateWithCurrent(action));
+            dependencyResolutionListeners.add("afterResolve", userCodeApplicationContext.reapplyCurrentLater(action));
         }
 
         @Override
@@ -1791,7 +1797,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public void run(NodeExecutionContext context) {
-            configuration.resolveExclusively(GRAPH_RESOLVED);
+            configuration.resolveExclusively(ARTIFACTS_RESOLVED);
         }
     }
 }

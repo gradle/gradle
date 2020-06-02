@@ -16,6 +16,8 @@
 
 package org.gradle.instantexecution.problems
 
+import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.internal.DisplayName
 import kotlin.reflect.KClass
 
 
@@ -83,6 +85,14 @@ sealed class PropertyTrace {
 
     object Gradle : PropertyTrace()
 
+    class BuildLogic(
+        val displayName: DisplayName
+    ) : PropertyTrace()
+
+    class BuildLogicClass(
+        val name: String
+    ) : PropertyTrace()
+
     class Task(
         val type: Class<*>,
         val path: String
@@ -128,6 +138,13 @@ sealed class PropertyTrace {
                 append(" of type ")
                 quoted(trace.type.name)
             }
+            is BuildLogic -> {
+                append(trace.displayName.displayName)
+            }
+            is BuildLogicClass -> {
+                append("class ")
+                quoted(trace.name)
+            }
             is Unknown -> {
                 append("unknown location")
             }
@@ -157,6 +174,18 @@ sealed class PropertyTrace {
             is Property -> trace
             else -> null
         }
+}
+
+
+fun UserCodeApplicationContext.location(consumer: String?): PropertyTrace {
+    val currentApplication = current()
+    return if (currentApplication != null) {
+        PropertyTrace.BuildLogic(currentApplication.displayName)
+    } else if (consumer != null) {
+        PropertyTrace.BuildLogicClass(consumer)
+    } else {
+        PropertyTrace.Unknown
+    }
 }
 
 

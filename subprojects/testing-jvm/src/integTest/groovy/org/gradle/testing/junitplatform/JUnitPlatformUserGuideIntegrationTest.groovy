@@ -29,7 +29,7 @@ class JUnitPlatformUserGuideIntegrationTest extends JUnitPlatformIntegrationSpec
     def 'can display test case and test class in @DisplayName'() {
         given:
         file('src/test/java/org/gradle/DisplayNameDemo.java') << '''
-package org.gradle; 
+package org.gradle;
 import org.junit.jupiter.api.*;
 
 @DisplayName("A special test case")
@@ -41,7 +41,7 @@ class DisplayNameDemo {
     }
 }
 '''
-        file('src/test/java/org/gradle/DisplayNameDemo2.java') << ''' 
+        file('src/test/java/org/gradle/DisplayNameDemo2.java') << '''
 package org.gradle;
 import org.junit.jupiter.api.*;
 
@@ -59,12 +59,13 @@ class DisplayNameDemo2 {
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('org.gradle.DisplayNameDemo', 'org.gradle.DisplayNameDemo2')
-        result.testClass('org.gradle.DisplayNameDemo')
+        result.assertTestClassesExecutedJudgementByHtml('org.gradle.DisplayNameDemo', 'org.gradle.DisplayNameDemo2')
+            .assertTestClassesExecutedJudgementByXml('A special test case', 'A special test case2')
+        result.testClassByHtml('org.gradle.DisplayNameDemo')
             .assertDisplayName('A special test case')
             .assertTestCount(1, 0, 0)
             .assertTestPassed('testWithDisplayNameContainingSpaces', 'Custom test name containing spaces')
-        result.testClass('org.gradle.DisplayNameDemo2')
+        result.testClassByHtml('org.gradle.DisplayNameDemo2')
             .assertDisplayName('A special test case2')
             .assertTestCount(1, 0, 0)
             .assertTestPassed('testWithDisplayNameContainingSpecialCharacters', '╯°□°）╯')
@@ -79,7 +80,7 @@ test {
 }
 """
         }
-        file('src/test/java/org/gradle/LifecycleTest.java') << """ 
+        file('src/test/java/org/gradle/LifecycleTest.java') << """
 package org.gradle;
 
 import org.junit.jupiter.api.Test;
@@ -89,7 +90,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 ${annotation}
 public class LifecycleTest {
     private static int counter = 0;
-    
+
     public LifecycleTest() {
         if(counter == 0) {
             counter += 1;
@@ -97,7 +98,7 @@ public class LifecycleTest {
             throw new IllegalStateException("I can only be instantiated once!");
         }
     }
-    
+
     @Test
     public void test1() {
         System.out.println(this);
@@ -191,12 +192,12 @@ class TestingAStackDemo {
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('org.gradle.TestingAStackDemo').assertTestCount(1, 0, 0)
+        result.testClassByHtml('org.gradle.TestingAStackDemo').assertTestCount(1, 0, 0)
             .assertTestPassed('isInstantiatedWithNew', 'is instantiated with new Stack')
-        result.testClass('org.gradle.TestingAStackDemo$WhenNew').assertTestCount(2, 0, 0)
+        result.testClassByHtml('org.gradle.TestingAStackDemo$WhenNew').assertTestCount(2, 0, 0)
             .assertTestPassed('isEmpty', 'is empty')
             .assertTestPassed('throwsExceptionWhenPopped', 'throws EmptyStackException when popped')
-        result.testClass('org.gradle.TestingAStackDemo$WhenNew$AfterPushing').assertTestCount(1, 0, 0)
+        result.testClassByHtml('org.gradle.TestingAStackDemo$WhenNew$AfterPushing').assertTestCount(1, 0, 0)
             .assertTestPassed('isNotEmpty', 'it is no longer empty')
 
         where:
@@ -243,7 +244,7 @@ class TestInfoDemo {
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-            .testClass('org.gradle.TestInfoDemo').assertTestCount(2, 0, 0)
+            .testClassByHtml('org.gradle.TestInfoDemo').assertTestCount(2, 0, 0)
             .assertTestPassed('test2', 'test2')
             .assertTestPassed('test1(TestInfo)', 'TEST 1')
 
@@ -260,7 +261,7 @@ public class MyExtension implements TestInstancePostProcessor {
         public void postProcessTestInstance(Object testInstance, ExtensionContext context) {
                 System.out.println("Created!");
         }
-}        
+}
 '''
         file('src/test/java/org/gradle/ExtensionTest.java') << '''
 package org.gradle;
@@ -298,7 +299,7 @@ interface TestInterfaceDynamicTestsDemo {
             DynamicTest.dynamicTest("2nd dynamic test in test interface", () -> assertEquals(4, 2 * 2))
         );
     }
-    
+
     @BeforeEach
     default void beforeEach() {
         System.out.println("Invoked!");
@@ -316,7 +317,7 @@ public class Test implements TestInterfaceDynamicTestsDemo {
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-            .testClass('org.gradle.Test').assertTestCount(2, 0, 0)
+            .testClassByHtml('org.gradle.Test').assertTestCount(2, 0, 0)
             .assertTestPassed('dynamicTestsFromCollection()[1]', '1st dynamic test in test interface')
             .assertTestPassed('dynamicTestsFromCollection()[2]', '2nd dynamic test in test interface')
             .assertStdout(containsString('Invoked!'))
@@ -350,7 +351,7 @@ public class Test {
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-            .testClass('org.gradle.Test').assertTestCount(3, 0, 0)
+            .testClassByHtml('org.gradle.Test').assertTestCount(3, 0, 0)
             .assertTestPassed('ok(String)[1]', '[1] a')
             .assertTestPassed('ok(String)[2]', '[2] b')
             .assertTestPassed('ok(String)[3]', '[3] c')
@@ -373,7 +374,7 @@ public class TestTemplateTest {
     void testTemplate(String parameter) {
         assertEquals(3, parameter.length());
     }
-    
+
     private static class MyTestTemplateInvocationContextProvider implements TestTemplateInvocationContextProvider {
         @Override
         public boolean supportsTestTemplate(ExtensionContext context) {
@@ -418,7 +419,7 @@ public class TestTemplateTest {
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-            .testClass('org.gradle.TestTemplateTest').assertTestCount(2, 0, 0)
+            .testClassByHtml('org.gradle.TestTemplateTest').assertTestCount(2, 0, 0)
             .assertTestPassed('testTemplate(String)[1]', 'foo')
             .assertTestPassed('testTemplate(String)[2]', 'bar')
     }

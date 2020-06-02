@@ -16,19 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.file.archive.ZipEntry;
-import org.gradle.internal.hash.HashCode;
-
-import javax.annotation.Nullable;
-import java.io.IOException;
-
 /**
  * Hashes resources (e.g., a class file in a jar or a class file in a directory)
  */
-public interface ResourceHasher extends ConfigurableNormalizer, RegularFileHasher {
-    /**
-     * Returns {@code null} if the zip entry should be ignored.
-     */
-    @Nullable
-    HashCode hash(ZipEntry zipEntry) throws IOException;
+public interface ResourceHasher extends ConfigurableNormalizer, RegularFileHasher, ZipEntryHasher {
 }

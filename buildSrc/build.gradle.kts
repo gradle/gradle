@@ -60,7 +60,7 @@ subprojects {
             }
         }
 
-        tasks.withType<ValidatePlugins> {
+        tasks.withType<ValidatePlugins>().configureEach {
             failOnWarning.set(true)
             enableStricterValidation.set(true)
         }

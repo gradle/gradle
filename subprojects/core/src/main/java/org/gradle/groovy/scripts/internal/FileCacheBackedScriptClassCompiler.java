@@ -106,8 +106,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             .withInitializer(new ProgressReportingInitializer(
                 progressLoggerFactory,
                 new CompileToCrossBuildCacheAction(remapped, classLoader, operation, verifier, scriptBaseClass),
-                "Compiling script into cache",
-                "Compiling " + source.getDisplayName()))
+                "Compiling " + source.getShortDisplayName()))
             .open();
         try {
             File genericClassesDir = classesDir(cache, operation);
@@ -195,22 +194,18 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         private final ProgressLoggerFactory progressLoggerFactory;
         private final Action<? super PersistentCache> delegate;
         private final String shortDescription;
-        private final String longDescription;
 
         public ProgressReportingInitializer(ProgressLoggerFactory progressLoggerFactory,
                                             Action<PersistentCache> delegate,
-                                            String shortDescription,
-                                            String longDescription) {
+                                            String shortDescription) {
             this.progressLoggerFactory = progressLoggerFactory;
             this.delegate = delegate;
             this.shortDescription = shortDescription;
-            this.longDescription = longDescription;
         }
 
         @Override
         public void execute(PersistentCache cache) {
-            ProgressLogger op = progressLoggerFactory.newOperation(FileCacheBackedScriptClassCompiler.class)
-                .start(shortDescription, longDescription);
+            ProgressLogger op = progressLoggerFactory.newOperation(FileCacheBackedScriptClassCompiler.class).start(shortDescription, shortDescription);
             try {
                 delegate.execute(cache);
             } finally {

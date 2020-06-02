@@ -26,7 +26,6 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.internal.scripts.CompileScriptBuildOperationType;
 
 import java.io.File;
@@ -57,10 +56,8 @@ public class BuildOperationBackedScriptCompilationHandler implements ScriptCompi
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                final ResourceLocation resourceLocation = source.getResource().getLocation();
-                final File file = resourceLocation.getFile();
                 String stage = transformer.getStage();
-                String name = "Compile script " + (file != null ? file.getName() : source.getDisplayName()) + " (" + stage + ")";
+                String name = "Compile " + source.getShortDisplayName() + " (" + stage + ")";
                 return BuildOperationDescriptor.displayName(name)
                     .name(name)
                     .details(new Details(stage));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration.internal;
+package org.gradle.api.internal.artifacts.repositories;
 
-public class TestUserCodeApplicationContext extends DefaultUserCodeApplicationContext {
+import org.gradle.api.Action;
 
-    @Override
-    public UserCodeApplicationId push() {
-        return super.push();
-    }
+public interface ContentFilteringRepository {
 
-    @Override
-    public void pop() {
-        super.pop();
-    }
-
+    Action<? super ArtifactResolutionDetails> getContentFilter();
 }

@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -134,7 +133,6 @@ ${artifactTransform("FileSizer")}
         output.count("Transforming test-1.3.jar.txt to test-1.3.jar.txt.txt") == 1
     }
 
-    @ToBeFixedForInstantExecution
     def "disambiguates A -> B -> C and D -> C by selecting the later iff attributes match"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -177,14 +175,16 @@ project(':app') {
         implementation project(':lib')
     }
 
+    def hasExtraAttribute = providers.gradleProperty('extraAttribute').forUseAtConfigurationTime().isPresent()
+
     dependencies {
         registerTransform(TestTransform) {
             from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
             from.attribute(artifactType, 'java-classes-directory')
             to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
             to.attribute(artifactType, 'final')
-            
-            if (project.hasProperty('extraAttribute')) {
+
+            if (hasExtraAttribute) {
                 from.attribute(extraAttribute, 'whatever')
                 to.attribute(extraAttribute, 'value1')
             }
@@ -197,7 +197,7 @@ project(':app') {
             to.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
             to.attribute(artifactType, 'magic-jar')
 
-            if (project.hasProperty('extraAttribute')) {
+            if (hasExtraAttribute) {
                 from.attribute(extraAttribute, 'whatever')
                 to.attribute(extraAttribute, 'value2')
             }

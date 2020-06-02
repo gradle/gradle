@@ -15,6 +15,7 @@
  */
 package org.gradle.groovy.scripts;
 
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -42,7 +43,17 @@ public interface ScriptSource extends Serializable {
     String getFileName();
 
     /**
-     * Returns the description for this script. Never returns null.
+     * Returns a long description for this script. Same as {@link #getLongDisplayName()} but here for backwards compatibility.
      */
     String getDisplayName();
+
+    /**
+     * Returns a long display name for this script. The long description should use absolute paths and assume no particular context.
+     */
+    DisplayName getLongDisplayName();
+
+    /**
+     * Returns a short display name for this script. The short description may use relative paths.
+     */
+    DisplayName getShortDisplayName();
 }

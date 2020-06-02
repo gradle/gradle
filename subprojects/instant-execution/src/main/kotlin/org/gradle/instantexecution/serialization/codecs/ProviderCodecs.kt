@@ -44,6 +44,7 @@ import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.decodePreservingSharedIdentity
 import org.gradle.instantexecution.serialization.encodePreservingSharedIdentityOf
 import org.gradle.instantexecution.serialization.logPropertyProblem
+import org.gradle.instantexecution.serialization.readClassOf
 
 
 /**
@@ -138,7 +139,7 @@ BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInter
     override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? =
         decodePreservingSharedIdentity {
             val name = readString()
-            val implementationType = readClass().uncheckedCast<Class<BuildService<*>>>()
+            val implementationType = readClassOf<BuildService<*>>()
             val parameters = read() as BuildServiceParameters?
             val maxUsages = readInt()
             serviceRegistry.register(name, implementationType, parameters, maxUsages)

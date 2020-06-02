@@ -65,4 +65,5 @@ public abstract class AbstractTestDescriptor implements TestDescriptorInternal {
     public String getClassDisplayName() {
         return getClassName();
     }
+
 }

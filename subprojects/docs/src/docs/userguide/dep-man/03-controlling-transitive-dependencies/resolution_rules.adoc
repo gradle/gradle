@@ -183,6 +183,62 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-conditi
 Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`).
 Dependency substitution rules take care of replacing the module dependency with the project dependency, but do not implicitly include the project in the build.
 
+[[sec:substitution_with_classifier]]
+=== Substituting a dependency with a classifier or artifact
+
+While external modules are in general addressed via their group/artifact/version coordinates, it is common that such modules are published with additional artifacts that you may want to use in place of the main artifact.
+This is typically the case for _classified_ artifacts, but you may also need to select an artifact with a different file type or extension.
+Gradle discourages use of classifiers in dependencies and prefers to model such artifacts as <<variant_model.adoc#understanding-variant-selection,variants additional variants of a module>>.
+There are lots of advantages of using variants instead of classified artifacts, including, but not only, a different set of dependencies for those artifacts.
+
+However, in order to help bridging the two models, Gradle provides means to change or remove a classifier in a substitution rule.
+
+.Dependencies which will lead to a resolution error
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/kotlin",files="build.gradle.kts[tags=dependencies]"]
+====
+
+In the example above, the first level dependency on `quasar` makes us think that Gradle would resolve `quasar-core-0.8.0.jar` but it's not the case: the build would fail with this message:
+
+[source]
+----
+Execution failed for task ':resolve'.
+> Could not resolve all files for configuration ':runtimeClasspath'.
+   > Could not find quasar-core-0.8.0-jdk8.jar (co.paralleluniverse:quasar-core:0.8.0).
+     Searched in the following locations:
+         https://jcenter.bintray.com/co/paralleluniverse/quasar-core/0.8.0/quasar-core-0.8.0-jdk8.jar
+----
+
+That's because there's a dependency on another project, `lib`, which itself depends on a different version of `quasar-core`:
+
+.A "classified" dependency
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/groovy",files="lib/build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/kotlin",files="lib/build.gradle.kts[tags=dependencies]"]
+====
+
+What happens is that Gradle would perform conflict resolution between `quasar-core` 0.8.0 and `quasar-core` 0.7.12_r3.
+Because 0.8.0 is higher, we select this version, but the dependency in `lib` has a classifier, `jdk8` and this classifier _doesn't exist anymore_ in release 0.8.0.
+
+To fix this problem, you can ask Gradle to resolve both dependencies _without classifier_:
+
+.A resolution rule to disable selection of a classifier
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/groovy",files="build.gradle[tags=substitution_rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/kotlin",files="build.gradle.kts[tags=substitution_rule]"]
+====
+
+This rule effectively replaces any dependency on `quasar-core` found in the graph with a dependency without classifier.
+
+Alternatively, it's possible to select a dependency _with_ a specific classifier or, for more specific use cases, substitute with a very specific artifact (type, extension and classifier).
+
+For more information, please refer to the following API documentation:
+
+- artifact selection via the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.Substitution.html[Substitution DSL]
+- artifact selection via the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitution.html#artifactSelection-org.gradle.api.Action-[DependencySubstitution API]
+- artifact selection via the link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#dependencySubstitution-org.gradle.api.Action-[ResolutionStrategy API]
+
 [[sec:disabling_resolution_transitive_dependencies]]
 == Disabling transitive resolution
 

@@ -265,6 +265,59 @@ class JarProducer extends DefaultTask {
 
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
+                    assert input.file
+                    inputArtifactDependencies.files.each { assert it.file }
+                    println "processing \${input.name} using \${inputArtifactDependencies.files*.name}"
+                    def output = outputs.file(input.name + ".green")
+                    output.text = input.text + ".green"
+                }
+            }
+        """
+    }
+
+    /**
+     * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a transform that converts 'blue' to 'green'.
+     * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
+     */
+    void setupBuildWithChainedColorTransformThatTakesUpstreamArtifacts() {
+        setupBuildWithColorAttributes()
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform(MakeRed) {
+                        from.attribute(color, 'blue')
+                        to.attribute(color, 'red')
+                    }
+                    registerTransform(MakeGreen) {
+                        from.attribute(color, 'red')
+                        to.attribute(color, 'green')
+                    }
+                }
+            }
+
+            abstract class MakeRed implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing \${input.name}"
+                    def output = outputs.file(input.name + ".red")
+                    output.text = input.text + "-red"
+                }
+            }
+
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifactDependencies
+                abstract FileCollection getInputArtifactDependencies()
+
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    assert input.file
+                    inputArtifactDependencies.files.each { assert it.file }
                     println "processing \${input.name} using \${inputArtifactDependencies.files*.name}"
                     def output = outputs.file(input.name + ".green")
                     output.text = input.text + ".green"

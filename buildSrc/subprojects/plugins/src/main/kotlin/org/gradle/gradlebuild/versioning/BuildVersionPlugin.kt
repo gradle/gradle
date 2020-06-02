@@ -16,6 +16,9 @@
 
 package org.gradle.gradlebuild.versioning
 
+import GitInformationExtension
+import org.eclipse.jgit.lib.Repository
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.gradle.api.Describable
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
@@ -30,11 +33,12 @@ import org.gradle.api.tasks.Optional
 import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.BuildEnvironment.CI_ENVIRONMENT_VARIABLE
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
-import GitInformationExtension
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 
 class BuildVersionPlugin : Plugin<Project> {
@@ -48,13 +52,59 @@ class BuildVersionPlugin : Plugin<Project> {
 
 private
 fun Project.setGitInformation() {
-    val repository by lazy { FileRepositoryBuilder().setGitDir(rootProject.projectDir.resolve(".git")).build() }
-    extensions.create<GitInformationExtension>("gitInfo",
-        environmentVariable(BuildEnvironment.BUILD_BRANCH).orElse(providers.provider { repository.branch }),
-        environmentVariable(BuildEnvironment.BUILD_COMMIT_ID).orElse(providers.provider { repository.resolve(repository.fullBranch).name }
-        )
+    val gitInfo by lazy { resolveGitInfo() }
+    extensions.create<GitInformationExtension>(
+        "gitInfo",
+        environmentVariable(BuildEnvironment.BUILD_BRANCH)
+            .orElse(providers.provider { gitInfo.branch }),
+        environmentVariable(BuildEnvironment.BUILD_COMMIT_ID)
+            .orElse(providers.provider { gitInfo.commitId })
     )
 }
+
+
+private
+class LazyGitInformation(
+    branch: () -> String,
+    commitId: () -> String
+) {
+    val branch by lazy(branch)
+    val commitId by lazy(commitId)
+}
+
+
+private
+fun Project.resolveGitInfo(): LazyGitInformation {
+    val projectDir = rootProject.projectDir
+    val gitDirOrFile = projectDir.resolve(".git")
+    return when {
+        gitDirOrFile.isFile -> gitWorktreeInfoFor(projectDir)
+        else -> gitRepositoryInfoFor(gitDirOrFile)
+    }
+}
+
+
+private
+fun gitRepositoryInfoFor(gitDir: File): LazyGitInformation =
+    FileRepositoryBuilder().setGitDir(gitDir).build().let { repository ->
+        LazyGitInformation(
+            branch = { repository.branch },
+            commitId = { repository.resolve(repository.fullBranch).name }
+        )
+    }
+
+
+/**
+ * Gets the worktree information by executing the native git utility.
+ *
+ * This is necessary because jgit's [Repository.resolve] does not work with worktrees.
+ */
+private
+fun Project.gitWorktreeInfoFor(checkoutDir: File) =
+    LazyGitInformation(
+        branch = { git(checkoutDir, "rev-parse", "--abbrev-ref", "HEAD") },
+        commitId = { git(checkoutDir, "rev-parse", "HEAD") }
+    )
 
 
 private
@@ -328,3 +378,18 @@ fun Project.gradleProperty(propertyName: String): Provider<String> =
 private
 fun <T> Provider<T>.presence(): Provider<Boolean> =
     map { true }.orElse(false)
+
+
+private
+fun Project.git(checkoutDir: File, vararg args: String): String {
+    val execOutput = ByteArrayOutputStream()
+    exec {
+        workingDir = checkoutDir
+        commandLine = listOf("git", *args)
+        if (OperatingSystem.current().isWindows) {
+            commandLine = listOf("cmd", "/c") + commandLine
+        }
+        standardOutput = execOutput
+    }
+    return execOutput.toString().trim()
+}

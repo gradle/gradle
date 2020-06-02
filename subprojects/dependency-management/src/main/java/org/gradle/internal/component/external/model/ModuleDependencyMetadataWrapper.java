@@ -70,6 +70,11 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     }
 
     @Override
+    public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
+        return delegate.withTargetAndArtifacts(target, artifacts);
+    }
+
+    @Override
     public ModuleComponentSelector getSelector() {
         return (ModuleComponentSelector) delegate.getSelector();
     }

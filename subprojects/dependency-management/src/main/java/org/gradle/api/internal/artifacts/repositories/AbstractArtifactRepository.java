@@ -47,7 +47,7 @@ import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.function.Supplier;
 
-public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal, MetadataSupplierAware {
+public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal, ContentFilteringRepository, MetadataSupplierAware {
     private String name;
     private boolean isPartOfContainer;
     private Class<? extends ComponentMetadataSupplier> componentMetadataSupplierRuleClass;
@@ -109,11 +109,12 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
         this.componentMetadataListerRuleConfiguration = configureAction;
     }
 
-    protected RepositoryContentDescriptorInternal createRepositoryDescriptor() {
+    @Override
+    public RepositoryContentDescriptorInternal createRepositoryDescriptor() {
         return new DefaultRepositoryContentDescriptor(this::getDisplayName);
     }
 
-    @Nullable
+    @Override
     public Action<? super ArtifactResolutionDetails> getContentFilter() {
         return repositoryContentDescriptor.get().toContentFilter();
     }

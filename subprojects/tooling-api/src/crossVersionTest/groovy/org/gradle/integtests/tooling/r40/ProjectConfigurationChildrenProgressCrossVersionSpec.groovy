@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -29,8 +28,8 @@ import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 @IntegrationTestTimeout(300)
-@TargetGradleVersion('>=4.0 <5.1')
-class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpecification {
+@TargetGradleVersion('>=4.0')
+class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgressCrossVersionSpec {
 
     @Rule
     public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
@@ -147,10 +146,10 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
         events.assertIsABuild()
 
         and:
-        events.operation('Configure project :buildSrc').child "Apply script build.gradle to project ':buildSrc'"
-        events.operation('Configure project :').child "Apply script build.gradle to root project 'multi'"
-        events.operation('Configure project :a').child "Apply script build.gradle to project ':a'"
-        events.operation('Configure project :b').child "Apply script build.gradle to project ':b'"
+        events.operation('Configure project :buildSrc').child applyBuildScript(buildSrcFile, ':buildSrc')
+        events.operation('Configure project :').child applyBuildScriptRootProject("multi")
+        events.operation('Configure project :a').child applyBuildScript(aBuildFile, ':a')
+        events.operation('Configure project :b').child applyBuildScript(bBuildFile, ':b')
     }
 
     def "generates events for applied script plugins"() {
@@ -191,34 +190,34 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
         and:
         println events.describeOperationsTree()
 
-        events.operation("Apply script ${initScript.name} to build").with { applyInitScript ->
-            applyInitScript.child "Apply script ${scriptPlugin1.name} to build"
-            applyInitScript.child "Apply script ${scriptPlugin2.name} to build"
+        events.operation(applyInitScript(initScript)).with { operation ->
+            operation.child applyInitScriptPlugin(scriptPlugin1)
+            operation.child applyInitScriptPlugin(scriptPlugin2)
         }
 
-        events.operation("Apply script ${buildSrcScript.name} to project ':buildSrc'").with { applyBuildSrc ->
-            applyBuildSrc.child "Apply script ${scriptPlugin1.name} to project ':buildSrc'"
-            applyBuildSrc.child "Apply script ${scriptPlugin2.name} to project ':buildSrc'"
+        events.operation(applyBuildScript(buildSrcScript, ':buildSrc')).with { applyBuildSrc ->
+            applyBuildSrc.child applyBuildScriptPlugin(scriptPlugin1, ':buildSrc')
+            applyBuildSrc.child applyBuildScriptPlugin(scriptPlugin2, ':buildSrc')
         }
 
-        events.operation("Apply script ${settingsFile.name} to settings '${settingsFile.parentFile.name}'").with { applySettings ->
-            applySettings.child "Apply script ${scriptPlugin1.name} to settings 'multi'"
-            applySettings.child "Apply script ${scriptPlugin2.name} to settings 'multi'"
+        events.operation(applySettingsFile()).with { applySettings ->
+            applySettings.child applySettingsScriptPlugin(scriptPlugin1, "multi")
+            applySettings.child applySettingsScriptPlugin(scriptPlugin2, "multi")
         }
 
-        events.operation("Apply script ${buildFile.name} to root project 'multi'").with { applyRootProject ->
-            applyRootProject.child "Apply script ${scriptPlugin1.name} to root project 'multi'"
-            applyRootProject.child "Apply script ${scriptPlugin2.name} to root project 'multi'"
+        events.operation(applyBuildScriptRootProject("multi")).with { applyRootProject ->
+            applyRootProject.child applyBuildScriptPluginRootProject(scriptPlugin1, "multi")
+            applyRootProject.child applyBuildScriptPluginRootProject(scriptPlugin2, "multi")
         }
 
-        events.operation("Apply script ${aBuildFile.name} to project ':a'").with { applyProjectA ->
-            applyProjectA.child "Apply script ${scriptPlugin1.name} to project ':a'"
-            applyProjectA.child "Apply script ${scriptPlugin2.name} to project ':a'"
+        events.operation(applyBuildScript(aBuildFile, ':a')).with { applyProjectA ->
+            applyProjectA.child applyBuildScriptPlugin(scriptPlugin1, ':a')
+            applyProjectA.child applyBuildScriptPlugin(scriptPlugin2, ':a')
         }
 
-        events.operation("Apply script ${bBuildFile.name} to project ':b'").with { applyProjectB ->
-            applyProjectB.child "Apply script ${scriptPlugin1.name} to project ':b'"
-            applyProjectB.child "Apply script ${scriptPlugin2.name} to project ':b'"
+        events.operation(applyBuildScript(bBuildFile, ':b')).with { applyProjectB ->
+            applyProjectB.child applyBuildScriptPlugin(scriptPlugin1, ':b')
+            applyProjectB.child applyBuildScriptPlugin(scriptPlugin1, ':b')
         }
     }
 
@@ -272,7 +271,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
         then:
         events.assertIsABuild()
 
-        def applyBuildScript = events.operation "Apply script build.gradle to root project 'root'"
+        def applyBuildScript = events.operation applyBuildScriptRootProject("root")
 
         applyBuildScript.child("Resolve dependencies of :compileClasspath").with {
             it.child "Configure project :a"
@@ -309,7 +308,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
             // Triggers configuration of a due to the dependency
             configurations.compileClasspath.each { println it }
 """
-        file("a/build.gradle") << """
+        def aBuildfile = file("a/build.gradle") << """
             dependencies {
                 implementation project(':b')
             }
@@ -331,11 +330,11 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
 
         def configureRoot = events.operation("Configure project :")
 
-        def applyRootBuildScript = configureRoot.child("Apply script build.gradle to root project 'multi'")
+        def applyRootBuildScript = configureRoot.child(applyBuildScriptRootProject("multi"))
         def resolveCompile = applyRootBuildScript.child("Resolve dependencies of :compileClasspath")
         applyRootBuildScript.child("Resolve files of :compileClasspath")
 
-        def applyProjectABuildScript = resolveCompile.child("Configure project :a").child("Apply script build.gradle to project ':a'")
+        def applyProjectABuildScript = resolveCompile.child("Configure project :a").child(applyBuildScript(aBuildfile, ':a'))
         def resolveCompileA = applyProjectABuildScript.child("Resolve dependencies of :a:compileClasspath")
         applyProjectABuildScript.child("Resolve files of :a:compileClasspath")
 
@@ -367,10 +366,10 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
         then:
         events.assertIsABuild()
 
-        events.operation("Apply script ${buildFile.name} to root project 'root'").with { applyRoot ->
-            applyRoot.child("Apply script ${scriptPluginGroovy1.name} to root project 'root'").with { applyGroovy1 ->
-                applyGroovy1.child("Apply script ${scriptPluginKotlin.name} to root project 'root'").with { applyKotlin ->
-                    applyKotlin.child("Apply script ${scriptPluginGroovy2.name} to root project 'root'")
+        events.operation(applyBuildScriptRootProject('root')).with { applyRoot ->
+            applyRoot.child(applyBuildScriptPluginRootProject(scriptPluginGroovy1, 'root')).with { applyGroovy1 ->
+                applyGroovy1.child(applyBuildScriptPluginRootProject(scriptPluginKotlin, 'root')).with { applyKotlin ->
+                    applyKotlin.child(applyBuildScriptPluginRootProject(scriptPluginGroovy2, 'root'))
                 }
             }
         }

@@ -35,7 +35,7 @@ class JUnitPlatformSampleIntegrationTest extends AbstractSampleIntegrationTest {
         succeeds 'test'
 
         then:
-        new DefaultTestExecutionResult(sample.dir).testClass('org.gradle.junitplatform.JupiterTest').assertTestCount(5, 0, 0)
+        new DefaultTestExecutionResult(sample.dir).testClassByHtml('org.gradle.junitplatform.JupiterTest').assertTestCount(5, 0, 0)
             .assertTestPassed('ok')
             .assertTestPassed('repeated()[1]', 'repetition 1 of 2')
             .assertTestPassed('repeated()[2]', 'repetition 2 of 2')

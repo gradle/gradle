@@ -29,16 +29,20 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     GPathResult testClassNode
     String testClassName
     boolean checked
+    String testClassDisplayName
+    boolean hasDisplayNameAnnotation
     TestResultOutputAssociation outputAssociation
 
-    def JUnitTestClassExecutionResult(GPathResult testClassNode, String testClassName, TestResultOutputAssociation outputAssociation) {
+    JUnitTestClassExecutionResult(GPathResult testClassNode, String testClassName, String testClassDisplayName, boolean hasDisplayNameAnnotation, TestResultOutputAssociation outputAssociation) {
         this.outputAssociation = outputAssociation
         this.testClassNode = testClassNode
         this.testClassName = testClassName
+        this.testClassDisplayName = testClassDisplayName
+        this.hasDisplayNameAnnotation = hasDisplayNameAnnotation
     }
 
-    def JUnitTestClassExecutionResult(String content, String testClassName, TestResultOutputAssociation outputAssociation) {
-        this(new XmlSlurper().parse(new StringReader(content)), testClassName, outputAssociation)
+    JUnitTestClassExecutionResult(String content, String testClassName, String testClassDisplayName, boolean hasDisplayNameAnnotation, TestResultOutputAssociation outputAssociation) {
+        this(new XmlSlurper().parse(new StringReader(content)), testClassName, testClassDisplayName, hasDisplayNameAnnotation, outputAssociation)
     }
 
     TestClassExecutionResult assertTestsExecuted(String... testNames) {
@@ -110,7 +114,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         }
 
         for (int i = 0; i < messageMatchers.length; i++) {
-            if (!messageMatchers[i].matches(failures[i].@message.text())) {
+            if (!messageMatchers[i].matches(failures[i].@message.text()) && !messageMatchers[i].matches(failures[i].text())) {
                 return false
             }
         }
@@ -201,9 +205,15 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     }
 
     private def findTests() {
+        String className
+        if(hasDisplayNameAnnotation) {
+            className = testClassDisplayName
+        } else {
+            className = testClassName
+        }
         if (!checked) {
             Assert.assertThat(testClassNode.name(), CoreMatchers.equalTo('testsuite'))
-            Assert.assertThat(testClassNode.@name.text(), CoreMatchers.equalTo(testClassName))
+            Assert.assertThat(testClassNode.@name.text(), CoreMatchers.equalTo(className))
             Assert.assertThat(testClassNode.@tests.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
             Assert.assertThat(testClassNode.@skipped.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
             Assert.assertThat(testClassNode.@failures.text(), CoreMatchers.not(CoreMatchers.equalTo('')))

@@ -92,6 +92,7 @@ public class ProviderConnection {
     private final ServiceRegistry sharedServices;
     private final JvmVersionDetector jvmVersionDetector;
     private final FileCollectionFactory fileCollectionFactory;
+    private GradleVersion consumerVersion;
 
     public ProviderConnection(ServiceRegistry sharedServices, BuildLayoutFactory buildLayoutFactory, DaemonClientFactory daemonClientFactory,
                               BuildActionExecuter<BuildActionParameters> embeddedExecutor, PayloadSerializer payloadSerializer, JvmVersionDetector jvmVersionDetector, FileCollectionFactory fileCollectionFactory) {
@@ -104,7 +105,8 @@ public class ProviderConnection {
         this.fileCollectionFactory = fileCollectionFactory;
     }
 
-    public void configure(ProviderConnectionParameters parameters) {
+    public void configure(ProviderConnectionParameters parameters, GradleVersion consumerVersion) {
+        this.consumerVersion = consumerVersion;
         LogLevel providerLogLevel = parameters.getVerboseLogging() ? LogLevel.DEBUG : LogLevel.INFO;
         LOGGER.debug("Configuring logging to level: {}", providerLogLevel);
         LoggingManagerInternal loggingManager = sharedServices.newInstance(LoggingManagerInternal.class);
@@ -124,15 +126,15 @@ public class ProviderConnection {
                 throw new IllegalArgumentException("Cannot run tasks and fetch the build environment model.");
             }
             return new DefaultBuildEnvironment(
-                    new DefaultBuildIdentifier(providerParameters.getProjectDir()),
-                    params.gradleUserhome,
-                    GradleVersion.current().getVersion(),
-                    params.daemonParams.getEffectiveJvm().getJavaHome(),
-                    params.daemonParams.getEffectiveJvmArgs());
+                new DefaultBuildIdentifier(providerParameters.getProjectDir()),
+                params.gradleUserhome,
+                GradleVersion.current().getVersion(),
+                params.daemonParams.getEffectiveJvm().getJavaHome(),
+                params.daemonParams.getEffectiveJvmArgs());
         }
 
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
-        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion);
         BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
     }
@@ -152,7 +154,7 @@ public class ProviderConnection {
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
         Parameters params = initParams(providerParameters);
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
-        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion);
         BuildAction action = new ClientProvidedBuildAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
     }
@@ -166,11 +168,11 @@ public class ProviderConnection {
         Parameters params = initParams(providerParameters);
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
         FailsafePhasedActionResultListener failsafePhasedActionResultListener = new FailsafePhasedActionResultListener(resultListener);
-        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion);
         BuildAction action = new ClientProvidedPhasedAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
         try {
             return run(action, cancellationToken, listenerConfig, new PhasedActionEventConsumer(failsafePhasedActionResultListener, payloadSerializer, listenerConfig.buildEventConsumer),
-                    providerParameters, params);
+                providerParameters, params);
         } finally {
             failsafePhasedActionResultListener.rethrowErrors();
         }
@@ -179,7 +181,7 @@ public class ProviderConnection {
     public Object runTests(ProviderInternalTestExecutionRequest testExecutionRequest, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
         Parameters params = initParams(providerParameters);
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
-        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion);
         TestExecutionRequestAction action = TestExecutionRequestAction.create(listenerConfig.clientSubscriptions, startParameter, testExecutionRequest);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
     }
@@ -196,7 +198,7 @@ public class ProviderConnection {
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
         Parameters params = initParams(providerParameters);
         ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(loggingServices.get(OutputEventListener.class), params.daemonParams);
-        ((ShutdownCoordinator)clientServices.find(ShutdownCoordinator.class)).stop();
+        ((ShutdownCoordinator) clientServices.find(ShutdownCoordinator.class)).stop();
     }
 
     private Object run(BuildAction action, BuildCancellationToken cancellationToken,
@@ -362,9 +364,9 @@ public class ProviderConnection {
         }
 
         @VisibleForTesting
-        static ProgressListenerConfiguration from(ProviderOperationParameters providerParameters) {
+        static ProgressListenerConfiguration from(ProviderOperationParameters providerParameters, GradleVersion consumerVersion) {
             InternalBuildProgressListener buildProgressListener = providerParameters.getBuildProgressListener(null);
-            Set<OperationType> operationTypes = toOperationTypes(buildProgressListener);
+            Set<OperationType> operationTypes = toOperationTypes(buildProgressListener, consumerVersion);
             BuildEventSubscriptions clientSubscriptions = new BuildEventSubscriptions(operationTypes);
             FailsafeBuildProgressListenerAdapter wrapper = new FailsafeBuildProgressListenerAdapter(buildProgressListener);
             BuildEventConsumer buildEventConsumer = clientSubscriptions.isAnyOperationTypeRequested() ? new BuildProgressListenerInvokingBuildEventConsumer(wrapper) : new NoOpBuildEventConsumer();
@@ -376,12 +378,20 @@ public class ProviderConnection {
             return new ProgressListenerConfiguration(clientSubscriptions, buildEventConsumer, wrapper);
         }
 
-        private static Set<OperationType> toOperationTypes(InternalBuildProgressListener buildProgressListener) {
+        private static Set<OperationType> toOperationTypes(InternalBuildProgressListener buildProgressListener, GradleVersion consumerVersion) {
             if (buildProgressListener != null) {
                 Set<OperationType> operationTypes = EnumSet.noneOf(OperationType.class);
                 for (String operation : buildProgressListener.getSubscribedOperations()) {
                     if (OPERATION_TYPE_MAPPING.containsKey(operation)) {
                         operationTypes.add(OPERATION_TYPE_MAPPING.get(operation));
+                    }
+                }
+                if (consumerVersion.compareTo(GradleVersion.version("5.1")) < 0) {
+                    // Some types were split out of 'generic' type in 5.1, so include these when the consumer requests 'generic'
+                    if (operationTypes.contains(OperationType.GENERIC)) {
+                        operationTypes.add(OperationType.PROJECT_CONFIGURATION);
+                        operationTypes.add(OperationType.TRANSFORM);
+                        operationTypes.add(OperationType.WORK_ITEM);
                     }
                 }
                 return operationTypes;

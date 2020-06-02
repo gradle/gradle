@@ -18,6 +18,7 @@ package org.gradle.configuration
 
 import org.gradle.configuration.internal.DefaultUserCodeApplicationContext
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.Describables
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resource.ResourceLocation
 import org.gradle.internal.resource.TextResource
@@ -28,7 +29,6 @@ class BuildOperationScriptPluginTest extends Specification {
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def userCodeApplicationContext = new DefaultUserCodeApplicationContext()
     def scriptSource = Mock(ScriptSource)
-    def scriptFile = Mock(File)
     def scriptSourceResource = Mock(TextResource)
     def scriptSourceResourceLocation = Mock(ResourceLocation)
     def decoratedScriptPlugin = Mock(ScriptPlugin)
@@ -44,35 +44,14 @@ class BuildOperationScriptPluginTest extends Specification {
         1 * scriptSourceResource.getLocation() >> scriptSourceResourceLocation
         1 * scriptSourceResource.isContentCached() >> true
         1 * scriptSourceResource.getHasEmptyContent() >> false
-        2 * decoratedScriptPlugin.getSource() >> scriptSource
-        1 * scriptSource.getDisplayName() >> "test.source"
+        3 * decoratedScriptPlugin.getSource() >> scriptSource
+        2 * scriptSource.shortDisplayName >> Describables.of("<test.source>")
         1 * decoratedScriptPlugin.apply(target)
         0 * decoratedScriptPlugin._
 
         buildOperationExecutor.operations.size() == 1
-        buildOperationExecutor.operations.get(0).displayName == "Apply script test.source to $target"
-        buildOperationExecutor.operations.get(0).name == "Apply script test.source"
-    }
-
-    def "delegates to decorated script plugin and uses file name in build operation name"() {
-        when:
-        buildOperationScriptPlugin.apply(target)
-
-        then:
-        2 * scriptSource.getResource() >> scriptSourceResource
-        1 * scriptSourceResource.getLocation() >> scriptSourceResourceLocation
-        1 * scriptSourceResource.isContentCached() >> true
-        1 * scriptSourceResource.getHasEmptyContent() >> false
-        1 * scriptSourceResourceLocation.getFile() >> scriptFile
-        1 * scriptFile.getName() >> "build.gradle"
-        2 * decoratedScriptPlugin.getSource() >> scriptSource
-        0 * scriptSource.getDisplayName() >> "test.source"
-        1 * decoratedScriptPlugin.apply(target)
-        0 * decoratedScriptPlugin._
-
-        buildOperationExecutor.operations.size() == 1
-        buildOperationExecutor.operations.get(0).displayName == "Apply script build.gradle to $target"
-        buildOperationExecutor.operations.get(0).name == "Apply script build.gradle"
+        buildOperationExecutor.operations.get(0).displayName == "Apply <test.source> to $target"
+        buildOperationExecutor.operations.get(0).name == "Apply <test.source>"
     }
 
     def "delegates to decorated script plugin without build operation in cached source has no content"() {

@@ -67,6 +67,10 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails(LENIENT_CLI_OPTION, *tasks)
     }
 
+    String relativePath(String path) {
+        return path.replace('/', File.separator)
+    }
+
     protected InstantExecutionBuildOperationsFixture newInstantExecutionFixture() {
         return new InstantExecutionBuildOperationsFixture(new BuildOperationsFixture(executer, temporaryFolder))
     }

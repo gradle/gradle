@@ -374,3 +374,8 @@ fun WriteContext.writeDouble(value: Double) {
 
 fun ReadContext.readDouble(): Double =
     BaseSerializerFactory.DOUBLE_SERIALIZER.read(this)
+
+
+inline
+fun <reified T : Any> ReadContext.readClassOf() =
+    readClass().asSubclass(T::class.java)

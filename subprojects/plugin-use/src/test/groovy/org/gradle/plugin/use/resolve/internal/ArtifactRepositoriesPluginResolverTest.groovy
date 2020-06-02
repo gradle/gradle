@@ -28,7 +28,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVer
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
-import org.gradle.groovy.scripts.StringScriptSource
+import org.gradle.groovy.scripts.TextResourceScriptSource
+import org.gradle.internal.resource.StringTextResource
 import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.use.internal.DefaultPluginId
@@ -65,7 +66,7 @@ class ArtifactRepositoriesPluginResolverTest extends Specification {
     def resolver = new ArtifactRepositoriesPluginResolver(resolution, versionSelectorScheme)
 
     PluginRequestInternal request(String id, String version = null) {
-        new DefaultPluginRequest(DefaultPluginId.of(id), version, true, 1, new StringScriptSource("test", "test"))
+        new DefaultPluginRequest(DefaultPluginId.of(id), version, true, 1, new TextResourceScriptSource(new StringTextResource("test", "test")))
     }
 
     def "fail pluginRequests without versions"() {

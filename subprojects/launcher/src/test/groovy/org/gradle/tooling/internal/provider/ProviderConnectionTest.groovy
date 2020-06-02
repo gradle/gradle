@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.provider
 
+import org.gradle.tooling.events.OperationType
+import org.gradle.util.GradleVersion
 import spock.lang.Specification
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
@@ -31,10 +33,31 @@ class ProviderConnectionTest extends Specification {
         }
 
         when:
-        def configuration = ProviderConnection.ProgressListenerConfiguration.from(parameters)
+        def configuration = ProviderConnection.ProgressListenerConfiguration.from(parameters, GradleVersion.version("12.7"))
 
         then:
         !configuration.clientSubscriptions.anyOperationTypeRequested
+    }
+
+    def "adds specific types when generic type requested by old consumer versions"() {
+        given:
+        def parameters = Stub(ProviderOperationParameters) {
+            getBuildProgressListener(_) >> Stub(InternalBuildProgressListener) {
+                getSubscribedOperations() >> ["BUILD_EXECUTION"]
+            }
+        }
+
+        when:
+        def configuration = ProviderConnection.ProgressListenerConfiguration.from(parameters, GradleVersion.version("5.0"))
+
+        then:
+        configuration.clientSubscriptions.anyOperationTypeRequested
+        configuration.clientSubscriptions.isRequested(OperationType.GENERIC)
+        configuration.clientSubscriptions.isRequested(OperationType.PROJECT_CONFIGURATION)
+        configuration.clientSubscriptions.isRequested(OperationType.TRANSFORM)
+        configuration.clientSubscriptions.isRequested(OperationType.WORK_ITEM)
+        !configuration.clientSubscriptions.isRequested(OperationType.TEST)
+        !configuration.clientSubscriptions.isRequested(OperationType.TASK)
     }
 
 }

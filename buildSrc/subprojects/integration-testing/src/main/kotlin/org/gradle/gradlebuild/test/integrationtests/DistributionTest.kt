@@ -21,8 +21,10 @@ import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
@@ -33,6 +35,7 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.DaemonTracker
 import org.gradle.kotlin.dsl.*
 import org.gradle.process.CommandLineArgumentProvider
+import java.io.File
 import java.util.concurrent.Callable
 
 
@@ -94,6 +97,25 @@ class LibsRepositoryEnvironmentProvider(objects: ObjectFactory) : CommandLineArg
     @Input
     var required = false
 
+    @get:Classpath
+    @get:Optional
+    val jars: Set<File>
+        get() =
+            if (required)
+                dir.get().asFileTree.matching { include("**/*.jar") }.files.toSortedSet()
+            else emptySet()
+
+    @get:Classpath
+    @get:InputFiles
+    val metadatas: Set<File>
+        get() =
+            if (required) dir.get().asFileTree.matching {
+                include("**/*.pom")
+                include("**/*.xml")
+                include("**/*.metadata")
+            }.files.toSortedSet()
+            else emptySet()
+
     override fun asArguments() =
         if (required) mapOf("integTest.libsRepo" to absolutePathOf(dir)).asSystemPropertyJvmArguments()
         else emptyList()
@@ -116,9 +138,6 @@ class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLi
     val gradleGeneratedApiJarCacheDir = project.objects.directoryProperty()
 
     @Internal
-    val toolingApiShadedJarDir = project.objects.directoryProperty()
-
-    @Internal
     val gradleSnippetsDir = project.objects.directoryProperty()
 
     /**
@@ -137,8 +156,7 @@ class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLi
             "integTest.samplesdir" to absolutePathOf(gradleSnippetsDir),
             "integTest.gradleUserHomeDir" to absolutePathOf(gradleUserHomeDir),
             "integTest.gradleGeneratedApiJarCacheDir" to absolutePathOf(gradleGeneratedApiJarCacheDir),
-            "org.gradle.integtest.daemon.registry" to absolutePathOf(daemonRegistry),
-            "integTest.toolingApiShadedJarDir" to absolutePathOf(toolingApiShadedJarDir)
+            "org.gradle.integtest.daemon.registry" to absolutePathOf(daemonRegistry)
         ).asSystemPropertyJvmArguments()
 
     @Internal
