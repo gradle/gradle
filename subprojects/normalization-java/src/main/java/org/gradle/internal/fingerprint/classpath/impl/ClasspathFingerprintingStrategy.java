@@ -21,6 +21,7 @@ import com.google.common.collect.Interner;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.changedetection.state.ManifestFileZipEntryHasher;
 import org.gradle.api.internal.changedetection.state.PropertiesFileZipEntryHasher;
+import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
@@ -30,7 +31,6 @@ import org.gradle.api.internal.changedetection.state.ZipHasher;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
-import org.gradle.internal.fingerprint.classpath.ClasspathResourceFilters;
 import org.gradle.internal.fingerprint.impl.AbstractFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileSystemLocationFingerprint;
@@ -89,19 +89,19 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         this.zipHasherConfigurationHash = hasher.hash();
     }
 
-    public static ClasspathFingerprintingStrategy runtimeClasspath(ClasspathResourceFilters classpathResourceFilters, RuntimeClasspathResourceHasher runtimeClasspathResourceHasher, ResourceSnapshotterCacheService cacheService, Interner<String> stringInterner) {
-        return new ClasspathFingerprintingStrategy("CLASSPATH", USE_FILE_HASH, metaInfAwareClasspathResourceHasher(runtimeClasspathResourceHasher, classpathResourceFilters), classpathResourceFilters.getResourceFilter(), cacheService, stringInterner);
+    public static ClasspathFingerprintingStrategy runtimeClasspath(ResourceFilter classpathResourceFilter, ResourceEntryFilter manifestAttributeResourceEntryFilter, ResourceEntryFilter manifestPropertyResourceEntryFilter, RuntimeClasspathResourceHasher runtimeClasspathResourceHasher, ResourceSnapshotterCacheService cacheService, Interner<String> stringInterner) {
+        return new ClasspathFingerprintingStrategy("CLASSPATH", USE_FILE_HASH, metaInfAwareClasspathResourceHasher(runtimeClasspathResourceHasher, manifestAttributeResourceEntryFilter, manifestPropertyResourceEntryFilter), classpathResourceFilter, cacheService, stringInterner);
     }
 
     public static ClasspathFingerprintingStrategy compileClasspath(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, Interner<String> stringInterner) {
         return new ClasspathFingerprintingStrategy("COMPILE_CLASSPATH", IGNORE, classpathResourceHasher, ResourceFilter.FILTER_NOTHING, cacheService, stringInterner);
     }
 
-    private static ResourceHasher metaInfAwareClasspathResourceHasher(ResourceHasher resourceHasher, ClasspathResourceFilters classpathResourceFilters) {
+    private static ResourceHasher metaInfAwareClasspathResourceHasher(ResourceHasher resourceHasher, ResourceEntryFilter manifestAttributeResourceEntryFilter, ResourceEntryFilter manifestPropertyResourceEntryFilter) {
         return new MetaInfAwareClasspathResourceHasher(
             resourceHasher,
-            new ManifestFileZipEntryHasher(classpathResourceFilters.getManifestAttributeEntryFilter()),
-            new PropertiesFileZipEntryHasher(classpathResourceFilters.getManifestPropertyEntryFilter())
+            new ManifestFileZipEntryHasher(manifestAttributeResourceEntryFilter),
+            new PropertiesFileZipEntryHasher(manifestPropertyResourceEntryFilter)
         );
     }
 

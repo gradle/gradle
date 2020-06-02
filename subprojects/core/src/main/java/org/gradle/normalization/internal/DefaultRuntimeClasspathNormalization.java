@@ -23,26 +23,22 @@ import org.gradle.api.internal.changedetection.state.IgnoringResourceEntryFilter
 import org.gradle.api.internal.changedetection.state.IgnoringResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
-import org.gradle.internal.fingerprint.classpath.ClasspathResourceFilters;
 import org.gradle.normalization.MetaInfNormalization;
 
 import java.util.Locale;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNormalizationInternal {
-    private final ImmutableSet.Builder<String> ignoresBuilder = ImmutableSet.builder();
-    private final ImmutableSet.Builder<String> attributeIgnoresBuilder = ImmutableSet.builder();
-    private final ImmutableSet.Builder<String> propertiesIgnoresBuilder = ImmutableSet.builder();
     private final MetaInfNormalization metaInfNormalization = new RuntimeMetaInfNormalization();
-
-    private boolean evaluated = false;
-    private ResourceFilter resourceFilter;
-    private ResourceEntryFilter attributeResourceFilter;
-    private ResourceEntryFilter propertyResourceFilter;
+    private final EvaluatableFilter<ResourceFilter> resourceFilter = filter(IgnoringResourceFilter::new, ResourceFilter.FILTER_NOTHING);
+    private final EvaluatableFilter<ResourceEntryFilter> manifestAttributeResourceFilter = filter(IgnoringResourceEntryFilter::new, ResourceEntryFilter.FILTER_NOTHING);
+    private final EvaluatableFilter<ResourceEntryFilter> manifestPropertyResourceFilter = filter(IgnoringResourceEntryFilter::new, ResourceEntryFilter.FILTER_NOTHING);;
 
     @Override
     public void ignore(String pattern) {
-        checkNotEvaluated();
-        ignoresBuilder.add(pattern);
+        resourceFilter.ignore(pattern);
     }
 
     @Override
@@ -51,50 +47,18 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
     }
 
     @Override
-    public ClasspathResourceFilters getResourceFilters() {
-        resourceFilter = maybeCreateFilter(resourceFilter, ignoresBuilder);
-        attributeResourceFilter = maybeCreateEntryFilter(attributeResourceFilter, attributeIgnoresBuilder);
-        propertyResourceFilter = maybeCreateEntryFilter(propertyResourceFilter, propertiesIgnoresBuilder);
-        return new ClasspathResourceFilters() {
-            @Override
-            public ResourceFilter getResourceFilter() {
-                return resourceFilter;
-            }
-
-            @Override
-            public ResourceEntryFilter getManifestAttributeEntryFilter() {
-                return attributeResourceFilter;
-            }
-
-            @Override
-            public ResourceEntryFilter getManifestPropertyEntryFilter() {
-                return propertyResourceFilter;
-            }
-        };
+    public ResourceFilter getClasspathResourceFilter() {
+        return resourceFilter.evaluate();
     }
 
-    private void checkNotEvaluated() {
-        if (evaluated) {
-            throw new GradleException("Cannot configure runtime classpath normalization after execution started.");
-        }
+    @Override
+    public ResourceEntryFilter getManifestAttributeResourceEntryFilter() {
+        return manifestAttributeResourceFilter.evaluate();
     }
 
-    private ResourceFilter maybeCreateFilter(ResourceFilter existingFilter, ImmutableSet.Builder<String> ignoresBuilder) {
-        evaluated = true;
-        if (existingFilter == null) {
-            ImmutableSet<String> ignores = ignoresBuilder.build();
-            return ignores.isEmpty() ? ResourceFilter.FILTER_NOTHING : new IgnoringResourceFilter(ignores);
-        }
-        return existingFilter;
-    }
-
-    private ResourceEntryFilter maybeCreateEntryFilter(ResourceEntryFilter existingEntryFilter, ImmutableSet.Builder<String> ignoresBuilder) {
-        evaluated = true;
-        if (existingEntryFilter == null) {
-            ImmutableSet<String> ignores = ignoresBuilder.build();
-            return ignores.isEmpty() ? ResourceEntryFilter.FILTER_NOTHING : new IgnoringResourceEntryFilter(ignores);
-        }
-        return existingEntryFilter;
+    @Override
+    public ResourceEntryFilter getManifestPropertyResourceEntryFilter() {
+        return manifestPropertyResourceFilter.evaluate();
     }
 
     public class RuntimeMetaInfNormalization implements MetaInfNormalization {
@@ -110,14 +74,49 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
 
         @Override
         public void ignoreAttribute(String name) {
-            checkNotEvaluated();
-            attributeIgnoresBuilder.add(name.toLowerCase(Locale.ROOT));
+            manifestAttributeResourceFilter.ignore(name.toLowerCase(Locale.ROOT));
         }
 
         @Override
         public void ignoreProperty(String name) {
+            manifestPropertyResourceFilter.ignore(name);
+        }
+    }
+
+    static <T> EvaluatableFilter<T> filter(Function<ImmutableSet<String>, T> initializer, T emptyValue) {
+        return new EvaluatableFilter<>(initializer, emptyValue);
+    }
+
+    private static class EvaluatableFilter<T> {
+        private T value;
+        private final Supplier<T> valueSupplier;
+        protected final ImmutableSet.Builder<String> builder;
+
+        EvaluatableFilter(Function<ImmutableSet<String>, T> initializer, T emptyValue) {
+            this.builder = ImmutableSet.builder();
+            // if there are configured ignores, use the initializer to create the value, otherwise return emptyValue
+            this.valueSupplier = () -> Optional.of(builder.build())
+                                                .filter(ignores -> !ignores.isEmpty())
+                                                .map(initializer)
+                                                .orElse(emptyValue);
+        }
+
+        T evaluate() {
+            if (value == null) {
+                value = valueSupplier.get();
+            }
+            return value;
+        }
+
+        private void checkNotEvaluated() {
+            if (value != null) {
+                throw new GradleException("Cannot configure runtime classpath normalization after execution started.");
+            }
+        }
+
+        void ignore(String ignore) {
             checkNotEvaluated();
-            propertiesIgnoresBuilder.add(name);
+            builder.add(ignore);
         }
     }
 }
