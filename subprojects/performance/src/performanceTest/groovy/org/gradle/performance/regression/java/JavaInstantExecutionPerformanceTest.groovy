@@ -17,13 +17,16 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
 import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.gradle.performance.fixture.GradleInvocationSpec
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -50,9 +53,21 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
         runner.minimumBaseVersion = "5.6"
         runner.testProject = testProject.projectName
         runner.tasksToRun = ["assemble"]
-        runner.args = [
-            "-D${ConfigurationCacheOption.PROPERTY_NAME}=true"
-        ]
+
+        and:
+        // runner.args = ["-D${ConfigurationCacheOption.PROPERTY_NAME}=true"] // TODO simplify on rebaseline
+        runner.addInvocationCustomizer({ BuildExperimentInvocationInfo invocationInfo, GradleInvocationSpec invocationSpec ->
+            def dist = invocationSpec.gradleDistribution as GradleDistribution
+            def builder = invocationSpec.withBuilder()
+            if (dist.version < GradleVersion.version("6.5-rc-1")) {
+                builder.args('-Dorg.gradle.unsafe.instant-execution=true').build()
+            } else if (dist.version < GradleVersion.version("6.6-20200527184619+0000")) {
+                builder.args("--${ConfigurationCacheOption.LONG_OPTION}=on")
+            } else {
+                builder.args("--${ConfigurationCacheOption.LONG_OPTION}")
+            }
+            return builder.build()
+        })
 
         and:
         runner.useDaemon = daemon == hot
