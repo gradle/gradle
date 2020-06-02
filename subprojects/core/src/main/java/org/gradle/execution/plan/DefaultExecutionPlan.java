@@ -577,8 +577,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private boolean tryLockProjectFor(Node node) {
-        if (node.getProjectToLock() != null) {
-            return getProjectLock(node.getProjectToLock()).tryLock();
+        Project toLock = node.getProjectToLock();
+        if (toLock != null) {
+            return getProjectLock(toLock).tryLock();
         } else {
             return true;
         }
