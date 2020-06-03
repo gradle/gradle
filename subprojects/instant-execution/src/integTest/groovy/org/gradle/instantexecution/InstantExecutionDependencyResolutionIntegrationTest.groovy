@@ -26,11 +26,8 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         requireOwnGradleUserHomeDir()
     }
 
-    def "task input artifact collection can include project dependencies, external dependencies and prebuilt file dependencies"() {
-        def fixture = newInstantExecutionFixture()
-
+    def setupBuildWithEachDependencyType() {
         taskTypeWithOutputFileProperty()
-        taskTypeLogsArtifactCollectionDetails()
 
         mavenRepo.module("group", "lib1", "6500").publish()
 
@@ -52,12 +49,69 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
             configurations {
                 implementation
             }
+            task additionalFile(type: FileProducer) {
+                output = file("b.thing")
+            }
             dependencies {
                 implementation project(':a')
                 implementation project(':b')
                 implementation "group:lib1:6500"
-                implementation files('a.thing')
+                implementation files('a.thing', additionalFile.output)
             }
+        """
+    }
+
+    def "task input file collection can include project dependencies, external dependencies, prebuilt file dependencies and task output file dependencies"() {
+        def fixture = newInstantExecutionFixture()
+
+        setupBuildWithEachDependencyType()
+        buildFile << """
+            task resolve {
+                def view = configurations.implementation
+                inputs.files view
+                doLast {
+                    println "result = \${view.files.name}"
+                }
+            }
+        """
+
+        given:
+        instantRun(":resolve")
+
+        when:
+        instantRun(":resolve")
+
+        then: // everything is up-to-date
+        fixture.assertStateLoaded()
+        result.assertTaskOrder(":additionalFile", ":resolve")
+        result.assertTaskOrder(":a:producer", ":resolve")
+        result.assertTaskOrder(":b:producer", ":resolve")
+        result.assertTaskSkipped(":additionalFile")
+        result.assertTaskSkipped(":a:producer")
+        result.assertTaskSkipped(":b:producer")
+        outputContains("result = [a.thing, b.thing, a.out, b.out, lib1-6500.jar]")
+
+        when:
+        instantRun(":resolve", "-PaContent=changed")
+
+        then:
+        fixture.assertStateLoaded()
+        result.assertTaskOrder(":additionalFile", ":resolve")
+        result.assertTaskOrder(":a:producer", ":resolve")
+        result.assertTaskOrder(":b:producer", ":resolve")
+        result.assertTaskSkipped(":additionalFile")
+        result.assertTaskNotSkipped(":a:producer")
+        result.assertTaskSkipped(":b:producer")
+        outputContains("result = [a.thing, b.thing, a.out, b.out, lib1-6500.jar]")
+    }
+
+    def "task input artifact collection can include project dependencies, external dependencies, prebuilt file dependencies and task output file dependencies"() {
+        def fixture = newInstantExecutionFixture()
+
+        setupBuildWithEachDependencyType()
+        taskTypeLogsArtifactCollectionDetails()
+
+        buildFile << """
             task resolve(type: ShowArtifactCollection) {
                 collection = configurations.implementation.incoming.artifacts
             }
@@ -71,24 +125,28 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
 
         then: // everything is up-to-date
         fixture.assertStateLoaded()
+        result.assertTaskOrder(":additionalFile", ":resolve")
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
+        result.assertTaskSkipped(":additionalFile")
         result.assertTaskSkipped(":a:producer")
         result.assertTaskSkipped(":b:producer")
-        outputContains("files = [a.thing, a.out, b.out, lib1-6500.jar]")
-        outputContains("artifacts = [a.thing, a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
+        outputContains("files = [a.thing, b.thing, a.out, b.out, lib1-6500.jar]")
+        outputContains("artifacts = [a.thing, b.thing, a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
 
         when:
         instantRun(":resolve", "-PaContent=changed")
 
         then:
         fixture.assertStateLoaded()
+        result.assertTaskOrder(":additionalFile", ":resolve")
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
+        result.assertTaskSkipped(":additionalFile")
         result.assertTaskNotSkipped(":a:producer")
         result.assertTaskSkipped(":b:producer")
-        outputContains("files = [a.thing, a.out, b.out, lib1-6500.jar]")
-        outputContains("artifacts = [a.thing, a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
+        outputContains("files = [a.thing, b.thing, a.out, b.out, lib1-6500.jar]")
+        outputContains("artifacts = [a.thing, b.thing, a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
     }
 
     def "task input property can include mapped configuration elements that contain project dependencies"() {
@@ -153,9 +211,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         file('out.txt').text == "12,10"
     }
 
-    def "task input file collection can include the output of artifact transform of project dependencies"() {
-        def fixture = newInstantExecutionFixture()
-
+    def setupBuildWithArtifactTransformOfProjectDependencies() {
         settingsFile << """
             include 'a', 'b'
         """
@@ -173,6 +229,12 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
             }
         """
         file('root.green') << 'root'
+    }
+
+    def "task input file collection can include the output of artifact transform of project dependencies"() {
+        def fixture = newInstantExecutionFixture()
+
+        setupBuildWithArtifactTransformOfProjectDependencies()
 
         when:
         instantRun(":resolve")
@@ -209,23 +271,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
     def "task input artifact collection can include the output of artifact transform of project dependencies"() {
         def fixture = newInstantExecutionFixture()
 
-        settingsFile << """
-            include 'a', 'b'
-        """
-        setupBuildWithSimpleColorTransform()
-        buildFile << """
-            dependencies.artifactTypes {
-                green {
-                    attributes.attribute(color, 'green')
-                }
-            }
-            dependencies {
-                implementation project(':a')
-                implementation files('root.green')
-                implementation project(':b')
-            }
-        """
-        file('root.green') << 'root'
+        setupBuildWithArtifactTransformOfProjectDependencies()
 
         when:
         instantRun(":resolveArtifacts")
@@ -262,9 +308,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         outputContains("artifacts = [root.green, a.jar.green (project :a), b.jar.green (project :b)]")
     }
 
-    def "task input file collection can include the output of artifact transform of external dependencies"() {
-        def fixture = newInstantExecutionFixture()
-
+    def setupBuildWithArtifactTransformsOfExternalDependencies() {
         withColorVariants(mavenRepo.module("group", "thing1", "1.2")).publish()
         withColorVariants(mavenRepo.module("group", "thing2", "1.2")).publish()
 
@@ -281,6 +325,12 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
                 implementation "group:thing2:1.2"
             }
         """
+    }
+
+    def "task input file collection can include the output of artifact transform of external dependencies"() {
+        def fixture = newInstantExecutionFixture()
+
+        setupBuildWithArtifactTransformsOfExternalDependencies()
 
         when:
         instantRun(":resolve")
@@ -298,9 +348,30 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         outputContains("result = [thing1-1.2.jar.green, thing2-1.2.jar.green]")
     }
 
-    def "task input file collection can include the output of artifact transforms of prebuilt file dependencies"() {
+    def "task input artifact collection can include the output of artifact transform of external dependencies"() {
         def fixture = newInstantExecutionFixture()
 
+        setupBuildWithArtifactTransformsOfExternalDependencies()
+
+        when:
+        instantRun(":resolveArtifacts")
+
+        then:
+        assertTransformed("thing1-1.2.jar", "thing2-1.2.jar")
+        outputContains("files = [thing1-1.2.jar.green, thing2-1.2.jar.green]")
+        outputContains("artifacts = [thing1-1.2.jar.green (group:thing1:1.2), thing2-1.2.jar.green (group:thing2:1.2)]")
+
+        when:
+        instantRun(":resolveArtifacts")
+
+        then:
+        fixture.assertStateLoaded()
+        assertTransformed()
+        outputContains("files = [thing1-1.2.jar.green, thing2-1.2.jar.green]")
+        outputContains("artifacts = [thing1-1.2.jar.green (group:thing1:1.2), thing2-1.2.jar.green (group:thing2:1.2)]")
+    }
+
+    def setupBuildWithArtifactTransformsOfPrebuiltFileDependencies() {
         settingsFile << """
             include 'a'
         """
@@ -323,6 +394,12 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         """
         file('root.blue') << 'root'
         file('a/a.blue') << 'a'
+    }
+
+    def "task input file collection can include the output of artifact transforms of prebuilt file dependencies"() {
+        def fixture = newInstantExecutionFixture()
+
+        setupBuildWithArtifactTransformsOfPrebuiltFileDependencies()
 
         when:
         instantRun(":resolve")
@@ -341,10 +418,31 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         outputContains("result = [root.blue.green, a.jar.green, a.blue.green]")
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/13200")
-    def "task input file collection can include the output of artifact transforms of file dependencies that include task outputs"() {
+    def "task input artifact collection can include the output of artifact transforms of prebuilt file dependencies"() {
         def fixture = newInstantExecutionFixture()
 
+        setupBuildWithArtifactTransformsOfPrebuiltFileDependencies()
+
+        when:
+        instantRun(":resolveArtifacts")
+
+        then:
+        assertTransformed("root.blue", "a.blue", "a.jar")
+        outputContains("files = [root.blue.green, a.jar.green, a.blue.green]")
+        outputContains("artifacts = [root.blue.green (root.blue), a.jar.green (project :a), a.blue.green (a.blue)]")
+
+        when:
+        instantRun(":resolveArtifacts")
+
+        then: // everything up-to-date
+        fixture.assertStateLoaded()
+        result.assertTaskOrder(":a:producer", ":resolveArtifacts")
+        assertTransformed()
+        outputContains("files = [root.blue.green, a.jar.green, a.blue.green]")
+        outputContains("artifacts = [root.blue.green (root.blue), a.jar.green (project :a), a.blue.green (a.blue)]")
+    }
+
+    def setupBuildWithArtifactTransformsOfFileDependenciesThatContainTaskOutputs() {
         settingsFile << """
             rootProject.name = 'root'
             include 'a'
@@ -372,6 +470,13 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
             }
         """
         file('root.blue') << 'root'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13200")
+    def "task input file collection can include the output of artifact transforms of file dependencies that include task outputs"() {
+        def fixture = newInstantExecutionFixture()
+
+        setupBuildWithArtifactTransformsOfFileDependenciesThatContainTaskOutputs()
 
         when:
         instantRun(":resolve")
@@ -396,33 +501,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
     def "task input artifact collection can include the output of artifact transforms of file dependencies that include task outputs"() {
         def fixture = newInstantExecutionFixture()
 
-        settingsFile << """
-            rootProject.name = 'root'
-            include 'a'
-        """
-        setupBuildWithSimpleColorTransform()
-        buildFile << """
-            allprojects {
-                task additionalFile(type: FileProducer) {
-                    output = layout.buildDirectory.file("\${project.name}.additional.blue")
-                }
-            }
-            dependencies.artifactTypes {
-                blue {
-                    attributes.attribute(color, 'blue')
-                }
-            }
-            dependencies {
-                implementation files(tasks.additionalFile.output, 'root.blue')
-                implementation project(':a')
-            }
-            project(':a') {
-                dependencies {
-                    implementation files(tasks.additionalFile.output)
-                }
-            }
-        """
-        file('root.blue') << 'root'
+        setupBuildWithArtifactTransformsOfFileDependenciesThatContainTaskOutputs()
 
         when:
         instantRun(":resolveArtifacts")
