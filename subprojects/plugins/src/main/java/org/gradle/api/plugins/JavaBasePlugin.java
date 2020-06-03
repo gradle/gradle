@@ -54,7 +54,9 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.model.RuleBasedPluginListener;
+import org.gradle.jvm.toolchain.JavaInstallationContainer;
 import org.gradle.jvm.toolchain.JavaInstallationRegistry;
+import org.gradle.jvm.toolchain.internal.DefaultJavaInstallationContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
@@ -100,12 +102,14 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     private final ObjectFactory objectFactory;
     private final JavaInstallationRegistry javaInstallationRegistry;
     private final boolean javaClasspathPackaging;
+    private final JavaInstallationContainer javaInstallationContainer;
 
     @Inject
     public JavaBasePlugin(ObjectFactory objectFactory, JavaInstallationRegistry javaInstallationRegistry) {
         this.objectFactory = objectFactory;
         this.javaInstallationRegistry = javaInstallationRegistry;
         this.javaClasspathPackaging = Boolean.getBoolean(COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY);
+        this.javaInstallationContainer = objectFactory.newInstance(DefaultJavaInstallationContainer.class);
     }
 
     @Override
@@ -138,6 +142,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         project.getExtensions().add(SourceSetContainer.class, "sourceSets", javaConvention.getSourceSets());
         project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project);
         project.getExtensions().add(JavaInstallationRegistry.class, "javaInstalls", javaInstallationRegistry);
+        project.getExtensions().add(JavaInstallationContainer.class, "javaInstallations", javaInstallationContainer);
         return javaConvention;
     }
 

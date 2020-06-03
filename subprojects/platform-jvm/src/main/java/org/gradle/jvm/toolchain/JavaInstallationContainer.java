@@ -16,10 +16,10 @@
 
 package org.gradle.jvm.toolchain;
 
-import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.NamedDomainObjectContainer;
 
 /**
  * A {@code JavaInstallationContainer} manages a set of {@link LogicalJavaInstallation} objects.
  */
-public interface JavaInstallationContainer extends NamedDomainObjectSet<LogicalJavaInstallation> {
+public interface JavaInstallationContainer extends NamedDomainObjectContainer<LogicalJavaInstallation> {
 }

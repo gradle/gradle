@@ -31,6 +31,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.ClassDirectoryBinarySpec
+import org.gradle.jvm.toolchain.JavaInstallationContainer
 import org.gradle.jvm.toolchain.JavaInstallationRegistry
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.java.JavaSourceSet
@@ -72,6 +73,14 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         project.extensions.extensionsSchema.find { it.name == "sourceSets" }.publicType == typeOf(SourceSetContainer)
+    }
+
+    void "javaInstallation extension is exposed as JavaInstallationContainer"() {
+        when:
+        project.pluginManager.apply(JavaBasePlugin)
+
+        then:
+        project.extensions.extensionsSchema.find { it.name == "javaInstallations" }.publicType == typeOf(JavaInstallationContainer)
     }
 
     void "properties on convention and extension are synchronized"() {
