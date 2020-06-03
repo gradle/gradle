@@ -229,5 +229,10 @@ public class ProjectBuilderImpl {
             }
             return new DefaultProjectComponentIdentifier(getBuildIdentifier(), projectPath, projectPath, name);
         }
+
+        @Override
+        public File getBuildRootDir() {
+            throw new UnsupportedOperationException();
+        }
     }
 }

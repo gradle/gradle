@@ -29,10 +29,12 @@ import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.exception.ExceptionAnalyser;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -113,6 +115,11 @@ public class DefaultGradleLauncher implements GradleLauncher {
     public GradleInternal getConfiguredBuild() {
         doBuildStages(Stage.Configure);
         return gradle;
+    }
+
+    @Override
+    public File getBuildRootDir() {
+        return buildServices.get(BuildLayout.class).getRootDirectory();
     }
 
     @Override
