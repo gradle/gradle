@@ -33,11 +33,11 @@ class BuildLogicFunctionalTest {
         """)
 
         runner()
-            .withArguments("--configuration-cache=on", "myTask")        // <1>
+            .withArguments("--configuration-cache", "myTask")        // <1>
             .build()
 
         val result = runner()
-            .withArguments("--configuration-cache=on", "myTask")        // <2>
+            .withArguments("--configuration-cache", "myTask")        // <2>
             .build()
 
         require(result.output.contains("Reusing configuration cache.")) // <3>

@@ -61,7 +61,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         }
 
         when:
-        instantFailsLenient 'broken'
+        instantFails WARN_PROBLEMS_CLI_OPT, 'broken'
 
         then:
         failure.assertTasksExecuted()
@@ -120,7 +120,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         }
 
         when:
-        instantFailsLenient 'problems', 'broken'
+        instantFails WARN_PROBLEMS_CLI_OPT, 'problems', 'broken'
 
         then:
         failure.assertTasksExecuted()
@@ -338,7 +338,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         failure.assertHasFailures(2)
 
         when:
-        instantFailsLenient 'all'
+        instantFails WARN_PROBLEMS_CLI_OPT, 'all'
 
         then:
         instantExecution.assertStateLoaded()
@@ -391,7 +391,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         """
 
         when:
-        instantFailsLenient 'all', "${MAX_PROBLEMS_CLI_OPTION}=2"
+        instantFails WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=2", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
@@ -405,7 +405,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         }
 
         when:
-        instantFailsLenient 'all', "${MAX_PROBLEMS_CLI_OPTION}=3"
+        instantFails WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=3", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
@@ -420,7 +420,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         failure.assertHasFailures(1)
 
         when:
-        instantRunLenient 'all', "${MAX_PROBLEMS_CLI_OPTION}=4"
+        instantRun WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=4", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
@@ -458,7 +458,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         """
 
         when:
-        instantFails 'all', "${MAX_PROBLEMS_CLI_OPTION}=2"
+        instantFails "$MAX_PROBLEMS_SYS_PROP=2", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
@@ -472,7 +472,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         }
 
         when:
-        instantFails 'all', "${MAX_PROBLEMS_CLI_OPTION}=2"
+        instantFails "$MAX_PROBLEMS_SYS_PROP=2", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
@@ -487,7 +487,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         failure.assertHasFailures(1)
 
         when:
-        instantFails 'all', "${MAX_PROBLEMS_CLI_OPTION}=2000"
+        instantFails "$MAX_PROBLEMS_SYS_PROP=2000", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
@@ -722,7 +722,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         """
 
         when:
-        run "foo", LENIENT_CLI_OPTION
+        run ENABLE_CLI_OPT, WARN_PROBLEMS_CLI_OPT, "foo"
 
         then:
         problems.assertResultHasProblems(result) {

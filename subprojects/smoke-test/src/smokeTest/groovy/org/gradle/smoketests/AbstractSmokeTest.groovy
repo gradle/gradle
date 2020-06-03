@@ -20,6 +20,7 @@ import org.apache.commons.io.FileUtils
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheQuietOption
 import org.gradle.integtests.fixtures.instantexecution.InstantExecutionBuildOperationsFixture
 import org.gradle.integtests.fixtures.BuildOperationTreeFixture
@@ -202,16 +203,15 @@ abstract class AbstractSmokeTest extends Specification {
         List<String> parameters = []
         if (GradleContextualExecuter.isInstant()) {
             def maxProblems = maxInstantExecutionProblems()
-            if (maxProblems == 0) {
-                parameters += ["--${ConfigurationCacheOption.LONG_OPTION}=on".toString()]
-            } else {
-                parameters += ["--${ConfigurationCacheOption.LONG_OPTION}=warn".toString(),]
-            }
             parameters += [
+                "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
                 "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=$maxProblems".toString(),
                 "-D${ConfigurationCacheQuietOption.PROPERTY_NAME}=true".toString(),
                 "-D${BuildOperationTrace.SYSPROP}=${buildOperationTracePath()}".toString()
             ]
+            if (maxProblems > 0) {
+                parameters += ["--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn".toString(),]
+            }
         }
         return parameters
     }

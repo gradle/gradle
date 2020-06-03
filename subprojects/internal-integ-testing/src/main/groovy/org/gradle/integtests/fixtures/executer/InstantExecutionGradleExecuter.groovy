@@ -26,7 +26,7 @@ import org.gradle.util.GradleVersion
 class InstantExecutionGradleExecuter extends DaemonGradleExecuter {
 
     static final List<String> INSTANT_EXECUTION_ARGS = [
-        "--${ConfigurationCacheOption.LONG_OPTION}=on",
+        "--${ConfigurationCacheOption.LONG_OPTION}",
         "-D${ConfigurationCacheQuietOption.PROPERTY_NAME}=true",
         "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0"
     ].collect { it.toString() }

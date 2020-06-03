@@ -16,6 +16,8 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
@@ -29,9 +31,18 @@ import org.intellij.lang.annotations.Language
 
 class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    static final String STRICT_CLI_OPTION = InstantExecutionProblemsFixture.STRICT_CLI_OPTION
-    static final String LENIENT_CLI_OPTION = InstantExecutionProblemsFixture.LENIENT_CLI_OPTION
-    static final String MAX_PROBLEMS_CLI_OPTION = InstantExecutionProblemsFixture.MAX_PROBLEMS_CLI_OPTION
+    static final String ENABLE_CLI_OPT = "--${ConfigurationCacheOption.LONG_OPTION}"
+    static final String ENABLE_GRADLE_PROP = "${ConfigurationCacheOption.PROPERTY_NAME}=true"
+    static final String ENABLE_SYS_PROP = "-D$ENABLE_GRADLE_PROP"
+
+    static final String DISABLE_CLI_OPT = "--no-${ConfigurationCacheOption.LONG_OPTION}"
+    static final String DISABLE_GRADLE_PROP = "${ConfigurationCacheOption.PROPERTY_NAME}=false"
+    static final String DISABLE_SYS_PROP = "-D$DISABLE_GRADLE_PROP"
+
+    static final String WARN_PROBLEMS_CLI_OPT = "--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn"
+
+    static final String MAX_PROBLEMS_GRADLE_PROP = "${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}"
+    static final String MAX_PROBLEMS_SYS_PROP = "-D$MAX_PROBLEMS_GRADLE_PROP"
 
     protected InstantExecutionProblemsFixture problems
 
@@ -52,19 +63,15 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void instantRun(String... tasks) {
-        run(STRICT_CLI_OPTION, *tasks)
+        run(ENABLE_CLI_OPT, *tasks)
     }
 
     void instantRunLenient(String... tasks) {
-        run(LENIENT_CLI_OPTION, *tasks)
+        run(ENABLE_CLI_OPT, WARN_PROBLEMS_CLI_OPT, *tasks)
     }
 
     void instantFails(String... tasks) {
-        fails(STRICT_CLI_OPTION, *tasks)
-    }
-
-    void instantFailsLenient(String... tasks) {
-        fails(LENIENT_CLI_OPTION, *tasks)
+        fails(ENABLE_CLI_OPT, *tasks)
     }
 
     String relativePath(String path) {

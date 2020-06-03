@@ -132,7 +132,7 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
-        instantFailsLenient "assemble"
+        instantFails WARN_PROBLEMS_CLI_OPT, "assemble"
 
         then:
         instantExecution.assertStateStored()

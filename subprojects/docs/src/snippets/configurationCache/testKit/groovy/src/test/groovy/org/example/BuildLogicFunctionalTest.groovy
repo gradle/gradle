@@ -28,12 +28,12 @@ class BuildLogicFunctionalTest extends Specification {
 
         when:
         runner()
-            .withArguments('--configuration-cache=on', 'myTask')    // <1>
+            .withArguments('--configuration-cache', 'myTask')    // <1>
             .build()
 
         and:
         def result = runner()
-            .withArguments('--configuration-cache=on', 'myTask')    // <2>
+            .withArguments('--configuration-cache', 'myTask')    // <2>
             .build()
 
         then:

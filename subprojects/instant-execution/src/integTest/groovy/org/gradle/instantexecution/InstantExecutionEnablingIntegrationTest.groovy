@@ -44,16 +44,18 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
 
         where:
         origin            | argument
-        "long option"     | STRICT_CLI_OPTION
-        "system property" | "-D${ConfigurationCacheOption.PROPERTY_NAME}=on"
+        "long option"     | ENABLE_CLI_OPT
+        "system property" | ENABLE_SYS_PROP
     }
 
     def "can enable with a property in root directory gradle.properties"() {
 
         given:
         def fixture = newInstantExecutionFixture()
+
+        and:
         file('gradle.properties') << """
-            ${ConfigurationCacheOption.PROPERTY_NAME}=on
+            $ENABLE_GRADLE_PROP
         """
 
         when:
@@ -75,9 +77,11 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
 
         given:
         def fixture = newInstantExecutionFixture()
+
+        and:
         executer.requireOwnGradleUserHomeDir()
         executer.gradleUserHomeDir.file('gradle.properties') << """
-            ${ConfigurationCacheOption.PROPERTY_NAME}=on
+            $ENABLE_GRADLE_PROP
         """
 
         when:
@@ -96,27 +100,35 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
     }
 
     @Unroll
-    def "can disable with a command line #origin when enabled in gradle.properties"() {
+    def "can disable with a command line #cliOrigin when enabled in gradle.properties"() {
 
         given:
         def fixture = newInstantExecutionFixture()
+
+        and:
         file('gradle.properties') << """
-            ${ConfigurationCacheOption.PROPERTY_NAME}=on
+            ${ConfigurationCacheOption.PROPERTY_NAME}=true
         """
 
         when:
-        run 'help', argument
+        run 'help', cliArgument
 
         then:
         fixture.assertNoInstantExecution()
 
         where:
-        origin            | argument
-        "long option"     | "--${ConfigurationCacheOption.LONG_OPTION}=off"
-        "system property" | "-D${ConfigurationCacheOption.PROPERTY_NAME}=off"
+        cliOrigin         | cliArgument
+        "long option"     | DISABLE_CLI_OPT
+        "system property" | DISABLE_SYS_PROP
     }
 
     private void outputContainsIncubatingFeatureUsage() {
         outputContains("Configuration cache is an incubating feature.")
+    }
+
+    private void expectDeprecatedProperty(String name, String value) {
+        executer.beforeExecute {
+            expectDeprecationWarning("Property '$name' with value '$value' has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+        }
     }
 }

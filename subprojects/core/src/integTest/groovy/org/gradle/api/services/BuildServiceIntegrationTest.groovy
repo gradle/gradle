@@ -190,7 +190,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputContains("service: closed with value 12")
     }
 
-    @RequiredFeature(feature = ConfigurationCacheOption.PROPERTY_NAME, value = "off")
+    @RequiredFeature(feature = ConfigurationCacheOption.PROPERTY_NAME, value = "false")
     @UnsupportedWithInstantExecution
     def "service can be used at configuration and execution time"() {
         serviceImplementation()
@@ -238,7 +238,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputContains("service: closed with value 11")
     }
 
-    @RequiredFeature(feature = ConfigurationCacheOption.PROPERTY_NAME, value = "on")
+    @RequiredFeature(feature = ConfigurationCacheOption.PROPERTY_NAME, value = "true")
     def "service used at configuration and execution time can be used with instant execution"() {
         serviceImplementation()
         buildFile << """

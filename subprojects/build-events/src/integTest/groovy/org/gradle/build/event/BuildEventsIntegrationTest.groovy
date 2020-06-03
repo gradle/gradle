@@ -131,7 +131,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("EVENT: finish :b:thing")
     }
 
-    @RequiredFeature(feature = ConfigurationCacheOption.PROPERTY_NAME, value = "off")
+    @RequiredFeature(feature = ConfigurationCacheOption.PROPERTY_NAME, value = "false")
     @UnsupportedWithInstantExecution
     def "listener receives task completion events from included builds"() {
         settingsFile << """
