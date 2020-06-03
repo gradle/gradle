@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.internal
+package org.gradle.api.publish.internal.metadata
 
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Named
@@ -36,6 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
+import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.internal.component.external.model.ImmutableCapability
@@ -50,7 +51,7 @@ import spock.lang.Specification
 
 import static org.gradle.util.AttributeTestUtil.attributes
 
-class ModuleMetadataFileGeneratorTest extends Specification {
+class GradleModuleMetadataWriterTest extends Specification {
 
     VersionConstraint requires(String version) {
         DefaultImmutableVersionConstraint.of(DefaultMutableVersionConstraint.withVersion(version))
@@ -69,7 +70,14 @@ class ModuleMetadataFileGeneratorTest extends Specification {
     def buildId = UniqueId.generate()
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "1.2")
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
-    def generator = new GradleModuleMetadataWriter(new BuildInvocationScopeId(buildId), projectDependencyResolver, TestUtil.checksumService)
+
+    private writeTo(Writer writer, PublicationInternal publication, List<PublicationInternal> publications) {
+        new GradleModuleMetadataWriter(
+            new BuildInvocationScopeId(buildId), projectDependencyResolver, TestUtil.checksumService
+        ).writeTo(
+            writer, publication, publications
+        )
+    }
 
     def "fails to write file for component with no variants"() {
         def writer = new StringWriter()
@@ -77,7 +85,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def publication = publication(component, id)
 
         when:
-        generator.generateTo(publication, [publication], writer)
+        writeTo(writer, publication, [publication])
 
         then:
         InvalidUserCodeException ex = thrown()
@@ -97,7 +105,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         when:
         publication.attributes >> attributes(status: 'release', 'test': 'value')
-        generator.generateTo(publication, [publication], writer)
+        writeTo(writer, publication, [publication])
 
         then:
         writer.toString() == """{
@@ -163,7 +171,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         component.usages >> [v1, v2]
 
         when:
-        generator.generateTo(publication, [publication], writer)
+        writeTo(writer, publication, [publication])
 
         then:
         writer.toString() == """{
@@ -298,7 +306,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         component.usages >> [v1, v2]
 
         when:
-        generator.generateTo(publication, [publication], writer)
+        writeTo(writer, publication, [publication])
 
         then:
         writer.toString() == """{
@@ -478,7 +486,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         component.usages >> [v1, v2]
 
         when:
-        generator.generateTo(publication, [publication], writer)
+        writeTo(writer, publication, [publication])
 
         then:
         writer.toString() == """{
@@ -575,7 +583,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         component.usages >> [v1, v2]
 
         when:
-        generator.generateTo(publication, [publication], writer)
+        writeTo(writer, publication, [publication])
 
         then:
         writer.toString() == """{
@@ -649,7 +657,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         comp2.usages >> [v2]
 
         when:
-        generator.generateTo(rootPublication, [rootPublication, publication1, publication2], writer)
+        writeTo(writer, rootPublication, [rootPublication, publication1, publication2])
 
         then:
         writer.toString() == """{
@@ -721,7 +729,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         childComponent.usages >> [variant]
 
         when:
-        generator.generateTo(childPublication, [rootPublication, childPublication], writer)
+        writeTo(writer, childPublication, [rootPublication, childPublication])
 
         then:
         writer.toString() == """{
@@ -782,7 +790,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         component.usages >> [v1, v2]
 
         when:
-        generator.generateTo(publication, [publication], writer)
+        writeTo(writer, publication, [publication])
 
         then:
         writer.toString() == """{
@@ -878,7 +886,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         component.usages >> [v1, v2]
 
         when:
-        generator.generateTo(publication, [publication], writer)
+        writeTo(writer, publication, [publication])
 
         then:
         writer.toString().contains """
@@ -960,7 +968,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         component.usages >> [v1]
 
         when:
-        generator.generateTo(publication, [publication], writer)
+        writeTo(writer, publication, [publication])
 
         and:
         writer.toString()
@@ -978,7 +986,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def publication = publication(component, id, mappingStrategy)
 
         mappingStrategy.findStrategyForVariant(_) >> variantMappingStrategy
-        variantMappingStrategy.maybeResolveVersion(_ as String, _ as String) >> {String group, String name ->
+        variantMappingStrategy.maybeResolveVersion(_ as String, _ as String) >> { String group, String name ->
             DefaultModuleVersionIdentifier.newId(group, name, 'v99')
         }
 
@@ -1037,7 +1045,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         component.usages >> [v1, v2]
 
         when:
-        generator.generateTo(publication, [publication], writer)
+        writeTo(writer, publication, [publication])
 
         then:
         writer.toString() == """{
