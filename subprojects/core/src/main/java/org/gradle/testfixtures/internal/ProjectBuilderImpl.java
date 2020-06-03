@@ -107,7 +107,7 @@ public class ProjectBuilderImpl {
         BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(userHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
         BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(buildSessionScopeServices);
         TestBuildScopeServices buildServices = new TestBuildScopeServices(buildTreeScopeServices, homeDir);
-        TestRootBuild build = new TestRootBuild();
+        TestRootBuild build = new TestRootBuild(projectDir);
         buildServices.add(BuildState.class, build);
 
         buildServices.get(BuildStateRegistry.class).attachRootBuild(build);
@@ -175,6 +175,12 @@ public class ProjectBuilderImpl {
     }
 
     private static class TestRootBuild extends AbstractBuildState implements RootBuildState {
+        private final File rootProjectDir;
+
+        public TestRootBuild(File rootProjectDir) {
+            this.rootProjectDir = rootProjectDir;
+        }
+
         @Override
         public BuildIdentifier getBuildIdentifier() {
             return DefaultBuildIdentifier.ROOT;
@@ -227,6 +233,11 @@ public class ProjectBuilderImpl {
                 name = "root";
             }
             return new DefaultProjectComponentIdentifier(getBuildIdentifier(), projectPath, projectPath, name);
+        }
+
+        @Override
+        public File getBuildRootDir() {
+            return rootProjectDir;
         }
     }
 }
