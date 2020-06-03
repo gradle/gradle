@@ -16,11 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.AsyncArtifactListener;
+import org.gradle.api.internal.artifacts.transform.TransformationSubject;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -28,13 +31,14 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.EMPTY;
 
-class ArtifactBackedResolvedVariant implements ResolvedVariant {
+public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     private final DisplayName displayName;
     private final AttributeContainerInternal attributes;
     private final ResolvedArtifactSet artifacts;
@@ -117,7 +121,9 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
 
         @Override
         public void visitLocalArtifacts(LocalArtifactVisitor listener) {
-            listener.visitArtifact(artifact);
+            if (artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier) {
+                listener.visitArtifact(new SingleLocalArtifactSet(artifact));
+            }
         }
 
         @Override
@@ -128,6 +134,43 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         @Override
         public String toString() {
             return artifact.getId().getDisplayName();
+        }
+    }
+
+    public static class SingleLocalArtifactSet implements ResolvedArtifactSet.LocalArtifactSet {
+        private final ResolvableArtifact artifact;
+
+        public SingleLocalArtifactSet(ResolvableArtifact artifact) {
+            this.artifact = artifact;
+        }
+
+        public ResolvableArtifact getArtifact() {
+            return artifact;
+        }
+
+        @Override
+        public Object getId() {
+            return artifact.getId();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return artifact.getId().getDisplayName();
+        }
+
+        @Override
+        public TaskDependencyContainer getTaskDependencies() {
+            return artifact;
+        }
+
+        @Override
+        public TransformationSubject calculateSubject() {
+            return TransformationSubject.initial(artifact.getId(), artifact.getFile());
+        }
+
+        @Override
+        public ResolvableArtifact transformedTo(File output) {
+            return artifact.transformedTo(output);
         }
     }
 

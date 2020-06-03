@@ -24,6 +24,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.OperationType
+import org.gradle.util.GradleVersion
 
 @ToolingApiVersion('>=5.1')
 @TargetGradleVersion('>=5.1')
@@ -31,7 +32,7 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
     def events = ProgressEvents.create()
 
-    void setup() {
+    def setup() {
         settingsFile << """
             include 'lib', 'app'
         """
@@ -56,11 +57,11 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
         runBuild("resolve")
 
         then:
-        def transformOperation = events.operation("Transform artifact lib.jar (project :lib) with FileSizer")
+        def transformOperation = events.operation(applyTransform("FileSizer"))
         with(transformOperation) {
             transform
             descriptor.transformer.displayName == "FileSizer"
-            descriptor.subject.displayName == "artifact lib.jar (project :lib)"
+            descriptor.subject.displayName == transformTarget()
             successful
         }
         with(events.operation("Task :app:resolve")) {
@@ -85,10 +86,10 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        with(events.operation("Transform artifact lib.jar (project :lib) with BrokenTransform")) {
+        with(events.operation(applyTransform("BrokenTransform"))) {
             transform
             descriptor.transformer.displayName == "BrokenTransform"
-            descriptor.subject.displayName == "artifact lib.jar (project :lib)"
+            descriptor.subject.displayName == transformTarget()
             !successful
             failures.size() == 1
             failures[0].description.contains("intentional failure")
@@ -123,19 +124,19 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         def taskOperation = events.operation("Task :lib:jar")
-        def firstTransformOperation = events.operation("Transform artifact lib.jar (project :lib) with FileSizer")
+        def firstTransformOperation = events.operation(applyTransform("FileSizer"))
         with(firstTransformOperation) {
             transform
             descriptor.transformer.displayName == "FileSizer"
-            descriptor.subject.displayName == "artifact lib.jar (project :lib)"
+            descriptor.subject.displayName == transformTarget()
             descriptor.dependencies == [taskOperation.descriptor] as Set
             successful
         }
-        def secondTransformOperation = events.operation("Transform artifact lib.jar (project :lib) with FileNamer")
+        def secondTransformOperation = events.operation(applyTransform("FileNamer"))
         with(secondTransformOperation) {
             transform
             descriptor.transformer.displayName == "FileNamer"
-            descriptor.subject.displayName == "artifact lib.jar (project :lib)"
+            descriptor.subject.displayName == transformTarget()
             descriptor.dependencies == [firstTransformOperation.descriptor] as Set
             successful
         }
@@ -160,11 +161,11 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         def taskOperation = events.operation("Task :included:lib:jar")
-        def transformOperation = events.operation("Transform artifact lib.jar (project :included:lib) with FileSizer")
+        def transformOperation = events.operation(applyTransform("FileSizer", ":included:lib"))
         with(transformOperation) {
             transform
             descriptor.transformer.displayName == "FileSizer"
-            descriptor.subject.displayName == "artifact lib.jar (project :included:lib)"
+            descriptor.subject.displayName == transformTarget(":included:lib")
             descriptor.dependencies == [taskOperation.descriptor] as Set
             successful
         }
@@ -240,6 +241,22 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
                 into "\$buildDir/libs"
             }
         """
+    }
+
+    String applyTransform(String transformName, String project = ":lib") {
+        if (targetVersion.baseVersion >= GradleVersion.version("6.6")) {
+            return "Transform lib.jar (project $project) with $transformName"
+        } else {
+            return "Transform artifact lib.jar (project $project) with $transformName"
+        }
+    }
+
+    String transformTarget(String project = ":lib") {
+        if (targetVersion.baseVersion >= GradleVersion.version("6.6")) {
+            return "lib.jar (project $project)"
+        } else {
+            return "artifact lib.jar (project $project)"
+        }
     }
 
     private Object runBuild(String task, Set<OperationType> operationTypes = EnumSet.allOf(OperationType)) {

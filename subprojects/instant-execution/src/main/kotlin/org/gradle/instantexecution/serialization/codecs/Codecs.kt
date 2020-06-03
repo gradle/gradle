@@ -134,6 +134,11 @@ class Codecs(
         bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
         bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
         bind(TransformationNodeReferenceCodec)
+        bind(TransformationStepCodec(projectStateRegistry, fingerprinterRegistry))
+        bind(DefaultTransformerCodec(BindingsBackedCodec {
+            bind(BeanCodec())
+        }, buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, parameterScheme, actionScheme))
+        bind(LegacyTransformerCodec(actionScheme))
 
         bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, instantiator))
         bind(DestinationRootCopySpecCodec(fileResolver))

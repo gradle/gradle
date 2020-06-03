@@ -27,7 +27,7 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import java.util.Map;
 
 /**
- * Represents the variants associated with each configuration of a particular component. Implementations must be immutable.
+ * Resolves the variants associated with each configuration of a particular component. Implementations must be immutable.
  */
 public interface ComponentArtifacts {
     /**

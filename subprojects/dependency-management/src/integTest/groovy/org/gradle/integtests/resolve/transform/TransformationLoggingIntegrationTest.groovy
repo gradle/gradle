@@ -223,8 +223,8 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
         then:
         block.waitForAllPendingCalls()
         poll {
-            assertHasWorkInProgress(build, "> Transforming artifact lib1.jar (project :lib) with Red > Red lib1.jar")
-            assertHasWorkInProgress(build, "> Transforming artifact lib2.jar (project :lib) with Red > Red lib2.jar")
+            assertHasWorkInProgress(build, "> Transforming lib1.jar (project :lib) with Red > Red lib1.jar")
+            assertHasWorkInProgress(build, "> Transforming lib2.jar (project :lib) with Red > Red lib2.jar")
         }
 
         block.releaseAll()

@@ -169,7 +169,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         expect:
         succeeds("help", "--info")
         output.count("Creating FileSizer") == 1
-        output.count("Transforming commons-math3") == 1
+        output.count("Transforming commons-math3-3.6.1.jar to commons-math3-3.6.1.jar.txt") == 1
     }
 
     def "applies transforms to files from file dependencies matching on implicit format attribute"() {
@@ -2231,15 +2231,15 @@ Found the following transforms:
         run "app:resolve"
 
         then:
-        outputContains("Before transformer FileSizer on artifact lib.jar (project :lib)")
-        outputContains("After transformer FileSizer on artifact lib.jar (project :lib)")
+        outputContains("Before transformer FileSizer on lib.jar (project :lib)")
+        outputContains("After transformer FileSizer on lib.jar (project :lib)")
 
         and:
         with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)) {
             it.failure == null
-            displayName == "Transform artifact lib.jar (project :lib) with FileSizer"
+            displayName == "Transform lib.jar (project :lib) with FileSizer"
             details.transformerName == "FileSizer"
-            details.subjectName == "artifact lib.jar (project :lib)"
+            details.subjectName == "lib.jar (project :lib)"
         }
     }
 
@@ -2291,14 +2291,14 @@ Found the following transforms:
         fails "app:resolve"
 
         then:
-        outputContains("Before transformer BrokenTransform on artifact lib.jar (project :lib)")
-        outputContains("After transformer BrokenTransform on artifact lib.jar (project :lib)")
+        outputContains("Before transformer BrokenTransform on lib.jar (project :lib)")
+        outputContains("After transformer BrokenTransform on lib.jar (project :lib)")
 
         and:
         with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)) {
-            displayName == "Transform artifact lib.jar (project :lib) with BrokenTransform"
+            displayName == "Transform lib.jar (project :lib) with BrokenTransform"
             details.transformerName == "BrokenTransform"
-            details.subjectName == "artifact lib.jar (project :lib)"
+            details.subjectName == "lib.jar (project :lib)"
         }
     }
 
@@ -2345,7 +2345,7 @@ Found the following transforms:
         then:
         output.count("> Dependency:") == 1
         output.contains("> Dependency: task ':app:dependent' -> task ':app:resolve'")
-        output.contains("> Transform artifact lib1.jar (project :lib) with FileSizer")
+        output.contains("> Transform lib1.jar (project :lib) with FileSizer")
         output.contains("> Task :app:resolve")
     }
 

@@ -28,6 +28,10 @@ public interface ConsumerProvidedVariantFiles extends FileCollectionInternal.Sou
      */
     Collection<TransformationNode> getScheduledNodes();
 
+    Transformation getTransformation();
+
+    Object getSource();
+
     DisplayName getTargetVariantName();
 
     ImmutableAttributes getTargetVariantAttributes();

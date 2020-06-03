@@ -25,9 +25,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Cast;
@@ -80,9 +80,9 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     }
 
     @Override
-    public ResolvedArtifactSet select(ResolvedVariantSet producer) {
+    public ResolvedArtifactSet select(ResolvedVariantSet producer, Factory factory) {
         try {
-            return doSelect(producer, AttributeMatchingExplanationBuilder.logging());
+            return doSelect(producer, factory, AttributeMatchingExplanationBuilder.logging());
         } catch (VariantSelectionException t) {
             return new BrokenResolvedArtifactSet(t);
         } catch (Exception t) {
@@ -90,7 +90,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         }
     }
 
-    private ResolvedArtifactSet doSelect(ResolvedVariantSet producer, AttributeMatchingExplanationBuilder explanationBuilder) {
+    private ResolvedArtifactSet doSelect(ResolvedVariantSet producer, Factory factory, AttributeMatchingExplanationBuilder explanationBuilder) {
         AttributeMatcher matcher = schema.withProducer(producer.getSchema());
         ImmutableAttributes componentRequested = attributesFactory.concat(requested, producer.getOverriddenAttributes());
         List<? extends ResolvedVariant> matches = matcher.matches(producer.getVariants(), componentRequested, explanationBuilder);
@@ -104,7 +104,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
                 throw new AmbiguousVariantSelectionException(describer, producer.asDescribable().getDisplayName(), componentRequested, matches, matcher, discarded);
             } else {
                 // because we're going to fail, we can afford a second run with details
-                return doSelect(producer, new TraceDiscardedVariants());
+                return doSelect(producer, factory, new TraceDiscardedVariants());
             }
         }
 
@@ -124,7 +124,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             ResolvedArtifactSet artifacts = result.getLeft().getArtifacts();
             AttributeContainerInternal attributes = result.getRight().attributes;
             Transformation transformation = result.getRight().transformation;
-            return new ConsumerProvidedResolvedVariant(producer.getComponentId(), artifacts, attributes, transformation, dependenciesResolver, transformationNodeRegistry);
+            return factory.asTransformed(artifacts, attributes, transformation, dependenciesResolver, transformationNodeRegistry);
         }
 
         if (!candidates.isEmpty()) {
