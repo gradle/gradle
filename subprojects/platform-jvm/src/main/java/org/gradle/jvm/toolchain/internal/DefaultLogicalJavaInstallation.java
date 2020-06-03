@@ -21,6 +21,7 @@ import org.gradle.jvm.toolchain.LogicalJavaInstallation;
 public class DefaultLogicalJavaInstallation implements LogicalJavaInstallation {
 
     private final String name;
+    private String path;
 
     public DefaultLogicalJavaInstallation(String name) {
         this.name = name;
@@ -28,12 +29,12 @@ public class DefaultLogicalJavaInstallation implements LogicalJavaInstallation {
 
     @Override
     public String getPath() {
-        return null;
+        return path;
     }
 
     @Override
     public void setPath(String path) {
-
+        this.path = path;
     }
 
     @Override

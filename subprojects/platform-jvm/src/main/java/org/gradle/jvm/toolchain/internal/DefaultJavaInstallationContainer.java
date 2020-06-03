@@ -18,6 +18,7 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.toolchain.JavaInstallationContainer;
 import org.gradle.jvm.toolchain.LogicalJavaInstallation;
@@ -29,6 +30,11 @@ public class DefaultJavaInstallationContainer extends AbstractNamedDomainObjectC
     @Inject
     public DefaultJavaInstallationContainer(Instantiator instantiator, CollectionCallbackActionDecorator callbackDecorator) {
         super(LogicalJavaInstallation.class, instantiator, i -> i.getName(), callbackDecorator);
+        createCurrentInstallation();
+    }
+
+    private void createCurrentInstallation() {
+        create("current").setPath(Jvm.current().getJavaHome().getAbsolutePath());
     }
 
     @Override

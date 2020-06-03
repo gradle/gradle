@@ -22,12 +22,16 @@ import spock.lang.Specification
 
 class DefaultJavaInstallationContainerTest extends Specification {
 
-    def "installation container is initially empty"() {
+    def "installation container has current vm initially"() {
         given:
         def container = new DefaultJavaInstallationContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)
 
-        expect:
-        container.getAsMap() == [:]
+        when:
+        def installations = container.getAsMap().values()
+
+        then:
+        installations.size() == 1
+        installations.first().path == System.getProperty("java.home")
     }
 
     def "installation has given name"() {
