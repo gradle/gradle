@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.internal.metadata;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.google.gson.stream.JsonWriter;
 import org.gradle.api.Named;
@@ -62,9 +61,11 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.base.Strings.nullToEmpty;
 import static java.lang.String.format;
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
 import static org.gradle.util.GUtil.elvis;
+
 
 class ModuleMetadataJsonWriter extends JsonWriterScope {
 
@@ -111,42 +112,8 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         });
     }
 
-    private void writeVersionConstraint(
-        ImmutableVersionConstraint versionConstraint,
-        String resolvedVersion
-    ) throws IOException {
-        checker.sawDependencyOrConstraint();
-        if (resolvedVersion == null && isEmpty(versionConstraint)) {
-            return;
-        }
-        checker.sawVersion();
-
-        writeObject("version", () -> {
-            boolean isStrict = !versionConstraint.getStrictVersion().isEmpty();
-            String version = isStrict ? versionConstraint.getStrictVersion() : !versionConstraint.getRequiredVersion().isEmpty() ? versionConstraint.getRequiredVersion() : null;
-            String preferred = !versionConstraint.getPreferredVersion().isEmpty() ? versionConstraint.getPreferredVersion() : null;
-            if (resolvedVersion != null) {
-                version = resolvedVersion;
-                preferred = null;
-            }
-            if (version != null) {
-                if (isStrict) {
-                    write("strictly", version);
-                }
-                write("requires", version);
-            }
-            if (preferred != null) {
-                write("prefers", preferred);
-            }
-            List<String> rejectedVersions = versionConstraint.getRejectedVersions();
-            if (!rejectedVersions.isEmpty()) {
-                writeArray("rejects", rejectedVersions);
-            }
-        });
-    }
-
-    private boolean isEmpty(ImmutableVersionConstraint versionConstraint) {
-        return DefaultImmutableVersionConstraint.of().equals(versionConstraint);
+    private void writeFormat() throws IOException {
+        write("formatVersion", GradleModuleMetadataParser.FORMAT_VERSION);
     }
 
     private void writeIdentity(
@@ -161,20 +128,21 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         }
     }
 
-    private void writeComponentRef(ComponentData data, @Nullable String relativeUrl) throws IOException {
-        writeObject("component", () -> {
-            if (relativeUrl != null) {
-                write("url", relativeUrl);
-            }
-            writeCoordinates(data.coordinates);
-            writeAttributes(data.attributes);
-        });
+    private void writeCreator() throws IOException {
+        writeObject("createdBy", () ->
+            writeObject("gradle", () -> {
+                write("version", GradleVersion.current().getVersion());
+                if (publication.isPublishBuildId()) {
+                    write("buildId", buildId);
+                }
+            })
+        );
     }
 
     private void writeVariants() throws IOException {
         boolean started = false;
         for (UsageContext usageContext : component.getUsages()) {
-            checker.registerVariant(usageContext.getName(), usageContext.getAttributes(), usageContext.getCapabilities());
+            checkVariant(usageContext);
             if (!started) {
                 beginArray("variants");
                 started = true;
@@ -183,18 +151,11 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         }
         if (component instanceof ComponentWithVariants) {
             for (SoftwareComponent childComponent : ((ComponentWithVariants) component).getVariants()) {
-                ModuleVersionIdentifier childCoordinates;
-                if (childComponent instanceof ComponentWithCoordinates) {
-                    childCoordinates = ((ComponentWithCoordinates) childComponent).getCoordinates();
-                } else {
-                    ComponentData componentData = componentCoordinates.get(childComponent);
-                    childCoordinates = componentData == null ? null : componentData.coordinates;
-                }
-
+                ModuleVersionIdentifier childCoordinates = coordinatesOf(childComponent);
                 assert childCoordinates != null;
                 if (childComponent instanceof SoftwareComponentInternal) {
                     for (UsageContext usageContext : ((SoftwareComponentInternal) childComponent).getUsages()) {
-                        checker.registerVariant(usageContext.getName(), usageContext.getAttributes(), usageContext.getCapabilities());
+                        checkVariant(usageContext);
                         if (!started) {
                             beginArray("variants");
                             started = true;
@@ -209,19 +170,15 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         }
     }
 
-    private void writeCreator() throws IOException {
-        writeObject("createdBy", () ->
-            writeObject("gradle", () -> {
-                write("version", GradleVersion.current().getVersion());
-                if (publication.isPublishBuildId()) {
-                    write("buildId", buildId);
-                }
-            })
-        );
-    }
-
-    private void writeFormat() throws IOException {
-        write("formatVersion", GradleModuleMetadataParser.FORMAT_VERSION);
+    private void writeVariantHostedInThisModule(UsageContext variant) throws IOException {
+        writeObject(() -> {
+            write("name", variant.getName());
+            writeAttributes(variant.getAttributes());
+            writeDependencies(variant);
+            writeDependencyConstraints(variant);
+            writeArtifacts(publication, variant);
+            writeCapabilities("capabilities", variant.getCapabilities());
+        });
     }
 
     private void writeVariantHostedInAnotherModule(ModuleVersionIdentifier coordinates, ModuleVersionIdentifier targetCoordinates, UsageContext variant) throws IOException {
@@ -231,49 +188,6 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
             writeAvailableAt(coordinates, targetCoordinates);
             writeCapabilities("capabilities", variant.getCapabilities());
         });
-    }
-
-    private void writeAvailableAt(ModuleVersionIdentifier coordinates, ModuleVersionIdentifier targetCoordinates) throws IOException {
-        writeObject("available-at", () -> {
-            write("url", relativeUrlTo(coordinates, targetCoordinates));
-            writeCoordinates(targetCoordinates);
-        });
-    }
-
-    private String relativeUrlTo(
-        @SuppressWarnings("unused") ModuleVersionIdentifier from,
-        ModuleVersionIdentifier to
-    ) {
-        // TODO - do not assume Maven layout
-        StringBuilder path = new StringBuilder();
-        path.append("../../");
-        path.append(to.getName());
-        path.append("/");
-        path.append(to.getVersion());
-        path.append("/");
-        path.append(to.getName());
-        path.append("-");
-        path.append(to.getVersion());
-        path.append(".module");
-        return path.toString();
-    }
-
-    private void writeVariantHostedInThisModule(UsageContext variant) throws IOException {
-        writeObject(() -> {
-            write("name", variant.getName());
-            writeAttributes(variant.getAttributes());
-            VersionMappingStrategyInternal versionMappingStrategy = publication.getVersionMappingStrategy();
-            writeDependencies(variant, versionMappingStrategy);
-            writeDependencyConstraints(variant, versionMappingStrategy);
-            writeArtifacts(publication, variant);
-            writeCapabilities("capabilities", variant.getCapabilities());
-        });
-    }
-
-    private void writeCoordinates(ModuleVersionIdentifier coordinates) throws IOException {
-        write("group", coordinates.getGroup());
-        write("module", coordinates.getName());
-        write("version", coordinates.getVersion());
     }
 
     private void writeAttributes(AttributeContainer attributes) throws IOException {
@@ -310,12 +224,44 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         return true;
     }
 
-    private Map<String, Attribute<?>> sorted(AttributeContainer attributes) {
-        Map<String, Attribute<?>> sortedAttributes = new TreeMap<>();
-        for (Attribute<?> attribute : attributes.keySet()) {
-            sortedAttributes.put(attribute.getName(), attribute);
+    private void writeCapabilities(String key, Collection<? extends Capability> capabilities) throws IOException {
+        if (capabilities.isEmpty()) {
+            return;
         }
-        return sortedAttributes;
+        writeArray(key, () -> {
+            for (Capability capability : capabilities) {
+                writeObject(() -> {
+                    write("group", capability.getGroup());
+                    write("name", capability.getName());
+                    if (isNotEmpty(capability.getVersion())) {
+                        write("version", capability.getVersion());
+                    }
+                });
+            }
+        });
+    }
+
+    private void writeAvailableAt(ModuleVersionIdentifier coordinates, ModuleVersionIdentifier targetCoordinates) throws IOException {
+        writeObject("available-at", () -> {
+            write("url", relativeUrlTo(coordinates, targetCoordinates));
+            writeCoordinates(targetCoordinates);
+        });
+    }
+
+    private void writeComponentRef(ComponentData data, @Nullable String relativeUrl) throws IOException {
+        writeObject("component", () -> {
+            if (relativeUrl != null) {
+                write("url", relativeUrl);
+            }
+            writeCoordinates(data.coordinates);
+            writeAttributes(data.attributes);
+        });
+    }
+
+    private void writeCoordinates(ModuleVersionIdentifier coordinates) throws IOException {
+        write("group", coordinates.getGroup());
+        write("module", coordinates.getName());
+        write("version", coordinates.getVersion());
     }
 
     private void writeArtifacts(PublicationInternal<?> publication, UsageContext variant) throws IOException {
@@ -353,13 +299,13 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         write("md5", checksumService.md5(artifactFile).toString());
     }
 
-    private void writeDependencies(UsageContext variant, VersionMappingStrategyInternal versionMappingStrategy) throws IOException {
+    private void writeDependencies(UsageContext variant) throws IOException {
         if (variant.getDependencies().isEmpty()) {
             return;
         }
         writeArray("dependencies", () -> {
             Set<ExcludeRule> additionalExcludes = variant.getGlobalExcludes();
-            VariantVersionMappingStrategyInternal variantVersionMappingStrategy = findVariantVersionMappingStrategy(variant, versionMappingStrategy);
+            VariantVersionMappingStrategyInternal variantVersionMappingStrategy = findVariantVersionMappingStrategy(variant);
             for (ModuleDependency moduleDependency : variant.getDependencies()) {
                 if (moduleDependency.getArtifacts().isEmpty()) {
                     writeDependency(moduleDependency, additionalExcludes, variantVersionMappingStrategy, null);
@@ -372,51 +318,12 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         });
     }
 
-    private VariantVersionMappingStrategyInternal findVariantVersionMappingStrategy(UsageContext variant, VersionMappingStrategyInternal versionMappingStrategy) {
-        VariantVersionMappingStrategyInternal variantVersionMappingStrategy = null;
-        if (versionMappingStrategy != null) {
-            ImmutableAttributes attributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
-            variantVersionMappingStrategy = versionMappingStrategy.findStrategyForVariant(attributes);
-        }
-        return variantVersionMappingStrategy;
-    }
-
     private void writeDependency(ModuleDependency dependency, Set<ExcludeRule> additionalExcludes, VariantVersionMappingStrategyInternal variantVersionMappingStrategy, DependencyArtifact dependencyArtifact) throws IOException {
         writeObject(() -> {
-            String resolvedVersion = null;
             if (dependency instanceof ProjectDependency) {
-                ProjectDependency projectDependency = (ProjectDependency) dependency;
-                ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, projectDependency);
-                if (variantVersionMappingStrategy != null) {
-                    ModuleVersionIdentifier resolved = variantVersionMappingStrategy.maybeResolveVersion(identifier.getGroup(), identifier.getName());
-                    if (resolved != null) {
-                        identifier = resolved;
-                        resolvedVersion = identifier.getVersion();
-                    }
-                }
-                write("group", identifier.getGroup());
-                write("module", identifier.getName());
-                writeVersionConstraint(DefaultImmutableVersionConstraint.of(identifier.getVersion()), resolvedVersion);
+                writeProjectDependency((ProjectDependency) dependency, variantVersionMappingStrategy);
             } else {
-                String group = dependency.getGroup();
-                String name = dependency.getName();
-                if (variantVersionMappingStrategy != null) {
-                    ModuleVersionIdentifier resolvedVersionId = variantVersionMappingStrategy.maybeResolveVersion(group, name);
-                    if (resolvedVersionId != null) {
-                        group = resolvedVersionId.getGroup();
-                        name = resolvedVersionId.getName();
-                        resolvedVersion = resolvedVersionId.getVersion();
-                    }
-                }
-                write("group", group);
-                write("module", name);
-                ImmutableVersionConstraint vc;
-                if (dependency instanceof ExternalDependency) {
-                    vc = DefaultImmutableVersionConstraint.of(((ExternalDependency) dependency).getVersionConstraint());
-                } else {
-                    vc = DefaultImmutableVersionConstraint.of(Strings.nullToEmpty(dependency.getVersion()));
-                }
-                writeVersionConstraint(vc, resolvedVersion);
+                writeModuleDependency(dependency, variantVersionMappingStrategy);
             }
             writeExcludes(dependency, additionalExcludes);
             writeAttributes(dependency.getAttributes());
@@ -436,6 +343,88 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         });
     }
 
+    private void writeModuleDependency(ModuleDependency dependency, VariantVersionMappingStrategyInternal variantVersionMappingStrategy) throws IOException {
+        String group = dependency.getGroup();
+        String name = dependency.getName();
+        String resolvedVersion = null;
+        if (variantVersionMappingStrategy != null) {
+            ModuleVersionIdentifier resolvedVersionId = variantVersionMappingStrategy.maybeResolveVersion(group, name);
+            if (resolvedVersionId != null) {
+                group = resolvedVersionId.getGroup();
+                name = resolvedVersionId.getName();
+                resolvedVersion = resolvedVersionId.getVersion();
+            }
+        }
+        write("group", group);
+        write("module", name);
+        writeVersionConstraint(versionConstraintFor(dependency), resolvedVersion);
+    }
+
+    private void writeProjectDependency(
+        ProjectDependency projectDependency,
+        VariantVersionMappingStrategyInternal variantVersionMappingStrategy
+    ) throws IOException {
+        String resolvedVersion = null;
+        ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, projectDependency);
+        if (variantVersionMappingStrategy != null) {
+            ModuleVersionIdentifier resolved = variantVersionMappingStrategy.maybeResolveVersion(
+                identifier.getGroup(), identifier.getName()
+            );
+            if (resolved != null) {
+                identifier = resolved;
+                resolvedVersion = identifier.getVersion();
+            }
+        }
+        write("group", identifier.getGroup());
+        write("module", identifier.getName());
+        writeVersionConstraint(
+            DefaultImmutableVersionConstraint.of(identifier.getVersion()), resolvedVersion
+        );
+    }
+
+    private void writeVersionConstraint(
+        ImmutableVersionConstraint versionConstraint,
+        @Nullable String resolvedVersion
+    ) throws IOException {
+        checker.sawDependencyOrConstraint();
+        if (resolvedVersion == null && isEmpty(versionConstraint)) {
+            return;
+        }
+        checker.sawVersion();
+
+        writeObject("version", () -> {
+            boolean isStrict = !versionConstraint.getStrictVersion().isEmpty();
+            String version;
+            String preferred;
+            if (resolvedVersion != null) {
+                version = resolvedVersion;
+                preferred = null;
+            } else {
+                version = isStrict
+                    ? versionConstraint.getStrictVersion()
+                    : !versionConstraint.getRequiredVersion().isEmpty()
+                    ? versionConstraint.getRequiredVersion()
+                    : null;
+                preferred = !versionConstraint.getPreferredVersion().isEmpty()
+                    ? versionConstraint.getPreferredVersion()
+                    : null;
+            }
+            List<String> rejectedVersions = versionConstraint.getRejectedVersions();
+            if (version != null) {
+                if (isStrict) {
+                    write("strictly", version);
+                }
+                write("requires", version);
+            }
+            if (preferred != null) {
+                write("prefers", preferred);
+            }
+            if (!rejectedVersions.isEmpty()) {
+                writeArray("rejects", rejectedVersions);
+            }
+        });
+    }
+
     private void writeDependencyArtifact(DependencyArtifact dependencyArtifact) throws IOException {
         writeObject("thirdPartyCompatibility", () -> {
             writeObject("artifactSelector", () -> {
@@ -451,12 +440,12 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         });
     }
 
-    private void writeDependencyConstraints(UsageContext variant, VersionMappingStrategyInternal versionMappingStrategy) throws IOException {
+    private void writeDependencyConstraints(UsageContext variant) throws IOException {
         if (variant.getDependencyConstraints().isEmpty()) {
             return;
         }
         writeArray("dependencyConstraints", () -> {
-            VariantVersionMappingStrategyInternal mappingStrategy = findVariantVersionMappingStrategy(variant, versionMappingStrategy);
+            VariantVersionMappingStrategyInternal mappingStrategy = findVariantVersionMappingStrategy(variant);
             for (DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
                 writeDependencyConstraint(dependencyConstraint, mappingStrategy);
             }
@@ -512,27 +501,73 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         });
     }
 
+    private ImmutableVersionConstraint versionConstraintFor(ModuleDependency dependency) {
+        return dependency instanceof ExternalDependency
+            ? DefaultImmutableVersionConstraint.of(((ExternalDependency) dependency).getVersionConstraint())
+            : DefaultImmutableVersionConstraint.of(nullToEmpty(dependency.getVersion()));
+    }
+
     private Set<ExcludeRule> excludedRulesFor(ModuleDependency moduleDependency, Set<ExcludeRule> additionalExcludes) {
         return moduleDependency.isTransitive()
             ? Sets.union(additionalExcludes, moduleDependency.getExcludeRules())
             : Collections.singleton(new DefaultExcludeRule(null, null));
     }
 
-    private void writeCapabilities(String key, Collection<? extends Capability> capabilities) throws IOException {
-        if (capabilities.isEmpty()) {
-            return;
-        }
-        writeArray(key, () -> {
-            for (Capability capability : capabilities) {
-                writeObject(() -> {
-                    write("group", capability.getGroup());
-                    write("name", capability.getName());
-                    if (isNotEmpty(capability.getVersion())) {
-                        write("version", capability.getVersion());
-                    }
-                });
-            }
-        });
+    private void checkVariant(UsageContext usageContext) {
+        checker.registerVariant(
+            usageContext.getName(),
+            usageContext.getAttributes(),
+            usageContext.getCapabilities()
+        );
     }
 
+    private ModuleVersionIdentifier coordinatesOf(SoftwareComponent childComponent) {
+        if (childComponent instanceof ComponentWithCoordinates) {
+            return ((ComponentWithCoordinates) childComponent).getCoordinates();
+        }
+        ComponentData componentData = componentCoordinates.get(childComponent);
+        if (componentData != null) {
+            return componentData.coordinates;
+        }
+        return null;
+    }
+
+    private VariantVersionMappingStrategyInternal findVariantVersionMappingStrategy(UsageContext variant) {
+        VersionMappingStrategyInternal versionMappingStrategy = publication.getVersionMappingStrategy();
+        if (versionMappingStrategy != null) {
+            ImmutableAttributes attributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
+            return versionMappingStrategy.findStrategyForVariant(attributes);
+        }
+        return null;
+    }
+
+    private boolean isEmpty(ImmutableVersionConstraint versionConstraint) {
+        return DefaultImmutableVersionConstraint.of().equals(versionConstraint);
+    }
+
+    private String relativeUrlTo(
+        @SuppressWarnings("unused") ModuleVersionIdentifier from,
+        ModuleVersionIdentifier to
+    ) {
+        // TODO - do not assume Maven layout
+        StringBuilder path = new StringBuilder();
+        path.append("../../");
+        path.append(to.getName());
+        path.append("/");
+        path.append(to.getVersion());
+        path.append("/");
+        path.append(to.getName());
+        path.append("-");
+        path.append(to.getVersion());
+        path.append(".module");
+        return path.toString();
+    }
+
+    private Map<String, Attribute<?>> sorted(AttributeContainer attributes) {
+        Map<String, Attribute<?>> sortedAttributes = new TreeMap<>();
+        for (Attribute<?> attribute : attributes.keySet()) {
+            sortedAttributes.put(attribute.getName(), attribute);
+        }
+        return sortedAttributes;
+    }
 }
