@@ -16,7 +16,6 @@
 
 package org.gradle.api.file;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
@@ -63,26 +62,6 @@ public interface ProjectLayout {
      * @since 4.8
      */
     FileCollection files(Object... paths);
-
-    /**
-     * <p>Creates a read-only {@code FileTree} which contains the contents of the given ZIP file, as defined by {@link Project#zipTree(Object)}.</p>
-     *
-     * @param zipPath The ZIP file. Evaluated as per {@link Project#file(Object)}.
-     * @return the file tree. Never returns null.
-     * @since 6.6
-     */
-    @Incubating
-    FileTree zipTree(Object zipPath);
-
-    /**
-     * <p>Creates a read-only {@code FileTree} which contains the contents of the given TAR file, as defined by {@link Project#tarTree(Object)}.</p>
-     *
-     * @param tarPath The TAR file. Evaluated as per {@link Project#file(Object)}.
-     * @return the file tree. Never returns null.
-     * @since 6.6
-     */
-    @Incubating
-    FileTree tarTree(Object tarPath);
 
     /**
      * <p>Returns a mutable {@link ConfigurableFileCollection} containing the given files, as defined by {@link Project#files(Object...)}.

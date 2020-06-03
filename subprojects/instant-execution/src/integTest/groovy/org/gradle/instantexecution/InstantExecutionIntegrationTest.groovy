@@ -19,6 +19,7 @@ package org.gradle.instantexecution
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
+import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.model.ObjectFactory
 import org.gradle.initialization.LoadProjectsBuildOperationType
@@ -92,7 +93,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         def fixture = newInstantExecutionFixture()
 
         when:
-        instantRun "help" , "-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
+        instantRun "help", "-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
 
         then:
         fixture.assertStateStored()
@@ -580,6 +581,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         ToolingModelBuilderRegistry.name | "project.services.get(${ToolingModelBuilderRegistry.name})" | "toString()"
         WorkerExecutor.name              | "project.services.get(${WorkerExecutor.name})"              | "noIsolation()"
         FileSystemOperations.name        | "project.services.get(${FileSystemOperations.name})"        | "toString()"
+        ArchiveOperations.name           | "project.services.get(${ArchiveOperations.name})"           | "toString()"
         ExecOperations.name              | "project.services.get(${ExecOperations.name})"              | "toString()"
         ListenerManager.name             | "project.services.get(${ListenerManager.name})"             | "toString()"
         JavaInstallationRegistry.name    | "project.services.get(${JavaInstallationRegistry.name})"    | "installationForCurrentVirtualMachine"

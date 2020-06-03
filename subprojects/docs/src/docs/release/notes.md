@@ -76,14 +76,15 @@ See the documentation for more information on [Gradle Module Metadata generation
 
 ## Improvements for plugin authors
 
-### New ZIP and TAR `FileTree` factory methods
+### Injectable `ArchiveOperations` service
 
 Previously, it was only possible to create a `FileTree` for a ZIP or TAR archive by using the APIs provided by a `Project`.
 However, a `Project` object is not always available.
 
-The `ProjectLayout` service now has [zipTree()](javadoc/org/gradle/api/file/ProjectLayout.html#zipTree-java.lang.Object-) and [tarTree()](javadoc/org/gradle/api/file/ProjectLayout.html#tarTree-java.lang.Object-) methods for creating read-only `FileTree` instances respectively for ZIP and TAR archives.
+The new `ArchiveOperations` service has [zipTree()](javadoc/org/gradle/api/file/ArchiveOperations.html#zipTree-java.lang.Object-) and [tarTree()](javadoc/org/gradle/api/file/ArchiveOperations.html#tarTree-java.lang.Object-) methods for creating read-only `FileTree` instances respectively for ZIP and TAR archives.
 
-See the [user manual](userguide/custom_gradle_types.html#service_injection) for how to inject services and the [`ProjectLayout`](javadoc/org/gradle/api/file/ProjectLayout.html) api documentation for more details and examples. 
+See the [user manual](userguide/custom_gradle_types.html#service_injection) for how to inject services and the [`ArchiveOperations`](javadoc/org/gradle/api/file/ArchiveOperations.html) api documentation for more details and examples. 
+
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
