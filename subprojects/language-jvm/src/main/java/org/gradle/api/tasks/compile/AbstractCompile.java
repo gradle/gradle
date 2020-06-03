@@ -21,9 +21,11 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 
@@ -39,10 +41,12 @@ public abstract class AbstractCompile extends SourceTask {
     private FileCollection classpath;
     private String sourceCompatibility;
     private String targetCompatibility;
+    private Property<Integer> release;
 
     public AbstractCompile() {
         this.destinationDirectory = getProject().getObjects().directoryProperty();
         this.destinationDirectory.convention(getProject().getProviders().provider(new BackwardCompatibilityOutputDirectoryConvention()));
+        this.release = getProject().getObjects().property(Integer.class);
     }
 
     /**
@@ -103,6 +107,21 @@ public abstract class AbstractCompile extends SourceTask {
      */
     public void setDestinationDir(Provider<File> destinationDir) {
         this.destinationDirectory.set(getProject().getLayout().dir(destinationDir));
+    }
+
+    /**
+     * Configure the minimal Java release version for this compile task (--release compiler flag)
+     *
+     * If set, it will take precedences over the {@link #getSourceCompatibility()} and {@link #getTargetCompatibility()} settings,
+     * which will have no effect in that case.
+     *
+     * @since 6.6
+     */
+    @Incubating
+    @Input
+    @Optional
+    public Property<Integer> getRelease() {
+        return release;
     }
 
     /**

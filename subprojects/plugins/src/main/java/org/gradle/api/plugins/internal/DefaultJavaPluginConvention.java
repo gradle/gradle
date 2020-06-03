@@ -123,7 +123,7 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
 
     @Override
     public Manifest manifest() {
-        return manifest(Actions.<Manifest>doNothing());
+        return manifest(Actions.doNothing());
     }
 
     @Override

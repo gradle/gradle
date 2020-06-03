@@ -143,18 +143,18 @@ public class FxApp extends Application {
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
     @Unroll
-    def "compile with release option"() {
+    def "compile with release flag"() {
         given:
         goodCode()
         buildFile << """
-java.targetCompatibility = JavaVersion.VERSION_1_7
+java.targetCompatibility = JavaVersion.VERSION_1_7 // this will be ignored when compiling, but used for the TargetJvmVersion attribute
 compileJava.options.compilerArgs.addAll(['--release', $notation])
 compileJava {
     doFirst {
-        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 7
+        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 7
+        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 7
+        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 7
     }
 }
 """
@@ -172,13 +172,36 @@ compileJava {
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
-    def "compile with release option and autoTargetJvmDisabled"() {
+    def "compile with release property set"() {
         given:
         goodCode()
         buildFile << """
 java.targetCompatibility = JavaVersion.VERSION_1_7 // ignored
 compileJava.targetCompatibility = '10' // ignored
-compileJava.options.compilerArgs.addAll(['--release', '8'])
+compileJava.release.set(8)
+compileJava {
+    doFirst {
+        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+    }
+}
+"""
+
+        expect:
+        succeeds 'compileJava'
+        bytecodeVersion() == 52
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "compile with release property and autoTargetJvmDisabled"() {
+        given:
+        goodCode()
+        buildFile << """
+java.targetCompatibility = JavaVersion.VERSION_1_7 // ignored
+compileJava.targetCompatibility = '10' // ignored
+compileJava.release.set(8)
 java.disableAutoTargetJvm()
 compileJava {
     doFirst {
@@ -258,6 +281,33 @@ public class FailsOnJava8<T> {
 
         buildFile << """
 compileJava.options.compilerArgs.addAll(['--release', '8'])
+"""
+
+        expect:
+        fails 'compileJava'
+        output.contains(logStatement())
+        failure.assertHasErrorOutput("cannot find symbol")
+        failure.assertHasErrorOutput("method takeWhile")
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "compile fails when using newer API with release property"() {
+        given:
+        file("src/main/java/compile/test/FailsOnJava8.java") << '''
+package compile.test;
+
+import java.util.stream.Stream;
+import java.util.function.Predicate;
+
+public class FailsOnJava8<T> {
+    public Stream<T> takeFromStream(Stream<T> stream) {
+        return stream.takeWhile(Predicate.isEqual("foo"));
+    }
+}
+'''
+
+        buildFile << """
+compileJava.release.set(8)
 """
 
         expect:
