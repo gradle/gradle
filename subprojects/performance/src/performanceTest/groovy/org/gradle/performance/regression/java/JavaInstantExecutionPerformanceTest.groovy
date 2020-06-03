@@ -24,7 +24,6 @@ import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.measure.MeasuredOperation
 import org.junit.experimental.categories.Category
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import java.nio.file.Files
@@ -33,30 +32,23 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_
 import static org.gradle.performance.generator.JavaTestProject.SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC
 import static org.junit.Assert.assertTrue
 
-@Ignore("temporarily because of the build options breaking change")
 @Category(PerformanceRegressionTest)
 class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
-    // TODO simplify on rebaseline
-    private File[] stateDirectories
+    private File stateDirectory
 
     def setup() {
-        stateDirectories = [
-            temporaryFolder.file(".instant-execution-state"),
-            temporaryFolder.file(".gradle/configuration-cache")
-        ]
+        stateDirectory = temporaryFolder.file(".gradle/configuration-cache")
     }
 
     @Unroll
     def "assemble on #testProject #action instant execution state with #daemon daemon"() {
 
         given:
-        runner.targetVersions = ["6.5-20200512182414+0000"]
-        runner.minimumBaseVersion = "5.6" // TODO make 6.6 after rebaseline
+        runner.targetVersions = ["6.6-20200603165740+0000"]
+        runner.minimumBaseVersion = "6.6"
         runner.testProject = testProject.projectName
         runner.tasksToRun = ["assemble"]
-
-        and:
         runner.args = ["-D${ConfigurationCacheOption.PROPERTY_NAME}=true"]
 
         and:
@@ -84,7 +76,7 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
     }
 
     private BuildExperimentListener listenerFor(String action) {
-        return instantInvocationListenerFor(action, stateDirectories)
+        return instantInvocationListenerFor(action, stateDirectory)
     }
 
     static String loading = "loading"
@@ -92,30 +84,27 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
     static String hot = "hot"
     static String cold = "cold"
 
-    static BuildExperimentListener instantInvocationListenerFor(String action, File[] stateDirectories) {
+    static BuildExperimentListener instantInvocationListenerFor(String action, File stateDirectory) {
         return new BuildExperimentListenerAdapter() {
 
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
                 if (action == storing) {
-                    stateDirectories.each { dir ->
-                        dir.deleteDir()
-                    }
+                    stateDirectory.deleteDir()
                 }
             }
 
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
                 if (invocationInfo.iterationNumber > 1) {
-                    // TODO dedupe on rebaseline
-                    def tags = action == storing
-                        ? ["Calculating task graph as no instant execution cache is available", "Calculating task graph as no configuration cache is available"]
-                        : ["Reusing instant execution cache", "Reusing configuration cache"]
+                    def tag = action == storing
+                        ? "Calculating task graph as no configuration cache is available"
+                        : "Reusing configuration cache"
                     def found = Files.lines(invocationInfo.buildLog.toPath()).withCloseable { lines ->
-                        lines.anyMatch { line -> tags.any { line.contains(it) } }
+                        lines.anyMatch { line -> line.contains(tag) }
                     }
                     if (!found) {
-                        assertTrue("Configuration cache log '$tags' not found in '$invocationInfo.buildLog'\n\n$invocationInfo.buildLog.text", found)
+                        assertTrue("Configuration cache log '$tag' not found in '$invocationInfo.buildLog'\n\n$invocationInfo.buildLog.text", found)
                     }
                 }
             }
