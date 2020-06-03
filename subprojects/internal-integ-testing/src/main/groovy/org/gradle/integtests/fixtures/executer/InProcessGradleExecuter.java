@@ -859,6 +859,13 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         @Override
+        public void assertHasCause(String message) {
+            if (!causes.contains(message)) {
+                throw new AssertionFailedError(String.format("Expected cause '%s' not found in %s", message, causes));
+            }
+        }
+
+        @Override
         public void assertHasCauses(int count) {
             assertEquals(count, causes.size());
         }
