@@ -190,7 +190,7 @@ Gradle's dependency management engine is <<variant_model.adoc#understanding-vari
 
 What to select is determined by the attributes of the consumer configuration and the attributes of the variants found on the producer side.
 It is, however, possible that some specific dependencies override attributes from the configuration itself.
-This is typically the case when using the <<java_platform_plugin.adoc,Java Platform plugin>>: this plugin builds a special kind of component which is called a "platform" and can be addressed by setting the component category attribute to "platform", in opposition to typical dependencies which are targetting libraries.
+This is typically the case when using the <<java_platform_plugin.adoc#java_platform_plugin,Java Platform plugin>>: this plugin builds a special kind of component which is called a "platform" and can be addressed by setting the component category attribute to "platform", in opposition to typical dependencies which are targetting libraries.
 
 Therefore, you may face situations where you want to substitute a platform dependency with a regular dependency, or the other way around.
 

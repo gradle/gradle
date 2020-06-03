@@ -43,6 +43,11 @@ public interface ArtifactSelectionDetails {
     List<DependencyArtifactSelector> getRequestedSelectors();
 
     /**
+     * Removes all artifact selectors, if any.
+     */
+    void withoutArtifactSelectors();
+
+    /**
      * Adds an artifact to substitute. The first time this method is called, the original artifacts
      * are replaced with the artifact defined by this method call. If you wish to add artifacts to
      * the original query, you need to call {@link #getRequestedSelectors()} and add them using
