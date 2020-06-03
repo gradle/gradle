@@ -30,7 +30,6 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.readClassOf
 import org.gradle.instantexecution.serialization.readNonNull
-import org.gradle.instantexecution.serialization.withCodec
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.Isolatable
@@ -42,7 +41,6 @@ import org.gradle.internal.snapshot.ValueSnapshotter
 
 internal
 class DefaultTransformerCodec(
-    private val userTypesCodec: Codec<Any?>,
     private val buildOperationExecutor: BuildOperationExecutor,
     private val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     private val isolatableFactory: IsolatableFactory,
@@ -68,7 +66,7 @@ class DefaultTransformerCodec(
             write(value.isolatedParameters.isolatedParameterObject)
         } else {
             writeBoolean(false)
-            withCodec(userTypesCodec) { write(value.parameterObject) }
+            write(value.parameterObject)
         }
     }
 
@@ -88,7 +86,7 @@ class DefaultTransformerCodec(
             val isolatedParameters = readNonNull<Isolatable<TransformParameters>>()
             isolatedParametersObject = DefaultTransformer.IsolatedParameters(isolatedParameters, secondaryInputsHash)
         } else {
-            parametersObject = withCodec(userTypesCodec) { read() as TransformParameters? }
+            parametersObject = read() as TransformParameters?
             isolatedParametersObject = null
         }
         return DefaultTransformer(

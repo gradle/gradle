@@ -20,26 +20,33 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.api.internal.artifacts.transform.TransformationStep
+import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.readNonNull
+import org.gradle.instantexecution.serialization.withCodec
 import org.gradle.internal.operations.BuildOperationExecutor
 
 
 internal
 class InitialTransformationNodeCodec(
+    private val userTypesCodec: Codec<Any?>,
     private val buildOperationExecutor: BuildOperationExecutor,
     private val transformListener: ArtifactTransformListener
 ) : AbstractTransformationNodeCodec<TransformationNode.InitialTransformationNode>() {
 
     override suspend fun WriteContext.doEncode(value: TransformationNode.InitialTransformationNode) {
-        write(value.transformationStep)
+        withCodec(userTypesCodec) {
+            write(value.transformationStep)
+        }
         writeDependenciesResolver(value)
         write((value.inputArtifacts as ArtifactBackedResolvedVariant.SingleLocalArtifactSet).artifact)
     }
 
     override suspend fun ReadContext.doDecode(): TransformationNode.InitialTransformationNode {
-        val transformationStep = readNonNull<TransformationStep>()
+        val transformationStep = withCodec(userTypesCodec) {
+            readNonNull<TransformationStep>()
+        }
         val resolver = readDependenciesResolver()
         val artifacts = ArtifactBackedResolvedVariant.SingleLocalArtifactSet(readNonNull())
         return TransformationNode.initial(transformationStep, artifacts, resolver, buildOperationExecutor, transformListener)
