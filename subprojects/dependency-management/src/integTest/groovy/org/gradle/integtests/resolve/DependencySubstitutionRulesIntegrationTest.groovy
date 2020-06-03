@@ -1571,6 +1571,11 @@ configurations.all {
                      }
                   }
                }
+            """,
+            """
+               dependencySubstitution {
+                  substitute module('org:lib:1.0') using module('org:lib:1.0') withoutArtifactSelectors()
+               }
             """
         ]
     }
