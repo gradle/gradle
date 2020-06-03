@@ -65,8 +65,8 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
         @Suppress("implicit_cast_to_any")
         val files = fileCollectionFactory.resolving(elements.map {
             when (it) {
-                is ResolvedArtifactResultSpec -> it.file
-                is ConsumerProvidedVariantSpec -> Callable {
+                is FixedFileArtifactSpec -> it.file
+                is TransformedProjectArtifactSpec -> Callable {
                     it.node.transformedSubject.get().files
                 }
                 is TransformedLocalArtifactSpec -> Callable {
@@ -82,7 +82,7 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
 
 
 private
-class ResolvedArtifactResultSpec(
+class FixedFileArtifactSpec(
     val id: ComponentArtifactIdentifier,
     val variantAttributes: AttributeContainer,
     val variantDisplayName: DisplayName,
@@ -91,7 +91,7 @@ class ResolvedArtifactResultSpec(
 
 
 private
-class ConsumerProvidedVariantSpec(
+class TransformedProjectArtifactSpec(
     val node: TransformationNode,
     val variantDisplayName: DisplayName,
     val variantAttributes: ImmutableAttributes
@@ -99,8 +99,7 @@ class ConsumerProvidedVariantSpec(
 
 
 private
-class
-TransformedLocalArtifactSpec(
+class TransformedLocalArtifactSpec(
     val ownerId: ComponentIdentifier,
     val origin: File,
     val transformation: Transformation,
@@ -115,7 +114,7 @@ class CollectingArtifactVisitor : ArtifactVisitor {
     val failures = mutableListOf<Throwable>()
 
     override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType {
-        return if (source is ConsumerProvidedVariantFiles && source.scheduledNodes.isNotEmpty()) {
+        return if (source is ConsumerProvidedVariantFiles) {
             FileCollectionStructureVisitor.VisitType.NoContents
         } else if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet && source.isBuildable) {
             FileCollectionStructureVisitor.VisitType.NoContents
@@ -133,14 +132,14 @@ class CollectingArtifactVisitor : ArtifactVisitor {
     }
 
     override fun visitArtifact(variantName: DisplayName, variantAttributes: AttributeContainer, artifact: ResolvableArtifact) {
-        elements.add(ResolvedArtifactResultSpec(artifact.id, variantAttributes, variantName, artifact.file))
+        elements.add(FixedFileArtifactSpec(artifact.id, variantAttributes, variantName, artifact.file))
     }
 
     override fun endVisitCollection(source: FileCollectionInternal.Source) {
         if (source is ConsumerProvidedVariantFiles) {
             for (node in source.scheduledNodes) {
                 elements.add(
-                    ConsumerProvidedVariantSpec(
+                    TransformedProjectArtifactSpec(
                         node,
                         source.targetVariantName,
                         source.targetVariantAttributes
@@ -173,8 +172,8 @@ class FixedArtifactCollection(
         val result = mutableSetOf<ResolvedArtifactResult>()
         for (element in elements) {
             when (element) {
-                is ResolvedArtifactResultSpec -> result.add(DefaultResolvedArtifactResult(element.id, element.variantAttributes, element.variantDisplayName, Artifact::class.java, element.file))
-                is ConsumerProvidedVariantSpec -> {
+                is FixedFileArtifactSpec -> result.add(DefaultResolvedArtifactResult(element.id, element.variantAttributes, element.variantDisplayName, Artifact::class.java, element.file))
+                is TransformedProjectArtifactSpec -> {
                     for (output in element.node.transformedSubject.get().files) {
                         val resolvedArtifact: ResolvableArtifact = element.node.inputArtifacts.transformedTo(output)
                         result.add(DefaultResolvedArtifactResult(resolvedArtifact.id, element.variantDisplayName, element.variantAttributes, Artifact::class.java, output))

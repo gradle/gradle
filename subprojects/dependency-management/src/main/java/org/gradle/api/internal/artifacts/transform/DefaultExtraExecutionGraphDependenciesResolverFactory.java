@@ -35,7 +35,8 @@ public class DefaultExtraExecutionGraphDependenciesResolverFactory implements Ex
     }
 
     @Override
-    public ExecutionGraphDependenciesResolver create(ComponentIdentifier componentIdentifier) {
+    public ExecutionGraphDependenciesResolver
+    create(ComponentIdentifier componentIdentifier) {
         return new DefaultExecutionGraphDependenciesResolver(componentIdentifier, graphResults, artifactResults, graphResolveAction, filteredResultFactory);
     }
 }

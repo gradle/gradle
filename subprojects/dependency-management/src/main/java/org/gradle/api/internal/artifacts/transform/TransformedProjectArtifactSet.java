@@ -16,36 +16,28 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.Maps;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Transformed artifact set that performs the transformation itself when requested.
+ * An artifact set containing transformed project artifacts.
  */
-public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet, ConsumerProvidedVariantFiles {
+public class TransformedProjectArtifactSet extends AbstractTransformedArtifactSet implements ConsumerProvidedVariantFiles {
     private final ComponentIdentifier componentIdentifier;
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
     private final Transformation transformation;
-    private final ExtraExecutionGraphDependenciesResolverFactory resolverFactory;
     private final TransformationNodeRegistry transformationNodeRegistry;
 
-    public ConsumerProvidedResolvedVariant(
+    public TransformedProjectArtifactSet(
         ComponentIdentifier componentIdentifier,
         ResolvedArtifactSet delegate,
         AttributeContainerInternal target,
@@ -53,11 +45,11 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet, Con
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
         TransformationNodeRegistry transformationNodeRegistry
     ) {
+        super(componentIdentifier, delegate, target, transformation, dependenciesResolverFactory, transformationNodeRegistry);
         this.componentIdentifier = componentIdentifier;
         this.delegate = delegate;
         this.attributes = target;
         this.transformation = transformation;
-        this.resolverFactory = dependenciesResolverFactory;
         this.transformationNodeRegistry = transformationNodeRegistry;
     }
 
@@ -77,17 +69,6 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet, Con
     }
 
     @Override
-    public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        FileCollectionStructureVisitor.VisitType visitType = listener.prepareForVisit(this);
-        if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
-            return visitor -> visitor.endVisitCollection(ConsumerProvidedResolvedVariant.this);
-        }
-        Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
-        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, actions, artifactResults, getDependenciesResolver(), transformationNodeRegistry));
-        return new TransformCompletion(result, attributes, artifactResults);
-    }
-
-    @Override
     public Transformation getTransformation() {
         return transformation;
     }
@@ -95,11 +76,6 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet, Con
     @Override
     public Object getSource() {
         return delegate;
-    }
-
-    @Override
-    public void visitLocalArtifacts(LocalArtifactVisitor listener) {
-        // Cannot visit local artifacts until transform has been executed
     }
 
     @Override
@@ -112,18 +88,11 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet, Con
 
     @Override
     public Collection<TransformationNode> getScheduledNodes() {
-        AtomicReference<Boolean> hasLocalArtifacts = new AtomicReference<>(false);
-        delegate.visitLocalArtifacts(artifact -> {
-            hasLocalArtifacts.set(true);
-        });
-        if (hasLocalArtifacts.get()) {
-            return transformationNodeRegistry.getOrCreate(delegate, transformation, getDependenciesResolver());
-        } else {
-            return Collections.emptySet();
-        }
+        return transformationNodeRegistry.getOrCreate(delegate, transformation, getDependenciesResolver());
     }
 
-    private ExecutionGraphDependenciesResolver getDependenciesResolver() {
-        return resolverFactory.create(componentIdentifier);
+    @Override
+    protected FileCollectionInternal.Source getVisitSource() {
+        return this;
     }
 }

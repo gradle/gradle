@@ -132,7 +132,7 @@ class CollectingVisitor : FileCollectionStructureVisitor {
     }
 
     override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType {
-        if (source is ConsumerProvidedVariantFiles && source.scheduledNodes.isNotEmpty()) {
+        if (source is ConsumerProvidedVariantFiles) {
             // Some transforms are scheduled, so visit the source rather than the files
             return FileCollectionStructureVisitor.VisitType.NoContents
         } else if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet && source.isBuildable) {
