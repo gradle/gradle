@@ -72,6 +72,7 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         for (Path rootPathToWatch : WatchRootUtil.resolveRootsToWatch(rootPaths)) {
             projectRootDirectories.put(rootPathToWatch, rootPathToWatch.toString() + File.separator);
         }
+        LOGGER.info("Now considering {} as root directories to watch", projectRootDirectories.keySet());
         updateWatchedDirectories();
     }
 
