@@ -19,6 +19,8 @@ package org.gradle.performance.regression.buildcache
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.gradle.internal.hash.Hashing
+import org.gradle.performance.categories.PerformanceExperiment
+import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.GradleInvocationSpec
@@ -28,6 +30,7 @@ import org.gradle.performance.generator.JavaTestProject
 import org.gradle.performance.mutator.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.keystore.TestKeyStore
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import java.util.zip.GZIPInputStream
@@ -36,8 +39,7 @@ import java.util.zip.GZIPOutputStream
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-@Unroll
-class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
+abstract class AbstractTaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
 
     def setup() {
         runner.warmUpRuns = 11
@@ -46,23 +48,76 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         runner.targetVersions = ["6.5-20200424145747+0000"]
     }
 
-    def "clean #tasks on #testProject with remote http cache"() {
-        setupTestProject(testProject, tasks)
-        protocol = "http"
-        pushToRemote = true
-        runner.addBuildExperimentListener(cleanLocalCache())
-        runner.addBuildExperimentListener(touchCacheArtifacts())
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        [testProject, tasks] << scenarios
+    BuildExperimentListenerAdapter touchCacheArtifacts() {
+        new BuildExperimentListenerAdapter() {
+            @Override
+            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+                touchCacheArtifacts(cacheDir)
+                if (buildCacheServer.running) {
+                    touchCacheArtifacts(buildCacheServer.cacheDir)
+                }
+            }
+        }
     }
 
+    // We change the file dates inside the archives to work around unfairness caused by
+    // reusing FileCollectionSnapshots based on the file dates in versions before Gradle 4.2
+    void touchCacheArtifacts(File dir) {
+        def startTime = System.currentTimeMillis()
+        int count = 0
+        dir.eachFile { File cacheArchiveFile ->
+            if (cacheArchiveFile.name ==~ /[a-z0-9]{${Hashing.defaultFunction().hexDigits}}/) {
+                def tempFile = temporaryFolder.file("re-tar-temp")
+                tempFile.withOutputStream { outputStream ->
+                    def tarOutput = new TarArchiveOutputStream(new GZIPOutputStream(outputStream))
+                    tarOutput.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX)
+                    tarOutput.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX)
+                    tarOutput.setAddPaxHeadersForNonAsciiNames(true)
+                    cacheArchiveFile.withInputStream { inputStream ->
+                        def tarInput = new TarArchiveInputStream(new GZIPInputStream(inputStream))
+                        while (true) {
+                            def tarEntry = tarInput.nextTarEntry
+                            if (tarEntry == null) {
+                                break
+                            }
+
+                            tarEntry.setModTime(tarEntry.modTime.time + 3743)
+                            tarOutput.putArchiveEntry(tarEntry)
+                            if (!tarEntry.directory) {
+                                tarOutput << tarInput
+                            }
+                            tarOutput.closeArchiveEntry()
+                        }
+                    }
+                    tarOutput.close()
+                }
+                assert cacheArchiveFile.delete()
+                assert tempFile.renameTo(cacheArchiveFile)
+            }
+            count++
+        }
+        def time = System.currentTimeMillis() - startTime
+        println "Changed file dates in $count cache artifacts in $dir in ${time} ms"
+    }
+
+    def setupTestProject(JavaTestProject testProject, String tasks) {
+        runner.testProject = testProject
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.tasksToRun = tasks.split(' ') as List
+        runner.cleanTasks = ["clean"]
+    }
+
+    def getScenarios() {
+        [
+            [LARGE_MONOLITHIC_JAVA_PROJECT, 'assemble'],
+            [LARGE_JAVA_MULTI_PROJECT, 'assemble']
+        ]
+    }
+}
+
+@Unroll
+@Category(PerformanceExperiment)
+class ReadyForReleaseTaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingJavaPerformanceTest {
     def "clean #tasks on #testProject with remote https cache"() {
         setupTestProject(testProject, tasks)
         firstWarmupWithCache = 2 // Do one run without the cache to populate the dependency cache from maven central
@@ -139,6 +194,28 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         where:
         [testProject, tasks] << scenarios
     }
+}
+
+@Unroll
+@Category(PerformanceRegressionTest)
+class ReadyForMergeTaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingJavaPerformanceTest {
+
+    def "clean #tasks on #testProject with remote http cache"() {
+        setupTestProject(testProject, tasks)
+        protocol = "http"
+        pushToRemote = true
+        runner.addBuildExperimentListener(cleanLocalCache())
+        runner.addBuildExperimentListener(touchCacheArtifacts())
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        [testProject, tasks] << scenarios
+    }
 
     def "clean #tasks on #testProject with local cache (parallel: #parallel)"() {
         given:
@@ -159,7 +236,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testScenario << [scenarios, [true, false]].combinations()
+        testScenario << [[LARGE_JAVA_MULTI_PROJECT], [true, false]].combinations() + [[LARGE_MONOLITHIC_JAVA_PROJECT, false]]
         projectInfo = testScenario[0]
         parallel = testScenario[1]
         testProject = projectInfo[0]
@@ -205,71 +282,4 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         // This would mean we actually would test incremental compilation.
         [testProject, tasks] << [[LARGE_JAVA_MULTI_PROJECT, 'assemble']]
     }
-
-    private BuildExperimentListenerAdapter touchCacheArtifacts() {
-        new BuildExperimentListenerAdapter() {
-            @Override
-            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                touchCacheArtifacts(cacheDir)
-                if (buildCacheServer.running) {
-                    touchCacheArtifacts(buildCacheServer.cacheDir)
-                }
-            }
-        }
-    }
-
-    // We change the file dates inside the archives to work around unfairness caused by
-    // reusing FileCollectionSnapshots based on the file dates in versions before Gradle 4.2
-    private void touchCacheArtifacts(File dir) {
-        def startTime = System.currentTimeMillis()
-        int count = 0
-        dir.eachFile { File cacheArchiveFile ->
-            if (cacheArchiveFile.name ==~ /[a-z0-9]{${Hashing.defaultFunction().hexDigits}}/) {
-                def tempFile = temporaryFolder.file("re-tar-temp")
-                tempFile.withOutputStream { outputStream ->
-                    def tarOutput = new TarArchiveOutputStream(new GZIPOutputStream(outputStream))
-                    tarOutput.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX)
-                    tarOutput.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX)
-                    tarOutput.setAddPaxHeadersForNonAsciiNames(true)
-                    cacheArchiveFile.withInputStream { inputStream ->
-                        def tarInput = new TarArchiveInputStream(new GZIPInputStream(inputStream))
-                        while (true) {
-                            def tarEntry = tarInput.nextTarEntry
-                            if (tarEntry == null) {
-                                break
-                            }
-
-                            tarEntry.setModTime(tarEntry.modTime.time + 3743)
-                            tarOutput.putArchiveEntry(tarEntry)
-                            if (!tarEntry.directory) {
-                                tarOutput << tarInput
-                            }
-                            tarOutput.closeArchiveEntry()
-                        }
-                    }
-                    tarOutput.close()
-                }
-                assert cacheArchiveFile.delete()
-                assert tempFile.renameTo(cacheArchiveFile)
-            }
-            count++
-        }
-        def time = System.currentTimeMillis() - startTime
-        println "Changed file dates in $count cache artifacts in $dir in ${time} ms"
-    }
-
-    private def setupTestProject(JavaTestProject testProject, String tasks) {
-        runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.tasksToRun = tasks.split(' ') as List
-        runner.cleanTasks = ["clean"]
-    }
-
-    def getScenarios() {
-        [
-            [LARGE_MONOLITHIC_JAVA_PROJECT, 'assemble'],
-            [LARGE_JAVA_MULTI_PROJECT, 'assemble']
-        ]
-    }
-
 }

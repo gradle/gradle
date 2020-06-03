@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,11 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
+import org.gradle.performance.Scenario
+import org.gradle.performance.categories.PerformanceExperiment
+import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_GROOVY_MULTI_PROJECT
@@ -25,8 +29,7 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_GROOVY_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-class JavaNonABIChangePerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
-
+abstract class AbstractJavaNonABIChangePerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
     @Unroll
     def "assemble for non-abi change on #testProject"() {
         given:
@@ -39,7 +42,6 @@ class JavaNonABIChangePerformanceTest extends AbstractCrossVersionGradleInternal
             runner.minimumBaseVersion = '5.0'
         }
 
-
         when:
         def result = runner.run()
 
@@ -47,6 +49,17 @@ class JavaNonABIChangePerformanceTest extends AbstractCrossVersionGradleInternal
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject << [LARGE_MONOLITHIC_JAVA_PROJECT, LARGE_JAVA_MULTI_PROJECT, LARGE_MONOLITHIC_GROOVY_PROJECT, LARGE_GROOVY_MULTI_PROJECT]
+        testProject << getClass().getAnnotation(Scenario).value()
     }
+}
+
+
+@Scenario(testProjects = [LARGE_MONOLITHIC_GROOVY_PROJECT, LARGE_JAVA_MULTI_PROJECT])
+@Category(PerformanceExperiment)
+class ReadyForReleaseJavaNonABIChangePerformanceTest extends AbstractJavaNonABIChangePerformanceTest {
+}
+
+@Scenario(testProjects = [LARGE_GROOVY_MULTI_PROJECT, LARGE_MONOLITHIC_JAVA_PROJECT])
+@Category(PerformanceRegressionTest)
+class ReadyForMergeJavaNonABIChangePerformanceTest extends AbstractJavaNonABIChangePerformanceTest {
 }

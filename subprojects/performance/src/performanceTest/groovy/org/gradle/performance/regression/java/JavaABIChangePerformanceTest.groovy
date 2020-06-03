@@ -18,7 +18,11 @@ package org.gradle.performance.regression.java
 
 
 import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
+import org.gradle.performance.Scenario
+import org.gradle.performance.categories.PerformanceExperiment
+import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.mutator.ApplyAbiChangeToJavaSourceFileMutator
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_GROOVY_MULTI_PROJECT
@@ -26,8 +30,7 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_GROOVY_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-class JavaABIChangePerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
-
+abstract class AbstractJavaABIChangePerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
     @Unroll
     def "assemble for abi change on #testProject"() {
         given:
@@ -47,6 +50,16 @@ class JavaABIChangePerformanceTest extends AbstractCrossVersionGradleInternalPer
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject << [LARGE_MONOLITHIC_JAVA_PROJECT, LARGE_JAVA_MULTI_PROJECT, LARGE_MONOLITHIC_GROOVY_PROJECT, LARGE_GROOVY_MULTI_PROJECT]
+        testProject << getClass().getAnnotation(Scenario).testProjects()
     }
+}
+
+@Scenario(testProjects = [LARGE_MONOLITHIC_GROOVY_PROJECT, LARGE_JAVA_MULTI_PROJECT])
+@Category(PerformanceExperiment)
+class ReadyForReleaseJavaABIChangePerformanceTest extends AbstractJavaABIChangePerformanceTest {
+}
+
+@Scenario(testProjects = [LARGE_MONOLITHIC_JAVA_PROJECT, LARGE_GROOVY_MULTI_PROJECT])
+@Category(PerformanceRegressionTest)
+class ReadyForMergeJavaABIChangePerformanceTest extends AbstractJavaABIChangePerformanceTest {
 }

@@ -17,13 +17,16 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
+import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG
 
+@Category(PerformanceExperiment)
 class JavaTestChangePerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
     @Unroll

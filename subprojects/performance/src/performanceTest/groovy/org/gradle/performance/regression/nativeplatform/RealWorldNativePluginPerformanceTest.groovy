@@ -18,45 +18,24 @@ package org.gradle.performance.regression.nativeplatform
 
 import org.apache.commons.io.FileUtils
 import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
+import org.gradle.performance.Scenario
+import org.gradle.performance.categories.PerformanceExperiment
+import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.measure.MeasuredOperation
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
+@Scenario(['nativeMonolithic-0', 'nativeMonolithicOverlapping-12'])
+@Category(PerformanceExperiment)
+class ReadyForReleaseRealWorldNativePluginPerformanceTest extends AbstractRealWorldNativePluginPerformanceTest {
+}
 
-    def setup() {
-        runner.targetVersions = ["6.5-20200506110523+0000"]
-        runner.minimumBaseVersion = "4.0"
-    }
-
-    @Unroll
-    def "build on #testProject with #parallelWorkers parallel workers"() {
-        given:
-        runner.testProject = testProject
-        runner.tasksToRun = ['build']
-        runner.gradleOpts = ["-Xms1500m", "-Xmx2500m"]
-        runner.warmUpRuns = 5
-        runner.runs = 10
-
-        if (parallelWorkers) {
-            runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
-        }
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject                   | parallelWorkers
-        "nativeMonolithic"            | 0
-        "nativeMonolithic"            | 12
-        "nativeMonolithicOverlapping" | 0
-        "nativeMonolithicOverlapping" | 12
-    }
+@Scenario(['nativeMonolithic-12', 'nativeMonolithicOverlapping-0'])
+@Category(PerformanceRegressionTest)
+class ReadyForMergeRealWorldNativePluginPerformanceTest extends AbstractRealWorldNativePluginPerformanceTest {
 
     @Unroll
     def "build with #changeType change on #testProject"() {
@@ -122,6 +101,39 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionGradleInt
         "mediumNativeMonolithic"  | 'source file'    | 'modules/project5/src/src100_c.c' | this.&changeCSource   | 40
         "mediumNativeMonolithic"  | 'header file'    | 'modules/project1/src/src50_h.h'  | this.&changeHeader    | 40
         "smallNativeMonolithic"   | 'build file'     | 'common.gradle'                   | this.&changeArgs      | 40
+    }
+}
+
+abstract class AbstractRealWorldNativePluginPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
+
+    def setup() {
+        runner.targetVersions = ["6.5-20200506110523+0000"]
+        runner.minimumBaseVersion = "4.0"
+    }
+
+    @Unroll
+    def "build on #testProjectAndParallelWorkers parallel workers"() {
+        given:
+        runner.testProject = testProjectAndParallelWorkers.split('\\-')[0]
+        runner.tasksToRun = ['build']
+        runner.gradleOpts = ["-Xms1500m", "-Xmx2500m"]
+        runner.warmUpRuns = 5
+        runner.runs = 10
+
+        def parallelWorkers = testProjectAndParallelWorkers.split('\\-')[1]
+
+        if (parallelWorkers) {
+            runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
+        }
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProjectAndParallelWorkers << getClass().getAnnotation(Scenario).value()
     }
 
     void changeCSource(File file, String originalContent) {
