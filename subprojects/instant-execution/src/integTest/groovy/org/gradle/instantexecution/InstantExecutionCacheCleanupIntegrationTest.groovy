@@ -19,16 +19,15 @@ package org.gradle.instantexecution
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
 
 
 class InstantExecutionCacheCleanupIntegrationTest
     extends AbstractInstantExecutionIntegrationTest
     implements FileAccessTimeJournalFixture {
 
-    @Ignore("flaky")
     def "cleanup deletes old entries"() {
         given:
+        executer.requireIsolatedDaemons()
         writeJournalInceptionTimestamp(daysAgo(8))
         gcFile.createFile().lastModified = daysAgo(8)
 
@@ -36,13 +35,14 @@ class InstantExecutionCacheCleanupIntegrationTest
         def outdated = createCacheEntryDir("outdated")
         writeLastFileAccessTimeToJournal(outdated, daysAgo(15))
 
-        when:
-        instantRun 'help'
-
-        then:
+        expect:
         ConcurrentTestUtil.poll(20) {
+            instantRun 'help'
+            run '--stop'
             assert !outdated.isDirectory()
         }
+
+        and:
         cacheDir.listFiles().length == 3 // gc file + cache properties + 'help' state
     }
 
