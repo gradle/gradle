@@ -16,11 +16,11 @@
 
 package org.gradle.test.fixtures.server.http
 
-import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.test.fixtures.file.TestFile
 
 abstract class HttpResource extends AbstractHttpResource {
-    public HttpResource(HttpServer server) {
+    HttpResource(HttpServer server) {
         super(server)
     }
 

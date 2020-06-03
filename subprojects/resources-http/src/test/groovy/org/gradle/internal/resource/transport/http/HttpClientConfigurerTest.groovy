@@ -18,7 +18,7 @@ package org.gradle.internal.resource.transport.http
 import org.apache.http.auth.AuthScope
 import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.ssl.SSLContexts
-import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.internal.authentication.AllSchemesAuthentication
 import org.gradle.internal.credentials.DefaultHttpHeaderCredentials
 import org.gradle.internal.resource.UriTextResource
