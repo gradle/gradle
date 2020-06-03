@@ -18,7 +18,6 @@ package org.gradle.gradlebuild.test.integrationtests
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.tasks.testing.junit.JUnitOptions
 
 
 class IntegrationTestsPlugin : Plugin<Project> {
@@ -30,7 +29,7 @@ class IntegrationTestsPlugin : Plugin<Project> {
 
         createTestTask("integMultiVersionTest", "forking", sourceSet, TestType.INTEGRATION, Action {
             // This test task runs only multi-version tests and is intended to be used in the late pipeline to sweep up versions not previously tested
-            (options as JUnitOptions).includeCategories("org.gradle.integtests.fixtures.ContextualMultiVersionTest")
+            includeCategories("org.gradle.integtests.fixtures.ContextualMultiVersionTest")
         })
     }
 }

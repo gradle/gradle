@@ -190,8 +190,10 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             val implementation = configurations.getByName("implementation")
             val compileOnly = configurations.getByName("compileOnly")
             val testImplementation = configurations.getByName("testImplementation")
+            val testCompileOnly = configurations.getByName("testCompileOnly")
             val testRuntimeOnly = configurations.getByName("testRuntimeOnly")
-            testImplementation(library("junit"))
+            testCompileOnly(library("junit"))
+            testRuntimeOnly(library("junit5_vintage"))
             testImplementation(library("groovy"))
             testImplementation(testLibrary("spock"))
             testRuntimeOnly(testLibrary("bytebuddy"))
@@ -270,6 +272,12 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         tasks.withType<Test>().configureEach {
             maxParallelForks = project.maxParallelForks
 
+            if (!BuildEnvironment.isIntelliJIDEA) {
+                // JUnit 5 Vintage engine can't recognize Spock @Unroll test method correctly
+                // So if running an @Unroll method in IDEA with include pattern "SomeClass.methodName"
+                // The result will be incorrect. In this case we fallback to JUnit
+                useJUnitPlatform()
+            }
             configureJvmForTest()
             configureGitInfo()
             addOsAsInputs()

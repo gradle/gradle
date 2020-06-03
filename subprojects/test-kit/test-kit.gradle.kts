@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.gradlebuild.test.integrationtests.getIncludeCategories
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
@@ -51,7 +52,7 @@ classycle {
 tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
     // TestKit multi version tests are not using JUnit categories
-    (options as JUnitOptions).includeCategories.clear()
+    getIncludeCategories().clear()
 }
 
 testFilesCleanup {

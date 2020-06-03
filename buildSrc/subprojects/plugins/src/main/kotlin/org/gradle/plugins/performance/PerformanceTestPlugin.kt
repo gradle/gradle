@@ -11,7 +11,6 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.api.tasks.testing.junit.JUnitOptions
 import org.gradle.internal.hash.HashUtil
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
@@ -33,6 +32,8 @@ import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.reflect.KClass
 import gitInfo
+import org.gradle.gradlebuild.test.integrationtests.includeCategories
+import org.gradle.gradlebuild.test.integrationtests.excludeCategories
 
 
 object PropertyNames {
@@ -229,18 +230,16 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         create("performanceTest") {
-            (options as JUnitOptions).apply {
-                includeCategories(performanceRegressionTestCategory)
-                excludeCategories(slowPerformanceRegressionTestCategory)
-            }
+            includeCategories(performanceRegressionTestCategory)
+            excludeCategories(slowPerformanceRegressionTestCategory)
         }
 
         create("slowPerformanceTest") {
-            (options as JUnitOptions).includeCategories(slowPerformanceRegressionTestCategory)
+            includeCategories(slowPerformanceRegressionTestCategory)
         }
 
         create("performanceExperiment") {
-            (options as JUnitOptions).includeCategories(performanceExperimentCategory)
+            includeCategories(performanceExperimentCategory)
         }
 
         create("fullPerformanceTest")
@@ -263,31 +262,29 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         create("distributedPerformanceTest", DistributedPerformanceTest::class) {
-            (options as JUnitOptions).apply {
-                includeCategories(performanceRegressionTestCategory)
-                excludeCategories(slowPerformanceRegressionTestCategory)
-            }
+            includeCategories(performanceRegressionTestCategory)
+            excludeCategories(slowPerformanceRegressionTestCategory)
             channel = "commits"
             retryFailedScenarios()
         }
         create("distributedSlowPerformanceTest", DistributedPerformanceTest::class) {
-            (options as JUnitOptions).includeCategories(slowPerformanceRegressionTestCategory)
+            includeCategories(slowPerformanceRegressionTestCategory)
             channel = "commits"
             retryFailedScenarios()
         }
         create("distributedPerformanceExperiment", DistributedPerformanceTest::class) {
-            (options as JUnitOptions).includeCategories(performanceExperimentCategory)
+            includeCategories(performanceExperimentCategory)
             channel = "experiments"
             retryFailedScenarios()
         }
         create("distributedHistoricalPerformanceTest", DistributedPerformanceTest::class) {
-            (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
+            excludeCategories(performanceExperimentCategory)
             configuredBaselines.set(Config.baseLineList)
             checks = "none"
             channel = "historical"
         }
         create("distributedFlakinessDetection", DistributedPerformanceTest::class) {
-            (options as JUnitOptions).includeCategories(performanceRegressionTestCategory)
+            includeCategories(performanceRegressionTestCategory)
             distributedPerformanceReporter.reportGeneratorClass = "org.gradle.performance.results.report.FlakinessReportGenerator"
             repeatScenarios(3)
             checks = "none"
@@ -453,6 +450,8 @@ class PerformanceTestPlugin : Plugin<Project> {
             binaryDistributions.binZipRequired = true
             libsRepository.required = true
             maxParallelForks = 1
+
+            useJUnitPlatform()
 
             project.findProperty(PropertyNames.baselines)?.let { baselines ->
                 task.configuredBaselines.set(baselines as String)
