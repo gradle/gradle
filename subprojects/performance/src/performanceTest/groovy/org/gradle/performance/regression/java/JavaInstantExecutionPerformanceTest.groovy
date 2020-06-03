@@ -17,17 +17,15 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
-import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
 import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.fixture.GradleInvocationSpec
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GradleVersion
 import org.junit.experimental.categories.Category
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import java.nio.file.Files
@@ -36,6 +34,7 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_
 import static org.gradle.performance.generator.JavaTestProject.SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC
 import static org.junit.Assert.assertTrue
 
+@Ignore("temporarily because of the build options breaking change")
 @Category(PerformanceRegressionTest)
 class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
@@ -50,24 +49,12 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
 
         given:
         runner.targetVersions = ["6.5-20200512182414+0000"]
-        runner.minimumBaseVersion = "5.6"
+        runner.minimumBaseVersion = "5.6" // TODO make 6.6 after rebaseline
         runner.testProject = testProject.projectName
         runner.tasksToRun = ["assemble"]
 
         and:
-        // runner.args = ["-D${ConfigurationCacheOption.PROPERTY_NAME}=true"] // TODO simplify on rebaseline
-        runner.addInvocationCustomizer({ BuildExperimentInvocationInfo invocationInfo, GradleInvocationSpec invocationSpec ->
-            def dist = invocationSpec.gradleDistribution as GradleDistribution
-            def builder = invocationSpec.withBuilder()
-            if (dist.version < GradleVersion.version("6.5-rc-1")) {
-                builder.args('-Dorg.gradle.unsafe.instant-execution=true').build()
-            } else if (dist.version < GradleVersion.version("6.6-20200527184619+0000")) {
-                builder.args("--${ConfigurationCacheOption.LONG_OPTION}=on")
-            } else {
-                builder.args("--${ConfigurationCacheOption.LONG_OPTION}")
-            }
-            return builder.build()
-        })
+        runner.args = ["-D${ConfigurationCacheOption.PROPERTY_NAME}=true"]
 
         and:
         runner.useDaemon = daemon == hot
