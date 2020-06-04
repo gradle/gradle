@@ -22,8 +22,8 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 public class Parameters {
-    private BuildLayoutParameters layout;
-    private StartParameterInternal startParameter;
+    private final BuildLayoutParameters layout;
+    private final StartParameterInternal startParameter;
     private DaemonParameters daemonParameters;
 
     public Parameters(FileCollectionFactory fileCollectionFactory) {

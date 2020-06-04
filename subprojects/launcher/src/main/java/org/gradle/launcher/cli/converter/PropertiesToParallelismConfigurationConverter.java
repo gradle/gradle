@@ -25,7 +25,7 @@ import java.util.Map;
 
 public class PropertiesToParallelismConfigurationConverter {
 
-    private List<BuildOption<ParallelismConfiguration>> buildOptions = ParallelismBuildOptions.get();
+    private final List<BuildOption<ParallelismConfiguration>> buildOptions = ParallelismBuildOptions.get();
 
     public ParallelismConfiguration convert(Map<String, String> properties, ParallelismConfiguration parallelismConfiguration) {
         for (BuildOption<ParallelismConfiguration> option : buildOptions) {

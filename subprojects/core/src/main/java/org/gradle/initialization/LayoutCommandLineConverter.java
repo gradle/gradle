@@ -25,7 +25,7 @@ import org.gradle.internal.buildoption.BuildOption;
 import java.util.List;
 
 public class LayoutCommandLineConverter extends AbstractCommandLineConverter<BuildLayoutParameters> {
-    private List<BuildOption<BuildLayoutParameters>> buildOptions = BuildLayoutParametersBuildOptions.get();
+    private final List<BuildOption<BuildLayoutParameters>> buildOptions = BuildLayoutParametersBuildOptions.get();
 
     @Override
     public BuildLayoutParameters convert(ParsedCommandLine options, BuildLayoutParameters target) throws CommandLineArgumentException {

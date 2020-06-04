@@ -44,11 +44,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
     private final List<BuildOption<StartParameterInternal>> buildOptions = StartParameterBuildOptions.get();
-    private final LayoutCommandLineConverter layoutCommandLineConverter;
-
-    public DefaultCommandLineConverter() {
-        layoutCommandLineConverter = new LayoutCommandLineConverter();
-    }
+    private final LayoutCommandLineConverter layoutCommandLineConverter = new LayoutCommandLineConverter();
 
     @Override
     public void configure(CommandLineParser parser) {
@@ -70,16 +66,16 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parallelConfigurationCommandLineConverter.convert(options, startParameter);
         Transformer<File, String> resolver = new BasicFileResolver(startParameter.getCurrentDir());
 
-        Map<String, String> systemProperties = systemPropertiesCommandLineConverter.convert(options, new HashMap<String, String>());
+        Map<String, String> systemProperties = systemPropertiesCommandLineConverter.convert(options, new HashMap<>());
         convertCommandLineSystemProperties(systemProperties, startParameter, resolver);
 
-        Map<String, String> projectProperties = projectPropertiesCommandLineConverter.convert(options, new HashMap<String, String>());
+        Map<String, String> projectProperties = projectPropertiesCommandLineConverter.convert(options, new HashMap<>());
         startParameter.getProjectProperties().putAll(projectProperties);
 
         BuildLayoutParameters layout = new BuildLayoutParameters()
-                .setGradleUserHomeDir(startParameter.getGradleUserHomeDir())
-                .setProjectDir(startParameter.getProjectDir())
-                .setCurrentDir(startParameter.getCurrentDir());
+            .setGradleUserHomeDir(startParameter.getGradleUserHomeDir())
+            .setProjectDir(startParameter.getProjectDir())
+            .setCurrentDir(startParameter.getCurrentDir());
         layoutCommandLineConverter.convert(options, layout);
         startParameter.setGradleUserHomeDir(layout.getGradleUserHomeDir());
         if (layout.getProjectDir() != null) {
@@ -107,13 +103,5 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         if (systemProperties.containsKey(GRADLE_USER_HOME_PROPERTY_KEY)) {
             startParameter.setGradleUserHomeDir(resolver.transform(systemProperties.get(GRADLE_USER_HOME_PROPERTY_KEY)));
         }
-    }
-
-    public LayoutCommandLineConverter getLayoutConverter() {
-        return layoutCommandLineConverter;
-    }
-
-    public SystemPropertiesCommandLineConverter getSystemPropertiesConverter() {
-        return systemPropertiesCommandLineConverter;
     }
 }

@@ -43,7 +43,7 @@ import java.util.Properties;
 
 public class LayoutToPropertiesConverter {
 
-    private final List<BuildOption<?>> allBuildOptions = new ArrayList<BuildOption<?>>();
+    private final List<BuildOption<?>> allBuildOptions = new ArrayList<>();
     private final BuildLayoutFactory buildLayoutFactory;
 
     public LayoutToPropertiesConverter(BuildLayoutFactory buildLayoutFactory) {
