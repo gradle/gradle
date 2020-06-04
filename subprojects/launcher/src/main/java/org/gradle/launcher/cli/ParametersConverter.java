@@ -22,10 +22,9 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
@@ -37,9 +36,8 @@ import java.util.Map;
 
 public class ParametersConverter extends AbstractCommandLineConverter<Parameters> {
 
-    private final LayoutCommandLineConverter layoutConverter;
+    private final BuildLayoutConverter buildLayoutConverter;
 
-    private final SystemPropertiesCommandLineConverter propertiesConverter;
     private final LayoutToPropertiesConverter layoutToPropertiesConverter;
 
     private final PropertiesToStartParameterConverter propertiesToStartParameterConverter;
@@ -49,16 +47,14 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
     private final PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter;
     private final FileCollectionFactory fileCollectionFactory;
 
-    ParametersConverter(LayoutCommandLineConverter layoutConverter,
-                        SystemPropertiesCommandLineConverter propertiesConverter,
+    ParametersConverter(BuildLayoutConverter buildLayoutConverter,
                         LayoutToPropertiesConverter layoutToPropertiesConverter,
                         PropertiesToStartParameterConverter propertiesToStartParameterConverter,
                         DefaultCommandLineConverter commandLineConverter,
                         CommandLineConverter<DaemonParameters> daemonConverter,
                         PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter,
                         FileCollectionFactory fileCollectionFactory) {
-        this.layoutConverter = layoutConverter;
-        this.propertiesConverter = propertiesConverter;
+        this.buildLayoutConverter = buildLayoutConverter;
         this.layoutToPropertiesConverter = layoutToPropertiesConverter;
         this.propertiesToStartParameterConverter = propertiesToStartParameterConverter;
         this.commandLineConverter = commandLineConverter;
@@ -68,8 +64,7 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
     }
 
     public ParametersConverter(BuildLayoutFactory buildLayoutFactory, FileCollectionFactory fileCollectionFactory) {
-        this(new LayoutCommandLineConverter(),
-            new SystemPropertiesCommandLineConverter(),
+        this(new BuildLayoutConverter(),
             new LayoutToPropertiesConverter(buildLayoutFactory),
             new PropertiesToStartParameterConverter(),
             new DefaultCommandLineConverter(),
@@ -80,11 +75,12 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
 
     @Override
     public Parameters convert(ParsedCommandLine args, Parameters target) throws CommandLineArgumentException {
-        layoutConverter.convert(args, target.getLayout());
+        BuildLayoutConverter.Result buildLayoutResult = buildLayoutConverter.convert(args);
+        buildLayoutResult.applyTo(target.getLayout());
 
         Map<String, String> properties = new HashMap<String, String>();
         layoutToPropertiesConverter.convert(target.getLayout(), properties);
-        propertiesConverter.convert(args, properties);
+        buildLayoutResult.collectSystemPropertiesInto(properties);
 
         propertiesToStartParameterConverter.convert(properties, target.getStartParameter());
         commandLineConverter.convert(args, target.getStartParameter());
@@ -99,6 +95,7 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
 
     @Override
     public void configure(CommandLineParser parser) {
+        buildLayoutConverter.configure(parser);
         commandLineConverter.configure(parser);
         daemonConverter.configure(parser);
     }

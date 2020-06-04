@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildLayoutParameters;
@@ -37,6 +39,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.daemon.client.DaemonClient;
@@ -74,6 +77,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -262,12 +266,25 @@ public class ProviderConnection {
     }
 
     private Parameters initParams(ProviderOperationParameters operationParameters) {
+        CommandLineParser commandLineParser = new CommandLineParser();
+        commandLineParser.allowUnknownOptions();
+
+        BuildLayoutConverter buildLayoutConverter = new BuildLayoutConverter();
+        buildLayoutConverter.configure(commandLineParser);
+
+        ParsedCommandLine parsedCommandLine = commandLineParser.parse(operationParameters.getArguments() == null ? Collections.emptyList() : operationParameters.getArguments());
+
+        BuildLayoutConverter.Result buildLayoutResult = buildLayoutConverter.convert(parsedCommandLine);
+
         BuildLayoutParameters layout = new BuildLayoutParameters();
+        buildLayoutResult.applyTo(layout);
         if (operationParameters.getGradleUserHomeDir() != null) {
             layout.setGradleUserHomeDir(operationParameters.getGradleUserHomeDir());
         }
         Boolean searchUpwards = operationParameters.isSearchUpwards();
-        layout.setSearchUpwards(searchUpwards != null ? searchUpwards : true);
+        if (searchUpwards != null) {
+            layout.setSearchUpwards(searchUpwards);
+        }
         layout.setProjectDir(operationParameters.getProjectDir());
 
         Map<String, String> properties = new HashMap<String, String>();

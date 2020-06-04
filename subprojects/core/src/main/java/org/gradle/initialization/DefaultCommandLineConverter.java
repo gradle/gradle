@@ -48,9 +48,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     public void configure(CommandLineParser parser) {
         loggingConfigurationCommandLineConverter.configure(parser);
         parallelConfigurationCommandLineConverter.configure(parser);
-        systemPropertiesCommandLineConverter.configure(parser);
         projectPropertiesCommandLineConverter.configure(parser);
-        layoutCommandLineConverter.configure(parser);
         parser.allowMixedSubcommandsAndOptions();
         buildOptionsConverter.configure(parser);
     }

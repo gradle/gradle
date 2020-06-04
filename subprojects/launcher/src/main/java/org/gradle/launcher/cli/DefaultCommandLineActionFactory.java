@@ -24,10 +24,8 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
@@ -41,6 +39,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.CommandLineActionFactory;
 import org.gradle.launcher.bootstrap.ExecutionListener;
+import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.util.GradleVersion;
 
@@ -199,8 +198,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         public void execute(ExecutionListener executionListener) {
             LoggingConfigurationBuildOptions loggingBuildOptions = new LoggingConfigurationBuildOptions();
             CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = loggingBuildOptions.commandLineConverter();
-            CommandLineConverter<BuildLayoutParameters> buildLayoutConverter = new LayoutCommandLineConverter();
-            CommandLineConverter<Map<String, String>> systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
+            BuildLayoutConverter buildLayoutConverter = new BuildLayoutConverter();
             LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(new BuildLayoutFactory());
 
             BuildLayoutParameters buildLayout = new BuildLayoutParameters();
@@ -208,7 +206,6 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             CommandLineParser parser = new CommandLineParser();
             loggingConfigurationConverter.configure(parser);
             buildLayoutConverter.configure(parser);
-            systemPropertiesCommandLineConverter.configure(parser);
 
             parser.allowUnknownOptions();
             parser.allowMixedSubcommandsAndOptions();
@@ -216,13 +213,14 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             try {
                 ParsedCommandLine parsedCommandLine = parser.parse(args);
 
-                buildLayoutConverter.convert(parsedCommandLine, buildLayout);
+                BuildLayoutConverter.Result buildLayoutResult = buildLayoutConverter.convert(parsedCommandLine);
+                buildLayoutResult.applyTo(buildLayout);
 
                 Map<String, String> properties = new HashMap<String, String>();
                 // Read *.properties files
                 layoutToPropertiesConverter.convert(buildLayout, properties);
                 // Read -D command line flags
-                systemPropertiesCommandLineConverter.convert(parsedCommandLine, properties);
+                buildLayoutResult.collectSystemPropertiesInto(properties);
 
                 // Convert properties for logging object
                 loggingBuildOptions.propertiesConverter().convert(properties, loggingConfiguration);
