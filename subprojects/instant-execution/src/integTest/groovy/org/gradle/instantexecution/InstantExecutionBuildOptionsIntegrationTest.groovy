@@ -242,38 +242,38 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         def instant = newInstantExecutionFixture()
         buildKotlinFile """
 
-            val userNameProvider = providers
-                .$operator("userName")
+            val stringProvider = providers
+                .$operator("string")
 
-            abstract class PrintUserName : DefaultTask() {
+            abstract class PrintString : DefaultTask() {
 
                 @get:Input
                 @get:Optional
-                abstract val userName: Property<String>
+                abstract val string: Property<String>
 
                 @TaskAction
-                fun printUserName() {
-                    println("User name is " + (userName.orNull ?: "absent"))
+                fun printString() {
+                    println("The string is " + (string.orNull ?: "absent"))
                 }
             }
 
-            tasks.register<PrintUserName>("printUserName") {
-                userName.set(userNameProvider)
+            tasks.register<PrintString>("printString") {
+                string.set(stringProvider)
             }
         """
 
         when:
-        instantRun "printUserName"
+        instantRun "printString"
 
         then:
-        output.count("User name is absent") == 1
+        output.count("The string is absent") == 1
         instant.assertStateStored()
 
         when:
-        instantRun "printUserName"
+        instantRun "printString"
 
         then:
-        output.count("User name is absent") == 1
+        output.count("The string is absent") == 1
         instant.assertStateLoaded()
 
         where:
@@ -288,59 +288,59 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         def instant = newInstantExecutionFixture()
         buildKotlinFile """
 
-            val userNameProvider = providers
-                .$operator("userName")
+            val stringProvider = providers
+                .$operator("string")
                 .orElse($orElseArgument)
 
-            abstract class PrintUserName : DefaultTask() {
+            abstract class PrintString : DefaultTask() {
 
                 @get:Input
-                abstract val userName: Property<String>
+                abstract val string: Property<String>
 
                 @TaskAction
-                fun printUserName() {
-                    println("User name is " + userName.get())
+                fun printString() {
+                    println("The string is " + string.get())
                 }
             }
 
-            tasks.register<PrintUserName>("printUserName") {
-                userName.set(userNameProvider)
+            tasks.register<PrintString>("printString") {
+                string.set(stringProvider)
             }
         """
-        def printUserName = { userName ->
+        def printString = { string ->
             switch (operator) {
                 case 'systemProperty':
-                    instantRun "printUserName", "-DuserName=$userName"
+                    instantRun "printString", "-Dstring=$string"
                     break
                 case 'gradleProperty':
-                    instantRun "printUserName", "-PuserName=$userName"
+                    instantRun "printString", "-Pstring=$string"
                     break
                 case 'environmentVariable':
-                    withEnvironmentVars(userName: userName)
-                    instantRun "printUserName"
+                    withEnvironmentVars(string: string)
+                    instantRun "printString"
                     break
             }
         }
 
         when:
-        instantRun "printUserName"
+        instantRun "printString"
 
         then:
-        output.count("User name is absent") == 1
+        output.count("The string is absent") == 1
         instant.assertStateStored()
 
         when:
-        printUserName "alice"
+        printString "alice"
 
         then:
-        output.count("User name is alice") == 1
+        output.count("The string is alice") == 1
         instant.assertStateLoaded()
 
         when:
-        printUserName "bob"
+        printString "bob"
 
         then:
-        output.count("User name is bob") == 1
+        output.count("The string is bob") == 1
         instant.assertStateLoaded()
 
         where:
