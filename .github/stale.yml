@@ -3,18 +3,18 @@
 # Number of days of inactivity before an Issue or Pull Request becomes stale
 pulls:
   # XXX: We'll only match very few issues to ensure the bot works as expected
-  # daysUntilStale: 365
-  daysUntilStale: 1200
+    # XXX: Once working, we're going to reduce the stale window incrementally
+    daysUntilStale: 1250
 
-  # Number of days of inactivity before an Issue or Pull Request with the stale label is closed.
-  # Set to false to disable. If disabled, issues still need to be closed manually, but will remain marked as stale.
-  daysUntilClose: 21
+    # Number of days of inactivity before an Issue or Pull Request with the stale label is closed.
+    # Set to false to disable. If disabled, issues still need to be closed manually, but will remain marked as stale.
+    daysUntilClose: 21
 
-  # Comment to post when marking as stale. Set to `false` to disable
-  markComment: >
-    This issue has been automatically marked as stale because it has not had recent activity.
-    Given the limited bandwidth of the team, it will be closed if no further activity occurs.
-    If you intend to work on this pull request, please reopen the PR.
+    # Comment to post when marking as stale. Set to `false` to disable
+    markComment: >
+        This issue has been automatically marked as stale because it has not had recent activity.
+        Given the limited bandwidth of the team, it will be closed if no further activity occurs.
+        If you intend to work on this pull request, please reopen the PR.
     Thank you for your contributions.
 
   # Comment to post when closing a stale Issue or Pull Request.
@@ -22,22 +22,22 @@ pulls:
     This pull request has been automatically closed due to inactivity.
     If you are still interested in contributing this, please ensure that
     it is rebased against the latest branch (usually `master`), all review
-    comments have been adressed and the build is passing.
+      comments have been addressed and the build is passing.
 
 issues:
-  # XXX: We'll only match very few issues to ensure the bot works as expected
-  # daysUntilStale: 365
-  daysUntilStale: 1200
+    # XXX: We'll only match very few issues to ensure the bot works as expected
+    # XXX: Once working, we're going to reduce the stale window incrementally
+    daysUntilStale: 1250
 
-  # Number of days of inactivity before an Issue or Pull Request with the stale label is closed.
-  # Set to false to disable. If disabled, issues still need to be closed manually, but will remain marked as stale.
-  daysUntilClose: 21
+    # Number of days of inactivity before an Issue or Pull Request with the stale label is closed.
+    # Set to false to disable. If disabled, issues still need to be closed manually, but will remain marked as stale.
+    daysUntilClose: 21
 
-  # Comment to post when marking as stale. Set to `false` to disable
-  markComment: >
-    This issue has been automatically marked as stale because it has not had recent activity.
-    Given the limited bandwidth of the team, it will be automatically closed if no further
-    activity occurs. If you're interested how we try to keep the backlog in a healty state, 
+    # Comment to post when marking as stale. Set to `false` to disable
+    markComment: >
+        This issue has been automatically marked as stale because it has not had recent activity.
+        Given the limited bandwidth of the team, it will be automatically closed if no further
+        activity occurs. If you're interested how we try to keep the backlog in a healty state,
     please read our [blog post on working with a large community](XXXX).
     If you feel this is something you could contribute, please have a look
     at our [Contributor Guide](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md).
@@ -70,7 +70,6 @@ exemptMilestones: true
 
 # Label to use when marking as stale
 staleLabel: stale
-
 
 # Comment to post when removing the stale label.
 # unmarkComment: >
