@@ -76,19 +76,23 @@ class FixedValueReplacingProviderCodec(valueSourceProviderFactory: ValueSourcePr
     }
 
     suspend fun WriteContext.encodeValue(value: ValueSupplier.ExecutionTimeValue<*>) {
-        if (value.isMissing) {
-            // Can serialize a fixed value and discard the provider
-            // TODO - should preserve information about the source, for diagnostics at execution time
-            writeByte(1)
-        } else if (value.isFixedValue) {
-            // Can serialize a fixed value and discard the provider
-            // TODO - should preserve information about the source, for diagnostics at execution time
-            writeByte(2)
-            write(value.fixedValue)
-        } else {
-            // Cannot write a fixed value, so write the provider itself
-            writeByte(3)
-            providerWithChangingValueCodec.run { encode(value.changingValue) }
+        when {
+            value.isMissing -> {
+                // Can serialize a fixed value and discard the provider
+                // TODO - should preserve information about the source, for diagnostics at execution time
+                writeByte(1)
+            }
+            value.isFixedValue -> {
+                // Can serialize a fixed value and discard the provider
+                // TODO - should preserve information about the source, for diagnostics at execution time
+                writeByte(2)
+                write(value.fixedValue)
+            }
+            else -> {
+                // Cannot write a fixed value, so write the provider itself
+                writeByte(3)
+                providerWithChangingValueCodec.run { encode(value.changingValue) }
+            }
         }
     }
 
@@ -104,7 +108,9 @@ class FixedValueReplacingProviderCodec(valueSourceProviderFactory: ValueSourcePr
             }
             1.toByte() -> ValueSupplier.ExecutionTimeValue.missing()
             2.toByte() -> ValueSupplier.ExecutionTimeValue.ofNullable(read()) // nullable because serialization may replace value with null, eg when using provider of Task
-            3.toByte() -> ValueSupplier.ExecutionTimeValue.changingValue(providerWithChangingValueCodec.run { decode() }!!.uncheckedCast())
+            3.toByte() -> ValueSupplier.ExecutionTimeValue.changingValue(
+                providerWithChangingValueCodec.run { decode() }!!.uncheckedCast()
+            )
             else -> throw IllegalStateException("Unexpected provider value")
         }
     }
@@ -121,7 +127,8 @@ ProviderCodec(private val providerCodec: FixedValueReplacingProviderCodec) : Cod
         providerCodec.run { encodeProvider(value) }
     }
 
-    override suspend fun ReadContext.decode() = providerCodec.run { decodeProvider() }
+    override suspend fun ReadContext.decode() =
+        providerCodec.run { decodeProvider() }
 }
 
 
