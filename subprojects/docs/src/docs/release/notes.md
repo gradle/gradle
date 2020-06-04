@@ -6,7 +6,8 @@ We would like to thank the following community contributors to this release of G
 
 [Danny Thomas](https://github.com/DanielThomas),
 [Daiki Hirabayashi](https://github.com/dhirabayashi),
-[Sebastian Schuberth](https://github.com/sschuberth)
+[Sebastian Schuberth](https://github.com/sschuberth),
+and [Stefan Oehme](https://github.com/oehme).
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
