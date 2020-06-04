@@ -236,7 +236,7 @@ class ReadyForMergeTaskOutputCachingJavaPerformanceTest extends AbstractTaskOutp
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testScenario << [[LARGE_JAVA_MULTI_PROJECT, true], [LARGE_JAVA_MULTI_PROJECT, false], [LARGE_MONOLITHIC_JAVA_PROJECT, false]]
+        testScenario << [[[LARGE_JAVA_MULTI_PROJECT, 'assemble'], true], [[LARGE_JAVA_MULTI_PROJECT, 'assemble'], false], [[LARGE_MONOLITHIC_JAVA_PROJECT, 'assemble'], false]]
         projectInfo = testScenario[0]
         parallel = testScenario[1]
         testProject = projectInfo[0]

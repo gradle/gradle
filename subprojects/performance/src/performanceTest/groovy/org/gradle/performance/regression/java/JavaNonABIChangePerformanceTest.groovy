@@ -49,7 +49,7 @@ abstract class AbstractJavaNonABIChangePerformanceTest extends AbstractCrossVers
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject << getClass().getAnnotation(Scenario).value()
+        testProject << getClass().getAnnotation(Scenario).testProjects()
     }
 }
 
