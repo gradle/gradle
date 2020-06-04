@@ -44,6 +44,18 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     @Override
+    public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+        return isChangingValue()
+            ? ExecutionTimeValue.changingValue(this)
+            : super.calculateExecutionTimeValue();
+    }
+
+    private boolean isChangingValue() {
+        return left.calculateExecutionTimeValue().isChangingValue()
+            || right.calculateExecutionTimeValue().isChangingValue();
+    }
+
+    @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
         Value<? extends T> leftValue = left.calculateValue(consumer);
         if (!leftValue.isMissing()) {
