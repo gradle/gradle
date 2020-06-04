@@ -67,7 +67,6 @@ import org.gradle.tooling.internal.provider.connection.ProviderOperationParamete
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
@@ -267,7 +266,8 @@ public class ProviderConnection {
         if (operationParameters.getGradleUserHomeDir() != null) {
             layout.setGradleUserHomeDir(operationParameters.getGradleUserHomeDir());
         }
-        layout.setSearchUpwards(operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true);
+        Boolean searchUpwards = operationParameters.isSearchUpwards();
+        layout.setSearchUpwards(searchUpwards != null ? searchUpwards : true);
         layout.setProjectDir(operationParameters.getProjectDir());
 
         Map<String, String> properties = new HashMap<String, String>();
@@ -275,8 +275,8 @@ public class ProviderConnection {
 
         DaemonParameters daemonParams = new DaemonParameters(layout, fileCollectionFactory);
         new PropertiesToDaemonParametersConverter().convert(properties, daemonParams);
-        if (operationParameters.getDaemonBaseDir(null) != null) {
-            daemonParams.setBaseDir(operationParameters.getDaemonBaseDir(null));
+        if (operationParameters.getDaemonBaseDir() != null) {
+            daemonParams.setBaseDir(operationParameters.getDaemonBaseDir());
         }
 
         //override the params with the explicit settings provided by the tooling api
@@ -284,12 +284,7 @@ public class ProviderConnection {
         if (jvmArguments != null) {
             daemonParams.setJvmArgs(jvmArguments);
         }
-        Map<String, String> envVariables = null;
-        try {
-            envVariables = operationParameters.getEnvironmentVariables();
-        } catch (UnsupportedMethodException e) {
-            LOGGER.debug("Environment variables customization is not supported by target Gradle instance", e);
-        }
+        Map<String, String> envVariables = operationParameters.getEnvironmentVariables(null);
         if (envVariables != null) {
             daemonParams.setEnvironmentVariables(envVariables);
         }
@@ -365,7 +360,7 @@ public class ProviderConnection {
 
         @VisibleForTesting
         static ProgressListenerConfiguration from(ProviderOperationParameters providerParameters, GradleVersion consumerVersion) {
-            InternalBuildProgressListener buildProgressListener = providerParameters.getBuildProgressListener(null);
+            InternalBuildProgressListener buildProgressListener = providerParameters.getBuildProgressListener();
             Set<OperationType> operationTypes = toOperationTypes(buildProgressListener, consumerVersion);
             BuildEventSubscriptions clientSubscriptions = new BuildEventSubscriptions(operationTypes);
             FailsafeBuildProgressListenerAdapter wrapper = new FailsafeBuildProgressListenerAdapter(buildProgressListener);

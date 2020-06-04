@@ -25,14 +25,13 @@ import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 class ProviderStartParameterConverter {
 
-    private List<TaskExecutionRequest> unpack(final List<InternalLaunchable> launchables, File projectDir) {
+    private List<TaskExecutionRequest> unpack(final List<InternalLaunchable> launchables) {
         // Important that the launchables are unpacked on the client side, to avoid sending back any additional internal state that
         // the launchable may hold onto. For example, GradleTask implementations hold onto every task for every project in the build
         List<TaskExecutionRequest> requests = new ArrayList<TaskExecutionRequest>(launchables.size());
@@ -44,8 +43,8 @@ class ProviderStartParameterConverter {
                 requests.add(launchableImpl);
             } else {
                 throw new InternalUnsupportedBuildArgumentException(
-                        "Problem with provided launchable arguments: " + launchables + ". "
-                                + "\nOnly objects from this provider can be built."
+                    "Problem with provided launchable arguments: " + launchables + ". "
+                        + "\nOnly objects from this provider can be built."
                 );
             }
         }
@@ -61,9 +60,9 @@ class ProviderStartParameterConverter {
             startParameter.setGradleUserHomeDir(parameters.getGradleUserHomeDir());
         }
 
-        List<InternalLaunchable> launchables = parameters.getLaunchables(null);
+        List<InternalLaunchable> launchables = parameters.getLaunchables();
         if (launchables != null) {
-            startParameter.setTaskRequests(unpack(launchables, parameters.getProjectDir()));
+            startParameter.setTaskRequests(unpack(launchables));
         } else if (parameters.getTasks() != null) {
             startParameter.setTaskNames(parameters.getTasks());
         }
@@ -87,8 +86,9 @@ class ProviderStartParameterConverter {
             }
         }
 
-        if (parameters.isSearchUpwards() != null) {
-            startParameter.setSearchUpwardsWithoutDeprecationWarning(parameters.isSearchUpwards());
+        Boolean searchUpwards = parameters.isSearchUpwards();
+        if (searchUpwards != null) {
+            startParameter.setSearchUpwardsWithoutDeprecationWarning(searchUpwards);
         }
 
         if (parameters.getBuildLogLevel() != null) {

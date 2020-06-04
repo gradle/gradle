@@ -86,7 +86,7 @@ class ProviderStartParameterConverterTest extends Specification {
         _ * selector.args >> ['myTask']
         _ * selector.projectPath >> ':child'
 
-        params.getLaunchables(_) >> [selector]
+        params.getLaunchables() >> [selector]
 
         when:
         def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
