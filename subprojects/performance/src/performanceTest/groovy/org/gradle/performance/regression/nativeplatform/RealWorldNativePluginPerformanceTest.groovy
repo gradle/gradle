@@ -120,7 +120,7 @@ abstract class AbstractRealWorldNativePluginPerformanceTest extends AbstractCros
         runner.warmUpRuns = 5
         runner.runs = 10
 
-        def parallelWorkers = testProjectAndParallelWorkers.split('\\-')[1]
+        def parallelWorkers = testProjectAndParallelWorkers.split('\\-')[1].toInteger()
 
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
