@@ -18,22 +18,22 @@ package org.gradle.launcher.cli.converter;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.concurrent.ParallelismConfiguration;
+import org.gradle.initialization.ParallelismBuildOptions;
 import org.gradle.initialization.StartParameterBuildOptions;
-import org.gradle.internal.buildoption.BuildOption;
+import org.gradle.internal.buildoption.PropertiesConverter;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 
-import java.util.List;
 import java.util.Map;
 
 public class PropertiesToStartParameterConverter {
-    private final PropertiesToParallelismConfigurationConverter propertiesToParallelismConfigurationConverter = new PropertiesToParallelismConfigurationConverter();
-    private final PropertiesToLogLevelConfigurationConverter propertiesToLogLevelConfigurationConverter = new PropertiesToLogLevelConfigurationConverter();
-    private final List<BuildOption<StartParameterInternal>> buildOptions = StartParameterBuildOptions.get();
+    private final PropertiesConverter<ParallelismConfiguration> propertiesToParallelismConfigurationConverter = new ParallelismBuildOptions().propertiesConverter();
+    private final PropertiesConverter<LoggingConfiguration> propertiesToLogLevelConfigurationConverter = new LoggingConfigurationBuildOptions().propertiesConverter();
+    private final PropertiesConverter<StartParameterInternal> buildOptionsConverter = new StartParameterBuildOptions().propertiesConverter();
 
     public StartParameter convert(Map<String, String> properties, StartParameterInternal startParameter) {
-        for (BuildOption<StartParameterInternal> option : buildOptions) {
-            option.applyFromProperty(properties, startParameter);
-        }
-
+        buildOptionsConverter.convert(properties, startParameter);
         propertiesToParallelismConfigurationConverter.convert(properties, startParameter);
         propertiesToLogLevelConfigurationConverter.convert(properties, startParameter);
 

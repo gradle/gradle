@@ -28,22 +28,20 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.ProjectPropertiesCommandLineConverter;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.concurrent.ParallelismConfiguration;
-import org.gradle.internal.buildoption.BuildOption;
-import org.gradle.internal.logging.LoggingCommandLineConverter;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.gradle.StartParameter.GRADLE_USER_HOME_PROPERTY_KEY;
 
 public class DefaultCommandLineConverter extends AbstractCommandLineConverter<StartParameterInternal> {
-    private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
-    private final CommandLineConverter<ParallelismConfiguration> parallelConfigurationCommandLineConverter = new ParallelismConfigurationCommandLineConverter();
+    private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingConfigurationBuildOptions().commandLineConverter();
+    private final CommandLineConverter<ParallelismConfiguration> parallelConfigurationCommandLineConverter = new ParallelismBuildOptions().commandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
-    private final List<BuildOption<StartParameterInternal>> buildOptions = StartParameterBuildOptions.get();
+    private final CommandLineConverter<StartParameterInternal> buildOptionsConverter = new StartParameterBuildOptions().commandLineConverter();
     private final LayoutCommandLineConverter layoutCommandLineConverter = new LayoutCommandLineConverter();
 
     @Override
@@ -54,10 +52,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         projectPropertiesCommandLineConverter.configure(parser);
         layoutCommandLineConverter.configure(parser);
         parser.allowMixedSubcommandsAndOptions();
-
-        for (BuildOption<? extends StartParameter> option : buildOptions) {
-            option.configure(parser);
-        }
+        buildOptionsConverter.configure(parser);
     }
 
     @Override
@@ -87,9 +82,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             startParameter.setTaskNames(options.getExtraArguments());
         }
 
-        for (BuildOption<StartParameterInternal> option : buildOptions) {
-            option.applyFromCommandLine(options, startParameter);
-        }
+        buildOptionsConverter.convert(options, startParameter);
 
         for (String deprecation : layout.getDeprecations()) {
             startParameter.addDeprecation(deprecation);

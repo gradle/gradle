@@ -23,7 +23,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class ParallelismConfigurationCommandLineConverterTest extends Specification {
-    final def converter = new ParallelismConfigurationCommandLineConverter()
+    final def converter = new ParallelismBuildOptions().commandLineConverter()
 
     def "converts parallel executor"() {
         when:

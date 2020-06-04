@@ -19,16 +19,17 @@ package org.gradle.launcher.cli;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.launcher.cli.converter.DaemonCommandLineConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 import java.util.HashMap;
@@ -44,7 +45,7 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
     private final PropertiesToStartParameterConverter propertiesToStartParameterConverter;
     private final DefaultCommandLineConverter commandLineConverter;
 
-    private final DaemonCommandLineConverter daemonConverter;
+    private final CommandLineConverter<DaemonParameters> daemonConverter;
     private final PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter;
     private final FileCollectionFactory fileCollectionFactory;
 
@@ -53,7 +54,7 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
                         LayoutToPropertiesConverter layoutToPropertiesConverter,
                         PropertiesToStartParameterConverter propertiesToStartParameterConverter,
                         DefaultCommandLineConverter commandLineConverter,
-                        DaemonCommandLineConverter daemonConverter,
+                        CommandLineConverter<DaemonParameters> daemonConverter,
                         PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter,
                         FileCollectionFactory fileCollectionFactory) {
         this.layoutConverter = layoutConverter;
@@ -72,7 +73,7 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
             new LayoutToPropertiesConverter(buildLayoutFactory),
             new PropertiesToStartParameterConverter(),
             new DefaultCommandLineConverter(),
-            new DaemonCommandLineConverter(),
+            new DaemonBuildOptions().commandLineConverter(),
             new PropertiesToDaemonParametersConverter(),
             fileCollectionFactory);
     }

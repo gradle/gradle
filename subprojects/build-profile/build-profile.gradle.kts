@@ -25,12 +25,12 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":coreApi"))
     implementation(project(":core"))
+    implementation(project(":buildOption"))
 
     implementation(library("guava"))
 
     testImplementation(project(":internalTesting"))
 
-    integTestImplementation(project(":buildOption"))
     integTestImplementation(testLibrary("jsoup"))
 
     integTestRuntimeOnly(project(":runtimeApiInfo"))

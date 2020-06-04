@@ -30,6 +30,7 @@ dependencies {
     implementation(project(":snapshots"))
     implementation(project(":dependencyManagement"))
     implementation(project(":baseServicesGroovy"))
+    implementation(project(":buildOption"))
 
     implementation(library("slf4j_api"))
     implementation(library("groovy"))

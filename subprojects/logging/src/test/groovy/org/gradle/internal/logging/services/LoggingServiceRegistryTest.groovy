@@ -18,10 +18,8 @@ package org.gradle.internal.logging.services
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
-import org.gradle.cli.CommandLineConverter
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.ConfigureLogging
-import org.gradle.internal.logging.LoggingCommandLineConverter
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.internal.logging.text.StyledTextOutputFactory
@@ -36,8 +34,10 @@ import java.util.logging.Logger
 
 class LoggingServiceRegistryTest extends Specification {
     final TestOutputEventListener outputEventListener = new TestOutputEventListener()
-    @Rule ConfigureLogging logging = new ConfigureLogging(outputEventListener)
-    @Rule RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
+    @Rule
+    ConfigureLogging logging = new ConfigureLogging(outputEventListener)
+    @Rule
+    RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
 
     def providesALoggingManagerFactory() {
         given:
@@ -55,15 +55,6 @@ class LoggingServiceRegistryTest extends Specification {
         expect:
         def factory = registry.get(StyledTextOutputFactory.class)
         factory instanceof DefaultStyledTextOutputFactory
-    }
-
-    def providesACommandLineConverter() {
-        given:
-        def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
-
-        expect:
-        def converter = registry.get(CommandLineConverter.class)
-        converter instanceof LoggingCommandLineConverter
     }
 
     def resetsSlf4jWhenStarted() {

@@ -48,11 +48,11 @@ public class LayoutToPropertiesConverter {
 
     public LayoutToPropertiesConverter(BuildLayoutFactory buildLayoutFactory) {
         this.buildLayoutFactory = buildLayoutFactory;
-        allBuildOptions.addAll(BuildLayoutParametersBuildOptions.get());
-        allBuildOptions.addAll(StartParameterBuildOptions.get());
-        allBuildOptions.addAll(LoggingConfigurationBuildOptions.get());
+        allBuildOptions.addAll(new BuildLayoutParametersBuildOptions().getAllOptions());
+        allBuildOptions.addAll(new StartParameterBuildOptions().getAllOptions());
+        allBuildOptions.addAll(new LoggingConfigurationBuildOptions().getAllOptions());
         allBuildOptions.addAll(DaemonBuildOptions.get());
-        allBuildOptions.addAll(ParallelismBuildOptions.get());
+        allBuildOptions.addAll(new ParallelismBuildOptions().getAllOptions());
     }
 
     public Map<String, String> convert(BuildLayoutParameters layout, Map<String, String> properties) {

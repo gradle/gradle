@@ -26,17 +26,20 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.buildoption.AbstractBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
+import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class LoggingConfigurationBuildOptions {
+public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConfiguration> {
 
     private static List<BuildOption<LoggingConfiguration>> options;
 
@@ -53,7 +56,21 @@ public class LoggingConfigurationBuildOptions {
         return options;
     }
 
-    private LoggingConfigurationBuildOptions() {
+    @Override
+    public List<? extends BuildOption<? super LoggingConfiguration>> getAllOptions() {
+        return options;
+    }
+
+    public Collection<String> getLogLevelOptions() {
+        return Arrays.asList(
+            LogLevelOption.DEBUG_SHORT_OPTION,
+            LogLevelOption.DEBUG_LONG_OPTION,
+            LogLevelOption.WARN_SHORT_OPTION,
+            LogLevelOption.WARN_LONG_OPTION,
+            LogLevelOption.INFO_SHORT_OPTION,
+            LogLevelOption.INFO_LONG_OPTION,
+            LogLevelOption.QUIET_SHORT_OPTION,
+            LogLevelOption.QUIET_LONG_OPTION);
     }
 
     public static class LogLevelOption extends AbstractBuildOption<LoggingConfiguration, CommandLineOptionConfiguration> {

@@ -19,6 +19,7 @@ package org.gradle.launcher.cli.converter
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cli.CommandLineParser
 import org.gradle.initialization.BuildLayoutParameters
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
@@ -69,9 +70,9 @@ class DaemonCommandLineConverterTest extends Specification {
         converted.stop == stop
 
         where:
-        options     | stop
-        []          | false
-        ['--stop']  | true
+        options    | stop
+        []         | false
+        ['--stop'] | true
     }
 
     @Unroll
@@ -83,14 +84,14 @@ class DaemonCommandLineConverterTest extends Specification {
         converted.status == status
 
         where:
-        options       | status
-        []            | false
-        ['--status']  | true
+        options      | status
+        []           | false
+        ['--status'] | true
     }
 
     private DaemonParameters convert(Iterable args) {
         CommandLineParser parser = new CommandLineParser()
-        def converter = new DaemonCommandLineConverter()
+        def converter = new DaemonBuildOptions().commandLineConverter()
         converter.configure(parser)
         converter.convert(args, new DaemonParameters(new BuildLayoutParameters(), TestFiles.fileCollectionFactory()))
     }
