@@ -34,7 +34,7 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
     private final MetaInfNormalization metaInfNormalization = new RuntimeMetaInfNormalization();
     private final EvaluatableFilter<ResourceFilter> resourceFilter = filter(IgnoringResourceFilter::new, ResourceFilter.FILTER_NOTHING);
     private final EvaluatableFilter<ResourceEntryFilter> manifestAttributeResourceFilter = filter(IgnoringResourceEntryFilter::new, ResourceEntryFilter.FILTER_NOTHING);
-    private final EvaluatableFilter<ResourceEntryFilter> manifestPropertyResourceFilter = filter(IgnoringResourceEntryFilter::new, ResourceEntryFilter.FILTER_NOTHING);;
+    private final EvaluatableFilter<ResourceEntryFilter> manifestPropertyResourceFilter = filter(IgnoringResourceEntryFilter::new, ResourceEntryFilter.FILTER_NOTHING);
 
     @Override
     public void ignore(String pattern) {
@@ -83,16 +83,16 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
         }
     }
 
-    static <T> EvaluatableFilter<T> filter(Function<ImmutableSet<String>, T> initializer, T emptyValue) {
+    private static <T> EvaluatableFilter<T> filter(Function<ImmutableSet<String>, T> initializer, T emptyValue) {
         return new EvaluatableFilter<>(initializer, emptyValue);
     }
 
     private static class EvaluatableFilter<T> {
         private T value;
         private final Supplier<T> valueSupplier;
-        protected final ImmutableSet.Builder<String> builder;
+        private final ImmutableSet.Builder<String> builder;
 
-        EvaluatableFilter(Function<ImmutableSet<String>, T> initializer, T emptyValue) {
+        public EvaluatableFilter(Function<ImmutableSet<String>, T> initializer, T emptyValue) {
             this.builder = ImmutableSet.builder();
             // if there are configured ignores, use the initializer to create the value, otherwise return emptyValue
             this.valueSupplier = () -> Optional.of(builder.build())
@@ -101,7 +101,7 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
                                                 .orElse(emptyValue);
         }
 
-        T evaluate() {
+        public T evaluate() {
             if (value == null) {
                 value = valueSupplier.get();
             }
@@ -114,7 +114,7 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
             }
         }
 
-        void ignore(String ignore) {
+        public void ignore(String ignore) {
             checkNotEvaluated();
             builder.add(ignore);
         }
