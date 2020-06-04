@@ -22,15 +22,16 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.launcher.bootstrap.ExecutionListener;
+import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 
 public class NativeServicesInitializingAction implements Action<ExecutionListener> {
 
-    private final BuildLayoutParameters buildLayout;
+    private final BuildLayoutConverter.Result buildLayout;
     private final LoggingConfiguration loggingConfiguration;
     private final LoggingManagerInternal loggingManager;
     private final Action<ExecutionListener> action;
 
-    public NativeServicesInitializingAction(BuildLayoutParameters buildLayout, LoggingConfiguration loggingConfiguration, LoggingManagerInternal loggingManager, Action<ExecutionListener> action) {
+    public NativeServicesInitializingAction(BuildLayoutConverter.Result buildLayout, LoggingConfiguration loggingConfiguration, LoggingManagerInternal loggingManager, Action<ExecutionListener> action) {
         this.buildLayout = buildLayout;
         this.loggingConfiguration = loggingConfiguration;
         this.loggingManager = loggingManager;

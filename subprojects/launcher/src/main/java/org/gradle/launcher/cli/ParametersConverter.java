@@ -31,9 +31,6 @@ import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class ParametersConverter extends AbstractCommandLineConverter<Parameters> {
 
     private final BuildLayoutConverter buildLayoutConverter;
@@ -75,18 +72,16 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
 
     @Override
     public Parameters convert(ParsedCommandLine args, Parameters target) throws CommandLineArgumentException {
-        BuildLayoutConverter.Result buildLayoutResult = buildLayoutConverter.convert(args);
-        buildLayoutResult.applyTo(target.getLayout());
+        BuildLayoutConverter.Result buildLayout = buildLayoutConverter.convert(args);
+        buildLayout.applyTo(target.getLayout());
 
-        Map<String, String> properties = new HashMap<String, String>();
-        layoutToPropertiesConverter.convert(target.getLayout(), properties);
-        buildLayoutResult.collectSystemPropertiesInto(properties);
+        LayoutToPropertiesConverter.Result properties = layoutToPropertiesConverter.convert(buildLayout);
 
-        propertiesToStartParameterConverter.convert(properties, target.getStartParameter());
+        propertiesToStartParameterConverter.convert(properties.getProperties(), target.getStartParameter());
         commandLineConverter.convert(args, target.getStartParameter());
 
         DaemonParameters daemonParameters = new DaemonParameters(target.getLayout(), fileCollectionFactory, target.getStartParameter().getSystemPropertiesArgs());
-        propertiesToDaemonParametersConverter.convert(properties, daemonParameters);
+        propertiesToDaemonParametersConverter.convert(properties.getProperties(), daemonParameters);
         daemonConverter.convert(args, daemonParameters);
         target.setDaemonParameters(daemonParameters);
 

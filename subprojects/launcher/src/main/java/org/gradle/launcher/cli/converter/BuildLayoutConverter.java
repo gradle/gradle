@@ -24,8 +24,11 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.BuildLayoutParametersBuildOptions;
 import org.gradle.initialization.LayoutCommandLineConverter;
 
+import java.io.File;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class BuildLayoutConverter {
     private final CommandLineConverter<BuildLayoutParameters> buildLayoutConverter = new LayoutCommandLineConverter();
@@ -36,14 +39,27 @@ public class BuildLayoutConverter {
         systemPropertiesCommandLineConverter.configure(parser);
     }
 
-    public Result convert(ParsedCommandLine commandLine) {
-        BuildLayoutParameters layoutParameters = new BuildLayoutParameters();
-        Map<String, String> commandLineSystemProperties = systemPropertiesCommandLineConverter.convert(commandLine, new HashMap<>());
-        new BuildLayoutParametersBuildOptions().propertiesConverter().convert(commandLineSystemProperties, layoutParameters);
-        buildLayoutConverter.convert(commandLine, layoutParameters);
-        return new Result(layoutParameters, commandLineSystemProperties);
+    public Result defaultValues() {
+        return new Result(new BuildLayoutParameters(), Collections.emptyMap());
     }
 
+    public Result convert(ParsedCommandLine commandLine) {
+        return convert(commandLine, parameters -> {
+        });
+    }
+
+    public Result convert(ParsedCommandLine commandLine, Consumer<BuildLayoutParameters> overrides) {
+        BuildLayoutParameters layoutParameters = new BuildLayoutParameters();
+        Map<String, String> requestedSystemProperties = systemPropertiesCommandLineConverter.convert(commandLine, new HashMap<>());
+        new BuildLayoutParametersBuildOptions().propertiesConverter().convert(requestedSystemProperties, layoutParameters);
+        buildLayoutConverter.convert(commandLine, layoutParameters);
+        overrides.accept(layoutParameters);
+        return new Result(layoutParameters, Collections.unmodifiableMap(requestedSystemProperties));
+    }
+
+    /**
+     * Immutable build layout details calculated from command-line arguments and the environment.
+     */
     public static class Result {
         private final BuildLayoutParameters buildLayout;
         private final Map<String, String> systemProperties;
@@ -63,6 +79,10 @@ public class BuildLayoutConverter {
             buildLayout.setSearchUpwards(this.buildLayout.getSearchUpwards());
             buildLayout.setGradleUserHomeDir(this.buildLayout.getGradleUserHomeDir());
             buildLayout.setGradleInstallationHomeDir(this.buildLayout.getGradleInstallationHomeDir());
+        }
+
+        public File getGradleUserHomeDir() {
+            return buildLayout.getGradleUserHomeDir();
         }
     }
 }

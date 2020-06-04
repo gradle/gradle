@@ -37,6 +37,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -55,12 +57,16 @@ public class LayoutToPropertiesConverter {
         allBuildOptions.addAll(new ParallelismBuildOptions().getAllOptions());
     }
 
-    public Map<String, String> convert(BuildLayoutParameters layout, Map<String, String> properties) {
-        configureFromHomeDir(layout.getGradleInstallationHomeDir(), properties);
-        configureFromBuildDir(layout.getSearchDir(), layout.getSearchUpwards(), properties);
+    public Result convert(BuildLayoutConverter.Result layout) {
+        BuildLayoutParameters layoutParameters = new BuildLayoutParameters();
+        layout.applyTo(layoutParameters);
+        Map<String, String> properties = new HashMap<>();
+        configureFromHomeDir(layoutParameters.getGradleInstallationHomeDir(), properties);
+        configureFromBuildDir(layoutParameters.getSearchDir(), layoutParameters.getSearchUpwards(), properties);
         configureFromHomeDir(layout.getGradleUserHomeDir(), properties);
         configureFromSystemproperties(Cast.uncheckedNonnullCast(properties));
-        return properties;
+        layout.collectSystemPropertiesInto(properties);
+        return new Result(Collections.unmodifiableMap(properties));
     }
 
     private void configureFromSystemproperties(Map<Object, Object> properties) {
@@ -89,11 +95,8 @@ public class LayoutToPropertiesConverter {
 
         Properties properties = new Properties();
         try {
-            FileInputStream inputStream = new FileInputStream(propertiesFile);
-            try {
+            try (FileInputStream inputStream = new FileInputStream(propertiesFile)) {
                 properties.load(inputStream);
-            } finally {
-                inputStream.close();
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -110,6 +113,21 @@ public class LayoutToPropertiesConverter {
             if (validOption != null) {
                 result.put(key.toString(), properties.get(key).toString());
             }
+        }
+    }
+
+    /**
+     * Immutable properties to use to calculate build option values.
+     */
+    public static class Result {
+        private final Map<String, String> properties;
+
+        public Result(Map<String, String> properties) {
+            this.properties = properties;
+        }
+
+        public Map<String, String> getProperties() {
+            return properties;
         }
     }
 }

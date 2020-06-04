@@ -79,7 +79,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -274,24 +273,24 @@ public class ProviderConnection {
 
         ParsedCommandLine parsedCommandLine = commandLineParser.parse(operationParameters.getArguments() == null ? Collections.emptyList() : operationParameters.getArguments());
 
-        BuildLayoutConverter.Result buildLayoutResult = buildLayoutConverter.convert(parsedCommandLine);
+        BuildLayoutConverter.Result buildLayoutResult = buildLayoutConverter.convert(parsedCommandLine, layout -> {
+            if (operationParameters.getGradleUserHomeDir() != null) {
+                layout.setGradleUserHomeDir(operationParameters.getGradleUserHomeDir());
+            }
+            Boolean searchUpwards = operationParameters.isSearchUpwards();
+            if (searchUpwards != null) {
+                layout.setSearchUpwards(searchUpwards);
+            }
+            layout.setProjectDir(operationParameters.getProjectDir());
+        });
+
+        LayoutToPropertiesConverter.Result properties = new LayoutToPropertiesConverter(buildLayoutFactory).convert(buildLayoutResult);
 
         BuildLayoutParameters layout = new BuildLayoutParameters();
         buildLayoutResult.applyTo(layout);
-        if (operationParameters.getGradleUserHomeDir() != null) {
-            layout.setGradleUserHomeDir(operationParameters.getGradleUserHomeDir());
-        }
-        Boolean searchUpwards = operationParameters.isSearchUpwards();
-        if (searchUpwards != null) {
-            layout.setSearchUpwards(searchUpwards);
-        }
-        layout.setProjectDir(operationParameters.getProjectDir());
-
-        Map<String, String> properties = new HashMap<String, String>();
-        new LayoutToPropertiesConverter(buildLayoutFactory).convert(layout, properties);
 
         DaemonParameters daemonParams = new DaemonParameters(layout, fileCollectionFactory);
-        new PropertiesToDaemonParametersConverter().convert(properties, daemonParams);
+        new PropertiesToDaemonParametersConverter().convert(properties.getProperties(), daemonParams);
         if (operationParameters.getDaemonBaseDir() != null) {
             daemonParams.setBaseDir(operationParameters.getDaemonBaseDir());
         }
@@ -317,7 +316,7 @@ public class ProviderConnection {
             daemonParams.setIdleTimeout(idleTimeout);
         }
 
-        return new Parameters(daemonParams, properties, layout.getGradleUserHomeDir());
+        return new Parameters(daemonParams, properties.getProperties(), layout.getGradleUserHomeDir());
     }
 
     private static class Parameters {

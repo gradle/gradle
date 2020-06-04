@@ -25,7 +25,6 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
-import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
@@ -46,9 +45,7 @@ import org.gradle.util.GradleVersion;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
@@ -201,7 +198,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             BuildLayoutConverter buildLayoutConverter = new BuildLayoutConverter();
             LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(new BuildLayoutFactory());
 
-            BuildLayoutParameters buildLayout = new BuildLayoutParameters();
+            BuildLayoutConverter.Result buildLayout = buildLayoutConverter.defaultValues();
 
             CommandLineParser parser = new CommandLineParser();
             loggingConfigurationConverter.configure(parser);
@@ -213,17 +210,13 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             try {
                 ParsedCommandLine parsedCommandLine = parser.parse(args);
 
-                BuildLayoutConverter.Result buildLayoutResult = buildLayoutConverter.convert(parsedCommandLine);
-                buildLayoutResult.applyTo(buildLayout);
+                buildLayout = buildLayoutConverter.convert(parsedCommandLine);
 
-                Map<String, String> properties = new HashMap<String, String>();
                 // Read *.properties files
-                layoutToPropertiesConverter.convert(buildLayout, properties);
-                // Read -D command line flags
-                buildLayoutResult.collectSystemPropertiesInto(properties);
+                LayoutToPropertiesConverter.Result properties = layoutToPropertiesConverter.convert(buildLayout);
 
                 // Convert properties for logging object
-                loggingBuildOptions.propertiesConverter().convert(properties, loggingConfiguration);
+                loggingBuildOptions.propertiesConverter().convert(properties.getProperties(), loggingConfiguration);
                 loggingConfigurationConverter.convert(parsedCommandLine, loggingConfiguration);
             } catch (CommandLineArgumentException e) {
                 // Ignore, deal with this problem later
