@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
@@ -231,6 +232,125 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         kind     | option | description
         'system' | 'D'    | 'system'
         'gradle' | 'P'    | 'Gradle'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13334")
+    @Unroll
+    def "absent #operator used as optional task input"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        buildKotlinFile """
+
+            val userNameProvider = providers
+                .$operator("userName")
+
+            abstract class PrintUserName : DefaultTask() {
+
+                @get:Input
+                @get:Optional
+                abstract val userName: Property<String>
+
+                @TaskAction
+                fun printUserName() {
+                    println("User name is " + (userName.orNull ?: "absent"))
+                }
+            }
+
+            tasks.register<PrintUserName>("printUserName") {
+                userName.set(userNameProvider)
+            }
+        """
+
+        when:
+        instantRun "printUserName"
+
+        then:
+        output.count("User name is absent") == 1
+        instant.assertStateStored()
+
+        when:
+        instantRun "printUserName"
+
+        then:
+        output.count("User name is absent") == 1
+        instant.assertStateLoaded()
+
+        where:
+        operator << ['systemProperty', 'gradleProperty', 'environmentVariable']
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13333")
+    @Unroll
+    def "absent #operator orElse #orElseKind used as task input"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        buildKotlinFile """
+
+            val userNameProvider = providers
+                .$operator("userName")
+                .orElse($orElseArgument)
+
+            abstract class PrintUserName : DefaultTask() {
+
+                @get:Input
+                abstract val userName: Property<String>
+
+                @TaskAction
+                fun printUserName() {
+                    println("User name is " + userName.get())
+                }
+            }
+
+            tasks.register<PrintUserName>("printUserName") {
+                userName.set(userNameProvider)
+            }
+        """
+        def printUserName = { userName ->
+            switch (operator) {
+                case 'systemProperty':
+                    instantRun "printUserName", "-DuserName=$userName"
+                    break
+                case 'gradleProperty':
+                    instantRun "printUserName", "-PuserName=$userName"
+                    break
+                case 'environmentVariable':
+                    withEnvironmentVars(userName: userName)
+                    instantRun "printUserName"
+                    break
+            }
+        }
+
+        when:
+        instantRun "printUserName"
+
+        then:
+        output.count("User name is absent") == 1
+        instant.assertStateStored()
+
+        when:
+        printUserName "alice"
+
+        then:
+        output.count("User name is alice") == 1
+        instant.assertStateLoaded()
+
+        when:
+        printUserName "bob"
+
+        then:
+        output.count("User name is bob") == 1
+        instant.assertStateLoaded()
+
+        where:
+        [operator, orElseKind] << [
+            ['systemProperty', 'gradleProperty', 'environmentVariable'],
+            ['primitive', 'provider']
+        ].combinations()
+        orElseArgument = orElseKind == 'primitive'
+            ? '"absent"'
+            : 'providers.provider { "absent" }'
     }
 
     def "mapped system property used as task input"() {
