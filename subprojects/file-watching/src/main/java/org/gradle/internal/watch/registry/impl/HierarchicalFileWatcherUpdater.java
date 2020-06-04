@@ -80,8 +80,10 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         Set<Path> directoriesToWatch = new HashSet<>();
         shouldWatchDirectories.elementSet().forEach(shouldWatchDirectory -> {
             for (Map.Entry<Path, String> entry : projectRootDirectories.entrySet()) {
-                if (shouldWatchDirectory.toString().startsWith(entry.getValue())) {
-                    directoriesToWatch.add(entry.getKey());
+                Path projectRootDirectory = entry.getKey();
+                String projectRootDirectoryPrefix = entry.getValue();
+                if (shouldWatchDirectory.toString().startsWith(projectRootDirectoryPrefix)) {
+                    directoriesToWatch.add(projectRootDirectory);
                     return;
                 }
             }
