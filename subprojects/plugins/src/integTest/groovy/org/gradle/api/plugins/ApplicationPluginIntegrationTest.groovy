@@ -163,7 +163,7 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
     }
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
-    @ToBeFixedForInstantExecution(because = ":installDist & JavaExec")
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def "can execute generated Unix start script"() {
         when:
         succeeds('installDist')
@@ -179,7 +179,7 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
     }
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
-    @ToBeFixedForInstantExecution(because = ":installDist & JavaExec")
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def "can execute generated Unix start script using JAVA_HOME with spaces"() {
         given:
         def testJavaHome = file("javahome/java home with spaces")
@@ -202,7 +202,7 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
     }
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
-    @ToBeFixedForInstantExecution(because = ":installDist & JavaExec")
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def "java PID equals script PID"() {
         given:
         succeeds('installDist')
@@ -294,7 +294,7 @@ dependencies {
         file('build/install/sample/lib').allDescendants() == ['sample.jar', 'compile-1.0.jar'] as Set
     }
 
-    @ToBeFixedForInstantExecution(because = ":installDist & JavaExec")
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def "executables can be placed at the root of the distribution"() {
         given:
         buildFile << """
@@ -313,7 +313,7 @@ executableDir = ''
         outputContains("Hello World")
     }
 
-    @ToBeFixedForInstantExecution(because = ":installDist & JavaExec")
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def "executables can be placed in a custom directory"() {
         given:
         buildFile << """
@@ -496,7 +496,7 @@ dependencies {
         (lines.find { it.startsWith 'set CLASSPATH='} - 'set CLASSPATH=').split(';').collect([] as Set) { it - '%APP_HOME%\\lib\\'}
     }
 
-    @ToBeFixedForInstantExecution(because = ":installDist & JavaExec")
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script"() {
         given:
         buildFile << """
@@ -651,7 +651,6 @@ rootProject.name = 'sample'
         assert file("build/install/sample/not-the-root/bin/sample").permissions == "rwxr-xr-x"
     }
 
-    @ToBeFixedForInstantExecution(because = "JavaExec")
     def "runs the classes folder for traditional applications"() {
         when:
         succeeds("run")
@@ -661,7 +660,6 @@ rootProject.name = 'sample'
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
-    @ToBeFixedForInstantExecution(because = "JavaExec")
     def "runs the jar for modular applications"() {
         given:
         configureMainModule()
