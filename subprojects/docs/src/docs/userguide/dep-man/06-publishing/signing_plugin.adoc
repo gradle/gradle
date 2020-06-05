@@ -154,7 +154,7 @@ This will create a task (of type link:{groovyDslPath}/org.gradle.plugins.signing
 .Output of **`gradle signMavenJavaPublication`**
 ----
 > gradle signMavenJavaPublication
-include::{snippetsPath}/signing/maven-publish/tests/signingPluginSignPublication.out
+include::{snippetsPath}/signing/maven-publish/tests/signingPluginSignPublication.out[]
 ----
 
 In addition, the above DSL allows to `sign` multiple comma-separated publications. Alternatively, you may specify `publishing.publications` to sign all publications, or use `publishing.publications.matching { … }` to sign all publications that match the specified predicate.
@@ -177,7 +177,7 @@ This will create a task (of type link:{groovyDslPath}/org.gradle.plugins.signing
 .Output of **`gradle signArchives`**
 ----
 > gradle signArchives
-include::{snippetsPath}/signing/maven/tests/signingArchivesOutput.out
+include::{snippetsPath}/signing/maven/tests/signingArchivesOutput.out[]
 ----
 
 [[sec:signing_tasks]]
@@ -200,7 +200,7 @@ The signature file will be placed alongside the artifact being signed.
 .Output of **`gradle signStuffZip`**
 ----
 > gradle signStuffZip
-include::{snippetsPath}/signing/tasks/tests/signingTaskOutput.out
+include::{snippetsPath}/signing/tasks/tests/signingTaskOutput.out[]
 ----
 
 For a task to be _signable_, it must produce an archive of some type, i.e. it must extend link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask].

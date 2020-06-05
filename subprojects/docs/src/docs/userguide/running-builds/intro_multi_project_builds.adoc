@@ -39,7 +39,7 @@ The `settings.gradle` file tells Gradle how the project and subprojects are stru
 .Output of **`gradle -q projects`**
 ----
 > gradle -q projects
-include::{snippetsPath}/java/multiproject/tests/listProjects.out
+include::{snippetsPath}/java/multiproject/tests/listProjects.out[]
 ----
 
 
