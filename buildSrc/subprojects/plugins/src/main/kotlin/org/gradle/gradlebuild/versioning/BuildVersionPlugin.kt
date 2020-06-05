@@ -350,7 +350,7 @@ abstract class BuildTimestampFromBuildReceipt : ValueSource<String, BuildTimesta
 private
 fun Project.isRunningInstallTask() =
     listOf("install", "installAll")
-        .flatMap { listOf(":$it", it) }
+        .flatMap { listOf(":distributions:$it", "distributions:$it", it) }
         .any(gradle.startParameter.taskNames::contains)
 
 
