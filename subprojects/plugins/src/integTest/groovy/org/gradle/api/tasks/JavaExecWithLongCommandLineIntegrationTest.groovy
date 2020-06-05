@@ -18,8 +18,10 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.util.LongCommandLineDetectionUtil
+import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsText
 
@@ -58,12 +60,33 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
                     }
                 }
             }
+
+            tasks.register("runWithExecOperations") {
+                dependsOn sourceSets.main.runtimeClasspath
+                def runExecutable = run.executable ? run.executable : null
+                def runClasspath = run.classpath
+                def runMain = run.main
+                def runArgs = run.args
+                def execOps = services.get(ExecOperations)
+                doLast {
+                    execOps.javaexec {
+                        if (runExecutable) {
+                           executable = runExecutable
+                        }
+                        classpath = runClasspath
+                        main runMain
+                        args runArgs
+                    }
+                }
+            }
         """
     }
 
-    @ToBeFixedForInstantExecution
-    def "still fail when classpath doesn't shorten the command line enough"() {
-        def veryLongCommandLineArgs = getLongCommandLine(getMaxArgs()*16)
+    @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = ".* project.javaexec")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".* JavaExec task")
+    def "still fail when classpath doesn't shorten the command line enough with #method"() {
+        def veryLongCommandLineArgs = getLongCommandLine(getMaxArgs() * 16)
         buildFile << """
             extraClasspath.from('${veryLongFileNames.join("','")}')
 
@@ -71,63 +94,67 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        fails("run")
+        fails taskName
 
         then:
         failure.assertThatCause(containsText("could not be started because the command line exceed operating system limits."))
 
-        when:
-        fails("runWithJavaExec")
-
-        then:
-        failure.assertThatCause(containsText("could not be started because the command line exceed operating system limits."))
+        where:
+        method                    | taskName
+        'JavaExec task'           | 'run'
+        'project.javaexec'        | 'runWithJavaExec'
+        'ExecOperations.javaexec' | 'runWithExecOperations'
     }
 
-    @ToBeFixedForInstantExecution
-    def "does not suggest long command line failures when execution fails"() {
+    @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = ".* project.javaexec")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".* JavaExec task")
+    def "does not suggest long command line failures when execution fails with #method"() {
         buildFile << """
             extraClasspath.from('${veryLongFileNames.join("','")}')
             run.executable 'does-not-exist'
         """
 
         when:
-        fails("run")
+        fails taskName
 
         then:
         failure.assertThatCause(containsText("A problem occurred starting process"))
         failure.assertHasNoCause("could not be started because the command line exceed operating system limits.")
 
-        when:
-        fails("runWithJavaExec")
-
-        then:
-        failure.assertThatCause(containsText("A problem occurred starting process"))
-        failure.assertHasNoCause("could not be started because the command line exceed operating system limits.")
+        where:
+        method                    | taskName
+        'JavaExec task'           | 'run'
+        'project.javaexec'        | 'runWithJavaExec'
+        'ExecOperations.javaexec' | 'runWithExecOperations'
     }
 
-    @ToBeFixedForInstantExecution
-    def "does not suggest long command line failures when execution fails for short command line"() {
+    @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = ".* project.javaexec")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".* JavaExec task")
+    def "does not suggest long command line failures when execution fails for short command line with #method"() {
         buildFile << """
             run.executable 'does-not-exist'
         """
 
         when:
-        fails("run")
+        fails taskName
 
         then:
         failure.assertThatCause(containsText("A problem occurred starting process"))
         failure.assertHasNoCause("could not be started because the command line exceed operating system limits.")
 
-        when:
-        fails("runWithJavaExec")
-
-        then:
-        failure.assertThatCause(containsText("A problem occurred starting process"))
-        failure.assertHasNoCause("could not be started because the command line exceed operating system limits.")
+        where:
+        method                    | taskName
+        'JavaExec task'           | 'run'
+        'project.javaexec'        | 'runWithJavaExec'
+        'ExecOperations.javaexec' | 'runWithExecOperations'
     }
 
-    @ToBeFixedForInstantExecution
-    def "succeeds with long classpath"() {
+    @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = ".* project.javaexec")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".* JavaExec task")
+    def "succeeds with long classpath with #method"() {
         buildFile << """
             extraClasspath.from('${veryLongFileNames.join("','")}')
         """
@@ -138,18 +165,17 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        succeeds("run", "-i")
+        succeeds taskName, "-i"
 
         then:
-        executedAndNotSkipped(":run")
+        executedAndNotSkipped(":$taskName")
         assertOutputContainsShorteningMessage()
 
-        when:
-        succeeds("runWithJavaExec", "-i")
-
-        then:
-        executedAndNotSkipped(":runWithJavaExec")
-        assertOutputContainsShorteningMessage()
+        where:
+        method                    | taskName
+        'JavaExec task'           | 'run'
+        'project.javaexec'        | 'runWithJavaExec'
+        'ExecOperations.javaexec' | 'runWithExecOperations'
     }
 
     private void assertOutputContainsShorteningMessage() {
@@ -168,7 +194,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
     }
 
     private static int getMaxArgs() {
-        switch(OperatingSystem.current()) {
+        switch (OperatingSystem.current()) {
             case OperatingSystem.WINDOWS:
                 return LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_WINDOWS
             case OperatingSystem.MAC_OS:

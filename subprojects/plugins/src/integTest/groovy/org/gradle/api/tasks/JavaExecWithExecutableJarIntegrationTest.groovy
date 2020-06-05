@@ -18,13 +18,15 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import spock.lang.Ignore
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
-        file("src/main/java/driver/Driver.java") <<"""
+        file("src/main/java/driver/Driver.java") << """
             package driver;
 
             import java.io.*;
@@ -61,12 +63,25 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
+
+            task runWithExecOperations {
+                dependsOn jar
+                def execOps = services.get(ExecOperations)
+                doLast {
+                    execOps.javaexec {
+                        classpath = files(jar)
+                        args "hello", "world"
+                    }
+                }
+            }
         """
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1346")
-    @ToBeFixedForInstantExecution
-    def "can run JavaExec with an executable jar"() {
+    @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = ".* project.javaexec")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".* JavaExec task")
+    def "can run executable jar with #method"() {
 
         buildFile << """
             jar {
@@ -77,34 +92,23 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds "runWithTask"
+        succeeds taskName
 
         then:
         file("out.txt").text == """helloworld"""
-    }
 
-    @Issue("https://github.com/gradle/gradle/issues/1346")
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
-    def "can run javaexec with executable jar"() {
-
-        buildFile << """
-            jar {
-                manifest {
-                    attributes('Main-Class': 'driver.Driver')
-                }
-            }
-        """
-
-        when:
-        succeeds "runWithJavaExec"
-
-        then:
-        file("out.txt").text == """helloworld"""
+        where:
+        method                    | taskName
+        'JavaExec task'           | 'runWithTask'
+        'project.javaexec'        | 'runWithJavaExec'
+        'ExecOperations.javaexec' | 'runWithExecOperations'
     }
 
     @Ignore("Change rolled back, to be added again in 7.0")
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
-    def "can run JavaExec with an executable jar configured in the application plugin"() {
+    @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = ".* project.javaexec")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".* JavaExec task")
+    def "can run executable jar configured in the application plugin with #method"() {
 
         buildFile << """
             apply plugin: 'application'
@@ -114,38 +118,34 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds "runWithTask"
+        succeeds taskName
 
         then:
         file("out.txt").text == """helloworld"""
-    }
 
-    @Ignore("Change rolled back, to be added again in 7.0")
-    @ToBeFixedForInstantExecution
-    def "can run javaexec with executable jar configured in the application plugin"() {
-
-        buildFile << """
-            apply plugin: 'application'
-            application {
-                mainClass.set('driver.Driver')
-            }
-        """
-
-        when:
-        succeeds "runWithJavaExec"
-
-        then:
-        file("out.txt").text == """helloworld"""
+        where:
+        method                    | taskName
+        'JavaExec task'           | 'runWithTask'
+        'project.javaexec'        | 'runWithJavaExec'
+        'ExecOperations.javaexec' | 'runWithExecOperations'
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1346")
-    @ToBeFixedForInstantExecution
-    def "helpful message when jar is not executable"() {
+    @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = ".* project.javaexec")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".* JavaExec task")
+    def "helpful message when jar is not executable with #method"() {
 
         when:
-        fails "runWithTask"
+        fails taskName
 
         then:
         result.assertHasErrorOutput("no main manifest attribute")
+
+        where:
+        method                    | taskName
+        'JavaExec task'           | 'runWithTask'
+        'project.javaexec'        | 'runWithJavaExec'
+        'ExecOperations.javaexec' | 'runWithExecOperations'
     }
 }
