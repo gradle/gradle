@@ -35,16 +35,55 @@ import java.util.List;
 public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSpec {
 
     private boolean ignoreExitValue;
-    private final List<Object> arguments = new ArrayList<>();
-    private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<>();
-
     private InputStream standardInput;
     private OutputStream standardOutput;
     private OutputStream errorOutput;
 
+    private final List<Object> arguments = new ArrayList<>();
+    private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<>();
+
     @Inject
     public DefaultExecSpec(PathToFileResolver resolver) {
         super(resolver);
+    }
+
+    public void copyTo(ExecSpec targetSpec) {
+        // Fork options
+        super.copyTo(targetSpec);
+        // BaseExecSpec
+        copyBaseExecSpecTo(this, targetSpec);
+        // ExecSpec
+        targetSpec.setArgs(getArgs());
+        targetSpec.getArgumentProviders().addAll(getArgumentProviders());
+    }
+
+    static void copyBaseExecSpecTo(BaseExecSpec source, BaseExecSpec target) {
+        target.setIgnoreExitValue(source.isIgnoreExitValue());
+        if (source.getStandardInput() != null) {
+            target.setStandardInput(source.getStandardInput());
+        }
+        if (source.getStandardOutput() != null) {
+            target.setStandardOutput(source.getStandardOutput());
+        }
+        if (source.getErrorOutput() != null) {
+            target.setErrorOutput(source.getErrorOutput());
+        }
+    }
+
+    @Override
+    public List<String> getCommandLine() {
+        List<String> commandLine = new ArrayList<>();
+        commandLine.add(getExecutable());
+        commandLine.addAll(getAllArguments());
+        return commandLine;
+    }
+
+    private List<String> getAllArguments() {
+        List<String> args = new ArrayList<>(getArgs());
+        for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
+            Iterables.addAll(args, argumentProvider.asArguments());
+        }
+        return args;
     }
 
     @Override
@@ -119,15 +158,6 @@ public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSp
         return argumentProviders;
     }
 
-    // TODO ExecSpecInternal?
-    public List<String> getAllArguments() {
-        List<String> args = new ArrayList<>(getArgs());
-        for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
-            Iterables.addAll(args, argumentProvider.asArguments());
-        }
-        return args;
-    }
-
     @Override
     public ExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
         this.ignoreExitValue = ignoreExitValue;
@@ -170,13 +200,5 @@ public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSp
     @Override
     public OutputStream getErrorOutput() {
         return errorOutput;
-    }
-
-    @Override
-    public List<String> getCommandLine() {
-        List<String> commandLine = new ArrayList<String>();
-        commandLine.add(getExecutable());
-        commandLine.addAll(getAllArguments());
-        return commandLine;
     }
 }

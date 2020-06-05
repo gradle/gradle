@@ -109,7 +109,7 @@ import java.util.Map;
  * </pre>
  */
 public class JavaExec extends ConventionTask implements JavaExecSpec {
-    private final JavaExecSpec javaExecSpec;
+    private final DefaultJavaExecSpec javaExecSpec;
     private final Property<String> mainModule;
     private final Property<String> mainClass;
     private final ModularitySpec modularity;
@@ -156,30 +156,9 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @TaskAction
     public void exec() {
         setJvmArgs(getJvmArgs()); // convention mapping for 'jvmArgs'
-        execResult.set(createJavaExecAction().execute());
-    }
-
-    private JavaExecAction createJavaExecAction() {
-        JavaExecAction action = getDslExecActionFactory().newDecoratedJavaExecAction();
-        javaExecSpec.copyTo(action);
-        action.setExecutable(javaExecSpec.getExecutable());
-        action.setIgnoreExitValue(javaExecSpec.isIgnoreExitValue());
-        if (javaExecSpec.getStandardInput() != null) {
-            action.setStandardInput(javaExecSpec.getStandardInput());
-        }
-        if (javaExecSpec.getStandardOutput() != null) {
-            action.setStandardOutput(javaExecSpec.getStandardOutput());
-        }
-        if (javaExecSpec.getErrorOutput() != null) {
-            action.setErrorOutput(javaExecSpec.getErrorOutput());
-        }
-        action.getMainClass().set(javaExecSpec.getMainClass());
-        action.getMainModule().set(javaExecSpec.getMainModule());
-        action.getModularity().getInferModulePath().set(javaExecSpec.getModularity().getInferModulePath());
-        action.classpath(javaExecSpec.getClasspath());
-        action.setArgs(javaExecSpec.getArgs());
-        action.getArgumentProviders().addAll(javaExecSpec.getArgumentProviders());
-        return action;
+        JavaExecAction javaExecAction = getDslExecActionFactory().newDecoratedJavaExecAction();
+        javaExecSpec.copyTo(javaExecAction);
+        execResult.set(javaExecAction.execute());
     }
 
     /**

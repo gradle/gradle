@@ -37,16 +37,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.gradle.process.internal.DefaultExecSpec.copyBaseExecSpecTo;
+
 
 public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaExecSpec {
 
     private boolean ignoreExitValue;
-    private final List<Object> arguments = new ArrayList<>();
-    private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<>();
-
     private InputStream standardInput;
     private OutputStream standardOutput;
     private OutputStream errorOutput;
+
+    private final List<Object> arguments = new ArrayList<>();
+    private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<>();
 
     private final Property<String> mainClass;
     private final Property<String> mainModule;
@@ -69,12 +71,40 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
         this.classpath = fileCollectionFactory.configurableFiles("classpath");
     }
 
+    public void copyTo(JavaExecSpec targetSpec) {
+        // JavaExecSpec
+        targetSpec.setArgs(getArgs());
+        targetSpec.getArgumentProviders().addAll(getArgumentProviders());
+        targetSpec.getMainClass().set(getMainClass());
+        targetSpec.getMainModule().set(getMainModule());
+        targetSpec.getModularity().getInferModulePath().set(getModularity().getInferModulePath());
+        targetSpec.classpath(getClasspath());
+        // BaseExecSpec
+        copyBaseExecSpecTo(this, targetSpec);
+        // Java fork options
+        super.copyTo(targetSpec);
+    }
+
     @Override
     public List<String> getCommandLine() {
         List<String> commandLine = new ArrayList<>();
         commandLine.add(getExecutable());
         commandLine.addAll(getAllArguments());
         return commandLine;
+    }
+
+    private List<String> getAllArguments() {
+        List<String> allArgs;
+        List<String> args = getArgs();
+        if (args == null) {
+            allArgs = new ArrayList<>();
+        } else {
+            allArgs = new ArrayList<>(args);
+        }
+        for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
+            Iterables.addAll(allArgs, argumentProvider.asArguments());
+        }
+        return allArgs;
     }
 
     @Override
@@ -141,21 +171,6 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
         this.classpath = fileCollectionFactory.configurableFiles("classpath");
         this.classpath.setFrom(classpath);
         return this;
-    }
-
-    // TODO wrong?
-    public List<String> getAllArguments() {
-        List<String> allArgs;
-        List<String> args = getArgs();
-        if (args == null) {
-            allArgs = new ArrayList<>();
-        } else {
-            allArgs = new ArrayList<>(args);
-        }
-        for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
-            Iterables.addAll(allArgs, argumentProvider.asArguments());
-        }
-        return allArgs;
     }
 
     @Override

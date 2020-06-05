@@ -45,7 +45,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
 
     private final Class<T> taskType;
     private final Property<ExecResult> execResult;
-    private final ExecSpec execSpec;
+    private final DefaultExecSpec execSpec;
 
     public AbstractExecTask(Class<T> taskType) {
         execSpec = getObjectFactory().newInstance(DefaultExecSpec.class);
@@ -65,25 +65,9 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
 
     @TaskAction
     protected void exec() {
-        execResult.set(createExecAction().execute());
-    }
-
-    private ExecAction createExecAction() {
         ExecAction execAction = getExecActionFactory().newExecAction();
         execSpec.copyTo(execAction);
-        execAction.setExecutable(execSpec.getExecutable());
-        execAction.setCommandLine(execSpec.getCommandLine());
-        execAction.setIgnoreExitValue(execSpec.isIgnoreExitValue());
-        if (execSpec.getStandardInput() != null) {
-            execAction.setStandardInput(execSpec.getStandardInput());
-        }
-        if (execSpec.getStandardOutput() != null) {
-            execAction.setStandardOutput(execSpec.getStandardOutput());
-        }
-        if (execSpec.getErrorOutput() != null) {
-            execAction.setErrorOutput(execSpec.getErrorOutput());
-        }
-        return execAction;
+        execResult.set(execAction.execute());
     }
 
     /**
