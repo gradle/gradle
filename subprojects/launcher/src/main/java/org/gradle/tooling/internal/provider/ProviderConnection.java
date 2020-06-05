@@ -129,13 +129,13 @@ public class ProviderConnection {
             }
             return new DefaultBuildEnvironment(
                 new DefaultBuildIdentifier(providerParameters.getProjectDir()),
-                params.gradleUserhome,
+                params.buildLayout.getGradleUserHomeDir(),
                 GradleVersion.current().getVersion(),
                 params.daemonParams.getEffectiveJvm().getJavaHome(),
                 params.daemonParams.getEffectiveJvmArgs());
         }
 
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
+        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion);
         BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
@@ -155,7 +155,7 @@ public class ProviderConnection {
         List<String> tasks = providerParameters.getTasks();
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
         Parameters params = initParams(providerParameters);
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
+        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion);
         BuildAction action = new ClientProvidedBuildAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
@@ -168,7 +168,7 @@ public class ProviderConnection {
         List<String> tasks = providerParameters.getTasks();
         SerializedPayload serializedAction = payloadSerializer.serialize(clientPhasedAction);
         Parameters params = initParams(providerParameters);
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
+        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
         FailsafePhasedActionResultListener failsafePhasedActionResultListener = new FailsafePhasedActionResultListener(resultListener);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion);
         BuildAction action = new ClientProvidedPhasedAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
@@ -182,7 +182,7 @@ public class ProviderConnection {
 
     public Object runTests(ProviderInternalTestExecutionRequest testExecutionRequest, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
         Parameters params = initParams(providerParameters);
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
+        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion);
         TestExecutionRequestAction action = TestExecutionRequestAction.create(listenerConfig.clientSubscriptions, startParameter, testExecutionRequest);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
@@ -267,6 +267,7 @@ public class ProviderConnection {
     private Parameters initParams(ProviderOperationParameters operationParameters) {
         CommandLineParser commandLineParser = new CommandLineParser();
         commandLineParser.allowUnknownOptions();
+        commandLineParser.allowMixedSubcommandsAndOptions();
 
         BuildLayoutConverter buildLayoutConverter = new BuildLayoutConverter();
         buildLayoutConverter.configure(commandLineParser);
@@ -281,6 +282,7 @@ public class ProviderConnection {
             if (searchUpwards != null) {
                 layout.setSearchUpwards(searchUpwards);
             }
+            layout.setCurrentDir(operationParameters.getProjectDir());
             layout.setProjectDir(operationParameters.getProjectDir());
         });
 
@@ -316,18 +318,18 @@ public class ProviderConnection {
             daemonParams.setIdleTimeout(idleTimeout);
         }
 
-        return new Parameters(daemonParams, properties.getProperties(), layout.getGradleUserHomeDir());
+        return new Parameters(daemonParams, buildLayoutResult, properties);
     }
 
     private static class Parameters {
-        DaemonParameters daemonParams;
-        Map<String, String> properties;
-        File gradleUserhome;
+        final DaemonParameters daemonParams;
+        final BuildLayoutConverter.Result buildLayout;
+        final LayoutToPropertiesConverter.Result properties;
 
-        public Parameters(DaemonParameters daemonParams, Map<String, String> properties, File gradleUserhome) {
+        public Parameters(DaemonParameters daemonParams, BuildLayoutConverter.Result buildLayout, LayoutToPropertiesConverter.Result properties) {
             this.daemonParams = daemonParams;
+            this.buildLayout = buildLayout;
             this.properties = properties;
-            this.gradleUserhome = gradleUserhome;
         }
     }
 

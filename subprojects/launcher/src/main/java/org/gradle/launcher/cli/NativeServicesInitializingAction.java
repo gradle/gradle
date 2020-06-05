@@ -18,7 +18,6 @@ package org.gradle.launcher.cli;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
-import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.launcher.bootstrap.ExecutionListener;

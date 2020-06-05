@@ -18,16 +18,19 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.cli.CommandLineArgumentException;
-import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.DefaultTaskExecutionRequest;
-import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
+import org.gradle.launcher.cli.converter.BuildLayoutConverter;
+import org.gradle.launcher.cli.converter.StartParameterConverter;
+import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 class ProviderStartParameterConverter {
 
@@ -51,14 +54,9 @@ class ProviderStartParameterConverter {
         return requests;
     }
 
-    public StartParameterInternal toStartParameter(ProviderOperationParameters parameters, Map<String, String> properties) {
+    public StartParameterInternal toStartParameter(ProviderOperationParameters parameters, BuildLayoutConverter.Result buildLayout, LayoutToPropertiesConverter.Result properties) {
         // Important that this is constructed on the client so that it has the right gradleHomeDir and other state internally
         StartParameterInternal startParameter = new StartParameterInternal();
-
-        startParameter.setProjectDir(parameters.getProjectDir());
-        if (parameters.getGradleUserHomeDir() != null) {
-            startParameter.setGradleUserHomeDir(parameters.getGradleUserHomeDir());
-        }
 
         List<InternalLaunchable> launchables = parameters.getLaunchables();
         if (launchables != null) {
@@ -67,24 +65,25 @@ class ProviderStartParameterConverter {
             startParameter.setTaskNames(parameters.getTasks());
         }
 
-        new PropertiesToStartParameterConverter().convert(properties, startParameter);
-
         List<String> arguments = parameters.getArguments();
-        if (arguments != null) {
-            DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
-            try {
-                converter.convert(arguments, startParameter);
-            } catch (CommandLineArgumentException e) {
-                throw new InternalUnsupportedBuildArgumentException(
-                    "Problem with provided build arguments: " + arguments + ". "
+        StartParameterConverter converter = new StartParameterConverter();
+        CommandLineParser parser = new CommandLineParser();
+        new BuildLayoutConverter().configure(parser);
+        converter.configure(parser);
+        ParsedCommandLine parsedCommandLine;
+        try {
+            parsedCommandLine = parser.parse(arguments != null ? arguments : Collections.emptyList());
+        } catch (CommandLineArgumentException e) {
+            throw new InternalUnsupportedBuildArgumentException(
+                "Problem with provided build arguments: " + arguments + ". "
                     + "\n" + e.getMessage()
                     + "\nEither it is not a valid build option or it is not supported in the target Gradle version."
                     + "\nNot all of the Gradle command line options are supported build arguments."
                     + "\nExamples of supported build arguments: '--info', '-p'."
                     + "\nExamples of unsupported build options: '--daemon', '-?', '-v'."
                     + "\nPlease find more information in the javadoc for the BuildLauncher class.", e);
-            }
         }
+        converter.convert(parsedCommandLine, buildLayout, properties, startParameter);
 
         Boolean searchUpwards = parameters.isSearchUpwards();
         if (searchUpwards != null) {

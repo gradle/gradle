@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
@@ -45,7 +44,6 @@ public class RunAsBuildOperationBuildActionRunner implements BuildActionRunner {
         return buildOperationExecutor.call(new CallableBuildOperation<Result>() {
             @Override
             public Result call(BuildOperationContext context) {
-                checkDeprecations((StartParameterInternal)buildController.getGradle().getStartParameter());
                 buildController.getGradle().getServices().get(IncludedBuildControllers.class).rootBuildOperationStarted();
                 buildController.getGradle().getServices().get(LoggingBuildOperationProgressBroadcaster.class).rootBuildOperationStarted();
                 Result result = delegate.run(action, buildController);
@@ -61,9 +59,5 @@ public class RunAsBuildOperationBuildActionRunner implements BuildActionRunner {
                 return BuildOperationDescriptor.displayName("Run build").details(DETAILS);
             }
         });
-    }
-
-    private void checkDeprecations(StartParameterInternal startParameter) {
-        startParameter.checkDeprecation();
     }
 }

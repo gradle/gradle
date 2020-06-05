@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.cli.converter
 
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.cli.CommandLineParser
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.util.SetSystemProperties
@@ -29,7 +30,7 @@ class BuildLayoutConverterTest extends Specification {
     def "can specify project directory using command-line argument"() {
         when:
         def dir = new File("some-dir").absoluteFile
-        def parameters = convert("--project-dir", "some-dir")
+        def parameters = convert(["--project-dir", "some-dir"])
 
         then:
         parameters.projectDir == dir
@@ -38,7 +39,7 @@ class BuildLayoutConverterTest extends Specification {
     def "can specify Gradle user home directory using command-line argument"() {
         when:
         def dir = new File("some-dir").absoluteFile
-        def parameters = convert("--gradle-user-home", "some-dir")
+        def parameters = convert(["--gradle-user-home", "some-dir"])
 
         then:
         parameters.gradleUserHomeDir == dir
@@ -46,7 +47,7 @@ class BuildLayoutConverterTest extends Specification {
 
     def "can specify system properties using -D command-line argument"() {
         when:
-        def result = toResult("-Dsome.prop=abc", "-Dother.prop=123")
+        def result = toResult(["-Dsome.prop=abc", "-Dother.prop=123"])
         def props = [:]
         result.collectSystemPropertiesInto(props)
 
@@ -58,7 +59,7 @@ class BuildLayoutConverterTest extends Specification {
     def "can specify Gradle user home directory using -D system property command-line argument"() {
         when:
         def dir = new File("some-dir").absoluteFile
-        def parameters = convert("-Dgradle.user.home=some-dir")
+        def parameters = convert(["-Dgradle.user.home=some-dir"])
 
         then:
         parameters.gradleUserHomeDir == dir
@@ -68,7 +69,7 @@ class BuildLayoutConverterTest extends Specification {
         when:
         def dir = new File("some-dir").absoluteFile
         System.setProperty("gradle.user.home", dir.absolutePath)
-        def parameters = convert()
+        def parameters = convert([])
 
         then:
         parameters.gradleUserHomeDir == dir
@@ -82,9 +83,9 @@ class BuildLayoutConverterTest extends Specification {
 
         System.setProperty("gradle.user.home", "dir1")
 
-        def parameters1 = convert()
-        def parameters2 = convert("-Dgradle.user.home=dir2")
-        def parameters3 = convert("--gradle-user-home", "dir3", "-Dgradle.user.home=dir2")
+        def parameters1 = convert([])
+        def parameters2 = convert(["-Dgradle.user.home=dir2"])
+        def parameters3 = convert(["--gradle-user-home", "dir3", "-Dgradle.user.home=dir2"])
 
         then:
         parameters1.gradleUserHomeDir == dir1
@@ -92,34 +93,47 @@ class BuildLayoutConverterTest extends Specification {
         parameters3.gradleUserHomeDir == dir3
     }
 
-    def "caller can override layout properties"() {
+    def "caller can provide default layout properties"() {
         when:
         def dir = new File("dir").absoluteFile
-        def parser = new CommandLineParser()
-        def converter = new BuildLayoutConverter()
-        converter.configure(parser)
-        def result = converter.convert(parser.parse("--gradle-user-home", "some-dir")) {
-            it.gradleUserHomeDir = dir
+        def parameters = convert(["--gradle-user-home", "dir"]) {
+            gradleUserHomeDir = new File("ignore-me")
+            projectDir = dir
+            searchUpwards = true
         }
 
         then:
-        result.gradleUserHomeDir == dir
+        parameters.gradleUserHomeDir == dir
+        parameters.projectDir == dir
+        parameters.searchUpwards
     }
 
-    BuildLayoutParameters convert(String... args) {
+    BuildLayoutParameters convert(List<String> args, @DelegatesTo(BuildLayoutParameters) Closure overrides = {}) {
+        def result = toResult(args, overrides)
+
         def parameters = new BuildLayoutParameters()
-        def result = toResult(args)
         result.applyTo(parameters)
 
         assert result.gradleUserHomeDir == parameters.gradleUserHomeDir
 
+        def startParameters = new StartParameterInternal()
+        result.applyTo(startParameters)
+
+        assert startParameters.gradleUserHomeDir == parameters.gradleUserHomeDir
+        assert startParameters.currentDir == parameters.currentDir
+        assert startParameters.projectDir == parameters.projectDir
+        assert startParameters.searchUpwards == parameters.searchUpwards
+
         return parameters
     }
 
-    BuildLayoutConverter.Result toResult(String... args) {
+    BuildLayoutConverter.Result toResult(List<String> args, @DelegatesTo(BuildLayoutParameters) Closure overrides = {}) {
         def parser = new CommandLineParser()
         def converter = new BuildLayoutConverter()
         converter.configure(parser)
-        return converter.convert(parser.parse(args))
+        return converter.convert(parser.parse(args)) {
+            overrides.delegate = it
+            overrides()
+        }
     }
 }

@@ -21,7 +21,6 @@ import org.codehaus.groovy.util.ReleaseInfo;
 import org.gradle.api.Action;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
-import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
@@ -39,6 +38,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.CommandLineActionFactory;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
+import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.util.GradleVersion;
 
@@ -193,15 +193,14 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
         @Override
         public void execute(ExecutionListener executionListener) {
-            LoggingConfigurationBuildOptions loggingBuildOptions = new LoggingConfigurationBuildOptions();
-            CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = loggingBuildOptions.commandLineConverter();
+            BuildOptionBackedConverter<LoggingConfiguration> loggingBuildOptions = new BuildOptionBackedConverter<>(new LoggingConfigurationBuildOptions());
             BuildLayoutConverter buildLayoutConverter = new BuildLayoutConverter();
             LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(new BuildLayoutFactory());
 
             BuildLayoutConverter.Result buildLayout = buildLayoutConverter.defaultValues();
 
             CommandLineParser parser = new CommandLineParser();
-            loggingConfigurationConverter.configure(parser);
+            loggingBuildOptions.configure(parser);
             buildLayoutConverter.configure(parser);
 
             parser.allowUnknownOptions();
@@ -210,14 +209,14 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             try {
                 ParsedCommandLine parsedCommandLine = parser.parse(args);
 
+                // Calculate build layout, for loading properties and other logging configuration
                 buildLayout = buildLayoutConverter.convert(parsedCommandLine);
 
                 // Read *.properties files
                 LayoutToPropertiesConverter.Result properties = layoutToPropertiesConverter.convert(buildLayout);
 
-                // Convert properties for logging object
-                loggingBuildOptions.propertiesConverter().convert(properties.getProperties(), loggingConfiguration);
-                loggingConfigurationConverter.convert(parsedCommandLine, loggingConfiguration);
+                // Calculate the logging configuration
+                loggingBuildOptions.convert(parsedCommandLine, properties.getProperties(), loggingConfiguration);
             } catch (CommandLineArgumentException e) {
                 // Ignore, deal with this problem later
             }
@@ -225,13 +224,12 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.setLevelInternal(loggingConfiguration.getLogLevel());
             loggingManager.start();
-
-            Action<ExecutionListener> exceptionReportingAction =
-                new ExceptionReportingAction(reporter, loggingManager,
-                    new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager,
-                        new WelcomeMessageAction(buildLayout,
-                            new DebugLoggerWarningAction(loggingConfiguration, action))));
             try {
+                Action<ExecutionListener> exceptionReportingAction =
+                    new ExceptionReportingAction(reporter, loggingManager,
+                        new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager,
+                            new WelcomeMessageAction(buildLayout,
+                                new DebugLoggerWarningAction(loggingConfiguration, action))));
                 exceptionReportingAction.execute(executionListener);
             } finally {
                 loggingManager.stop();

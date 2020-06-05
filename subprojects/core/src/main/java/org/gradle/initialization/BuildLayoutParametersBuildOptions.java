@@ -65,7 +65,9 @@ public class BuildLayoutParametersBuildOptions extends BuildOptionSet<BuildLayou
         @Override
         public void applyTo(String value, BuildLayoutParameters settings, Origin origin) {
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
-            settings.setProjectDir(resolver.transform(value));
+            File projectDir = resolver.transform(value);
+            settings.setCurrentDir(projectDir);
+            settings.setProjectDir(projectDir);
         }
     }
 }
