@@ -18,7 +18,6 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.junit.Rule
@@ -31,7 +30,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = ".*javaexecProjectMethod")
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*javaexecTask")
     def 'can execute java with #task'() {
         given:
         buildFile << """
