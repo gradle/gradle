@@ -44,7 +44,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     private StreamsHandler streamsHandler;
     private int timeoutMillis = Integer.MAX_VALUE;
     protected boolean daemon;
-    private Executor executor;
+    private final Executor executor;
 
     AbstractExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
         super(fileResolver);
