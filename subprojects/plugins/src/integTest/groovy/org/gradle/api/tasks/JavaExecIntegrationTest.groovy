@@ -67,7 +67,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @ToBeFixedForInstantExecution(because = "JavaExec")
     def "java exec is not incremental by default"() {
         when:
         run "run"
@@ -82,7 +81,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":run"
     }
 
-    @ToBeFixedForInstantExecution(because = "JavaExec")
     def 'arguments passed via command line take precedence and is not incremental by default'() {
         when:
         run("run", "--args", "2 '3' \"4\"")
@@ -108,7 +106,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue(["GRADLE-1483", "GRADLE-3528"])
-    @ToBeFixedForInstantExecution(because = "JavaExec")
     def "when the user declares outputs it becomes incremental"() {
         given:
         buildFile << """
@@ -137,7 +134,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":run"
     }
 
-    @ToBeFixedForInstantExecution(because = "JavaExec")
     def 'arguments passed via command line matter in incremental check'() {
         given:
         buildFile << """
@@ -237,7 +233,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         outputFile.text == "different"
     }
 
-    @ToBeFixedForInstantExecution(because = "JavaExec")
     def "main class can be configured through a convention mapping"() {
         given:
         buildFile.text = """
