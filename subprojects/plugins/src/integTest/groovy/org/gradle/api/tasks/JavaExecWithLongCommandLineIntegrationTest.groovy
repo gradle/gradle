@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.util.LongCommandLineDetectionUtil
@@ -84,7 +83,6 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = ".* project.javaexec")
-    @ToBeFixedForInstantExecution(iterationMatchers = ".* JavaExec task")
     def "still fail when classpath doesn't shorten the command line enough with #method"() {
         def veryLongCommandLineArgs = getLongCommandLine(getMaxArgs() * 16)
         buildFile << """
@@ -108,7 +106,6 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = ".* project.javaexec")
-    @ToBeFixedForInstantExecution(iterationMatchers = ".* JavaExec task")
     def "does not suggest long command line failures when execution fails with #method"() {
         buildFile << """
             extraClasspath.from('${veryLongFileNames.join("','")}')
@@ -131,7 +128,6 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = ".* project.javaexec")
-    @ToBeFixedForInstantExecution(iterationMatchers = ".* JavaExec task")
     def "does not suggest long command line failures when execution fails for short command line with #method"() {
         buildFile << """
             run.executable 'does-not-exist'
@@ -153,7 +149,6 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = ".* project.javaexec")
-    @ToBeFixedForInstantExecution(iterationMatchers = ".* JavaExec task")
     def "succeeds with long classpath with #method"() {
         buildFile << """
             extraClasspath.from('${veryLongFileNames.join("','")}')
