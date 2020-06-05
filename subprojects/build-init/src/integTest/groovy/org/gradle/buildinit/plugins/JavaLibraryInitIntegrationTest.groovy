@@ -89,7 +89,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "test-ng")
     def "creates sample source using testng instead of junit with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-library', '--test-framework', 'testng', '--dsl', scriptDsl.id)
@@ -138,7 +138,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*TestNG.*")
     def "creates sample source with package and #testFramework and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-library', '--test-framework', testFramework.id, '--package', 'my.lib', '--dsl', scriptDsl.id)
