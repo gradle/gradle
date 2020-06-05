@@ -176,7 +176,7 @@ test.testLogging {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "test-ng")
     def "shows standard stream also for testNG"() {
         given:
         ignoreWhenJUnitPlatform()

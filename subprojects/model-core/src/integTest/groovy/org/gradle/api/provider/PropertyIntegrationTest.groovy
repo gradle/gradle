@@ -241,7 +241,7 @@ task thing(type: SomeTask) {
         failure.assertHasCause("broken")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "configuration cache captures provider value")
     def "task @Input property calculation is called once only when task executes"() {
         taskTypeWritesPropertyValueToFile()
         buildFile << """

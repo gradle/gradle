@@ -32,7 +32,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
 class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Issue("GRADLE-2702")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "early dependency resolution")
     def "should not resolve configuration results when there are no tests"() {
         buildFile << """
             apply plugin: 'java'
@@ -214,7 +214,6 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3627")
-    @ToBeFixedForInstantExecution
     def "can reference properties from TestTaskReports when using @CompileStatic"() {
         buildFile << """
             import groovy.transform.CompileStatic
@@ -235,7 +234,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         """
 
         expect:
-        succeeds("tasks")
+        succeeds("help")
     }
 
     private static String standaloneTestClass() {

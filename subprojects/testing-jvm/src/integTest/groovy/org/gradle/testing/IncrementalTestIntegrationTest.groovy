@@ -66,7 +66,7 @@ class IncrementalTestIntegrationTest extends MultiVersionIntegrationSpec {
         succeeds('test').assertTasksNotSkipped()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "test-ng")
     def executesTestsWhenTestFrameworkChanges() {
         given:
         succeeds('test')

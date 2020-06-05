@@ -16,11 +16,13 @@
 
 package org.gradle.language.scala
 
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
 import org.gradle.language.scala.fixtures.BadScalaLibrary
 import org.gradle.language.scala.fixtures.TestScalaComponent
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ScalaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     TestJvmComponent app = new TestScalaComponent()
 

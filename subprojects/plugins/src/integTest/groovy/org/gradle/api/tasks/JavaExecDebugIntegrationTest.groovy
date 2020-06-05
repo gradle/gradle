@@ -18,20 +18,24 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Rule
 import spock.lang.Ignore
+import spock.lang.Unroll
 
 class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     JDWPUtil debugClient = new JDWPUtil()
 
-    @ToBeFixedForInstantExecution
-    def "debug is disabled by default"(String taskName) {
+    @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = ".* :runProjectJavaExec")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".* :runJavaExec")
+    def "debug is disabled by default with task :#taskName"() {
         setup:
-        sampleProject"""
+        sampleProject """
             debugOptions {
             }
         """
@@ -40,13 +44,15 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         succeeds(taskName)
 
         where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
+        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
-    @ToBeFixedForInstantExecution
-    def "debug session fails without debugger"(String taskName) {
+    @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = ".* :runProjectJavaExec")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".* :runJavaExec")
+    def "debug session fails without debugger with task :#taskName"() {
         setup:
-        sampleProject"""
+        sampleProject """
             debugOptions {
                 enabled = true
                 server = false
@@ -58,13 +64,15 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput('ERROR: transport error 202: connect failed: Connection refused')
 
         where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
+        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
-    @ToBeFixedForInstantExecution
-    def "can debug Java exec with socket listen type debugger (server = false)"(String taskName) {
+    @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = ".* :runProjectJavaExec")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".* :runJavaExec")
+    def "can debug Java exec with socket listen type debugger (server = false) with task :#taskName"() {
         setup:
-        sampleProject"""
+        sampleProject """
             debugOptions {
                 enabled = true
                 server = false
@@ -78,13 +86,16 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         succeeds(taskName)
 
         where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
+        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
     @Ignore
-    def "can debug Java exec with socket attach type debugger (server = true)"(String taskName) {
+    @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = ".* :runProjectJavaExec")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".* :runJavaExec")
+    def "can debug Java exec with socket attach type debugger (server = true) with task :#taskName"() {
         setup:
-        sampleProject"""
+        sampleProject """
             debugOptions {
                 enabled = true
                 server = true
@@ -106,13 +117,15 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         handle.waitForFinish()
 
         where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
+        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
-    @ToBeFixedForInstantExecution
-    def "debug options overrides debug property"(String taskName) {
+    @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = ".* :runProjectJavaExec")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".* :runJavaExec")
+    def "debug options overrides debug property with task :#taskName"() {
         setup:
-        sampleProject"""
+        sampleProject """
             debug = true
 
             debugOptions {
@@ -125,13 +138,15 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         succeeds(taskName)
 
         where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
+        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
-    @ToBeFixedForInstantExecution
-    def "if custom debug argument is passed to the build then debug options is ignored"(String taskName) {
+    @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = ".* :runProjectJavaExec")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".* :runJavaExec")
+    def "if custom debug argument is passed to the build then debug options is ignored with task :#taskName"() {
         setup:
-        sampleProject"""
+        sampleProject """
             debugOptions {
                 enabled = true
                 server = false
@@ -148,7 +163,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Debug configuration ignored in favor of the supplied JVM arguments: [-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=$debugClient.port]"
 
         where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
+        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
     private def sampleProject(String javaExecConfig) {
@@ -203,6 +218,20 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
                 dependsOn sourceSets.main.runtimeClasspath
+            }
+
+            task runExecOperationsJavaExec {
+                def runClasspath = sourceSets.main.runtimeClasspath
+                dependsOn runClasspath
+                def execOps = services.get(ExecOperations)
+                doLast {
+                    execOps.javaexec {
+                        classpath = runClasspath
+                        main "driver.Driver"
+
+                        $javaExecConfig
+                    }
+                }
             }
 
             tasks.withType(Test) {

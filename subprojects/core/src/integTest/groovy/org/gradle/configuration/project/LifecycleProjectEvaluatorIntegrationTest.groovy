@@ -49,7 +49,7 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         output =~ /> Outer\s+< Outer\s+Inner/
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "captures lifecycle operations"() {
         given:
         file('buildSrc/buildSrcWhenReady.gradle') << ""

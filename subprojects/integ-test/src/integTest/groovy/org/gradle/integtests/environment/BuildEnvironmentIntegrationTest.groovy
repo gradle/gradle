@@ -18,7 +18,6 @@ package org.gradle.integtests.environment
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
@@ -157,20 +156,25 @@ assert classesDir.directory
     }
 
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
-    @ToBeFixedForInstantExecution
     def "java home from environment should be used to run build"() {
         def alternateJavaHome = AvailableJavaHomes.differentJdk.javaHome
 
-        file('build.gradle') << "println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.canonicalPath"
+        buildFile << """
+            task printJavaHome {
+                doLast {
+                    println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.canonicalPath
+                }
+            }
+        """
 
         when:
-        def out = executer.run().output
+        def out = executer.withTasks('printJavaHome').run().output
 
         then:
         out.contains("javaHome=" + Jvm.current().javaHome.canonicalPath)
 
         when:
-        out = executer.withJavaHome(alternateJavaHome).run().output
+        out = executer.withJavaHome(alternateJavaHome).withTasks('printJavaHome').run().output
 
         then:
         out.contains("javaHome=" + alternateJavaHome.canonicalPath)

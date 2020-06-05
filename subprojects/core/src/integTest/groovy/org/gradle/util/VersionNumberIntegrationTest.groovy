@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 
 class VersionNumberIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     def "nullability with Kotlin jsr-305 strict"() {
 
         given:

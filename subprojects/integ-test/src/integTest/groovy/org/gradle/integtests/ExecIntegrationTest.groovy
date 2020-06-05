@@ -169,7 +169,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3528")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Exec")
     def "when the user declares outputs it becomes incremental"() {
         given:
         buildFile << '''
@@ -209,7 +209,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":run")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Exec")
     def "arguments can be passed by using argument providers"() {
         given:
         buildFile << '''

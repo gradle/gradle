@@ -257,7 +257,7 @@ hamcrest-core-1.3.jar
         )
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "publishing")
     def "can publish test fixtures"() {
         buildFile << """
             apply plugin: 'maven-publish'
@@ -314,7 +314,7 @@ hamcrest-core-1.3.jar
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "publishing")
     def "can deactivate test fixture publishing"() {
         buildFile << """
             apply plugin: 'maven-publish'
