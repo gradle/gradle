@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 
 /**
  * A {@code JavaInstallationDefinition} represents a logical installation of a Java Runtime Environment (JRE) or a Java Development Kit (JDK).
@@ -39,12 +40,10 @@ import org.gradle.api.Incubating;
  */
 // TODO: consider naming this JavaInstallation and rename existing (incubating) JavaInstallation to "LocalJavaInstallation"/hide it altogether
 @Incubating
-public interface LogicalJavaInstallation {
+public interface LogicalJavaInstallation extends Named {
 
     String getPath();
 
     void setPath(String path);
-
-    String getName();
 
 }

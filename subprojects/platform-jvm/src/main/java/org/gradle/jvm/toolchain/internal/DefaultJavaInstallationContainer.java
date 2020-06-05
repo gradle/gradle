@@ -33,7 +33,7 @@ public class DefaultJavaInstallationContainer extends AbstractNamedDomainObjectC
     @Inject
     public DefaultJavaInstallationContainer(Instantiator instantiator, JavaInstallationRegistryShared registry) {
         // TODO: decorated needed for settings?
-        super(LogicalJavaInstallation.class, instantiator, i -> i.getName(), CollectionCallbackActionDecorator.NOOP);
+        super(LogicalJavaInstallation.class, instantiator, CollectionCallbackActionDecorator.NOOP);
         all(registry::add);
         createCurrentInstallation();
     }
