@@ -141,7 +141,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @ToBeFixedForInstantExecution
     def "creates sample source with package and #testFramework and #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'java-library', '--test-framework', 'testng', '--package', 'my.lib', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-library', '--test-framework', testFramework.id, '--package', 'my.lib', '--dsl', scriptDsl.id)
 
         then:
         targetDir.file("src/main/java").assertHasDescendants("my/lib/Library.java")
@@ -154,7 +154,14 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        assertTestPassed("my.lib.LibraryTest", "someLibraryMethodReturnsTrue")
+        switch (testFramework) {
+            case BuildInitTestFramework.JUNIT:
+                assertTestPassed("my.lib.LibraryTest", "testSomeLibraryMethod")
+                break
+            case BuildInitTestFramework.TESTNG:
+                assertTestPassed("my.lib.LibraryTest", "someLibraryMethodReturnsTrue")
+                break
+        }
 
         where:
         [scriptDsl, testFramework] << [ScriptDslFixture.SCRIPT_DSLS, [BuildInitTestFramework.JUNIT, BuildInitTestFramework.TESTNG]].combinations()
