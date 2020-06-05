@@ -18,6 +18,7 @@ package org.gradle.process.internal
 
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.jvm.Jvm
@@ -30,7 +31,8 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
     private int daemonLogCheckpoint
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "Exec & JavaExec")
+    @UnsupportedWithInstantExecution(iterationMatchers = ".* project.exec")
+    @ToBeFixedForInstantExecution(iterationMatchers = "can cancel JavaExec")
     def "can cancel #scenario"() {
         given:
         blockCode()
