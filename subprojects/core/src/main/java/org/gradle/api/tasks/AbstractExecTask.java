@@ -20,7 +20,6 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -49,7 +48,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     private final ExecSpec execSpec;
 
     public AbstractExecTask(Class<T> taskType) {
-        execSpec = new DefaultExecSpec(getServices().get(PathToFileResolver.class));
+        execSpec = getObjectFactory().newInstance(DefaultExecSpec.class);
         execResult = getObjectFactory().property(ExecResult.class);
         this.taskType = taskType;
     }
