@@ -26,28 +26,36 @@ class JavaInstallationContainerIntegrationTest extends AbstractIntegrationSpec {
     def "can add a new installation to javaInstallations"() {
         def someJdk = AvailableJavaHomes.differentVersion
 
-        buildScript("""
+        buildFile << """
         plugins {
             id 'java'
         }
+        task('showInstallation') {
+          doLast {
+             println project.javaToolchains.query()
+          }
+        }
+"""
+
+        settingsFile << """
+        plugins {
+            id 'java-installations'
+        }
+
         javaInstallations {
-            someJdk {
+            register("someJdk") {
                 path = "${someJdk.javaHome.absolutePath}"
             }
         }
-
-        task('showInstallation') {
-          doLast {
-            println javaInstallations.someJdk.path
-          }
-        }
-""")
+"""
 
         when:
         run("showInstallation")
 
         then:
-        outputContains(someJdk.javaHome.absolutePath)
+        outputContains("someJdk (" + someJdk.javaHome.absolutePath)
+        outputContains("current (" + System.getProperty("java.home"))
+
     }
 
 

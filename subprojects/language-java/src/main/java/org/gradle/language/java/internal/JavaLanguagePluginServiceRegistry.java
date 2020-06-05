@@ -31,10 +31,15 @@ import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.jvm.JvmLibrary;
+import org.gradle.jvm.toolchain.JavaInstallationContainer;
+import org.gradle.jvm.toolchain.JavaToolchainQueryService;
+import org.gradle.jvm.toolchain.internal.DefaultJavaInstallationContainer;
+import org.gradle.jvm.toolchain.internal.JavaInstallationRegistryShared;
 import org.gradle.language.java.artifact.JavadocArtifact;
 import org.gradle.tooling.events.OperationType;
 import org.slf4j.LoggerFactory;
@@ -57,6 +62,17 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new JavaProjectScopeServices());
+        registration.add(JavaToolchainQueryService.class);
+    }
+
+    @Override
+    public void registerBuildTreeServices(ServiceRegistration registration) {
+        registration.add(JavaInstallationRegistryShared.class);
+        registration.addProvider(new Object() {
+            JavaInstallationContainer createInstallationsContainer(Instantiator instantiator, JavaInstallationRegistryShared registry) {
+                return instantiator.newInstance(DefaultJavaInstallationContainer.class, instantiator, registry);
+            }
+        });
     }
 
     private static class JavaGlobalScopeServices {
@@ -69,6 +85,7 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
         public JavaCompileTaskSuccessResultPostProcessor createJavaCompileTaskSuccessResultDecoratorFactory() {
             return new JavaCompileTaskSuccessResultPostProcessor();
         }
+
     }
 
     private static class JavaGradleScopeServices {

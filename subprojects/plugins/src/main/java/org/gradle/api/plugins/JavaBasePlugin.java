@@ -56,7 +56,7 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.jvm.toolchain.JavaInstallationContainer;
 import org.gradle.jvm.toolchain.JavaInstallationRegistry;
-import org.gradle.jvm.toolchain.internal.DefaultJavaInstallationContainer;
+import org.gradle.jvm.toolchain.JavaToolchainQueryService;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
@@ -103,13 +103,15 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     private final JavaInstallationRegistry javaInstallationRegistry;
     private final boolean javaClasspathPackaging;
     private final JavaInstallationContainer javaInstallationContainer;
+    private final JavaToolchainQueryService toolchainQueryService;
 
     @Inject
-    public JavaBasePlugin(ObjectFactory objectFactory, JavaInstallationRegistry javaInstallationRegistry) {
+    public JavaBasePlugin(ObjectFactory objectFactory, JavaInstallationRegistry javaInstallationRegistry, JavaInstallationContainer javaInstallationContainer, JavaToolchainQueryService toolchainQueryService) {
         this.objectFactory = objectFactory;
         this.javaInstallationRegistry = javaInstallationRegistry;
+        this.javaInstallationContainer = javaInstallationContainer;
+        this.toolchainQueryService = toolchainQueryService;
         this.javaClasspathPackaging = Boolean.getBoolean(COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY);
-        this.javaInstallationContainer = objectFactory.newInstance(DefaultJavaInstallationContainer.class);
     }
 
     @Override
@@ -141,8 +143,9 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         project.getConvention().getPlugins().put("java", javaConvention);
         project.getExtensions().add(SourceSetContainer.class, "sourceSets", javaConvention.getSourceSets());
         project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project);
+        // TODO: this should be hidden going forward
         project.getExtensions().add(JavaInstallationRegistry.class, "javaInstalls", javaInstallationRegistry);
-        project.getExtensions().add(JavaInstallationContainer.class, "javaInstallations", javaInstallationContainer);
+        project.getExtensions().add(JavaToolchainQueryService.class, "javaToolchains", toolchainQueryService);
         return javaConvention;
     }
 

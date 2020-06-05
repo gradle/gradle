@@ -28,6 +28,7 @@ import org.gradle.api.provider.Provider;
  * @since 6.2
  */
 @Incubating
+// TODO: this should be a JavaInstallationResolver or something
 public interface JavaInstallationRegistry {
     /**
      * Returns the Java installation for the current virtual machine.
@@ -55,4 +56,6 @@ public interface JavaInstallationRegistry {
      * @param installationDirectory The directory containing the Java installation.
      */
     Provider<JavaInstallation> installationForDirectory(Provider<Directory> installationDirectory);
+
 }
+

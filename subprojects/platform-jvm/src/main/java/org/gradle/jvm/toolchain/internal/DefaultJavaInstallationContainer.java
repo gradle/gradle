@@ -16,6 +16,9 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.internal.jvm.Jvm;
@@ -28,8 +31,10 @@ import javax.inject.Inject;
 public class DefaultJavaInstallationContainer extends AbstractNamedDomainObjectContainer<LogicalJavaInstallation> implements JavaInstallationContainer {
 
     @Inject
-    public DefaultJavaInstallationContainer(Instantiator instantiator, CollectionCallbackActionDecorator callbackDecorator) {
-        super(LogicalJavaInstallation.class, instantiator, i -> i.getName(), callbackDecorator);
+    public DefaultJavaInstallationContainer(Instantiator instantiator, JavaInstallationRegistryShared registry) {
+        // TODO: decorated needed for settings?
+        super(LogicalJavaInstallation.class, instantiator, i -> i.getName(), CollectionCallbackActionDecorator.NOOP);
+        all(registry::add);
         createCurrentInstallation();
     }
 
@@ -42,4 +47,8 @@ public class DefaultJavaInstallationContainer extends AbstractNamedDomainObjectC
         return new DefaultLogicalJavaInstallation(name);
     }
 
+    @Override
+    public NamedDomainObjectProvider<LogicalJavaInstallation> register(String name, Action<? super LogicalJavaInstallation> configurationAction) throws InvalidUserDataException {
+        return super.register(name, configurationAction);
+    }
 }
