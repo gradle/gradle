@@ -39,7 +39,7 @@ class ApplicationIntegrationSpec extends AbstractIntegrationSpec{
         """
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def canUseEnvironmentVariableToPassMultipleOptionsToJvmWhenRunningScript() {
         file('src/main/java/org/gradle/test/Main.java') << '''
 package org.gradle.test;
@@ -77,7 +77,7 @@ class Main {
         result.assertNormalExitValue()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def canUseDefaultJvmArgsToPassMultipleOptionsToJvmWhenRunningScript() {
         file("build.gradle") << '''
 applicationDefaultJvmArgs = ['-DtestValue=value', '-DtestValue2=some value', '-DtestValue3=some value']
@@ -113,7 +113,7 @@ class Main {
         result.assertNormalExitValue()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def canUseBothDefaultJvmArgsAndEnvironmentVariableToPassOptionsToJvmWhenRunningScript() {
         file("build.gradle") << '''
 applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=some value2']
@@ -150,7 +150,7 @@ class Main {
         result.assertNormalExitValue()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def canUseDefaultJvmArgsToPassMultipleOptionsWithShellMetacharactersToJvmWhenRunningScript() {
         //even in single-quoted multi-line strings, backslashes must still be quoted
         file("build.gradle") << '''
@@ -190,7 +190,7 @@ class Main {
         result.assertNormalExitValue()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def canUseDefaultJvmArgsInRunTask() {
             file("build.gradle") << '''
     applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=value2']
@@ -215,7 +215,7 @@ class Main {
         }
 
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def "can customize application name"() {
         file('build.gradle') << '''
 applicationName = 'mega-app'
@@ -252,7 +252,7 @@ class Main {
         checkApplicationImage('mega-app', distTarDir.file('mega-app'))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def "check distribution contents when all defaults used"() {
         file('src/main/java/org/gradle/test/Main.java') << '''
 package org.gradle.test;
@@ -291,7 +291,7 @@ class Main {
         checkApplicationImage('application', distTarDir.file('application'))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def "install task complains if install directory exists and doesn't look like previous install"() {
         file('build.gradle') << """
 installDist.destinationDir = buildDir
@@ -356,7 +356,7 @@ class Main {
         checkApplicationImage('application', distTarDir.file('application'))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def "conventional resources are including in dist"() {
         when:
         file("src/dist/dir").with {
@@ -374,7 +374,7 @@ class Main {
         distBase.file("dir/r2.txt").text == "r2"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def "configure the distribution spec to source from a different dir"() {
         when:
         file("src/somewhere-else/dir").with {
@@ -400,7 +400,7 @@ class Main {
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def "distribution file producing tasks are run automatically"() {
         when:
         buildFile << """
@@ -454,7 +454,7 @@ class Main {
         true
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def checkClasspathOrderInStartScript() {
         def resourceFileName = "resource.properties"
         file('src/main/java/org/gradle/test/Main.java') << """
