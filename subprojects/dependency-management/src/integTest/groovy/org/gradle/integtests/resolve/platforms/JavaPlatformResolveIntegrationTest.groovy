@@ -640,6 +640,84 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         platform << ["project(':platform')", "'org:other-platform:1.0'", "'org:bom-platform:1.0'"]
     }
 
+    def 'platform deselection / reselection does not cause orphan edges'() {
+        given:
+        def depExcluded = mavenHttpRepo.module('org.test', 'excluded', '1.0').publish()
+        def depA = mavenHttpRepo.module('org.test', 'depA', '1.0').publish()
+        def platform = mavenHttpRepo.module('org.test', 'platform', '1.0').withModuleMetadata().withoutDefaultVariants()
+            .withVariant('apiElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('org.test', 'depA', '1.0')
+                constraint('org.test', 'excluded', '1.0')
+            }
+            .withVariant('runtimeElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('org.test', 'depA', '1.0')
+                constraint('org.test', 'excluded', '1.0')
+            }.publish()
+        def depC = mavenHttpRepo.module('org.test', 'depC', '1.0').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('org.test', 'platform', '1.0', null, [(Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM])
+            }.publish()
+        def depB = mavenHttpRepo.module('org.test', 'depB', '1.0').dependsOn([exclusions: [[module: 'excluded']]], depC).publish()
+        def depF = mavenHttpRepo.module('org.test', 'depF', '1.0').dependsOn(depC).publish()
+        def depE = mavenHttpRepo.module('org.test', 'depE', '1.0').dependsOn(depF).publish()
+        def depD = mavenHttpRepo.module('org.test', 'depD', '1.0').dependsOn(depE).publish()
+
+        depExcluded.allowAll()
+        depA.allowAll()
+        depB.allowAll()
+        depC.allowAll()
+        depD.allowAll()
+        depE.allowAll()
+        depF.allowAll()
+        platform.allowAll()
+
+        buildFile << """
+            configurations {
+                conf.dependencies.clear()
+            }
+
+            dependencies {
+                conf 'org.test:depA'
+                conf 'org.test:depB:1.0'
+                conf 'org.test:depD:1.0'
+            }
+"""
+        checkConfiguration("conf")
+        resolve.expectDefaultConfiguration("runtime")
+
+        when:
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", "org.test:test:1.9") {
+                edge("org.test:depA", "org.test:depA:1.0")
+                module("org.test:depB:1.0") {
+                    module("org.test:depC:1.0") {
+                        module('org.test:platform:1.0') {
+                            noArtifacts()
+                            constraint('org.test:depA:1.0')
+                        }
+                    }
+                }
+                module('org.test:depD:1.0') {
+                    module('org.test:depE:1.0') {
+                        module('org.test:depF:1.0') {
+                            module('org.test:depC:1.0')
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
     private void checkConfiguration(String configuration) {
         resolve = new ResolveTestFixture(buildFile, configuration)
         resolve.expectDefaultConfiguration("compile")
