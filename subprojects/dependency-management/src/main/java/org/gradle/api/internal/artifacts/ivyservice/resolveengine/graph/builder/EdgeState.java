@@ -66,6 +66,7 @@ class EdgeState implements DependencyGraphEdge {
     private ExcludeSpec cachedExclusions;
 
     private ResolvedVariantResult resolvedVariant;
+    private boolean unattached;
 
     EdgeState(NodeState from, DependencyState dependencyState, ExcludeSpec transitiveExclusions, ResolveState resolveState) {
         this.from = from;
@@ -181,9 +182,13 @@ class EdgeState implements DependencyGraphEdge {
         targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), err);
     }
 
-    public void restart() {
+    public void restart(boolean checkUnattached) {
         if (from.isSelected()) {
             removeFromTargetConfigurations();
+            // We now have corner cases that can lead to this restart not succeeding
+            if (checkUnattached && !isUnattached()) {
+                selector.getTargetModule().addUnattachedDependency(this);
+            }
             attachToTargetConfigurations();
         }
     }
@@ -429,5 +434,17 @@ class EdgeState implements DependencyGraphEdge {
         for (NodeState targetNode : targetNodes) {
             targetNode.updateTransitiveExcludes();
         }
+    }
+
+    public void markUnattached() {
+        this.unattached = true;
+    }
+
+    public void markAttached() {
+        this.unattached = false;
+    }
+
+    public boolean isUnattached() {
+        return unattached;
     }
 }
