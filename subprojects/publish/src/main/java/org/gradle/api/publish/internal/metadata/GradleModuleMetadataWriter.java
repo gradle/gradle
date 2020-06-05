@@ -17,11 +17,8 @@
 package org.gradle.api.publish.internal.metadata;
 
 import com.google.gson.stream.JsonWriter;
-import org.gradle.api.component.ComponentWithVariants;
-import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
-import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -29,8 +26,6 @@ import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * <p>The Gradle module metadata file generator is responsible for generating a JSON file
@@ -58,15 +53,9 @@ public class GradleModuleMetadataWriter {
     }
 
     public void writeTo(Writer writer, PublicationInternal<?> publication, Collection<? extends PublicationInternal<?>> publications) throws IOException {
-        // Collect a map from component to coordinates. This might be better to move to the component or some publications model
-        Map<SoftwareComponent, ComponentData> coordinates = new HashMap<>();
-        collectCoordinates(publications, coordinates);
 
-        // Collect a map from component to its owning component. This might be better to move to the component or some publications model
-        Map<SoftwareComponent, SoftwareComponent> owners = new HashMap<>();
-        collectOwners(publications, owners);
-
-        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName());
+        ModuleMetadata metadata = moduleMetadataFor(publication, publications);
+        String buildId = publication.isPublishBuildId() ? buildInvocationScopeId.getId().asString() : null;
 
         // Write the output
         JsonWriter jsonWriter = new JsonWriter(writer);
@@ -75,42 +64,24 @@ public class GradleModuleMetadataWriter {
 
         new ModuleMetadataJsonWriter(
             jsonWriter,
-            checker,
-            checksumService,
-            projectDependencyResolver,
-            buildInvocationScopeId.getId().asString(),
-            publication,
-            publication.getComponent(),
-            coordinates,
-            owners
+            metadata,
+            buildId,
+            checksumService
         ).write();
 
         jsonWriter.flush();
         writer.append('\n');
+    }
 
+    private ModuleMetadata moduleMetadataFor(PublicationInternal<?> publication, Collection<? extends PublicationInternal<?>> publications) {
+        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName());
+        ModuleMetadata metadata = new ModuleMetadataBuilder(
+            publication,
+            publications,
+            checker,
+            projectDependencyResolver
+        ).build();
         checker.validate();
-    }
-
-    private void collectOwners(Collection<? extends PublicationInternal<?>> publications, Map<SoftwareComponent, SoftwareComponent> owners) {
-        for (PublicationInternal<?> publication : publications) {
-            if (publication.getComponent() instanceof ComponentWithVariants) {
-                ComponentWithVariants componentWithVariants = (ComponentWithVariants) publication.getComponent();
-                for (SoftwareComponent child : componentWithVariants.getVariants()) {
-                    owners.put(child, publication.getComponent());
-                }
-            }
-        }
-    }
-
-    private void collectCoordinates(Collection<? extends PublicationInternal<?>> publications, Map<SoftwareComponent, ComponentData> coordinates) {
-        for (PublicationInternal<?> publication : publications) {
-            SoftwareComponentInternal component = publication.getComponent();
-            if (component != null) {
-                coordinates.put(
-                    component,
-                    new ComponentData(publication.getCoordinates(), publication.getAttributes())
-                );
-            }
-        }
+        return metadata;
     }
 }
