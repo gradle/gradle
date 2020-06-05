@@ -265,29 +265,4 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped ":run"
     }
-
-    def "when ignoring exit value a non-zero exit value doesn't fail the build"() {
-        given:
-        buildFile << '''
-            apply plugin: 'java'
-
-            task run(type: Exec) {
-                executable = org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
-                args 'not.found.MainClass'
-                ignoreExitValue = true
-            }
-        '''.stripIndent()
-
-        when:
-        run "run"
-
-        then:
-        executedAndNotSkipped(":run")
-
-        when:
-        run "run"
-
-        then:
-        executedAndNotSkipped(":run")
-    }
 }
