@@ -67,7 +67,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "JavaExec")
     def "java exec is not incremental by default"() {
         when:
         run "run"
@@ -82,7 +82,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":run"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "JavaExec")
     def 'arguments passed via command line take precedence and is not incremental by default'() {
         when:
         run("run", "--args", "2 '3' \"4\"")
@@ -108,7 +108,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue(["GRADLE-1483", "GRADLE-3528"])
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "JavaExec")
     def "when the user declares outputs it becomes incremental"() {
         given:
         buildFile << """
@@ -137,7 +137,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":run"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "JavaExec")
     def 'arguments passed via command line matter in incremental check'() {
         given:
         buildFile << """
@@ -168,7 +168,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         assertOutputFileIs("2\n")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "JavaExec")
     def "arguments can be passed by using argument providers"() {
         given:
         def inputFile = file("input.txt")
@@ -237,7 +237,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         outputFile.text == "different"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "JavaExec")
     def "main class can be configured through a convention mapping"() {
         given:
         buildFile.text = """
@@ -257,7 +257,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "JavaExec")
     @Issue("https://github.com/gradle/gradle/issues/12832")
     def "classpath can be replaced with a file collection including the replaced value"() {
         given:

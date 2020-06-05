@@ -68,7 +68,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         javaClassFile("").assertHasDescendants()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "run task")
     def compileWithSpecifiedEncoding() {
         given:
         goodCodeEncodedWith('ISO8859_7')

@@ -56,7 +56,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         file("unzip/TestProject-custom/someFile").assertIsFile()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "publishing")
     def "can publish distribution"() {
         when:
         buildFile << """

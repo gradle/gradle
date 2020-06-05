@@ -284,7 +284,7 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3522")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "early dependency resolution")
     def "war task doesn't trigger dependency resolution early"() {
         when:
         buildFile << """

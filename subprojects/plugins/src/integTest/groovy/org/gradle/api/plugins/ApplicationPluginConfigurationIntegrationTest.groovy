@@ -25,7 +25,7 @@ import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
 class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":installDist")
     def "can configure using project extension"() {
         settingsFile << """
             rootProject.name = 'test'
@@ -63,7 +63,7 @@ class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationS
         out.toString() == TextUtil.toPlatformLineSeparators("all good\n")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":installDist")
     @Requires(TestPrecondition.JDK9_OR_LATER)
     @Unroll
     def "can configure using project extension for main class and main module"() {

@@ -115,7 +115,7 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
         skipped ":b:${language.compileTaskName}"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "run task")
     def "recompiles source when annotation processor implementation on annotation processor classpath changes"() {
         given:
         settingsFile << "include 'c'"
