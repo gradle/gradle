@@ -60,7 +60,7 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         buildOperations.first('Configure build').id == loadProjectsBuildOperation.parentId
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "operations are fired for complex nest of builds"() {
         settingsFile << """
             rootProject.name = "root-changed"

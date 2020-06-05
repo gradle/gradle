@@ -30,7 +30,7 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
     private int daemonLogCheckpoint
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Exec & JavaExec")
     def "can cancel #scenario"() {
         given:
         blockCode()
@@ -75,7 +75,7 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "JavaExec")
     def "task gets rerun after cancellation when buildcache = #buildCacheEnabled and ignoreExitValue = #ignoreExitValue"() {
         given:
         file('outputFile') << ''

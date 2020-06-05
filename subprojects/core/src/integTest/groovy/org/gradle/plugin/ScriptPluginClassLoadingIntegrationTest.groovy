@@ -198,7 +198,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatCause(containsText("unable to resolve class Foo"))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "plugin-dev & publishing")
     def "script plugin buildscript does not affect client"() {
         given:
         def jar = file("plugin.jar")
@@ -249,7 +249,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "not in sub"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "plugin-dev & publishing")
     def "script plugin cannot access classes added by buildscript in applying script"() {
         given:
         def jar = file("plugin.jar")
@@ -285,7 +285,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "not in script"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "plugin-dev & publishing")
     def "second level script plugin cannot access classes added by buildscript in applying script"() {
         given:
         def jar = file("plugin.jar")
@@ -325,7 +325,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "not in script"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "plugin-dev & publishing")
     def "Can apply a script plugin to the buildscript block"() {
         given:
         def jar = file("plugin.jar")
