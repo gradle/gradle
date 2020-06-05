@@ -17,7 +17,6 @@
 package org.gradle.process.internal
 
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
@@ -32,7 +31,6 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
 
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = ".* project.exec")
-    @ToBeFixedForInstantExecution(iterationMatchers = "can cancel JavaExec")
     def "can cancel #scenario"() {
         given:
         blockCode()
@@ -77,7 +75,6 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "JavaExec", skip = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
     def "task gets rerun after cancellation when buildcache = #buildCacheEnabled and ignoreExitValue = #ignoreExitValue"() {
         given:
         file('outputFile') << ''
