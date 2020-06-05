@@ -24,6 +24,7 @@ import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecSpec;
 import org.gradle.util.GUtil;
 
+import javax.inject.Inject;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSp
     private OutputStream standardOutput;
     private OutputStream errorOutput;
 
+    @Inject
     public DefaultExecSpec(PathToFileResolver resolver) {
         super(resolver);
     }

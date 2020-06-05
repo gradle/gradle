@@ -57,9 +57,9 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
 
     @Inject
     public DefaultJavaExecSpec(
+        ObjectFactory objectFactory,
         PathToFileResolver resolver,
-        FileCollectionFactory fileCollectionFactory,
-        ObjectFactory objectFactory
+        FileCollectionFactory fileCollectionFactory
     ) {
         super(resolver, fileCollectionFactory, objectFactory.newInstance(DefaultJavaDebugOptions.class));
         this.mainClass = objectFactory.property(String.class);
@@ -71,7 +71,7 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
 
     @Override
     public List<String> getCommandLine() {
-        List<String> commandLine = new ArrayList<String>();
+        List<String> commandLine = new ArrayList<>();
         commandLine.add(getExecutable());
         commandLine.addAll(getAllArguments());
         return commandLine;
@@ -93,19 +93,24 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
     }
 
     @Override
-    public JavaExecSpec setArgs(List<String> arguments) {
+    public JavaExecSpec setArgs(@Nullable List<String> arguments) {
         this.arguments.clear();
-        this.arguments.addAll(arguments);
+        if (arguments != null) {
+            this.arguments.addAll(arguments);
+        }
         return this;
     }
 
     @Override
-    public JavaExecSpec setArgs(Iterable<?> arguments) {
+    public JavaExecSpec setArgs(@Nullable Iterable<?> arguments) {
         this.arguments.clear();
-        GUtil.addToCollection(this.arguments, arguments);
+        if (arguments != null) {
+            GUtil.addToCollection(this.arguments, arguments);
+        }
         return this;
     }
 
+    @Nullable
     @Override
     public List<String> getArgs() {
         List<String> args = new ArrayList<>();
@@ -140,11 +145,17 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
 
     // TODO wrong?
     public List<String> getAllArguments() {
-        List<String> args = new ArrayList<>(getArgs());
-        for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
-            Iterables.addAll(args, argumentProvider.asArguments());
+        List<String> allArgs;
+        List<String> args = getArgs();
+        if (args == null) {
+            allArgs = new ArrayList<>();
+        } else {
+            allArgs = new ArrayList<>(args);
         }
-        return args;
+        for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
+            Iterables.addAll(allArgs, argumentProvider.asArguments());
+        }
+        return allArgs;
     }
 
     @Override
@@ -203,7 +214,7 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
     }
 
     @Override
-    public JavaExecSpec setMain(String main) {
+    public JavaExecSpec setMain(@Nullable String main) {
         getMainClass().set(main);
         return this;
     }
