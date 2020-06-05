@@ -182,7 +182,11 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
             if (shouldBeIgnored) {
                 return null;
             }
-            return classpathResourceHasher.hash(fileSnapshot);
+            if (ZipHasher.isZipFile(fileSnapshot.getName())) {
+                return fingerprintZipContents(fileSnapshot);
+            } else {
+                return classpathResourceHasher.hash(fileSnapshot);
+            }
         }
 
         @Override
