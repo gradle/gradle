@@ -209,7 +209,7 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
         startBuild(task, buildCacheEnabled)
         cancelBuild(task)
 
-        def build = executer.withTasks("tasks").withArguments("--debug").start()
+        def build = executer.withTasks("help").withArguments("--debug").start()
         build.waitForFinish()
         assert daemons.daemons.size() == 1
     }
