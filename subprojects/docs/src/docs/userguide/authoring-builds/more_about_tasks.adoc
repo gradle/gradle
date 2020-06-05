@@ -1264,7 +1264,7 @@ include::sample[dir="snippets/tasks/finalizersWithFailure/kotlin",files="build.g
 .Output of **`gradle -q taskX`**
 ----
 > gradle -q taskX
-include::{snippetsPath}/tasks/finalizersWithFailure/tests/taskFinalizersWithFailureGroovy.out[]
+include::{snippetsPath}/tasks/finalizersWithFailure/tests-groovy/taskFinalizersWithFailureGroovy.out[]
 ----
 ====
 
