@@ -20,6 +20,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -29,6 +30,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = ".*javaexecProjectMethod")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*javaexecTask")
     def 'can execute java with #task'() {
         given:
@@ -38,7 +40,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: 'java'
 
             task javaexecTask(type: JavaExec) {
-                ext.testFile = file("${'$'}buildDir/${'$'}name")
+                def testFile = file("${'$'}buildDir/${'$'}name")
                 classpath(sourceSets.main.output.classesDirs)
                 main = 'org.gradle.TestMain'
                 args projectDir, testFile
@@ -49,7 +51,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task javaexecProjectMethod() {
-                ext.testFile = file("${'$'}buildDir/${'$'}name")
+                def testFile = file("${'$'}buildDir/${'$'}name")
                 dependsOn(sourceSets.main.output)
                 doFirst {
                     javaexec {
@@ -87,7 +89,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*execTask")
+    @UnsupportedWithInstantExecution(iterationMatchers = ".*execProjectMethod")
     def 'can execute commands with #task'() {
         given:
         buildFile << """
@@ -98,7 +100,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
             task execTask(type: Exec) {
                 dependsOn sourceSets.main.runtimeClasspath
-                ext.testFile = file("${'$'}buildDir/${'$'}name")
+                def testFile = file("${'$'}buildDir/${'$'}name")
                 executable = Jvm.current().getJavaExecutable()
                 args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
                 doLast {
@@ -109,7 +111,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
             task execProjectMethod {
                 dependsOn sourceSets.main.runtimeClasspath
-                ext.testFile = file("${'$'}buildDir/${'$'}name")
+                def testFile = file("${'$'}buildDir/${'$'}name")
                 doFirst {
                     exec {
                         executable Jvm.current().getJavaExecutable()
@@ -169,7 +171,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3528")
-    @ToBeFixedForInstantExecution(because = "Exec")
     def "when the user declares outputs it becomes incremental"() {
         given:
         buildFile << '''
@@ -177,7 +178,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
             task run(type: Exec) {
                 inputs.files sourceSets.main.runtimeClasspath
-                ext.testFile = file("$buildDir/out.txt")
+                def testFile = file("$buildDir/out.txt")
                 outputs.file testFile
                 executable = org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
                 args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
@@ -209,7 +210,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":run")
     }
 
-    @ToBeFixedForInstantExecution(because = "Exec")
     def "arguments can be passed by using argument providers"() {
         given:
         buildFile << '''
@@ -237,7 +237,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task run(type: Exec) {
-                ext.testFile = file("$buildDir/out.txt")
+                def testFile = file("$buildDir/out.txt")
                 argumentProviders << new JavaTestCommand(
                     expectedWorkingDir: projectDir,
                     classPath: sourceSets.main.runtimeClasspath,
@@ -266,5 +266,30 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         run "run"
         then:
         executedAndNotSkipped ":run"
+    }
+
+    def "when ignoring exit value a non-zero exit value doesn't fail the build"() {
+        given:
+        buildFile << '''
+            apply plugin: 'java'
+
+            task run(type: Exec) {
+                executable = org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
+                args 'not.found.MainClass'
+                ignoreExitValue = true
+            }
+        '''.stripIndent()
+
+        when:
+        run "run"
+
+        then:
+        executedAndNotSkipped(":run")
+
+        when:
+        run "run"
+
+        then:
+        executedAndNotSkipped(":run")
     }
 }
