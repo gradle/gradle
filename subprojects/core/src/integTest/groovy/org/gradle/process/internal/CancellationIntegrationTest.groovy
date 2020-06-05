@@ -75,7 +75,7 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "JavaExec")
+    @ToBeFixedForInstantExecution(because = "JavaExec", skip = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
     def "task gets rerun after cancellation when buildcache = #buildCacheEnabled and ignoreExitValue = #ignoreExitValue"() {
         given:
         file('outputFile') << ''
