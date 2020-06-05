@@ -50,7 +50,7 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertJunit(rootTestOp, operations)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "test-ng")
     def "emitsBuildOperationsForTestNgTests"() {
         given:
         executer.withRepositoryMirrors()
