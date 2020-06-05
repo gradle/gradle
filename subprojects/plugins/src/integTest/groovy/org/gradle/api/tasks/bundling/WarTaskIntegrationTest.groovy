@@ -309,7 +309,6 @@ task war(type: War) {
         succeeds "war"
     }
 
-    @ToBeFixedForInstantExecution
     def "can make war task cacheable with runtime api"() {
         given:
         def webXml = file('web.xml') << '<web/>'

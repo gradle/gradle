@@ -28,6 +28,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.internal.Transformers;
 import org.gradle.util.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -65,7 +66,7 @@ public class War extends Jar {
         CopySpecInternal renameSpec = webInf.addChild();
         renameSpec.into("");
         renameSpec.from((Callable<File>) War.this::getWebXml);
-        renameSpec.appendCachingSafeCopyAction(new RenamingCopyAction(name -> "web.xml"));
+        renameSpec.appendCachingSafeCopyAction(new RenamingCopyAction(Transformers.constant("web.xml")));
     }
 
     @Internal
