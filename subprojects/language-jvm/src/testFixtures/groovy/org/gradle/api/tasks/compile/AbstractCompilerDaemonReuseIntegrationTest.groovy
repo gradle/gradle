@@ -92,7 +92,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "reuses compiler daemons within a composite build"() {
         Assume.assumeTrue(supportsCompositeBuilds())
 
