@@ -214,7 +214,6 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3627")
-    @ToBeFixedForInstantExecution
     def "can reference properties from TestTaskReports when using @CompileStatic"() {
         buildFile << """
             import groovy.transform.CompileStatic
@@ -235,7 +234,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         """
 
         expect:
-        succeeds("tasks")
+        succeeds("help")
     }
 
     private static String standaloneTestClass() {
