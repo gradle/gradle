@@ -62,7 +62,6 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         """
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = "JavaComponentCompilerDaemonReuseIntegrationTest")
     def "reuses compiler daemons within a single project build"() {
         withSingleProjectSources()
 
@@ -77,7 +76,6 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
-    @ToBeFixedForInstantExecution(bottomSpecs = "JavaComponentCompilerDaemonReuseIntegrationTest")
     def "reuses compiler daemons within a multi-project build"() {
         withMultiProjectSources()
 
@@ -109,7 +107,6 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
-    @ToBeFixedForInstantExecution(bottomSpecs = "JavaComponentCompilerDaemonReuseIntegrationTest")
     def "starts a new daemon when different options are used"() {
         withMultiProjectSources()
         buildFile << """

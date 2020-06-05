@@ -18,12 +18,13 @@ package org.gradle.integtests.language
 
 import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 
+@UnsupportedWithInstantExecution(because = "software model")
 abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends AbstractIntegrationSpec {
     abstract TestJvmComponent getTestComponent();
 
@@ -62,7 +63,6 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = "JavaLanguageIncrementalBuildIntegrationTest")
     def "builds jar"() {
         when:
         expectDeprecationWarnings()
@@ -75,7 +75,6 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         jarFile("build/jars/main/jar/main.jar").hasDescendants(testComponent.expectedOutputs*.fullPath as String[])
     }
 
-    @ToBeFixedForInstantExecution
     def "does not re-execute build with no change"() {
         given:
         expectDeprecationWarnings()
@@ -89,7 +88,6 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         allSkipped()
     }
 
-    @ToBeFixedForInstantExecution
     def "rebuilds jar and classfile is removed when source file removed"() {
         given:
         expectDeprecationWarnings()
@@ -108,7 +106,6 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         assertOutputs([testComponent.sources[0].classFile], [testComponent.resources[0], testComponent.resources[1]])
     }
 
-    @ToBeFixedForInstantExecution
     def "rebuilds jar without resource when resource removed"() {
         given:
         expectDeprecationWarnings()
@@ -126,7 +123,6 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         assertOutputs([testComponent.sources[0].classFile, testComponent.sources[1].classFile], [testComponent.resources[0]])
     }
 
-    @ToBeFixedForInstantExecution
     def "rebuilds jar when source file changed"() {
         given:
         expectDeprecationWarnings()
@@ -141,7 +137,6 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         executedAndNotSkipped mainCompileTaskName, ":createMainJar", ":mainJar"
     }
 
-    @ToBeFixedForInstantExecution
     def "rebuilds jar when resource file changed"() {
         given:
         expectDeprecationWarnings()
@@ -156,7 +151,6 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         executedAndNotSkipped ":processMainJarMainResources", ":createMainJar", ":mainJar"
     }
 
-    @ToBeFixedForInstantExecution
     def "rebuilds jar when source file added"() {
         given:
         expectDeprecationWarnings()
@@ -176,7 +170,6 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         jarFile("build/jars/main/jar/main.jar").assertContainsFile("Extra.class")
     }
 
-    @ToBeFixedForInstantExecution
     def "rebuilds jar when resource file added"() {
         given:
         expectDeprecationWarnings()
@@ -195,7 +188,6 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         jarFile("build/jars/main/jar/main.jar").assertContainsFile("Extra.txt")
     }
 
-    @ToBeFixedForInstantExecution
     def "recompiles but does not rebuild jar when source file changed such that bytecode is the same"() {
         given:
         expectDeprecationWarnings()

@@ -17,9 +17,11 @@
 package org.gradle.language.java
 
 import org.gradle.api.tasks.compile.AbstractComponentCompilerDaemonReuseIntegrationTest
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.language.fixtures.TestJavaComponent
 
+@UnsupportedWithInstantExecution(because = "software model")
 class JavaComponentCompilerDaemonReuseIntegrationTest extends AbstractComponentCompilerDaemonReuseIntegrationTest {
     @Override
     String getCompileTaskType() {

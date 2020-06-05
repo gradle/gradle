@@ -16,9 +16,11 @@
 
 package org.gradle.language.scala.plugins
 
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.language.AbstractJvmPluginLanguageIntegrationTest
 import org.gradle.language.scala.ScalaLanguageSourceSet
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ScalaLanguagePluginIntegrationTest extends AbstractJvmPluginLanguageIntegrationTest {
     String sourceSetTypeName = ScalaLanguageSourceSet.class.simpleName
 }
