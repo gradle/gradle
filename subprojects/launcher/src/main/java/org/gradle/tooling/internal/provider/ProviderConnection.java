@@ -25,7 +25,6 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
@@ -39,7 +38,11 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
+import org.gradle.launcher.configuration.BuildLayoutResult;
+import org.gradle.launcher.configuration.InitialProperties;
+import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
@@ -269,12 +272,15 @@ public class ProviderConnection {
         commandLineParser.allowUnknownOptions();
         commandLineParser.allowMixedSubcommandsAndOptions();
 
+        InitialPropertiesConverter initialPropertiesConverter = new InitialPropertiesConverter();
         BuildLayoutConverter buildLayoutConverter = new BuildLayoutConverter();
+        initialPropertiesConverter.configure(commandLineParser);
         buildLayoutConverter.configure(commandLineParser);
 
         ParsedCommandLine parsedCommandLine = commandLineParser.parse(operationParameters.getArguments() == null ? Collections.emptyList() : operationParameters.getArguments());
 
-        BuildLayoutConverter.Result buildLayoutResult = buildLayoutConverter.convert(parsedCommandLine, layout -> {
+        InitialProperties initialProperties = initialPropertiesConverter.convert(parsedCommandLine);
+        BuildLayoutResult buildLayoutResult = buildLayoutConverter.convert(initialProperties, parsedCommandLine, operationParameters.getProjectDir(), layout -> {
             if (operationParameters.getGradleUserHomeDir() != null) {
                 layout.setGradleUserHomeDir(operationParameters.getGradleUserHomeDir());
             }
@@ -282,16 +288,12 @@ public class ProviderConnection {
             if (searchUpwards != null) {
                 layout.setSearchUpwards(searchUpwards);
             }
-            layout.setCurrentDir(operationParameters.getProjectDir());
             layout.setProjectDir(operationParameters.getProjectDir());
         });
 
-        LayoutToPropertiesConverter.Result properties = new LayoutToPropertiesConverter(buildLayoutFactory).convert(buildLayoutResult);
+        AllProperties properties = new LayoutToPropertiesConverter(buildLayoutFactory).convert(initialProperties, buildLayoutResult);
 
-        BuildLayoutParameters layout = new BuildLayoutParameters();
-        buildLayoutResult.applyTo(layout);
-
-        DaemonParameters daemonParams = new DaemonParameters(layout, fileCollectionFactory);
+        DaemonParameters daemonParams = new DaemonParameters(buildLayoutResult, fileCollectionFactory);
         new DaemonBuildOptions().propertiesConverter().convert(properties.getProperties(), daemonParams);
         if (operationParameters.getDaemonBaseDir() != null) {
             daemonParams.setBaseDir(operationParameters.getDaemonBaseDir());
@@ -327,10 +329,10 @@ public class ProviderConnection {
 
     private static class Parameters {
         final DaemonParameters daemonParams;
-        final BuildLayoutConverter.Result buildLayout;
-        final LayoutToPropertiesConverter.Result properties;
+        final BuildLayoutResult buildLayout;
+        final AllProperties properties;
 
-        public Parameters(DaemonParameters daemonParams, BuildLayoutConverter.Result buildLayout, LayoutToPropertiesConverter.Result properties) {
+        public Parameters(DaemonParameters daemonParams, BuildLayoutResult buildLayout, AllProperties properties) {
             this.daemonParams = daemonParams;
             this.buildLayout = buildLayout;
             this.properties = properties;

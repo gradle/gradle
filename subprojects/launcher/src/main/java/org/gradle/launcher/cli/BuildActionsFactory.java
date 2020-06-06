@@ -78,7 +78,7 @@ class BuildActionsFactory implements CommandLineAction {
 
     @Override
     public Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
-        Parameters parameters = parametersConverter.convert(commandLine, new Parameters(fileCollectionFactory));
+        Parameters parameters = parametersConverter.convert(commandLine, null);
 
         parameters.getDaemonParameters().applyDefaultsFor(jvmVersionDetector.getJavaVersion(parameters.getDaemonParameters().getEffectiveJvm()));
 

@@ -21,9 +21,11 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.DefaultTaskExecutionRequest;
+import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
+import org.gradle.launcher.configuration.BuildLayoutResult;
+import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
 import org.gradle.launcher.cli.converter.StartParameterConverter;
-import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
@@ -54,7 +56,7 @@ class ProviderStartParameterConverter {
         return requests;
     }
 
-    public StartParameterInternal toStartParameter(ProviderOperationParameters parameters, BuildLayoutConverter.Result buildLayout, LayoutToPropertiesConverter.Result properties) {
+    public StartParameterInternal toStartParameter(ProviderOperationParameters parameters, BuildLayoutResult buildLayout, AllProperties properties) {
         // Important that this is constructed on the client so that it has the right gradleHomeDir and other state internally
         StartParameterInternal startParameter = new StartParameterInternal();
 
@@ -68,6 +70,7 @@ class ProviderStartParameterConverter {
         List<String> arguments = parameters.getArguments();
         StartParameterConverter converter = new StartParameterConverter();
         CommandLineParser parser = new CommandLineParser();
+        new InitialPropertiesConverter().configure(parser);
         new BuildLayoutConverter().configure(parser);
         converter.configure(parser);
         ParsedCommandLine parsedCommandLine;
@@ -84,11 +87,6 @@ class ProviderStartParameterConverter {
                     + "\nPlease find more information in the javadoc for the BuildLauncher class.", e);
         }
         converter.convert(parsedCommandLine, buildLayout, properties, startParameter);
-
-        Boolean searchUpwards = parameters.isSearchUpwards();
-        if (searchUpwards != null) {
-            startParameter.setSearchUpwardsWithoutDeprecationWarning(searchUpwards);
-        }
 
         if (parameters.getBuildLogLevel() != null) {
             startParameter.setLogLevel(parameters.getBuildLogLevel());

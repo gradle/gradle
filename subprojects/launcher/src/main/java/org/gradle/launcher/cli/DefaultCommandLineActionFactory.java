@@ -37,8 +37,12 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.CommandLineActionFactory;
 import org.gradle.launcher.bootstrap.ExecutionListener;
+import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
+import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
+import org.gradle.launcher.configuration.InitialProperties;
+import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.util.GradleVersion;
 
@@ -194,29 +198,32 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         @Override
         public void execute(ExecutionListener executionListener) {
             BuildOptionBackedConverter<LoggingConfiguration> loggingBuildOptions = new BuildOptionBackedConverter<>(new LoggingConfigurationBuildOptions());
+            InitialPropertiesConverter propertiesConverter = new InitialPropertiesConverter();
             BuildLayoutConverter buildLayoutConverter = new BuildLayoutConverter();
             LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(new BuildLayoutFactory());
 
-            BuildLayoutConverter.Result buildLayout = buildLayoutConverter.defaultValues();
+            BuildLayoutResult buildLayout = buildLayoutConverter.defaultValues();
 
             CommandLineParser parser = new CommandLineParser();
-            loggingBuildOptions.configure(parser);
+            propertiesConverter.configure(parser);
             buildLayoutConverter.configure(parser);
+            loggingBuildOptions.configure(parser);
 
             parser.allowUnknownOptions();
             parser.allowMixedSubcommandsAndOptions();
 
             try {
                 ParsedCommandLine parsedCommandLine = parser.parse(args);
+                InitialProperties initialProperties = propertiesConverter.convert(parsedCommandLine);
 
                 // Calculate build layout, for loading properties and other logging configuration
-                buildLayout = buildLayoutConverter.convert(parsedCommandLine);
+                buildLayout = buildLayoutConverter.convert(initialProperties, parsedCommandLine, null);
 
                 // Read *.properties files
-                LayoutToPropertiesConverter.Result properties = layoutToPropertiesConverter.convert(buildLayout);
+                AllProperties properties = layoutToPropertiesConverter.convert(initialProperties, buildLayout);
 
                 // Calculate the logging configuration
-                loggingBuildOptions.convert(parsedCommandLine, properties.getProperties(), loggingConfiguration);
+                loggingBuildOptions.convert(parsedCommandLine, properties, loggingConfiguration);
             } catch (CommandLineArgumentException e) {
                 // Ignore, deal with this problem later
             }

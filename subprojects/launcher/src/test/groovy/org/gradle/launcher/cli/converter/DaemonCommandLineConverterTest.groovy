@@ -18,14 +18,12 @@ package org.gradle.launcher.cli.converter
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cli.CommandLineParser
-import org.gradle.initialization.BuildLayoutParameters
+import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.launcher.daemon.configuration.DaemonParameters
-import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 import spock.lang.Unroll
 
-@UsesNativeServices
 class DaemonCommandLineConverterTest extends Specification {
     @Unroll
     def "converts daemon options - #options"() {
@@ -93,6 +91,9 @@ class DaemonCommandLineConverterTest extends Specification {
         CommandLineParser parser = new CommandLineParser()
         def converter = new DaemonBuildOptions().commandLineConverter()
         converter.configure(parser)
-        converter.convert(args, new DaemonParameters(new BuildLayoutParameters(), TestFiles.fileCollectionFactory()))
+        def buildLayoutResult = Stub(BuildLayoutResult) {
+            getGradleUserHomeDir() >> new File("gradle-user-home")
+        }
+        converter.convert(args, new DaemonParameters(buildLayoutResult, TestFiles.fileCollectionFactory()))
     }
 }

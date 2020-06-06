@@ -19,6 +19,7 @@ package org.gradle.launcher.cli.converter
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.cli.CommandLineParser
 import org.gradle.initialization.BuildLayoutParameters
+import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
@@ -43,17 +44,6 @@ class BuildLayoutConverterTest extends Specification {
 
         then:
         parameters.gradleUserHomeDir == dir
-    }
-
-    def "can specify system properties using -D command-line argument"() {
-        when:
-        def result = toResult(["-Dsome.prop=abc", "-Dother.prop=123"])
-        def props = [:]
-        result.collectSystemPropertiesInto(props)
-
-        then:
-        props["some.prop"] == "abc"
-        props["other.prop"] == "123"
     }
 
     def "can specify Gradle user home directory using -D system property command-line argument"() {
@@ -127,11 +117,14 @@ class BuildLayoutConverterTest extends Specification {
         return parameters
     }
 
-    BuildLayoutConverter.Result toResult(List<String> args, @DelegatesTo(BuildLayoutParameters) Closure overrides = {}) {
+    BuildLayoutResult toResult(List<String> args, @DelegatesTo(BuildLayoutParameters) Closure overrides = {}) {
         def parser = new CommandLineParser()
+        def initialPropertiesConverter = new InitialPropertiesConverter()
         def converter = new BuildLayoutConverter()
+        initialPropertiesConverter.configure(parser)
         converter.configure(parser)
-        return converter.convert(parser.parse(args)) {
+        def parsedCommandLine = parser.parse(args)
+        return converter.convert(initialPropertiesConverter.convert(parsedCommandLine), parsedCommandLine, null) {
             overrides.delegate = it
             overrides()
         }

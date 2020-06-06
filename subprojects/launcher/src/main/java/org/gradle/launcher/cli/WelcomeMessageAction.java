@@ -25,7 +25,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.IoActions;
 import org.gradle.launcher.bootstrap.ExecutionListener;
-import org.gradle.launcher.cli.converter.BuildLayoutConverter;
+import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
@@ -38,12 +38,12 @@ import java.io.StringWriter;
 class WelcomeMessageAction implements Action<ExecutionListener> {
 
     private final Logger logger;
-    private final BuildLayoutConverter.Result buildLayout;
+    private final BuildLayoutResult buildLayout;
     private final GradleVersion gradleVersion;
     private final Function<String, InputStream> inputStreamProvider;
     private final Action<ExecutionListener> action;
 
-    WelcomeMessageAction(BuildLayoutConverter.Result buildLayout, Action<ExecutionListener> action) {
+    WelcomeMessageAction(BuildLayoutResult buildLayout, Action<ExecutionListener> action) {
         this(Logging.getLogger(WelcomeMessageAction.class), buildLayout, GradleVersion.current(), new Function<String, InputStream>() {
             @Nullable
             @Override
@@ -54,7 +54,7 @@ class WelcomeMessageAction implements Action<ExecutionListener> {
     }
 
     @VisibleForTesting
-    WelcomeMessageAction(Logger logger, BuildLayoutConverter.Result buildLayout, GradleVersion gradleVersion, Function<String, InputStream> inputStreamProvider, Action<ExecutionListener> action) {
+    WelcomeMessageAction(Logger logger, BuildLayoutResult buildLayout, GradleVersion gradleVersion, Function<String, InputStream> inputStreamProvider, Action<ExecutionListener> action) {
         this.logger = logger;
         this.buildLayout = buildLayout;
         this.gradleVersion = gradleVersion;

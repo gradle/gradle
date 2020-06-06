@@ -20,60 +20,53 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.BuildLayoutParametersBuildOptions;
 import org.gradle.initialization.LayoutCommandLineConverter;
+import org.gradle.launcher.configuration.BuildLayoutResult;
+import org.gradle.launcher.configuration.InitialProperties;
 
+import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
 public class BuildLayoutConverter {
     private final CommandLineConverter<BuildLayoutParameters> buildLayoutConverter = new LayoutCommandLineConverter();
-    private final CommandLineConverter<Map<String, String>> systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
 
     public void configure(CommandLineParser parser) {
         buildLayoutConverter.configure(parser);
-        systemPropertiesCommandLineConverter.configure(parser);
     }
 
-    public Result defaultValues() {
-        return new Result(new BuildLayoutParameters(), Collections.emptyMap());
+    public BuildLayoutResult defaultValues() {
+        return new Result(new BuildLayoutParameters());
     }
 
-    public Result convert(ParsedCommandLine commandLine) {
-        return convert(commandLine, parameters -> {
+    public BuildLayoutResult convert(InitialProperties systemProperties, ParsedCommandLine commandLine, @Nullable File workingDir) {
+        return convert(systemProperties, commandLine, workingDir, parameters -> {
         });
     }
 
-    public Result convert(ParsedCommandLine commandLine, Consumer<BuildLayoutParameters> defaults) {
+    public BuildLayoutResult convert(InitialProperties systemProperties, ParsedCommandLine commandLine, @Nullable File workingDir, Consumer<BuildLayoutParameters> defaults) {
         BuildLayoutParameters layoutParameters = new BuildLayoutParameters();
+        if (workingDir != null) {
+            layoutParameters.setCurrentDir(workingDir);
+        }
         defaults.accept(layoutParameters);
-        Map<String, String> requestedSystemProperties = systemPropertiesCommandLineConverter.convert(commandLine, new HashMap<>());
+        Map<String, String> requestedSystemProperties = systemProperties.getRequestedSystemProperties();
         new BuildLayoutParametersBuildOptions().propertiesConverter().convert(requestedSystemProperties, layoutParameters);
         buildLayoutConverter.convert(commandLine, layoutParameters);
-        return new Result(layoutParameters, Collections.unmodifiableMap(requestedSystemProperties));
+        return new Result(layoutParameters);
     }
 
-    /**
-     * Immutable build layout details calculated from command-line arguments and the environment.
-     */
-    public static class Result {
+    private static class Result implements BuildLayoutResult {
         private final BuildLayoutParameters buildLayout;
-        private final Map<String, String> systemProperties;
 
-        public Result(BuildLayoutParameters buildLayout, Map<String, String> systemProperties) {
+        public Result(BuildLayoutParameters buildLayout) {
             this.buildLayout = buildLayout;
-            this.systemProperties = systemProperties;
         }
 
-        public void collectSystemPropertiesInto(Map<String, String> dest) {
-            dest.putAll(systemProperties);
-        }
-
+        @Override
         public void applyTo(BuildLayoutParameters buildLayout) {
             buildLayout.setCurrentDir(this.buildLayout.getCurrentDir());
             buildLayout.setProjectDir(this.buildLayout.getProjectDir());
@@ -82,6 +75,7 @@ public class BuildLayoutConverter {
             buildLayout.setGradleInstallationHomeDir(this.buildLayout.getGradleInstallationHomeDir());
         }
 
+        @Override
         public void applyTo(StartParameterInternal startParameter) {
             startParameter.setProjectDir(buildLayout.getProjectDir());
             startParameter.setCurrentDir(buildLayout.getCurrentDir());
@@ -89,6 +83,7 @@ public class BuildLayoutConverter {
             startParameter.setGradleUserHomeDir(buildLayout.getGradleUserHomeDir());
         }
 
+        @Override
         public File getGradleUserHomeDir() {
             return buildLayout.getGradleUserHomeDir();
         }
