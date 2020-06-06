@@ -16,31 +16,22 @@
 
 package org.gradle.process.internal;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecSpec;
-import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 
-public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSpec {
+public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSpec, ProcessArgumentsSpec.HasExecutable {
 
     private boolean ignoreExitValue;
-    private InputStream standardInput;
-    private OutputStream standardOutput;
-    private OutputStream errorOutput;
-
-    private final List<Object> arguments = new ArrayList<>();
-    private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<>();
+    private final ProcessStreamsSpec streamsSpec = new ProcessStreamsSpec();
+    private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
 
     @Inject
     public DefaultExecSpec(PathToFileResolver resolver) {
@@ -72,90 +63,68 @@ public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSp
 
     @Override
     public List<String> getCommandLine() {
-        List<String> commandLine = new ArrayList<>();
-        commandLine.add(getExecutable());
-        commandLine.addAll(getAllArguments());
-        return commandLine;
-    }
-
-    private List<String> getAllArguments() {
-        List<String> args = new ArrayList<>(getArgs());
-        for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
-            Iterables.addAll(args, argumentProvider.asArguments());
-        }
-        return args;
+        return argumentsSpec.getCommandLine();
     }
 
     @Override
     public ExecSpec commandLine(Object... arguments) {
-        commandLine(Arrays.asList(arguments));
+        argumentsSpec.commandLine(arguments);
         return this;
     }
 
     @Override
     public ExecSpec commandLine(Iterable<?> args) {
-        List<Object> argsList = Lists.newArrayList(args);
-        executable(argsList.get(0));
-        setArgs(argsList.subList(1, argsList.size()));
+        argumentsSpec.commandLine(args);
         return this;
     }
 
     @Override
     public void setCommandLine(List<String> args) {
-        commandLine(args);
+        argumentsSpec.commandLine(args);
     }
 
     @Override
     public void setCommandLine(Object... args) {
-        commandLine(args);
+        argumentsSpec.commandLine(args);
     }
 
     @Override
     public void setCommandLine(Iterable<?> args) {
-        commandLine(args);
+        argumentsSpec.commandLine(args);
     }
 
     @Override
     public ExecSpec args(Object... args) {
-        if (args == null) {
-            throw new IllegalArgumentException("args == null!");
-        }
-        this.arguments.addAll(Arrays.asList(args));
+        argumentsSpec.args(args);
         return this;
     }
 
     @Override
     public ExecSpec args(Iterable<?> args) {
-        GUtil.addToCollection(arguments, args);
+        argumentsSpec.args(args);
         return this;
     }
 
     @Override
     public ExecSpec setArgs(List<String> arguments) {
-        this.arguments.clear();
-        this.arguments.addAll(arguments);
+        argumentsSpec.setArgs(arguments);
         return this;
     }
 
     @Override
     public ExecSpec setArgs(Iterable<?> arguments) {
-        this.arguments.clear();
-        GUtil.addToCollection(this.arguments, arguments);
+        argumentsSpec.setArgs(arguments);
         return this;
     }
 
     @Override
     public List<String> getArgs() {
-        List<String> args = new ArrayList<>();
-        for (Object argument : arguments) {
-            args.add(argument.toString());
-        }
-        return args;
+        return argumentsSpec.getArgs();
     }
 
     @Override
     public List<CommandLineArgumentProvider> getArgumentProviders() {
-        return argumentProviders;
+        return argumentsSpec.getArgumentProviders();
     }
 
     @Override
@@ -171,34 +140,34 @@ public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSp
 
     @Override
     public BaseExecSpec setStandardInput(InputStream inputStream) {
-        standardInput = inputStream;
+        streamsSpec.setStandardInput(inputStream);
         return this;
     }
 
     @Override
     public InputStream getStandardInput() {
-        return standardInput;
+        return streamsSpec.getStandardInput();
     }
 
     @Override
     public BaseExecSpec setStandardOutput(OutputStream outputStream) {
-        standardOutput = outputStream;
+        streamsSpec.setStandardOutput(outputStream);
         return this;
     }
 
     @Override
     public OutputStream getStandardOutput() {
-        return standardOutput;
+        return streamsSpec.getStandardOutput();
     }
 
     @Override
     public BaseExecSpec setErrorOutput(OutputStream outputStream) {
-        errorOutput = outputStream;
+        streamsSpec.setErrorOutput(outputStream);
         return this;
     }
 
     @Override
     public OutputStream getErrorOutput() {
-        return errorOutput;
+        return streamsSpec.getErrorOutput();
     }
 }

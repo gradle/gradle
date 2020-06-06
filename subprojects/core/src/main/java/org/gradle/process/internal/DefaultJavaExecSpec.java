@@ -16,7 +16,6 @@
 
 package org.gradle.process.internal;
 
-import com.google.common.collect.Iterables;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -27,28 +26,21 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaExecSpec;
-import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.gradle.process.internal.DefaultExecSpec.copyBaseExecSpecTo;
 
 
-public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaExecSpec {
+public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaExecSpec, ProcessArgumentsSpec.HasExecutable {
 
     private boolean ignoreExitValue;
-    private InputStream standardInput;
-    private OutputStream standardOutput;
-    private OutputStream errorOutput;
-
-    private final List<Object> arguments = new ArrayList<>();
-    private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<>();
+    private final ProcessStreamsSpec streamsSpec = new ProcessStreamsSpec();
+    private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
 
     private final Property<String> mainClass;
     private final Property<String> mainModule;
@@ -87,72 +79,42 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
 
     @Override
     public List<String> getCommandLine() {
-        List<String> commandLine = new ArrayList<>();
-        commandLine.add(getExecutable());
-        commandLine.addAll(getAllArguments());
-        return commandLine;
-    }
-
-    private List<String> getAllArguments() {
-        List<String> allArgs;
-        List<String> args = getArgs();
-        if (args == null) {
-            allArgs = new ArrayList<>();
-        } else {
-            allArgs = new ArrayList<>(args);
-        }
-        for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
-            Iterables.addAll(allArgs, argumentProvider.asArguments());
-        }
-        return allArgs;
+        return argumentsSpec.getCommandLine();
     }
 
     @Override
     public JavaExecSpec args(Object... args) {
-        if (args == null) {
-            throw new IllegalArgumentException("args == null!");
-        }
-        this.arguments.addAll(Arrays.asList(args));
+        argumentsSpec.args(args);
         return this;
     }
 
     @Override
     public JavaExecSpec args(Iterable<?> args) {
-        GUtil.addToCollection(arguments, args);
+        argumentsSpec.args(args);
         return this;
     }
 
     @Override
     public JavaExecSpec setArgs(@Nullable List<String> arguments) {
-        this.arguments.clear();
-        if (arguments != null) {
-            this.arguments.addAll(arguments);
-        }
+        argumentsSpec.setArgs(arguments);
         return this;
     }
 
     @Override
     public JavaExecSpec setArgs(@Nullable Iterable<?> arguments) {
-        this.arguments.clear();
-        if (arguments != null) {
-            GUtil.addToCollection(this.arguments, arguments);
-        }
+        argumentsSpec.setArgs(arguments);
         return this;
     }
 
     @Nullable
     @Override
     public List<String> getArgs() {
-        List<String> args = new ArrayList<>();
-        for (Object argument : arguments) {
-            args.add(argument.toString());
-        }
-        return args;
+        return argumentsSpec.getArgs();
     }
 
     @Override
     public List<CommandLineArgumentProvider> getArgumentProviders() {
-        return argumentProviders;
+        return argumentsSpec.getArgumentProviders();
     }
 
     @Override
@@ -186,34 +148,34 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
 
     @Override
     public InputStream getStandardInput() {
-        return standardInput;
+        return streamsSpec.getStandardInput();
     }
 
     @Override
     public JavaExecSpec setStandardInput(InputStream standardInput) {
-        this.standardInput = standardInput;
+        streamsSpec.setStandardInput(standardInput);
         return this;
     }
 
     @Override
     public OutputStream getStandardOutput() {
-        return standardOutput;
+        return streamsSpec.getStandardOutput();
     }
 
     @Override
     public JavaExecSpec setStandardOutput(OutputStream standardOutput) {
-        this.standardOutput = standardOutput;
+        streamsSpec.setStandardOutput(standardOutput);
         return this;
     }
 
     @Override
     public OutputStream getErrorOutput() {
-        return errorOutput;
+        return streamsSpec.getErrorOutput();
     }
 
     @Override
     public JavaExecSpec setErrorOutput(OutputStream errorOutput) {
-        this.errorOutput = errorOutput;
+        streamsSpec.setErrorOutput(errorOutput);
         return this;
     }
 
@@ -225,12 +187,12 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
     @Nullable
     @Override
     public String getMain() {
-        return getMainClass().getOrNull();
+        return mainClass.getOrNull();
     }
 
     @Override
     public JavaExecSpec setMain(@Nullable String main) {
-        getMainClass().set(main);
+        mainClass.set(main);
         return this;
     }
 
