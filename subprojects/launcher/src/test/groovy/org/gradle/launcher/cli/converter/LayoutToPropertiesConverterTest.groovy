@@ -140,6 +140,18 @@ class LayoutToPropertiesConverterTest extends Specification {
         converter.convert(layout).properties.get(DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY) == '-Xmx2048m'
     }
 
+    def "can merge additional build JVM system properties"() {
+        when:
+        def layout = layout("-Dorg.gradle.parallel=true")
+        gradleHome.file("gradle.properties") << "org.gradle.workers.max=12"
+        def properties = converter.convert(layout)
+        properties = properties.merge(["org.gradle.workers.max": "4", "org.gradle.parallel": "false"])
+
+        then:
+        properties.properties.get("org.gradle.workers.max") == "4"
+        properties.properties.get("org.gradle.parallel") == "true"
+    }
+
     def "non-serializable system properties are ignored"() {
         when:
         def layout = layout()

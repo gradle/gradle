@@ -22,30 +22,27 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.buildoption.PropertiesConverter;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
-import org.gradle.launcher.cli.converter.StartParameterConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
-import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
+import org.gradle.launcher.cli.converter.StartParameterConverter;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 public class ParametersConverter {
 
     private final BuildLayoutConverter buildLayoutConverter;
-
     private final LayoutToPropertiesConverter layoutToPropertiesConverter;
-
     private final StartParameterConverter startParameterConverter;
-
     private final CommandLineConverter<DaemonParameters> daemonConverter;
-    private final PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter;
+    private final PropertiesConverter<DaemonParameters> propertiesToDaemonParametersConverter;
     private final FileCollectionFactory fileCollectionFactory;
 
     ParametersConverter(BuildLayoutConverter buildLayoutConverter,
                         LayoutToPropertiesConverter layoutToPropertiesConverter,
                         StartParameterConverter startParameterConverter,
                         CommandLineConverter<DaemonParameters> daemonConverter,
-                        PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter,
+                        PropertiesConverter<DaemonParameters> propertiesToDaemonParametersConverter,
                         FileCollectionFactory fileCollectionFactory) {
         this.buildLayoutConverter = buildLayoutConverter;
         this.layoutToPropertiesConverter = layoutToPropertiesConverter;
@@ -60,7 +57,7 @@ public class ParametersConverter {
             new LayoutToPropertiesConverter(buildLayoutFactory),
             new StartParameterConverter(),
             new DaemonBuildOptions().commandLineConverter(),
-            new PropertiesToDaemonParametersConverter(),
+            new DaemonBuildOptions().propertiesConverter(),
             fileCollectionFactory);
     }
 

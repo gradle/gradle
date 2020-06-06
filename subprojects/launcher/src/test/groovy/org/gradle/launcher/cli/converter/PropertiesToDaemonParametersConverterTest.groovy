@@ -32,12 +32,12 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
-    def converter = new PropertiesToDaemonParametersConverter()
+    def converter = new DaemonBuildOptions().propertiesConverter()
     def params = new DaemonParameters(new BuildLayoutParameters(), TestFiles.fileCollectionFactory())
 
     def "allows whitespace around boolean properties"() {
         when:
-        converter.convert([ (DaemonBuildOptions.DaemonOption.GRADLE_PROPERTY): 'false ' ], params)
+        converter.convert([(DaemonBuildOptions.DaemonOption.GRADLE_PROPERTY): 'false '], params)
         then:
         !params.enabled
     }
@@ -64,13 +64,13 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
     def "configures from gradle properties"() {
         when:
         converter.convert([
-            (DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY)     : '-Xmx256m',
-            (DaemonBuildOptions.JavaHomeOption.GRADLE_PROPERTY)    : Jvm.current().javaHome.absolutePath,
-            (DaemonBuildOptions.DaemonOption.GRADLE_PROPERTY)      : "false",
-            (DaemonBuildOptions.BaseDirOption.GRADLE_PROPERTY)     : new File("baseDir").absolutePath,
-            (DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY) : "115",
-            (DaemonBuildOptions.HealthCheckOption.GRADLE_PROPERTY) : "42",
-            (DaemonBuildOptions.DebugOption.GRADLE_PROPERTY)       : "true",
+            (DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY): '-Xmx256m',
+            (DaemonBuildOptions.JavaHomeOption.GRADLE_PROPERTY): Jvm.current().javaHome.absolutePath,
+            (DaemonBuildOptions.DaemonOption.GRADLE_PROPERTY): "false",
+            (DaemonBuildOptions.BaseDirOption.GRADLE_PROPERTY): new File("baseDir").absolutePath,
+            (DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY): "115",
+            (DaemonBuildOptions.HealthCheckOption.GRADLE_PROPERTY): "42",
+            (DaemonBuildOptions.DebugOption.GRADLE_PROPERTY): "true",
         ], params)
 
         then:

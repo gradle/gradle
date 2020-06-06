@@ -41,10 +41,10 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
-import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.NotifyDaemonAboutChangedPathsClient;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -292,7 +292,7 @@ public class ProviderConnection {
         buildLayoutResult.applyTo(layout);
 
         DaemonParameters daemonParams = new DaemonParameters(layout, fileCollectionFactory);
-        new PropertiesToDaemonParametersConverter().convert(properties.getProperties(), daemonParams);
+        new DaemonBuildOptions().propertiesConverter().convert(properties.getProperties(), daemonParams);
         if (operationParameters.getDaemonBaseDir() != null) {
             daemonParams.setBaseDir(operationParameters.getDaemonBaseDir());
         }
@@ -302,6 +302,10 @@ public class ProviderConnection {
         if (jvmArguments != null) {
             daemonParams.setJvmArgs(jvmArguments);
         }
+
+        // Include the system properties that are defined in the daemon JVM args
+        properties = properties.merge(daemonParams.getSystemProperties());
+
         Map<String, String> envVariables = operationParameters.getEnvironmentVariables(null);
         if (envVariables != null) {
             daemonParams.setEnvironmentVariables(envVariables);

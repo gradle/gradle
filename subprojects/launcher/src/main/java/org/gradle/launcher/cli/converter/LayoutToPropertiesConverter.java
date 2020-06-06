@@ -53,7 +53,7 @@ public class LayoutToPropertiesConverter {
         allBuildOptions.addAll(new BuildLayoutParametersBuildOptions().getAllOptions());
         allBuildOptions.addAll(new StartParameterBuildOptions().getAllOptions());
         allBuildOptions.addAll(new LoggingConfigurationBuildOptions().getAllOptions());
-        allBuildOptions.addAll(DaemonBuildOptions.get());
+        allBuildOptions.addAll(new DaemonBuildOptions().getAllOptions());
         allBuildOptions.addAll(new ParallelismBuildOptions().getAllOptions());
     }
 
@@ -64,12 +64,12 @@ public class LayoutToPropertiesConverter {
         configureFromHomeDir(layoutParameters.getGradleInstallationHomeDir(), properties);
         configureFromBuildDir(layoutParameters.getSearchDir(), layoutParameters.getSearchUpwards(), properties);
         configureFromHomeDir(layout.getGradleUserHomeDir(), properties);
-        configureFromSystemproperties(Cast.uncheckedNonnullCast(properties));
+        configureFromSystemPropertiesOfThisJvm(Cast.uncheckedNonnullCast(properties));
         layout.collectSystemPropertiesInto(properties);
-        return new Result(Collections.unmodifiableMap(properties));
+        return new Result(Collections.unmodifiableMap(properties), layout);
     }
 
-    private void configureFromSystemproperties(Map<Object, Object> properties) {
+    private void configureFromSystemPropertiesOfThisJvm(Map<Object, Object> properties) {
         for (Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
             Object key = entry.getKey();
             Object value = entry.getValue();
@@ -121,13 +121,22 @@ public class LayoutToPropertiesConverter {
      */
     public static class Result {
         private final Map<String, String> properties;
+        private final BuildLayoutConverter.Result buildLayout;
 
-        public Result(Map<String, String> properties) {
+        public Result(Map<String, String> properties, BuildLayoutConverter.Result buildLayout) {
             this.properties = properties;
+            this.buildLayout = buildLayout;
         }
 
         public Map<String, String> getProperties() {
             return properties;
+        }
+
+        public Result merge(Map<String, String> systemProperties) {
+            Map<String, String> properties = new HashMap<>(this.properties);
+            properties.putAll(systemProperties);
+            buildLayout.collectSystemPropertiesInto(properties);
+            return new Result(Collections.unmodifiableMap(properties), buildLayout);
         }
     }
 }

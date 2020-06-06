@@ -55,7 +55,7 @@ class InstantExecutionToolingApiInvocationIntegrationTest extends AbstractInstan
         outputContains("Reusing configuration cache.")
     }
 
-    def "can enable configuration cache using system property"() {
+    def "can enable configuration cache using system property in build arguments"() {
         buildFile << """
             plugins {
                 id("java")
@@ -76,9 +76,38 @@ class InstantExecutionToolingApiInvocationIntegrationTest extends AbstractInstan
         outputContains("Reusing configuration cache.")
     }
 
+    def "can enable configuration cache using system property in build JVM arguments"() {
+        buildFile << """
+            plugins {
+                id("java")
+            }
+        """
+
+        when:
+        executer.withJvmArgs(ENABLE_SYS_PROP)
+        run("assemble")
+
+        then:
+        outputContains("Configuration cache is an incubating feature.")
+
+        when:
+        executer.withJvmArgs(ENABLE_SYS_PROP)
+        run("assemble")
+
+        then:
+        outputContains("Configuration cache is an incubating feature.")
+        outputContains("Reusing configuration cache.")
+    }
+
     static class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
+        private final List<String> jvmArgs = []
+
         ToolingApiBackedGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
             super(distribution, testDirectoryProvider)
+        }
+
+        void withJvmArgs(String... args) {
+            jvmArgs.addAll(args)
         }
 
         @Override
@@ -106,6 +135,7 @@ class InstantExecutionToolingApiInvocationIntegrationTest extends AbstractInstan
             def connection = connector.connect()
             try {
                 connection.newBuild()
+                    .addJvmArguments(jvmArgs)
                     .withArguments(args)
                     .setStandardOutput(output)
                     .setStandardError(error)
