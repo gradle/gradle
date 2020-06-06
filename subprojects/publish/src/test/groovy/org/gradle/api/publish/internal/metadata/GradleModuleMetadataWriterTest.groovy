@@ -642,7 +642,6 @@ class GradleModuleMetadataWriterTest extends Specification {
             getVersion() >> '1'
         }
 
-
         def v1 = Stub(UsageContext)
         v1.name >> "v1"
         v1.attributes >> attributes(usage: "compile")
