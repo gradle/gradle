@@ -48,10 +48,18 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
+        assert result.output.contains("Hello world!")
 
         if (version == TestedVersions.kotlin.latest()) {
             expectNoDeprecationWarnings(result)
         }
+
+        when:
+        result = build(workers, 'run')
+
+        then:
+        result.task(':compileKotlin').outcome == UP_TO_DATE
+        assert result.output.contains("Hello world!")
 
         where:
         [version, workers] << [
@@ -92,10 +100,10 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         where:
 // To run a specific combination, set the values here, uncomment the following four lines
 //  and comment out the lines coming after
-//        kotlinPluginVersion = '1.3.61'
-//        androidPluginVersion = '3.5.1'
+//        kotlinPluginVersion = TestedVersions.kotlin.versions.last()
+//        androidPluginVersion = TestedVersions.androidGradle.versions.last()
 //        workers = false
-//        sampleName = 'android-kotlin-example-kotlin-dsl'
+//        sampleName = 'android-kotlin-example'
 
         [kotlinPluginVersion, androidPluginVersion, workers, sampleName] << [
             TestedVersions.kotlin.versions,
