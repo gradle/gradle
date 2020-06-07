@@ -41,6 +41,7 @@ Some plugins will break with this new version of Gradle, for example because the
 ==== Updates to bundled Gradle dependencies
 
 - Ant has been updated to https://downloads.apache.org/ant/RELEASE-NOTES-1.10.8.html[1.10.8].
+- Groovy has been updated to https://groovy-lang.org/changelogs/changelog-2.5.12.html[Groovy 2.5.12].
 
 === Deprecations
 
