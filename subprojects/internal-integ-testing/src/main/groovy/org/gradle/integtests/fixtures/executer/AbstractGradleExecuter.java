@@ -1252,6 +1252,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                         // Deprecation warning is expected
                         i++;
                         i = skipStackTrace(lines, i);
+                    } else if (line.contains("Couldn't cancel watch point")) {
+                        throw new AssertionError(String.format("%s line %d contains a file watching error message: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
                     } else if (line.matches(".*\\s+deprecated.*")) {
                         if (checkDeprecations && expectedGenericDeprecationWarnings <= 0) {
                             throw new AssertionError(String.format("%s line %d contains a deprecation warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
