@@ -28,7 +28,7 @@ import org.gradle.api.provider.Provider;
  * @since 6.2
  */
 @Incubating
-// TODO: this should be a JavaInstallationResolver or something
+// TODO: this should be a JavaInstallationResolver or something and eventually be moved to .internal
 public interface JavaInstallationRegistry {
     /**
      * Returns the Java installation for the current virtual machine.
