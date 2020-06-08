@@ -381,7 +381,7 @@ include::sample[dir="snippets/files/fileCollections/kotlin",files="build.gradle.
 .Output of **`gradle -q list`**
 ----
 > gradle -q list
-include::{snippetsPath}/files/fileCollections/tests/fileCollectionsWithClosure.out
+include::{snippetsPath}/files/fileCollections/tests/fileCollectionsWithClosure.out[]
 ----
 
 The key to lazy creation is passing a closure (in Groovy) or a `Provider` (in Kotlin) to the `files()` method. Your closure/provider simply needs to return a value of a type accepted by `files()`, such as `List<File>`, `String`, `FileCollection`, etc.
@@ -411,7 +411,7 @@ include::sample[dir="snippets/files/fileCollections/kotlin",files="build.gradle.
 .Output of **`gradle -q filterTextFiles`**
 ----
 > gradle -q filterTextFiles
-include::{snippetsPath}/files/fileCollections/tests/fileCollectionsFiltering.out
+include::{snippetsPath}/files/fileCollections/tests/fileCollectionsFiltering.out[]
 ----
 
 If `collection` changes at any time, either by adding or removing files from itself, then `textFiles` will immediately reflect the change because it is also a live collection. Note that the closure you pass to `filter()` takes a `File` as an argument and should return a boolean.
@@ -783,7 +783,7 @@ include::sample[dir="snippets/files/archiveNaming/kotlin",files="build.gradle.kt
 .Output of **`gradle -q myZip`**
 ----
 > gradle -q myZip
-include::{snippetsPath}/files/archiveNaming/tests/archiveNaming.out
+include::{snippetsPath}/files/archiveNaming/tests/archiveNaming.out[]
 ----
 
 Note that the name of the archive does _not_ derive from the name of the task that creates it.
@@ -807,7 +807,7 @@ include::sample[dir="snippets/files/archiveNaming/kotlin",files="build.gradle.kt
 .Output of **`gradle -q myCustomZip`**
 ----
 > gradle -q myCustomZip
-include::{snippetsPath}/files/archiveNaming/tests/zipWithCustomName.out
+include::{snippetsPath}/files/archiveNaming/tests/zipWithCustomName.out[]
 ----
 
 You can also override the default `archiveBaseName` value for _all_ the archive tasks in your build by using the _project_ property `archivesBaseName`, as demonstrated by the following example:
@@ -821,7 +821,7 @@ include::sample[dir="snippets/files/archivesChangedBaseName/kotlin",files="build
 .Output of **`gradle -q echoNames`**
 ----
 > gradle -q echoNames
-include::{snippetsPath}/files/archivesChangedBaseName/tests/zipWithArchivesBaseName.out
+include::{snippetsPath}/files/archivesChangedBaseName/tests/zipWithArchivesBaseName.out[]
 ----
 
 You can find all the possible archive task properties in the API documentation for link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask], but we have also summarized the main ones here:

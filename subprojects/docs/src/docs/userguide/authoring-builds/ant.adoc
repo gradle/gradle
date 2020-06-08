@@ -42,7 +42,7 @@ include::sample[dir="snippets/ant/useAntTask/kotlin",files="build.gradle.kts"]
 .Output of `gradle hello`
 ----
 > gradle hello
-include::{snippetsPath}/ant/useAntTask/tests/useAntTask.out
+include::{snippetsPath}/ant/useAntTask/tests/useAntTask.out[]
 ----
 
 You pass nested text to an Ant task by passing it as a parameter of the task method call. In this example, we pass the message for the `echo` task as nested text:
@@ -56,7 +56,7 @@ include::sample[dir="snippets/ant/taskWithNestedText/kotlin",files="build.gradle
 .Output of `gradle hello`
 ----
 > gradle hello
-include::{snippetsPath}/ant/taskWithNestedText/tests/taskWithNestedText.out
+include::{snippetsPath}/ant/taskWithNestedText/tests/taskWithNestedText.out[]
 ----
 
 You pass nested elements to an Ant task inside a closure. Nested elements are defined in the same way as tasks, by calling a method with the same name as the element we want to define.
@@ -122,7 +122,7 @@ include::sample[dir="snippets/ant/hello/groovy",files="build.xml"]
 .Output of `gradle hello`
 ----
 > gradle hello
-include::{snippetsPath}/ant/hello/tests/antHello.out
+include::{snippetsPath}/ant/hello/tests/antHello.out[]
 ----
 
 You can add a task which depends on an Ant target:
@@ -136,7 +136,7 @@ include::sample[dir="snippets/ant/dependsOnAntTarget/kotlin",files="build.gradle
 .Output of `gradle intro`
 ----
 > gradle intro
-include::{snippetsPath}/ant/dependsOnAntTarget/tests/dependsOnAntTarget.out
+include::{snippetsPath}/ant/dependsOnAntTarget/tests/dependsOnAntTarget.out[]
 ----
 
 Or, you can add behaviour to an Ant target:
@@ -150,7 +150,7 @@ include::sample[dir="snippets/ant/addBehaviourToAntTarget/kotlin",files="build.g
 .Output of `gradle hello`
 ----
 > gradle hello
-include::{snippetsPath}/ant/addBehaviourToAntTarget/tests/addBehaviourToAntTarget.out
+include::{snippetsPath}/ant/addBehaviourToAntTarget/tests/addBehaviourToAntTarget.out[]
 ----
 
 It is also possible for an Ant target to depend on a Gradle task:
@@ -168,7 +168,7 @@ include::sample[dir="snippets/ant/dependsOnTask/groovy",files="build.xml"]
 .Output of `gradle hello`
 ----
 > gradle hello
-include::{snippetsPath}/ant/dependsOnTask/tests/dependsOnTask.out
+include::{snippetsPath}/ant/dependsOnTask/tests/dependsOnTask.out[]
 ----
 
 Sometimes it may be necessary to “rename” the task generated for an Ant target to avoid a naming collision with existing Gradle tasks. To do this, use the link:{javadocPath}/org/gradle/api/AntBuilder.html#importBuild-java.lang.Object-org.gradle.api.Transformer-[AntBuilder.importBuild(java.lang.Object, org.gradle.api.Transformer)] method.
@@ -186,7 +186,7 @@ include::sample[dir="snippets/ant/renameTask/groovy",files="build.xml"]
 .Output of `gradle a-hello`
 ----
 > gradle a-hello
-include::{snippetsPath}/ant/renameTask/tests/renameAntDelegate.out
+include::{snippetsPath}/ant/renameTask/tests/renameAntDelegate.out[]
 ----
 
 Note that while the second argument to this method should be a link:{javadocPath}/org/gradle/api/Transformer.html[Transformer], when programming in Groovy we can simply use a closure instead of an anonymous inner class (or similar) due to http://mrhaki.blogspot.ie/2013/11/groovy-goodness-implicit-closure.html[Groovy's support for automatically coercing closures to single-abstract-method types].
@@ -286,7 +286,7 @@ include::sample[dir="snippets/ant/antLogging/kotlin",files="build.gradle.kts"]
 .Output of `gradle hello`
 ----
 > gradle hello
-include::{snippetsPath}/ant/antLogging/tests/antLogging.out
+include::{snippetsPath}/ant/antLogging/tests/antLogging.out[]
 ----
 
 On the other hand, if the `lifecycleLogLevel` was set to _ERROR_, Ant messages logged at the _WARN_ priority would no longer be logged at the `WARN` log level. They would now be logged at the `INFO` level and would be suppressed by default.

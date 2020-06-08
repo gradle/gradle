@@ -399,7 +399,7 @@ include::sample[dir="snippets/mavenMigration/multiModule/kotlin",files="settings
 .Output of **`gradle projects`**
 ----
 > gradle projects
-include::{snippetsPath}/mavenMigration/multiModule/tests/projects.out
+include::{snippetsPath}/mavenMigration/multiModule/tests/projects.out[]
 ----
  2. Replace cross-module dependencies with <<declaring_dependencies.adoc#sub:project_dependencies,project dependencies>>.
  3. Replicate project inheritance with <<multi_project_builds#sec:cross_project_configuration,cross-project configuration>>.
@@ -460,12 +460,12 @@ With this setup in place, you can activate one of the profiles by passing a valu
 .Output of **`gradle greeting`**
 ----
 > gradle greeting
-include::{snippetsPath}/mavenMigration/profiles/tests/greeting-default.out
+include::{snippetsPath}/mavenMigration/profiles/tests/greeting-default.out[]
 ----
 .Output of **`gradle -PbuildProfile=test greeting`**
 ----
 > gradle -PbuildProfile=test greeting
-include::{snippetsPath}/mavenMigration/profiles/tests/greeting-test.out
+include::{snippetsPath}/mavenMigration/profiles/tests/greeting-test.out[]
 ----
 
 You're not limited to checking project properties.

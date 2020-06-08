@@ -69,12 +69,12 @@ include::sample[dir="snippets/initScripts/configurationInjection/kotlin",files="
 [source.multi-language-sample,groovy]
 ----
 > gradle --init-script init.gradle -q showRepos
-include::{snippetsPath}/initScripts/configurationInjection/tests/initScriptConfiguration.out
+include::{snippetsPath}/initScripts/configurationInjection/tests-common/initScriptConfiguration.out[]
 ----
 [source.multi-language-sample,kotlin]
 ----
 > gradle --init-script init.gradle.kts -q showRepos
-include::{snippetsPath}/initScripts/configurationInjection/tests/initScriptConfiguration.out
+include::{snippetsPath}/initScripts/configurationInjection/tests-common/initScriptConfiguration.out[]
 ----
 
 [[sec:custom_classpath]]
@@ -106,12 +106,12 @@ Output when applying the init script
 [source.multi-language-sample,groovy]
 ----
 > gradle --init-script init.gradle -q doNothing
-include::{snippetsPath}/initScripts/externalDependency/tests/externalInitDependency.out
+include::{snippetsPath}/initScripts/externalDependency/tests-common/externalInitDependency.out[]
 ----
 [source.multi-language-sample,kotlin]
 ----
 > gradle --init-script init.gradle.kts -q doNothing
-include::{snippetsPath}/initScripts/externalDependency/tests/externalInitDependency.out
+include::{snippetsPath}/initScripts/externalDependency/tests-common/externalInitDependency.out[]
 ----
 
 [[sec:init_script_plugins]]
@@ -130,12 +130,12 @@ Output when applying the init script
 [source.multi-language-sample,groovy]
 ----
 > gradle --init-script init.gradle -q showRepositories
-include::{snippetsPath}/initScripts/plugins/tests/usePluginsInInitScripts.out
+include::{snippetsPath}/initScripts/plugins/tests-common/usePluginsInInitScripts.out[]
 ----
 [source.multi-language-sample,kotlin]
 ----
 > gradle --init-script init.gradle.kts -q showRepositories
-include::{snippetsPath}/initScripts/plugins/tests/usePluginsInInitScripts.out
+include::{snippetsPath}/initScripts/plugins/tests-common/usePluginsInInitScripts.out[]
 ----
 
 The plugin in the init script ensures that only a specified repository is used when running the build.

@@ -64,7 +64,7 @@ include::sample[dir="snippets/customPlugins/customPlugin/kotlin",files="build.gr
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{snippetsPath}/customPlugins/customPlugin/tests/customPlugin.out
+include::{snippetsPath}/customPlugins/customPlugin/tests/customPlugin.out[]
 ----
 
 One thing to note is that a new instance of a plugin is created for each project it is applied to. Also note that the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] class is a generic type.
@@ -92,7 +92,7 @@ include::sample[dir="snippets/customPlugins/customPluginWithConvention/kotlin",f
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{snippetsPath}/customPlugins/customPluginWithConvention/tests/customPluginWithConvention.out
+include::{snippetsPath}/customPlugins/customPluginWithConvention/tests/customPluginWithConvention.out[]
 ----
 
 In this example, `GreetingPluginExtension` is an object with a property called `message`. The extension object is added to the project with the name `greeting`.
@@ -110,7 +110,7 @@ include::sample[dir="snippets/customPlugins/customPluginWithAdvancedConvention/k
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{snippetsPath}/customPlugins/customPluginWithAdvancedConvention/tests/customPluginWithAdvancedConvention.out
+include::{snippetsPath}/customPlugins/customPluginWithAdvancedConvention/tests/customPluginWithAdvancedConvention.out[]
 ----
 
 [.multi-language-text.lang-groovy]
@@ -144,7 +144,7 @@ include::sample[dir="snippets/tasks/customTaskWithFileProperty/kotlin",files="bu
 .Output of **`gradle -q sayGreeting`**
 ----
 > gradle -q sayGreeting
-include::{snippetsPath}/tasks/customTaskWithFileProperty/tests/lazyFileProperties.out
+include::{snippetsPath}/tasks/customTaskWithFileProperty/tests/lazyFileProperties.out[]
 ----
 
 In this example, we configure the `greet` task `destination` property as a closure/provider, which is evaluated with

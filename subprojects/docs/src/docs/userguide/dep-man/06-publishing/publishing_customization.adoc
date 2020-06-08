@@ -151,7 +151,7 @@ include::sample[dir="snippets/maven-publish/conditional-publishing/kotlin",files
 .Output of `gradle publish`
 ----
 > gradle publish
-include::{snippetsPath}/maven-publish/conditional-publishing/tests/publishingMavenConditionally.out
+include::{snippetsPath}/maven-publish/conditional-publishing/tests/publishingMavenConditionally.out[]
 ----
 
 You may also want to define your own aggregate tasks to help with your workflow. For example, imagine that you have several publications that should be published to the external repository. It could be very useful to publish all of them in one go without publishing the internal ones.
