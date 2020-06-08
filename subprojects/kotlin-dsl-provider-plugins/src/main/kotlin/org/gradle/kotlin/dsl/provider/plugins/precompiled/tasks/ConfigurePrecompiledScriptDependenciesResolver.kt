@@ -24,6 +24,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver.EnvironmentProperties.kotlinDslImplicitImports
 import org.gradle.kotlin.dsl.support.ImplicitImports
 
+import java.io.File
 import javax.inject.Inject
 
 
@@ -62,7 +63,7 @@ abstract class ConfigurePrecompiledScriptDependenciesResolver @Inject constructo
     fun precompiledScriptPluginImports(): List<Pair<String, List<String>>> =
         metadataDirFile().run {
             require(isDirectory)
-            listFiles().map {
+            listFilesOrdered().map {
                 it.name to it.readLines()
             }
         }
@@ -75,4 +76,8 @@ abstract class ConfigurePrecompiledScriptDependenciesResolver @Inject constructo
         properties.joinToString(separator = ",") { (key, values) ->
             "$key=\"${values.joinToString(":")}\""
         }
+
+    private
+    fun File.listFilesOrdered(): List<File> =
+        listFiles()?.sortedBy { it.name } ?: emptyList()
 }
