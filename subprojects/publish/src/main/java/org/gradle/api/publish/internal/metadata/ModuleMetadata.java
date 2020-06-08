@@ -24,7 +24,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-class ModuleMetadata {
+public class ModuleMetadata {
 
     final Identity identity;
     final List<Variant> variants;
@@ -40,15 +40,18 @@ class ModuleMetadata {
         final List<Attribute> attributes;
         @Nullable
         final String relativeUrl;
+        final boolean includesBuildId;
 
         Identity(
             ModuleVersionIdentifier coordinates,
             List<Attribute> attributes,
-            @Nullable String relativeUrl
+            @Nullable String relativeUrl,
+            boolean includesBuildId
         ) {
             this.coordinates = coordinates;
             this.attributes = attributes;
             this.relativeUrl = relativeUrl;
+            this.includesBuildId = includesBuildId;
         }
     }
 

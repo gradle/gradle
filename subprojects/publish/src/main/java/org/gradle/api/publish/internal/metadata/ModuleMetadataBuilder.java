@@ -110,7 +110,8 @@ class ModuleMetadataBuilder {
         return new ModuleMetadata.Identity(
             componentData.coordinates,
             attributesFor(componentData.attributes),
-            relativeUrl
+            relativeUrl,
+            publication.isPublishBuildId()
         );
     }
 

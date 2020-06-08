@@ -23,6 +23,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
@@ -34,8 +35,9 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.Publication;
-import org.gradle.api.publish.internal.metadata.GradleModuleMetadataWriter;
 import org.gradle.api.publish.internal.PublicationInternal;
+import org.gradle.api.publish.internal.metadata.GradleModuleMetadataWriter;
+import org.gradle.api.publish.internal.metadata.ModuleMetadata;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -70,15 +72,24 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  * @since 4.3
  */
 public class GenerateModuleMetadata extends DefaultTask {
-    private final Property<Publication> publication;
-    private final ListProperty<Publication> publications;
+    transient private final Property<Publication> publication;
+    transient private final ListProperty<Publication> publications;
     private final RegularFileProperty outputFile;
+    private final Property<ModuleMetadata> moduleMetadata;
 
     public GenerateModuleMetadata() {
         ObjectFactory objectFactory = getProject().getObjects();
         publication = objectFactory.property(Publication.class);
         publications = objectFactory.listProperty(Publication.class);
+
         outputFile = objectFactory.fileProperty();
+
+        moduleMetadata = objectFactory.property(ModuleMetadata.class);
+        moduleMetadata.finalizeValueOnRead();
+        moduleMetadata.set(
+            getProject().provider(this::computeModuleMetadata)
+        );
+
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.satisfyNone());
         mustHaveAttachedComponent();
@@ -89,6 +100,10 @@ public class GenerateModuleMetadata extends DefaultTask {
     }
 
     private boolean hasAttachedComponent() {
+        // TODO: take decision based on moduleMetadata
+        if (publication == null) {
+            return true;
+        }
         PublicationInternal<?> publication = publication();
         if (publication.getComponent() == null) {
             getLogger().warn(publication.getDisplayName() + " isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)");
@@ -175,24 +190,31 @@ public class GenerateModuleMetadata extends DefaultTask {
 
     @TaskAction
     void run() {
-        File file = outputFile.get().getAsFile();
-        PublicationInternal<?> publication = publication();
-        List<PublicationInternal<?>> publications = Cast.uncheckedCast(this.publications.get());
-        try (Writer writer = bufferedWriterFor(file)) {
-            new GradleModuleMetadataWriter(
-                getBuildInvocationScopeId(),
-                getProjectDependencyPublicationResolver(),
-                getChecksumService()
-            ).writeTo(
-                writer, publication, publications
-            );
+        try (Writer writer = bufferedWriterFor(outputFile.get().getAsFile())) {
+            moduleMetadataWriter().writeTo(writer, moduleMetadata.get());
         } catch (IOException e) {
             throw new UncheckedIOException("Could not generate metadata file " + outputFile.get(), e);
         }
     }
 
+    private GradleModuleMetadataWriter moduleMetadataWriter() {
+        return new GradleModuleMetadataWriter(
+            getBuildInvocationScopeId(),
+            getProjectDependencyPublicationResolver(),
+            getChecksumService()
+        );
+    }
+
     private BufferedWriter bufferedWriterFor(File file) throws FileNotFoundException {
         return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), UTF_8));
+    }
+
+    private ModuleMetadata computeModuleMetadata() {
+        return moduleMetadataWriter().moduleMetadataFor(publication(), publications());
+    }
+
+    private List<PublicationInternal<?>> publications() {
+        return Cast.uncheckedCast(this.publications.get());
     }
 
     private class VariantFiles implements MinimalFileSet, Buildable {
@@ -200,7 +222,7 @@ public class GenerateModuleMetadata extends DefaultTask {
         @Nonnull
         public TaskDependency getBuildDependencies() {
             DefaultTaskDependency dependency = new DefaultTaskDependency();
-            SoftwareComponentInternal component = publication().getComponent();
+            SoftwareComponentInternal component = component();
             if (component != null) {
                 forEachArtifactOf(component, dependency::add);
             }
@@ -210,7 +232,7 @@ public class GenerateModuleMetadata extends DefaultTask {
         @Override
         @Nonnull
         public Set<File> getFiles() {
-            SoftwareComponentInternal component = publication().getComponent();
+            SoftwareComponentInternal component = component();
             return component == null ? ImmutableSet.of() : filesOf(component);
         }
 
@@ -234,6 +256,10 @@ public class GenerateModuleMetadata extends DefaultTask {
         public String getDisplayName() {
             return "files of " + GenerateModuleMetadata.this.getPath();
         }
+    }
+
+    private SoftwareComponentInternal component() {
+        return publication == null ? null : publication().getComponent();
     }
 
     private PublicationInternal<?> publication() {

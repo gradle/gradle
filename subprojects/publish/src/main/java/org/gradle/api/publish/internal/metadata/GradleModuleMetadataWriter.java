@@ -53,9 +53,10 @@ public class GradleModuleMetadataWriter {
     }
 
     public void writeTo(Writer writer, PublicationInternal<?> publication, Collection<? extends PublicationInternal<?>> publications) throws IOException {
+        writeTo(writer, moduleMetadataFor(publication, publications));
+    }
 
-        ModuleMetadata metadata = moduleMetadataFor(publication, publications);
-        String buildId = publication.isPublishBuildId() ? buildInvocationScopeId.getId().asString() : null;
+    public void writeTo(Writer writer, ModuleMetadata metadata) throws IOException {
 
         // Write the output
         JsonWriter jsonWriter = new JsonWriter(writer);
@@ -65,7 +66,7 @@ public class GradleModuleMetadataWriter {
         new ModuleMetadataJsonWriter(
             jsonWriter,
             metadata,
-            buildId,
+            metadata.identity.includesBuildId ? buildInvocationScopeId.getId().asString() : null,
             checksumService
         ).write();
 
@@ -73,7 +74,7 @@ public class GradleModuleMetadataWriter {
         writer.append('\n');
     }
 
-    private ModuleMetadata moduleMetadataFor(PublicationInternal<?> publication, Collection<? extends PublicationInternal<?>> publications) {
+    public ModuleMetadata moduleMetadataFor(PublicationInternal<?> publication, Collection<? extends PublicationInternal<?>> publications) {
         InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName());
         ModuleMetadata metadata = new ModuleMetadataBuilder(
             publication,
