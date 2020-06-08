@@ -25,7 +25,7 @@ class CheckstylePluginDependenciesIntegrationTest extends AbstractIntegrationSpe
         badCode()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":dependencies")
     def "allows configuring tool dependencies explicitly"() {
         expect:
         succeeds("dependencies", "--configuration", "checkstyle")
