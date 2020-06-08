@@ -41,4 +41,11 @@ public interface FileWatcherUpdater extends SnapshotHierarchy.SnapshotDiffListen
      */
     @Override
     void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots);
+
+    /**
+     * Notifies the updater that the build has been finished, so it can do some internal bookkeeping updates.
+     *
+     * Used by the hierarchical watchers to avoid stop watching project root directories during a build.
+     */
+    void buildFinished();
 }

@@ -58,18 +58,23 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
-        updater.updateProjectRootDirectories([])
+        invalidate(watchedDirsInsideProjectRootDirectories[0].absolutePath)
         then:
         0 * _
 
         when:
-        invalidate(watchedDirsInsideProjectRootDirectories[0].absolutePath)
+        updater.buildFinished()
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [projectRootDirectories[0]]) })
         0 * _
 
         when:
-        addSnapshotsInProjectRootDirectories(projectRootDirectories)
+        updater.updateProjectRootDirectories(projectRootDirectories[1..2])
+        then:
+        0 * _
+
+        when:
+        addSnapshotsInProjectRootDirectories([projectRootDirectories[0]])
         then:
         1 * watcher.startWatching({ equalIgnoringOrder(it, [watchedDirsInsideProjectRootDirectories[0]]) })
         0 * _
@@ -112,6 +117,11 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
+        updater.buildFinished()
+        then:
+        0 * _
+
+        when:
         updater.updateProjectRootDirectories(secondProjectRootDirectories)
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, watchedDirsInsideThirdDir) })
@@ -123,6 +133,11 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         invalidate(watchedDirsInsideFirstDir[0].absolutePath)
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [file("first")]) })
+        0 * _
+
+        when:
+        updater.buildFinished()
+        then:
         0 * _
 
         when:
@@ -159,6 +174,11 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         1 * watcher.stopWatching({ equalIgnoringOrder(it, watchedDirsInsideProjectRootDirectories) })
         then:
         1 * watcher.startWatching({ equalIgnoringOrder(it, [firstDir, secondDir]) })
+        0 * _
+
+        when:
+        updater.buildFinished()
+        then:
         0 * _
 
         when:
@@ -206,6 +226,11 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
+        updater.buildFinished()
+        then:
+        0 * _
+
+        when:
         updater.updateProjectRootDirectories([])
         then:
         0 * _
@@ -219,7 +244,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         when:
         addSnapshot(snapshotInRootDir)
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, ([subDirInRootDir.parentFile])) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, ([rootDir])) })
         0 * _
     }
 

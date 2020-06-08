@@ -129,6 +129,9 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                 producedByCurrentBuild.set(DefaultFileHierarchySet.of());
                 SnapshotHierarchy newRoot = removeSymbolicLinks(currentRoot);
                 newRoot = handleWatcherRegistryEvents(newRoot, "for current build");
+                if (watchRegistry != null) {
+                    newRoot = handleWatcherChangeErrors(newRoot, () -> watchRegistry.getFileWatcherUpdater().buildFinished());
+                }
                 printStatistics(newRoot, "retains", "till next build");
                 return newRoot;
             });
