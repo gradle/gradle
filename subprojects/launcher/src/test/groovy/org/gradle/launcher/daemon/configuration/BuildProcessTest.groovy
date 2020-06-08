@@ -18,18 +18,16 @@ package org.gradle.launcher.daemon.configuration
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.internal.jvm.JavaInfo
+import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
 import java.nio.charset.Charset
 
-@UsesNativeServices
 class BuildProcessTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
@@ -254,7 +252,10 @@ class BuildProcessTest extends Specification {
     }
 
     private DaemonParameters buildParameters(JavaInfo jvm, Iterable<String> jvmArgs = [], Map<String, String> extraSystemProperties = Collections.emptyMap()) {
-        def parameters = new DaemonParameters(new BuildLayoutParameters(), fileCollectionFactory, extraSystemProperties)
+        def buildLayoutResult = Stub(BuildLayoutResult) {
+            getGradleUserHomeDir() >> tmpDir.file("user-home-dir")
+        }
+        def parameters = new DaemonParameters(buildLayoutResult, fileCollectionFactory, extraSystemProperties)
         parameters.setJvm(jvm)
         if (jvmArgs != null) {
             parameters.setJvmArgs(jvmArgs)

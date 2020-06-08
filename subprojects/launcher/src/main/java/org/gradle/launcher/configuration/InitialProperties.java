@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,29 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.deprecation;
+package org.gradle.launcher.configuration;
 
-import java.io.Serializable;
-import java.util.Set;
+import java.util.Map;
 
-public interface Deprecatable extends Serializable {
-
+/**
+ * An immutable view of the properties that are available prior to calculating the build layout. That is, the properties that are
+ * defined on the command-line and in the system properties of the current JVM.
+ */
+public interface InitialProperties {
     /**
-     * Adds a deprecation item.
-     *
-     * @param deprecation Deprecation item
+     * Returns the system properties defined as command-line options.
      */
-    void addDeprecation(String deprecation);
-
-    /**
-     * Gets all deprecation items.
-     *
-     * @return All deprecation items
-     */
-    Set<String> getDeprecations();
-
-    /**
-     * Checks all deprecations.
-     */
-    void checkDeprecation();
+    Map<String, String> getRequestedSystemProperties();
 }

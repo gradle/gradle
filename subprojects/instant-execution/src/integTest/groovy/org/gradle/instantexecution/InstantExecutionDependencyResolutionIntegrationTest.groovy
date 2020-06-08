@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+
 import org.gradle.integtests.resolve.transform.ArtifactTransformTestFixture
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -747,6 +748,107 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         outputContains("processing b.jar.red using []")
         outputContains("processing a.jar.red using [b.jar.red, c.jar.red]")
         outputContains("result = [a.jar.red.green, b.jar.red.green, c.jar.red.green]")
+    }
+
+    def "reports failure to transform prebuilt file dependency and invalidates the cache"() {
+        settingsFile << """
+            include 'a'
+        """
+        setupBuildWithColorTransformAction()
+        buildFile << """
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing \${input.name}"
+                    throw new RuntimeException("broken: \${input.name}")
+                }
+            }
+
+            dependencies.artifactTypes {
+                blue {
+                    attributes.attribute(color, 'blue')
+                }
+            }
+            dependencies {
+                implementation files('root.blue')
+                implementation project(':a')
+            }
+            project(':a') {
+                dependencies {
+                    implementation files('a.blue')
+                }
+            }
+        """
+        file('root.blue') << 'root'
+        file('a/a.blue') << 'a'
+        def fixture = newInstantExecutionFixture()
+
+        when:
+        instantFails(":resolve")
+
+        then:
+        // TODO - this should fail
+        fixture.assertStateStored()
+        // TODO - should not attempt to run the task
+        failure.assertHasFailure("Execution failed for task ':resolve'.") {
+            it.assertHasCause("Failed to transform root.blue to match attributes {artifactType=blue, color=green}.")
+            it.assertHasCause("Failed to transform a.blue to match attributes {artifactType=blue, color=green}.")
+        }
+        failure.assertHasDescription("Configuration cache problems found in this build.")
+        // TODO - there should be 1 failure
+        failure.assertHasFailures(2)
+
+        when:
+        instantFails(":resolve")
+
+        then:
+        fixture.assertStateLoaded()
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
+    }
+
+    def "reports failure transforming project dependency"() {
+        settingsFile << """
+            include 'a'
+        """
+        setupBuildWithColorTransformAction()
+        buildFile << """
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing \${input.name}"
+                    throw new RuntimeException("broken: \${input.name}")
+                }
+            }
+
+            dependencies {
+                implementation project(':a')
+            }
+        """
+
+        def fixture = newInstantExecutionFixture()
+
+        when:
+        instantFails(":resolve")
+
+        then:
+        // TODO - this should fail
+        fixture.assertStateStored()
+        failure.assertHasFailure("Execution failed for task ':resolve'.") {
+            it.assertHasCause("Failed to transform a.jar (project :a) to match attributes {artifactType=jar, color=green}.")
+        }
+
+        when:
+        instantFails(":resolve")
+
+        then:
+        fixture.assertStateLoaded()
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
     }
 
     @Ignore("wip")

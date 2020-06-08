@@ -27,6 +27,7 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":core"))
     implementation(project(":dependencyManagement"))
+    implementation(project(":buildOption"))
 
     runtimeOnly(project(":resourcesHttp"))
 
