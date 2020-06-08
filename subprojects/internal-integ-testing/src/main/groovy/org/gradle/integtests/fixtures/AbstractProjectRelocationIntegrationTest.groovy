@@ -22,9 +22,6 @@ abstract class AbstractProjectRelocationIntegrationTest extends AbstractIntegrat
 
     @ToBeFixedForInstantExecution(bottomSpecs = [
         "JavaGradlePluginRelocationTest",
-        "Antlr2RelocationIntegrationTest",
-        "Antlr3RelocationIntegrationTest",
-        "Antlr4RelocationIntegrationTest",
         "CheckstyleRelocationIntegrationTest",
         "PmdRelocationIntegrationTest",
         "CodeNarcRelocationIntegrationTest",
