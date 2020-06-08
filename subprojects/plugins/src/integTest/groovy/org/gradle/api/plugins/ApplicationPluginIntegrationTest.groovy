@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.jvm.Jvm
@@ -163,7 +162,6 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
     }
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
-    @ToBeFixedForInstantExecution(because = ":installDist")
     def "can execute generated Unix start script"() {
         when:
         succeeds('installDist')
@@ -179,7 +177,6 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
     }
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
-    @ToBeFixedForInstantExecution(because = ":installDist")
     def "can execute generated Unix start script using JAVA_HOME with spaces"() {
         given:
         def testJavaHome = file("javahome/java home with spaces")
@@ -202,7 +199,6 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
     }
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
-    @ToBeFixedForInstantExecution(because = ":installDist")
     def "java PID equals script PID"() {
         given:
         succeeds('installDist')
@@ -270,7 +266,6 @@ task execStartScript(type: Exec) {
         return succeeds('execStartScript')
     }
 
-    @ToBeFixedForInstantExecution(because = ":installDist")
     def "compile only dependencies are not included in distribution"() {
         given:
         mavenRepo.module('org.gradle.test', 'compile', '1.0').publish()
@@ -294,7 +289,6 @@ dependencies {
         file('build/install/sample/lib').allDescendants() == ['sample.jar', 'compile-1.0.jar'] as Set
     }
 
-    @ToBeFixedForInstantExecution(because = ":installDist")
     def "executables can be placed at the root of the distribution"() {
         given:
         buildFile << """
@@ -313,7 +307,6 @@ executableDir = ''
         outputContains("Hello World")
     }
 
-    @ToBeFixedForInstantExecution(because = ":installDist")
     def "executables can be placed in a custom directory"() {
         given:
         buildFile << """
@@ -332,7 +325,6 @@ executableDir = 'foo/bar'
         outputContains("Hello World")
     }
 
-    @ToBeFixedForInstantExecution(because = ":installDist")
     def "includes transitive implementation dependencies in distribution"() {
         mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
 
@@ -496,7 +488,6 @@ dependencies {
         (lines.find { it.startsWith 'set CLASSPATH='} - 'set CLASSPATH=').split(';').collect([] as Set) { it - '%APP_HOME%\\lib\\'}
     }
 
-    @ToBeFixedForInstantExecution(because = ":installDist")
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script"() {
         given:
         buildFile << """
@@ -630,7 +621,6 @@ rootProject.name = 'sample'
 
     @Issue("https://github.com/gradle/gradle/issues/4627")
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @ToBeFixedForInstantExecution(because = ":installDist")
     def "distribution not in root directory has correct permissions set"() {
         given:
         buildFile << """
