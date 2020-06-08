@@ -23,8 +23,8 @@ import org.gradle.api.tasks.TaskAction
 
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver.EnvironmentProperties.kotlinDslImplicitImports
 import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.kotlin.dsl.support.listFilesOrdered
 
-import java.io.File
 import javax.inject.Inject
 
 
@@ -76,8 +76,4 @@ abstract class ConfigurePrecompiledScriptDependenciesResolver @Inject constructo
         properties.joinToString(separator = ",") { (key, values) ->
             "$key=\"${values.joinToString(":")}\""
         }
-
-    private
-    fun File.listFilesOrdered(): List<File> =
-        listFiles()?.sortedBy { it.name } ?: emptyList()
 }
