@@ -193,11 +193,13 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             pluginUnderTestMetadataTask.setDescription(PLUGIN_UNDER_TEST_METADATA_TASK_DESCRIPTION);
 
             pluginUnderTestMetadataTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(pluginUnderTestMetadataTask.getName()));
-            pluginUnderTestMetadataTask.getPluginClasspath().from((Callable<Object>) () -> {
-                Configuration gradlePluginConfiguration = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi());
-                FileCollection gradleApi = gradlePluginConfiguration.getIncoming().getFiles();
-                return extension.getPluginSourceSet().getRuntimeClasspath().minus(gradleApi);
-            });
+            pluginUnderTestMetadataTask.getPluginClasspath().from(project.provider(
+                (Callable<Object>) () -> {
+                    Configuration gradlePluginConfiguration = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi());
+                    FileCollection gradleApi = gradlePluginConfiguration.getIncoming().getFiles();
+                    return extension.getPluginSourceSet().getRuntimeClasspath().minus(gradleApi);
+                }
+            ));
         });
     }
 
