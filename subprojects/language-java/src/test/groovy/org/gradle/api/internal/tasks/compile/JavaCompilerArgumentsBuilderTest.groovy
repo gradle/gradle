@@ -93,6 +93,16 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.build() == defaultOptions + ['--release', '7']
     }
 
+    def "can use a GString for the value of the release flag"() {
+        when:
+        spec.compileOptions.compilerArgs += ['--release', "${ -> 7}"]
+        spec.sourceCompatibility = '1.7'
+        spec.targetCompatibility = '1.7'
+
+        then:
+        builder.build() == defaultOptions + ['--release', '7']
+    }
+
     def "generates -d option"() {
         def file = new File("/project/build")
         spec.destinationDir = file
