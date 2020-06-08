@@ -44,7 +44,7 @@ class JavaInstallationContainerIntegrationTest extends AbstractIntegrationSpec {
 
         javaInstallations {
             register("someJdk") {
-                path = "${someJdk.javaHome.absolutePath}"
+                path = file("${someJdk.javaHome.absolutePath}")
             }
         }
 """

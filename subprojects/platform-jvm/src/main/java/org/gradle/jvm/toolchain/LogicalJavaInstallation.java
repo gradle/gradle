@@ -18,6 +18,7 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.file.DirectoryProperty;
 
 /**
  * A {@code JavaInstallationDefinition} represents a logical installation of a Java Runtime Environment (JRE) or a Java Development Kit (JDK).
@@ -42,8 +43,6 @@ import org.gradle.api.Named;
 @Incubating
 public interface LogicalJavaInstallation extends Named {
 
-    String getPath();
-
-    void setPath(String path);
+    DirectoryProperty getPath();
 
 }

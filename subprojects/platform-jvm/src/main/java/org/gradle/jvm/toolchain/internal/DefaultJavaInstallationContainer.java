@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.toolchain.JavaInstallationContainer;
@@ -30,21 +31,24 @@ import javax.inject.Inject;
 
 public class DefaultJavaInstallationContainer extends AbstractNamedDomainObjectContainer<LogicalJavaInstallation> implements JavaInstallationContainer {
 
+    private final ObjectFactory factory;
+
     @Inject
-    public DefaultJavaInstallationContainer(Instantiator instantiator, JavaInstallationRegistryShared registry) {
+    public DefaultJavaInstallationContainer(Instantiator instantiator, JavaInstallationRegistryShared registry, ObjectFactory factory) {
         // TODO: decorated needed for settings?
         super(LogicalJavaInstallation.class, instantiator, CollectionCallbackActionDecorator.NOOP);
+        this.factory = factory;
         all(registry::add);
         createCurrentInstallation();
     }
 
     private void createCurrentInstallation() {
-        create("current").setPath(Jvm.current().getJavaHome().getAbsolutePath());
+        create("current").getPath().set(Jvm.current().getJavaHome());
     }
 
     @Override
     protected LogicalJavaInstallation doCreate(String name) {
-        return new DefaultLogicalJavaInstallation(name);
+        return getInstantiator().newInstance(DefaultLogicalJavaInstallation.class, name, factory);
     }
 
     @Override

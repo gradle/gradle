@@ -31,7 +31,7 @@ public class JavaToolchainQueryService {
 
     public String query() {
         // query local installations, fallback to download
-        return installations.getAllInstallations().stream().map(i -> MessageFormat.format("* {0} ({1})", i.getName(), i.getPath())).collect(Collectors.joining("\n"));
+        return installations.getAllInstallations().stream().map(i -> MessageFormat.format("* {0} ({1})", i.getName(), i.getPath().get().getAsFile().getAbsoluteFile())).collect(Collectors.joining("\n"));
     }
 
 }

@@ -16,30 +16,29 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.jvm.toolchain.LogicalJavaInstallation;
 
 public class DefaultLogicalJavaInstallation implements LogicalJavaInstallation {
 
     private final String name;
-    private String path;
+    private DirectoryProperty path;
 
-    public DefaultLogicalJavaInstallation(String name) {
+    public DefaultLogicalJavaInstallation(String name, ObjectFactory objectFactory) {
         this.name = name;
+        this.path = objectFactory.directoryProperty();
     }
 
     @Override
-    public String getPath() {
+    public DirectoryProperty getPath() {
         return path;
-    }
-
-    @Override
-    public void setPath(String path) {
-        this.path = path;
     }
 
     @Override
     public String getName() {
         return name;
     }
+
 
 }

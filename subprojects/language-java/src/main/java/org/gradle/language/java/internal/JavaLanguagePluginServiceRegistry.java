@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetec
 import org.gradle.api.internal.tasks.compile.tooling.JavaCompileTaskSuccessResultPostProcessor;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.hash.FileHasher;
@@ -69,8 +70,8 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.add(JavaInstallationRegistryShared.class);
         registration.addProvider(new Object() {
-            JavaInstallationContainer createInstallationsContainer(Instantiator instantiator, JavaInstallationRegistryShared registry) {
-                return instantiator.newInstance(DefaultJavaInstallationContainer.class, instantiator, registry);
+            JavaInstallationContainer createInstallationsContainer(Instantiator instantiator, JavaInstallationRegistryShared registry, ObjectFactory factory) {
+                return instantiator.newInstance(DefaultJavaInstallationContainer.class, instantiator, registry, factory);
             }
         });
     }
