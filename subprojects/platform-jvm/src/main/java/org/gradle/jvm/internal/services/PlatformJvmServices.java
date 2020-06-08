@@ -36,8 +36,11 @@ import org.gradle.jvm.internal.resolve.JvmVariantSelector;
 import org.gradle.jvm.internal.resolve.VariantAxisCompatibilityFactory;
 import org.gradle.jvm.internal.resolve.VariantsMetaData;
 import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.jvm.toolchain.JavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.DefaultJavaInstallationRegistry;
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
+import org.gradle.jvm.toolchain.internal.JavaInstallationRegistryShared;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 import java.util.Collection;
@@ -53,6 +56,11 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.add(JavaInstallationProbe.class);
+        registration.addProvider(new Object() {
+            JavaToolchainQueryService createQueryService(JavaInstallationRegistryShared sharedInstallations) {
+                return new DefaultJavaToolchainQueryService(sharedInstallations);
+            }
+        });
     }
 
     @Override

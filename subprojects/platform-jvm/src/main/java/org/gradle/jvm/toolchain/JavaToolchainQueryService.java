@@ -16,22 +16,16 @@
 
 package org.gradle.jvm.toolchain;
 
-import org.gradle.jvm.toolchain.internal.JavaInstallationRegistryShared;
 
-import java.text.MessageFormat;
-import java.util.stream.Collectors;
+import org.gradle.api.Incubating;
 
-public class JavaToolchainQueryService {
-
-    private final JavaInstallationRegistryShared installations;
-
-    public JavaToolchainQueryService(JavaInstallationRegistryShared installations) {
-        this.installations = installations;
-    }
-
-    public String query() {
-        // query local installations, fallback to download
-        return installations.getAllInstallations().stream().map(i -> MessageFormat.format("* {0} ({1})", i.getName(), i.getPath().get().getAsFile().getAbsoluteFile())).collect(Collectors.joining("\n"));
-    }
-
+/**
+ * Allows to query for specific java toolchains given a set of toolchain requirements.
+ *
+ * <p>An instance of this service is available for injection into tasks, plugins and other types.
+ *
+ * @since 6.6
+ */
+@Incubating
+public interface JavaToolchainQueryService {
 }

@@ -38,8 +38,8 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.jvm.toolchain.JavaInstallationContainer;
-import org.gradle.jvm.toolchain.JavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.DefaultJavaInstallationContainer;
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.JavaInstallationRegistryShared;
 import org.gradle.language.java.artifact.JavadocArtifact;
 import org.gradle.tooling.events.OperationType;
@@ -63,7 +63,7 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new JavaProjectScopeServices());
-        registration.add(JavaToolchainQueryService.class);
+        registration.add(DefaultJavaToolchainQueryService.class);
     }
 
     @Override
