@@ -19,13 +19,16 @@ package org.gradle.integtests.resolve.verification
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsText
 
+@ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/13135", failsOnlyIf = TestPrecondition.WINDOWS)
 class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVerificationIntegTest implements CachingIntegrationFixture {
     @Unroll
     def "doesn't fail if verification metadata matches for #kind"() {
