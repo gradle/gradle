@@ -17,10 +17,10 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.tasks.compile.ForkOptions;
+import org.gradle.internal.Cast;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +29,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class JavaCompilerArgumentsBuilder {
     public static final Logger LOGGER = LoggerFactory.getLogger(JavaCompilerArgumentsBuilder.class);
@@ -77,7 +78,11 @@ public class JavaCompilerArgumentsBuilder {
     public List<String> build() {
         args = new ArrayList<>();
         // Take a deep copy of the compilerArgs because the following methods mutate it.
-        List<String> compArgs = Lists.newArrayList(spec.getCompileOptions().getCompilerArgs());
+        List<Object> compilerArgs = Cast.uncheckedCast(spec.getCompileOptions().getCompilerArgs());
+        List<String> compArgs = compilerArgs
+            .stream()
+            .map(Object::toString)
+            .collect(Collectors.toList());
 
         validateCompilerArgs(compArgs);
 

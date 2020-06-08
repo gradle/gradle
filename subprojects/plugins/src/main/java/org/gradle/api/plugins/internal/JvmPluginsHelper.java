@@ -277,7 +277,9 @@ public class JvmPluginsHelper {
     private static int getReleaseOption(List<String> compilerArgs) {
         int flagIndex = compilerArgs.indexOf("--release");
         if (flagIndex != -1 && flagIndex + 1 < compilerArgs.size()) {
-            return Integer.parseInt(compilerArgs.get(flagIndex + 1));
+            // Using String.valueOf because despite the type signature being List<String>
+            // a user can put anything in that list, including Groovy's GString
+            return Integer.parseInt(String.valueOf(compilerArgs.get(flagIndex + 1)));
         }
         return 0;
     }
