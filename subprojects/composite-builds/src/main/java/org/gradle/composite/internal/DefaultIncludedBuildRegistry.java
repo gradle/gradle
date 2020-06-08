@@ -24,6 +24,7 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
@@ -51,6 +52,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final GradleLauncherFactory gradleLauncherFactory;
     private final ListenerManager listenerManager;
     private final BuildTreeScopeServices rootServices;
+    private final BuildAddedListener buildAddedBroadcaster;
 
     // TODO: Locking around this state
     private RootBuildState rootBuild;
@@ -65,6 +67,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.listenerManager = listenerManager;
         this.rootServices = rootServices;
+        this.buildAddedBroadcaster = listenerManager.getBroadcaster(BuildAddedListener.class);
     }
 
     @Override
@@ -99,6 +102,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         if (before != null) {
             throw new IllegalArgumentException("Build is already registered: " + build.getBuildIdentifier());
         }
+        buildAddedBroadcaster.buildAdded(build);
     }
 
     public boolean hasIncludedBuilds() {
@@ -189,7 +193,10 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         validateNameIsNotBuildSrc(name, dir);
         Path identityPath = assignPath(owner, name, dir);
         BuildIdentifier buildIdentifier = idFor(name);
-        return new RootOfNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner);
+        RootOfNestedBuildTree rootOfNestedBuildTree = new RootOfNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner);
+        // Attach the build only after it has been fully constructed.
+        rootOfNestedBuildTree.attach();
+        return rootOfNestedBuildTree;
     }
 
     private void validateNameIsNotBuildSrc(String name, File dir) {

@@ -29,10 +29,12 @@ import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.exception.ExceptionAnalyser;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -116,6 +118,11 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     @Override
+    public File getBuildRootDir() {
+        return buildServices.get(BuildLayout.class).getRootDirectory();
+    }
+
+    @Override
     public GradleInternal executeTasks() {
         doBuildStages(Stage.RunTasks);
         return gradle;
@@ -179,7 +186,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         RuntimeException reportableFailure = stageFailure == null ? null : exceptionAnalyser.transform(stageFailure);
         BuildResult buildResult = new BuildResult(action, gradle, reportableFailure);
-        List<Throwable> failures = new ArrayList<Throwable>();
+        List<Throwable> failures = new ArrayList<>();
         includedBuildControllers.finishBuild(failures);
         try {
             buildListener.buildFinished(buildResult);
@@ -253,7 +260,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
             throw new IllegalStateException("Cannot execute tasks: current stage = " + stage);
         }
 
-        List<Throwable> taskFailures = new ArrayList<Throwable>();
+        List<Throwable> taskFailures = new ArrayList<>();
         buildExecuter.execute(gradle, taskFailures);
         if (!taskFailures.isEmpty()) {
             throw new MultipleBuildFailures(taskFailures);

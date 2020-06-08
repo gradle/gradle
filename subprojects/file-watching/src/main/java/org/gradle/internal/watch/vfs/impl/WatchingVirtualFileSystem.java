@@ -39,6 +39,8 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -54,6 +56,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     private final DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator;
     private final AtomicReference<FileHierarchySet> producedByCurrentBuild = new AtomicReference<>(DefaultFileHierarchySet.of());
     private final Predicate<String> watchFilter;
+    private final Set<File> buildRootDirectoriesForWatching = new HashSet<>();
 
     private FileWatcherRegistry watchRegistry;
 
@@ -108,12 +111,18 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     }
 
     @Override
-    public void updateProjectRootDirectory(File projectRootDirectory) {
-        updateWatchRegistry(watchRegistry -> watchRegistry.getFileWatcherUpdater().updateProjectRootDirectory(projectRootDirectory));
+    public void buildRootDirectoryAdded(File buildRootDirectory) {
+        synchronized (buildRootDirectoriesForWatching) {
+            buildRootDirectoriesForWatching.add(buildRootDirectory);
+            updateWatchRegistry(watchRegistry -> watchRegistry.getFileWatcherUpdater().updateProjectRootDirectories(buildRootDirectoriesForWatching));
+        }
     }
 
     @Override
     public void beforeBuildFinished(boolean watchingEnabled) {
+        synchronized (buildRootDirectoriesForWatching) {
+            buildRootDirectoriesForWatching.clear();
+        }
         if (watchingEnabled) {
             getRoot().update(currentRoot -> {
                 buildRunning = false;
@@ -179,6 +188,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                     stopWatchingAndInvalidateHierarchy();
                 }
             });
+            watchRegistry.getFileWatcherUpdater().updateProjectRootDirectories(buildRootDirectoriesForWatching);
             delegatingUpdateFunctionDecorator.setSnapshotDiffListener(snapshotDiffListener, this::handleWatcherChangeErrors);
             long endTime = System.currentTimeMillis() - startTime;
             LOGGER.warn("Spent {} ms registering watches for file system events", endTime);

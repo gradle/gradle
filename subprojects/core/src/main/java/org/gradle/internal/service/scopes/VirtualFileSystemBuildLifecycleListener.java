@@ -52,7 +52,6 @@ class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListe
             }
         }
         virtualFileSystem.afterBuildStarted(watchFileSystem);
-        gradle.settingsEvaluated(settings -> virtualFileSystem.updateProjectRootDirectory(settings.getRootDir()));
     }
 
     @Override

@@ -43,7 +43,7 @@ public class NonWatchingVirtualFileSystem extends AbstractDelegatingVirtualFileS
     }
 
     @Override
-    public void updateProjectRootDirectory(File projectRootDirectory) {
+    public void buildRootDirectoryAdded(File buildRootDirectory) {
     }
 
     @Override

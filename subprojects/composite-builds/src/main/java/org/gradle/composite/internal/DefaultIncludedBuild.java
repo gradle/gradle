@@ -74,7 +74,7 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
         this.owner = owner;
         this.parentLease = parentLease;
         // Use a defensive copy of the build definition, as it may be mutated during build execution
-        gradleLauncher = owner.getNestedBuildFactory().nestedInstance(buildDefinition.newInstance(), this);
+        this.gradleLauncher = owner.getNestedBuildFactory().nestedInstance(buildDefinition.newInstance(), this);
     }
 
     @Override
@@ -129,6 +129,11 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
             // Not yet supported for implicit included builds
             super.assertCanAdd(includedBuildSpec);
         }
+    }
+
+    @Override
+    public File getBuildRootDir() {
+        return buildDefinition.getBuildRootDir();
     }
 
     @Override
