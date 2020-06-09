@@ -56,7 +56,6 @@ abstract class AbstractExecOutputIntegrationTest extends AbstractConsoleGroupedT
         errorOutput.contains(EXPECTED_ERROR)
     }
 
-    @ToBeFixedForInstantExecution
     def "JavaExec task output is grouped with its task output"() {
         given:
         generateMainJavaFileEchoing(EXPECTED_OUTPUT, EXPECTED_ERROR)

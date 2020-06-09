@@ -38,7 +38,6 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-application', '--dsl', scriptDsl.id)
@@ -91,7 +90,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "test-ng")
     def "creates sample source using testng instead of junit with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-application', '--test-framework', 'testng', '--dsl', scriptDsl.id)
@@ -136,10 +135,10 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*TestNG.*")
     def "creates sample source with package and #testFramework and #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'java-application', '--test-framework', 'testng', '--package', 'my.app', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-application', '--test-framework', testFramework.id, '--package', 'my.app', '--dsl', scriptDsl.id)
 
         then:
         targetDir.file("src/main/java").assertHasDescendants("my/app/App.java")
@@ -152,7 +151,14 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        assertTestPassed("my.app.AppTest", "appHasAGreeting")
+        switch (testFramework) {
+            case BuildInitTestFramework.JUNIT:
+                assertTestPassed("my.app.AppTest", "testAppHasAGreeting")
+                break
+            case BuildInitTestFramework.TESTNG:
+                assertTestPassed("my.app.AppTest", "appHasAGreeting")
+                break
+        }
 
         when:
         run("run")
@@ -165,7 +171,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
     def "creates sample source with package and spock and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-application', '--test-framework', 'spock', '--package', 'my.app', '--dsl', scriptDsl.id)

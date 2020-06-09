@@ -16,7 +16,6 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.BuildResult
@@ -25,11 +24,11 @@ import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
     private static final String NO_INSTANT_EXECUTION_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
-    private static final String INSTANT_EXECUTION_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[7].*"
 
     // TODO:instant-execution remove once fixed upstream
     @Override
@@ -39,7 +38,6 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = NO_INSTANT_EXECUTION_ITERATION_MATCHER)
-    @ToBeFixedForInstantExecution(because = "run task", iterationMatchers = INSTANT_EXECUTION_ITERATION_MATCHER)
     def 'kotlin jvm (kotlin=#version, workers=#workers)'() {
         given:
         useSample("kotlin-example")
@@ -50,10 +48,18 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
+        assert result.output.contains("Hello world!")
 
         if (version == TestedVersions.kotlin.latest()) {
             expectNoDeprecationWarnings(result)
         }
+
+        when:
+        result = build(workers, 'run')
+
+        then:
+        result.task(':compileKotlin').outcome == UP_TO_DATE
+        assert result.output.contains("Hello world!")
 
         where:
         [version, workers] << [
@@ -94,10 +100,10 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         where:
 // To run a specific combination, set the values here, uncomment the following four lines
 //  and comment out the lines coming after
-//        kotlinPluginVersion = '1.3.61'
-//        androidPluginVersion = '3.5.1'
+//        kotlinPluginVersion = TestedVersions.kotlin.versions.last()
+//        androidPluginVersion = TestedVersions.androidGradle.versions.last()
 //        workers = false
-//        sampleName = 'android-kotlin-example-kotlin-dsl'
+//        sampleName = 'android-kotlin-example'
 
         [kotlinPluginVersion, androidPluginVersion, workers, sampleName] << [
             TestedVersions.kotlin.versions,

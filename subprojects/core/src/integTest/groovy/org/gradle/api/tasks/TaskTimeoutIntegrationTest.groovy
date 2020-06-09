@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.workers.IsolationMode
@@ -93,7 +92,6 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @IntegrationTestTimeout(60)
-    @ToBeFixedForInstantExecution(because = "JavaExec")
     def "timeout stops long running exec()"() {
         given:
         file('src/main/java/Block.java') << """

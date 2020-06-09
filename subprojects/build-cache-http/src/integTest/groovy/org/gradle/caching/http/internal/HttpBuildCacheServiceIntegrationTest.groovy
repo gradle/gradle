@@ -17,7 +17,6 @@
 package org.gradle.caching.http.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.keystore.TestKeyStore
 
@@ -67,7 +66,6 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         skipped ":compileJava"
     }
 
-    @ToBeFixedForInstantExecution(because = "JavaExec")
     def "outputs are correctly loaded from cache"() {
         buildFile << """
             apply plugin: "application"
