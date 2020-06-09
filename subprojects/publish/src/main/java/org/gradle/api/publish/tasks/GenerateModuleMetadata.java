@@ -46,6 +46,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Try;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 
@@ -196,7 +197,7 @@ public class GenerateModuleMetadata extends DefaultTask {
             throw new IllegalStateException(inputState.toString());
         }
         writeModuleMetadata(
-            ((InputState.Ready) inputState).moduleMetadataSpec
+            ((InputState.Ready) inputState).moduleMetadataSpec.get()
         );
     }
 
@@ -221,22 +222,25 @@ public class GenerateModuleMetadata extends DefaultTask {
     }
 
     private InputState computeInputState() {
-        if (component() == null) {
-            return new InputState.ComponentMissing(
-                publication().getDisplayName().toString()
-            );
-        }
+        return component() == null
+            ? new InputState.ComponentMissing(publicationName())
+            : new InputState.Ready(moduleMetadataSpec());
+    }
 
-        return new InputState.Ready(
-            moduleMetadataWriter().moduleMetadataSpecFor(publication(), publications())
-        );
+    private Try<ModuleMetadataSpec> moduleMetadataSpec() {
+        return Try.ofFailable(this::computeModuleMetadataSpec);
+    }
+
+    private ModuleMetadataSpec computeModuleMetadataSpec() {
+        return moduleMetadataWriter().moduleMetadataSpecFor(publication(), publications());
     }
 
     static class InputState {
-        static class Ready extends InputState {
-            final ModuleMetadataSpec moduleMetadataSpec;
 
-            public Ready(ModuleMetadataSpec moduleMetadataSpec) {
+        static class Ready extends InputState {
+            final Try<ModuleMetadataSpec> moduleMetadataSpec;
+
+            public Ready(Try<ModuleMetadataSpec> moduleMetadataSpec) {
                 this.moduleMetadataSpec = moduleMetadataSpec;
             }
         }
@@ -289,6 +293,10 @@ public class GenerateModuleMetadata extends DefaultTask {
                 }
             }
         }
+    }
+
+    private String publicationName() {
+        return publication().getDisplayName().toString();
     }
 
     private SoftwareComponentInternal component() {
