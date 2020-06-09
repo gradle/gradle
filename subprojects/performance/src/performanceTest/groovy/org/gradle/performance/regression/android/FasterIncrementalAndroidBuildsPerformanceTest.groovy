@@ -20,7 +20,7 @@ import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
-import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginSettingsFixture
+import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.BuildExperimentSpec
@@ -152,7 +152,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
                 @Override
                 void beforeScenario(ScenarioContext context) {
                     originalSettingsFileText = settingsFile.text
-                    GradleEnterprisePluginSettingsFixture.applyEnterprisePlugin(settingsFile)
+                    ApplyGradleEnterprisePluginFixture.applyEnterprisePlugin(settingsFile)
                 }
 
                 @Override

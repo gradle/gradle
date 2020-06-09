@@ -44,7 +44,6 @@ import org.gradle.internal.installation.GradleInstallation
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.scan.config.BuildScanConfigInit
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
@@ -82,7 +81,6 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(BuildOperationExecutor) >> buildOperationExecutor
         _ * serviceRegistry.get(ListenerBuildOperationDecorator) >> listenerBuildOperationDecorator
         _ * serviceRegistry.get(CrossProjectConfigurator) >> crossProjectConfigurator
-        _ * serviceRegistry.get(BuildScanConfigInit) >> Mock(BuildScanConfigInit)
         _ * serviceRegistry.get(PublicBuildPath) >> new DefaultPublicBuildPath(Path.ROOT)
 
         gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)

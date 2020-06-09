@@ -1,0 +1,2 @@
+org.gradle.internal.enterprise.impl.GradleEnterprisePluginServices
+org.gradle.internal.scan.impl.BuildScanPluginServices

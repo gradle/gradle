@@ -20,7 +20,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.internal.scan.config.BuildScanPluginCompatibility;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin;
@@ -54,7 +53,10 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
                     // they might hit this scenario when running with --scan as that will have auto applied the new plugin.
                     // Instead of a generic failure, we provide more specific feedback to help people upgrade.
                     // We use the same message the user would have seen if they didn't use --scan and trigger the auto apply.
-                    throw new InvalidPluginRequestException(pluginRequest, BuildScanPluginCompatibility.OLD_SCAN_PLUGIN_VERSION_MESSAGE);
+                    throw new InvalidPluginRequestException(pluginRequest,
+                        "The build scan plugin is not compatible with this version of Gradle.\n"
+                            + "Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information."
+                    );
                 }
             }
             throw new InvalidPluginRequestException(pluginRequest, "Plugin request for plugin already on the classpath must not include a version");

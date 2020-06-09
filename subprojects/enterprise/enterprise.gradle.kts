@@ -15,6 +15,39 @@
  */
 
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`plugins-implementation-java`
 }
 
+dependencies {
+    implementation(library("jsr305"))
+    implementation(library("inject"))
+    implementation(project(":baseServices"))
+    implementation(project(":logging"))
+    implementation(project(":coreApi"))
+    implementation(project(":core"))
+
+    integTestImplementation(project(":internalTesting"))
+    integTestImplementation(project(":internalIntegTesting"))
+
+    // Dependencies of the integ test fixtures
+    integTestImplementation(project(":buildOption"))
+    integTestImplementation(project(":messaging"))
+    integTestImplementation(project(":persistentCache"))
+    integTestImplementation(project(":native"))
+    integTestImplementation(library("guava"))
+    integTestRuntimeOnly(project(":apiMetadata"))
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
+
+    integTestRuntimeOnly(project(":pluginDevelopment")) {
+        because("used by PluginBuilder")
+    }
+
+    integTestRuntimeOnly(project(":testKit")) {
+        because("needed for some reason by builds executed with PluginBuilder")
+    }
+
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins")) {
+        because("some integ test builds use Kotlin")
+    }
+
+}

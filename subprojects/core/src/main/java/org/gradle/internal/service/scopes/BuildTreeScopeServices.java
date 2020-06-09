@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -24,6 +25,8 @@ import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -32,13 +35,19 @@ import org.gradle.internal.work.WorkerLeaseService;
  * Contains the singleton services for a single build tree which consists of one or more builds.
  */
 public class BuildTreeScopeServices extends DefaultServiceRegistry {
-    public BuildTreeScopeServices(final ServiceRegistry parent) {
+    public BuildTreeScopeServices(final ServiceRegistry parent, GradleInternal.BuildType buildType) {
         super(parent);
         register(registration -> {
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerBuildTreeServices(registration);
             }
+            registration.add(GradleInternal.BuildType.class, buildType);
         });
+
+    }
+
+    protected BuildInvocationScopeId createBuildInvocationScopeId() {
+        return new BuildInvocationScopeId(UniqueId.generate());
     }
 
     protected ListenerManager createListenerManager(ListenerManager parent) {

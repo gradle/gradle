@@ -48,6 +48,7 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionRequestContext;
@@ -68,7 +69,6 @@ import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprin
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.work.AsyncWorkTracker;
@@ -114,7 +114,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         BuildCacheController buildCacheController,
         BuildOperationExecutor buildOperationExecutor,
         BuildOutputCleanupRegistry cleanupRegistry,
-        BuildScanPluginApplied buildScanPlugin,
+        GradleEnterprisePluginPresence gradleEnterprisePluginPresence,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         Deleter deleter,
         EmptySourceTaskSkipper emptySourceTaskSkipper,
@@ -152,7 +152,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             buildCacheController.isEnabled()
                 ? ExecuteActionsTaskExecuter.BuildCacheState.ENABLED
                 : ExecuteActionsTaskExecuter.BuildCacheState.DISABLED,
-            buildScanPlugin.isBuildScanPluginApplied()
+            gradleEnterprisePluginPresence.isPresent()
                 ? ExecuteActionsTaskExecuter.ScanPluginState.APPLIED
                 : ExecuteActionsTaskExecuter.ScanPluginState.NOT_APPLIED,
             vfsInvalidationStrategy,
