@@ -14,18 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain;
+package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.internal.file.FileOperations;
+import org.gradle.jvm.toolchain.JavaInstallationSpec;
 
-/**
- * Allows managing Java installations to be used in a build.
- * <p>A Java installation may contain a JDK, or a JRE, or both.</p>
- * <p>An instance of this service is available for injection into tasks, plugins and other types.
- *
- * @since 6.6
- */
-@Incubating
-public interface JavaInstallationContainer {
+import javax.inject.Inject;
+
+public class DefaultJavaInstallationSpec implements JavaInstallationSpec {
+
+    private final FileOperations fileOperations;
+
+    @Inject
+    public DefaultJavaInstallationSpec(FileOperations fileOperations) {
+        this.fileOperations = fileOperations;
+    }
+
+    @Override
+    public void registerExisting(String name, Object path) {
+        fileOperations.file(path);
+    }
 
 }

@@ -18,21 +18,21 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.initialization.Settings;
-import org.gradle.jvm.toolchain.JavaInstallationContainer;
+import org.gradle.jvm.toolchain.JavaInstallationSpec;
 
 import javax.inject.Inject;
 
 public class JavaInstallationsSettingsPlugin implements Plugin<Settings> {
 
-    private final JavaInstallationContainer container;
+    private final JavaInstallationSpec spec;
 
     @Inject
-    public JavaInstallationsSettingsPlugin(JavaInstallationContainer container) {
-        this.container = container;
+    public JavaInstallationsSettingsPlugin(JavaInstallationSpec spec) {
+        this.spec = spec;
     }
 
     public void apply(Settings settings) {
-        settings.getExtensions().add("javaInstallations", container);
+        settings.getExtensions().add("javaInstallations", spec);
     }
 
 }

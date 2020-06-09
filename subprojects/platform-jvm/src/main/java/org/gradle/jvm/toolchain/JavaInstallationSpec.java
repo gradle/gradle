@@ -14,26 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal
+package org.gradle.jvm.toolchain;
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.IgnoreIf
+import org.gradle.api.Incubating;
 
-class JavaInstallationsSettingsPluginTest extends AbstractIntegrationSpec {
+/**
+ * Allows managing Java installations to be used in a build.
+ * <p>A Java installation may contain a JDK, or a JRE, or both.</p>
+ * <p>An instance of this service is available for injection into tasks, plugins and other types.
+ *
+ * @since 6.6
+ */
+@Incubating
+public interface JavaInstallationSpec {
 
-    @IgnoreIf({ AvailableJavaHomes.differentVersion == null })
-    def "can add a new installation to javaInstallations"() {
-        settingsFile << """
-        plugins {
-            id 'java-installations'
-        }
-        javaInstallations {
-
-        }
-"""
-
-        expect:
-        succeeds("help")
-    }
+    /**
+     * Registers an existing local java installation.
+     *
+     * <p>The directory is evaluated as per {@code Project.file(Object)}</p>
+     */
+    void registerExisting(String name, Object path);
 
 }
