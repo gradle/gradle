@@ -27,6 +27,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import spock.lang.Unroll
 
@@ -57,28 +58,13 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
     def "task output caching key is exposed when scan plugin is applied"() {
         given:
         settingsFile << """
-            buildscript {
-                repositories {
-                    ${gradlePluginRepositoryDefinition()}
-                }
-                dependencies {
-                    classpath "${AutoAppliedGradleEnterprisePlugin.GROUP}:${AutoAppliedGradleEnterprisePlugin.NAME}:${AutoAppliedGradleEnterprisePlugin.VERSION}"
-                }
-            }
-            
-            apply plugin: "com.gradle.enterprise"
-            gradleEnterprise {
-                buildScan {
-                    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-                    termsOfServiceAgree = 'yes'
-                }
-            }
+            services.get($GradleEnterprisePluginPresence.name).markPresent()
         """
 
         buildFile << customTaskCode('foo', 'bar')
 
         when:
-        succeeds('customTask', '-Dscan.dump')
+        succeeds('customTask')
 
         then:
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
@@ -101,7 +87,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
     def "handles task with no outputs"() {
         when:
         buildScript """
-            task noOutputs { 
+            task noOutputs {
                 doLast {}
             }
         """
@@ -121,7 +107,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
     def "handles task with no inputs"() {
         when:
         buildScript """
-            task noInputs { 
+            task noInputs {
                 outputs.file "foo.txt"
                 doLast {}
             }
@@ -142,7 +128,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
     def "not sent for task with no actions"() {
         when:
         buildScript """
-            task noActions { 
+            task noActions {
             }
         """
         succeeds('noActions', "--build-cache")
@@ -154,7 +140,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
     def "handles invalid implementation classloader"() {
         given:
         buildScript """
-            def classLoader = new GroovyClassLoader(this.class.classLoader) 
+            def classLoader = new GroovyClassLoader(this.class.classLoader)
             def clazz = classLoader.parseClass(\"\"\"${customTaskImpl()}\"\"\")
             task customTask(type: clazz){
                 input1 = 'foo'
@@ -181,7 +167,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         buildScript """
             ${customTaskCode('foo', 'bar')}
             def classLoader = new GroovyClassLoader(this.class.classLoader)
-            def c = classLoader.parseClass ''' 
+            def c = classLoader.parseClass '''
                 class A implements $Action.name {
                     void execute(task) {}
                 }
@@ -368,7 +354,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         buildScript """
             ${customTaskCode('foo', 'bar')}
             def classLoader = new GroovyClassLoader(this.class.classLoader)
-            def c = classLoader.parseClass ''' 
+            def c = classLoader.parseClass '''
                 class A {
                     @$Input.name
                     String input = 'nested'
@@ -397,7 +383,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             task customTask(type: CustomTask){
                 input1 = '$input1'
                 input2 = '$input2'
-            }            
+            }
         """
     }
 
@@ -408,13 +394,13 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
                 @$Input.name
                 String input2
-                
+
                 @$Input.name
                 String input1
-                
+
                 @$OutputFile.name
                 File outputFile2 = new File(temporaryDir, "output2.txt")
-                
+
                 @$OutputFile.name
                 File outputFile1 = new File(temporaryDir, "output1.txt")
 
@@ -422,7 +408,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 void generate() {
                     outputFile1.text = "done1"
                     outputFile2.text = "done2"
-                }   
+                }
 
                 @$Nested.name
                 @$Optional.name
