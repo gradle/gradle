@@ -24,14 +24,20 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-class ModuleMetadata {
+public class ModuleMetadataSpec {
 
     final Identity identity;
     final List<Variant> variants;
+    final boolean mustIncludeBuildId;
 
-    ModuleMetadata(Identity identity, List<Variant> variants) {
+    ModuleMetadataSpec(
+        Identity identity,
+        List<Variant> variants,
+        boolean mustIncludeBuildId
+    ) {
         this.identity = identity;
         this.variants = variants;
+        this.mustIncludeBuildId = mustIncludeBuildId;
     }
 
     static class Identity {
