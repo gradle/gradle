@@ -45,5 +45,8 @@ fun File.isParentOf(child: File): Boolean =
  * List files ordered by filename for reproducibility.
  * Never returns null.
  */
-fun File.listFilesOrdered(filter: (File) -> Boolean = { true }): List<File> =
-    listFiles()?.filter(filter)?.sortedBy { it.name } ?: emptyList()
+fun File.listFilesOrdered(filter: ((File) -> Boolean)? = null): List<File> =
+    listFiles()
+        ?.let { if (filter != null) it.filter(filter) else it.toList() }
+        ?.sortedBy { it.name }
+        ?: emptyList()
