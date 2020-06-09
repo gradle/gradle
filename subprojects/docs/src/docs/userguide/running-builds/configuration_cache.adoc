@@ -137,6 +137,71 @@ If you need to invalidate the cache, simply delete that directory:
 $ rm -rf .gradle/configuration-cache
 ----
 
+[[plugin_support]]
+== Supported plugins
+
+=== Core Gradle plugins
+
+Not all <<plugin_reference#plugin_reference, core Gradle plugins>> support configuration caching yet.
+
+* [.green]#*✓*# Supported plugin
+* [.yellow]#*⚠*# Partially supported plugin
+* [.red]#✖# Unsupported plugin
+* [.gray]#✖# Won't fix
+
+=== JVM languages and frameworks
+
+* [.yellow]#*⚠*# <<java_plugin.adoc#java_plugin,Java>>
+* [.yellow]#*⚠*# <<java_library_plugin.adoc#java_library_plugin,Java Library>>
+* [.yellow]#*⚠*# <<java_platform_plugin.adoc#java_platform_plugin,Java Platform>>
+* [.yellow]#*⚠*# <<groovy_plugin.adoc#groovy_plugin,Groovy>>
+* [.red]#✖# <<scala_plugin.adoc#scala_plugin,Scala>>
+* [.yellow]#*⚠*# <<antlr_plugin.adoc#antlr_plugin,ANTLR>>
+
+=== Native languages
+
+* [.red]#✖# <<cpp_application_plugin.adoc#cpp_application_plugin,C++ Application>>
+* [.red]#✖# <<cpp_library_plugin.adoc#cpp_library_plugin,C++ Library>>
+* [.red]#✖# <<cpp_unit_test_plugin.adoc#cpp_unit_test_plugin,C++ Unit Test>>
+* [.red]#✖# <<swift_application_plugin.adoc#swift_application_plugin,Swift Application>>
+* [.red]#✖# <<swift_library_plugin.adoc#swift_library_plugin,Swift Library>>
+* [.red]#✖# <<xctest_plugin.adoc#xctest_plugin,XCTest>>
+
+=== Packaging and distribution
+
+* [.green]#*✓*# <<application_plugin.adoc#application_plugin,Application>>
+* [.green]#*✓*# <<war_plugin.adoc#war_plugin,WAR>>
+* [.green]#*✓*# <<ear_plugin.adoc#ear_plugin,EAR>>
+* [.red]#✖# <<publishing_maven.adoc#publishing_maven,Maven Publish>>
+* [.red]#✖# <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
+* [.gray]#✖# <<maven_plugin.adoc#maven_plugin,Legacy Maven Plugin>>
+* [.green]#*✓*# <<distribution_plugin.adoc#distribution_plugin,Distribution>>
+* [.green]#*✓*# <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
+
+=== Code analysis
+
+* [.red]#✖# <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle>>
+* [.red]#✖# <<pmd_plugin.adoc#pmd_plugin,PMD>>
+* [.red]#✖# <<jacoco_plugin.adoc#jacoco_plugin,JaCoCo>>
+* [.red]#✖# <<codenarc_plugin.adoc#codenarc_plugin,CodeNarc>>
+
+=== IDE integration
+
+* [.red]#✖# <<eclipse_plugin.adoc#eclipse_plugin,Eclipse>>
+* [.red]#✖# <<idea_plugin.adoc#idea_plugin,IntelliJ IDEA>>
+* [.red]#✖# <<visual_studio_plugin.adoc#visual_studio_plugin,Visual Studio>>
+* [.red]#✖# <<xcode_plugin.adoc#xcode_plugin,Xcode>>
+
+=== Utility
+
+* [.green]#*✓*# <<base_plugin.adoc#base_plugin,Base>>
+* [.red]#✖# <<build_init_plugin.adoc#build_init_plugin,Build Init>>
+* [.red]#✖# <<signing_plugin.adoc#signing_plugin,Signing>>
+* [.green]#*✓*# <<java_gradle_plugin.adoc#java_gradle_plugin,Plugin Development>>
+* [.red]#✖# <<project_report_plugin.adoc#project_report_plugin,Project Report Plugin>>
+
+Later Gradle releases will add support for more core plugins.
+
 [[troubleshooting]]
 == Troubleshooting
 
@@ -375,8 +440,6 @@ val config = providers.fileContents("some.conf").forUseAtConfigurationTime().asT
 
 In general, you should avoid reading files at configuration time, to avoid invalidating configuration cache entries when the file content changes.
 Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#fileContents-org.gradle.api.file.RegularFile-[providers.fileContents()] to task properties.
-
-
 
 [[not_yet_implemented]]
 == Not yet implemented
