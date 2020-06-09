@@ -391,6 +391,10 @@ class ModuleResolveState implements CandidateModule {
         pendingDependencies.addNode(node);
     }
 
+    void removePendingNode(NodeState nodeState) {
+        pendingDependencies.removeNode(nodeState);
+    }
+
     public void maybeUpdateSelection() {
         if (replaced) {
             // Never update selection for a replaced module
