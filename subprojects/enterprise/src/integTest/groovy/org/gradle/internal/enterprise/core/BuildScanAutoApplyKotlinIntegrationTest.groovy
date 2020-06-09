@@ -18,15 +18,13 @@ package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.KotlinScriptIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.internal.scan.config.GradleEnterprisePluginLegacyContactPointFixture
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
-import static org.gradle.internal.scan.config.GradleEnterprisePluginLegacyContactPointFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
 
 class BuildScanAutoApplyKotlinIntegrationTest extends KotlinScriptIntegrationTest {
 
-    private final GradleEnterprisePluginLegacyContactPointFixture fixture = new GradleEnterprisePluginLegacyContactPointFixture(testDirectory, mavenRepo, createExecuter())
+    private final GradleEnterprisePluginCheckInFixture fixture = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
     @ToBeFixedForInstantExecution
     def "can automatically apply plugin when --scan is provided on command-line"() {
@@ -54,7 +52,7 @@ class BuildScanAutoApplyKotlinIntegrationTest extends KotlinScriptIntegrationTes
         succeeds('dummy')
 
         then:
-        output.contains("${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${AutoAppliedGradleEnterprisePlugin.VERSION}")
+        fixture.appliedOnce(output)
     }
 
 }

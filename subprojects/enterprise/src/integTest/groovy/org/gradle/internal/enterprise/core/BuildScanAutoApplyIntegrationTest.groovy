@@ -17,10 +17,10 @@
 package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.scan.config.GradleEnterprisePluginLegacyContactPointFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.gradle.internal.scan.impl.BuildScanPluginManager
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.VersionNumber
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -28,13 +28,14 @@ import spock.lang.Unroll
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
 import static org.gradle.internal.scan.config.GradleEnterprisePluginLegacyContactPointFixture.GRADLE_ENTERPRISE_PLUGIN_CLASS_NAME
 import static org.gradle.internal.scan.config.GradleEnterprisePluginLegacyContactPointFixture.GRADLE_ENTERPRISE_PLUGIN_ID
-import static org.gradle.internal.scan.config.GradleEnterprisePluginLegacyContactPointFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
+
     private static final String PLUGIN_AUTO_APPLY_VERSION = AutoAppliedGradleEnterprisePlugin.VERSION
     private static final String PLUGIN_MINIMUM_VERSION = BuildScanPluginManager.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY
     private static final String PLUGIN_NEWER_VERSION = newerThanAutoApplyPluginVersion()
-    private final GradleEnterprisePluginLegacyContactPointFixture fixture = new GradleEnterprisePluginLegacyContactPointFixture(testDirectory, mavenRepo, createExecuter())
+
+    private final GradleEnterprisePluginCheckInFixture fixture = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
         buildFile << """
@@ -126,7 +127,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         runBuildWithScanRequest()
 
         then:
-        pluginAppliedOnce(version)
+        pluginAppliedOnce()
 
         where:
         sequence | version
@@ -157,7 +158,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         runBuildWithScanRequest()
 
         then:
-        pluginAppliedOnce(version)
+        pluginAppliedOnce()
 
         where:
         sequence | version
@@ -192,7 +193,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         runBuildWithScanRequest('-I', 'init.gradle')
 
         then:
-        pluginAppliedOnce(version)
+        pluginAppliedOnce()
 
         where:
         sequence | version
@@ -251,7 +252,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Error resolving plugin [id: 'com.gradle.build-scan', version: '$PLUGIN_AUTO_APPLY_VERSION']")
         failure.assertHasCause(
             "The build scan plugin is not compatible with this version of Gradle.\n" +
-            "Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information."
+                "Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information."
         )
     }
 
@@ -270,14 +271,13 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("dummy")
     }
 
-    private void pluginAppliedOnce(String version = PLUGIN_AUTO_APPLY_VERSION) {
-        assert output.count("${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${version}") == 1
+    private void pluginAppliedOnce() {
+        fixture.appliedOnce(output)
     }
 
     private void pluginNotApplied() {
-        assert !output.contains(PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX)
+        fixture.notApplied(output)
     }
-
 
     static String newerThanAutoApplyPluginVersion() {
         def autoApplyVersion = VersionNumber.parse(PLUGIN_AUTO_APPLY_VERSION)

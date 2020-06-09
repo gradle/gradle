@@ -19,7 +19,6 @@ package org.gradle.internal.scan.config
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence
-import org.gradle.internal.scan.config.BuildScanConfig
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -30,13 +29,13 @@ class GradleEnterprisePluginLegacyContactPointFixture {
 
     public static final String PLUGIN_NOT_APPLIED_MSG = GradleEnterprisePluginPresence.NO_SCAN_PLUGIN_MSG
     public static final String GRADLE_ENTERPRISE_PLUGIN_ID = AutoAppliedGradleEnterprisePlugin.ID.id
-    public static final String BUILD_SCAN_PLUGIN_ID = "com.gradle.build-scan"
     public static final String PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX = 'PUBLISHING BUILD SCAN v'
     public static final String BUILD_SCAN_PLUGIN_APPLIED_MESSAGE = 'APPLIED OLD BUILD SCAN PLUGIN'
 
     public static final String GRADLE_ENTERPRISE_PLUGIN_CLASS_SIMPLE_NAME = 'GradleEnterprisePlugin'
     public static final String GRADLE_ENTERPRISE_PLUGIN_CLASS_NAME = "org.gradle.test.${GRADLE_ENTERPRISE_PLUGIN_CLASS_SIMPLE_NAME}"
 
+    public static final String BUILD_SCAN_PLUGIN_ID = "com.gradle.build-scan"
     public static final String BUILD_SCAN_PLUGIN_CLASS_SIMPLE_NAME = 'BuildScanPlugin'
     public static final String BUILD_SCAN_PLUGIN_CLASS_NAME = "org.gradle.test.${BUILD_SCAN_PLUGIN_CLASS_SIMPLE_NAME}"
 

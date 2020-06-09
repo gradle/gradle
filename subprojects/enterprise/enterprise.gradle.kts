@@ -15,13 +15,14 @@
  */
 
 plugins {
-    gradlebuild.distribution.`plugins-implementation-java`
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
+    api(project(":baseServices")) // leaks BuildOperationNotificationListener on API
+
     implementation(library("jsr305"))
     implementation(library("inject"))
-    implementation(project(":baseServices"))
     implementation(project(":logging"))
     implementation(project(":coreApi"))
     implementation(project(":core"))

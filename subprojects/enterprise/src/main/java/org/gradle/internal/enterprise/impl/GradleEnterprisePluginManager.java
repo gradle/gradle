@@ -35,8 +35,8 @@ import javax.inject.Inject;
 public class GradleEnterprisePluginManager implements GradleEnterprisePluginCheckInService {
 
     // Used just for testing
-    public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-scan-plugin";
-    public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Build scan support disabled by secret toggle";
+    public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-enterprise-plugin";
+    public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Enterprise plugin unsupported due to secret toggle";
 
     private final GradleEnterprisePluginConfig config;
     private final GradleEnterprisePluginRequiredServices requiredServices;
