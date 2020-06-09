@@ -33,14 +33,22 @@ public class PendingDependencies {
         this.reportActivePending = true;
     }
 
-    void addNode(NodeState state) {
+    void addNode(NodeState nodeState) {
         if (hardEdges != 0) {
             throw new IllegalStateException("Cannot add a pending node for a dependency which is not pending");
         }
-        affectedComponents.add(state);
-        if (state.getComponent().getModule().isVirtualPlatform()) {
+        affectedComponents.add(nodeState);
+        if (nodeState.getComponent().getModule().isVirtualPlatform()) {
             reportActivePending = false;
         }
+    }
+
+    public void removeNode(NodeState nodeState) {
+        if (hardEdges != 0) {
+            throw new IllegalStateException("Cannot remove a pending node for a dependency which is not pending");
+        }
+        boolean removed = affectedComponents.remove(nodeState);
+        assert removed : "Removed a pending node that was not registered";
     }
 
     void turnIntoHardDependencies() {
@@ -71,4 +79,5 @@ public class PendingDependencies {
     public boolean shouldReportActivatePending() {
         return reportActivePending;
     }
+
 }

@@ -65,7 +65,7 @@ class DefaultPendingDependenciesVisitor implements PendingDependenciesVisitor {
         boolean activatedPending = false;
         if (pendingDependencies.hasPendingComponents()) {
             if (noLongerPending == null) {
-                noLongerPending = Lists.newLinkedList();
+                noLongerPending = Lists.newArrayList();
             }
             noLongerPending.add(pendingDependencies);
             activatedPending = pendingDependencies.shouldReportActivatePending();

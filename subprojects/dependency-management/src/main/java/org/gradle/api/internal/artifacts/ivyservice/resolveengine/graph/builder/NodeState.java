@@ -234,23 +234,11 @@ public class NodeState implements DependencyGraphNode {
 
         if (!component.isSelected()) {
             LOGGER.debug("version for {} is not selected. ignoring.", this);
-            if (upcomingNoLongerPendingConstraints != null) {
-                for (ModuleIdentifier identifier : upcomingNoLongerPendingConstraints) {
-                    ModuleResolveState module = resolveState.getModule(identifier);
-                    for (EdgeState unattachedDependency : module.getUnattachedDependencies()) {
-                        if (!unattachedDependency.getSelector().isResolved()) {
-                            // Unresolved - we have a selector that was deferred but the constraint has been removed in between
-                            NodeState from = unattachedDependency.getFrom();
-                            from.prepareToRecomputeEdge(unattachedDependency);
-                        }
-                    }
-                }
-                upcomingNoLongerPendingConstraints = null;
-            }
+            cleanupConstraints();
             return;
         }
 
-        // Check if there are any transitive incoming edges at all. Don't traverse if not.
+         // Check if there are any transitive incoming edges at all. Don't traverse if not.
         if (transitiveEdgeCount == 0 && !isRoot()) {
             handleNonTransitiveNode(discoveredEdges);
             return;
@@ -286,6 +274,42 @@ public class NodeState implements DependencyGraphNode {
 
         visitDependencies(resolutionFilter, discoveredEdges);
         visitOwners(discoveredEdges);
+    }
+
+    /*
+     * When a node exits the graph, its constraints need to be cleaned up.
+     * This means:
+     * * Rescheduling any deferred selection impacted by a constraint coming from this node
+     * * Making sure we no longer are registered as pending interest on nodes pointed by constraints
+     */
+    private void cleanupConstraints() {
+        // This part covers constraint that were taken into account between a selection being deferred and this node being scheduled for traversal
+        if (upcomingNoLongerPendingConstraints != null) {
+            for (ModuleIdentifier identifier : upcomingNoLongerPendingConstraints) {
+                ModuleResolveState module = resolveState.getModule(identifier);
+                for (EdgeState unattachedDependency : module.getUnattachedDependencies()) {
+                    if (!unattachedDependency.getSelector().isResolved()) {
+                        // Unresolved - we have a selector that was deferred but the constraint has been removed in between
+                        NodeState from = unattachedDependency.getFrom();
+                        from.prepareToRecomputeEdge(unattachedDependency);
+                    }
+                }
+            }
+            upcomingNoLongerPendingConstraints = null;
+        }
+        // This part covers constraint that might be triggered in the future if the node they point gains a real edge
+        if (cachedFilteredDependencyStates != null && !cachedFilteredDependencyStates.isEmpty()) {
+            // We may have registered this node as pending if it had constraints.
+            // Let's clear that state since it is no longer part of selection
+            for (DependencyState dependencyState : cachedFilteredDependencyStates) {
+                if (dependencyState.getDependency().isConstraint()) {
+                    ModuleResolveState targetModule = resolveState.getModule(dependencyState.getModuleIdentifier());
+                    if (targetModule.isPending()) {
+                        targetModule.removePendingNode(this);
+                    }
+                }
+            }
+        }
     }
 
     private boolean excludesSameDependenciesAsPreviousTraversal(ExcludeSpec newResolutionFilter) {
@@ -360,6 +384,7 @@ public class NodeState implements DependencyGraphNode {
      * @param discoveredEdges In/Out parameter collecting dependencies or platforms
      */
     private void handleNonTransitiveNode(Collection<EdgeState> discoveredEdges) {
+        cleanupConstraints();
         // If node was previously traversed, need to remove outgoing edges.
         if (previousTraversalExclusions != null) {
             removeOutgoingEdges();
@@ -596,10 +621,10 @@ public class NodeState implements DependencyGraphNode {
     void removeIncomingEdge(EdgeState dependencyEdge) {
         if (incomingEdges.remove(dependencyEdge)) {
             incomingHash -= dependencyEdge.hashCode();
-            resolveState.onFewerSelected(this);
             if (dependencyEdge.isTransitive()) {
                 transitiveEdgeCount--;
             }
+            resolveState.onFewerSelected(this);
         }
     }
 
