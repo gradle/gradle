@@ -249,6 +249,9 @@ This includes calling `Task.getProject()` while the task is running.
 
 Some cases can be fixed in the same way as the previous requirement.
 
+Often, similar things are available on both `Project` and `Task.
+For example if you need a `Logger` in your task actions you should use `Task.logger` instead of `Project.logger`.
+
 Otherwise, to fix, use <<custom_gradle_types#service_injection,injected services>> instead of the methods of `Project`:
 
 * `project.file(path)` -> `ProjectLayout.projectDirectory.file(path)` or `ProjectLayout.buildDirectory.file(path)`
