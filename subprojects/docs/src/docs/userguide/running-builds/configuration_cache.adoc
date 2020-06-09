@@ -177,7 +177,7 @@ a|
 [.red]#✖#:: <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
 [.gray]#✖#:: <<maven_plugin.adoc#maven_plugin,Legacy Maven Plugin>>
 [.green]#*✓*#:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
-[.green]#*✓*#:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
+[.yellow]#*⚠*#:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
 
 h| Code analysis
 h| IDE integration
@@ -200,9 +200,9 @@ a|
 a|
 [horizontal]
 [.green]#*✓*#:: <<base_plugin.adoc#base_plugin,Base>>
-[.red]#✖#:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
+[.yellow]#*⚠*#:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
 [.red]#✖#:: <<signing_plugin.adoc#signing_plugin,Signing>>
-[.green]#*✓*#:: <<java_gradle_plugin.adoc#java_gradle_plugin,Plugin Development>>
+[.yellow]#*⚠*#:: <<java_gradle_plugin.adoc#java_gradle_plugin,Plugin Development>>
 [.red]#✖#:: <<project_report_plugin.adoc#project_report_plugin,Project Report Plugin>>
 
 |===
