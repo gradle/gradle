@@ -28,10 +28,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import spock.lang.Unroll
-
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryDefinition
 
 @Unroll
 class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec {
