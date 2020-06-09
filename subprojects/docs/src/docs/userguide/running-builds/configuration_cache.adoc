@@ -138,6 +138,26 @@ If you need to invalidate the cache, simply delete that directory:
 $ rm -rf .gradle/configuration-cache
 ----
 
+[[troubleshooting]]
+== Troubleshooting
+
+Upon failure to serialize the state required to run the tasks, an HTML report of detected problems is generated.
+The Gradle failure output includes a clickable link to the report.
+
+// TODO sample output from snippet
+
+The report displays the set of problems twice.
+First grouped by problem message, then grouped by task.
+The former allows to quickly see what classes of problems your build is facing.
+The latter allows to quickly see which tasks are problematic.
+In both cases you can expand the tree in order to discover where in the object graph is the culprit.
+
+[TIP]
+====
+Problems displayed in the report have links to the corresponding <<configuration_cache#requirements,requirement>> where you can find guidance on how to fix the problem or to the corresponding <<configuration_cache#not_yet_implemented,not yet implemented>> feature.
+
+When changing your build or plugin to fix the problems you should consider <<configuration_cache#testkit, testing your build logic with TestKit>>.
+====
 
 [[requirements]]
 == Requirements
@@ -423,17 +443,3 @@ include::sample[dir="snippets/configurationCache/testKit/kotlin",files="src/test
 If problems with the configuration cache are found then Gradle will fail the build reporting the problems, and the test will fail.
 
 When gradually improving your plugin or build logic to support the configuration cache it can be useful to temporarily <<configuration_cache.adoc#ignore_problems,ignore problems>> or <<configuration_cache.adoc#max_problems,allow a given number of problems>>.
-
-
-== Troubleshooting
-
-Upon failure to serialize the state required to run the tasks, an HTML report of detected problems is generated.
-The Gradle failure output includes a clickable link to the report.
-
-The report displays the set of problems twice.
-First grouped by error message, then grouped by task.
-The former allows to quickly see what classes of problems your build is facing.
-The latter allows to quickly see which tasks are problematic.
-In both cases you can expand the tree in order to discover where in the object graph is the culprit.
-
-Problems displayed in the report have links to the corresponding <<configuration_cache#requirements,requirement>> where you can find guidance on how to fix the problem or to the corresponding <<configuration_cache#not_yet_implemented,not yet implemented>> feature.
