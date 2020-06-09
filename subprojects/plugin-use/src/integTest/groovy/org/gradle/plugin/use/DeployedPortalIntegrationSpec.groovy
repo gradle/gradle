@@ -255,11 +255,6 @@ class DeployedPortalIntegrationSpec extends AbstractPluginIntegrationTest {
               id("$HELLO_WORLD_PLUGIN_ID") version "$HELLO_WORLD_PLUGIN_VERSION"
             }
         """
-        settingsFile << """
-            plugins {
-              id("com.gradle.enterprise") version "3.0"
-            }
-        """
         then:
         succeeds("helloWorld")
         and:
