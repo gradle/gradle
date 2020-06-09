@@ -16,25 +16,6 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.internal.file.FileOperations;
-import org.gradle.jvm.toolchain.JavaInstallationSpec;
-
-import javax.inject.Inject;
-
-public class DefaultJavaInstallationSpec implements JavaInstallationSpec {
-
-    private final FileOperations fileOperations;
-    private final SharedJavaInstallationRegistry registry;
-
-    @Inject
-    public DefaultJavaInstallationSpec(FileOperations fileOperations, SharedJavaInstallationRegistry registry) {
-        this.fileOperations = fileOperations;
-        this.registry = registry;
-    }
-
-    @Override
-    public void registerExisting(String name, Object path) {
-        fileOperations.file(path);
-    }
+public class SharedJavaInstallationRegistry {
 
 }
