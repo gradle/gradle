@@ -52,7 +52,7 @@ class DefaultPendingDependenciesVisitor implements PendingDependenciesVisitor {
         }
 
         // No hard dependency, queue up pending dependency in case we see a hard dependency later.
-        module.addPendingNode(node);
+        module.registerConstraintProvider(node);
         return PendingState.PENDING;
     }
 
@@ -63,7 +63,7 @@ class DefaultPendingDependenciesVisitor implements PendingDependenciesVisitor {
 
     private boolean markNoLongerPending(PendingDependencies pendingDependencies) {
         boolean activatedPending = false;
-        if (pendingDependencies.hasPendingComponents()) {
+        if (pendingDependencies.hasConstraintProviders()) {
             if (noLongerPending == null) {
                 noLongerPending = Lists.newArrayList();
             }

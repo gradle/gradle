@@ -141,7 +141,7 @@ class EdgeState implements DependencyGraphEdge {
             if (module.isPending()) {
                 selector.getTargetModule().removeUnattachedDependency(this);
                 from.makePending(this);
-                module.addPendingNode(from);
+                module.registerConstraintProvider(from);
                 return;
             }
         }
