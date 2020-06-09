@@ -89,6 +89,12 @@ class GradleEnterprisePluginCheckInFixture {
                 println "gradleEnterprisePlugin.checkIn.config.buildScanRequest = \$config.buildScanRequest"
                 println "gradleEnterprisePlugin.checkIn.config.taskExecutingBuild = \$config.taskExecutingBuild"
 
+                println "gradleEnterprisePlugin.checkIn.buildState.buildStartedTime = \$buildState.buildStartedTime"
+                println "gradleEnterprisePlugin.checkIn.buildState.currentTime = \$buildState.currentTime"
+                println "gradleEnterprisePlugin.checkIn.buildState.buildInvocationId = \$buildState.buildInvocationId"
+                println "gradleEnterprisePlugin.checkIn.buildState.workspaceId = \$buildState.workspaceId"
+                println "gradleEnterprisePlugin.checkIn.buildState.userId = \$buildState.userId"
+
                 new $GradleEnterprisePluginService.name() {
                     $BuildOperationNotificationListener.name getBuildOperationNotificationListener() {
                         new $BuildOperationNotificationListener.name() {

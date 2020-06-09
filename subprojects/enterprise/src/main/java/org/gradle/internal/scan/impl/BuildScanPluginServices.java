@@ -25,11 +25,11 @@ public class BuildScanPluginServices extends AbstractPluginServiceRegistry {
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.add(DefaultBuildScanClock.class);
         registration.add(DefaultBuildScanBuildStartedTime.class);
-        registration.add(DefaultBuildScanScopeIds.class);
     }
 
     @Override
     public void registerGradleServices(ServiceRegistration registration) {
+        registration.add(DefaultBuildScanScopeIds.class);
         registration.add(BuildScanPluginManager.class);
     }
 }

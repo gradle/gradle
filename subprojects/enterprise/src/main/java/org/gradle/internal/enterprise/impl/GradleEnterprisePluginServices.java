@@ -16,33 +16,21 @@
 
 package org.gradle.internal.enterprise.impl;
 
-import org.gradle.StartParameter;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
-import org.gradle.internal.scan.impl.BuildScanPluginServices;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
-public final class GradleEnterprisePluginServices extends AbstractPluginServiceRegistry {
+public class GradleEnterprisePluginServices extends AbstractPluginServiceRegistry {
 
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
-        registration.add(DefaultGradleEnterprisePluginBuildState.class);
         registration.add(DefaultGradleEnterprisePluginRequiredServices.class);
-        registration.addProvider(new Object() {
-            GradleEnterprisePluginConfig createGradleEnterprisePluginConfig(StartParameter startParameter, GradleInternal.BuildType buildType) {
-                return new DefaultGradleEnterprisePluginConfig(
-                    DefaultGradleEnterprisePluginConfig.buildScanRequest(startParameter),
-                    buildType == GradleInternal.BuildType.TASKS
-                );
-            }
-        });
     }
 
     @Override
     public void registerGradleServices(ServiceRegistration registration) {
+        registration.add(DefaultGradleEnterprisePluginBuildState.class);
+        registration.add(DefaultGradleEnterprisePluginConfig.class);
         registration.add(GradleEnterprisePluginManager.class);
-        registration.addProvider(new BuildScanPluginServices());
     }
 
 }
