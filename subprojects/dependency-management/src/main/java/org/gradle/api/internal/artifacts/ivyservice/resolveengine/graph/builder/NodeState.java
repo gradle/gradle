@@ -306,7 +306,7 @@ public class NodeState implements DependencyGraphNode {
                 if (dependencyState.getDependency().isConstraint()) {
                     ModuleResolveState targetModule = resolveState.getModule(dependencyState.getModuleIdentifier());
                     if (targetModule.isPending()) {
-                        targetModule.removePendingNode(this);
+                        targetModule.unregisterConstraintProvider(this);
                     }
                 }
             }
@@ -1091,7 +1091,7 @@ public class NodeState implements DependencyGraphNode {
                 incomingEdge.getSelector().release();
                 from.removeOutgoingEdge(incomingEdge);
             }
-            pendingDependencies.addNode(from);
+            pendingDependencies.registerConstraintProvider(from);
         }
     }
 
