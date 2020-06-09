@@ -33,14 +33,14 @@ import static org.gradle.util.GUtil.elvis;
 
 class ModuleMetadataJsonWriter extends JsonWriterScope {
 
-    private final ModuleMetadata metadata;
+    private final ModuleMetadataSpec metadata;
     @Nullable
     private final String buildId;
     private final ChecksumService checksumService;
 
     public ModuleMetadataJsonWriter(
         JsonWriter jsonWriter,
-        ModuleMetadata metadata,
+        ModuleMetadataSpec metadata,
         @Nullable String buildId,
         ChecksumService checksumService
     ) {
@@ -65,7 +65,7 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
 
     private void writeIdentity() throws IOException {
         writeObject("component", () -> {
-            ModuleMetadata.Identity identity = metadata.identity;
+            ModuleMetadataSpec.Identity identity = metadata.identity;
             if (identity.relativeUrl != null) {
                 write("url", identity.relativeUrl);
             }
@@ -86,14 +86,14 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
     }
 
     private void writeVariants() throws IOException {
-        List<ModuleMetadata.Variant> variants = metadata.variants;
+        List<ModuleMetadataSpec.Variant> variants = metadata.variants;
         if (variants.isEmpty()) {
             return;
         }
         writeArray("variants", () -> {
-            for (ModuleMetadata.Variant variant : variants) {
-                if (variant instanceof ModuleMetadata.LocalVariant) {
-                    ModuleMetadata.LocalVariant local = (ModuleMetadata.LocalVariant) variant;
+            for (ModuleMetadataSpec.Variant variant : variants) {
+                if (variant instanceof ModuleMetadataSpec.LocalVariant) {
+                    ModuleMetadataSpec.LocalVariant local = (ModuleMetadataSpec.LocalVariant) variant;
                     writeObject(() -> {
                         write("name", local.name);
                         writeAttributes(local.attributes);
@@ -104,8 +104,8 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
                     });
                     continue;
                 }
-                if (variant instanceof ModuleMetadata.RemoteVariant) {
-                    ModuleMetadata.RemoteVariant remote = (ModuleMetadata.RemoteVariant) variant;
+                if (variant instanceof ModuleMetadataSpec.RemoteVariant) {
+                    ModuleMetadataSpec.RemoteVariant remote = (ModuleMetadataSpec.RemoteVariant) variant;
                     writeObject(() -> {
                         write("name", remote.name);
                         writeAttributes(remote.attributes);
@@ -119,15 +119,15 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         });
     }
 
-    private void writeNonEmptyAttributes(List<ModuleMetadata.Attribute> attributes) throws IOException {
+    private void writeNonEmptyAttributes(List<ModuleMetadataSpec.Attribute> attributes) throws IOException {
         if (!attributes.isEmpty()) {
             writeAttributes(attributes);
         }
     }
 
-    private void writeAttributes(List<ModuleMetadata.Attribute> attributes) throws IOException {
+    private void writeAttributes(List<ModuleMetadataSpec.Attribute> attributes) throws IOException {
         writeObject("attributes", () -> {
-            for (ModuleMetadata.Attribute attribute : attributes) {
+            for (ModuleMetadataSpec.Attribute attribute : attributes) {
                 writeAttribute(attribute.name, attribute.value);
             }
         });
@@ -145,12 +145,12 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         }
     }
 
-    private void writeCapabilities(String key, List<ModuleMetadata.Capability> capabilities) throws IOException {
+    private void writeCapabilities(String key, List<ModuleMetadataSpec.Capability> capabilities) throws IOException {
         if (capabilities.isEmpty()) {
             return;
         }
         writeArray(key, () -> {
-            for (ModuleMetadata.Capability capability : capabilities) {
+            for (ModuleMetadataSpec.Capability capability : capabilities) {
                 writeObject(() -> {
                     write("group", capability.group);
                     write("name", capability.name);
@@ -162,7 +162,7 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         });
     }
 
-    private void writeAvailableAt(ModuleMetadata.AvailableAt availableAt) throws IOException {
+    private void writeAvailableAt(ModuleMetadataSpec.AvailableAt availableAt) throws IOException {
         writeObject("available-at", () -> {
             write("url", availableAt.url);
             writeCoordinates(availableAt.coordinates);
@@ -175,12 +175,12 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         write("version", coordinates.getVersion());
     }
 
-    private void writeArtifacts(List<ModuleMetadata.Artifact> artifacts) throws IOException {
+    private void writeArtifacts(List<ModuleMetadataSpec.Artifact> artifacts) throws IOException {
         if (artifacts.isEmpty()) {
             return;
         }
         writeArray("files", () -> {
-            for (ModuleMetadata.Artifact artifact : artifacts) {
+            for (ModuleMetadataSpec.Artifact artifact : artifacts) {
                 writeObject(() -> {
                     write("name", artifact.name);
                     write("url", artifact.uri);
@@ -195,14 +195,14 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         });
     }
 
-    private void writeDependencies(List<ModuleMetadata.Dependency> dependencies) throws IOException {
+    private void writeDependencies(List<ModuleMetadataSpec.Dependency> dependencies) throws IOException {
         if (dependencies.isEmpty()) {
             return;
         }
         writeArray("dependencies", () -> {
-            for (ModuleMetadata.Dependency moduleDependency : dependencies) {
+            for (ModuleMetadataSpec.Dependency moduleDependency : dependencies) {
                 writeObject(() -> {
-                    ModuleMetadata.DependencyCoordinates identifier = moduleDependency.coordinates;
+                    ModuleMetadataSpec.DependencyCoordinates identifier = moduleDependency.coordinates;
                     write("group", identifier.group);
                     write("module", identifier.name);
                     writeVersionConstraint(identifier.version);
@@ -223,7 +223,7 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         });
     }
 
-    private void writeVersionConstraint(@Nullable ModuleMetadata.Version version) throws IOException {
+    private void writeVersionConstraint(@Nullable ModuleMetadataSpec.Version version) throws IOException {
         if (version == null) {
             return;
         }
@@ -243,7 +243,7 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         });
     }
 
-    private void writeDependencyArtifact(ModuleMetadata.ArtifactSelector artifactSelector) throws IOException {
+    private void writeDependencyArtifact(ModuleMetadataSpec.ArtifactSelector artifactSelector) throws IOException {
         writeObject("thirdPartyCompatibility", () ->
             writeObject("artifactSelector", () -> {
                 write("name", artifactSelector.name);
@@ -258,12 +258,12 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         );
     }
 
-    private void writeDependencyConstraints(List<ModuleMetadata.DependencyConstraint> constraints) throws IOException {
+    private void writeDependencyConstraints(List<ModuleMetadataSpec.DependencyConstraint> constraints) throws IOException {
         if (constraints.isEmpty()) {
             return;
         }
         writeArray("dependencyConstraints", () -> {
-            for (ModuleMetadata.DependencyConstraint constraint : constraints) {
+            for (ModuleMetadataSpec.DependencyConstraint constraint : constraints) {
                 writeObject(() -> {
                     write("group", constraint.group);
                     write("module", constraint.module);

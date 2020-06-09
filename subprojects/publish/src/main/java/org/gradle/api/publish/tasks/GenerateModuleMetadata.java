@@ -36,7 +36,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.internal.metadata.GradleModuleMetadataWriter;
-import org.gradle.api.publish.internal.metadata.ModuleMetadata;
+import org.gradle.api.publish.internal.metadata.ModuleMetadataSpec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -196,13 +196,13 @@ public class GenerateModuleMetadata extends DefaultTask {
             throw new IllegalStateException(inputState.toString());
         }
         writeModuleMetadata(
-            ((InputState.Ready) inputState).moduleMetadata
+            ((InputState.Ready) inputState).moduleMetadataSpec
         );
     }
 
-    private void writeModuleMetadata(ModuleMetadata moduleMetadata) {
+    private void writeModuleMetadata(ModuleMetadataSpec moduleMetadataSpec) {
         try (Writer writer = bufferedWriterFor(outputFile.get().getAsFile())) {
-            moduleMetadataWriter().writeTo(writer, moduleMetadata);
+            moduleMetadataWriter().writeTo(writer, moduleMetadataSpec);
         } catch (IOException e) {
             throw new UncheckedIOException("Could not generate metadata file " + outputFile.get(), e);
         }
@@ -228,16 +228,16 @@ public class GenerateModuleMetadata extends DefaultTask {
         }
 
         return new InputState.Ready(
-            moduleMetadataWriter().moduleMetadataFor(publication(), publications())
+            moduleMetadataWriter().moduleMetadataSpecFor(publication(), publications())
         );
     }
 
     static class InputState {
         static class Ready extends InputState {
-            final ModuleMetadata moduleMetadata;
+            final ModuleMetadataSpec moduleMetadataSpec;
 
-            public Ready(ModuleMetadata moduleMetadata) {
-                this.moduleMetadata = moduleMetadata;
+            public Ready(ModuleMetadataSpec moduleMetadataSpec) {
+                this.moduleMetadataSpec = moduleMetadataSpec;
             }
         }
 

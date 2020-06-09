@@ -53,10 +53,10 @@ public class GradleModuleMetadataWriter {
     }
 
     public void writeTo(Writer writer, PublicationInternal<?> publication, Collection<? extends PublicationInternal<?>> publications) throws IOException {
-        writeTo(writer, moduleMetadataFor(publication, publications));
+        writeTo(writer, moduleMetadataSpecFor(publication, publications));
     }
 
-    public void writeTo(Writer writer, ModuleMetadata metadata) throws IOException {
+    public void writeTo(Writer writer, ModuleMetadataSpec metadata) throws IOException {
 
         // Write the output
         JsonWriter jsonWriter = new JsonWriter(writer);
@@ -74,15 +74,15 @@ public class GradleModuleMetadataWriter {
         writer.append('\n');
     }
 
-    public ModuleMetadata moduleMetadataFor(PublicationInternal<?> publication, Collection<? extends PublicationInternal<?>> publications) {
+    public ModuleMetadataSpec moduleMetadataSpecFor(PublicationInternal<?> publication, Collection<? extends PublicationInternal<?>> publications) {
         InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName());
-        ModuleMetadata metadata = new ModuleMetadataBuilder(
+        ModuleMetadataSpec spec = new ModuleMetadataSpecBuilder(
             publication,
             publications,
             checker,
             projectDependencyResolver
         ).build();
         checker.validate();
-        return metadata;
+        return spec;
     }
 }

@@ -24,13 +24,13 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-public class ModuleMetadata {
+public class ModuleMetadataSpec {
 
     final Identity identity;
     final List<Variant> variants;
     final boolean mustIncludeBuildId;
 
-    ModuleMetadata(
+    ModuleMetadataSpec(
         Identity identity,
         List<Variant> variants,
         boolean mustIncludeBuildId
