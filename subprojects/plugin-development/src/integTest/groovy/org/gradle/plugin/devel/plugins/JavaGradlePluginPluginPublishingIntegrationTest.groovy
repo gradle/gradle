@@ -56,7 +56,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertNotPublished()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "publishing")
     def "Publishes main plugin artifact to Ivy"() {
         given:
         plugin('foo', 'com.example.foo')
@@ -70,7 +70,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         ivyRepo.module('com.example', 'plugins', '1.0').assertPublished()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "publishing")
     def "Publishes main plugin artifact to Maven"() {
         given:
         plugin('foo', 'com.example.foo')
@@ -84,7 +84,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         mavenRepo.module('com.example', 'plugins', '1.0').assertPublished()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "publishing")
     def "Publishes one Ivy marker for every plugin"() {
         given:
         plugin('foo', 'com.example.foo', 'The Foo Plugin', 'The greatest Foo plugin of all time.')
@@ -105,7 +105,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         barMarker.parsedIvy.description.text() == 'The greatest Bar plugin of all time.'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "publishing")
     def "Publishes one Maven marker for every plugin"() {
         given:
         plugin('foo', 'com.example.foo', 'The Foo Plugin', 'The greatest Foo plugin of all time.')
@@ -132,7 +132,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "publishing")
     def "Can publish to Maven and Ivy at the same time"() {
         given:
         plugin('foo', 'com.example.foo')
@@ -151,7 +151,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertPublished()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "publishing")
     def "Can publish supplementary artifacts to both Maven and Ivy"() {
 
         given:
@@ -166,7 +166,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
                 archiveClassifier = "sources"
                 from sourceSets.main.allSource
             }
-            
+
             publishing {
                 publications {
                     pluginMaven(MavenPublication) {
@@ -194,7 +194,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertPublished()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "publishing")
     def "Can handle unspecified version"() {
         given:
         buildFile << """

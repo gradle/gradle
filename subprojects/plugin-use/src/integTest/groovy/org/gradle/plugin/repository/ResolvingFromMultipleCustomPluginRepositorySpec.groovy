@@ -77,19 +77,18 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
             pluginManagement {
                 repositories {
                     ${repositories.collect {
-                        if (it instanceof MavenFileRepository) {
-                            "maven { url '${it.uri}' }"
-                        } else {
-                            "ivy { url '${it.uri}' }"
-                        }
-                      }.join('\n')}
+            if (it instanceof MavenFileRepository) {
+                "maven { url '${it.uri}' }"
+            } else {
+                "ivy { url '${it.uri}' }"
+            }
+        }.join('\n')}
                 }
             }
         """
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "#repoType repositories are queried in declaration order"() {
         given:
         publishPlugins(repoType)
@@ -111,7 +110,6 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "Tries next #repoType repository if first didn't match"() {
         given:
         publishPlugins(repoType)
@@ -133,7 +131,6 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "Order of plugin requests does not affect order of #repoType repositories queried"() {
         given:
         publishPlugins(repoType)
@@ -156,7 +153,6 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "Resolution failures for #repoType are reported in declaration order"() {
         given:
         publishPlugins(repoType)
@@ -175,7 +171,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         then:
         failure.assertHasDescription("""
             Plugin [id: 'org.example.foo', version: '1.1'] was not found in any of the following sources:
-            
+
             - Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
             - Plugin Repositories (could not resolve plugin artifact 'org.example.foo:org.example.foo.gradle.plugin:1.1')
               Searched in the following repositories:
@@ -188,7 +184,6 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "Does not fall through to plugin portal if custom #repoType repos are defined"(String repoType) {
         given:
         publishPlugins(repoType)
@@ -215,7 +210,6 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     }
 
     @Requires(TestPrecondition.ONLINE)
-    @ToBeFixedForInstantExecution
     def "Can opt-in to plugin portal"() {
         given:
         publishPlugins(MAVEN)
@@ -242,7 +236,6 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
 
     @Issue("GRADLE-3502")
     @Requires(TestPrecondition.ONLINE)
-    @ToBeFixedForInstantExecution
     def "Plugin Portal provides transitive dependencies for other plugins"() {
         given:
         publishPlugins(MAVEN)
@@ -275,7 +268,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     }
 
     @Issue("gradle/gradle#3210")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":buildEnvironment")
     def "all plugin repositories are considered when resolving plugins transitive dependencies"() {
         given:
         requireOwnGradleUserHomeDir()
