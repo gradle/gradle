@@ -58,7 +58,6 @@ Apart from skipping the configuration phase, the configuration cache provides so
 - All tasks run in parallel by default.
 - Dependency resolution is cached.
 
-
 == Using the configuration cache
 
 [[enable]]
@@ -230,15 +229,16 @@ This problem is caused by build logic similar to this:
 [.multi-language-sample]
 =====
 .build.gradle
-[source, groovy]
+[source,groovy]
 ----
 def enabled = System.getProperty("some-property")
 ----
 =====
+
 [.multi-language-sample]
 =====
 .build.gradle.kts
-[source, kotlin]
+[source,kotlin]
 ----
 val enabled = System.getProperty("some-property")
 ----
@@ -251,15 +251,16 @@ To fix this problem, read system properties using link:{javadocPath}/org/gradle/
 [.multi-language-sample]
 =====
 .build.gradle
-[source, groovy]
+[source,groovy]
 ----
 def enabled = providers.systemProperty("some-property").forUseAtConfigurationTime().present
 ----
 =====
+
 [.multi-language-sample]
 =====
 .build.gradle.kts
-[source, kotlin]
+[source,kotlin]
 ----
 val enabled = providers.systemProperty("some-property").forUseAtConfigurationTime().isPresent
 ----
@@ -281,15 +282,16 @@ This problem is caused by build logic similar to this:
 [.multi-language-sample]
 =====
 .build.gradle
-[source, groovy]
+[source,groovy]
 ----
 def enabled = System.getenv("SOME_ENV_VAR")
 ----
 =====
+
 [.multi-language-sample]
 =====
 .build.gradle.kts
-[source, kotlin]
+[source,kotlin]
 ----
 val enabled = System.getenv("SOME_ENV_VAR")
 ----
@@ -302,15 +304,16 @@ To fix this problem, read environment variables using link:{javadocPath}/org/gra
 [.multi-language-sample]
 =====
 .build.gradle
-[source, groovy]
+[source,groovy]
 ----
 def enabled = providers.environmentVariable("SOME_ENV_VAR").forUseAtConfigurationTime().present
 ----
 =====
+
 [.multi-language-sample]
 =====
 .build.gradle.kts
-[source, kotlin]
+[source,kotlin]
 ----
 val enabled = providers.environmentVariable("SOME_ENV_VAR").forUseAtConfigurationTime().isPresent
 ----
@@ -332,15 +335,16 @@ This problem is caused by build logic similar to this:
 [.multi-language-sample]
 =====
 .build.gradle
-[source, groovy]
+[source,groovy]
 ----
 def config = file("some.conf").text
 ----
 =====
+
 [.multi-language-sample]
 =====
 .build.gradle.kts
-[source, kotlin]
+[source,kotlin]
 ----
 val config = file("some.conf").readText()
 ----
@@ -353,15 +357,16 @@ To fix this problem, read files using link:{javadocPath}/org/gradle/api/provider
 [.multi-language-sample]
 =====
 .build.gradle
-[source, groovy]
+[source,groovy]
 ----
 def config = providers.fileContents("some.conf").forUseAtConfigurationTime().asText
 ----
 =====
+
 [.multi-language-sample]
 =====
 .build.gradle.kts
-[source, kotlin]
+[source,kotlin]
 ----
 val config = providers.fileContents("some.conf").forUseAtConfigurationTime().asText
 ----
@@ -417,7 +422,6 @@ This includes:
 * <<declaring_repositories#sec:declaring_custom_repository,Maven or Ivy repositories>> with `file://` URLs,
 * <<declaring_repositories#sub:maven_local,`mavenLocal()`>>,
 * and <<declaring_repositories#sub:flat_dir_resolver,flat directory repositories>>.
-
 
 [[testkit]]
 == Testing Build Logic with TestKit
