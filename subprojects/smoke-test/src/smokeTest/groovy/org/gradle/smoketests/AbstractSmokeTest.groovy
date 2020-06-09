@@ -118,7 +118,7 @@ abstract class AbstractSmokeTest extends Specification {
         static playframework = "0.9"
 
         // https://plugins.gradle.org/plugin/net.ltgt.errorprone
-        static errorProne = "1.1.1"
+        static errorProne = "1.2.1"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
         static protobufPlugin = "0.8.12"
