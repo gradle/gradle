@@ -95,23 +95,7 @@ public class GenerateModuleMetadata extends DefaultTask {
 
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.satisfyNone());
-        mustHaveAttachedComponent();
-    }
-
-    private void mustHaveAttachedComponent() {
-        setOnlyIf(spec(element -> hasAttachedComponent()));
-    }
-
-    private boolean hasAttachedComponent() {
-        InputState inputState = this.inputState.get();
-        if (inputState instanceof InputState.ComponentMissing) {
-            String publicationName = ((InputState.ComponentMissing) inputState).publicationName;
-            getLogger().warn(
-                publicationName + " isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)"
-            );
-            return false;
-        }
-        return true;
+        setOnlyIf(spec(task -> hasAttachedComponent()));
     }
 
     // TODO - this should be an input
@@ -192,7 +176,7 @@ public class GenerateModuleMetadata extends DefaultTask {
 
     @TaskAction
     void run() {
-        InputState inputState = this.inputState.get();
+        InputState inputState = inputState();
         if (!(inputState instanceof InputState.Ready)) {
             throw new IllegalStateException(inputState.toString());
         }
@@ -219,6 +203,18 @@ public class GenerateModuleMetadata extends DefaultTask {
             getProjectDependencyPublicationResolver(),
             getChecksumService()
         );
+    }
+
+    private boolean hasAttachedComponent() {
+        InputState inputState = inputState();
+        if (inputState instanceof InputState.ComponentMissing) {
+            String publicationName = ((InputState.ComponentMissing) inputState).publicationName;
+            getLogger().warn(
+                publicationName + " isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)"
+            );
+            return false;
+        }
+        return true;
     }
 
     private InputState computeInputState() {
@@ -293,6 +289,10 @@ public class GenerateModuleMetadata extends DefaultTask {
                 }
             }
         }
+    }
+
+    private InputState inputState() {
+        return this.inputState.get();
     }
 
     private String publicationName() {
