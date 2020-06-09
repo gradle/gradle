@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.config
+package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.KotlinScriptIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture
+import org.gradle.internal.scan.config.GradleEnterprisePluginLegacyContactPointFixture
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
-import static org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
+import static org.gradle.internal.scan.config.GradleEnterprisePluginLegacyContactPointFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
 
 class BuildScanAutoApplyKotlinIntegrationTest extends KotlinScriptIntegrationTest {
 
-    private final GradleEnterprisePluginFixture fixture = new GradleEnterprisePluginFixture(testDirectory, mavenRepo, createExecuter())
+    private final GradleEnterprisePluginLegacyContactPointFixture fixture = new GradleEnterprisePluginLegacyContactPointFixture(testDirectory, mavenRepo, createExecuter())
 
     @ToBeFixedForInstantExecution
     def "can automatically apply plugin when --scan is provided on command-line"() {

@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.config
+package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.internal.scan.config.GradleEnterprisePluginLegacyContactPointFixture
 import org.gradle.internal.scan.impl.BuildScanPluginManager
 import spock.lang.Unroll
 
 @Unroll
-class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
+class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSpec {
 
     def scanPlugin = new GradleEnterprisePluginLegacyContactPointFixture(testDirectory, mavenRepo, createExecuter())
 

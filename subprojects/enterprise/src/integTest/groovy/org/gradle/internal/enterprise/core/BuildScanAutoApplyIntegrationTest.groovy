@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.config
+package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture
+import org.gradle.internal.scan.config.GradleEnterprisePluginLegacyContactPointFixture
 import org.gradle.internal.scan.impl.BuildScanPluginManager
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
@@ -26,15 +26,15 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
-import static org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture.GRADLE_ENTERPRISE_PLUGIN_CLASS_NAME
-import static org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture.GRADLE_ENTERPRISE_PLUGIN_ID
-import static org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
+import static org.gradle.internal.scan.config.GradleEnterprisePluginLegacyContactPointFixture.GRADLE_ENTERPRISE_PLUGIN_CLASS_NAME
+import static org.gradle.internal.scan.config.GradleEnterprisePluginLegacyContactPointFixture.GRADLE_ENTERPRISE_PLUGIN_ID
+import static org.gradle.internal.scan.config.GradleEnterprisePluginLegacyContactPointFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     private static final String PLUGIN_AUTO_APPLY_VERSION = AutoAppliedGradleEnterprisePlugin.VERSION
     private static final String PLUGIN_MINIMUM_VERSION = BuildScanPluginManager.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY
     private static final String PLUGIN_NEWER_VERSION = newerThanAutoApplyPluginVersion()
-    private final GradleEnterprisePluginFixture fixture = new GradleEnterprisePluginFixture(testDirectory, mavenRepo, createExecuter())
+    private final GradleEnterprisePluginLegacyContactPointFixture fixture = new GradleEnterprisePluginLegacyContactPointFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
         buildFile << """

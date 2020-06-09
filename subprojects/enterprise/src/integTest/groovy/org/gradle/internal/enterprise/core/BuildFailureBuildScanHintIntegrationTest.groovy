@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.config
+package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
@@ -32,7 +32,7 @@ import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.Stack
 
 @Issue("https://github.com/gradle/gradle/issues/3516")
 @Requires(TestPrecondition.ONLINE)
-class BuildScanFailureMessageHintIntegrationTest extends AbstractPluginIntegrationTest {
+class BuildFailureBuildScanHintIntegrationTest extends AbstractPluginIntegrationTest {
 
     private static final List<String> DUMMY_TASK_ONLY = [DUMMY_TASK_NAME]
     private static final List<String> DUMMY_TASK_AND_BUILD_SCAN = [DUMMY_TASK_NAME, "--$BuildScanOption.LONG_OPTION"]

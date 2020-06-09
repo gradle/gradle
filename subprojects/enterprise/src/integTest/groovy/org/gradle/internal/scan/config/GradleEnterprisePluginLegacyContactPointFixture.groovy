@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.config.fixtures
+package org.gradle.internal.scan.config
 
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -26,7 +26,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 @SuppressWarnings("GrMethodMayBeStatic")
-class GradleEnterprisePluginFixture {
+class GradleEnterprisePluginLegacyContactPointFixture {
 
     public static final String PLUGIN_NOT_APPLIED_MSG = GradleEnterprisePluginPresence.NO_SCAN_PLUGIN_MSG
     public static final String GRADLE_ENTERPRISE_PLUGIN_ID = AutoAppliedGradleEnterprisePlugin.ID.id
@@ -53,7 +53,7 @@ class GradleEnterprisePluginFixture {
     String runtimeVersion = AutoAppliedGradleEnterprisePlugin.VERSION
     String artifactVersion = AutoAppliedGradleEnterprisePlugin.VERSION
 
-    GradleEnterprisePluginFixture(TestFile projectDir, MavenFileRepository mavenRepo, GradleExecuter pluginBuildExecuter) {
+    GradleEnterprisePluginLegacyContactPointFixture(TestFile projectDir, MavenFileRepository mavenRepo, GradleExecuter pluginBuildExecuter) {
         this.projectDir = projectDir
         this.mavenRepo = mavenRepo
         this.pluginBuildExecuter = pluginBuildExecuter
