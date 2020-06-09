@@ -47,6 +47,6 @@ fun File.isParentOf(child: File): Boolean =
  */
 fun File.listFilesOrdered(filter: ((File) -> Boolean)? = null): List<File> =
     listFiles()
-        ?.let { if (filter != null) it.filter(filter) else it.toList() }
+        ?.let { if (filter != null) it.filter(filter) else it.asList() }
         ?.sortedBy { it.name }
         ?: emptyList()
