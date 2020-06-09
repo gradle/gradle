@@ -235,6 +235,12 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             }
 
             @Override
+            public Substitution withoutArtifactSelectors() {
+                artifactAction = Actions.composite(artifactAction, NoArtifactSelector.INSTANCE);
+                return this;
+            }
+
+            @Override
             public Substitution using(ComponentSelector notation) {
                 with(notation);
                 return this;
@@ -499,6 +505,15 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         @Override
         public void execute(ArtifactSelectionDetails artifactSelectionDetails) {
             artifactSelectionDetails.selectArtifact("jar", null, null);
+        }
+    }
+
+    private static class NoArtifactSelector implements Action<ArtifactSelectionDetails> {
+        private static final NoArtifactSelector INSTANCE = new NoArtifactSelector();
+
+        @Override
+        public void execute(ArtifactSelectionDetails artifactSelectionDetails) {
+            artifactSelectionDetails.withoutArtifactSelectors();
         }
     }
 

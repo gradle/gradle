@@ -50,6 +50,16 @@ public class DefaultArtifactSelectionDetails implements ArtifactSelectionDetails
     }
 
     @Override
+    public void withoutArtifactSelectors() {
+        targetSelectors = Lists.newArrayList();
+        markUpdated();
+    }
+
+    private void markUpdated() {
+        owner.addRuleDescriptor(ComponentSelectionReasons.SELECTED_BY_RULE);
+    }
+
+    @Override
     public void selectArtifact(String type, @Nullable String extension, @Nullable String classifier) {
         selectArtifact(new DefaultDependencyArtifactSelector(type, extension, classifier));
     }
@@ -58,7 +68,7 @@ public class DefaultArtifactSelectionDetails implements ArtifactSelectionDetails
     public void selectArtifact(DependencyArtifactSelector selector) {
         if (targetSelectors == null) {
             targetSelectors = Lists.newArrayList();
-            owner.addRuleDescriptor(ComponentSelectionReasons.SELECTED_BY_RULE);
+            markUpdated();
         }
         targetSelectors.add(selector);
     }

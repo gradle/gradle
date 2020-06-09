@@ -62,7 +62,7 @@ include::sample[dir="snippets/dependencyManagement/inspectingDependencies-depend
 .Output of **`gradle -q dependencies --configuration scm`**
 ----
 > gradle -q dependencies --configuration scm
-include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependenciesReport/tests/dependencyReport.out
+include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependenciesReport/tests/dependencyReport.out[]
 ----
 
 The dependencies report provides detailed information about the dependencies available in the graph.
@@ -121,7 +121,7 @@ Be sure to always target the <<command_line_interface#executing_tasks_in_multi_p
 .Output of **`gradle -q dependencyInsight --dependency commons-codec --configuration scm`**
 ----
 > gradle -q dependencyInsight --dependency commons-codec --configuration scm
-include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependencyInsightReport/tests/dependencyInsightReport.out
+include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependencyInsightReport/tests/dependencyInsightReport.out[]
 ----
 
 As indicated above, omitting the `--configuration` parameter in a project that is not a Java project will lead to an error:

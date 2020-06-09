@@ -329,14 +329,10 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
         // TODO: Reuse more of CommandlineActionFactory
         CommandLineParser parser = new CommandLineParser();
-        BuildLayoutFactory buildLayoutFactory = new BuildLayoutFactory();
         FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory();
-        ParametersConverter parametersConverter = new ParametersConverter(buildLayoutFactory, fileCollectionFactory);
+        ParametersConverter parametersConverter = new ParametersConverter(new BuildLayoutFactory(), fileCollectionFactory);
         parametersConverter.configure(parser);
-        final Parameters parameters = new Parameters(fileCollectionFactory);
-        parameters.getStartParameter().setCurrentDir(getWorkingDir());
-        parameters.getLayout().setCurrentDir(getWorkingDir());
-        parametersConverter.convert(parser.parse(getAllArgs()), parameters);
+        Parameters parameters = parametersConverter.convert(parser.parse(getAllArgs()), getWorkingDir());
 
         BuildActionExecuter<BuildActionParameters> actionExecuter = GLOBAL_SERVICES.get(BuildActionExecuter.class);
 
@@ -856,6 +852,13 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public String toString() {
             return description;
+        }
+
+        @Override
+        public void assertHasCause(String message) {
+            if (!causes.contains(message)) {
+                throw new AssertionFailedError(String.format("Expected cause '%s' not found in %s", message, causes));
+            }
         }
 
         @Override

@@ -32,10 +32,12 @@ public interface WatchingAwareVirtualFileSystem extends VirtualFileSystem {
     void afterBuildStarted(boolean watchingEnabled);
 
     /**
-     * Called when there is a change to project root directory,
-     * normally when settings have been evaluated.
+     * Called when a new build (aka project) root directory has been added.
+     *
+     * This method is first called for the root directory of the root project.
+     * It is also called for the root directories of included builds, and all other nested builds.
      */
-    void updateProjectRootDirectory(File projectRootDirectory);
+    void buildRootDirectoryAdded(File buildRootDirectory);
 
     /**
      * Called when the build is finished.

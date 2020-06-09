@@ -931,11 +931,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             ensureSettingsFileAvailable();
         }
 
-        // This will cause problems on Windows if the path to the Gradle executable that is used has a space in it (e.g. the user's dir is c:/Users/Luke Daley/)
-        // This is fundamentally a windows issue: You can't have arguments with spaces in them if the path to the batch script has a space
-        // We could work around this by setting -Dgradle.user.home but GRADLE-1730 (which affects 1.0-milestone-3) means that that
-        // is problematic as well. For now, we just don't support running the int tests from a path with a space in it on Windows.
-        // When we stop testing against M3 we should change to use the system property.
         if (getGradleUserHomeDir() != null) {
             allArgs.add("--gradle-user-home");
             allArgs.add(getGradleUserHomeDir().getAbsolutePath());

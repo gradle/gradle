@@ -41,7 +41,8 @@ class NativePlatformBackedFileMetadataAccessorTest extends AbstractFileMetadataA
     }
 
     private static maybeRoundLastModified(long lastModified) {
-        // Java 8 on Unix only captures the seconds in lastModified, so we cut it off the value returned from the filesystem as well
+        // Some Java 8 versions on Unix only capture the seconds in lastModified, so we cut off the milliseconds returned from the filesystem as well.
+        // For example, Oracle JDK 1.8.0_181-b13 does not capture milliseconds, while OpenJDK 1.8.0_242-b08 does.
         return (JavaVersion.current().java9Compatible || OperatingSystem.current().windows)
             ? lastModified
             : lastModified.intdiv(1000) * 1000

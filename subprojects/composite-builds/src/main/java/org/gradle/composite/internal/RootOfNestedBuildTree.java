@@ -29,6 +29,7 @@ import org.gradle.initialization.RunNestedBuildBuildOperationType;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.NestedRootBuild;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.invocation.GradleBuildController;
@@ -37,6 +38,8 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.util.Path;
+
+import java.io.File;
 
 public class RootOfNestedBuildTree extends AbstractBuildState implements NestedRootBuild {
     private final BuildIdentifier buildIdentifier;
@@ -51,6 +54,10 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
         this.owner = owner;
         this.buildName = buildDefinition.getName() == null ? buildIdentifier.getName() : buildDefinition.getName();
         this.gradleLauncher = owner.getNestedBuildFactory().nestedBuildTree(buildDefinition, this);
+    }
+
+    public void attach() {
+        gradleLauncher.getGradle().getServices().get(BuildStateRegistry.class).attachRootBuild(this);
     }
 
     @Override
@@ -91,6 +98,11 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     @Override
     public Path getIdentityPathForProject(Path projectPath) {
         return gradleLauncher.getGradle().getIdentityPath().append(projectPath);
+    }
+
+    @Override
+    public File getBuildRootDir() {
+        return gradleLauncher.getBuildRootDir();
     }
 
     @Override

@@ -49,7 +49,7 @@ The `--include-build` command-line argument turns the executed build into a comp
 .Output of **`gradle --include-build ../my-utils run`**
 ----
 > gradle --include-build ../my-utils run
-include::{samplesPath}/build-organization/composite-builds/basic/tests/compositeBuilds_basic_cli.out
+include::{samplesPath}/build-organization/composite-builds/basic/tests/basicCli.out[]
 ----
 
 [[settings_defined_composite]]

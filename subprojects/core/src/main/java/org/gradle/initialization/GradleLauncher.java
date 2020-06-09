@@ -17,7 +17,10 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.concurrent.Stoppable;
+
+import java.io.File;
 
 /**
  * This was the old Gradle embedding API (it used to be in the public `org.gradle` package). It is now internal and is due to be merged into {@link org.gradle.internal.invocation.BuildController} and {@link org.gradle.internal.build.BuildState}.
@@ -39,6 +42,13 @@ public interface GradleLauncher extends Stoppable {
      * @return The configured Gradle build instance.
      */
     GradleInternal getConfiguredBuild();
+
+    /**
+     * The root directory of the build, never null.
+     *
+     * @see BuildLayout#getRootDirectory()
+     */
+    File getBuildRootDir();
 
     /**
      * Schedules the specified tasks for this build.

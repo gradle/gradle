@@ -41,9 +41,8 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private final Map<String, ImmutableList<Path>> watchedRootsForSnapshot = new HashMap<>();
     private final Multiset<Path> shouldWatchDirectories = HashMultiset.create();
     private final Set<Path> watchedRoots = new HashSet<>();
+    private final Map<Path, String> projectRootDirectories = new HashMap<>();
     private final FileWatcher watcher;
-    private Path projectRootDirectory;
-    private String projectRootDirectoryPrefix;
 
     public HierarchicalFileWatcherUpdater(FileWatcher watcher) {
         this.watcher = watcher;
@@ -64,19 +63,33 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void updateProjectRootDirectory(File projectRoot) {
-        projectRootDirectory = projectRoot.toPath().toAbsolutePath();
-        projectRootDirectoryPrefix = projectRootDirectory.toString() + File.separator;
-
+    public void updateProjectRootDirectories(Collection<File> updatedProjectRootDirectories) {
+        Set<Path> rootPaths = updatedProjectRootDirectories.stream()
+            .map(File::toPath)
+            .map(Path::toAbsolutePath)
+            .collect(Collectors.toSet());
+        projectRootDirectories.clear();
+        for (Path rootPathToWatch : WatchRootUtil.resolveRootsToWatch(rootPaths)) {
+            projectRootDirectories.put(rootPathToWatch, rootPathToWatch.toString() + File.separator);
+        }
+        LOGGER.info("Now considering {} as root directories to watch", projectRootDirectories.keySet());
         updateWatchedDirectories();
     }
 
     private void updateWatchedDirectories() {
-        Set<Path> directoriesToWatch = shouldWatchDirectories.elementSet().stream()
-            .map(shouldWatchDirectory -> projectRootDirectoryPrefix != null && shouldWatchDirectory.toString().startsWith(projectRootDirectoryPrefix)
-                ? projectRootDirectory
-                : shouldWatchDirectory)
-            .collect(Collectors.toSet());
+        Set<Path> directoriesToWatch = new HashSet<>();
+        shouldWatchDirectories.elementSet().forEach(shouldWatchDirectory -> {
+            String shouldWatchDirectoryPathString = shouldWatchDirectory.toString();
+            for (Map.Entry<Path, String> entry : projectRootDirectories.entrySet()) {
+                Path projectRootDirectory = entry.getKey();
+                String projectRootDirectoryPrefix = entry.getValue();
+                if (shouldWatchDirectoryPathString.startsWith(projectRootDirectoryPrefix)) {
+                    directoriesToWatch.add(projectRootDirectory);
+                    return;
+                }
+            }
+            directoriesToWatch.add(shouldWatchDirectory);
+        });
 
         updateWatchedDirectories(WatchRootUtil.resolveRootsToWatch(directoriesToWatch));
     }
@@ -91,7 +104,6 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         if (newWatchRoots.isEmpty() && watchRootsToRemove.isEmpty()) {
             return;
         }
-        LOGGER.info("Watching {} directory hierarchies to track changes", newWatchRoots.size());
         if (!watchRootsToRemove.isEmpty()) {
             watcher.stopWatching(watchRootsToRemove.stream()
                 .map(Path::toFile)
@@ -106,5 +118,6 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             );
             watchedRoots.addAll(newWatchRoots);
         }
+        LOGGER.info("Watching {} directory hierarchies to track changes", watchedRoots.size());
     }
 }

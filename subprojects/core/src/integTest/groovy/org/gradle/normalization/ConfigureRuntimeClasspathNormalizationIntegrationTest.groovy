@@ -69,13 +69,15 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         skipped(project.customTask)
 
         where:
-        tree          | ignoredResourceName          | notIgnoredResourceName          | useRuntimeApi
-        'directories' | 'ignoredResourceInDirectory' | 'notIgnoredResourceInDirectory' | true
-        'jars'        | 'ignoredResourceInJar'       | 'notIgnoredResourceInJar'       | true
-        'nested jars' | 'ignoredResourceInNestedJar' | 'notIgnoredResourceInNestedJar' | true
-        'directories' | 'ignoredResourceInDirectory' | 'notIgnoredResourceInDirectory' | false
-        'jars'        | 'ignoredResourceInJar'       | 'notIgnoredResourceInJar'       | false
-        'nested jars' | 'ignoredResourceInNestedJar' | 'notIgnoredResourceInNestedJar' | false
+        tree                 | ignoredResourceName               | notIgnoredResourceName               | useRuntimeApi
+        'directories'        | 'ignoredResourceInDirectory'      | 'notIgnoredResourceInDirectory'      | true
+        'jars'               | 'ignoredResourceInJar'            | 'notIgnoredResourceInJar'            | true
+        'nested jars'        | 'ignoredResourceInNestedJar'      | 'notIgnoredResourceInNestedJar'      | true
+        'nested in dir jars' | 'ignoredResourceInNestedInDirJar' | 'notIgnoredResourceInNestedInDirJar' | true
+        'directories'        | 'ignoredResourceInDirectory'      | 'notIgnoredResourceInDirectory'      | false
+        'jars'               | 'ignoredResourceInJar'            | 'notIgnoredResourceInJar'            | false
+        'nested jars'        | 'ignoredResourceInNestedJar'      | 'notIgnoredResourceInNestedJar'      | false
+        'nested in dir jars' | 'ignoredResourceInNestedInDirJar' | 'notIgnoredResourceInNestedInDirJar' | false
     }
 
     def "can ignore manifest attributes on runtime classpath"() {
@@ -218,14 +220,18 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         TestResource notIgnoredResourceInDirectory
         TestResource ignoredResourceInJar
         TestResource ignoredResourceInNestedJar
+        TestResource ignoredResourceInNestedInDirJar
         TestResource notIgnoredResourceInJar
         TestResource notIgnoredResourceInNestedJar
+        TestResource notIgnoredResourceInNestedInDirJar
         TestResource jarManifest
         TestResource jarManifestProperties
         TestFile libraryJar
         TestFile nestedJar
+        TestFile nestedInDirJar
         private TestFile libraryJarContents
         private TestFile nestedJarContents
+        private TestFile nestedInDirJarContents
         private final String projectName
         final TestFile buildFile
 
@@ -239,9 +245,14 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
 
             buildFile << declareCustomTask(useRuntimeApi)
 
+            nestedInDirJarContents = root.file('nestedInDirJarContents').create {
+                ignoredResourceInNestedInDirJar = new TestResource(file('another/package/ignored.txt') << "This should be ignored", this.&createNestedInDirJar)
+                notIgnoredResourceInNestedInDirJar = new TestResource(file('another/package/not-ignored.txt') << "This should not be ignored", this.&createNestedInDirJar)
+            }
             root.file('classpath/dirEntry').create {
                 ignoredResourceInDirectory = new TestResource(file("ignored.txt") << "This should be ignored")
                 notIgnoredResourceInDirectory = new TestResource(file("not-ignored.txt") << "This should not be ignored")
+                nestedInDirJar = file('nestedInDir.jar')
             }
             nestedJarContents = root.file('libraryContents').create {
                 ignoredResourceInNestedJar = new TestResource(file('some/package/ignored.txt') << "This should be ignored", this.&createJar)
@@ -256,6 +267,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
             }
             libraryJar = root.file('library.jar')
             createJar()
+            createNestedInDirJar()
         }
 
         String declareCustomTask(boolean useRuntimeApi) {
@@ -299,6 +311,13 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
                 libraryJar.delete()
             }
             libraryJarContents.zipTo(libraryJar)
+        }
+
+        void createNestedInDirJar() {
+            if (nestedInDirJar.exists()) {
+                nestedInDirJar.delete()
+            }
+            nestedInDirJarContents.zipTo(nestedInDirJar)
         }
 
         ProjectWithRuntimeClasspathNormalization withFilesIgnored() {

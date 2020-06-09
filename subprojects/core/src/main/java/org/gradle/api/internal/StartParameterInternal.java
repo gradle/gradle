@@ -18,16 +18,10 @@ package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
-import org.gradle.internal.deprecation.Deprecatable;
-import org.gradle.internal.deprecation.LoggingDeprecatable;
 
 import java.io.File;
-import java.util.Set;
 
-public class StartParameterInternal extends StartParameter implements Deprecatable {
-
-    private final Deprecatable deprecationHandler = new LoggingDeprecatable();
-
+public class StartParameterInternal extends StartParameter {
     private boolean watchFileSystem;
 
     private boolean configurationCache;
@@ -56,21 +50,6 @@ public class StartParameterInternal extends StartParameter implements Deprecatab
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
         p.configurationCacheQuiet = configurationCacheQuiet;
         return p;
-    }
-
-    @Override
-    public void addDeprecation(String deprecation) {
-        deprecationHandler.addDeprecation(deprecation);
-    }
-
-    @Override
-    public Set<String> getDeprecations() {
-        return deprecationHandler.getDeprecations();
-    }
-
-    @Override
-    public void checkDeprecation() {
-        deprecationHandler.checkDeprecation();
     }
 
     public File getGradleHomeDir() {

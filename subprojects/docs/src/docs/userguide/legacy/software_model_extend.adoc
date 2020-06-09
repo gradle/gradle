@@ -209,7 +209,7 @@ And in the components reports for such a build script we can see our model types
 .Output of **`gradle -q components`**
 ----
 > gradle -q components
-include::{snippetsPath}/customModel/languageType/tests/softwareModelExtend-components.out
+include::{snippetsPath}/customModel/languageType/tests/softwareModelExtend-components.out[]
 ----
 
 
@@ -263,7 +263,7 @@ include::{snippetsPath}/customModel/internalViews/groovy/build.gradle[tag=build-
 .Output of `gradle -q model`
 ----
 > gradle -q model
-include::{snippetsPath}/customModel/internalViews/tests/softwareModelExtend-iv-model.out
+include::{snippetsPath}/customModel/internalViews/tests/softwareModelExtend-iv-model.out[]
 ----
 
 We can see in this report that `publicData` is present and that `internalData` is not.

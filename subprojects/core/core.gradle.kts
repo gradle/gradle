@@ -110,6 +110,7 @@ dependencies {
     testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":persistentCache"))
     testFixturesImplementation(project(":snapshots"))
+    testFixturesImplementation(project(":normalizationJava"))
     testFixturesImplementation(library("ivy"))
     testFixturesImplementation(library("slf4j_api"))
     testFixturesImplementation(library("guava"))

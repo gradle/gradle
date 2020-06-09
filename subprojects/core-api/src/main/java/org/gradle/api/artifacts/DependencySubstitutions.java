@@ -74,9 +74,9 @@ public interface DependencySubstitutions {
 
     /**
      * Transforms the supplied selector into a specific variant selector.
+     *
      * @param selector the origin selector
      * @param detailsAction the variant selection details configuration
-     *
      * @since 6.6
      */
     @Incubating
@@ -143,6 +143,14 @@ public interface DependencySubstitutions {
          */
         @Incubating
         Substitution withoutClassifier();
+
+        /**
+         * Specifies that substituted dependencies must not carry any artifact selector.
+         *
+         * @since 6.6
+         */
+        @Incubating
+        Substitution withoutArtifactSelectors();
 
         /**
          * Specify the target of the substitution.

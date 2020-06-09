@@ -104,7 +104,7 @@ Gradle transforms the binary dependencies when it executes the `resolveRuntimeCl
 ----
 > gradle resolveRuntimeClasspath
 
-include::{snippetsPath}/dependencyManagement/artifactTransforms-minify/tests/artifactTransformMinify.out
+include::{snippetsPath}/dependencyManagement/artifactTransforms-minify/tests/artifactTransformMinify.out[]
 ----
 
 [[sec:implementing-artifact-transforms]]

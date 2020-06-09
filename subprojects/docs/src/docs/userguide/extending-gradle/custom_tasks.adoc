@@ -64,7 +64,7 @@ include::sample[dir="snippets/tasks/customTask/kotlin",files="build.gradle.kts[t
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{snippetsPath}/tasks/customTask/tests/customTaskWithAction.out
+include::{snippetsPath}/tasks/customTask/tests/customTaskWithAction.out[]
 ----
 
 Let's add a property to the task, so we can customize it. Tasks are simply POGOs, and when you declare a task, you can set the properties or call methods on the task object. Here we add a `greeting` property, and set the value when we declare the `greeting` task.
@@ -78,7 +78,7 @@ include::sample[dir="snippets/tasks/customTaskWithProperty/kotlin",files="build.
 .Output of **`gradle -q hello greeting`**
 ----
 > gradle -q hello greeting
-include::{snippetsPath}/tasks/customTaskWithProperty/tests/customTaskWithProperty.out
+include::{snippetsPath}/tasks/customTaskWithProperty/tests/customTaskWithProperty.out[]
 ----
 
 
@@ -242,7 +242,7 @@ include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.
 .Output of `gradle -q incrementalReverse`
 ----
 > gradle -q incrementalReverse
-include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskFirstRun.out
+include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskFirstRun.out[]
 ----
 ====
 
@@ -253,7 +253,7 @@ Naturally when the task is executed again with no changes, then the entire task 
 .Output of `gradle incrementalReverse`
 ----
 > gradle incrementalReverse
-include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskNoChange.out
+include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskNoChange.out[]
 ----
 ====
 
@@ -268,7 +268,7 @@ include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.
 .Output of `gradle -q updateInputs incrementalReverse`
 ----
 > gradle -q updateInputs incrementalReverse
-include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskUpdatedInputs.out
+include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskUpdatedInputs.out[]
 ----
 ====
 
@@ -286,7 +286,7 @@ include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.
 .Output of `gradle -q removeInput incrementalReverse`
 ----
 > gradle -q removeInput incrementalReverse
-include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskRemovedInput.out
+include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskRemovedInput.out[]
 ----
 ====
 
@@ -302,7 +302,7 @@ include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.
 .Output of `gradle -q removeOutput incrementalReverse`
 ----
 > gradle -q removeOutput incrementalReverse
-include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskRemovedOutput.out
+include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskRemovedOutput.out[]
 ----
 ====
 
@@ -317,7 +317,7 @@ Here's the output you can expect in this case:
 .Output of `gradle -q -PtaskInputProperty=changed incrementalReverse`
 ----
 > gradle -q -PtaskInputProperty=changed incrementalReverse
-include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskChangedProperty.out
+include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskChangedProperty.out[]
 ----
 ====
 
@@ -376,7 +376,7 @@ include::sample[dir="snippets/tasks/commandLineOption-stringOption/kotlin",files
 .Output of **`gradle -q verifyUrl --url=http://www.google.com/`**
 ----
 > gradle -q verifyUrl --url=http://www.google.com/
-include::{snippetsPath}/tasks/commandLineOption-stringOption/tests/taskCommandLineOption.out
+include::{snippetsPath}/tasks/commandLineOption-stringOption/tests/taskCommandLineOption.out[]
 ----
 
 [[sec:supported_task_option_data_types]]
@@ -426,7 +426,7 @@ Command line options using the annotations link:{javadocPath}/org/gradle/api/tas
 .Output of **`gradle -q help --task processUrl`**
 ----
 > gradle -q help --task processUrl
-include::{snippetsPath}/tasks/commandLineOption-optionValues/tests/helpTaskOptions.out
+include::{snippetsPath}/tasks/commandLineOption-optionValues/tests/helpTaskOptions.out[]
 ----
 
 === Limitations

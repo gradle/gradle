@@ -78,7 +78,7 @@ include::{snippetsPath}/modelRules/basicRuleSourcePlugin/groovy/build.gradle[tag
 .Output of **`gradle hello`**
 ----
 > gradle hello
-include::{snippetsPath}/modelRules/basicRuleSourcePlugin/tests/basicRuleSourcePlugin-all.out
+include::{snippetsPath}/modelRules/basicRuleSourcePlugin/tests/basicRuleSourcePlugin-all.out[]
 ----
 
 Each of the different methods of the rule source are discrete, independent rules. Their order, or the fact that they belong to the same class, do not affect their behavior.
@@ -404,7 +404,7 @@ include::{snippetsPath}/modelRules/configureAsRequired/groovy/build.gradle[tag=c
 .Output of **`gradle showPerson`**
 ----
 > gradle showPerson
-include::{snippetsPath}/modelRules/configureAsRequired/tests/modelDslConfigureRuleRunWhenRequired.out
+include::{snippetsPath}/modelRules/configureAsRequired/tests/modelDslConfigureRuleRunWhenRequired.out[]
 ----
 
 You can see that before the task is run, the "person" element is configured by running the rule closure. Now let's run a task that does not require the "person" element:
@@ -414,7 +414,7 @@ You can see that before the task is run, the "person" element is configured by r
 .Output of **`gradle somethingElse`**
 ----
 > gradle somethingElse
-include::{snippetsPath}/modelRules/configureAsRequired/tests/modelDslConfigureRuleNotRunWhenNotRequired.out
+include::{snippetsPath}/modelRules/configureAsRequired/tests/modelDslConfigureRuleNotRunWhenNotRequired.out[]
 ----
 
 In this instance, you can see that the "person" element is not configured at all.
@@ -471,7 +471,7 @@ include::{snippetsPath}/modelRules/initializationRuleRunsBeforeConfigurationRule
 .Output of **`gradle showPerson`**
 ----
 > gradle showPerson
-include::{snippetsPath}/modelRules/initializationRuleRunsBeforeConfigurationRules/tests/modelDslInitializationRuleRunsBeforeConfigurationRule.out
+include::{snippetsPath}/modelRules/initializationRuleRunsBeforeConfigurationRules/tests/modelDslInitializationRuleRunsBeforeConfigurationRule.out[]
 ----
 
 Notice that the creation rule appears in the build script _after_ the configuration rule, but its code runs before the code of the configuration rule. Gradle collects up all the rules for a particular subject before running any of them, then runs the rules in the appropriate order.
@@ -533,7 +533,7 @@ include::{snippetsPath}/modelRules/configureElementsOfMap/groovy/build.gradle[ta
 .Output of **`gradle listPeople`**
 ----
 > gradle listPeople
-include::{snippetsPath}/modelRules/configureElementsOfMap/tests/modelDslModelMapNestedAll.out
+include::{snippetsPath}/modelRules/configureElementsOfMap/tests/modelDslModelMapNestedAll.out[]
 ----
 
 Any method on link:{javadocPath}/org/gradle/model/ModelMap.html[ModelMap] that accepts an link:{javadocPath}/org/gradle/api/Action.html[Action] as its last parameter can also be used to define a nested rule.
@@ -638,7 +638,7 @@ The built-in link:{groovyDslPath}/org.gradle.api.reporting.model.ModelReport.htm
 .Output of `gradle model`
 ----
 > gradle model
-include::{snippetsPath}/modelRules/basicRuleSourcePlugin/tests/basicRuleSourcePlugin-model-task.out
+include::{snippetsPath}/modelRules/basicRuleSourcePlugin/tests/basicRuleSourcePlugin-model-task.out[]
 ----
 
 

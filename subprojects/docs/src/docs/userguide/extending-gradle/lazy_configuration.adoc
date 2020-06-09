@@ -54,7 +54,7 @@ include::sample[dir="snippets/providers/propertyAndProvider/kotlin",files="build
 .Output of **`gradle greeting`**
 ----
 $ gradle greeting
-include::{snippetsPath}/providers/propertyAndProvider/tests/usePropertyAndProvider.out
+include::{snippetsPath}/providers/propertyAndProvider/tests/usePropertyAndProvider.out[]
 ----
 
 The `Greeting` task has a property of type `Property<String>` to represent the configurable greeting and a property of type `Provider<String>` to represent the calculated, read-only, message. The message `Provider` is created from the greeting `Property` using the `map()` method, and so its value is kept up-to-date as the value of the greeting property changes.
@@ -101,7 +101,7 @@ include::sample[dir="snippets/providers/connectProperties/kotlin",files="build.g
 .Output of **`gradle greeting`**
 ----
 $ gradle greeting
-include::{snippetsPath}/providers/connectProperties/tests/connectProperties.out
+include::{snippetsPath}/providers/connectProperties/tests/connectProperties.out[]
 ----
 
 This example calls the link:{javadocPath}/org/gradle/api/provider/Property.html#set-org.gradle.api.provider.Provider-[Property.set(Provider)] method to attach a `Provider` to a `Property` to supply the value of the property. In this case, the `Provider` happens to be a `Property` as well, but you can connect any `Provider` implementation, for example one created using `Provider.map()`
@@ -141,13 +141,13 @@ include::sample[dir="snippets/providers/fileAndDirectoryProperty/kotlin",files="
 [.multi-language-text.lang-groovy]
 ----
 $ gradle print
-include::{snippetsPath}/providers/fileAndDirectoryProperty/tests/workingWithFilesGroovy.out
+include::{snippetsPath}/providers/fileAndDirectoryProperty/tests/workingWithFilesGroovy.out[]
 ----
 .Output of **`gradle print`**
 [.multi-language-text.lang-kotlin]
 ----
 $ gradle print
-include::{snippetsPath}/providers/fileAndDirectoryProperty/tests/workingWithFilesKotlin.out
+include::{snippetsPath}/providers/fileAndDirectoryProperty/tests/workingWithFilesKotlin.out[]
 ----
 
 This example creates providers that represent locations in the project and build directories through link:{javadocPath}/org/gradle/api/Project.html#getLayout--[Project.getLayout()] with link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getBuildDirectory--[ProjectLayout.getBuildDirectory()] and link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getProjectDirectory--[ProjectLayout.getProjectDirectory()].
@@ -171,13 +171,13 @@ include::sample[dir="snippets/providers/implicitTaskInputFileDependency/kotlin",
 [.multi-language-text.lang-groovy]
 ----
 $ gradle consumer
-include::{snippetsPath}/providers/implicitTaskInputFileDependency/tests/implicitTaskInputFileDependencyGroovy.out
+include::{snippetsPath}/providers/implicitTaskInputFileDependency/tests/implicitTaskInputFileDependencyGroovy.out[]
 ----
 .Output of **`gradle consumer`**
 [.multi-language-text.lang-kotlin]
 ----
 $ gradle consumer
-include::{snippetsPath}/providers/implicitTaskInputFileDependency/tests/implicitTaskInputFileDependencyKotlin.out
+include::{snippetsPath}/providers/implicitTaskInputFileDependency/tests/implicitTaskInputFileDependencyKotlin.out[]
 ----
 
 In the example above, the task outputs and inputs are connected before any location is defined. The setters can be called at any time before the task is executed and the change will automatically affect all related input and output properties.
@@ -196,13 +196,13 @@ include::sample[dir="snippets/providers/implicitTaskInputDependency/kotlin",file
 [.multi-language-text.lang-groovy]
 ----
 $ gradle consumer
-include::{snippetsPath}/providers/implicitTaskInputDependency/tests/implicitTaskInputDependencyGroovy.out
+include::{snippetsPath}/providers/implicitTaskInputDependency/tests/implicitTaskInputDependencyGroovy.out[]
 ----
 .Output of **`gradle consumer`**
 [.multi-language-text.lang-kotlin]
 ----
 $ gradle consumer
-include::{snippetsPath}/providers/implicitTaskInputDependency/tests/implicitTaskInputDependencyKotlin.out
+include::{snippetsPath}/providers/implicitTaskInputDependency/tests/implicitTaskInputDependencyKotlin.out[]
 ----
 
 [[working_with_collections]]
@@ -231,13 +231,13 @@ include::sample[dir="snippets/providers/listProperty/kotlin",files="build.gradle
 [.multi-language-text.lang-groovy]
 ----
 $ gradle consumer
-include::{snippetsPath}/providers/listProperty/tests/listPropertyGroovy.out
+include::{snippetsPath}/providers/listProperty/tests/listPropertyGroovy.out[]
 ----
 .Output of **`gradle consumer`**
 [.multi-language-text.lang-kotlin]
 ----
 $ gradle consumer
-include::{snippetsPath}/providers/listProperty/tests/listPropertyKotlin.out
+include::{snippetsPath}/providers/listProperty/tests/listPropertyKotlin.out[]
 ----
 
 [[working_with_maps]]
@@ -257,7 +257,7 @@ include::sample[dir="snippets/providers/mapProperty/kotlin",files="build.gradle.
 .Output of **`gradle consumer`**
 ----
 $ gradle generate
-include::{snippetsPath}/providers/mapProperty/tests/mapProperty.out
+include::{snippetsPath}/providers/mapProperty/tests/mapProperty.out[]
 ----
 
 [[applying_conventions]]
@@ -274,7 +274,7 @@ include::sample[dir="snippets/providers/propertyConvention/kotlin",files="build.
 .Output of **`gradle show`**
 ----
 $ gradle show
-include::{snippetsPath}/providers/propertyConvention/tests/propertyConvention.out
+include::{snippetsPath}/providers/propertyConvention/tests/propertyConvention.out[]
 ----
 
 [[unmodifiable_property]]

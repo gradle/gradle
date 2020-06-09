@@ -75,6 +75,16 @@ main(MavenPublication) {
 
 See the documentation for more information on [Gradle Module Metadata generation](userguide/publishing_gradle_module_metadata.html#sub:gmm-reproducible).
 
+## Variant-aware dependency substitution rules
+
+Previously, it wasn't possible for Gradle to substitute a dependency which uses a classifier with a dependency without classifier, nor was it possible to substitute a dependency _without_ classifier with a classified dependency.
+Similarly, dependencies with attributes (typically "platform" dependencies) or capabilities (typically "test fixtures" dependencies) could not be substituted.
+
+Gradle now supports substitution of dependencies with classifiers, attributes or capabilities.
+Gradle's dependency substitution API has been enriched to cover those cases.
+
+See the documentation on [variant-aware substitution](userguide/file:///home/cchampeau/DEV/PROJECTS/GITHUB/gradle/subprojects/docs/build/working/usermanual/render-multi/resolution_rules.html#sec:variant_aware_substitutions) for details.
+
 ## Improvements for plugin authors
 
 ### Injectable `ArchiveOperations` service

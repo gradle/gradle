@@ -17,21 +17,17 @@
 package org.gradle.initialization;
 
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.deprecation.Deprecatable;
-import org.gradle.internal.deprecation.LoggingDeprecatable;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Set;
 
 import static org.gradle.internal.FileUtils.canonicalize;
 
-public class BuildLayoutParameters implements Deprecatable {
+public class BuildLayoutParameters {
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
     private static final File DEFAULT_GRADLE_USER_HOME = new File(SystemProperties.getInstance().getUserHome() + "/.gradle");
-    private final Deprecatable deprecationHandler = new LoggingDeprecatable();
 
     private boolean searchUpwards = true;
     private File currentDir = canonicalize(SystemProperties.getInstance().getCurrentDir());
@@ -115,18 +111,4 @@ public class BuildLayoutParameters implements Deprecatable {
         return searchUpwards;
     }
 
-    @Override
-    public void addDeprecation(String deprecation) {
-        deprecationHandler.addDeprecation(deprecation);
-    }
-
-    @Override
-    public Set<String> getDeprecations() {
-        return deprecationHandler.getDeprecations();
-    }
-
-    @Override
-    public void checkDeprecation() {
-        deprecationHandler.checkDeprecation();
-    }
 }
