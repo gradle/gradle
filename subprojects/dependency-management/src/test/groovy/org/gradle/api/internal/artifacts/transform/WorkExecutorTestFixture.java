@@ -24,7 +24,7 @@ import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.enterprise.impl.GradleEnterprisePluginPresence;
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.OutputChangeListener;

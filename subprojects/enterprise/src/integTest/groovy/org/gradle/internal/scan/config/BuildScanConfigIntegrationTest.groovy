@@ -18,6 +18,7 @@ package org.gradle.internal.scan.config
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence
 import org.gradle.internal.scan.impl.BuildScanPluginManager
 import spock.lang.Unroll
 
@@ -213,7 +214,7 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void assertFailedVersionCheck() {
-        failureCauseContains(BuildScanPluginManager.OLD_SCAN_PLUGIN_VERSION_MESSAGE)
+        failureCauseContains(GradleEnterprisePluginPresence.OLD_SCAN_PLUGIN_VERSION_MESSAGE)
     }
 
 

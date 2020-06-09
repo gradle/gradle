@@ -38,10 +38,6 @@ public class BuildScanPluginManager implements BuildScanConfigProvider, BuildSca
     public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-scan-plugin";
     public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Build scan support disabled by secret toggle";
 
-    public static final String OLD_SCAN_PLUGIN_VERSION_MESSAGE =
-        "The build scan plugin is not compatible with this version of Gradle.\n"
-            + "Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information.";
-
     private static final VersionNumber FIRST_VERSION_AWARE_OF_UNSUPPORTED = VersionNumber.parse("1.11");
 
     private final GradleInternal gradle;
@@ -74,7 +70,7 @@ public class BuildScanPluginManager implements BuildScanConfigProvider, BuildSca
 
         VersionNumber pluginVersion = VersionNumber.parse(pluginMetadata.getVersion()).getBaseVersion();
         if (pluginVersion.compareTo(FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION) < 0) {
-            throw new UnsupportedBuildScanPluginVersionException(OLD_SCAN_PLUGIN_VERSION_MESSAGE);
+            throw new UnsupportedBuildScanPluginVersionException(GradleEnterprisePluginPresence.OLD_SCAN_PLUGIN_VERSION_MESSAGE);
         }
 
         String unsupportedReason = unsupportedReason();
