@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,12 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.commons.compress.utils.Lists;
+import com.google.common.collect.Lists;
+import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.api.internal.file.archive.impl.StreamZipInput;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
-import org.gradle.internal.Factory;
-import org.gradle.internal.FileUtils;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.file.FilePathUtil;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
@@ -41,20 +39,17 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
 
-    private static final Set<String> KNOWN_ZIP_EXTENSIONS = ImmutableSet.of(".zip", ".jar", ".war", ".rar", ".ear", ".apk", ".aar");
+    private static final Set<String> KNOWN_ZIP_EXTENSIONS = ImmutableSet.of("zip", "jar", "war", "rar", "ear", "apk", "aar");
     private static final Logger LOGGER = LoggerFactory.getLogger(ZipHasher.class);
 
     public static boolean isZipFile(final String name) {
-        for (String extension : KNOWN_ZIP_EXTENSIONS) {
-            if (FileUtils.hasExtensionIgnoresCase(name, extension)) {
-                return true;
-            }
-        }
-        return false;
+        return KNOWN_ZIP_EXTENSIONS.contains(FilenameUtils.getExtension(name).toLowerCase(Locale.ROOT));
     }
 
     private final ResourceHasher resourceHasher;
@@ -99,14 +94,10 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
     }
 
     private List<FileSystemLocationFingerprint> fingerprintZipEntries(String zipFile) throws IOException {
-        ZipInput input = null;
-        try {
-            input = FileZipInput.create(new File(zipFile));
+        try(ZipInput input = FileZipInput.create(new File(zipFile))) {
             List<FileSystemLocationFingerprint> fingerprints = Lists.newArrayList();
             fingerprintZipEntries("", zipFile, fingerprints, input);
             return fingerprints;
-        } finally {
-            IoActions.closeQuietly(input);
         }
     }
 
@@ -138,7 +129,7 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
         return new DefaultFileSystemLocationFingerprint(relativePath, FileType.RegularFile, HashCode.fromInt(0));
     }
 
-    private static class ZipEntryRelativePath implements Factory<String[]> {
+    private static class ZipEntryRelativePath implements Supplier<String[]> {
         private final ZipEntry zipEntry;
 
         private ZipEntryRelativePath(ZipEntry zipEntry) {
@@ -146,7 +137,7 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
         }
 
         @Override
-        public String[] create() {
+        public String[] get() {
             return FilePathUtil.getPathSegments(zipEntry.getName());
         }
     }
