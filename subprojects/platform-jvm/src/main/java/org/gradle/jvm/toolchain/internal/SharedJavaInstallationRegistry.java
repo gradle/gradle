@@ -16,6 +16,10 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import java.io.File;
+
 public class SharedJavaInstallationRegistry {
 
+    public void add(String name, File file) {
+    }
 }

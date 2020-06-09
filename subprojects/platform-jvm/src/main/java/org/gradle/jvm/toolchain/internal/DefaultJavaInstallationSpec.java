@@ -34,7 +34,7 @@ public class DefaultJavaInstallationSpec implements JavaInstallationSpec {
 
     @Override
     public void registerExisting(String name, Object path) {
-        fileOperations.file(path);
+        registry.add(name, fileOperations.file(path));
     }
 
 }
