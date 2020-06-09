@@ -89,7 +89,7 @@ class ModuleMetadataBuilder {
     }
 
     ModuleMetadata build() {
-        return new ModuleMetadata(identity(), variants());
+        return new ModuleMetadata(identity(), variants(), publication.isPublishBuildId());
     }
 
     private ModuleMetadata.Identity identity() {
@@ -110,8 +110,7 @@ class ModuleMetadataBuilder {
         return new ModuleMetadata.Identity(
             componentData.coordinates,
             attributesFor(componentData.attributes),
-            relativeUrl,
-            publication.isPublishBuildId()
+            relativeUrl
         );
     }
 

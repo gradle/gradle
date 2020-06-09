@@ -66,7 +66,7 @@ public class GradleModuleMetadataWriter {
         new ModuleMetadataJsonWriter(
             jsonWriter,
             metadata,
-            metadata.identity.includesBuildId ? buildInvocationScopeId.getId().asString() : null,
+            metadata.mustIncludeBuildId ? buildInvocationScopeId.getId().asString() : null,
             checksumService
         ).write();
 

@@ -28,10 +28,16 @@ public class ModuleMetadata {
 
     final Identity identity;
     final List<Variant> variants;
+    final boolean mustIncludeBuildId;
 
-    ModuleMetadata(Identity identity, List<Variant> variants) {
+    ModuleMetadata(
+        Identity identity,
+        List<Variant> variants,
+        boolean mustIncludeBuildId
+    ) {
         this.identity = identity;
         this.variants = variants;
+        this.mustIncludeBuildId = mustIncludeBuildId;
     }
 
     static class Identity {
@@ -40,18 +46,15 @@ public class ModuleMetadata {
         final List<Attribute> attributes;
         @Nullable
         final String relativeUrl;
-        final boolean includesBuildId;
 
         Identity(
             ModuleVersionIdentifier coordinates,
             List<Attribute> attributes,
-            @Nullable String relativeUrl,
-            boolean includesBuildId
+            @Nullable String relativeUrl
         ) {
             this.coordinates = coordinates;
             this.attributes = attributes;
             this.relativeUrl = relativeUrl;
-            this.includesBuildId = includesBuildId;
         }
     }
 
