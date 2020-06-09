@@ -16,5 +16,16 @@
 
 package org.gradle.jvm.toolchain;
 
-public class JavaInstallationContainer {
+import org.gradle.api.Incubating;
+
+/**
+ * Allows managing Java installations to be used in a build.
+ * <p>A Java installation may contain a JDK, or a JRE, or both.</p>
+ * <p>An instance of this service is available for injection into tasks, plugins and other types.
+ *
+ * @since 6.6
+ */
+@Incubating
+public interface JavaInstallationContainer {
+
 }
