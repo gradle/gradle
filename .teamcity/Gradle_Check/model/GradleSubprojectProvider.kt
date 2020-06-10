@@ -27,8 +27,7 @@ val slowSubprojects = listOf("platformPlay")
 val ignoredSubprojects = listOf(
     "soak", // soak test
     "distributions", // build distributions
-    "architectureTest", // sanity check
-    "enterprise" // work in progress
+    "architectureTest" // sanity check
 )
 
 interface GradleSubprojectProvider {
