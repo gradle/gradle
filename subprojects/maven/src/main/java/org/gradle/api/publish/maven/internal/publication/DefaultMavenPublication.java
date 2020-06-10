@@ -632,7 +632,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     @Override
     public MavenNormalizedPublication asNormalisedPublication() {
         populateFromComponent();
-        Set<MavenArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(MavenArtifact.class, Cast.uncheckedCast(new DomainObjectCollection<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts})).matching(new Spec<MavenArtifact>() {
+        Set<MavenArtifact> artifactsToBePublished = new LinkedHashSet<>(CompositeDomainObjectSet.create(
+            MavenArtifact.class,
+            Cast.uncheckedCast(new DomainObjectCollection<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts})
+        ).matching(new Spec<MavenArtifact>() {
             @Override
             public boolean isSatisfiedBy(MavenArtifact element) {
                 if (!PUBLISHED_ARTIFACTS.isSatisfiedBy(element)) {
@@ -644,8 +647,15 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                 }
                 return true;
             }
-        });
-        return new MavenNormalizedPublication(name, projectIdentity, pom.getPackaging(), getPomArtifact(), determineMainArtifact(), artifactsToBePublished);
+        }));
+        return new MavenNormalizedPublication(
+            name,
+            projectIdentity,
+            pom.getPackaging(),
+            getPomArtifact(),
+            determineMainArtifact(),
+            artifactsToBePublished
+        );
     }
 
     private MavenArtifact getPomArtifact() {

@@ -21,25 +21,36 @@ import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.serialization.Cached;
+import org.gradle.internal.serialization.Transient;
 
 import java.io.File;
 
 public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
-    private final TaskProvider<? extends Task> generator;
+    private final Transient<TaskProvider<? extends Task>> generator;
     private final String extension;
     private final String classifier;
-    private final TaskDependencyInternal buildDependencies;
+    private final Transient<TaskDependencyInternal> buildDependencies;
+    private final Cached<File> file = Cached.of(this::computeFile);
 
     public SingleOutputTaskMavenArtifact(TaskProvider<? extends Task> generator, String extension, String classifier) {
-        this.generator = generator;
+        this.generator = Transient.of(generator);
         this.extension = extension;
         this.classifier = classifier;
-        this.buildDependencies = new GeneratorTaskDependency();
+        this.buildDependencies = Transient.of(new GeneratorTaskDependency());
     }
 
     @Override
     public File getFile() {
-        return generator.get().getOutputs().getFiles().getSingleFile();
+        return file.get();
+    }
+
+    private File computeFile() {
+        return getGenerator().getOutputs().getFiles().getSingleFile();
+    }
+
+    private Task getGenerator() {
+        return generator.get().get();
     }
 
     @Override
@@ -54,17 +65,17 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
 
     @Override
     protected TaskDependencyInternal getDefaultBuildDependencies() {
-        return buildDependencies;
+        return buildDependencies.get();
     }
 
     public boolean isEnabled() {
-        return generator.get().getEnabled();
+        return getGenerator().getEnabled();
     }
 
     private class GeneratorTaskDependency extends AbstractTaskDependency {
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            context.add(generator.get());
+            context.add(getGenerator());
         }
     }
 

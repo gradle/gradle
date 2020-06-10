@@ -16,6 +16,10 @@
 
 package org.gradle.instantexecution
 
+
+import static org.gradle.util.GFileUtils.deleteDirectory
+import static org.gradle.util.GFileUtils.listFiles
+
 class InstantExecutionPublishingIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     def setup() {
@@ -61,7 +65,7 @@ class InstantExecutionPublishingIntegrationTest extends AbstractInstantExecution
         """
     }
 
-    def "can generate metadata for maven publication"() {
+    def "can publish maven publication metadata to local repository"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: 'maven-publish'
@@ -107,7 +111,9 @@ class InstantExecutionPublishingIntegrationTest extends AbstractInstantExecution
         def metadataFile = file('build/publications/maven/module.json')
         def tasks = [
             'generateMetadataFileForMavenPublication',
-            'generatePomFileForMavenPublication'
+            'generatePomFileForMavenPublication',
+            'publishMavenPublicationToMavenRepository',
+            'publishAllPublicationsToMavenRepository'
         ]
 
         when:
@@ -118,13 +124,22 @@ class InstantExecutionPublishingIntegrationTest extends AbstractInstantExecution
         metadataFile.exists()
 
         when:
+        def storeTimeRepo = mavenRepoFiles()
         def storeTimeMetadata = metadataFile.text
         metadataFile.delete()
+        deleteDirectory(mavenRepo.rootDir)
         instantRun(*tasks)
 
         then:
         instant.assertStateLoaded()
+        def loadTimeRepo = mavenRepoFiles()
+        storeTimeRepo == loadTimeRepo
         def loadTimeMetadata = metadataFile.text
         storeTimeMetadata == loadTimeMetadata
+    }
+
+    private Map<File, String> mavenRepoFiles() {
+        listFiles(mavenRepo.rootDir, null, true)
+            .collectEntries { [it, it.text] }
     }
 }
