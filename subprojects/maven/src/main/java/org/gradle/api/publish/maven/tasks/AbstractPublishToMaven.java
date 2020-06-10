@@ -86,11 +86,11 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
             return (MavenPublicationInternal) publication;
         } else {
             throw new InvalidUserDataException(
-                    String.format(
-                            "publication objects must implement the '%s' interface, implementation '%s' does not",
-                            MavenPublicationInternal.class.getName(),
-                            publication.getClass().getName()
-                    )
+                String.format(
+                    "publication objects must implement the '%s' interface, implementation '%s' does not",
+                    MavenPublicationInternal.class.getName(),
+                    publication.getClass().getName()
+                )
             );
         }
     }
