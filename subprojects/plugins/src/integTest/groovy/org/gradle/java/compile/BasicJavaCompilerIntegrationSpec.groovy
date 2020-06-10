@@ -19,7 +19,6 @@ package org.gradle.java.compile
 
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -69,7 +68,6 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         javaClassFile("").assertHasDescendants()
     }
 
-    @ToBeFixedForInstantExecution(because = "run task")
     def compileWithSpecifiedEncoding() {
         given:
         goodCodeEncodedWith('ISO8859_7')
