@@ -228,8 +228,10 @@ fun fillTheGapsOf(projects: Collection<Project>): List<Project> {
             added += 1
             parent = parent.parent
         }
-        projectsWithoutGaps.add(project)
-        added += 1
+        if (project !in projectsWithoutGaps) {
+            projectsWithoutGaps.add(project)
+            added += 1
+        }
         index += added
     }
     return projectsWithoutGaps
