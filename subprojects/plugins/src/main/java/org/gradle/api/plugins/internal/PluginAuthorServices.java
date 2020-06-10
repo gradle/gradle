@@ -15,7 +15,11 @@
  */
 package org.gradle.api.plugins.internal;
 
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.component.SoftwareComponentFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.JvmEcosystemUtilities;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -29,9 +33,22 @@ public class PluginAuthorServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new GlobalScopeServices());
     }
 
+    @Override
+    public void registerProjectServices(ServiceRegistration registration) {
+        registration.addProvider(new ProjectScopeServices());
+    }
+
     private static class GlobalScopeServices {
         SoftwareComponentFactory createSoftwareComponentFactory(Instantiator instantiator) {
             return new DefaultSoftwareComponentFactory(instantiator);
+        }
+    }
+
+    private static class ProjectScopeServices {
+        JvmEcosystemUtilities createJvmEcosystemUtilities(ConfigurationContainer configurations,
+                                                          ObjectFactory objectFactory,
+                                                          TaskContainer tasks) {
+            return new DefaultJvmEcosystemUtilities(configurations, objectFactory, tasks);
         }
     }
 }
