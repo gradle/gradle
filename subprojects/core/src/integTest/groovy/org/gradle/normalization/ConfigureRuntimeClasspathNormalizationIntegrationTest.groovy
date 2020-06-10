@@ -25,7 +25,7 @@ import spock.lang.Unroll
 @Unroll
 class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "classpath normalization")
     def "can ignore files on runtime classpath in #tree (using runtime API: #useRuntimeApi)"() {
         def project = new ProjectWithRuntimeClasspathNormalization(useRuntimeApi).withFilesIgnored()
 
@@ -100,7 +100,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         skipped(project.customTask)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "classpath normalization")
     def "can ignore entire manifest on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(true).withManifestIgnored()
 
@@ -121,7 +121,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         skipped(project.customTask)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "classpath normalization")
     def "can ignore all meta-inf files on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(true).withAllMetaInfIgnored()
 
@@ -143,7 +143,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         skipped(project.customTask)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "classpath normalization")
     def "can ignore manifest properties on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(true).withManifestPropertiesIgnored()
 
@@ -164,7 +164,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         skipped(project.customTask)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "classpath normalization")
     def "can configure ignore rules per project (using runtime API: #useRuntimeApi)"() {
         def projectWithIgnores = new ProjectWithRuntimeClasspathNormalization('a', useRuntimeApi).withFilesIgnored()
         def projectWithoutIgnores = new ProjectWithRuntimeClasspathNormalization('b', useRuntimeApi)

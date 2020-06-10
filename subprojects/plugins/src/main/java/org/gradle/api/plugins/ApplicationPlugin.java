@@ -29,6 +29,8 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.internal.DefaultApplicationPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaApplication;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.Sync;
@@ -69,7 +71,7 @@ public class ApplicationPlugin implements Plugin<Project> {
         addRunTask(project, pluginExtension, pluginConvention);
         addCreateScriptsTask(project, pluginExtension, pluginConvention);
         configureJavaCompileTask(tasks.named(JavaPlugin.COMPILE_JAVA_TASK_NAME, JavaCompile.class), pluginExtension);
-        configureInstallTask(tasks.named(TASK_INSTALL_NAME, Sync.class), pluginConvention);
+        configureInstallTask(project.getProviders(), tasks.named(TASK_INSTALL_NAME, Sync.class), pluginConvention);
 
         DistributionContainer distributions = (DistributionContainer) project.getExtensions().getByName("distributions");
         Distribution mainDistribution = distributions.getByName(DistributionPlugin.MAIN_DISTRIBUTION_NAME);
@@ -85,20 +87,29 @@ public class ApplicationPlugin implements Plugin<Project> {
         jar.configure(j -> j.getManifest().attributes(Collections.singletonMap("Main-Class", pluginExtension.getMainClass())));
     }
 
-    private void configureInstallTask(TaskProvider<Sync> installTask, ApplicationPluginConvention pluginConvention) {
-        installTask.configure(task -> task.doFirst("don't overwrite existing directories", new PreventDestinationOverwrite(pluginConvention)));
+    private void configureInstallTask(ProviderFactory providers, TaskProvider<Sync> installTask, ApplicationPluginConvention pluginConvention) {
+        installTask.configure(task -> task.doFirst(
+            "don't overwrite existing directories",
+            new PreventDestinationOverwrite(
+                providers.provider(pluginConvention::getApplicationName),
+                providers.provider(pluginConvention::getExecutableDir)
+            )
+        ));
     }
 
     private static class PreventDestinationOverwrite implements Action<Task> {
-        private final ApplicationPluginConvention pluginConvention;
+        private final Provider<String> applicationName;
+        private final Provider<String> executableDir;
 
-        private PreventDestinationOverwrite(ApplicationPluginConvention pluginConvention) {
-            this.pluginConvention = pluginConvention;
+        private PreventDestinationOverwrite(Provider<String> applicationName, Provider<String> executableDir) {
+            this.applicationName = applicationName;
+            this.executableDir = executableDir;
         }
+
 
         @Override
         public void execute(Task task) {
-            Sync sync = (Sync)task;
+            Sync sync = (Sync) task;
             File destinationDir = sync.getDestinationDir();
             if (destinationDir.isDirectory()) {
                 String[] children = destinationDir.list();
@@ -106,14 +117,14 @@ public class ApplicationPlugin implements Plugin<Project> {
                     throw new UncheckedIOException("Could not list directory " + destinationDir);
                 }
                 if (children.length > 0) {
-                    if (!new File(destinationDir, "lib").isDirectory() || !new File(destinationDir, pluginConvention.getExecutableDir()).isDirectory()) {
+                    if (!new File(destinationDir, "lib").isDirectory() || !new File(destinationDir, executableDir.get()).isDirectory()) {
                         throw new GradleException("The specified installation directory \'"
-                                + destinationDir
-                                + "\' is neither empty nor does it contain an installation for \'"
-                                + pluginConvention.getApplicationName()
-                                + "\'.\n"
-                                + "If you really want to install to this directory, delete it and run the install task again.\n"
-                                + "Alternatively, choose a different installation directory.");
+                            + destinationDir
+                            + "\' is neither empty nor does it contain an installation for \'"
+                            + applicationName.get()
+                            + "\'.\n"
+                            + "If you really want to install to this directory, delete it and run the install task again.\n"
+                            + "Alternatively, choose a different installation directory.");
                     }
                 }
             }
@@ -139,7 +150,7 @@ public class ApplicationPlugin implements Plugin<Project> {
             FileCollection runtimeClasspath = project.files().from((Callable<FileCollection>) () -> {
                 if (run.getMainModule().isPresent()) {
                     return jarsOnlyRuntimeClasspath(project);
-                } else  {
+                } else {
                     return runtimeClasspath(project);
                 }
             });
