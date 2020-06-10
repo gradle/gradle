@@ -41,14 +41,22 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
         jars != []
 
         when:
-        def invalidArchives = jars.findAll {
-            new ZipFile(it).withCloseable {
+        def jarsWithDuplicateFiles = [:]
+        jars.each { jar ->
+            new ZipFile(jar).withCloseable {
                 def names = it.entries()*.name
-                names.size() != names.toUnique().size()
+                def groupedNames = names.groupBy { it }
+                groupedNames.each { name, all ->
+                    if (all.size() > 1) {
+                        def jarPath = jar.absolutePath - testDirectory.absolutePath
+                        jarsWithDuplicateFiles.computeIfAbsent(jarPath, { [] }) << name
+                    }
+                }
             }
         }
+
         then:
-        invalidArchives == []
+        jarsWithDuplicateFiles == [:]
     }
 
     private static def collectJars(TestFile file, Collection<File> acc = []) {
