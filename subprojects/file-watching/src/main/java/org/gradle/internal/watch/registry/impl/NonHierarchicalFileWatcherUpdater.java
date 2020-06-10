@@ -75,7 +75,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void updateRootProjectDirectories(Collection<File> updatedProjectRootDirectories) {
+    public void updateRootProjectDirectories(Collection<File> updatedRootProjectDirectories) {
     }
 
     private void updateWatchedDirectories(Map<String, Integer> changedWatchDirectories) {

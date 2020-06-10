@@ -35,20 +35,25 @@ import java.util.stream.Collectors;
 /**
  * Updater for hierarchical file watchers.
  *
- * This is the lifecycle for the watched project root directories:
+ * We want to keep track of root project directories for hierarchical watchers,
+ * because we prefer watching the root project directory instead of directories inside.
+ * Watching the root project directories is better since they are less likely to be deleted and
+ * nearly no changes to the watched directories are necessary when running builds on the same project.
+ *
+ * To allow deleting the root project directories, we need to stop watching a root project directory if there are no more snapshots in the VFS inside,
+ * since watched directories can't be deleted on Windows.
+ *
+ * The root project directories are discovered as included builds are encountered at the start of a build, and then they are removed when the build finishes.
+ *
+ * This is the lifecycle for the watched root project directories:
  * - During a build, there will be various calls to {@link #updateRootProjectDirectories(Collection)},
  *   each call augmenting the collection. The watchers will be updated accordingly.
- * - We try not to stop watching project root directories during a build.
- * - At the end of the build
- *   - stop watching the project root directories with nothing to watch inside
- *   - remember the current watched project root directories as old root directories for the next build
- *   - remove all non-watched project root directories from the old root directories.
- * - When updating the watches, we watch project root directories or old project root directories instead of
+ * - When updating the watches, we watch root project directories or old root project directories instead of
  *   directories inside them.
- *
- * The goal of the above logic is to
- * - Keep the updates to the watched directories during a build to a minimum.
- * - Release the watch on a project directory if it is deleted while the daemon is idle.
+ * - At the end of the build
+ *   - stop watching the root project directories with nothing to watch inside
+ *   - remember the current watched root project directories as old root directories for the next build
+ *   - remove all non-watched root project directories from the old root directories.
  */
 public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(HierarchicalFileWatcherUpdater.class);
@@ -89,8 +94,8 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void updateRootProjectDirectories(Collection<File> updatedProjectRootDirectories) {
-        Set<Path> rootPaths = updatedProjectRootDirectories.stream()
+    public void updateRootProjectDirectories(Collection<File> updatedRootProjectDirectories) {
+        Set<Path> rootPaths = updatedRootProjectDirectories.stream()
             .map(File::toPath)
             .map(Path::toAbsolutePath)
             .collect(Collectors.toSet());
