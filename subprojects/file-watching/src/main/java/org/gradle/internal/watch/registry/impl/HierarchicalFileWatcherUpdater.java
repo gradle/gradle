@@ -28,9 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -59,9 +57,8 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     private final Set<Path> watchedHierarchies = new HashSet<>();
 
-    // TODO: introduce type for rootProjectDirectory
-    private final Map<Path, String> knownRootProjectDirectoriesFromCurrentBuild = new HashMap<>();
-    private final Map<Path, String> watchedRootProjectDirectoriesFromPreviousBuild = new HashMap<>();
+    private final Set<RootProjectDirectory> knownRootProjectDirectoriesFromCurrentBuild = new HashSet<>();
+    private final Set<RootProjectDirectory> watchedRootProjectDirectoriesFromPreviousBuild = new HashSet<>();
 
     private final FileWatcher watcher;
 
@@ -83,10 +80,12 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     @Override
     public void buildFinished() {
-        watchedRootProjectDirectoriesFromPreviousBuild.putAll(knownRootProjectDirectoriesFromCurrentBuild);
+        watchedRootProjectDirectoriesFromPreviousBuild.addAll(knownRootProjectDirectoriesFromCurrentBuild);
         knownRootProjectDirectoriesFromCurrentBuild.clear();
         updateWatchedDirectories();
-        watchedRootProjectDirectoriesFromPreviousBuild.keySet().retainAll(watchedHierarchies);
+        watchedRootProjectDirectoriesFromPreviousBuild.removeIf(
+            rootProjectDirectory -> !watchedHierarchies.contains(rootProjectDirectory.path)
+        );
     }
 
     @Override
@@ -95,15 +94,14 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             .map(File::toPath)
             .map(Path::toAbsolutePath)
             .collect(Collectors.toSet());
-        Set<Path> newProjectRootDirectories = WatchRootUtil.resolveRootsToWatch(rootPaths);
-        LOGGER.info("Now considering {} as root directories to watch", newProjectRootDirectories);
-
-        watchedRootProjectDirectoriesFromPreviousBuild.keySet().removeAll(newProjectRootDirectories);
+        Set<Path> newRootProjectDirectories = WatchRootUtil.resolveRootsToWatch(rootPaths);
+        LOGGER.info("Now considering {} as root directories to watch", newRootProjectDirectories);
 
         knownRootProjectDirectoriesFromCurrentBuild.clear();
-        newProjectRootDirectories.forEach(
-            oldProjectRootDirectory -> knownRootProjectDirectoriesFromCurrentBuild.put(oldProjectRootDirectory, oldProjectRootDirectory.toString() + File.separator)
-        );
+        newRootProjectDirectories.stream()
+            .map(RootProjectDirectory::new)
+            .forEach(knownRootProjectDirectoriesFromCurrentBuild::add);
+        watchedRootProjectDirectoriesFromPreviousBuild.removeAll(knownRootProjectDirectoriesFromCurrentBuild);
 
         updateWatchedDirectories();
     }
@@ -112,10 +110,10 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         Set<Path> directoriesToWatch = new HashSet<>();
         trackedDirectoriesForSnapshot.values().forEach(shouldWatchDirectory -> {
             String shouldWatchDirectoryPathString = shouldWatchDirectory.toString();
-            if (maybeWatchProjectRootDirectory(directoriesToWatch, shouldWatchDirectoryPathString, knownRootProjectDirectoriesFromCurrentBuild)) {
+            if (maybeWatchRootProjectDirectory(directoriesToWatch, shouldWatchDirectoryPathString, knownRootProjectDirectoriesFromCurrentBuild)) {
                 return;
             }
-            if (maybeWatchProjectRootDirectory(directoriesToWatch, shouldWatchDirectoryPathString, watchedRootProjectDirectoriesFromPreviousBuild)) {
+            if (maybeWatchRootProjectDirectory(directoriesToWatch, shouldWatchDirectoryPathString, watchedRootProjectDirectoriesFromPreviousBuild)) {
                 return;
             }
             directoriesToWatch.add(shouldWatchDirectory);
@@ -124,12 +122,10 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         updateWatchedDirectories(WatchRootUtil.resolveRootsToWatch(directoriesToWatch));
     }
 
-    private static boolean maybeWatchProjectRootDirectory(Set<Path> directoriesToWatch, String shouldWatchDirectoryPathString, Map<Path, String> projectRootDirectories) {
-        for (Map.Entry<Path, String> entry : projectRootDirectories.entrySet()) {
-            Path projectRootDirectory = entry.getKey();
-            String projectRootDirectoryPrefix = entry.getValue();
-            if (shouldWatchDirectoryPathString.startsWith(projectRootDirectoryPrefix)) {
-                directoriesToWatch.add(projectRootDirectory);
+    private static boolean maybeWatchRootProjectDirectory(Set<Path> directoriesToWatch, String shouldWatchDirectoryPathString, Set<RootProjectDirectory> rootProjectDirectories) {
+        for (RootProjectDirectory rootProjectDirectory : rootProjectDirectories) {
+            if (rootProjectDirectory.contains(shouldWatchDirectoryPathString)) {
+                directoriesToWatch.add(rootProjectDirectory.path);
                 return true;
             }
         }
@@ -161,5 +157,38 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             watchedHierarchies.addAll(newWatchRoots);
         }
         LOGGER.info("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
+    }
+
+    private static class RootProjectDirectory {
+        private final Path path;
+        private final String prefix;
+
+        public RootProjectDirectory(Path path) {
+            this.path = path;
+            this.prefix = path.toString() + File.separator;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            RootProjectDirectory that = (RootProjectDirectory) o;
+
+            return prefix.equals(that.prefix);
+        }
+
+        @Override
+        public int hashCode() {
+            return prefix.hashCode();
+        }
+
+        public boolean contains(String shouldWatchDirectoryPathString) {
+            return shouldWatchDirectoryPathString.startsWith(prefix);
+        }
     }
 }
