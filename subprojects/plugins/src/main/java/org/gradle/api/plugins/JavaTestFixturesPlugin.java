@@ -24,12 +24,11 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 
+import javax.inject.Inject;
+
 import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.internal.JvmPluginsHelper.addApiToSourceSet;
-import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_API;
-import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_FEATURE_NAME;
-import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURE_SOURCESET_NAME;
+import static org.gradle.internal.component.external.model.TestFixturesSupport.*;
 
 /**
  * Adds support for producing test fixtures. This plugin will automatically
@@ -45,6 +44,13 @@ import static org.gradle.internal.component.external.model.TestFixturesSupport.T
 @Incubating
 public class JavaTestFixturesPlugin implements Plugin<Project> {
 
+    private final JvmEcosystemUtilities jvmEcosystemUtilities;
+
+    @Inject
+    public JavaTestFixturesPlugin(JvmEcosystemUtilities jvmEcosystemUtilities) {
+        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
+    }
+
     @Override
     public void apply(Project project) {
         project.getPluginManager().withPlugin("java", plugin -> {
@@ -52,7 +58,7 @@ public class JavaTestFixturesPlugin implements Plugin<Project> {
             JavaPluginExtension extension = findJavaPluginExtension(project);
             SourceSet testFixtures = convention.getSourceSets().create(TEST_FIXTURE_SOURCESET_NAME);
             extension.registerFeature(TEST_FIXTURES_FEATURE_NAME, featureSpec -> featureSpec.usingSourceSet(testFixtures));
-            addApiToSourceSet(testFixtures, project.getConfigurations());
+            jvmEcosystemUtilities.addApiToSourceSet(testFixtures);
             createImplicitTestFixturesDependencies(project, convention);
         });
     }

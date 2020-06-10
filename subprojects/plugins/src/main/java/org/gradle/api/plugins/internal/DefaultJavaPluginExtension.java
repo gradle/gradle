@@ -29,6 +29,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.plugins.JvmEcosystemUtilities;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
@@ -53,9 +54,11 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final TaskContainer tasks;
     private final Project project;
     private final ModularitySpec modularity;
+    private final JvmEcosystemUtilities jvmEcosystemUtilities;
 
     public DefaultJavaPluginExtension(JavaPluginConvention convention,
-                                      Project project) {
+                                      Project project,
+                                      JvmEcosystemUtilities jvmEcosystemUtilities) {
         this.convention = convention;
         this.configurations = project.getConfigurations();
         this.objectFactory = project.getObjects();
@@ -63,6 +66,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         this.tasks = project.getTasks();
         this.project = project;
         this.modularity = project.getObjects().newInstance(DefaultModularitySpec.class);
+        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
     }
 
     @Override
@@ -89,12 +93,14 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     public void registerFeature(String name, Action<? super FeatureSpec> configureAction) {
         Capability defaultCapability = new ProjectDerivedCapability(project, name);
         DefaultJavaFeatureSpec spec = new DefaultJavaFeatureSpec(
-                validateFeatureName(name),
-                defaultCapability, convention, this,
-                configurations,
-                objectFactory,
-                components,
-                tasks);
+            validateFeatureName(name),
+            defaultCapability,
+            this,
+            configurations,
+            objectFactory,
+            components,
+            tasks,
+            jvmEcosystemUtilities);
         configureAction.execute(spec);
         spec.create();
     }
