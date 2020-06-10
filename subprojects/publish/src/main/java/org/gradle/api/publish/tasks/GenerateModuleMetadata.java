@@ -45,6 +45,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.Cached;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
 import org.gradle.internal.hash.ChecksumService;
@@ -76,7 +77,7 @@ public class GenerateModuleMetadata extends DefaultTask {
     transient private final ListProperty<Publication> publications;
     private final RegularFileProperty outputFile;
     private FileCollection variantFiles;
-    private final Property<InputState> inputState;
+    private final Cached<InputState> inputState = Cached.of(this::computeInputState);
 
     public GenerateModuleMetadata() {
         ObjectFactory objectFactory = getProject().getObjects();
@@ -84,12 +85,6 @@ public class GenerateModuleMetadata extends DefaultTask {
         publications = objectFactory.listProperty(Publication.class);
 
         outputFile = objectFactory.fileProperty();
-
-        inputState = objectFactory.property(InputState.class);
-        inputState.finalizeValueOnRead();
-        inputState.set(
-            getProject().provider(this::computeInputState)
-        );
 
         variantFiles = getFileCollectionFactory().create(new VariantFiles());
 

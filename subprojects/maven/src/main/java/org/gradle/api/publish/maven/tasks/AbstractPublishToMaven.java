@@ -54,7 +54,6 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
         // Dependencies: Can't think of a case here
     }
 
-
     /**
      * The publication to be published.
      *

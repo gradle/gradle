@@ -19,7 +19,6 @@ package org.gradle.api.publish.maven.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.provider.Property;
 import org.gradle.api.publication.maven.internal.VersionRangeMapper;
 import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPom;
@@ -30,7 +29,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.Try;
+import org.gradle.internal.Cached;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -46,15 +45,9 @@ public class GenerateMavenPom extends DefaultTask {
     private transient ImmutableAttributes compileScopeAttributes = ImmutableAttributes.EMPTY;
     private transient ImmutableAttributes runtimeScopeAttributes = ImmutableAttributes.EMPTY;
     private Object destination;
-    private Property<InputState> inputState;
+    private Cached<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec = Cached.of(this::computeMavenPomSpec);
 
     public GenerateMavenPom() {
-        inputState = getProject().getObjects().property(InputState.class);
-        inputState.finalizeValueOnRead();
-        inputState.set(
-            getProject().provider(this::computeInputState)
-        );
-
         // Never up to date; we don't understand the data structures.
         getOutputs().upToDateWhen(Specs.satisfyNone());
     }
@@ -130,19 +123,7 @@ public class GenerateMavenPom extends DefaultTask {
     }
 
     private MavenPomFileGenerator.MavenPomSpec mavenPomSpec() {
-        return inputState.get().mavenPomSpec.get();
-    }
-
-    private InputState computeInputState() {
-        return new InputState(Try.ofFailable(this::computeMavenPomSpec));
-    }
-
-    static class InputState {
-        final Try<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec;
-
-        InputState(Try<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec) {
-            this.mavenPomSpec = mavenPomSpec;
-        }
+        return mavenPomSpec.get();
     }
 
     private MavenPomFileGenerator.MavenPomSpec computeMavenPomSpec() {
