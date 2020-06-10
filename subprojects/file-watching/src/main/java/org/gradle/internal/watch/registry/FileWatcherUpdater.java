@@ -32,7 +32,7 @@ public interface FileWatcherUpdater extends SnapshotHierarchy.SnapshotDiffListen
      *
      * @throws WatchingNotSupportedException when the native watchers can't be updated.
      */
-    void updateProjectRootDirectories(Collection<File> updatedProjectRootDirectories);
+    void updateRootProjectDirectories(Collection<File> updatedProjectRootDirectories);
 
     /**
      * {@inheritDoc}.

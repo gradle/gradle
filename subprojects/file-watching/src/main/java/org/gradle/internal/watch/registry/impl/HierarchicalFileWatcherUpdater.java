@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  * Updater for hierarchical file watchers.
  *
  * This is the lifecycle for the watched project root directories:
- * - During a build, there will be various calls to {@link #updateProjectRootDirectories(Collection)},
+ * - During a build, there will be various calls to {@link #updateRootProjectDirectories(Collection)},
  *   each call augmenting the collection. The watchers will be updated accordingly.
  * - We try not to stop watching project root directories during a build.
  * - At the end of the build
@@ -56,12 +56,17 @@ import java.util.stream.Collectors;
 public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(HierarchicalFileWatcherUpdater.class);
 
-    private final Map<String, ImmutableList<Path>> watchedRootsForSnapshot = new HashMap<>();
-    private final Multiset<Path> shouldWatchDirectories = HashMultiset.create();
-    private final Set<Path> watchedRoots = new HashSet<>();
-    private final Map<Path, String> projectRootDirectories = new HashMap<>();
-    private final Map<Path, String> oldProjectRootDirectories = new HashMap<>();
-    private final Set<Path> recentlyWatchedProjectRootDirectories = new HashSet<>();
+    // TODO: Merge these two fields
+    private final Map<String, ImmutableList<Path>> trackedDirectoriesForSnapshot = new HashMap<>();
+    private final Multiset<Path> trackedDirectories = HashMultiset.create();
+
+    private final Set<Path> watchedHierarchies = new HashSet<>();
+
+    // TODO: introduce type for rootProjectDirectory
+    private final Map<Path, String> knownRootProjectDirectoriesFromCurrentBuild = new HashMap<>();
+    private final Map<Path, String> watchedRootProjectDirectoriesFromPreviousBuild = new HashMap<>();
+    private final Set<Path> rootProjectDirectoriesStartedToWatchInCurrentBuild = new HashSet<>();
+
     private final FileWatcher watcher;
 
     public HierarchicalFileWatcherUpdater(FileWatcher watcher) {
@@ -71,28 +76,28 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     @Override
     public void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots) {
         removedSnapshots.forEach(snapshot -> {
-            ImmutableList<Path> previouslyWatchedRootsForSnapshot = watchedRootsForSnapshot.remove(snapshot.getAbsolutePath());
-            Multisets.removeOccurrences(shouldWatchDirectories, previouslyWatchedRootsForSnapshot);
+            ImmutableList<Path> previouslyWatchedRootsForSnapshot = trackedDirectoriesForSnapshot.remove(snapshot.getAbsolutePath());
+            Multisets.removeOccurrences(trackedDirectories, previouslyWatchedRootsForSnapshot);
         });
         addedSnapshots.forEach(snapshot -> {
             ImmutableList<Path> directoriesToWatch = WatchRootUtil.getDirectoriesToWatch(snapshot);
-            shouldWatchDirectories.addAll(directoriesToWatch);
-            watchedRootsForSnapshot.put(snapshot.getAbsolutePath(), directoriesToWatch);
+            trackedDirectories.addAll(directoriesToWatch);
+            trackedDirectoriesForSnapshot.put(snapshot.getAbsolutePath(), directoriesToWatch);
         });
         updateWatchedDirectories();
     }
 
     @Override
     public void buildFinished() {
-        recentlyWatchedProjectRootDirectories.clear();
-        oldProjectRootDirectories.putAll(projectRootDirectories);
-        projectRootDirectories.clear();
+        rootProjectDirectoriesStartedToWatchInCurrentBuild.clear();
+        watchedRootProjectDirectoriesFromPreviousBuild.putAll(knownRootProjectDirectoriesFromCurrentBuild);
+        knownRootProjectDirectoriesFromCurrentBuild.clear();
         updateWatchedDirectories();
-        oldProjectRootDirectories.keySet().retainAll(watchedRoots);
+        watchedRootProjectDirectoriesFromPreviousBuild.keySet().retainAll(watchedHierarchies);
     }
 
     @Override
-    public void updateProjectRootDirectories(Collection<File> updatedProjectRootDirectories) {
+    public void updateRootProjectDirectories(Collection<File> updatedProjectRootDirectories) {
         Set<Path> rootPaths = updatedProjectRootDirectories.stream()
             .map(File::toPath)
             .map(Path::toAbsolutePath)
@@ -100,11 +105,11 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         Set<Path> newProjectRootDirectories = WatchRootUtil.resolveRootsToWatch(rootPaths);
         LOGGER.info("Now considering {} as root directories to watch", newProjectRootDirectories);
 
-        oldProjectRootDirectories.keySet().removeAll(newProjectRootDirectories);
+        watchedRootProjectDirectoriesFromPreviousBuild.keySet().removeAll(newProjectRootDirectories);
 
-        projectRootDirectories.clear();
+        knownRootProjectDirectoriesFromCurrentBuild.clear();
         newProjectRootDirectories.forEach(
-            oldProjectRootDirectory -> projectRootDirectories.put(oldProjectRootDirectory, oldProjectRootDirectory.toString() + File.separator)
+            oldProjectRootDirectory -> knownRootProjectDirectoriesFromCurrentBuild.put(oldProjectRootDirectory, oldProjectRootDirectory.toString() + File.separator)
         );
 
         updateWatchedDirectories();
@@ -112,17 +117,17 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     private void updateWatchedDirectories() {
         Set<Path> directoriesToWatch = new HashSet<>();
-        shouldWatchDirectories.elementSet().forEach(shouldWatchDirectory -> {
+        trackedDirectories.elementSet().forEach(shouldWatchDirectory -> {
             String shouldWatchDirectoryPathString = shouldWatchDirectory.toString();
-            if (maybeWatchProjectRootDirectory(directoriesToWatch, shouldWatchDirectoryPathString, projectRootDirectories)) {
+            if (maybeWatchProjectRootDirectory(directoriesToWatch, shouldWatchDirectoryPathString, knownRootProjectDirectoriesFromCurrentBuild)) {
                 return;
             }
-            if (maybeWatchProjectRootDirectory(directoriesToWatch, shouldWatchDirectoryPathString, oldProjectRootDirectories)) {
+            if (maybeWatchProjectRootDirectory(directoriesToWatch, shouldWatchDirectoryPathString, watchedRootProjectDirectoriesFromPreviousBuild)) {
                 return;
             }
             directoriesToWatch.add(shouldWatchDirectory);
         });
-        directoriesToWatch.addAll(recentlyWatchedProjectRootDirectories);
+        directoriesToWatch.addAll(rootProjectDirectoriesStartedToWatchInCurrentBuild);
 
         updateWatchedDirectories(WatchRootUtil.resolveRootsToWatch(directoriesToWatch));
     }
@@ -140,12 +145,12 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     private void updateWatchedDirectories(Set<Path> newWatchRoots) {
-        Set<Path> watchRootsToRemove = new HashSet<>(watchedRoots);
+        Set<Path> watchRootsToRemove = new HashSet<>(watchedHierarchies);
         if (newWatchRoots.isEmpty()) {
             LOGGER.info("Not watching anything anymore");
         }
         watchRootsToRemove.removeAll(newWatchRoots);
-        newWatchRoots.removeAll(watchedRoots);
+        newWatchRoots.removeAll(watchedHierarchies);
         if (newWatchRoots.isEmpty() && watchRootsToRemove.isEmpty()) {
             return;
         }
@@ -154,18 +159,18 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
                 .map(Path::toFile)
                 .collect(Collectors.toList())
             );
-            watchedRoots.removeAll(watchRootsToRemove);
+            watchedHierarchies.removeAll(watchRootsToRemove);
         }
         if (!newWatchRoots.isEmpty()) {
             watcher.startWatching(newWatchRoots.stream()
                 .map(Path::toFile)
                 .collect(Collectors.toList())
             );
-            watchedRoots.addAll(newWatchRoots);
+            watchedHierarchies.addAll(newWatchRoots);
             newWatchRoots.stream()
-                .filter(projectRootDirectories::containsKey)
-                .forEach(recentlyWatchedProjectRootDirectories::add);
+                .filter(knownRootProjectDirectoriesFromCurrentBuild::containsKey)
+                .forEach(rootProjectDirectoriesStartedToWatchInCurrentBuild::add);
         }
-        LOGGER.info("Watching {} directory hierarchies to track changes", watchedRoots.size());
+        LOGGER.info("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
     }
 }

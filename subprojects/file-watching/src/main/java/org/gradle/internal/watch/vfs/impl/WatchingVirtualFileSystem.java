@@ -114,7 +114,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     public void buildRootDirectoryAdded(File buildRootDirectory) {
         synchronized (buildRootDirectoriesForWatching) {
             buildRootDirectoriesForWatching.add(buildRootDirectory);
-            updateWatchRegistry(watchRegistry -> watchRegistry.getFileWatcherUpdater().updateProjectRootDirectories(buildRootDirectoriesForWatching));
+            updateWatchRegistry(watchRegistry -> watchRegistry.getFileWatcherUpdater().updateRootProjectDirectories(buildRootDirectoriesForWatching));
         }
     }
 
@@ -191,7 +191,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                     stopWatchingAndInvalidateHierarchy();
                 }
             });
-            watchRegistry.getFileWatcherUpdater().updateProjectRootDirectories(buildRootDirectoriesForWatching);
+            watchRegistry.getFileWatcherUpdater().updateRootProjectDirectories(buildRootDirectoriesForWatching);
             delegatingUpdateFunctionDecorator.setSnapshotDiffListener(snapshotDiffListener, this::handleWatcherChangeErrors);
             long endTime = System.currentTimeMillis() - startTime;
             LOGGER.warn("Spent {} ms registering watches for file system events", endTime);
