@@ -36,7 +36,7 @@ import java.util.concurrent.Callable;
  */
 public abstract class AbstractPublishToMaven extends DefaultTask {
 
-    private MavenPublicationInternal publication;
+    transient private MavenPublicationInternal publication;
 
     public AbstractPublishToMaven() {
         // Allow the publication to participate in incremental build

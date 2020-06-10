@@ -19,6 +19,7 @@ package org.gradle.api.publish.maven.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.provider.Property;
 import org.gradle.api.publication.maven.internal.VersionRangeMapper;
 import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPom;
@@ -29,6 +30,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.Try;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -40,12 +42,19 @@ import java.io.File;
  */
 public class GenerateMavenPom extends DefaultTask {
 
-    private MavenPom pom;
+    private transient MavenPom pom;
+    private transient ImmutableAttributes compileScopeAttributes = ImmutableAttributes.EMPTY;
+    private transient ImmutableAttributes runtimeScopeAttributes = ImmutableAttributes.EMPTY;
     private Object destination;
-    private ImmutableAttributes compileScopeAttributes = ImmutableAttributes.EMPTY;
-    private ImmutableAttributes runtimeScopeAttributes = ImmutableAttributes.EMPTY;
+    private Property<InputState> inputState;
 
     public GenerateMavenPom() {
+        inputState = getProject().getObjects().property(InputState.class);
+        inputState.finalizeValueOnRead();
+        inputState.set(
+            getProject().provider(this::computeInputState)
+        );
+
         // Never up to date; we don't understand the data structures.
         getOutputs().upToDateWhen(Specs.satisfyNone());
     }
@@ -117,15 +126,35 @@ public class GenerateMavenPom extends DefaultTask {
 
     @TaskAction
     public void doGenerate() {
+        mavenPomSpec().writeTo(getDestination());
+    }
+
+    private MavenPomFileGenerator.MavenPomSpec mavenPomSpec() {
+        return inputState.get().mavenPomSpec.get();
+    }
+
+    private InputState computeInputState() {
+        return new InputState(Try.ofFailable(this::computeMavenPomSpec));
+    }
+
+    static class InputState {
+        final Try<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec;
+
+        InputState(Try<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec) {
+            this.mavenPomSpec = mavenPomSpec;
+        }
+    }
+
+    private MavenPomFileGenerator.MavenPomSpec computeMavenPomSpec() {
         MavenPomInternal pomInternal = (MavenPomInternal) getPom();
 
         MavenPomFileGenerator pomGenerator = new MavenPomFileGenerator(
-                pomInternal.getProjectIdentity(),
-                getVersionRangeMapper(),
-                pomInternal.getVersionMappingStrategy(),
-                compileScopeAttributes,
-                runtimeScopeAttributes,
-                pomInternal.writeGradleMetadataMarker());
+            pomInternal.getProjectIdentity(),
+            getVersionRangeMapper(),
+            pomInternal.getVersionMappingStrategy(),
+            compileScopeAttributes,
+            runtimeScopeAttributes,
+            pomInternal.writeGradleMetadataMarker());
         pomGenerator.configureFrom(pomInternal);
 
         for (MavenDependency mavenDependency : pomInternal.getApiDependencyManagement()) {
@@ -152,7 +181,7 @@ public class GenerateMavenPom extends DefaultTask {
 
         pomGenerator.withXml(pomInternal.getXmlAction());
 
-        pomGenerator.writeTo(getDestination());
+        return pomGenerator.toSpec();
     }
 
 }
