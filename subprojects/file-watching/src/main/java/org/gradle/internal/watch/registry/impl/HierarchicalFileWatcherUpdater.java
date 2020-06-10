@@ -16,10 +16,9 @@
 
 package org.gradle.internal.watch.registry.impl;
 
-import com.google.common.collect.HashMultiset;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multiset;
-import com.google.common.collect.Multisets;
+import com.google.common.collect.Multimap;
 import net.rubygrapefruit.platform.file.FileWatcher;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
@@ -56,9 +55,7 @@ import java.util.stream.Collectors;
 public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(HierarchicalFileWatcherUpdater.class);
 
-    // TODO: Merge these two fields
-    private final Map<String, ImmutableList<Path>> trackedDirectoriesForSnapshot = new HashMap<>();
-    private final Multiset<Path> trackedDirectories = HashMultiset.create();
+    private final Multimap<String, Path> trackedDirectoriesForSnapshot = HashMultimap.create();
 
     private final Set<Path> watchedHierarchies = new HashSet<>();
 
@@ -76,13 +73,11 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     @Override
     public void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots) {
         removedSnapshots.forEach(snapshot -> {
-            ImmutableList<Path> previouslyWatchedRootsForSnapshot = trackedDirectoriesForSnapshot.remove(snapshot.getAbsolutePath());
-            Multisets.removeOccurrences(trackedDirectories, previouslyWatchedRootsForSnapshot);
+            trackedDirectoriesForSnapshot.removeAll(snapshot.getAbsolutePath());
         });
         addedSnapshots.forEach(snapshot -> {
             ImmutableList<Path> directoriesToWatch = WatchRootUtil.getDirectoriesToWatch(snapshot);
-            trackedDirectories.addAll(directoriesToWatch);
-            trackedDirectoriesForSnapshot.put(snapshot.getAbsolutePath(), directoriesToWatch);
+            trackedDirectoriesForSnapshot.putAll(snapshot.getAbsolutePath(), directoriesToWatch);
         });
         updateWatchedDirectories();
     }
@@ -117,7 +112,7 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     private void updateWatchedDirectories() {
         Set<Path> directoriesToWatch = new HashSet<>();
-        trackedDirectories.elementSet().forEach(shouldWatchDirectory -> {
+        trackedDirectoriesForSnapshot.values().forEach(shouldWatchDirectory -> {
             String shouldWatchDirectoryPathString = shouldWatchDirectory.toString();
             if (maybeWatchProjectRootDirectory(directoriesToWatch, shouldWatchDirectoryPathString, knownRootProjectDirectoriesFromCurrentBuild)) {
                 return;
