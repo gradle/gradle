@@ -39,3 +39,14 @@ fun Appendable.appendReproducibleNewLine(value: CharSequence = ""): Appendable =
 internal
 fun File.isParentOf(child: File): Boolean =
     child.canonicalPath.startsWith(canonicalPath)
+
+
+/**
+ * List files ordered by filename for reproducibility.
+ * Never returns null.
+ */
+fun File.listFilesOrdered(filter: ((File) -> Boolean)? = null): List<File> =
+    listFiles()
+        ?.let { if (filter != null) it.filter(filter) else it.asList() }
+        ?.sortedBy { it.name }
+        ?: emptyList()
