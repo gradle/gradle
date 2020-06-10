@@ -13,24 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.internal;
+package org.gradle.api.plugins.internal.support;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
-import org.gradle.api.attributes.Bundling;
-import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.attributes.LibraryElements;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
@@ -40,6 +36,8 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.internal.JvmEcosystemUtilitiesInternal;
+import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -54,9 +52,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE;
-
-@NonNullApi
 public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesInternal {
     private final ConfigurationContainer configurations;
     private final ObjectFactory objectFactory;
@@ -120,7 +115,7 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
     @Override
     public <T> void configureAttributes(HasConfigurableAttributes<T> configurable, Action<? super JvmEcosystemAttributesDetails> details) {
         AttributeContainerInternal attributes = (AttributeContainerInternal) configurable.getAttributes();
-        details.execute(new DefaultJvmEcosystemAttributesDetails(attributes));
+        details.execute(new DefaultJvmEcosystemAttributesDetails(objectFactory, attributes));
     }
 
     @Override
@@ -311,65 +306,4 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
         }
     }
 
-    private class DefaultJvmEcosystemAttributesDetails implements JvmEcosystemAttributesDetails {
-        private final AttributeContainerInternal attributes;
-
-        public DefaultJvmEcosystemAttributesDetails(AttributeContainerInternal attributes) {
-            this.attributes = attributes;
-        }
-
-        @Override
-        public JvmEcosystemAttributesDetails providingApi() {
-            attributes.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
-            return this;
-        }
-
-        @Override
-        public JvmEcosystemAttributesDetails providingRuntime() {
-            attributes.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
-            return this;
-        }
-
-        @Override
-        public JvmEcosystemAttributesDetails library() {
-            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.LIBRARY));
-            return this;
-        }
-
-        @Override
-        public JvmEcosystemAttributesDetails platform() {
-            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.REGULAR_PLATFORM));
-            return this;
-        }
-
-        @Override
-        public JvmEcosystemAttributesDetails enforcedPlatform() {
-            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.ENFORCED_PLATFORM));
-            return this;
-        }
-
-        @Override
-        public JvmEcosystemAttributesDetails withExternalDependencies() {
-            attributes.attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
-            return this;
-        }
-
-        @Override
-        public JvmEcosystemAttributesDetails withEmbeddedDependencies() {
-            attributes.attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EMBEDDED));
-            return this;
-        }
-
-        @Override
-        public JvmEcosystemAttributesDetails withShadowedDependencies() {
-            attributes.attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.SHADOWED));
-            return this;
-        }
-
-        @Override
-        public JvmEcosystemAttributesDetails asJar() {
-            attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
-            return this;
-        }
-    }
 }

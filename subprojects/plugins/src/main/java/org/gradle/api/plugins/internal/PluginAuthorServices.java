@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JvmEcosystemUtilities;
+import org.gradle.api.plugins.internal.support.DefaultJvmEcosystemUtilities;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
