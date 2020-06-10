@@ -20,7 +20,7 @@ plugins {
     // TODO: Apply asciidoctor in documentation plugin instead.
     id 'org.asciidoctor.convert'
     id 'gradlebuild.documentation'
-    id 'org.gradle.samples' version "0.16.6"
+    id 'org.gradle.samples' version "0.16.7"
     id 'gradlebuild.internal.java'
 }
 
@@ -225,7 +225,6 @@ samples {
     }
 
     publishedSamples {
-        /* TODO re-enable the android sample
         androidApplication {
             description = "Build a simple Android application."
             category = "Android"
@@ -233,7 +232,6 @@ samples {
                 from(templates.javaAndroidApplication)
             }
         }
-        */
         springBootWebApplication {
             description = "Build a simple Spring Boot application."
             category = "Spring"
