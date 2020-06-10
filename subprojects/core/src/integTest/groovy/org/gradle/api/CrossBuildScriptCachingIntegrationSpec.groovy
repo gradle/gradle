@@ -657,7 +657,7 @@ task fastTask { }
     }
 
     int scriptCacheSize() {
-        scriptCachesDir.listFiles().collect { it.listFiles() ?: [] }.flatten().size()
+        scriptCachesDir.listFiles().collect { it.directory }.size()
     }
 
     void hasScript(String path, List<ClassDetails> scripts) {
