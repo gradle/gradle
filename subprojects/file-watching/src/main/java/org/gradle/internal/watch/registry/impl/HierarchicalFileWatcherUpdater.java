@@ -62,7 +62,6 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     // TODO: introduce type for rootProjectDirectory
     private final Map<Path, String> knownRootProjectDirectoriesFromCurrentBuild = new HashMap<>();
     private final Map<Path, String> watchedRootProjectDirectoriesFromPreviousBuild = new HashMap<>();
-    private final Set<Path> rootProjectDirectoriesStartedToWatchInCurrentBuild = new HashSet<>();
 
     private final FileWatcher watcher;
 
@@ -84,7 +83,6 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     @Override
     public void buildFinished() {
-        rootProjectDirectoriesStartedToWatchInCurrentBuild.clear();
         watchedRootProjectDirectoriesFromPreviousBuild.putAll(knownRootProjectDirectoriesFromCurrentBuild);
         knownRootProjectDirectoriesFromCurrentBuild.clear();
         updateWatchedDirectories();
@@ -122,7 +120,6 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             }
             directoriesToWatch.add(shouldWatchDirectory);
         });
-        directoriesToWatch.addAll(rootProjectDirectoriesStartedToWatchInCurrentBuild);
 
         updateWatchedDirectories(WatchRootUtil.resolveRootsToWatch(directoriesToWatch));
     }
@@ -162,9 +159,6 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
                 .collect(Collectors.toList())
             );
             watchedHierarchies.addAll(newWatchRoots);
-            newWatchRoots.stream()
-                .filter(knownRootProjectDirectoriesFromCurrentBuild::containsKey)
-                .forEach(rootProjectDirectoriesStartedToWatchInCurrentBuild::add);
         }
         LOGGER.info("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
     }

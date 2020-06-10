@@ -60,11 +60,6 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         when:
         invalidate(watchedDirsInsideProjectRootDirectories[0].absolutePath)
         then:
-        0 * _
-
-        when:
-        updater.buildFinished()
-        then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [projectRootDirectories[0]]) })
         0 * _
 
