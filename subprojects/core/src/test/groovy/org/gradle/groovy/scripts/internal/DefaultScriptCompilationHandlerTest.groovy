@@ -39,6 +39,8 @@ import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.groovy.scripts.Transformer
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.internal.Actions
+import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.reflect.JavaReflectionUtil
@@ -70,6 +72,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
     private File scriptCacheDir
     private File metadataCacheDir
     private File cachedFile
+    private ClassPath scriptClassPath
 
     private String scriptText
     private String scriptClassName
@@ -96,6 +99,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
             importsReader
         )
         scriptCacheDir = new File(testProjectDir, "cache")
+        scriptClassPath = DefaultClassPath.of(scriptCacheDir)
         metadataCacheDir = new File(testProjectDir, "metadata")
         scriptText = "System.setProperty('" + TEST_EXPECTED_SYSTEM_PROP_KEY + "', '" + TEST_EXPECTED_SYSTEM_PROP_VALUE + "')"
 
@@ -127,7 +131,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         checkScriptClassesInCache()
 
         when:
-        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, null, expectedScriptClass)
+        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, null, expectedScriptClass)
 
         then:
         compiledScript.runDoesSomething
@@ -160,7 +164,7 @@ println 'hi'
         checkEmptyScriptInCache()
 
         when:
-        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, null, expectedScriptClass)
+        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, null, expectedScriptClass)
 
         then:
         !compiledScript.runDoesSomething
@@ -188,7 +192,7 @@ println 'hi'
         checkEmptyScriptInCache()
 
         when:
-        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, null, expectedScriptClass)
+        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, null, expectedScriptClass)
 
         then:
         !compiledScript.runDoesSomething
@@ -208,7 +212,7 @@ println 'hi'
         checkScriptClassesInCache(true)
 
         when:
-        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, null, expectedScriptClass)
+        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, null, expectedScriptClass)
 
         then:
         !compiledScript.runDoesSomething
@@ -233,7 +237,7 @@ println 'hi'
         checkScriptClassesInCache(true)
 
         when:
-        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, null, expectedScriptClass)
+        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, null, expectedScriptClass)
 
         then:
         !compiledScript.runDoesSomething
@@ -250,7 +254,7 @@ println 'hi'
         scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, Script.class, verifier)
 
         when:
-        scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, null, expectedScriptClass).loadClass()
+        scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, null, expectedScriptClass).loadClass()
 
         then:
         GradleException e = thrown()
@@ -328,7 +332,7 @@ println 'hi'
 
         when:
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, transformer, expectedScriptClass, verifier)
-        def compiledScript = scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, transformer, expectedScriptClass)
+        def compiledScript = scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, transformer, expectedScriptClass)
 
         then:
         compiledScript.runDoesSomething
@@ -384,7 +388,7 @@ println 'hi'
 
         when:
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, transformer, expectedScriptClass, verifier)
-        def compiledScript = scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, transformer, expectedScriptClass)
+        def compiledScript = scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, transformer, expectedScriptClass)
 
         then:
         !compiledScript.runDoesSomething

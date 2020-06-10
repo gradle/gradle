@@ -23,6 +23,7 @@ import org.gradle.configuration.ImportsReader
 import org.gradle.configuration.ScriptTarget
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.internal.Actions
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -66,7 +67,7 @@ class BuildScriptTransformerSpec extends Specification {
         def transformer = new BuildScriptTransformer(source, target)
         def operation = new FactoryBackedCompileOperation<BuildScriptData>("id", 'stage', transformer, transformer, new BuildScriptDataSerializer())
         scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, Actions.doNothing())
-        return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, operation, ProjectScript)
+        return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, DefaultClassPath.of(scriptCacheDir), metadataCacheDir, operation, ProjectScript)
     }
 
     def "empty script does not contain any code"() {

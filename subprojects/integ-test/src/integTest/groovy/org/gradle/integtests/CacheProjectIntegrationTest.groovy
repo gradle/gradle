@@ -19,9 +19,6 @@ package org.gradle.integtests
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.internal.hash.HashUtil
-import org.gradle.internal.resource.CachingTextResource
-import org.gradle.internal.resource.UriTextResource
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -29,18 +26,22 @@ import org.gradle.util.GradleVersion
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import spock.lang.Issue
 
 import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertTrue
 
 class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     static final String TEST_FILE = "build/test.txt"
 
-    @Rule public final HttpServer server = new HttpServer()
+    @Rule
+    public final HttpServer server = new HttpServer()
 
     TestFile projectDir
     TestFile userHomeDir
     TestFile buildFile
     TestFile propertiesFile
+    TestFile classPathClassesDir
     TestFile classFile
     TestFile artifactsCache
 
@@ -69,15 +70,16 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
 
     private void updateCaches() {
         String version = GradleVersion.current().version
-        def hash = HashUtil.compactStringFor(new CachingTextResource(new UriTextResource("build file", buildFile)).contentHash.toByteArray())
-        String dirName = userHomeDir.file("caches/$version/scripts/$hash").list().find { it.startsWith("proj") }
-        String baseDir = "caches/$version/scripts/$hash/$dirName"
-        propertiesFile = userHomeDir.file("$baseDir/cache.properties")
-        classFile = userHomeDir.file("$baseDir/proj/_BuildScript_.class")
+        classPathClassesDir = userHomeDir.file("caches/$version/scripts").listFiles().find { it.file("cp_proj").isDirectory() }?.file("cp_proj")
+        def candidates = userHomeDir.file("caches/$version/scripts").listFiles().findAll { it.file("proj").isDirectory() }
+        // when there are multiple candidates, assume that a different entry to that used last time is the one required
+        def baseDir = candidates.size() == 1 ? candidates.first() : candidates.find { propertiesFile == null || it != propertiesFile.parentFile }
+        propertiesFile = baseDir.file("cache.properties")
+        classFile = baseDir.file("proj/_BuildScript_.class")
     }
 
     @Test
-    public void "caches compiled build script"() {
+    void "caches compiled build script"() {
         createLargeBuildScript()
         testBuild("hello1", "Hello 1")
         TestFile.Snapshot classFileSnapshot = classFile.snapshot()
@@ -90,9 +92,29 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         classFile.assertHasChangedSince(classFileSnapshot)
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/13367")
+    @Test
+    void "recovers from discarded empty classes directory from classpath entry"() {
+        buildFile << """
+            task hello1 {
+                def f = file("build/test.txt")
+                outputs.file(f)
+                doLast {
+                    f.text = "Hello 1"
+                }
+            }
+        """
+
+        testBuild("hello1", "Hello 1")
+        assertTrue(classPathClassesDir.isDirectory() && classPathClassesDir.list().length == 0)
+        classPathClassesDir.deleteDir()
+
+        testBuild("hello1", "Hello 1")
+    }
+
     @Test
     @ToBeFixedForInstantExecution
-    public void "caches incremental build state"() {
+    void "caches incremental build state"() {
         createLargeBuildScript()
         testBuild("hello1", "Hello 1")
         TestFile.Snapshot artifactsCacheSnapshot = artifactsCache.snapshot()
@@ -150,7 +172,7 @@ configurations { compile }
 dependencies { compile 'commons-io:commons-io:1.4@jar' }
 """
 
-        50.times {i ->
+        50.times { i ->
             content += """
 task 'hello$i' {
     File file = file('$TEST_FILE')
