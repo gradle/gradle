@@ -142,6 +142,7 @@ class WorkNodeCodec(
         scheduledNodeIds: Map<Node, Int>
     ) {
         for (successor in successors) {
+            // Discard should/must run after relationships to nodes that are not scheduled to run
             scheduledNodeIds[successor]?.let { successorId ->
                 writeSmallInt(successorId)
             }
