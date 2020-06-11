@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.test.integrationtests.includeCategories
-import org.gradle.gradlebuild.test.integrationtests.excludeCategories
 
 plugins {
     gradlebuild.internal.kotlin
@@ -23,7 +21,6 @@ plugins {
 dependencies {
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
 
     testImplementation(project(":kotlinDslTestFixtures"))
@@ -37,20 +34,4 @@ dependencies {
     integTestImplementation(testLibrary("jetty"))
 
     integTestRuntimeOnly(project(":runtimeApiInfo"))
-}
-
-tasks.integTest {
-    excludeCategories("org.gradle.soak.categories.SoakTest")
-}
-
-tasks.register("soakIntegTest", org.gradle.gradlebuild.test.integrationtests.SoakTest::class) {
-    val integTestSourceSet = sourceSets.integTest.get()
-    testClassesDirs = integTestSourceSet.output.classesDirs
-    classpath = integTestSourceSet.runtimeClasspath
-    systemProperty("org.gradle.soaktest", "true")
-    includeCategories("org.gradle.soak.categories.SoakTest")
-}
-
-classycle {
-    excludePatterns.set(listOf("META-INF/*.kotlin_module"))
 }
