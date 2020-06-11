@@ -21,19 +21,21 @@ import org.gradle.api.Project
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import kotlin.reflect.KProperty
 
 
+@Suppress("LocalVariableName")
 class FillTheProjectGapsTest {
 
     @Test
     fun `mind the gaps`() {
-        val root = project(null)
-        val a = project(root)
-        val a_b = project(a)
-        val a_c = project(a)
-        val d = project(root)
-        val d_e = project(d)
-        val d_e_f = project(d_e)
+        val root by projectMock(null)
+        val a by projectMock(root)
+        val a_b by projectMock(a)
+        val a_c by projectMock(a)
+        val d by projectMock(root)
+        val d_e by projectMock(d)
+        val d_e_f by projectMock(d_e)
         assertThat(
             fillTheGapsOf(
                 listOf(
@@ -58,10 +60,10 @@ class FillTheProjectGapsTest {
 
     @Test
     fun `don't mind no gaps`() {
-        val root = project(null)
-        val a = project(root)
-        val a_b = project(a)
-        val a_c = project(a)
+        val root by projectMock(null)
+        val a by projectMock(root)
+        val a_b by projectMock(a)
+        val a_c by projectMock(a)
         assertThat(
             fillTheGapsOf(
                 listOf(
@@ -82,9 +84,50 @@ class FillTheProjectGapsTest {
         )
     }
 
-    fun project(parent: Project?): Project {
-        return mock {
-            on(mock.parent).thenReturn(parent)
+    @Test
+    fun `deduplicate when filling gaps`() {
+
+        val root by projectMock(null)
+
+        val a by projectMock(root)
+        val a_a by projectMock(a)
+        val a_a_a by projectMock(a_a)
+
+        val b by projectMock(root)
+        val b_a by projectMock(b)
+        val b_a_a by projectMock(b_a)
+
+        assertThat(
+            fillTheGapsOf(
+                listOf(
+                    b_a_a, a_a_a, a_a_a, b_a_a, root
+                )
+            ),
+            equalTo(
+                listOf(
+                    root,
+                    b, b_a, b_a_a,
+                    a, a_a, a_a_a
+                )
+            )
+        )
+    }
+
+    @Suppress("ClassName")
+    private
+    class projectMock(private val parent: Project?) {
+
+        private
+        lateinit var memoizedMock: Project
+
+        operator fun getValue(thisRef: Project?, property: KProperty<*>): Project {
+            if (!this::memoizedMock.isInitialized) {
+                memoizedMock = mock {
+                    on(mock.parent).thenReturn(parent)
+                    on(mock.toString()).thenReturn(property.name)
+                }
+            }
+            return memoizedMock
         }
     }
 }
