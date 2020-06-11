@@ -25,14 +25,17 @@ import javax.inject.Inject;
 public class JavaInstallationsSettingsPlugin implements Plugin<Settings> {
 
     private final JavaInstallationSpec spec;
+    private final SharedJavaInstallationRegistry registry;
 
     @Inject
-    public JavaInstallationsSettingsPlugin(JavaInstallationSpec spec) {
+    public JavaInstallationsSettingsPlugin(JavaInstallationSpec spec, SharedJavaInstallationRegistry registry) {
         this.spec = spec;
+        this.registry = registry;
     }
 
     public void apply(Settings settings) {
         settings.getExtensions().add("javaInstallations", spec);
+        settings.getGradle().settingsEvaluated(s -> registry.finalizeValue());
     }
 
 }
