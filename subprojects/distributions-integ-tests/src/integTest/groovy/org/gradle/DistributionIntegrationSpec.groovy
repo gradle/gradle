@@ -36,7 +36,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 181
+    protected static final THIRD_PARTY_LIB_COUNT = 131
 
     @Rule public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier()
 
@@ -45,10 +45,17 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     abstract String getDistributionLabel()
 
     /**
-     * Change this whenever you add or remove subprojects.
+     * Change this whenever you add or remove subprojects for distribution core modules (lib/).
      */
     int getCoreLibJarsCount() {
-        36
+        34
+    }
+
+    /**
+     * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
+     */
+    int getPackagedPluginsJarCount() {
+        50
     }
 
     /**
@@ -59,7 +66,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     int getLibJarsCount() {
-        coreLibJarsCount + thirdPartyLibJarsCount
+        coreLibJarsCount + packagedPluginsJarCount + thirdPartyLibJarsCount
     }
 
     def "no duplicate entries"() {
@@ -115,7 +122,22 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     protected TestFile getZip(String type = getDistributionLabel()) {
-        buildContext.distributionsDir.file("gradle-$baseVersion-${type}.zip")
+        switch (type) {
+            case 'bin':
+                buildContext.binDistribution
+                break
+            case 'all':
+                buildContext.allDistribution
+                break
+            case 'docs':
+                buildContext.docsDistribution
+                break
+            case 'src':
+                buildContext.srcDistribution
+                break
+            default:
+                throw new RuntimeException("Unknown distribution type '$type'")
+        }
     }
 
     protected void checkMinimalContents(TestFile contentsDir) {
@@ -190,8 +212,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     protected void assertIsGradleJar(TestFile jar) {
         jar.assertIsFile()
-        assertThat(jar.manifest.mainAttributes.getValue('Implementation-Version'), equalTo(baseVersion))
-        assertThat(jar.manifest.mainAttributes.getValue('Implementation-Title'), equalTo('Gradle'))
+        assertThat(jar.name, jar.manifest.mainAttributes.getValue('Implementation-Version'), equalTo(baseVersion))
+        assertThat(jar.name, jar.manifest.mainAttributes.getValue('Implementation-Title'), equalTo('Gradle'))
     }
 
     private static void assertIsGradleApiMetadataJar(TestFile jar) {

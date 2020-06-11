@@ -54,14 +54,14 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
         executer.with {
             inDirectory(contentsDir)
             usingExecutable('gradlew')
-            withTasks('binZip')
+            withTasks(':distributionsFull:binDistributionZip')
             withArguments("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
             withEnvironmentVars([BUILD_BRANCH: System.getProperty("gradleBuildBranch"), BUILD_COMMIT_ID: System.getProperty("gradleBuildCommitId")])
             withWarningMode(null)
         }.run()
 
         then:
-        File binZip = contentsDir.file("build/distributions").listFiles().find() { it.name.endsWith("-bin.zip") }
+        File binZip = contentsDir.file("subprojects/distributions-full/build/distributions").listFiles().find() { it.name.endsWith("-bin.zip") }
         binZip.exists()
 
         when:
