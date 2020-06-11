@@ -26,11 +26,13 @@ import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.testing.Test
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanupExtension
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.process.CommandLineArgumentProvider
 import java.io.File
 import kotlin.collections.set
 
@@ -117,7 +119,15 @@ class DistributionTestingPlugin : Plugin<Project> {
 }
 
 
-fun DistributionTest.defaultGradleGeneratedApiJarCacheDirProvider(providers: ProviderFactory, layout: ProjectLayout): Provider<Directory> {
+class GeneratedGradleApiJarCacheDirProvider(val test: Test, val providers: ProviderFactory, val layout: ProjectLayout) : CommandLineArgumentProvider {
+    override fun asArguments(): MutableIterable<String> {
+        val dir = test.defaultGradleGeneratedApiJarCacheDirProvider(providers, layout)
+        return mutableListOf("-DintegTest.gradleGeneratedApiJarCacheDir=${dir.get().asFile.absolutePath}")
+    }
+}
+
+
+fun Test.defaultGradleGeneratedApiJarCacheDirProvider(providers: ProviderFactory, layout: ProjectLayout): Provider<Directory> {
     val projectName = project.name
     val projectVersion = project.version
     val classpathHasher = project.serviceOf<ClasspathHasher>()
@@ -129,7 +139,7 @@ fun DistributionTest.defaultGradleGeneratedApiJarCacheDirProvider(providers: Pro
  * Computes a project and classpath specific `intTestHomeDir/generatedApiJars` directory.
  */
 private
-fun DistributionTest.defaultGeneratedGradleApiJarCacheDir(
+fun Test.defaultGeneratedGradleApiJarCacheDir(
     layout: ProjectLayout,
     projectName: String,
     projectVersion: Any,
@@ -139,5 +149,5 @@ fun DistributionTest.defaultGeneratedGradleApiJarCacheDir(
 
 
 private
-fun DistributionTest.classpathHash(classpathHasher: ClasspathHasher) =
+fun Test.classpathHash(classpathHasher: ClasspathHasher) =
     classpathHasher.hash(DefaultClassPath.of(classpath))

@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import org.gradle.gradlebuild.test.integrationtests.GeneratedGradleApiJarCacheDirProvider
+
 plugins {
     id 'gradlebuild.distribution.core-api-java'
     // TODO: Apply asciidoctor in documentation plugin instead.
@@ -546,8 +548,9 @@ tasks.named("checkAsciidoctorSampleContents") {
     enabled = false
 }
 
+
 // TODO add some kind of test precondition support in sample test conf
-tasks.named("docsTest") { task ->
+tasks.named("docsTest") { Test task ->
     // The org.gradle.samples plugin uses Exemplar to execute integration tests on the samples.
     // Exemplar doesn't know about that it's running in the context of the gradle/gradle build
     // so it uses the Gradle distribution from the running build. This is not correct, because
@@ -556,6 +559,7 @@ tasks.named("docsTest") { task ->
     task.dependsOn(tasks.named('intTestImage'))
     // TODO we use an absolute path here which makes the task not cacheable
     task.systemProperty("integTest.gradleHomeDir", new File(project.buildDir, "integ test").absolutePath)
+    task.jvmArgumentProviders.add(new GeneratedGradleApiJarCacheDirProvider(task, rootProject.providers, rootProject.layout))
 
     // // TODO (donat) investigate ignored snippets
     filter {

@@ -17,6 +17,7 @@
 package org.gradle.docs.samples;
 
 import org.gradle.integtests.fixtures.FailOnDeprecationSampleModifier;
+import org.gradle.integtests.fixtures.SetCorrectGeneratedApiJarCacheDir;
 import org.gradle.integtests.fixtures.executer.MoreMemorySampleModifier;
 import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.DependencyInsightOutputNormalizer;
@@ -46,6 +47,7 @@ import org.junit.runner.RunWith;
 @SampleModifiers({
     SetMirrorsSampleModifier.class,
     MoreMemorySampleModifier.class,
-    FailOnDeprecationSampleModifier.class
+    FailOnDeprecationSampleModifier.class,
+    SetCorrectGeneratedApiJarCacheDir.class
 })
 public class ExemplarExternalSamplesFunctionalTest {}
