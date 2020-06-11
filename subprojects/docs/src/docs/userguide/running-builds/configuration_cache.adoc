@@ -137,6 +137,9 @@ If you need to invalidate the cache, simply delete that directory:
 $ rm -rf .gradle/configuration-cache
 ----
 
+Configuration cache entries are checked periodically (at most every 24 hours) for whether they are still in use.
+They are deleted if they haven't been used for 7 days.
+
 [[plugin_support]]
 == Supported plugins
 
