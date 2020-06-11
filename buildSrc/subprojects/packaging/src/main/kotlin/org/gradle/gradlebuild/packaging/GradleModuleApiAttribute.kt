@@ -13,10 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package gradlebuild.distribution
 
-import org.gradle.gradlebuild.packaging.GradleModuleApiAttribute
+package org.gradle.gradlebuild.packaging
 
-configurations["runtimeElements"].attributes {
-    attribute(GradleModuleApiAttribute.attribute, GradleModuleApiAttribute.API)
+import org.gradle.api.attributes.Attribute
+
+
+enum class GradleModuleApiAttribute {
+    API,
+    IMPLEMENTATION;
+
+    companion object {
+        val attribute = Attribute.of(GradleModuleApiAttribute::class.java)
+    }
 }
