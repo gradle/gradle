@@ -147,7 +147,7 @@ class CollectingArtifactVisitor : ArtifactVisitor {
                 )
             }
         } else if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet) {
-            elements.add(TransformedLocalArtifactSpec(source.ownerId, source.file, source.transformation, source.targetVariantName, source.targetVariantAttributes))
+            elements.add(TransformedLocalArtifactSpec(source.ownerId, source.file, source.transformation, source.targetVariantName, source.variantAttributes))
         }
     }
 }

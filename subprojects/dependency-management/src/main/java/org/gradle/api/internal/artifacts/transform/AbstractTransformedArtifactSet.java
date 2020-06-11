@@ -20,7 +20,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -33,7 +33,7 @@ import java.util.Map;
  */
 public abstract class AbstractTransformedArtifactSet implements ResolvedArtifactSet {
     private final ResolvedArtifactSet delegate;
-    private final AttributeContainerInternal attributes;
+    private final ImmutableAttributes targetVariantAttributes;
     private final Transformation transformation;
     private final TransformationNodeRegistry transformationNodeRegistry;
     private final ExecutionGraphDependenciesResolver dependenciesResolver;
@@ -41,16 +41,20 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
     public AbstractTransformedArtifactSet(
         ComponentIdentifier componentIdentifier,
         ResolvedArtifactSet delegate,
-        AttributeContainerInternal target,
+        ImmutableAttributes targetVariantAttributes,
         Transformation transformation,
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
         TransformationNodeRegistry transformationNodeRegistry
     ) {
         this.delegate = delegate;
-        this.attributes = target;
+        this.targetVariantAttributes = targetVariantAttributes;
         this.transformation = transformation;
         this.transformationNodeRegistry = transformationNodeRegistry;
         this.dependenciesResolver = dependenciesResolverFactory.create(componentIdentifier);
+    }
+
+    public ImmutableAttributes getVariantAttributes() {
+        return targetVariantAttributes;
     }
 
     protected abstract FileCollectionInternal.Source getVisitSource();
@@ -67,7 +71,7 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
         }
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
         Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, actions, artifactResults, dependenciesResolver, transformationNodeRegistry));
-        return new TransformCompletion(result, attributes, artifactResults);
+        return new TransformCompletion(result, targetVariantAttributes, artifactResults);
     }
 
     @Override

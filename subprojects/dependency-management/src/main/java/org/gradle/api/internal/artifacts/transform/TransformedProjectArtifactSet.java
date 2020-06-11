@@ -40,7 +40,7 @@ public class TransformedProjectArtifactSet extends AbstractTransformedArtifactSe
     public TransformedProjectArtifactSet(
         ComponentIdentifier componentIdentifier,
         ResolvedArtifactSet delegate,
-        AttributeContainerInternal target,
+        ImmutableAttributes target,
         Transformation transformation,
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
         TransformationNodeRegistry transformationNodeRegistry

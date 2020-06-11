@@ -389,6 +389,7 @@ allprojects { p ->
                 def log() {
                     println("files = \${collection.artifactFiles.files.name}")
                     println("artifacts = \${collection.artifacts.id.displayName}")
+                    println("variants = \${collection.artifacts.variant.attributes}")
                 }
             }
         """

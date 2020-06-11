@@ -109,7 +109,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
-    public ResolvedArtifactSet asTransformed(ResolvedArtifactSet artifacts, AttributeContainerInternal targetAttributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformationNodeRegistry transformationNodeRegistry) {
+    public ResolvedArtifactSet asTransformed(ResolvedArtifactSet artifacts, ImmutableAttributes targetAttributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformationNodeRegistry transformationNodeRegistry) {
         return new TransformedLocalFileArtifactSet((SingletonFileResolvedVariant) artifacts, targetAttributes, transformation, dependenciesResolver, transformationNodeRegistry);
     }
 
@@ -214,7 +214,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         private final SingletonFileResolvedVariant delegate;
         private final Transformation transformation;
 
-        public TransformedLocalFileArtifactSet(SingletonFileResolvedVariant delegate, AttributeContainerInternal attributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformationNodeRegistry transformationNodeRegistry) {
+        public TransformedLocalFileArtifactSet(SingletonFileResolvedVariant delegate, ImmutableAttributes attributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformationNodeRegistry transformationNodeRegistry) {
             super(delegate.getComponentId(), delegate, attributes, transformation, dependenciesResolver, transformationNodeRegistry);
             this.delegate = delegate;
             this.transformation = transformation;
@@ -243,10 +243,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         public DisplayName getTargetVariantName() {
             return delegate.variantName;
-        }
-
-        public ImmutableAttributes getTargetVariantAttributes() {
-            return delegate.variantAttributes;
         }
 
         @Override
