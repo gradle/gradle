@@ -27,6 +27,7 @@ import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.RemoteProject
 import org.gradle.testing.performance.generator.tasks.TemplateProjectGeneratorTask
+import org.gradle.gradlebuild.test.integrationtests.addDependenciesAndConfigurations
 import org.w3c.dom.Document
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
@@ -81,7 +82,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
         val performanceTestSourceSet = createPerformanceTestSourceSet()
-        addConfigurationAndDependencies()
+        addPerformanceTestConfigurationAndDependencies()
         createCheckNoIdenticalBuildFilesTask()
         configureGeneratorTasks()
 
@@ -115,25 +116,13 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.addConfigurationAndDependencies() {
+    fun Project.addPerformanceTestConfigurationAndDependencies() {
+        addDependenciesAndConfigurations("performance")
 
-        configurations {
-            val testImplementation by getting
-            "performanceTestImplementation" {
-                extendsFrom(testImplementation)
-            }
-
-            val testRuntimeOnly by getting
-            "performanceTestRuntimeOnly" {
-                extendsFrom(testRuntimeOnly)
-            }
-
-            create("junit")
-        }
-
+        val junit by configurations.creating
         dependencies {
             "performanceTestImplementation"(project(":internalPerformanceTesting"))
-            "junit"("junit:junit:4.13")
+            junit("junit:junit:4.13")
         }
     }
 
@@ -153,7 +142,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                     }
                 }
 
-                filesBySha1.forEach { hash, candidates ->
+                filesBySha1.forEach { (hash, candidates) ->
                     if (candidates.size > 1) {
                         logger.lifecycle("Duplicate build files found for hash '$hash' : $candidates")
                     }

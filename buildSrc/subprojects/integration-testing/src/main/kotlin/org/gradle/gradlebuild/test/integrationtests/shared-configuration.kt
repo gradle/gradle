@@ -24,9 +24,7 @@ enum class TestType(val prefix: String, val executers: List<String>, val libRepo
 }
 
 
-internal
-fun Project.addDependenciesAndConfigurations(testType: TestType) {
-    val prefix = testType.prefix
+fun Project.addDependenciesAndConfigurations(prefix: String) {
     configurations {
         getByName("${prefix}TestImplementation") { extendsFrom(configurations["testImplementation"]) }
         getByName("${prefix}TestRuntimeOnly") { extendsFrom(configurations["testRuntimeOnly"]) }

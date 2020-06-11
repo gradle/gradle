@@ -25,11 +25,10 @@ import accessors.reporting
 
 
 internal
-val classycleBaseName = "classycle"
+const val classycleBaseName = "classycle"
 
 
 @Suppress("unused")
-// TODO move into buildquality
 open class ClassyclePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
