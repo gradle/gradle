@@ -45,7 +45,7 @@ import java.util.stream.Stream;
  */
 public class JavaProcessStackTracesMonitor {
     private static final Pattern UNIX_JAVA_COMMAND_PATTERN = Pattern.compile("(?i)([^\\s]+/bin/java)");
-    private static final Pattern WINDOWS_JAVA_COMMAND_PATTERN = Pattern.compile("(?i)^(.*[/\\\\]bin[/\\\\]java\\.exe)");
+    private static final Pattern WINDOWS_JAVA_COMMAND_PATTERN = Pattern.compile("(?i)(?m)^\"?(.*[/\\\\]bin[/\\\\]java\\.exe)");
     private static final Pattern WINDOWS_PID_PATTERN = Pattern.compile("([0-9]+)\\s*$");
     private static final Pattern UNIX_PID_PATTERN = Pattern.compile("([0-9]+)");
 
