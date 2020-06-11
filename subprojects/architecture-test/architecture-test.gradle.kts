@@ -2,6 +2,7 @@ import org.gradle.gradlebuild.PublicApi
 
 plugins {
     gradlebuild.internal.java
+    gradlebuild.`binary-compatibility`
 }
 
 dependencies {

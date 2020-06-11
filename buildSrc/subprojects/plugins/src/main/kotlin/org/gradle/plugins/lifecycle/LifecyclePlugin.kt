@@ -29,6 +29,7 @@ import kotlin.concurrent.timerTask
 /**
  * Lifecycle tasks used to to fan out the build into multiple builds in a CI pipeline.
  */
+@Suppress("unused")
 class LifecyclePlugin : Plugin<Project> {
 
     private
@@ -214,7 +215,7 @@ class LifecyclePlugin : Plugin<Project> {
             group = "verification"
             dependsOn(
                 "compileAll", ":docs:checkstyleApi", "codeQuality", ":internalBuildReports:allIncubationReportsZip",
-                ":distributions:checkBinaryCompatibility", ":docs:javadocAll",
+                ":architectureTest:checkBinaryCompatibility", ":docs:javadocAll",
                 ":architectureTest:test", ":toolingApi:toolingApiShadedJar")
         }
     }
