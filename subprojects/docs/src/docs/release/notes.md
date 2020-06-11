@@ -7,6 +7,7 @@ We would like to thank the following community contributors to this release of G
 [Danny Thomas](https://github.com/DanielThomas),
 [Daiki Hirabayashi](https://github.com/dhirabayashi),
 [Sebastian Schuberth](https://github.com/sschuberth),
+[Frieder Bluemle](https://github.com/friederbluemle),
 and [Stefan Oehme](https://github.com/oehme).
 
 <!-- 
