@@ -16,8 +16,11 @@
 
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
+@IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
 class WrapperUserHomeIntegrationTest extends AbstractWrapperIntegrationSpec {
     void 'uses gradle user home set by -Dgradle.user.home'() {
         given:

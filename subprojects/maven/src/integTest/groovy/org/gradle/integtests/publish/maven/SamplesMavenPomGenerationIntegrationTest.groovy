@@ -40,7 +40,6 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
     def setup() {
         // the OLD publish plugins work with the OLD deprecated Java plugin configuration (compile/runtime)
         executer.noDeprecationChecks()
-        executer.requireGradleDistribution()
         using m2 //uploadArchives leaks into local ~/.m2
     }
 

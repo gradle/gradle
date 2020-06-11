@@ -35,7 +35,6 @@ class SamplesMavenQuickstartIntegrationTest extends AbstractSampleIntegrationTes
     public final Sample sample = new Sample(testDirectoryProvider, 'maven/quickstart')
 
     def setup() {
-        executer.requireGradleDistribution()
         using m2
     }
 

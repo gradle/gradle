@@ -23,10 +23,6 @@ import spock.lang.Issue
 @LeaksFileHandles
 class PluginUseClassLoadingIntegrationSpec extends AbstractPluginSpec {
 
-    def setup() {
-        executer.requireGradleDistribution() // need accurate classloading
-    }
-
     @ToBeFixedForInstantExecution
     def "plugin classes are reused if possible"() {
         given:

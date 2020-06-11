@@ -18,8 +18,6 @@ package org.gradle.internal.serialize
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -73,7 +71,6 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
         outputContains "example.Issue1618Test > thisTestShouldBeMarkedAsFailed FAILED"
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded })
     @Issue("https://github.com/gradle/gradle/issues/9487")
     def "best effort to capture multi-cause exceptions"() {
         given:
@@ -119,13 +116,12 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
                 containsString("oh noes (2 failures)"))
         result.testClass("example.Issue9487Test")
             .assertTestFailed("allCausesShouldBeCaptured",
-                containsString("Cause 1: java.lang.AssertionError: error 1"))
+                containsString("java.lang.AssertionError: error 1"))
         result.testClass("example.Issue9487Test")
             .assertTestFailed("allCausesShouldBeCaptured",
-                containsString("Cause 2: java.lang.RuntimeException: error 2"))
+                containsString("java.lang.RuntimeException: error 2"))
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded })
     @Issue("https://github.com/gradle/gradle/issues/9487")
     @Unroll
     def "best effort to capture multi-cause exceptions using adhoc exception type (methodName=#methodName)"() {

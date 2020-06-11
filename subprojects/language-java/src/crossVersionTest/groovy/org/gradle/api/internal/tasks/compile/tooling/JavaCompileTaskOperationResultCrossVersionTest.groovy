@@ -33,7 +33,7 @@ import static org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult
 @TargetGradleVersion('>=4.6')
 class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecification {
 
-    void setup() {
+    def setup() {
         settingsFile << """
             include 'processor'
         """

@@ -22,10 +22,6 @@ import spock.lang.Unroll
 @LeaksFileHandles
 class SettingsScriptPluginIntegrationSpec extends AbstractPluginSpec {
 
-    def setup() {
-        executer.requireGradleDistribution() // need accurate classloading
-    }
-
     private void doConfigureSettingsPlugin() {
         publishSettingPlugin("""
 settings.gradle.beforeProject { org.gradle.api.Project project ->

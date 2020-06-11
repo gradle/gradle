@@ -16,7 +16,6 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Before
 import org.junit.Test
 
 
@@ -26,10 +25,6 @@ import org.junit.Test
 )
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class KotlinDslPluginTest : AbstractPluginTest() {
-
-    @Before
-    fun setupPluginTest() =
-        requireGradleDistributionOnEmbeddedExecuter()
 
     @Test
     @ToBeFixedForInstantExecution
@@ -132,6 +127,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     @Test
     @ToBeFixedForInstantExecution
     fun `gradle kotlin dsl api is available in test-kit injected plugin classpath`() {
+        assumeNonEmbeddedGradleExecuter() // requires a full distribution to run tests with test kit
 
         withBuildScript("""
 

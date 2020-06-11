@@ -18,12 +18,14 @@ package org.gradle.integtests.wrapper
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.junit.Assume
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 @SuppressWarnings("IntegrationTestFixtures")
@@ -43,6 +45,7 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         cleanupDaemons(executer, current)
     }
 
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
     void canUseWrapperFromCurrentVersionToRunPreviousVersion() {
         when:
         GradleExecuter executer = prepareWrapperExecuter(current, previous).withWarningMode(null)

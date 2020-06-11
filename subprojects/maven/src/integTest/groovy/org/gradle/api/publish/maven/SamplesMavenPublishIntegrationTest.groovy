@@ -269,7 +269,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     def "publishes distribution archives with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
-        executer.inDirectory(sampleDir).requireGradleDistribution()
+        executer.inDirectory(sampleDir)
 
         and:
         def repo = maven(sampleDir.file("build/repo"))

@@ -30,7 +30,6 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
     private static final String PLUGIN_UNDER_TEST_METADATA_TASK_PATH = ":$PLUGIN_UNDER_TEST_METADATA_TASK_NAME"
 
     def setup() {
-        requireGradleDistribution()
         buildFile << """
             apply plugin: 'java-gradle-plugin'
         """
