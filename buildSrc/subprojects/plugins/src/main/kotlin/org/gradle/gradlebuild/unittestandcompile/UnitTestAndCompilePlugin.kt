@@ -56,9 +56,9 @@ import testLibrary
 import java.util.concurrent.Callable
 import java.util.jar.Attributes
 import org.gradle.testing.PerformanceTest
-import gitInfo
 
 
+@Suppress("unused")
 class UnitTestAndCompilePlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         apply(plugin = "groovy")
@@ -259,7 +259,6 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
                 useJUnitPlatform()
             }
             configureJvmForTest()
-            configureGitInfo()
             addOsAsInputs()
 
             if (BuildEnvironment.isCiServer && this !is PerformanceTest) {
@@ -271,17 +270,6 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
                     logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
                 }
             }
-        }
-    }
-
-    /**
-     * Some tests depends on repository's git information.
-     */
-    private
-    fun Test.configureGitInfo() {
-        project.gitInfo.run {
-            systemProperty("gradleBuildBranch", gradleBuildBranch.get())
-            systemProperty("gradleBuildCommitId", gradleBuildCommitId.get())
         }
     }
 

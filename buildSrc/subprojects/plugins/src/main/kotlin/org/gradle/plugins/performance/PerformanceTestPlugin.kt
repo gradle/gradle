@@ -455,6 +455,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             configureSampleGenerators {
                 this@apply.mustRunAfter(this)
             }
+            configureGitInfo()
         }
     }
 
@@ -480,6 +481,11 @@ class PerformanceTestPlugin : Plugin<Project> {
             PropertyNames.dbUrl,
             PropertyNames.dbUsername,
             PropertyNames.dbPassword)
+
+    private
+    fun PerformanceTest.configureGitInfo() {
+        systemProperty("gradleBuildBranch", project.gitInfo.gradleBuildBranch.get())
+    }
 }
 
 
