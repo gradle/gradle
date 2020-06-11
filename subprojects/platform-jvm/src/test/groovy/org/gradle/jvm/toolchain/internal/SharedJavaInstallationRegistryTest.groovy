@@ -59,6 +59,19 @@ class SharedJavaInstallationRegistryTest extends Specification {
         e.message == "Installation must not be mutated after being finalized"
     }
 
+    def "duplicate key fails"() {
+        given:
+        def registry = new SharedJavaInstallationRegistry()
+        registry.add("foo", new File("bar"))
+
+        when:
+        registry.add("foo", new File("bar2"))
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Installation with name 'foo' already exists"
+    }
+
     def "list of installations is cached"() {
         given:
         def registry = new SharedJavaInstallationRegistry()

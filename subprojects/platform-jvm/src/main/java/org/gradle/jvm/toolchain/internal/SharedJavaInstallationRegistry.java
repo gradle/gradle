@@ -34,6 +34,7 @@ public class SharedJavaInstallationRegistry {
 
     public void add(String name, File file) {
         Preconditions.checkArgument(!finalized, "Installation must not be mutated after being finalized");
+        Preconditions.checkArgument(!installations.containsKey(name), "Installation with name '%s' already exists", name);
         installations.put(name, file);
     }
 
