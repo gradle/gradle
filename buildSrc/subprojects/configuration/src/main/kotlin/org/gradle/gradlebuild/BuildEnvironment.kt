@@ -11,7 +11,7 @@ object BuildEnvironment {
     const val BUILD_COMMIT_ID = "BUILD_COMMIT_ID"
 
     val isCiServer = CI_ENVIRONMENT_VARIABLE in System.getenv()
-    val isIntelliJIDEA by lazy { System.getProperty("idea.version") != null }
+    val isIntelliJIDEA by lazy { true }
     val isTravis = "TRAVIS" in System.getenv()
     val isJenkins = "JENKINS_HOME" in System.getenv()
     val isGhActions = "GITHUB_ACTIONS" in System.getenv()

@@ -54,12 +54,12 @@ public class JavaTestFixturesPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().withPlugin("java", plugin -> {
-            JavaPluginConvention convention = findJavaConvention(project);
-            JavaPluginExtension extension = findJavaPluginExtension(project);
-            SourceSet testFixtures = convention.getSourceSets().create(TEST_FIXTURE_SOURCESET_NAME);
-            extension.registerFeature(TEST_FIXTURES_FEATURE_NAME, featureSpec -> featureSpec.usingSourceSet(testFixtures));
-            jvmEcosystemUtilities.addApiToSourceSet(testFixtures);
-            createImplicitTestFixturesDependencies(project, convention);
+            jvmEcosystemUtilities.createJavaComponent(TEST_FIXTURES_FEATURE_NAME, builder ->
+                builder
+                    .exposesApi()
+                    .published()
+            );
+            createImplicitTestFixturesDependencies(project, findJavaConvention(project));
         });
     }
 

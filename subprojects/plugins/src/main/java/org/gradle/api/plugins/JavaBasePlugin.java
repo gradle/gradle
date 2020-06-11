@@ -116,7 +116,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(ReportingBasePlugin.class);
 
         JavaPluginConvention javaConvention = addExtensions(project);
-        jvmEcosystemUtilities.setJavaConvention(javaConvention);
 
         configureSourceSetDefaults(javaConvention);
         configureCompileDefaults(project, javaConvention);
@@ -139,8 +138,9 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, objectFactory);
         project.getConvention().getPlugins().put("java", javaConvention);
         project.getExtensions().add(SourceSetContainer.class, "sourceSets", javaConvention.getSourceSets());
-        project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project, jvmEcosystemUtilities);
+        JavaPluginExtension extension = project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project, jvmEcosystemUtilities);
         project.getExtensions().add(JavaInstallationRegistry.class, "javaInstalls", javaInstallationRegistry);
+        jvmEcosystemUtilities.inject(javaConvention, extension, project);
         return javaConvention;
     }
 

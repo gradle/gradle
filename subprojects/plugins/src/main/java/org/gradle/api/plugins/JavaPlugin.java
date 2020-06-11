@@ -438,13 +438,13 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         final DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) jvmEcosystemUtilities.createOutgoingElements(API_ELEMENTS_CONFIGURATION_NAME,
             builder -> builder.fromSourceSet(main)
-                .forApi()
+                .providesApi()
                 .withDescription("API elements for main.")
                 .extendsFrom(runtimeConfiguration));
 
         final DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) jvmEcosystemUtilities.createOutgoingElements(RUNTIME_ELEMENTS_CONFIGURATION_NAME,
             builder -> builder.fromSourceSet(main)
-                .forRuntime()
+                .providesRuntime()
                 .withDescription("Elements of runtime for main.")
                 .extendsFrom(implementationConfiguration, runtimeOnlyConfiguration, runtimeConfiguration));
         defaultConfiguration.extendsFrom(runtimeElementsConfiguration);

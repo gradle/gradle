@@ -28,14 +28,17 @@ import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmEcosystemUtilitiesInternal;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.tasks.SourceSet;
@@ -46,6 +49,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -56,26 +60,33 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
     private final ConfigurationContainer configurations;
     private final ObjectFactory objectFactory;
     private final TaskContainer tasks;
+    private final SoftwareComponentContainer components;
 
     private JavaPluginConvention javaConvention;
+    private JavaPluginExtension javaPluginExtension;
     private SourceSetContainer sourceSets;
+    private ProjectInternal project; // would be great to avoid this but for lazy capabilities it's hard to avoid!
 
     public DefaultJvmEcosystemUtilities(ConfigurationContainer configurations,
                                         ObjectFactory objectFactory,
-                                        TaskContainer tasks) {
+                                        TaskContainer tasks,
+                                        SoftwareComponentContainer components) {
         this.configurations = configurations;
         this.objectFactory = objectFactory;
         this.tasks = tasks;
+        this.components = components;
     }
 
     @Override
-    public void setJavaConvention(JavaPluginConvention javaConvention) {
+    public void inject(JavaPluginConvention javaConvention, JavaPluginExtension javaPluginExtension, ProjectInternal project) {
         this.javaConvention = javaConvention;
+        this.javaPluginExtension = javaPluginExtension;
+        this.project = project;
         this.sourceSets = javaConvention.getSourceSets();
     }
 
     @Override
-    public void addApiToSourceSet(SourceSet sourceSet) {
+    public Configuration addApiToSourceSet(SourceSet sourceSet) {
         Configuration apiConfiguration = configurations.maybeCreate(sourceSet.getApiConfigurationName());
         apiConfiguration.setVisible(false);
         apiConfiguration.setDescription("API dependencies for " + sourceSet + ".");
@@ -91,6 +102,8 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
         @SuppressWarnings("deprecation")
         Configuration compileConfiguration = configurations.getByName(sourceSet.getCompileConfigurationName());
         apiConfiguration.extendsFrom(compileConfiguration);
+
+        return apiConfiguration;
     }
 
     @Override
@@ -104,12 +117,12 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
 
     @Override
     public <T> void configureAsCompileClasspath(HasConfigurableAttributes<T> configuration) {
-        configureAttributes(configuration, details -> details.library().providingApi().withExternalDependencies());
+        configureAttributes(configuration, details -> details.library().apiUsage().withExternalDependencies());
     }
 
     @Override
     public <T> void configureAsRuntimeClasspath(HasConfigurableAttributes<T> configuration) {
-        configureAttributes(configuration, details -> details.library().providingRuntime().asJar().withExternalDependencies());
+        configureAttributes(configuration, details -> details.library().runtimeUsage().asJar().withExternalDependencies());
     }
 
     @Override
@@ -168,10 +181,24 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
     }
 
     @Override
-    public Configuration createOutgoingElements(String name, Action<? super OutgoingElementsBuilder> action) {
+    public Configuration createOutgoingElements(String name, Action<? super OutgoingElementsBuilder> configuration) {
         DefaultElementsConfigurationBuilder builder = new DefaultElementsConfigurationBuilder(name);
-        action.execute(builder);
+        configuration.execute(builder);
         return builder.build();
+    }
+
+    @Override
+    public void createJavaComponent(String name, Action<? super JavaComponentBuilder> configuration) {
+        DefaultJavaComponentBuilder builder = new DefaultJavaComponentBuilder(name,
+            new ProjectDerivedCapability(project, name),
+            javaPluginExtension,
+            this,
+            sourceSets,
+            configurations,
+            tasks,
+            components);
+        configuration.execute(builder);
+        builder.build();
     }
 
     private static int getReleaseOption(List<String> compilerArgs) {
@@ -213,9 +240,9 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
                         .asJar()
                         .withExternalDependencies();
                     if (api) {
-                        details.providingApi();
+                        details.apiUsage();
                     } else {
-                        details.providingRuntime();
+                        details.runtimeUsage();
                     }
                     if (attributesRefiner != null) {
                         attributesRefiner.execute(details);
@@ -255,13 +282,13 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
         }
 
         @Override
-        public OutgoingElementsBuilder forApi() {
+        public OutgoingElementsBuilder providesApi() {
             this.api = true;
             return this;
         }
 
         @Override
-        public OutgoingElementsBuilder forRuntime() {
+        public OutgoingElementsBuilder providesRuntime() {
             this.api = false;
             return this;
         }

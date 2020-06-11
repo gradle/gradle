@@ -17,37 +17,17 @@ package org.gradle.api.plugins.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.Task;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.component.AdhocComponentWithVariants;
-import org.gradle.api.component.SoftwareComponentContainer;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.BasePlugin;
-import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JvmEcosystemUtilities;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.TaskProvider;
-import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.component.external.model.ImmutableCapability;
-import org.gradle.util.TextUtil;
 
 import java.util.List;
 
-import static org.gradle.api.attributes.DocsType.JAVADOC;
-import static org.gradle.api.attributes.DocsType.SOURCES;
-import static org.gradle.api.plugins.internal.JvmPluginsHelper.*;
-
 public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     private final String name;
-    private final JavaPluginExtension javaPluginExtension;
     private final ConfigurationContainer configurationContainer;
-    private final ObjectFactory objectFactory;
-    private final SoftwareComponentContainer components;
-    private final TaskContainer tasks;
     private final List<Capability> capabilities = Lists.newArrayListWithExpectedSize(2);
     private final JvmEcosystemUtilities jvmEcosystemUtilities;
 
@@ -55,21 +35,14 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     private SourceSet sourceSet;
     private boolean withJavadocJar = false;
     private boolean withSourcesJar = false;
+    private boolean allowPublication = true;
 
     public DefaultJavaFeatureSpec(String name,
                                   Capability defaultCapability,
-                                  JavaPluginExtension javaPluginExtension,
                                   ConfigurationContainer configurationContainer,
-                                  ObjectFactory objectFactory,
-                                  SoftwareComponentContainer components,
-                                  TaskContainer tasks,
                                   JvmEcosystemUtilities jvmEcosystemUtilities) {
         this.name = name;
-        this.javaPluginExtension = javaPluginExtension;
         this.configurationContainer = configurationContainer;
-        this.objectFactory = objectFactory;
-        this.components = components;
-        this.tasks = tasks;
         this.jvmEcosystemUtilities = jvmEcosystemUtilities;
         this.capabilities.add(defaultCapability);
     }
@@ -103,94 +76,35 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         withSourcesJar = true;
     }
 
+    @Override
+    public void disablePublication() {
+        allowPublication = false;
+    }
+
     private void setupConfigurations(SourceSet sourceSet) {
         if (sourceSet == null) {
             throw new InvalidUserCodeException("You must specify which source set to use for feature '" + name + "'");
         }
-        final AdhocComponentWithVariants component = findJavaComponent(components);
 
-        String apiConfigurationName;
-        String implConfigurationName;
-        String apiElementsConfigurationName;
-        String runtimeElementsConfigurationName;
-        boolean mainSourceSet = isMainSourceSet(sourceSet);
-        if (mainSourceSet) {
-            apiConfigurationName = name + "Api";
-            implConfigurationName = name + "Implementation";
-            apiElementsConfigurationName = apiConfigurationName + "Elements";
-            runtimeElementsConfigurationName = name + "RuntimeElements";
-        } else {
-            apiConfigurationName = sourceSet.getApiConfigurationName();
-            implConfigurationName = sourceSet.getImplementationConfigurationName();
-            apiElementsConfigurationName = sourceSet.getApiElementsConfigurationName();
-            runtimeElementsConfigurationName = sourceSet.getRuntimeElementsConfigurationName();
-        }
-        final Configuration api = bucket("API", apiConfigurationName);
-        Configuration impl = bucket("Implementation", implConfigurationName);
-        impl.extendsFrom(api);
+        jvmEcosystemUtilities.createJavaComponent(name, builder -> {
+            builder.usingSourceSet(sourceSet)
+                .withDisplayName("feature " + name)
+                .exposesApi()
+                .withJar();
+            if (withJavadocJar) {
+                builder.withJavadocJar();
+            }
+            if (withSourcesJar) {
+                builder.withSourcesJar();
+            }
+            if (allowPublication) {
+                builder.published();
+            }
+            for (Capability capability : capabilities) {
+                builder.capability(capability);
+            }
+        });
 
-        TaskProvider<Task> jar = registerOrGetJarTask();
-        final Configuration apiElements = jvmEcosystemUtilities.createOutgoingElements(apiElementsConfigurationName, builder ->
-            builder.fromSourceSet(sourceSet)
-                .forApi()
-                .withDescription("API elements for feature " + name)
-                .extendsFrom(api)
-                .addArtifact(jar)
-                .withCapabilities(capabilities)
-                .withClassDirectoryVariant());
-        final Configuration runtimeElements = jvmEcosystemUtilities.createOutgoingElements(runtimeElementsConfigurationName, builder ->
-            builder.fromSourceSet(sourceSet)
-                .forRuntime()
-                .withDescription("Runtime elements for feature " + name)
-                .extendsFrom(impl)
-                .addArtifact(jar)
-                .withCapabilities(capabilities));
-        configureJavaDocTask(name, sourceSet, tasks, javaPluginExtension);
-        if (withJavadocJar) {
-            configureDocumentationVariantWithArtifact(sourceSet.getJavadocElementsConfigurationName(), name, JAVADOC, capabilities, sourceSet.getJavadocJarTaskName(), tasks.named(sourceSet.getJavadocTaskName()), component, configurationContainer, tasks, objectFactory);
-        }
-        if (withSourcesJar) {
-            configureDocumentationVariantWithArtifact(sourceSet.getSourcesElementsConfigurationName(), name, SOURCES, capabilities, sourceSet.getSourcesJarTaskName(), sourceSet.getAllSource(), component, configurationContainer, tasks, objectFactory);
-        }
-
-        if (mainSourceSet) {
-            // since we use the main source set, we need to make sure the compile classpath and runtime classpath are properly configured
-            configurationContainer.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(impl);
-            configurationContainer.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(impl);
-
-            // and we also want the feature dependencies to be available on the test classpath
-            configurationContainer.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(impl);
-            configurationContainer.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(impl);
-        }
-        if (component != null) {
-            component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", true));
-            component.addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", true));
-        }
-    }
-
-    private TaskProvider<Task> registerOrGetJarTask() {
-        String jarTaskName = sourceSet.getJarTaskName();
-        if (!tasks.getNames().contains(jarTaskName)) {
-            tasks.register(jarTaskName, Jar.class, jar -> {
-                jar.setDescription("Assembles a jar archive containing the classes of the '" + name + "' feature.");
-                jar.setGroup(BasePlugin.BUILD_GROUP);
-                jar.from(sourceSet.getOutput());
-                jar.getArchiveClassifier().set(TextUtil.camelToKebabCase(name));
-            });
-        }
-        return tasks.named(jarTaskName);
-    }
-
-    private Configuration bucket(String kind, String configName) {
-        Configuration configuration = configurationContainer.maybeCreate(configName);
-        configuration.setDescription(kind + " dependencies for feature " + name);
-        configuration.setCanBeResolved(false);
-        configuration.setCanBeConsumed(false);
-        return configuration;
-    }
-
-    private boolean isMainSourceSet(SourceSet sourceSet) {
-        return sourceSet.getName().equals(SourceSet.MAIN_SOURCE_SET_NAME);
     }
 
 }

@@ -17,6 +17,7 @@ package org.gradle.api.plugins.internal.support;
 
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -35,13 +36,13 @@ class DefaultJvmEcosystemAttributesDetails implements JvmEcosystemUtilities.JvmE
     }
 
     @Override
-    public JvmEcosystemUtilities.JvmEcosystemAttributesDetails providingApi() {
+    public JvmEcosystemUtilities.JvmEcosystemAttributesDetails apiUsage() {
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
         return this;
     }
 
     @Override
-    public JvmEcosystemUtilities.JvmEcosystemAttributesDetails providingRuntime() {
+    public JvmEcosystemUtilities.JvmEcosystemAttributesDetails runtimeUsage() {
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
         return this;
     }
@@ -61,6 +62,13 @@ class DefaultJvmEcosystemAttributesDetails implements JvmEcosystemUtilities.JvmE
     @Override
     public JvmEcosystemUtilities.JvmEcosystemAttributesDetails enforcedPlatform() {
         attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.ENFORCED_PLATFORM));
+        return this;
+    }
+
+    @Override
+    public JvmEcosystemUtilities.JvmEcosystemAttributesDetails documentation(String docsType) {
+        attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.DOCUMENTATION));
+        attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(DocsType.class, docsType));
         return this;
     }
 

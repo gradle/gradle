@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.internal;
 
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JvmEcosystemUtilities;
@@ -48,8 +49,9 @@ public class PluginAuthorServices extends AbstractPluginServiceRegistry {
     private static class ProjectScopeServices {
         JvmEcosystemUtilities createJvmEcosystemUtilities(ConfigurationContainer configurations,
                                                           ObjectFactory objectFactory,
-                                                          TaskContainer tasks) {
-            return new DefaultJvmEcosystemUtilities(configurations, objectFactory, tasks);
+                                                          TaskContainer tasks,
+                                                          SoftwareComponentContainer components) {
+            return new DefaultJvmEcosystemUtilities(configurations, objectFactory, tasks, components);
         }
     }
 }
