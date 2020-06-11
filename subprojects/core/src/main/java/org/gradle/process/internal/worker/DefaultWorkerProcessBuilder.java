@@ -70,7 +70,6 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
 
     DefaultWorkerProcessBuilder(JavaExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<Long> idGenerator, ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory, OutputEventListener outputEventListener, MemoryManager memoryManager) {
         this.javaCommand = execHandleFactory.newJavaExec();
-        this.javaCommand.setJavaModuleDetector(workerImplementationFactory.getJavaModuleDetector());
         this.server = server;
         this.idGenerator = idGenerator;
         this.workerImplementationFactory = workerImplementationFactory;

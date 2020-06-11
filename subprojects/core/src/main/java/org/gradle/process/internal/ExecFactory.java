@@ -27,7 +27,7 @@ import org.gradle.internal.reflect.Instantiator;
 /**
  * Manages forking/spawning processes.
  */
-public interface ExecFactory extends ExecActionFactory, ExecHandleFactory, JavaExecHandleFactory, JavaForkOptionsFactory, DslExecActionFactory, ProcessOperations {
+public interface ExecFactory extends ExecActionFactory, ExecHandleFactory, JavaExecHandleFactory, JavaForkOptionsFactory, ProcessOperations {
     /**
      * Creates a new factory for the given context.
      */

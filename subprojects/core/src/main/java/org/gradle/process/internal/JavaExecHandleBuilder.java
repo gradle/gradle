@@ -58,7 +58,7 @@ import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasC
 public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements JavaExecSpec, ProcessArgumentsSpec.HasExecutable {
     private static final Logger LOGGER = Logging.getLogger(JavaExecHandleBuilder.class);
     private final FileCollectionFactory fileCollectionFactory;
-    private JavaModuleDetector javaModuleDetector;
+    private final JavaModuleDetector javaModuleDetector;
     private final Property<String> mainModule;
     private final Property<String> mainClass;
     private ConfigurableFileCollection classpath;
@@ -76,10 +76,6 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         this.javaOptions = javaOptions;
         this.modularity = new DefaultModularitySpec(objectFactory);
         executable(javaOptions.getExecutable());
-    }
-
-    public void setJavaModuleDetector(JavaModuleDetector javaModuleDetector) {
-        this.javaModuleDetector = javaModuleDetector;
     }
 
     @Override
