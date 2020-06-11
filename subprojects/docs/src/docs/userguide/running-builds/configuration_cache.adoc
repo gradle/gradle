@@ -6,6 +6,7 @@
 The configuration cache is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, and the details described here may change.
 ====
 
+// TODO prefix anchors sec:, problem:,
 
 == Introduction
 
@@ -256,6 +257,14 @@ Usually these types are used to carry some task input that should be explicitly 
 To fix, you can often replace such a field with a `Property` or `Provider` typed field that exposes the exact information that the task will need at execution time.
 
 // TODO - examples, more details
+// - Live JVM state
+// - Gradle, Settings, Project -> data
+// - SourceSet or SourceSetContainer -> FileCollection(s) for the source directories|files, classpath or outputs
+// - Dependency resolution types
+//   - explain global rule, results NO, specs YES
+//   - Configuration -> FileCollection
+//   - Dependencies -> ArtifactCollection
+
 
 [[use_project_during_execution]]
 === Using the `Project` object
@@ -373,6 +382,7 @@ To fix, connect tasks using input and output relationships.
 `Property` and `Provider` types can be useful for this.
 
 // TODO - examples, more details
+// TODO - tasks configuring another tasks are unsupported
 
 [[build_listeners]]
 === Using build listeners
