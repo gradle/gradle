@@ -16,10 +16,34 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.MapMaker;
+
 import java.io.File;
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 public class SharedJavaInstallationRegistry {
 
+    private final ConcurrentMap<String, File> installations = new MapMaker().makeMap();
+    private final Supplier<ImmutableMap<String, File>> finalizedInstallations = Suppliers.memoize(() -> ImmutableMap.copyOf(installations));
+    private boolean finalized;
+
     public void add(String name, File file) {
+        Preconditions.checkArgument(!finalized, "Installation must not be mutated after being finalized");
+        installations.put(name, file);
     }
+
+    public void finalizeValue() {
+        finalized = true;
+    }
+
+    public Map<String, File> listInstallations() {
+        finalizeValue();
+        return finalizedInstallations.get();
+    }
+
 }
