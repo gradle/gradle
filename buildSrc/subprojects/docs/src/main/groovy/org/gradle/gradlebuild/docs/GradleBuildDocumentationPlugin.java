@@ -134,13 +134,10 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
     private void checkDocumentation(TaskContainer tasks, GradleDocumentationExtension extension) {
         tasks.named("test", Test.class).configure(task -> {
             task.getInputs().file(extension.getReleaseNotes().getRenderedDocumentation()).withPropertyName("releaseNotes").withPathSensitivity(PathSensitivity.NONE);
-            task.getInputs().file(extension.getReleaseFeatures().getReleaseFeaturesFile()).withPropertyName("releaseFeatures").withPathSensitivity(PathSensitivity.NONE);
 
             task.getInputs().property("systemProperties", Collections.emptyMap());
             // TODO: This breaks the provider
             task.systemProperty("org.gradle.docs.releasenotes.rendered", extension.getReleaseNotes().getRenderedDocumentation().get().getAsFile());
-            // TODO: This breaks the provider
-            task.systemProperty("org.gradle.docs.releasefeatures", extension.getReleaseFeatures().getReleaseFeaturesFile().get().getAsFile());
         });
     }
 }

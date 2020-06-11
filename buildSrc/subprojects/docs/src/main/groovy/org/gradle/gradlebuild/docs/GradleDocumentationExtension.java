@@ -29,7 +29,6 @@ import javax.inject.Inject;
  */
 public abstract class GradleDocumentationExtension {
     private final ReleaseNotes releaseNotes;
-    private final ReleaseFeatures releaseFeatures;
     private final UserManual userManual;
     private final DslReference dslReference;
     private final Javadocs javadocs;
@@ -37,7 +36,6 @@ public abstract class GradleDocumentationExtension {
     @Inject
     public GradleDocumentationExtension(ObjectFactory objects) {
         releaseNotes = objects.newInstance(ReleaseNotes.class);
-        releaseFeatures = objects.newInstance(ReleaseFeatures.class);
         userManual = objects.newInstance(UserManual.class);
         dslReference = objects.newInstance(DslReference.class);
         javadocs = objects.newInstance(Javadocs.class);
@@ -86,14 +84,6 @@ public abstract class GradleDocumentationExtension {
 
     public void releaseNotes(Action<? super ReleaseNotes> action) {
         action.execute(releaseNotes);
-    }
-
-    public ReleaseFeatures getReleaseFeatures() {
-        return releaseFeatures;
-    }
-
-    public void releaseFeatures(Action<? super ReleaseFeatures> action) {
-        action.execute(releaseFeatures);
     }
 
     public UserManual getUserManual() {
