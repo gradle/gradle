@@ -265,21 +265,103 @@ This includes calling `Task.getProject()` while the task is running.
 
 Some cases can be fixed in the same way as the previous requirement.
 
-Often, similar things are available on both `Project` and `Task.
+Often, similar things are available on both `Project` and `Task`.
 For example if you need a `Logger` in your task actions you should use `Task.logger` instead of `Project.logger`.
 
-Otherwise, to fix, use <<custom_gradle_types#service_injection,injected services>> instead of the methods of `Project`:
+Otherwise, you can use <<custom_gradle_types#service_injection,injected services>> instead of the methods of `Project`.
 
-* `project.file(path)` -> `ProjectLayout.projectDirectory.file(path)` or `ProjectLayout.buildDirectory.file(path)`
-* `project.files(paths)` -> `ObjectFactory.fileCollection().from(paths)`
-* `project.fileTree(dir)` -> `ObjectFactory.fileTree().from(dir)`
-* `project.exec {}`  -> `ExecOperations.exec {}`
-* `project.javaexec {}` -> `ExecOperations.javaexec {}`
-* `project.copy {}` -> `FileSystemOperations.copy {}`
-* `project.sync {}` -> `FileSystemOperations.sync {}`
-* `project.delete {}` -> `FileSystemOperations.delete {}`
+// TODO - examples
+// - with 2 problems
+// - p1 is using `project.version`
+// - p2 is using `project.exec {}`
+// - in task types
+// - in tasks declared in scripts
+//   https://gradle.slack.com/archives/CH43P3A10/p1591477979141600
 
-// TODO - examples, more details
+[cols="a,a",options="header"]
+|===
+| Instead of:
+| Use:
+
+| `project.rootDir`
+| A task field or script variable to capture the root directory.
+
+| `project.projectDir`
+| `link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout].projectDirectory`
+
+| `project.buildDir`
+| `link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout].buildDirectory`
+
+| `project.name`
+| A task field or script variable to capture the project name.
+
+| `project.description`
+| A task field or script variable to capture the project description.
+
+| `project.group`
+| A task field or script variable to capture the project group.
+
+| `project.version`
+| A task field or script variable to capture the project version.
+
+| `project.properties`, `project.property(name)`, `project.hasProperty(name)`, `project.getProperty(name)` or `project.findProperty(name)`
+| <<configuration_cache#undeclared_gradle_prop_read, Value providers for Gradle properties>>
+
+| `project.provider {}`
+| `link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html[ProviderFactory].provider {}`
+
+| `project.file(path)`
+| `link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout].projectDirectory.file(path)` or `link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout].buildDirectory.file(path)`
+
+| `project.uri(path)`
+| [.red]#✖# Unsupported
+
+| `project.relativePath(path)`
+| `ProjectLayout.projectDirectory.file(path)`
+
+| `project.files(paths)`
+| `link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory].fileCollection().from(paths)`
+
+| `project.fileTree(paths)`
+| `link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory].fileTree().from(dir)`
+
+| `project.zipTree(path)`
+| `link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html[ArchiveOperations].zipTree(path)`
+
+| `project.tarTree(path)`
+| `link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html[ArchiveOperations].tarTree(path)`
+
+| `project.resources`
+| [.red]#✖# Unsupported
+
+| `project.copySpec {}`
+| [.red]#✖# Unsupported
+
+| `project.copy {}`
+| `link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[FileSystemOperations].copy {}`
+
+| `project.sync {}`
+| `link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[FileSystemOperations].sync {}`
+
+| `project.delete {}`
+| `link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[FileSystemOperations].delete {}`
+
+| `project.mkdir(path)`
+| The Kotlin, Groovy or Java API available to your build logic.
+
+| `project.exec {}`
+| `link:{javadocPath}/org/gradle/process/ExecOperations.html[ExecOperations].exec {}`
+
+| `project.javaexec {}`
+| `link:{javadocPath}/org/gradle/process/ExecOperations.html[ExecOperations].javaexec {}`
+
+| `project.ant {}`
+| [.red]#✖# Unsupported
+
+| `project.createAntBuilder()`
+| [.red]#✖# Unsupported
+
+|===
 
 [[task_access]]
 === Accessing a task instance from another instance
