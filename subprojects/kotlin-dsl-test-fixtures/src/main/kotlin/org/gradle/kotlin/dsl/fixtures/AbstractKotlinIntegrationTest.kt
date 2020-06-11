@@ -235,11 +235,4 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     fun assumeNonEmbeddedGradleExecuter() {
         assumeFalse(GradleContextualExecuter.isEmbedded())
     }
-
-    protected
-    fun requireGradleDistributionOnEmbeddedExecuter() {
-        if (GradleContextualExecuter.isEmbedded()) {
-            executer.requireGradleDistribution()
-        }
-    }
 }

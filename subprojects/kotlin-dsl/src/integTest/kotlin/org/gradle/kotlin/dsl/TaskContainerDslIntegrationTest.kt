@@ -31,12 +31,18 @@ import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.Matcher
 
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Before
 import org.junit.Test
 
 import kotlin.reflect.KClass
 
 
 class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
+
+    @Before
+    fun doNotRunEmbedded() {
+        assumeNonEmbeddedGradleExecuter() // Due to testInstallationGradleApiExtensionsClasspathFor(distribution.gradleHomeDir)
+    }
 
     private
     val dslTestFixture: DslTestFixture by lazy {
