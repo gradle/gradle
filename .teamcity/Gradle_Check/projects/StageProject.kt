@@ -31,7 +31,7 @@ class StageProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBu
     init {
         features {
             if (stage.specificBuilds.contains(SpecificBuild.SanityCheck)) {
-                buildReportTab("API Compatibility Report", "report-distributions-binary-compatibility-report.html")
+                buildReportTab("API Compatibility Report", "report-architectureTest-binary-compatibility-report.html")
                 buildReportTab("Incubating APIs Report", "incubation-reports/all-incubating.html")
             }
             if (stage.performanceTests.isNotEmpty()) {
