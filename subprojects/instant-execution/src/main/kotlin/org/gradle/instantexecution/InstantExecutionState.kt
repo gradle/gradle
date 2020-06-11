@@ -188,14 +188,14 @@ class InstantExecutionState(
 
     private
     fun Encoder.writeRelevantProjectsFor(nodes: List<Node>) {
-        writeCollection(fillTheGapsOf(relevantProjectPathsFor(nodes))) { project ->
+        writeCollection(fillTheGapsOf(relevantProjectsFor(nodes))) { project ->
             writeString(project.path)
             writeFile(project.projectDir)
         }
     }
 
     private
-    fun relevantProjectPathsFor(nodes: List<Node>): List<Project> =
+    fun relevantProjectsFor(nodes: List<Node>): List<Project> =
         nodes.mapNotNullTo(mutableListOf()) { node ->
             node.owningProject
                 ?.takeIf { it.parent != null }
@@ -228,8 +228,10 @@ fun fillTheGapsOf(projects: Collection<Project>): List<Project> {
             added += 1
             parent = parent.parent
         }
-        projectsWithoutGaps.add(project)
-        added += 1
+        if (project !in projectsWithoutGaps) {
+            projectsWithoutGaps.add(project)
+            added += 1
+        }
         index += added
     }
     return projectsWithoutGaps
