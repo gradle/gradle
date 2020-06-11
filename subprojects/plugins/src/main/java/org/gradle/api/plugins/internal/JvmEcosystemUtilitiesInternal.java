@@ -15,9 +15,11 @@
  */
 package org.gradle.api.plugins.internal;
 
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JvmEcosystemUtilities;
 
 public interface JvmEcosystemUtilitiesInternal extends JvmEcosystemUtilities {
-    void setJavaConvention(JavaPluginConvention javaConvention);
+    void inject(JavaPluginConvention javaConvention, JavaPluginExtension javaPluginExtension, ProjectInternal project);
 }

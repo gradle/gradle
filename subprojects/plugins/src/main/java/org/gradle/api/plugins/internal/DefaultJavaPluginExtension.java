@@ -95,11 +95,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         DefaultJavaFeatureSpec spec = new DefaultJavaFeatureSpec(
             validateFeatureName(name),
             defaultCapability,
-            this,
             configurations,
-            objectFactory,
-            components,
-            tasks,
             jvmEcosystemUtilities);
         configureAction.execute(spec);
         spec.create();

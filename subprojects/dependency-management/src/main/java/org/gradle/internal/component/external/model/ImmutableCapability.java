@@ -18,6 +18,8 @@ package org.gradle.internal.component.external.model;
 import com.google.common.base.Objects;
 import org.gradle.api.capabilities.Capability;
 
+import javax.annotation.Nullable;
+
 public class ImmutableCapability implements CapabilityInternal {
 
     private final String group;
@@ -26,7 +28,7 @@ public class ImmutableCapability implements CapabilityInternal {
     private final int hashCode;
     private final String cachedId;
 
-    public ImmutableCapability(String group, String name, String version) {
+    public ImmutableCapability(String group, String name, @Nullable String version) {
         this.group = group;
         this.name = name;
         this.version = version;
@@ -45,7 +47,7 @@ public class ImmutableCapability implements CapabilityInternal {
         this.cachedId = group + ":" + name;
     }
 
-    private int computeHashcode(String group, String name, String version) {
+    private int computeHashcode(String group, String name, @Nullable String version) {
         // Do NOT change the order of members used in hash code here, it's been empirically
         // tested to reduce the number of collisions on a large dependency graph (performance test)
         int hash = safeHash(version);
@@ -54,7 +56,7 @@ public class ImmutableCapability implements CapabilityInternal {
         return  hash;
     }
 
-    private static int safeHash(String o) {
+    private static int safeHash(@Nullable String o) {
         return o == null ? 0 : o.hashCode();
     }
 
@@ -69,6 +71,7 @@ public class ImmutableCapability implements CapabilityInternal {
     }
 
     @Override
+    @Nullable
     public String getVersion() {
         return version;
     }
