@@ -30,6 +30,7 @@ const val installPathProperty = "gradle_installPath"
  *
  * Each install task installs into `$gradle_installPath`
  */
+@Suppress("unused")
 class InstallPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val extension = project.extensions.create("installation", InstallationExtension::class.java)
@@ -51,16 +52,13 @@ class InstallPlugin : Plugin<Project> {
 
     private
     fun validateInstallDir(task: Install, extension: InstallationExtension) {
-        val installDir = extension.installDirectory.asFile.orNull
-        if (installDir == null) {
-            throw RuntimeException("You can't install without setting the $installPathProperty property.")
-        }
+        val installDir = extension.installDirectory.asFile.orNull ?: throw RuntimeException("You can't install without setting the $installPathProperty property.")
         if (installDir.isFile) {
             throw RuntimeException("Install directory $installDir does not look like a Gradle installation. Cannot delete it to install.")
         }
         if (installDir.isDirectory) {
             val libDir = File(installDir, "lib")
-            if (!libDir.isDirectory || !libDir.list().any { it.matches(Regex("gradle.*\\.jar")) }) {
+            if (libDir.list()?.none { it.matches(Regex("gradle.*\\.jar")) } == true) {
                 throw RuntimeException("Install directory $installDir does not look like a Gradle installation. Cannot delete it to install.")
             }
         }
