@@ -45,11 +45,12 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.Cached;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.internal.serialization.Cached;
+import org.gradle.internal.serialization.Transient;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -73,16 +74,16 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  * @since 4.3
  */
 public class GenerateModuleMetadata extends DefaultTask {
-    transient private final Property<Publication> publication;
-    transient private final ListProperty<Publication> publications;
+    private final Transient<Property<Publication>> publication;
+    private final Transient<ListProperty<Publication>> publications;
     private final RegularFileProperty outputFile;
-    private FileCollection variantFiles;
+    private final FileCollection variantFiles;
     private final Cached<InputState> inputState = Cached.of(this::computeInputState);
 
     public GenerateModuleMetadata() {
         ObjectFactory objectFactory = getProject().getObjects();
-        publication = objectFactory.property(Publication.class);
-        publications = objectFactory.listProperty(Publication.class);
+        publication = Transient.of(objectFactory.property(Publication.class));
+        publications = Transient.of(objectFactory.listProperty(Publication.class));
 
         outputFile = objectFactory.fileProperty();
 
@@ -100,7 +101,7 @@ public class GenerateModuleMetadata extends DefaultTask {
      */
     @Internal
     public Property<Publication> getPublication() {
-        return publication;
+        return publication.get();
     }
 
     // TODO - this should be an input
@@ -112,7 +113,7 @@ public class GenerateModuleMetadata extends DefaultTask {
      */
     @Internal
     public ListProperty<Publication> getPublications() {
-        return publications;
+        return publications.get();
     }
 
     @InputFiles
@@ -299,10 +300,10 @@ public class GenerateModuleMetadata extends DefaultTask {
     }
 
     private PublicationInternal<?> publication() {
-        return Cast.uncheckedNonnullCast(GenerateModuleMetadata.this.publication.get());
+        return Cast.uncheckedNonnullCast(publication.get().get());
     }
 
     private List<PublicationInternal<?>> publications() {
-        return Cast.uncheckedCast(this.publications.get());
+        return Cast.uncheckedCast(publications.get().get());
     }
 }

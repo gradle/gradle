@@ -29,10 +29,13 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.Cached;
+import org.gradle.internal.serialization.Cached;
+import org.gradle.internal.serialization.Transient;
 
 import javax.inject.Inject;
 import java.io.File;
+
+import static org.gradle.internal.serialization.Transient.varOf;
 
 /**
  * Generates a Maven module descriptor (POM) file.
@@ -41,9 +44,9 @@ import java.io.File;
  */
 public class GenerateMavenPom extends DefaultTask {
 
-    private transient MavenPom pom;
-    private transient ImmutableAttributes compileScopeAttributes = ImmutableAttributes.EMPTY;
-    private transient ImmutableAttributes runtimeScopeAttributes = ImmutableAttributes.EMPTY;
+    private final Transient.Var<MavenPom> pom = varOf();
+    private final Transient.Var<ImmutableAttributes> compileScopeAttributes = varOf(ImmutableAttributes.EMPTY);
+    private final Transient.Var<ImmutableAttributes> runtimeScopeAttributes = varOf(ImmutableAttributes.EMPTY);
     private Object destination;
     private Cached<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec = Cached.of(this::computeMavenPomSpec);
 
@@ -63,12 +66,12 @@ public class GenerateMavenPom extends DefaultTask {
     }
 
     public GenerateMavenPom withCompileScopeAttributes(ImmutableAttributes compileScopeAttributes) {
-        this.compileScopeAttributes = compileScopeAttributes;
+        this.compileScopeAttributes.set(compileScopeAttributes);
         return this;
     }
 
-    public GenerateMavenPom withRuntimeScopeAttributes(ImmutableAttributes compileScopeAttributes) {
-        this.runtimeScopeAttributes = compileScopeAttributes;
+    public GenerateMavenPom withRuntimeScopeAttributes(ImmutableAttributes runtimeScopeAttributes) {
+        this.runtimeScopeAttributes.set(runtimeScopeAttributes);
         return this;
     }
 
@@ -79,11 +82,11 @@ public class GenerateMavenPom extends DefaultTask {
      */
     @Internal
     public MavenPom getPom() {
-        return pom;
+        return pom.get();
     }
 
     public void setPom(MavenPom pom) {
-        this.pom = pom;
+        this.pom.set(pom);
     }
 
     /**
@@ -133,8 +136,8 @@ public class GenerateMavenPom extends DefaultTask {
             pomInternal.getProjectIdentity(),
             getVersionRangeMapper(),
             pomInternal.getVersionMappingStrategy(),
-            compileScopeAttributes,
-            runtimeScopeAttributes,
+            compileScopeAttributes.get(),
+            runtimeScopeAttributes.get(),
             pomInternal.writeGradleMetadataMarker());
         pomGenerator.configureFrom(pomInternal);
 

@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal;
+package org.gradle.internal.serialization;
+
+import org.gradle.internal.Try;
 
 import java.util.concurrent.Callable;
 
