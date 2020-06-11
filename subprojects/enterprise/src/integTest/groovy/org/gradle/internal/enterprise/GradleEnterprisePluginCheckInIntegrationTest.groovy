@@ -41,7 +41,6 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         """
     }
 
-    @ToBeFixedForInstantExecution
     def "enabled and disabled are false with no flags"() {
         given:
         applyPlugin()
@@ -53,7 +52,6 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         plugin.assertBuildScanRequest(output, NONE)
     }
 
-    @ToBeFixedForInstantExecution
     def "enabled with --scan"() {
         given:
         applyPlugin()
@@ -65,7 +63,6 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         plugin.assertBuildScanRequest(output, REQUESTED)
     }
 
-    @ToBeFixedForInstantExecution
     def "disabled with --no-scan"() {
         given:
         applyPlugin()
@@ -77,7 +74,6 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         plugin.assertBuildScanRequest(output, SUPPRESSED)
     }
 
-    @ToBeFixedForInstantExecution
     def "warns if scan requested but no scan plugin applied"() {
         given:
         applyPlugin()
@@ -90,7 +86,6 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         plugin.issuedNoPluginWarning(output)
     }
 
-    @ToBeFixedForInstantExecution
     def "does not warn if no scan requested but no scan plugin applied"() {
         given:
         applyPlugin()
@@ -131,7 +126,6 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         plugin.issuedNoPluginWarningCount(output, 1)
     }
 
-    @ToBeFixedForInstantExecution
     def "detects that the build scan plugin has been [applied=#applied]"() {
         given:
         if (applied) {
@@ -152,7 +146,6 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         applied << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
     def "can convey unsupported to plugin that supports it"() {
         given:
         applyPlugin()
@@ -164,7 +157,6 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         plugin.assertUnsupportedMessage(output, DefautGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE)
     }
 
-    @ToBeFixedForInstantExecution
     def "end of build listener is notified on success"() {
         given:
         applyPlugin()
@@ -176,7 +168,6 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         plugin.assertEndOfBuildWithFailure(output, null)
     }
 
-    @ToBeFixedForInstantExecution
     def "end of build listener is notified on failure"() {
         given:
         applyPlugin()
