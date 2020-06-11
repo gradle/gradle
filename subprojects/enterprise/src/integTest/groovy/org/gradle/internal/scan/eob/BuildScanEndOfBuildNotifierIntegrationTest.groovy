@@ -18,13 +18,24 @@ package org.gradle.internal.scan.eob
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.internal.scan.config.GradleEnterprisePluginLegacyContactPointFixture
 import spock.lang.Issue
 import spock.lang.Unroll
 
 @Unroll
 class BuildScanEndOfBuildNotifierIntegrationTest extends AbstractIntegrationSpec {
 
+    def scanPlugin = new GradleEnterprisePluginLegacyContactPointFixture(testDirectory, mavenRepo, createExecuter())
+
     def setup() {
+        settingsFile << scanPlugin.pluginManagement()
+
+        scanPlugin.with {
+            logConfig = true
+            logApplied = true
+            publishDummyPlugin(executer)
+        }
+
         buildFile << """
             def notifier = services.get(${BuildScanEndOfBuildNotifier.name})
         """

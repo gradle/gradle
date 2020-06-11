@@ -30,7 +30,7 @@ import org.gradle.execution.plan.DefaultPlanExecutor;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence;
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionRequestContext;
@@ -130,7 +130,7 @@ public class ExecutionGradleServices {
         BuildCancellationToken cancellationToken,
         BuildInvocationScopeId buildInvocationScopeId,
         BuildOperationExecutor buildOperationExecutor,
-        GradleEnterprisePluginPresence gradleEnterprisePluginPresence,
+        GradleEnterprisePluginManager gradleEnterprisePluginManager,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         Deleter deleter,
         ExecutionStateChangeDetector changeDetector,
@@ -148,7 +148,7 @@ public class ExecutionGradleServices {
             new SkipEmptyWorkStep<>(
             new ValidateStep<>(validationWarningReporter,
             new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
-            new ResolveCachingStateStep(buildCacheController, gradleEnterprisePluginPresence.isPresent(),
+            new ResolveCachingStateStep(buildCacheController, gradleEnterprisePluginManager.isPresent(),
             new MarkSnapshottingInputsFinishedStep<>(
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(

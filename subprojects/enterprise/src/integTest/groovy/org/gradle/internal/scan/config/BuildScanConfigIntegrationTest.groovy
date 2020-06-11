@@ -17,12 +17,13 @@
 package org.gradle.internal.scan.config
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence
-import org.gradle.internal.scan.impl.BuildScanPluginManager
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
+import org.gradle.internal.scan.impl.LegacyGradleEnterprisePluginCheckInService
 import spock.lang.Unroll
 
 @Unroll
+@UnsupportedWithInstantExecution
 class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
 
     def scanPlugin = new GradleEnterprisePluginLegacyContactPointFixture(testDirectory, mavenRepo, createExecuter())
@@ -41,7 +42,6 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @ToBeFixedForInstantExecution
     def "enabled and disabled are false with no flags"() {
         when:
         succeeds "t"
@@ -51,7 +51,6 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         scanPlugin.assertDisabled(output, false)
     }
 
-    @ToBeFixedForInstantExecution
     def "enabled with --scan"() {
         when:
         succeeds "t", "--scan"
@@ -61,7 +60,6 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         scanPlugin.assertDisabled(output, false)
     }
 
-    @ToBeFixedForInstantExecution
     def "disabled with --no-scan"() {
         when:
         succeeds "t", "--no-scan"
@@ -71,7 +69,6 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         scanPlugin.assertDisabled(output, true)
     }
 
-    @ToBeFixedForInstantExecution
     def "not enabled with -Dscan"() {
         // build scan plugin will treat this as enabled
         when:
@@ -82,7 +79,6 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         scanPlugin.assertDisabled(output, false)
     }
 
-    @ToBeFixedForInstantExecution
     def "not disabled with -Dscan=false"() {
         when:
         succeeds "t", "-Dscan=false"
@@ -92,7 +88,6 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         scanPlugin.assertDisabled(output, false)
     }
 
-    @ToBeFixedForInstantExecution
     def "warns if scan requested but no scan plugin applied"() {
         given:
         scanPlugin.collectConfig = false
@@ -104,7 +99,6 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         scanPlugin.issuedNoPluginWarning(output)
     }
 
-    @ToBeFixedForInstantExecution
     def "does not warn if no scan requested but no scan plugin applied"() {
         given:
         scanPlugin.collectConfig = false
@@ -116,7 +110,6 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         scanPlugin.didNotIssuedNoPluginWarning(output)
     }
 
-    @ToBeFixedForInstantExecution
     def "fails if plugin is too old"() {
         given:
         scanPlugin.runtimeVersion = "1.7.4"
@@ -140,7 +133,6 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         assertFailedVersionCheck()
     }
 
-    @ToBeFixedForInstantExecution
     def "does not warn for each nested build if --scan used"() {
         given:
         scanPlugin.collectConfig = false
@@ -166,7 +158,6 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         scanPlugin.issuedNoPluginWarningCount(output, 1)
     }
 
-    @ToBeFixedForInstantExecution
     def "detects that the build scan plugin has been #description"() {
         given:
         scanPlugin.collectConfig = applied
@@ -187,7 +178,6 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         description = applied ? "applied" : "not applied"
     }
 
-    @ToBeFixedForInstantExecution
     def "conveys that is task executing build"() {
         given:
         scanPlugin.collectConfig = true
@@ -201,20 +191,19 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "can convey unsupported to plugin that supports it"() {
         given:
         scanPlugin.runtimeVersion = "3.0"
         when:
-        succeeds "t", "-D${BuildScanPluginManager.UNSUPPORTED_TOGGLE}=true"
+        succeeds "t", "-D${LegacyGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE}=true"
 
         then:
-        scanPlugin.assertUnsupportedMessage(output, BuildScanPluginManager.UNSUPPORTED_TOGGLE_MESSAGE)
+        scanPlugin.assertUnsupportedMessage(output, LegacyGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE)
         scanPlugin.attributes(output) != null
     }
 
     void assertFailedVersionCheck() {
-        failureCauseContains(GradleEnterprisePluginPresence.OLD_SCAN_PLUGIN_VERSION_MESSAGE)
+        failureCauseContains(GradleEnterprisePluginManager.OLD_SCAN_PLUGIN_VERSION_MESSAGE)
     }
 
 

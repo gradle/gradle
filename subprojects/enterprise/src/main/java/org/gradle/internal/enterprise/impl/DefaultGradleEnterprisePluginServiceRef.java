@@ -14,16 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.enterprise.core;
+package org.gradle.internal.enterprise.impl;
 
-import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.enterprise.GradleEnterprisePluginService;
+import org.gradle.internal.enterprise.GradleEnterprisePluginServiceRef;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-public class GradleEnterprisePluginCoreServices extends AbstractPluginServiceRegistry {
+@ServiceScope(Scopes.BuildTree)
+public class DefaultGradleEnterprisePluginServiceRef implements GradleEnterprisePluginServiceRef {
+
+    private GradleEnterprisePluginService service;
+
+    void set(GradleEnterprisePluginService service) {
+        this.service = service;
+    }
 
     @Override
-    public void registerBuildTreeServices(ServiceRegistration registration) {
-        registration.add(GradleEnterprisePluginManager.class);
+    public GradleEnterprisePluginService get() {
+        return service;
     }
 
 }

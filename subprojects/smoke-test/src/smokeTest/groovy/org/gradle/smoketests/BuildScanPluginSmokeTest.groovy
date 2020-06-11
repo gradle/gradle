@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.VersionNumber
@@ -75,7 +75,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         def output = buildAndFail().output
 
         then:
-        output.contains(GradleEnterprisePluginPresence.OLD_SCAN_PLUGIN_VERSION_MESSAGE)
+        output.contains(GradleEnterprisePluginManager.OLD_SCAN_PLUGIN_VERSION_MESSAGE)
 
         where:
         version << UNSUPPORTED

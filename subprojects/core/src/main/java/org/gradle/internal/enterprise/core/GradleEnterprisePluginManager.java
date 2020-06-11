@@ -18,7 +18,9 @@ package org.gradle.internal.enterprise.core;
 
 import com.google.common.annotations.VisibleForTesting;
 
-public class GradleEnterprisePluginPresence {
+import javax.annotation.Nullable;
+
+public class GradleEnterprisePluginManager {
 
     @VisibleForTesting
     public static final String NO_SCAN_PLUGIN_MSG = "An internal error occurred that prevented a build scan from being created.\n" +
@@ -28,14 +30,25 @@ public class GradleEnterprisePluginPresence {
         "The build scan plugin is not compatible with this version of Gradle.\n"
             + "Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information.";
 
-    private boolean present;
+    @Nullable
+    private GradleEnterprisePluginAdapter adapter;
 
-    public void markPresent() {
-        this.present = true;
+    @Nullable
+    public GradleEnterprisePluginAdapter getAdapter() {
+        return adapter;
+    }
+
+    public void registerAdapter(GradleEnterprisePluginAdapter adapter) {
+        this.adapter = adapter;
     }
 
     public boolean isPresent() {
-        return present;
+        return adapter != null;
     }
 
+    public void buildFinished(@Nullable Throwable buildFailure) {
+        if (adapter != null) {
+            adapter.buildFinished(buildFailure);
+        }
+    }
 }

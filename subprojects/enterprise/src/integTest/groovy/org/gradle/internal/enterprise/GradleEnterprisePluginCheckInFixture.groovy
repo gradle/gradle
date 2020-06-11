@@ -16,9 +16,10 @@
 
 package org.gradle.internal.enterprise
 
-import org.gradle.api.provider.Provider
+import org.gradle.api.Plugin
+import org.gradle.api.initialization.Settings
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.operations.notify.BuildOperationFinishedNotification
 import org.gradle.internal.operations.notify.BuildOperationNotificationListener
 import org.gradle.internal.operations.notify.BuildOperationProgressNotification
@@ -72,70 +73,80 @@ class GradleEnterprisePluginCheckInFixture {
         }
         added = true
         def builder = new PluginBuilder(projectDir.file('plugin-' + AutoAppliedGradleEnterprisePlugin.ID.id))
-        builder.addSettingsPlugin("""
+        builder.addPluginSource(id, "GradleEnterprisePlugin", """
+            package $builder.packageName
 
-            println "gradleEnterprisePlugin.apply.runtimeVersion = $runtimeVersion"
+            class GradleEnterprisePlugin implements $Plugin.name<$Settings.name> {
+                void apply($Settings.name settings) {
+                    println "gradleEnterprisePlugin.apply.runtimeVersion = $runtimeVersion"
 
-            if (!$doCheckIn) {
-                return
-            }
+                    if (!$doCheckIn) {
+                        return
+                    }
 
-            def pluginMetadata = { -> "$runtimeVersion" } as $GradleEnterprisePluginMetadata.name
-            def serviceFactory = {
-                $GradleEnterprisePluginConfig.name config,
-                $GradleEnterprisePluginRequiredServices.name requiredServices,
-                $GradleEnterprisePluginBuildState.name buildState ->
+                    def pluginMetadata = { -> "$runtimeVersion" } as $GradleEnterprisePluginMetadata.name
+                    def serviceFactory = {
+                        $GradleEnterprisePluginConfig.name config,
+                        $GradleEnterprisePluginRequiredServices.name requiredServices,
+                        $GradleEnterprisePluginBuildState.name buildState ->
 
-                println "gradleEnterprisePlugin.checkIn.config.buildScanRequest = \$config.buildScanRequest"
-                println "gradleEnterprisePlugin.checkIn.config.taskExecutingBuild = \$config.taskExecutingBuild"
+                        println "gradleEnterprisePlugin.serviceFactoryCreate.config.buildScanRequest = \$config.buildScanRequest"
+                        println "gradleEnterprisePlugin.serviceFactoryCreate.config.taskExecutingBuild = \$config.taskExecutingBuild"
 
-                println "gradleEnterprisePlugin.checkIn.buildState.buildStartedTime = \$buildState.buildStartedTime"
-                println "gradleEnterprisePlugin.checkIn.buildState.currentTime = \$buildState.currentTime"
-                println "gradleEnterprisePlugin.checkIn.buildState.buildInvocationId = \$buildState.buildInvocationId"
-                println "gradleEnterprisePlugin.checkIn.buildState.workspaceId = \$buildState.workspaceId"
-                println "gradleEnterprisePlugin.checkIn.buildState.userId = \$buildState.userId"
+                        println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.buildStartedTime = \$buildState.buildStartedTime"
+                        println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.currentTime = \$buildState.currentTime"
+                        println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.buildInvocationId = \$buildState.buildInvocationId"
+                        println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.workspaceId = \$buildState.workspaceId"
+                        println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.userId = \$buildState.userId"
 
-                new $GradleEnterprisePluginService.name() {
-                    $BuildOperationNotificationListener.name getBuildOperationNotificationListener() {
-                        new $BuildOperationNotificationListener.name() {
-                            void started($BuildOperationStartedNotification.name notification) {}
-                            void progress($BuildOperationProgressNotification.name notification) {}
-                            void finished($BuildOperationFinishedNotification.name notification) {}
+                        new $GradleEnterprisePluginService.name() {
+
+                            $GradleEnterprisePluginConfig.name _config = config
+                            $GradleEnterprisePluginRequiredServices.name _requiredServices = requiredServices
+                            $GradleEnterprisePluginBuildState.name _buildState = buildState
+
+                            $BuildOperationNotificationListener.name getBuildOperationNotificationListener() {
+                                new $BuildOperationNotificationListener.name() {
+                                    void started($BuildOperationStartedNotification.name notification) {}
+                                    void progress($BuildOperationProgressNotification.name notification) {}
+                                    void finished($BuildOperationFinishedNotification.name notification) {}
+                                }
+                            }
+
+                            $GradleEnterprisePluginEndOfBuildListener.name getEndOfBuildListener() {
+                                return { $GradleEnterprisePluginEndOfBuildListener.BuildResult.name buildResult ->
+                                    println "gradleEnterprisePlugin.endOfBuild.buildResult.failure = \$buildResult.failure"
+                                } as $GradleEnterprisePluginEndOfBuildListener.name
+                            }
+                        }
+
+                    } as $GradleEnterprisePluginServiceFactory.name
+
+                    def resultHandler = new $GradleEnterprisePluginCheckInResultHandler.name() {
+                        void unsupported(String reasonMessage) {
+                            println "gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = \$reasonMessage"
+                        }
+
+                        void supported($GradleEnterprisePluginServiceRef.name pluginServiceRef) {
+                            println "gradleEnterprisePlugin.checkIn.supported"
+                            settings.gradle.extensions.add("serviceRef", pluginServiceRef)
                         }
                     }
 
-                    $GradleEnterprisePluginEndOfBuildListener.name getEndOfBuildListener() {
-                        return { $GradleEnterprisePluginEndOfBuildListener.BuildResult.name buildResult ->
-                            println "gradleEnterprisePlugin.endOfBuild.buildResult.failure = \$buildResult.failure"
-                        } as $GradleEnterprisePluginEndOfBuildListener.name
-                    }
-                }
+                    def checkInService = settings.gradle.services.get($GradleEnterprisePluginCheckInService.name)
 
-            } as $GradleEnterprisePluginServiceFactory.name
-
-            def resultHandler = new $GradleEnterprisePluginCheckInResultHandler.name() {
-                void unsupported(String reasonMessage) {
-                    println "gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = \$reasonMessage"
-                }
-
-                void supported($Provider.name<$GradleEnterprisePluginService.name> serviceProvider) {
-                    println "gradleEnterprisePlugin.checkIn.supported"
+                    checkInService.checkIn(pluginMetadata, serviceFactory, resultHandler)
                 }
             }
+        """)
 
-            def checkInService = settings.gradle.services.get($GradleEnterprisePluginCheckInService.name)
-
-            checkInService.checkIn(pluginMetadata, serviceFactory, resultHandler)
-        """, AutoAppliedGradleEnterprisePlugin.ID.id, 'GradleEnterprisePlugin')
-
-        builder.addPlugin("""
-        """, "com.gradle.build-scan", 'BuildScanPlugin')
+        builder.addPlugin("", "com.gradle.build-scan", 'BuildScanPlugin')
 
         builder.publishAs("com.gradle:gradle-enterprise-gradle-plugin:${artifactVersion}", mavenRepo, pluginBuildExecuter)
     }
 
     void assertBuildScanRequest(String output, GradleEnterprisePluginConfig.BuildScanRequest buildScanRequest) {
-        assert output.contains("gradleEnterprisePlugin.checkIn.config.buildScanRequest = $buildScanRequest")
+        assert output.contains("gradleEnterprisePlugin.serviceFactoryCreate.config.buildScanRequest = $buildScanRequest")
     }
 
     void assertUnsupportedMessage(String output, String unsupported) {
@@ -147,15 +158,15 @@ class GradleEnterprisePluginCheckInFixture {
     }
 
     void issuedNoPluginWarning(String output) {
-        assert output.contains(GradleEnterprisePluginPresence.NO_SCAN_PLUGIN_MSG)
+        assert output.contains(GradleEnterprisePluginManager.NO_SCAN_PLUGIN_MSG)
     }
 
     void didNotIssuedNoPluginWarning(String output) {
-        assert !output.contains(GradleEnterprisePluginPresence.NO_SCAN_PLUGIN_MSG)
+        assert !output.contains(GradleEnterprisePluginManager.NO_SCAN_PLUGIN_MSG)
     }
 
     void issuedNoPluginWarningCount(String output, int count) {
-        assert output.count(GradleEnterprisePluginPresence.NO_SCAN_PLUGIN_MSG) == count
+        assert output.count(GradleEnterprisePluginManager.NO_SCAN_PLUGIN_MSG) == count
     }
 
     void appliedOnce(String output) {

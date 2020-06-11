@@ -18,14 +18,13 @@ package org.gradle.internal.scan.config
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginEndOfBuildNotifier
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence
-import org.gradle.internal.scan.impl.BuildScanPluginManager
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
+import org.gradle.internal.scan.impl.LegacyGradleEnterprisePluginCheckInService
 import org.gradle.internal.scan.impl.UnsupportedBuildScanPluginVersionException
 import spock.lang.Specification
 import spock.util.environment.RestoreSystemProperties
 
-class BuildScanPluginManagerTest extends Specification {
+class LegacyGradleEnterprisePluginCheckInServiceTest extends Specification {
 
     boolean scanEnabled
     boolean scanDisabled
@@ -65,13 +64,13 @@ class BuildScanPluginManagerTest extends Specification {
     @RestoreSystemProperties
     def "can convey unsupported"() {
         when:
-        System.setProperty(BuildScanPluginManager.UNSUPPORTED_TOGGLE, "true")
+        System.setProperty(LegacyGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE, "true")
 
         then:
         with(config()) {
             !enabled
             !disabled
-            unsupportedMessage == BuildScanPluginManager.UNSUPPORTED_TOGGLE_MESSAGE
+            unsupportedMessage == LegacyGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
         }
 
         when:
@@ -81,7 +80,7 @@ class BuildScanPluginManagerTest extends Specification {
         with(config()) {
             enabled
             !disabled
-            unsupportedMessage == BuildScanPluginManager.UNSUPPORTED_TOGGLE_MESSAGE
+            unsupportedMessage == LegacyGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
         }
     }
 
@@ -94,7 +93,7 @@ class BuildScanPluginManagerTest extends Specification {
         thrown(UnsupportedBuildScanPluginVersionException)
     }
 
-    BuildScanPluginManager manager() {
+    LegacyGradleEnterprisePluginCheckInService manager() {
         def gradle = Mock(GradleInternal) {
             getStartParameter() >> Mock(StartParameter) {
                 isBuildScan() >> scanEnabled
@@ -103,14 +102,13 @@ class BuildScanPluginManagerTest extends Specification {
             }
         }
 
-        new BuildScanPluginManager(
+        new LegacyGradleEnterprisePluginCheckInService(
             gradle,
-            new GradleEnterprisePluginPresence(),
-            new GradleEnterprisePluginEndOfBuildNotifier()
+            new GradleEnterprisePluginManager(),
         )
     }
 
-    BuildScanConfig config(String versionNumber = BuildScanPluginManager.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION) {
+    BuildScanConfig config(String versionNumber = LegacyGradleEnterprisePluginCheckInService.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION) {
         def manager = manager()
         manager.collect(new BuildScanPluginMetadata() {
             @Override

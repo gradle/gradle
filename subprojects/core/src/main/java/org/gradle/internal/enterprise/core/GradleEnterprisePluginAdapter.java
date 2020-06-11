@@ -18,27 +18,12 @@ package org.gradle.internal.enterprise.core;
 
 import javax.annotation.Nullable;
 
-public class GradleEnterprisePluginEndOfBuildNotifier {
+public interface GradleEnterprisePluginAdapter {
 
-    private Listener listener;
+    boolean isConfigurationCacheCompatible();
 
-    public interface Listener {
-        void buildFinished(@Nullable Throwable buildFailure);
-    }
+    void onLoadFromConfigurationCache();
 
-    public void registerOnlyListener(Listener listener) {
-        if (this.listener == null) {
-            this.listener = listener;
-        } else {
-            throw new IllegalStateException("listener already set to: " + listener);
-        }
-    }
-
-    public void buildComplete(@Nullable Throwable buildFailure) {
-        Listener listener = this.listener;
-        if (listener != null) {
-            listener.buildFinished(buildFailure);
-        }
-    }
+    void buildFinished(@Nullable Throwable buildFailure);
 
 }

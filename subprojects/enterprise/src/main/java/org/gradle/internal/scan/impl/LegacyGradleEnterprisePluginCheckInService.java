@@ -18,8 +18,8 @@ package org.gradle.internal.scan.impl;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginEndOfBuildNotifier;
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence;
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter;
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.scan.config.BuildScanConfig;
 import org.gradle.internal.scan.config.BuildScanConfigProvider;
 import org.gradle.internal.scan.config.BuildScanPluginMetadata;
@@ -29,7 +29,7 @@ import org.gradle.util.VersionNumber;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-public class BuildScanPluginManager implements BuildScanConfigProvider, BuildScanEndOfBuildNotifier {
+public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConfigProvider, BuildScanEndOfBuildNotifier {
 
     public static final String FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY = "3.0";
     public static final VersionNumber FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION = VersionNumber.parse(FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY);
@@ -41,18 +41,17 @@ public class BuildScanPluginManager implements BuildScanConfigProvider, BuildSca
     private static final VersionNumber FIRST_VERSION_AWARE_OF_UNSUPPORTED = VersionNumber.parse("1.11");
 
     private final GradleInternal gradle;
-    private final GradleEnterprisePluginPresence presence;
-    private final GradleEnterprisePluginEndOfBuildNotifier endOfBuildNotifier;
+    private final GradleEnterprisePluginManager manager;
+
+    private BuildScanEndOfBuildNotifier.Listener listener;
 
     @Inject
-    public BuildScanPluginManager(
+    public LegacyGradleEnterprisePluginCheckInService(
         GradleInternal gradle,
-        GradleEnterprisePluginPresence presence,
-        GradleEnterprisePluginEndOfBuildNotifier endOfBuildNotifier
+        GradleEnterprisePluginManager manager
     ) {
         this.gradle = gradle;
-        this.presence = presence;
-        this.endOfBuildNotifier = endOfBuildNotifier;
+        this.manager = manager;
     }
 
     public static String unsupportedReason() {
@@ -64,18 +63,41 @@ public class BuildScanPluginManager implements BuildScanConfigProvider, BuildSca
 
     @Override
     public BuildScanConfig collect(BuildScanPluginMetadata pluginMetadata) {
-        if (presence.isPresent()) {
+        if (manager.isPresent()) {
             throw new IllegalStateException("Configuration has already been collected.");
         }
 
         VersionNumber pluginVersion = VersionNumber.parse(pluginMetadata.getVersion()).getBaseVersion();
         if (pluginVersion.compareTo(FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION) < 0) {
-            throw new UnsupportedBuildScanPluginVersionException(GradleEnterprisePluginPresence.OLD_SCAN_PLUGIN_VERSION_MESSAGE);
+            throw new UnsupportedBuildScanPluginVersionException(GradleEnterprisePluginManager.OLD_SCAN_PLUGIN_VERSION_MESSAGE);
         }
 
         String unsupportedReason = unsupportedReason();
         if (unsupportedReason == null) {
-            presence.markPresent();
+            manager.registerAdapter(new GradleEnterprisePluginAdapter() {
+                @Override
+                public boolean isConfigurationCacheCompatible() {
+                    return false;
+                }
+
+                @Override
+                public void onLoadFromConfigurationCache() {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public void buildFinished(@Nullable Throwable buildFailure) {
+                    if (listener != null) {
+                        listener.execute(new BuildResult() {
+                            @Nullable
+                            @Override
+                            public Throwable getFailure() {
+                                return buildFailure;
+                            }
+                        });
+                    }
+                }
+            });
         }
 
         if (unsupportedReason == null || isPluginAwareOfUnsupported(pluginVersion)) {
@@ -87,16 +109,11 @@ public class BuildScanPluginManager implements BuildScanConfigProvider, BuildSca
     }
 
     @Override
-    public void notify(Listener listener) {
-        endOfBuildNotifier.registerOnlyListener(buildFailure ->
-            listener.execute(new BuildResult() {
-                @Nullable
-                @Override
-                public Throwable getFailure() {
-                    return buildFailure;
-                }
-            })
-        );
+    public void notify(BuildScanEndOfBuildNotifier.Listener listener) {
+        if (this.listener != null) {
+            throw new IllegalStateException("listener already set to " + this.listener);
+        }
+        this.listener = listener;
     }
 
     private static Requestedness requestedness(GradleInternal gradle) {

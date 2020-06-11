@@ -30,6 +30,6 @@ public class BuildScanPluginServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGradleServices(ServiceRegistration registration) {
         registration.add(DefaultBuildScanScopeIds.class);
-        registration.add(BuildScanPluginManager.class);
+        registration.add(LegacyGradleEnterprisePluginCheckInService.class);
     }
 }

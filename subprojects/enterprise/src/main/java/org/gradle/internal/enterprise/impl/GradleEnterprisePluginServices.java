@@ -28,9 +28,11 @@ public class GradleEnterprisePluginServices extends AbstractPluginServiceRegistr
 
     @Override
     public void registerGradleServices(ServiceRegistration registration) {
+        registration.add(DefaultGradleEnterprisePluginAdapter.class);
         registration.add(DefaultGradleEnterprisePluginBuildState.class);
         registration.add(DefaultGradleEnterprisePluginConfig.class);
-        registration.add(GradleEnterprisePluginManager.class);
+        registration.add(DefautGradleEnterprisePluginCheckInService.class);
+        registration.add(DefaultGradleEnterprisePluginServiceRef.class);
     }
 
 }

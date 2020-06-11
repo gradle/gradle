@@ -48,7 +48,7 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence;
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionRequestContext;
@@ -114,7 +114,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         BuildCacheController buildCacheController,
         BuildOperationExecutor buildOperationExecutor,
         BuildOutputCleanupRegistry cleanupRegistry,
-        GradleEnterprisePluginPresence gradleEnterprisePluginPresence,
+        GradleEnterprisePluginManager gradleEnterprisePluginManager,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         Deleter deleter,
         EmptySourceTaskSkipper emptySourceTaskSkipper,
@@ -152,7 +152,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             buildCacheController.isEnabled()
                 ? ExecuteActionsTaskExecuter.BuildCacheState.ENABLED
                 : ExecuteActionsTaskExecuter.BuildCacheState.DISABLED,
-            gradleEnterprisePluginPresence.isPresent()
+            gradleEnterprisePluginManager.isPresent()
                 ? ExecuteActionsTaskExecuter.ScanPluginState.APPLIED
                 : ExecuteActionsTaskExecuter.ScanPluginState.NOT_APPLIED,
             vfsInvalidationStrategy,

@@ -55,7 +55,7 @@ import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence;
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -72,7 +72,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 
-import static org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence.NO_SCAN_PLUGIN_MSG;
+import static org.gradle.internal.enterprise.core.GradleEnterprisePluginManager.NO_SCAN_PLUGIN_MSG;
 
 public abstract class DefaultGradle extends AbstractPluginAware implements GradleInternal {
 
@@ -129,7 +129,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
                 addListener(new InternalBuildAdapter() {
                     @Override
                     public void projectsEvaluated(@Nonnull Gradle ignored) {
-                        boolean present = getServices().get(GradleEnterprisePluginPresence.class).isPresent();
+                        boolean present = getServices().get(GradleEnterprisePluginManager.class).isPresent();
                         if (!present) {
                             LOGGER.warn(NO_SCAN_PLUGIN_MSG);
                         }

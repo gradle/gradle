@@ -27,7 +27,8 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import spock.lang.Unroll
 
 @Unroll
@@ -55,7 +56,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
     def "task output caching key is exposed when scan plugin is applied"() {
         given:
         settingsFile << """
-            services.get($GradleEnterprisePluginPresence.name).markPresent()
+            services.get($GradleEnterprisePluginManager.name).setAdapter([:] as $GradleEnterprisePluginAdapter.name)
         """
 
         buildFile << customTaskCode('foo', 'bar')

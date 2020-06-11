@@ -16,7 +16,6 @@
 
 package org.gradle.internal.enterprise;
 
-import org.gradle.api.provider.Provider;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 @UsedByScanPlugin
@@ -24,6 +23,6 @@ public interface GradleEnterprisePluginCheckInResultHandler {
 
     void unsupported(String reasonMessage);
 
-    void supported(Provider<GradleEnterprisePluginService> serviceProvider);
+    void supported(GradleEnterprisePluginServiceRef serviceRef);
 
 }

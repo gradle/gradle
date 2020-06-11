@@ -18,7 +18,7 @@ package org.gradle.internal.scan.config
 
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -27,7 +27,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 @SuppressWarnings("GrMethodMayBeStatic")
 class GradleEnterprisePluginLegacyContactPointFixture {
 
-    public static final String PLUGIN_NOT_APPLIED_MSG = GradleEnterprisePluginPresence.NO_SCAN_PLUGIN_MSG
+    public static final String PLUGIN_NOT_APPLIED_MSG = GradleEnterprisePluginManager.NO_SCAN_PLUGIN_MSG
     public static final String GRADLE_ENTERPRISE_PLUGIN_ID = AutoAppliedGradleEnterprisePlugin.ID.id
     public static final String PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX = 'PUBLISHING BUILD SCAN v'
     public static final String BUILD_SCAN_PLUGIN_APPLIED_MESSAGE = 'APPLIED OLD BUILD SCAN PLUGIN'
@@ -98,7 +98,7 @@ class GradleEnterprisePluginLegacyContactPointFixture {
         """
         if (logApplied) {
             buildFile << """
-                def pluginApplied = services.get(${GradleEnterprisePluginPresence.name}).isPresent()
+                def pluginApplied = services.get(${GradleEnterprisePluginManager.name}).isPresent()
                 println "buildScan plugin applied: " + pluginApplied
             """
         }

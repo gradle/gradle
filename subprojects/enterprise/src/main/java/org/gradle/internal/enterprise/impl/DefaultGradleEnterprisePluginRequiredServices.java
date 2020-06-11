@@ -19,7 +19,10 @@ package org.gradle.internal.enterprise.impl;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.internal.enterprise.GradleEnterprisePluginRequiredServices;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scopes.BuildTree)
 public class DefaultGradleEnterprisePluginRequiredServices implements GradleEnterprisePluginRequiredServices {
 
     private final UserInputHandler userInputHandler;

@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginEndOfBuildNotifier;
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -33,9 +33,9 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
 
     @Override
     public Result run(final BuildAction action, final BuildController buildController) {
-        GradleEnterprisePluginEndOfBuildNotifier notifier = buildController.getGradle().getServices()
-            .get(GradleEnterprisePluginEndOfBuildNotifier.class);
-        
+        GradleEnterprisePluginManager gradleEnterprisePluginManager = buildController.getGradle().getServices()
+            .get(GradleEnterprisePluginManager.class);
+
         Result result;
         try {
             result = delegate.run(action, buildController);
@@ -43,7 +43,7 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
             result = Result.failed(e);
         }
 
-        notifier.buildComplete(result.getBuildFailure());
+        gradleEnterprisePluginManager.buildFinished(result.getBuildFailure());
         return result;
     }
 }

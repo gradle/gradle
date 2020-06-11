@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.enterprise.core;
+package org.gradle.internal.enterprise;
 
-import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
-public class GradleEnterprisePluginCoreServices extends AbstractPluginServiceRegistry {
+@UsedByScanPlugin
+public interface GradleEnterprisePluginServiceRef {
 
-    @Override
-    public void registerBuildTreeServices(ServiceRegistration registration) {
-        registration.add(GradleEnterprisePluginManager.class);
-    }
+    GradleEnterprisePluginService get();
 
 }

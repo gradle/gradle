@@ -24,7 +24,7 @@ import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence;
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.OutputChangeListener;
@@ -107,12 +107,6 @@ public class WorkExecutorTestFixture {
             public void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints) {
             }
         };
-        GradleEnterprisePluginPresence gradleEnterprisePluginPresence = new GradleEnterprisePluginPresence() {
-            @Override
-            public boolean isPresent() {
-                return false;
-            }
-        };
         Deleter deleter = new Deleter() {
             @Override
             public boolean deleteRecursively(File target) {
@@ -152,7 +146,7 @@ public class WorkExecutorTestFixture {
             cancellationToken,
             buildInvocationScopeId,
             new TestBuildOperationExecutor(),
-            gradleEnterprisePluginPresence,
+            new GradleEnterprisePluginManager(),
             classLoaderHierarchyHasher,
             deleter,
             new DefaultExecutionStateChangeDetector(),

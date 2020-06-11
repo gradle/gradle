@@ -18,8 +18,8 @@ package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginPresence
-import org.gradle.internal.enterprise.impl.GradleEnterprisePluginManager
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
+import org.gradle.internal.enterprise.impl.DefautGradleEnterprisePluginCheckInService
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
@@ -139,7 +139,7 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         }
 
         settingsFile << """
-            println "present: " + services.get($GradleEnterprisePluginPresence.name).present
+            println "present: " + services.get($GradleEnterprisePluginManager.name).present
         """
 
         when:
@@ -158,10 +158,10 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         applyPlugin()
 
         when:
-        succeeds "t", "-D${GradleEnterprisePluginManager.UNSUPPORTED_TOGGLE}=true"
+        succeeds "t", "-D${DefautGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE}=true"
 
         then:
-        plugin.assertUnsupportedMessage(output, GradleEnterprisePluginManager.UNSUPPORTED_TOGGLE_MESSAGE)
+        plugin.assertUnsupportedMessage(output, DefautGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE)
     }
 
     @ToBeFixedForInstantExecution
