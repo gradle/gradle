@@ -36,7 +36,7 @@ class InstantExecutionCacheCleanupIntegrationTest
         writeLastFileAccessTimeToJournal(outdated, daysAgo(15))
 
         expect:
-        ConcurrentTestUtil.poll(10, 0, 2) {
+        ConcurrentTestUtil.poll(60, 0, 10) {
             instantRun 'help'
             run '--stop'
             assert !outdated.isDirectory()
