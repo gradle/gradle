@@ -19,12 +19,12 @@ package org.gradle.internal.serialization;
 import javax.annotation.Nullable;
 
 /**
- * A value that gets discarded after serialization.
+ * A value that gets discarded during serialization.
  */
 public abstract class Transient<T> implements java.io.Serializable {
 
     /**
-     * A mutable variable that gets discarded after serialization.
+     * A mutable variable that gets discarded during serialization.
      */
     public static abstract class Var<T> extends Transient<T> {
         public abstract void set(T value);
@@ -96,7 +96,7 @@ public abstract class Transient<T> implements java.io.Serializable {
 
         @Override
         public T get() {
-            throw new IllegalStateException("The value of this property is discarded during serialization.");
+            throw new IllegalStateException("The value of this property has been discarded during serialization.");
         }
 
         private Object readResolve() {
