@@ -26,9 +26,6 @@ import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
-import static org.hamcrest.CoreMatchers.equalTo
-import static org.hamcrest.CoreMatchers.not
-import static org.junit.Assume.assumeThat
 
 
 @Requires(TestPrecondition.JDK11_OR_EARLIER)
@@ -43,9 +40,6 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     def "can cache Santa Tracker Java Android application (agp=#agpVersion)"() {
-
-        // 4.1 nightly has different outcomes
-        assumeThat(agpVersion, not(equalTo("4.1.0-alpha08")))
 
         given:
         def originalDir = temporaryFolder.createDir("original")
@@ -118,7 +112,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':common:mergeDebugGeneratedProguardFiles': FROM_CACHE,
         ':common:mergeDebugJavaResource': FROM_CACHE,
         ':common:mergeDebugJniLibFolders': FROM_CACHE,
-        ':common:mergeDebugNativeLibs': SUCCESS,
+        ':common:mergeDebugNativeLibs': NO_SOURCE,
         ':common:mergeDebugShaders': FROM_CACHE,
         ':common:packageDebugAssets': FROM_CACHE,
         ':common:packageDebugRenderscript': NO_SOURCE,
@@ -131,6 +125,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':common:processDebugManifest': FROM_CACHE,
         ':common:stripDebugDebugSymbols': NO_SOURCE,
         ':common:syncDebugLibJars': FROM_CACHE,
+        ':common:writeDebugAarMetadata': FROM_CACHE,
         ':dasherdancer:assembleDebug': SUCCESS,
         ':dasherdancer:bundleDebugAar': SUCCESS,
         ':dasherdancer:bundleLibCompileToJarDebug': FROM_CACHE,
@@ -156,7 +151,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':dasherdancer:mergeDebugGeneratedProguardFiles': FROM_CACHE,
         ':dasherdancer:mergeDebugJavaResource': FROM_CACHE,
         ':dasherdancer:mergeDebugJniLibFolders': FROM_CACHE,
-        ':dasherdancer:mergeDebugNativeLibs': SUCCESS,
+        ':dasherdancer:mergeDebugNativeLibs': NO_SOURCE,
         ':dasherdancer:mergeDebugShaders': FROM_CACHE,
         ':dasherdancer:packageDebugAssets': FROM_CACHE,
         ':dasherdancer:packageDebugRenderscript': NO_SOURCE,
@@ -169,6 +164,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':dasherdancer:processDebugManifest': FROM_CACHE,
         ':dasherdancer:stripDebugDebugSymbols': NO_SOURCE,
         ':dasherdancer:syncDebugLibJars': FROM_CACHE,
+        ':dasherdancer:writeDebugAarMetadata': FROM_CACHE,
         ':doodles:assembleDebug': SUCCESS,
         ':doodles:bundleDebugAar': SUCCESS,
         ':doodles:bundleLibCompileToJarDebug': FROM_CACHE,
@@ -194,7 +190,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':doodles:mergeDebugGeneratedProguardFiles': FROM_CACHE,
         ':doodles:mergeDebugJavaResource': FROM_CACHE,
         ':doodles:mergeDebugJniLibFolders': FROM_CACHE,
-        ':doodles:mergeDebugNativeLibs': SUCCESS,
+        ':doodles:mergeDebugNativeLibs': NO_SOURCE,
         ':doodles:mergeDebugShaders': FROM_CACHE,
         ':doodles:packageDebugAssets': FROM_CACHE,
         ':doodles:packageDebugRenderscript': NO_SOURCE,
@@ -207,6 +203,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':doodles:processDebugManifest': FROM_CACHE,
         ':doodles:stripDebugDebugSymbols': NO_SOURCE,
         ':doodles:syncDebugLibJars': FROM_CACHE,
+        ':doodles:writeDebugAarMetadata': FROM_CACHE,
         ':presentquest:assembleDebug': SUCCESS,
         ':presentquest:bundleDebugAar': SUCCESS,
         ':presentquest:bundleLibCompileToJarDebug': FROM_CACHE,
@@ -232,7 +229,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':presentquest:mergeDebugGeneratedProguardFiles': FROM_CACHE,
         ':presentquest:mergeDebugJavaResource': FROM_CACHE,
         ':presentquest:mergeDebugJniLibFolders': FROM_CACHE,
-        ':presentquest:mergeDebugNativeLibs': SUCCESS,
+        ':presentquest:mergeDebugNativeLibs': NO_SOURCE,
         ':presentquest:mergeDebugShaders': FROM_CACHE,
         ':presentquest:packageDebugAssets': FROM_CACHE,
         ':presentquest:packageDebugRenderscript': NO_SOURCE,
@@ -245,6 +242,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':presentquest:processDebugManifest': FROM_CACHE,
         ':presentquest:stripDebugDebugSymbols': NO_SOURCE,
         ':presentquest:syncDebugLibJars': FROM_CACHE,
+        ':presentquest:writeDebugAarMetadata': FROM_CACHE,
         ':rocketsleigh:assembleDebug': SUCCESS,
         ':rocketsleigh:bundleDebugAar': SUCCESS,
         ':rocketsleigh:bundleLibCompileToJarDebug': FROM_CACHE,
@@ -270,7 +268,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':rocketsleigh:mergeDebugGeneratedProguardFiles': FROM_CACHE,
         ':rocketsleigh:mergeDebugJavaResource': FROM_CACHE,
         ':rocketsleigh:mergeDebugJniLibFolders': FROM_CACHE,
-        ':rocketsleigh:mergeDebugNativeLibs': SUCCESS,
+        ':rocketsleigh:mergeDebugNativeLibs': NO_SOURCE,
         ':rocketsleigh:mergeDebugShaders': FROM_CACHE,
         ':rocketsleigh:packageDebugAssets': FROM_CACHE,
         ':rocketsleigh:packageDebugRenderscript': NO_SOURCE,
@@ -283,14 +281,17 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':rocketsleigh:processDebugManifest': FROM_CACHE,
         ':rocketsleigh:stripDebugDebugSymbols': NO_SOURCE,
         ':rocketsleigh:syncDebugLibJars': FROM_CACHE,
+        ':rocketsleigh:writeDebugAarMetadata': FROM_CACHE,
         ':santa-tracker:assembleDebug': SUCCESS,
         ':santa-tracker:assembleDevelopmentDebug': SUCCESS,
+        ':santa-tracker:checkDevelopmentDebugAarMetadata': FROM_CACHE,
         ':santa-tracker:checkDevelopmentDebugDuplicateClasses': FROM_CACHE,
         ':santa-tracker:compileDevelopmentDebugAidl': NO_SOURCE,
         ':santa-tracker:compileDevelopmentDebugJavaWithJavac': FROM_CACHE,
         ':santa-tracker:compileDevelopmentDebugRenderscript': NO_SOURCE,
         ':santa-tracker:compileDevelopmentDebugShaders': NO_SOURCE,
         ':santa-tracker:compileDevelopmentDebugSources': UP_TO_DATE,
+        ':santa-tracker:compressDevelopmentDebugAssets': FROM_CACHE,
         ':santa-tracker:createDevelopmentDebugCompatibleScreenManifests': FROM_CACHE,
         ':santa-tracker:dexBuilderDevelopmentDebug': FROM_CACHE,
         ':santa-tracker:extractDeepLinksDevelopmentDebug': FROM_CACHE,
@@ -303,7 +304,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':santa-tracker:mergeDevelopmentDebugJavaResource': FROM_CACHE,
         ':santa-tracker:mergeDevelopmentDebugJniLibFolders': FROM_CACHE,
         ':santa-tracker:mergeDevelopmentDebugNativeDebugMetadata': NO_SOURCE,
-        ':santa-tracker:mergeDevelopmentDebugNativeLibs': SUCCESS,
+        ':santa-tracker:mergeDevelopmentDebugNativeLibs': FROM_CACHE,
         ':santa-tracker:mergeDevelopmentDebugResources': SUCCESS,
         ':santa-tracker:mergeDevelopmentDebugShaders': FROM_CACHE,
         ':santa-tracker:mergeExtDexDevelopmentDebug': FROM_CACHE,
@@ -344,7 +345,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':village:mergeDebugGeneratedProguardFiles': FROM_CACHE,
         ':village:mergeDebugJavaResource': FROM_CACHE,
         ':village:mergeDebugJniLibFolders': FROM_CACHE,
-        ':village:mergeDebugNativeLibs': SUCCESS,
+        ':village:mergeDebugNativeLibs': NO_SOURCE,
         ':village:mergeDebugShaders': FROM_CACHE,
         ':village:packageDebugAssets': FROM_CACHE,
         ':village:packageDebugRenderscript': NO_SOURCE,
@@ -357,6 +358,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':village:processDebugManifest': FROM_CACHE,
         ':village:stripDebugDebugSymbols': NO_SOURCE,
         ':village:syncDebugLibJars': FROM_CACHE,
+        ':village:writeDebugAarMetadata': FROM_CACHE,
     ]
 
     private static final EXPECTED_RESULTS_4_0 = [
