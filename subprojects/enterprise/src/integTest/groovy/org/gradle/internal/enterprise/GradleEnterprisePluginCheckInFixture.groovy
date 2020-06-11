@@ -63,6 +63,11 @@ class GradleEnterprisePluginCheckInFixture {
         """
     }
 
+    String plugins() {
+        """
+            plugins { id "$id" version "$runtimeVersion" }
+        """
+    }
     void publishDummyPlugin(GradleExecuter executer) {
         executer.beforeExecute {
             publishDummyPluginNow()

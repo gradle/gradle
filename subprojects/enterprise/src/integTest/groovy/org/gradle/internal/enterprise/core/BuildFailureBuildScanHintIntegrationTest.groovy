@@ -17,7 +17,7 @@
 package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -26,17 +26,23 @@ import spock.lang.Unroll
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.BUILD_SCAN_ERROR_MESSAGE_HINT
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.DUMMY_TASK_NAME
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryDefinition
 import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.LogLevelOption
 import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.StacktraceOption
 
 @Issue("https://github.com/gradle/gradle/issues/3516")
 @Requires(TestPrecondition.ONLINE)
+@Unroll
 class BuildFailureBuildScanHintIntegrationTest extends AbstractPluginIntegrationTest {
 
     private static final List<String> DUMMY_TASK_ONLY = [DUMMY_TASK_NAME]
     private static final List<String> DUMMY_TASK_AND_BUILD_SCAN = [DUMMY_TASK_NAME, "--$BuildScanOption.LONG_OPTION"]
-    private static final String BUILD_SCAN_SUCCESSFUL_PUBLISHING = 'Publishing build scan'
+
+    def fixture = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+
+    def setup() {
+        settingsFile << fixture.pluginManagement()
+        fixture.publishDummyPlugin(executer)
+    }
 
     def "does not render hint for successful build without applied plugin"() {
         given:
@@ -60,7 +66,7 @@ class BuildFailureBuildScanHintIntegrationTest extends AbstractPluginIntegration
         fails(DUMMY_TASK_ONLY + options as String[])
 
         then:
-        failure.assertNotOutput(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
+        fixture.notApplied(output)
         failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
 
         where:
@@ -76,15 +82,15 @@ class BuildFailureBuildScanHintIntegrationTest extends AbstractPluginIntegration
 
     def "always renders hint for failing build if plugin was applied in plugins DSL and not requested for generation"() {
         given:
-        settingsFile << appliedBuildScanPluginInPluginsDsl()
-        buildFile << buildScanLicenseConfiguration()
         buildFile << failingBuildFile()
 
         when:
         fails(tasks as String[])
 
         then:
-        output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING) == buildScanPublished
+        if (tasks == DUMMY_TASK_AND_BUILD_SCAN) {
+            fixture.appliedOnce(output)
+        }
         failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
 
         where:
@@ -95,80 +101,20 @@ class BuildFailureBuildScanHintIntegrationTest extends AbstractPluginIntegration
 
     def "always renders hint for failing build if plugin was applied in buildscript and not requested for generation"() {
         given:
-        settingsFile << appliedBuildScanPluginInBuildScript()
-        buildFile << buildScanLicenseConfiguration()
+        settingsFile << fixture.plugins()
         buildFile << failingBuildFile()
 
         when:
         fails(tasks as String[])
 
         then:
-        output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING) == buildScanPublished
+        fixture.appliedOnce(output)
         failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
 
         where:
         tasks                     | buildScanPublished
         DUMMY_TASK_ONLY           | false
         DUMMY_TASK_AND_BUILD_SCAN | true
-    }
-
-    def "always renders hint for failing build if plugin was applied in initscript and not requested for generation"() {
-        given:
-        def initScriptFileName = 'init.gradle'
-        file(initScriptFileName) << appliedBuildScanPluginInInitScript()
-        buildFile << buildScanLicenseConfiguration()
-        buildFile << failingBuildFile()
-
-
-        when:
-        fails(['-I', initScriptFileName] + tasks as String[])
-
-        then:
-        output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING) == buildScanPublished
-        failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
-
-        where:
-        tasks                     | buildScanPublished
-        DUMMY_TASK_ONLY           | false
-        DUMMY_TASK_AND_BUILD_SCAN | true
-    }
-
-    def "always hint for failing build if plugin was applied in script plugin and not requested for generation"() {
-        given:
-        def scriptPluginFileName = 'scan.gradle'
-        file(scriptPluginFileName) << appliedBuildScanPluginInScriptPlugin()
-        settingsFile << """
-            apply from: '$scriptPluginFileName'
-        """
-        buildFile << buildScanLicenseConfiguration()
-        buildFile << failingBuildFile()
-
-        when:
-        fails(tasks as String[])
-
-        then:
-        output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING) == buildScanPublished
-        failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
-
-        where:
-        tasks                     | buildScanPublished
-        DUMMY_TASK_ONLY           | false
-        DUMMY_TASK_AND_BUILD_SCAN | true
-    }
-
-    def "renders hint for failing build if plugin was applied in plugins DSL is configured to always publish"() {
-        given:
-        settingsFile << appliedBuildScanPluginInPluginsDsl()
-        buildFile << buildScanLicenseConfiguration()
-        buildFile << buildScanPublishAlwaysConfiguration()
-        buildFile << failingBuildFile()
-
-        when:
-        fails(DUMMY_TASK_NAME)
-
-        then:
-        output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
-        failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
     }
 
     static String failingBuildFile() {
@@ -181,72 +127,4 @@ class BuildFailureBuildScanHintIntegrationTest extends AbstractPluginIntegration
         """
     }
 
-    static String appliedBuildScanPluginInPluginsDsl() {
-        """
-            plugins {
-                id 'com.gradle.enterprise' version '$AutoAppliedGradleEnterprisePlugin.VERSION'
-            }
-        """
-    }
-
-    static String appliedBuildScanPluginInBuildScript() {
-        """
-            buildscript {
-                ${buildScanRepositoryAndDependency()}
-            }
-
-            apply plugin: "com.gradle.enterprise"
-        """
-    }
-
-    static String appliedBuildScanPluginInInitScript() {
-        """
-            initscript {
-                ${buildScanRepositoryAndDependency()}
-            }
-
-            beforeSettings {
-                it.apply plugin: com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin
-            }
-        """
-    }
-
-    static String appliedBuildScanPluginInScriptPlugin() {
-        """
-            buildscript {
-                ${buildScanRepositoryAndDependency()}
-            }
-
-            apply plugin: com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin
-        """
-    }
-
-    private static String buildScanRepositoryAndDependency() {
-        """
-            repositories {
-                ${gradlePluginRepositoryDefinition()}
-            }
-
-            dependencies {
-                classpath "com.gradle:gradle-enterprise-gradle-plugin:$AutoAppliedGradleEnterprisePlugin.VERSION"
-            }
-        """
-    }
-
-    static String buildScanLicenseConfiguration() {
-        """
-            buildScan {
-                termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-                termsOfServiceAgree = 'yes'
-            }
-        """
-    }
-
-    static String buildScanPublishAlwaysConfiguration() {
-        """
-            buildScan {
-                publishAlways()
-            }
-        """
-    }
 }
