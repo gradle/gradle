@@ -155,12 +155,12 @@ h| Packaging and distribution
 
 a|
 [horizontal]
-[.yellow]#*⚠*#:: <<java_plugin.adoc#java_plugin,Java>>
-[.yellow]#*⚠*#:: <<java_library_plugin.adoc#java_library_plugin,Java Library>>
-[.yellow]#*⚠*#:: <<java_platform_plugin.adoc#java_platform_plugin,Java Platform>>
-[.yellow]#*⚠*#:: <<groovy_plugin.adoc#groovy_plugin,Groovy>>
+[.yellow]#⚠#:: <<java_plugin.adoc#java_plugin,Java>>
+[.yellow]#⚠#:: <<java_library_plugin.adoc#java_library_plugin,Java Library>>
+[.yellow]#⚠#:: <<java_platform_plugin.adoc#java_platform_plugin,Java Platform>>
+[.yellow]#⚠#:: <<groovy_plugin.adoc#groovy_plugin,Groovy>>
 [.red]#✖#:: <<scala_plugin.adoc#scala_plugin,Scala>>
-[.yellow]#*⚠*#:: <<antlr_plugin.adoc#antlr_plugin,ANTLR>>
+[.yellow]#⚠#:: <<antlr_plugin.adoc#antlr_plugin,ANTLR>>
 
 a|
 [horizontal]
@@ -173,14 +173,14 @@ a|
 
 a|
 [horizontal]
-[.green]#*✓*#:: <<application_plugin.adoc#application_plugin,Application>>
-[.green]#*✓*#:: <<war_plugin.adoc#war_plugin,WAR>>
-[.green]#*✓*#:: <<ear_plugin.adoc#ear_plugin,EAR>>
-[.red]#✖#:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
+[.green]#✓#:: <<application_plugin.adoc#application_plugin,Application>>
+[.green]#✓#:: <<war_plugin.adoc#war_plugin,WAR>>
+[.green]#✓#:: <<ear_plugin.adoc#ear_plugin,EAR>>
+[.yellow]#⚠#:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
 [.red]#✖#:: <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
 [.gray]#✖#:: <<maven_plugin.adoc#maven_plugin,Legacy Maven Plugin>>
-[.green]#*✓*#:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
-[.yellow]#*⚠*#:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
+[.green]#✓#:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
+[.yellow]#⚠#:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
 
 h| Code analysis
 h| IDE integration
@@ -202,17 +202,17 @@ a|
 
 a|
 [horizontal]
-[.green]#*✓*#:: <<base_plugin.adoc#base_plugin,Base>>
-[.yellow]#*⚠*#:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
+[.green]#✓#:: <<base_plugin.adoc#base_plugin,Base>>
+[.yellow]#⚠#:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
 [.red]#✖#:: <<signing_plugin.adoc#signing_plugin,Signing>>
-[.yellow]#*⚠*#:: <<java_gradle_plugin.adoc#java_gradle_plugin,Plugin Development>>
+[.yellow]#⚠#:: <<java_gradle_plugin.adoc#java_gradle_plugin,Plugin Development>>
 [.red]#✖#:: <<project_report_plugin.adoc#project_report_plugin,Project Report Plugin>>
 
 |===
 
 [horizontal]
-[.green]#*✓*#:: Supported plugin
-[.yellow]#*⚠*#:: Partially supported plugin
+[.green]#✓#:: Supported plugin
+[.yellow]#⚠#:: Partially supported plugin
 [.red]#✖#:: Unsupported plugin
 [.gray]#✖#:: Won't fix
 
