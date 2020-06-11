@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.impl;
+package org.gradle.internal.enterprise.impl.legacy;
 
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.scan.time.BuildScanBuildStartedTime;

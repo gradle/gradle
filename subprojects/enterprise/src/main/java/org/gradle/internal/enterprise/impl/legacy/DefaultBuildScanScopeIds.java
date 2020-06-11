@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.impl;
+package org.gradle.internal.enterprise.impl.legacy;
 
 import org.gradle.internal.scan.scopeids.BuildScanScopeIds;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;

@@ -19,8 +19,8 @@ package org.gradle.internal.scan.config
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
-import org.gradle.internal.scan.impl.LegacyGradleEnterprisePluginCheckInService
-import org.gradle.internal.scan.impl.UnsupportedBuildScanPluginVersionException
+import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
+import org.gradle.internal.enterprise.impl.legacy.UnsupportedBuildScanPluginVersionException
 import spock.lang.Specification
 import spock.util.environment.RestoreSystemProperties
 

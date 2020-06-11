@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.time
+package org.gradle.internal.enterprise.legacy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.buildevents.BuildStartedTime
+import org.gradle.internal.scan.time.BuildScanBuildStartedTime
 
 class BuildScanBuildStartedTimeIntegTest extends AbstractIntegrationSpec {
 
@@ -27,7 +28,7 @@ class BuildScanBuildStartedTimeIntegTest extends AbstractIntegrationSpec {
             def time = project.services.get($BuildScanBuildStartedTime.name).buildStartedTime
             def timer = project.services.get($BuildStartedTime.name)
             assert timer.startTime == time
-            
+
             println "timestamp: \$time"
         """
 

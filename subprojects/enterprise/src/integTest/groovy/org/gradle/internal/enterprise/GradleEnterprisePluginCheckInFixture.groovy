@@ -40,7 +40,9 @@ class GradleEnterprisePluginCheckInFixture {
 
     String runtimeVersion = AutoAppliedGradleEnterprisePlugin.VERSION
     String artifactVersion = AutoAppliedGradleEnterprisePlugin.VERSION
+
     final String id = AutoAppliedGradleEnterprisePlugin.ID.id
+    final String className = "org.gradle.test.GradleEnterprisePlugin"
 
     boolean doCheckIn = true
     protected boolean added

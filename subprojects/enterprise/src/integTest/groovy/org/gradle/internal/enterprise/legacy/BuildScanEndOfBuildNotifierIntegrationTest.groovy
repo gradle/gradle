@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.eob
+package org.gradle.internal.enterprise.legacy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
-import org.gradle.internal.scan.config.GradleEnterprisePluginLegacyContactPointFixture
+import org.gradle.internal.scan.eob.BuildScanEndOfBuildNotifier
 import spock.lang.Issue
 import spock.lang.Unroll
 

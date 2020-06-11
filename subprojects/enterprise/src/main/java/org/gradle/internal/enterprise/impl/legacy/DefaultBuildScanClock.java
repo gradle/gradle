@@ -14,15 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.impl;
+package org.gradle.internal.enterprise.impl.legacy;
 
-import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.scan.time.BuildScanClock;
+import org.gradle.internal.time.Clock;
 
-@Contextual
-public class UnsupportedBuildScanPluginVersionException extends IllegalStateException {
+import javax.inject.Inject;
 
-    UnsupportedBuildScanPluginVersionException(String s) {
-        super(s);
+public class DefaultBuildScanClock implements BuildScanClock {
+
+    private final Clock clock;
+
+    @Inject
+    public DefaultBuildScanClock(Clock clock) {
+        this.clock = clock;
+    }
+
+    @Override
+    public long getCurrentTime() {
+        return clock.getCurrentTime();
     }
 
 }

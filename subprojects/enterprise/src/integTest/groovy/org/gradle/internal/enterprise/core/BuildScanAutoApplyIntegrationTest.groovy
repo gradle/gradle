@@ -19,15 +19,14 @@ package org.gradle.internal.enterprise.core
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
-import org.gradle.internal.scan.impl.LegacyGradleEnterprisePluginCheckInService
+import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.util.VersionNumber
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
-import static org.gradle.internal.scan.config.GradleEnterprisePluginLegacyContactPointFixture.GRADLE_ENTERPRISE_PLUGIN_CLASS_NAME
-import static org.gradle.internal.scan.config.GradleEnterprisePluginLegacyContactPointFixture.GRADLE_ENTERPRISE_PLUGIN_ID
+import static org.gradle.internal.enterprise.legacy.GradleEnterprisePluginLegacyContactPointFixture.GRADLE_ENTERPRISE_PLUGIN_ID
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
@@ -74,7 +73,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         when:
         settingsFile << """
             include 'a', 'b'
-            assert pluginManager.hasPlugin('$GRADLE_ENTERPRISE_PLUGIN_ID')
+            assert pluginManager.hasPlugin('$fixture.id')
         """
 
         and:
@@ -178,7 +177,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
             }
 
             beforeSettings {
-                it.apply plugin: $GRADLE_ENTERPRISE_PLUGIN_CLASS_NAME
+                it.apply plugin: $fixture.className
             }
         """
 

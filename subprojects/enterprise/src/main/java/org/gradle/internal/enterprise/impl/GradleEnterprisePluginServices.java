@@ -16,6 +16,10 @@
 
 package org.gradle.internal.enterprise.impl;
 
+import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanBuildStartedTime;
+import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanClock;
+import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanScopeIds;
+import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
@@ -24,6 +28,10 @@ public class GradleEnterprisePluginServices extends AbstractPluginServiceRegistr
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.add(DefaultGradleEnterprisePluginRequiredServices.class);
+
+        // legacy
+        registration.add(DefaultBuildScanClock.class);
+        registration.add(DefaultBuildScanBuildStartedTime.class);
     }
 
     @Override
@@ -33,6 +41,10 @@ public class GradleEnterprisePluginServices extends AbstractPluginServiceRegistr
         registration.add(DefaultGradleEnterprisePluginConfig.class);
         registration.add(DefautGradleEnterprisePluginCheckInService.class);
         registration.add(DefaultGradleEnterprisePluginServiceRef.class);
+
+        // legacy
+        registration.add(DefaultBuildScanScopeIds.class);
+        registration.add(LegacyGradleEnterprisePluginCheckInService.class);
     }
 
 }

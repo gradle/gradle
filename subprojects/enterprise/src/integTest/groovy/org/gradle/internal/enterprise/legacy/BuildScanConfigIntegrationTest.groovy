@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.config
+package org.gradle.internal.enterprise.legacy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
-import org.gradle.internal.scan.impl.LegacyGradleEnterprisePluginCheckInService
+import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
 import spock.lang.Unroll
 
 @Unroll

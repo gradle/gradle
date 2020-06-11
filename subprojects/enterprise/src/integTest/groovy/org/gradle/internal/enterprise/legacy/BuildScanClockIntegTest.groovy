@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.impl;
+package org.gradle.internal.enterprise.legacy
 
-import org.gradle.internal.scan.time.BuildScanClock;
-import org.gradle.internal.time.Clock;
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.scan.time.BuildScanClock
 
-import javax.inject.Inject;
+class BuildScanClockIntegTest extends AbstractIntegrationSpec {
 
-public class DefaultBuildScanClock implements BuildScanClock {
+    def "can access build scan time provider"() {
+        when:
+        buildFile << """
+            def time = project.services.get($BuildScanClock.name).currentTime
+            println "timestamp: \$time"
+        """
 
-    private final Clock clock;
+        succeeds("help")
 
-    @Inject
-    public DefaultBuildScanClock(Clock clock) {
-        this.clock = clock;
+        then:
+        output.contains("timestamp: ")
     }
-
-    @Override
-    public long getCurrentTime() {
-        return clock.getCurrentTime();
-    }
-
 }

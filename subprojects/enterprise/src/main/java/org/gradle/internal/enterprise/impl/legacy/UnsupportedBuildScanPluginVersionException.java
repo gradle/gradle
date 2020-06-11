@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.time
+package org.gradle.internal.enterprise.impl.legacy;
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.exceptions.Contextual;
 
-class BuildScanClockIntegTest extends AbstractIntegrationSpec {
+@Contextual
+public class UnsupportedBuildScanPluginVersionException extends IllegalStateException {
 
-    def "can access build scan time provider"() {
-        when:
-        buildFile << """
-            def time = project.services.get($BuildScanClock.name).currentTime
-            println "timestamp: \$time"
-        """
-
-        succeeds("help")
-
-        then:
-        output.contains("timestamp: ")
+    UnsupportedBuildScanPluginVersionException(String s) {
+        super(s);
     }
+
 }
