@@ -23,7 +23,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class InstantExecutionTest {
+class FillTheProjectGapsTest {
 
     @Test
     fun `mind the gaps`() {
