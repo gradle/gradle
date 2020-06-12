@@ -212,10 +212,10 @@ class DefaultJavaComponentBuilder implements JvmEcosystemUtilities.JavaComponent
         final AdhocComponentWithVariants component = findJavaComponent();
         configureJavaDocTask(name, sourceSet, tasks, javaPluginExtension);
         if (javadocJar) {
-            configureDocumentationVariantWithArtifact(sourceSet.getJavadocElementsConfigurationName(), displayName, JAVADOC, sourceSet.getJavadocJarTaskName(), tasks.named(sourceSet.getJavadocTaskName()), component);
+            configureDocumentationVariantWithArtifact(sourceSet.getJavadocElementsConfigurationName(), mainSourceSet ? null : name, displayName, JAVADOC, sourceSet.getJavadocJarTaskName(), tasks.named(sourceSet.getJavadocTaskName()), component);
         }
         if (sourcesJar) {
-            configureDocumentationVariantWithArtifact(sourceSet.getSourcesElementsConfigurationName(), displayName, SOURCES, sourceSet.getSourcesJarTaskName(), sourceSet.getAllSource(), component);
+            configureDocumentationVariantWithArtifact(sourceSet.getSourcesElementsConfigurationName(), mainSourceSet ? null : name, displayName, SOURCES, sourceSet.getSourcesJarTaskName(), sourceSet.getAllSource(), component);
         }
 
         if (published && component != null) {
@@ -247,7 +247,7 @@ class DefaultJavaComponentBuilder implements JvmEcosystemUtilities.JavaComponent
         return tasks.named(jarTaskName);
     }
 
-    public void configureDocumentationVariantWithArtifact(String variantName, @Nullable String displayName, String docsType, String jarTaskName, Object artifactSource, @Nullable AdhocComponentWithVariants component) {
+    public void configureDocumentationVariantWithArtifact(String variantName, @Nullable String name, @Nullable String displayName, String docsType, String jarTaskName, Object artifactSource, @Nullable AdhocComponentWithVariants component) {
         Configuration variant = configurations.maybeCreate(variantName);
         variant.setVisible(false);
         variant.setDescription(docsType + " elements for " + (displayName == null ? "main" : displayName) + ".");
@@ -260,10 +260,10 @@ class DefaultJavaComponentBuilder implements JvmEcosystemUtilities.JavaComponent
 
         if (!tasks.getNames().contains(jarTaskName)) {
             TaskProvider<Jar> jarTask = tasks.register(jarTaskName, Jar.class, jar -> {
-                jar.setDescription("Assembles a jar archive containing the " + (displayName == null ? "main " + docsType + "." : (docsType + " of the '" + displayName + "' feature.")));
+                jar.setDescription("Assembles a jar archive containing the " + (displayName == null ? "main " + docsType + "." : (docsType + " of the '" + displayName + "'.")));
                 jar.setGroup(BasePlugin.BUILD_GROUP);
                 jar.from(artifactSource);
-                jar.getArchiveClassifier().set(TextUtil.camelToKebabCase(displayName == null ? docsType : (displayName + "-" + docsType)));
+                jar.getArchiveClassifier().set(TextUtil.camelToKebabCase(name == null ? docsType : (name + "-" + docsType)));
             });
             if (tasks.getNames().contains(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)) {
                 tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).configure(task -> task.dependsOn(jarTask));
