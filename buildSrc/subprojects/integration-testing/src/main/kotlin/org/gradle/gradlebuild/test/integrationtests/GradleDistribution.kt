@@ -15,7 +15,6 @@
 
 package org.gradle.gradlebuild.test.integrationtests
 
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFiles
@@ -25,11 +24,15 @@ import java.io.File
 import java.util.SortedSet
 
 
-open class GradleDistribution(private val gradleHomeDir: DirectoryProperty) {
+open class GradleDistribution(private val gradleHomeDir: FileCollection) {
+
+    /**
+     * Make sure this stays type FileCollection (lazy) to not loose dependency information.
+     */
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     val staticContent: FileCollection
-        get() = gradleHomeDir.get().asFileTree.matching {
+        get() = gradleHomeDir.asFileTree.matching {
             exclude("lib/**")
             exclude("src/**")
             exclude("docs/**")
@@ -39,13 +42,13 @@ open class GradleDistribution(private val gradleHomeDir: DirectoryProperty) {
 
     @get:Classpath
     val coreJars: SortedSet<File>
-        get() = gradleHomeDir.get().dir("lib").asFileTree.matching {
-            include("*.jar")
+        get() = gradleHomeDir.asFileTree.matching {
+            include("lib/*.jar")
         }.files.toSortedSet()
 
     @get:Classpath
     val pluginJars: SortedSet<File>
-        get() = gradleHomeDir.get().dir("lib/plugins").asFileTree.matching {
-            include("*.jar")
+        get() = gradleHomeDir.asFileTree.matching {
+            include("lib/plugins/*.jar")
         }.files.toSortedSet()
 }

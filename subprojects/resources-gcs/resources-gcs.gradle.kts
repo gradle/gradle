@@ -1,5 +1,5 @@
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -29,5 +29,6 @@ dependencies {
     integTestImplementation(project(":modelCore"))
     integTestImplementation(library("commons_io"))
     integTestImplementation(testLibrary("jetty"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
+
+    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
 }

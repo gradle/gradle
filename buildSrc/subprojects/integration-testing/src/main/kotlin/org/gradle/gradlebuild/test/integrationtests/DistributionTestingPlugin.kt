@@ -16,21 +16,12 @@
 
 package org.gradle.gradlebuild.test.integrationtests
 
-import accessors.base
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.file.Directory
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.BasePluginConvention
-import org.gradle.api.provider.Provider
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanupExtension
-import org.gradle.internal.classloader.ClasspathHasher
-import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.kotlin.dsl.*
-import org.gradle.kotlin.dsl.support.serviceOf
-import java.io.File
 import kotlin.collections.set
 
 
@@ -38,7 +29,6 @@ class DistributionTestingPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
         tasks.withType<DistributionTest>().configureEach {
-            dependsOn(":toolingApi:toolingApiShadedJar")
             dependsOn(":cleanUpCaches")
             finalizedBy(":cleanUpDaemons")
             shouldRunAfter("test")
@@ -46,26 +36,18 @@ class DistributionTestingPlugin : Plugin<Project> {
             setJvmArgsOfTestJvm()
             setSystemPropertiesOfTestJVM(project)
             configureGradleTestEnvironment(
-                rootProject.providers,
                 rootProject.layout,
-                rootProject.base,
-                rootProject.objects
+                configurations
             )
             addSetUpAndTearDownActions(project)
         }
     }
 
-    // TODO: Replace this with something in the Gradle API to make this transition easier
     private
-    fun dirWorkaround(
-        providers: ProviderFactory,
-        layout: ProjectLayout,
-        objects: ObjectFactory,
-        directory: () -> File
-    ): Provider<Directory> =
-        objects.directoryProperty().also {
-            it.set(layout.projectDirectory.dir(providers.provider { directory().absolutePath }))
-        }
+    fun executerRequiresDistribution(taskName: String) = !taskName.startsWith("embedded") || taskName.contains("CrossVersion") // <- Tooling API [other-version]->[current]
+
+    private
+    fun executerRequiresFullDistribution(taskName: String) = taskName.startsWith("noDaemon")
 
     private
     fun DistributionTest.addSetUpAndTearDownActions(project: Project) {
@@ -74,24 +56,34 @@ class DistributionTestingPlugin : Plugin<Project> {
     }
 
     private
-    fun DistributionTest.configureGradleTestEnvironment(providers: ProviderFactory, layout: ProjectLayout, basePluginConvention: BasePluginConvention, objects: ObjectFactory) {
-
-        val projectDirectory = layout.projectDirectory
+    fun DistributionTest.configureGradleTestEnvironment(rootLayout: ProjectLayout, configurations: ConfigurationContainer) {
+        val taskName = name
+        val rootProjectDirectory = rootLayout.projectDirectory
 
         gradleInstallationForTest.apply {
-            gradleUserHomeDir.set(projectDirectory.dir("intTestHomeDir/unknown"))
-            gradleGeneratedApiJarCacheDir.set(defaultGradleGeneratedApiJarCacheDirProvider(providers, layout))
-            daemonRegistry.set(layout.buildDirectory.dir("daemon"))
-            gradleHomeDir.set(layout.buildDirectory.dir("distributions"))
-            gradleSnippetsDir.set(layout.projectDirectory.dir("subprojects/docs/src/snippets"))
+            if (executerRequiresDistribution(taskName)) {
+                gradleHomeDir.setFrom(if (executerRequiresFullDistribution(taskName)) {
+                    configurations["${prefix}TestFullDistributionRuntimeClasspath"]
+                } else {
+                    configurations["${prefix}TestDistributionRuntimeClasspath"]
+                })
+            }
+            // Set the base user home dir to be share by integration tests.
+            // The actual user home dir will be a subfolder using the name of the distribution.
+            gradleUserHomeDir.set(rootProjectDirectory.dir("intTestHomeDir"))
+            // The user home dir is not wiped out by clean. Move the daemon working space underneath the build dir so they don't pile up on CI.
+            // The actual daemon registry dir will be a subfolder using the name of the distribution.
+            daemonRegistry.set(rootLayout.buildDirectory.dir("daemon"))
+            gradleSnippetsDir.set(rootLayout.projectDirectory.dir("subprojects/docs/src/snippets"))
         }
 
-        libsRepository.dir.set(projectDirectory.dir("build/repo"))
-
-        binaryDistributions.apply {
-            distsDir.set(layout.buildDirectory.dir(basePluginConvention.distsDirName))
-            distZipVersion = project.version.toString()
-        }
+        // Wire the different inputs for local distributions and repos that are declared by dependencies in the build scripts
+        normalizedDistributionZip.distributionZip.setFrom(configurations["${prefix}TestNormalizedDistributionPath"])
+        binDistributionZip.distributionZip.setFrom(configurations["${prefix}TestBinDistributionPath"])
+        allDistributionZip.distributionZip.setFrom(configurations["${prefix}TestAllDistributionPath"])
+        docsDistributionZip.distributionZip.setFrom(configurations["${prefix}TestDocsDistributionPath"])
+        srcDistributionZip.distributionZip.setFrom(configurations["${prefix}TestSrcDistributionPath"])
+        localRepository.localRepo.setFrom(configurations["${prefix}TestLocalRepositoryPath"])
     }
 
     private
@@ -113,29 +105,3 @@ class DistributionTestingPlugin : Plugin<Project> {
         }
     }
 }
-
-
-fun DistributionTest.defaultGradleGeneratedApiJarCacheDirProvider(providers: ProviderFactory, layout: ProjectLayout): Provider<Directory> {
-    val projectName = project.name
-    val projectVersion = project.version
-    val classpathHasher = project.serviceOf<ClasspathHasher>()
-    return providers.provider { defaultGeneratedGradleApiJarCacheDir(layout, projectName, projectVersion, classpathHasher) }
-}
-
-
-/**
- * Computes a project and classpath specific `intTestHomeDir/generatedApiJars` directory.
- */
-private
-fun DistributionTest.defaultGeneratedGradleApiJarCacheDir(
-    layout: ProjectLayout,
-    projectName: String,
-    projectVersion: Any,
-    classpathHasher: ClasspathHasher
-): Directory =
-    layout.projectDirectory.dir("intTestHomeDir/generatedApiJars/$projectVersion/$projectName-${classpathHash(classpathHasher)}")
-
-
-private
-fun DistributionTest.classpathHash(classpathHasher: ClasspathHasher) =
-    classpathHasher.hash(DefaultClassPath.of(classpath))

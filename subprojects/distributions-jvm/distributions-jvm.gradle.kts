@@ -1,15 +1,15 @@
 plugins {
-    gradlebuild.internal.java
-    gradlebuild.distributions
+    gradlebuild.distribution.packaging
 }
 
 dependencies {
-    runtimeOnly(project(":distributionsMinimal"))
+    coreRuntimeOnly(platform(project(":corePlatform")))
 
-    runtimeOnly(project(":scala"))
-    runtimeOnly(project(":ear"))
-    runtimeOnly(project(":codeQuality"))
-    runtimeOnly(project(":jacoco"))
-    runtimeOnly(project(":testingJunitPlatform"))
-    runtimeOnly(project(":ide"))
+    pluginsRuntimeOnly(platform(project(":distributionsBasics")))
+
+    pluginsRuntimeOnly(project(":scala"))
+    pluginsRuntimeOnly(project(":ear"))
+    pluginsRuntimeOnly(project(":codeQuality"))
+    pluginsRuntimeOnly(project(":jacoco"))
+    pluginsRuntimeOnly(project(":ide"))
 }

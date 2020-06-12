@@ -17,6 +17,7 @@
 package org.gradle.gradlebuild.testing.integrationtests.cleanup
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.provider.Property
@@ -40,27 +41,25 @@ abstract class CleanUpCaches : DefaultTask() {
 
     @TaskAction
     fun cleanUpCaches() {
+        val homeDir = homeDir.get()
 
-        // Expire intTestImage cache snapshots that are older than the tested version
+        homeDir.asFile.listFiles()?.filter { it.name.startsWith("distributions-") }?.forEach {
+            val workerDir = homeDir.dir(it.name)
+            cleanupDistributionCaches(workerDir)
+        }
+    }
+
+    private
+    fun cleanupDistributionCaches(workerDir: Directory) {
+        // Expire cache snapshots of test Gradle distributions that are older than the tested version
         // Also expire version-specific cache snapshots when they can't be re-used (for 'snapshot-1' developer builds)
-        val expireIntegTestCache = Spec<GradleVersion> { candidateVersion ->
+        val expireDistributionCache = Spec<GradleVersion> { candidateVersion ->
             (candidateVersion.isSnapshot && candidateVersion < version.get())
                 || candidateVersion.version.endsWith("-snapshot-1")
         }
 
-        val homeDir = homeDir.get()
-        val workerDir = homeDir.dir("worker-1")
-
         // Remove state for old versions of Gradle that we're unlikely to ever require again
-        fileSystemOperations.removeOldVersionsFromDir(workerDir.dir("caches"), expireIntegTestCache)
-
-        /*
-         intTestHomeDir
-            generatedApiJars
-                5.0-123123123123
-                    core-api_AZERA        <-- the system property to pass to generated jar cache
-         */
-        fileSystemOperations.removeOldVersionsFromDir(homeDir.dir("generatedApiJars"), expireIntegTestCache)
+        fileSystemOperations.removeOldVersionsFromDir(workerDir.dir("caches"), expireDistributionCache)
 
         // Remove scripts caches
         fileSystemOperations.removeCachedScripts(workerDir.dir("caches").asFile)
@@ -71,10 +70,10 @@ abstract class CleanUpCaches : DefaultTask() {
         fileSystemOperations.removeCachedScripts(File(testKitTmpDir, "caches"))
         fileSystemOperations.removeTransformDir(File(testKitTmpDir, "caches"))
 
-        fileSystemOperations.removeOldVersionsFromDir(workerDir.dir("daemon"), expireIntegTestCache)
+        fileSystemOperations.removeOldVersionsFromDir(workerDir.dir("daemon"), expireDistributionCache)
 
         // Remove old distributions used by wrapper that we're unlikely to ever require again
-        fileSystemOperations.removeOldVersionsFromDir(workerDir.dir("wrapper/dists"), expireIntegTestCache, "gradle-", "-bin")
+        fileSystemOperations.removeOldVersionsFromDir(workerDir.dir("wrapper/dists"), expireDistributionCache, "gradle-", "-bin")
         fileSystemOperations.delete {
             delete(workerDir.dir("wrapper/dists/dist"))
         }
@@ -83,6 +82,6 @@ abstract class CleanUpCaches : DefaultTask() {
         fileSystemOperations.removeDodgyCacheFiles(workerDir.dir("caches"))
 
         // Remove old daemon log files
-        fileSystemOperations.removeDaemonLogFiles(homeDir.dir("worker-1/daemon"))
+        fileSystemOperations.removeDaemonLogFiles(workerDir.dir("daemon"))
     }
 }

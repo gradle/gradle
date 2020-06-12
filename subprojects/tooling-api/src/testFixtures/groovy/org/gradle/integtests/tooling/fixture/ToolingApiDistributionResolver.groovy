@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.LocallyBuiltGradleDistribution
 import org.gradle.testfixtures.ProjectBuilder
@@ -34,7 +33,10 @@ class ToolingApiDistributionResolver {
 
     ToolingApiDistributionResolver() {
         resolutionServices = createResolutionServices()
-        resolutionServices.resolveRepositoryHandler.maven { url buildContext.libsRepo.toURI().toURL() }
+        def localRepository = buildContext.localRepository
+        if (localRepository) {
+            resolutionServices.resolveRepositoryHandler.maven { url localRepository.toURI().toURL() }
+        }
     }
 
     ToolingApiDistributionResolver withRepository(String repositoryUrl) {
@@ -70,8 +72,7 @@ class ToolingApiDistributionResolver {
 
     private boolean useToolingApiFromTestClasspath(String toolingApiVersion) {
         !useExternalToolingApiDistribution &&
-            toolingApiVersion == buildContext.version.version &&
-            GradleContextualExecuter.embedded
+            toolingApiVersion == buildContext.version.baseVersion.version
     }
 
     private DependencyResolutionServices createResolutionServices() {

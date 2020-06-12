@@ -9,14 +9,16 @@ dependencies {
     performanceTestImplementation(project(":modelCore"))
     performanceTestImplementation(project(":coreApi"))
     performanceTestImplementation(project(":buildOption"))
-    performanceTestImplementation(project(":internalIntegTesting"))
     performanceTestImplementation(library("slf4j_api"))
     performanceTestImplementation(library("commons_io"))
     performanceTestImplementation(library("commons_compress"))
     performanceTestImplementation(testLibrary("jetty"))
     performanceTestImplementation(testFixtures(project(":toolingApi")))
 
-    performanceTestRuntimeOnly(project(":distributionsFull")) {
-        because("so that all Gradle features are available")
+    performanceTestDistributionRuntimeOnly(project(":distributionsFull")) {
+        because("All Gradle features have to be available.")
+    }
+    performanceTestLocalRepository(project(":toolingApi")) {
+        because("IDE tests use the Tooling API.")
     }
 }

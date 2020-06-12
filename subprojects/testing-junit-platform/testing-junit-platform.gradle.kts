@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {

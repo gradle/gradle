@@ -71,9 +71,10 @@ class LifecyclePlugin : Plugin<Project> {
     private
     val soakTest = "soakTest"
 
+    private
     val ignoredSubprojects = listOf(
         "soak", // soak test
-        "distributions", // build distributions
+        "distributionsIntegTests", // test build distributions
         "architectureTest" // sanity check
     )
 
@@ -123,7 +124,7 @@ class LifecyclePlugin : Plugin<Project> {
         }
 
         tasks.named(soakTest) {
-            dependsOn(":soak:soakIntegTest")
+            dependsOn(":soak:embeddedIntegTest")
         }
     }
 
@@ -166,9 +167,6 @@ class LifecyclePlugin : Plugin<Project> {
         if (needsToUseTestVersionsAll()) {
             globalProperty("testVersions" to "all")
         }
-        if (needsToUseAllDistribution()) {
-            globalProperty("useAllDistribution" to true)
-        }
     }
 
     private
@@ -192,12 +190,6 @@ class LifecyclePlugin : Plugin<Project> {
     fun Project.needsToUseTestVersionsAll() = isRequestedTask(allVersionsCrossVersionTest)
         || isRequestedTask(allVersionsIntegMultiVersionTest)
         || isRequestedTask(soakTest)
-
-    private
-    fun Project.needsToUseAllDistribution() = isRequestedTask(quickFeedbackCrossVersionTest)
-        || isRequestedTask(allVersionsCrossVersionTest)
-        || isRequestedTask(allVersionsIntegMultiVersionTest)
-        || isRequestedTask(noDaemonTest)
 
     /**
      * Basic compile and check lifecycle tasks.
@@ -228,8 +220,8 @@ class LifecyclePlugin : Plugin<Project> {
         register("packageBuild") {
             description = "Build production distros and smoke test them"
             group = "build"
-            dependsOn(":distributions:verifyIsProductionBuildEnvironment", ":distributions:buildDists",
-                ":distributions:integTest", ":docs:releaseNotes", ":docs:incubationReport", ":docs:checkDeadInternalLinks")
+            dependsOn(":distributionsFull:verifyIsProductionBuildEnvironment", ":distributionsFull:buildDists",
+                ":distributionsIntegTests:forkingIntegTest", ":docs:releaseNotes", ":docs:incubationReport", ":docs:checkDeadInternalLinks")
         }
     }
 
@@ -241,8 +233,8 @@ class LifecyclePlugin : Plugin<Project> {
         register("promotionBuild") {
             description = "Build production distros, smoke test them and publish"
             group = "publishing"
-            dependsOn(":distributions:verifyIsProductionBuildEnvironment", ":distributions:buildDists",
-                ":distributions:integTest", ":docs:releaseNotes", "publish", ":docs:incubationReport", ":docs:checkDeadInternalLinks")
+            dependsOn(":distributionsFull:verifyIsProductionBuildEnvironment", ":distributionsFull:buildDists",
+                ":distributionsIntegTests:forkingIntegTest", ":docs:releaseNotes", "publish", ":docs:incubationReport", ":docs:checkDeadInternalLinks")
         }
     }
 
@@ -305,7 +297,7 @@ class LifecyclePlugin : Plugin<Project> {
     private
     fun TaskContainer.configureCIIntegrationTestDistributionLifecycleTasks() {
         named(quickTest) {
-            dependsOn("integTest")
+            dependsOn("embeddedIntegTest")
         }
 
         named(platformTest) {
@@ -342,7 +334,7 @@ class LifecyclePlugin : Plugin<Project> {
     private
     fun TaskContainer.configureCICrossVersionTestDistributionLifecycleTasks() {
         named(quickTest) {
-            dependsOn("crossVersionTest")
+            dependsOn("embeddedCrossVersionTest")
         }
 
         named(platformTest) {

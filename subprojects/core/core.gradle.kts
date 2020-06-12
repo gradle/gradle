@@ -16,7 +16,7 @@
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 configurations {
@@ -24,7 +24,11 @@ configurations {
 }
 
 tasks.classpathManifest {
-    optionalProjects.add(":kotlinDsl")
+    optionalProjects.add("gradle-kotlin-dsl")
+    // The gradle-runtime-api-info.jar is added by a 'distributions-...' project if it is on the (integration test) runtime classpath.
+    // It contains information services in ':core' need to reason about the complete Gradle distribution.
+    // To allow parts of ':core' code to be instantiated in unit tests without relying on this functionality, the dependency is optional.
+    optionalProjects.add("gradle-runtime-api-info")
 }
 
 dependencies {
@@ -72,10 +76,6 @@ dependencies {
     testImplementation(library("log4j_to_slf4j"))
     testImplementation(library("jcl_to_slf4j"))
 
-    testRuntimeOnly(library("xerces"))
-    testRuntimeOnly(project(":diagnostics"))
-    testRuntimeOnly(project(":compositeBuilds"))
-
     testFixturesApi(project(":baseServices")) {
         because("test fixtures expose Action")
     }
@@ -104,7 +104,6 @@ dependencies {
     testFixturesImplementation(project(":native"))
     testFixturesImplementation(project(":resources"))
     testFixturesImplementation(project(":processServices"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":persistentCache"))
     testFixturesImplementation(project(":snapshots"))
@@ -114,6 +113,19 @@ dependencies {
     testFixturesImplementation(library("guava"))
     testFixturesImplementation(library("ant"))
 
+    testFixturesRuntimeOnly(project(":pluginUse")) {
+        because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
+    }
+    testFixturesRuntimeOnly(project(":dependencyManagement")) {
+        because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
+    }
+    testFixturesRuntimeOnly(project(":workers")) {
+        because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
+    }
+    testFixturesRuntimeOnly(project(":compositeBuilds")) {
+        because("We always need a BuildStateRegistry service implementation")
+    }
+
     testImplementation(project(":dependencyManagement"))
 
     testImplementation(testFixtures(project(":coreApi")))
@@ -122,10 +134,6 @@ dependencies {
     testImplementation(testFixtures(project(":logging")))
     testImplementation(testFixtures(project(":baseServices")))
     testImplementation(testFixtures(project(":diagnostics")))
-
-    testRuntimeOnly(project(":runtimeApiInfo"))
-    testRuntimeOnly(project(":kotlinDsl"))
-    testRuntimeOnly(project(":kotlinDslProviderPlugins"))
 
     integTestImplementation(project(":workers"))
     integTestImplementation(project(":dependencyManagement"))
@@ -137,17 +145,13 @@ dependencies {
     integTestImplementation(testLibrary("littleproxy"))
     integTestImplementation(testFixtures(project(":native")))
 
-    integTestRuntimeOnly(project(":buildInit"))
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
-    integTestRuntimeOnly(project(":maven"))
-    integTestRuntimeOnly(project(":apiMetadata"))
-    integTestRuntimeOnly(project(":kotlinDsl"))
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
-    integTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
-    integTestRuntimeOnly(project(":testKit"))
-
-    crossVersionTestRuntimeOnly(project(":testingJunitPlatform"))
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsBasics")) {
+        because("Some tests utilise the 'java-gradle-plugin' and with that TestKit")
+    }
+    crossVersionTestDistributionRuntimeOnly(project(":distributionsCore"))
 }
 
 strictCompile {
@@ -161,39 +165,8 @@ classycle {
 tasks.test {
     setForkEvery(200)
 }
-
-val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
-
 listOf(tasks.compileGroovy, tasks.compileTestGroovy).forEach {
     it { groovyOptions.fork("memoryInitialSize" to "128M", "memoryMaximumSize" to "1G") }
-}
-
-val pluginsManifest by tasks.registering(WriteProperties::class) {
-    property("plugins", provider {
-        rootProject.subprojects.filter {
-            it.plugins.hasPlugin(gradlebuild.distribution.PluginsPlugin::class)
-                && it.plugins.hasPlugin(gradlebuild.distribution.ApiPlugin::class)
-        }.map { it.base.archivesBaseName }.sorted().joinToString(",")
-    })
-    outputFile = File(generatedResourcesDir, "gradle-plugins.properties")
-}
-
-sourceSets.main {
-    output.dir(generatedResourcesDir, "builtBy" to pluginsManifest)
-}
-
-val implementationPluginsManifest by tasks.registering(WriteProperties::class) {
-    property("plugins", provider {
-        rootProject.subprojects.filter {
-            it.plugins.hasPlugin(gradlebuild.distribution.PluginsPlugin::class)
-                && it.plugins.hasPlugin(gradlebuild.distribution.ImplementationPlugin::class)
-        }.map { it.base.archivesBaseName }.sorted().joinToString(",")
-    })
-    outputFile = File(generatedResourcesDir, "gradle-implementation-plugins.properties")
-}
-
-sourceSets.main {
-    output.dir(generatedResourcesDir, "builtBy" to implementationPluginsManifest)
 }
 
 testFilesCleanup {

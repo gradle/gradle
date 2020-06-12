@@ -1,18 +1,19 @@
 plugins {
-    gradlebuild.internal.java
-    gradlebuild.distributions
+    gradlebuild.distribution.packaging
 }
 
 dependencies {
-    runtimeOnly(project(":distributionsJvm")) {
+    coreRuntimeOnly(platform(project(":corePlatform")))
+
+    pluginsRuntimeOnly(platform(project(":distributionsJvm"))) {
         because("the project dependency 'toolingNative -> ide' currently links this to the JVM ecosystem")
     }
-    runtimeOnly(project(":distributionsPublishing")) {
+    pluginsRuntimeOnly(platform(project(":distributionsPublishing"))) {
         because("configuring publishing is part of the 'language native' support")
     }
 
-    runtimeOnly(project(":languageNative"))
-    runtimeOnly(project(":toolingNative"))
-    runtimeOnly(project(":ideNative"))
-    runtimeOnly(project(":testingNative"))
+    pluginsRuntimeOnly(project(":languageNative"))
+    pluginsRuntimeOnly(project(":toolingNative"))
+    pluginsRuntimeOnly(project(":ideNative"))
+    pluginsRuntimeOnly(project(":testingNative"))
 }

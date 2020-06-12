@@ -60,12 +60,6 @@ val Project.maxParallelForks: Int
     }
 
 
-val Project.useAllDistribution: Boolean
-    get() {
-        return findProperty("useAllDistribution")?.toString()?.toBoolean() ?: false
-    }
-
-
 fun TaskOutputs.doNotCacheIfSlowInternetConnection() {
     doNotCacheIf("Slow internet connection") {
         BuildEnvironment.isSlowInternetConnection

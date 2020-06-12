@@ -107,7 +107,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         assert index >= 0
         buildScript = buildScript.substring(0, index) + """
 repositories {
-    maven { url "${buildContext.libsRepo.toURI()}" }
+    maven { url "${buildContext.localRepository.toURI()}" }
 }
 run {
     args = ["${TextUtil.escapeString(buildContext.gradleHomeDir.absolutePath)}", "${TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath)}"]
@@ -115,6 +115,8 @@ run {
     systemProperty 'org.gradle.daemon.registry.base', "${TextUtil.escapeString(projectDir.file("daemon").absolutePath)}"
 }
 """ + buildScript.substring(index)
+
+        buildScript = buildScript.replace("def toolingApiVersion = gradle.gradleVersion", "def toolingApiVersion = ${distribution.version.baseVersion.version}")
 
         buildFile.text = buildScript
     }
@@ -127,7 +129,7 @@ run {
         assert index >= 0
         buildScript = buildScript.substring(0, index) + """
 repositories {
-    maven { url "${buildContext.libsRepo.toURI()}" }
+    maven { url "${buildContext.localRepository.toURI()}" }
 }
 """ + buildScript.substring(index)
 

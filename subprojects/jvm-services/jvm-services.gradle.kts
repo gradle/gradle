@@ -1,5 +1,5 @@
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 description = "JVM invocation and inspection abstractions"

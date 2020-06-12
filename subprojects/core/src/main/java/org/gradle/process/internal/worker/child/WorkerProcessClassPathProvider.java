@@ -167,7 +167,10 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
         if (name.equals("CORE_WORKER_RUNTIME")) {
             ClassPath classpath = ClassPath.EMPTY;
             classpath = classpath.plus(moduleRegistry.getModule("gradle-core").getAllRequiredModulesClasspath());
+            // If a real Gradle installation is used, the following modules will be force-loaded anyway by gradle-core through the getClassPath("GRADLE_EXTENSIONS") call in the DefaultClassLoaderRegistry constructor
+            // See also: DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES
             classpath = classpath.plus(moduleRegistry.getModule("gradle-dependency-management").getAllRequiredModulesClasspath());
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-plugin-use").getAllRequiredModulesClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("gradle-workers").getAllRequiredModulesClasspath());
             return classpath;
         }

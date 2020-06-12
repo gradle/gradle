@@ -18,7 +18,7 @@ import accessors.java
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`implementation-java`
 }
 
 dependencies {
@@ -68,8 +68,6 @@ dependencies {
     testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":execution")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
     integTestImplementation(project(":buildOption"))
     integTestImplementation(library("jansi"))
     integTestImplementation(library("ansi_control_sequence_util"))
@@ -91,7 +89,6 @@ dependencies {
     testFixturesImplementation(testFixtures(project(":resourcesHttp")))
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":messaging"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(library("slf4j_api"))
     testFixturesImplementation(library("inject"))
@@ -106,8 +103,11 @@ dependencies {
         because("Groovy compiler bug leaks internals")
     }
 
-    integTestRuntimeOnly(project(":distributionsMinimal"))
-    integTestRuntimeOnly(project(":distributionsMinimal")) // TODO publishing?
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributionsCore"))
 }
 
 classycle {
@@ -116,10 +116,6 @@ classycle {
 
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
-}
-
-tasks.classpathManifest {
-    additionalProjects.add(":runtimeApiInfo")
 }
 
 tasks.clean {

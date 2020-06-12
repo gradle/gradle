@@ -1,4 +1,3 @@
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
@@ -45,12 +44,8 @@ dependencies {
     integTestImplementation(testFixtures(project(":platformNative")))
     integTestImplementation(library("jgit"))
 
-    integTestRuntimeOnly(project(":distributionsFull"))
-    crossVersionTestRuntimeOnly(project(":distributionsFull"))
-}
-
-tasks.withType<IntegrationTest>().configureEach {
-    libsRepository.required = true
+    integTestDistributionRuntimeOnly(project(":distributionsFull"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributionsFull"))
 }
 
 testFilesCleanup {

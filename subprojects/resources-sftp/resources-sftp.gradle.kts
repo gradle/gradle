@@ -17,7 +17,7 @@
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -40,7 +40,7 @@ dependencies {
     integTestImplementation(testLibrary("jetty"))
     testLibraries("sshd").forEach { integTestImplementation(it) }
 
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
 }
 
 testFilesCleanup {

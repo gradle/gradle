@@ -27,9 +27,7 @@ dependencies {
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
 
-    performanceTestImplementation(project(":internalIntegTesting"))
-
-    performanceTestRuntimeOnly(project(":distributionsFull")) {
+    performanceTestDistributionRuntimeOnly(project(":distributionsFull")) {
         because("so that all Gradle features are available")
     }
 }

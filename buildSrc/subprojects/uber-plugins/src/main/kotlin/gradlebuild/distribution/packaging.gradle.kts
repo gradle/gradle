@@ -16,8 +16,9 @@
 package gradlebuild.distribution
 
 plugins {
-    id("gradlebuild.java-library")
-    id("gradlebuild.distribution.core")
-    id("gradlebuild.distribution.api")
-    id("gradlebuild.api-parameter-names-index")
+    `java-base`
+    id("gradlebuild.repositories")
+    id("gradlebuild.minify")
+    id("gradlebuild.reproducible-archives")
+    id("gradlebuild.distributions")
 }

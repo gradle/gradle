@@ -436,8 +436,6 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             branchName = gitInfo.gradleBuildBranch.get()
 
-            binaryDistributions.binZipRequired = true
-            libsRepository.required = true
             maxParallelForks = 1
 
             useJUnitPlatform()

@@ -1,14 +1,11 @@
 plugins {
-    gradlebuild.internal.java
-    gradlebuild.distributions
+    gradlebuild.distribution.packaging
 }
 
 dependencies {
-    runtimeOnly(project(":distributionsMinimal"))
+    coreRuntimeOnly(platform(project(":corePlatform")))
 
-    runtimeOnly(project(":publish"))
-    runtimeOnly(project(":signing"))
-    runtimeOnly(project(":maven"))
-    runtimeOnly(project(":ivy"))
-    runtimeOnly(project(":pluginDevelopment"))
+    pluginsRuntimeOnly(platform(project(":distributionsBasics")))
+
+    pluginsRuntimeOnly(project(":signing"))
 }

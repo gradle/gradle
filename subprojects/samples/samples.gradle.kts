@@ -1,4 +1,3 @@
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
@@ -21,11 +20,7 @@ dependencies {
     }
     integTestImplementation(testFixtures(project(":core")))
 
-    integTestRuntimeOnly(project(":distributionsFull"))
-}
-
-tasks.withType<IntegrationTest>().configureEach {
-    libsRepository.required = true
+    integTestDistributionRuntimeOnly(project(":distributionsFull"))
 }
 
 testFilesCleanup {

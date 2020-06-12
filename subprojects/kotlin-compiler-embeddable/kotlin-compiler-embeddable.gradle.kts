@@ -4,7 +4,7 @@ import build.futureKotlin
 import build.kotlinVersion
 
 plugins {
-    gradlebuild.distribution.`core-implementation-kotlin`
+    gradlebuild.distribution.`implementation-kotlin`
 }
 
 description = "Kotlin Compiler Embeddable - patched for Gradle"

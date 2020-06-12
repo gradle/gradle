@@ -15,8 +15,8 @@
  */
 import accessors.groovy
 import org.gradle.gradlebuild.BuildEnvironment
+import org.gradle.gradlebuild.test.integrationtests.addDependenciesAndConfigurations
 import org.gradle.gradlebuild.test.integrationtests.SmokeTest
-import org.gradle.gradlebuild.test.integrationtests.defaultGradleGeneratedApiJarCacheDirProvider
 import org.gradle.gradlebuild.versioning.DetermineCommitId
 import org.gradle.testing.performance.generator.tasks.RemoteProject
 
@@ -29,20 +29,15 @@ val smokeTest: SourceSet by sourceSets.creating {
     runtimeClasspath += sourceSets.main.get().output
 }
 
-val smokeTestImplementation: Configuration by configurations.getting {
-    extendsFrom(configurations.testImplementation.get())
-}
-val smokeTestRuntimeOnly: Configuration by configurations.getting {
-    extendsFrom(configurations.testRuntimeOnly.get())
-}
-val smokeTestCompileClasspath: Configuration by configurations.getting
-val smokeTestRuntimeClasspath: Configuration by configurations.getting
+addDependenciesAndConfigurations("smoke")
+
+val smokeTestImplementation: Configuration by configurations.getting
+val smokeTestDistributionRuntimeOnly: Configuration by configurations.getting
 
 dependencies {
     smokeTestImplementation(project(":baseServices"))
     smokeTestImplementation(project(":coreApi"))
     smokeTestImplementation(project(":testKit"))
-    smokeTestImplementation(project(":internalIntegTesting"))
     smokeTestImplementation(project(":launcher"))
     smokeTestImplementation(project(":persistentCache"))
     smokeTestImplementation(project(":jvmServices"))
@@ -54,10 +49,10 @@ dependencies {
     }
     smokeTestImplementation(testLibrary("spock"))
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":versionControl")))
+    smokeTestImplementation(testFixtures(project(":core")))
+    smokeTestImplementation(testFixtures(project(":versionControl")))
 
-    smokeTestRuntimeOnly(project(":distributionsFull"))
+    smokeTestDistributionRuntimeOnly(project(":distributionsFull"))
 }
 
 fun SmokeTest.configureForSmokeTest() {
@@ -65,9 +60,6 @@ fun SmokeTest.configureForSmokeTest() {
     testClassesDirs = smokeTest.output.classesDirs
     classpath = smokeTest.runtimeClasspath
     maxParallelForks = 1 // those tests are pretty expensive, we shouldn"t execute them concurrently
-    gradleInstallationForTest.gradleGeneratedApiJarCacheDir.set(
-        defaultGradleGeneratedApiJarCacheDirProvider(rootProject.providers, rootProject.layout)
-    )
 }
 
 tasks.register<SmokeTest>("smokeTest") {
@@ -82,6 +74,8 @@ tasks.register<SmokeTest>("instantSmokeTest") {
 }
 
 plugins.withType<IdeaPlugin>().configureEach {
+    val smokeTestCompileClasspath: Configuration by configurations.getting
+    val smokeTestRuntimeClasspath: Configuration by configurations.getting
     model.module {
         testSourceDirs = testSourceDirs + smokeTest.groovy.srcDirs
         testResourceDirs = testResourceDirs + smokeTest.resources.srcDirs

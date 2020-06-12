@@ -17,7 +17,7 @@ import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -67,8 +67,6 @@ dependencies {
     testImplementation(testFixtures(project(":languageGroovy")))
     testImplementation(testFixtures(project(":diagnostics")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":baseServicesGroovy"))
     testFixturesImplementation(project(":fileCollections"))
@@ -78,7 +76,10 @@ dependencies {
     testFixturesImplementation(project(":resources"))
     testFixturesImplementation(library("guava"))
 
-    integTestRuntimeOnly(project(":distributionsMinimal")) //TODO publishing?
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
 }
 
 strictCompile {
@@ -88,16 +89,6 @@ strictCompile {
 
 classycle {
     excludePatterns.set(listOf("org/gradle/**"))
-}
-
-val wrapperJarDir = file("$buildDir/generated-resources/wrapper-jar")
-evaluationDependsOn(":wrapper")
-val wrapperJar by tasks.registering(Copy::class) {
-    from(project(":wrapper").tasks.named("executableJar"))
-    into(wrapperJarDir)
-}
-sourceSets.main {
-    output.dir(wrapperJarDir, "builtBy" to wrapperJar)
 }
 
 testFilesCleanup {

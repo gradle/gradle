@@ -18,7 +18,7 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.api.internal.runtimeshaded.PackageListGenerator
 
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`implementation-java`
 }
 
 dependencies {
@@ -39,7 +39,11 @@ dependencies {
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(library("slf4j_api"))
 
-    integTestRuntimeOnly(project(":distributionsNative"))
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
+}
 
 val generateTestKitPackageList by tasks.registering(PackageListGenerator::class) {
     classpath = sourceSets.main.get().runtimeClasspath

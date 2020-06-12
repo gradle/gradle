@@ -15,7 +15,7 @@
  */
 
 plugins {
-    gradlebuild.distribution.`plugins-implementation-java`
+    gradlebuild.distribution.`implementation-java`
     gradlebuild.classycle
 }
 

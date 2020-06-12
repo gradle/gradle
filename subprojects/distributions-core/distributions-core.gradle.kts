@@ -1,17 +1,32 @@
 plugins {
-    gradlebuild.internal.java
-    gradlebuild.distributions
+    gradlebuild.distribution.packaging
 }
 
 dependencies {
-    runtimeOnly(project(":installationBeacon"))
-    runtimeOnly(project(":runtimeApiInfo"))
-    runtimeOnly(project(":apiMetadata"))
-    runtimeOnly(project(":docs")) // TODO get rid of docs.jar and move the needed resources into one of the other jars
-    runtimeOnly(project(":launcher")) {
-        because("This is the entry point of Gradle core which which transitively depends on all other core projects.")
+    coreRuntimeOnly(platform(project(":corePlatform")))
+
+    pluginsRuntimeOnly(project(":pluginUse")) {
+        because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }
-    runtimeOnly(project(":kotlinDsl")) {
-        because("Adds support for Kotlin DSL scripts")
+    pluginsRuntimeOnly(project(":dependencyManagement")) {
+        because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
+    }
+    pluginsRuntimeOnly(project(":workers")) {
+        because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
+    }
+    pluginsRuntimeOnly(project(":compositeBuilds")) {
+        because("We always need a BuildStateRegistry service implementation for certain code in ':core' to work.")
+    }
+    pluginsRuntimeOnly(project(":versionControl")) {
+        because("We always need a VcsMappingsStore service implementation to create 'ConfigurationContainer' in ':dependency-management'.")
+    }
+    pluginsRuntimeOnly(project(":instantExecution")) {
+        because("We always need a BuildLogicTransformStrategy service implementation.")
+    }
+    pluginsRuntimeOnly(project(":testingJunitPlatform")) {
+        because("All test workers have JUnit platform on their classpath (see ForkingTestClassProcessor.getTestWorkerImplementationClasspath).")
+    }
+    pluginsRuntimeOnly(project(":kotlinDslProviderPlugins")) {
+        because("We need a KotlinScriptBasePluginsApplicator service implementation to use Kotlin DSL scripts.")
     }
 }

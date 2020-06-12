@@ -1,7 +1,7 @@
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -25,14 +25,17 @@ dependencies {
     testImplementation(project(":snapshots"))
     testImplementation(project(":processServices"))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
     testFixturesApi(project(":core"))
     testFixturesApi(project(":fileCollections"))
     testFixturesApi(testFixtures(project(":modelCore")))
     testFixturesImplementation(library("guava"))
     testFixturesApi(testFixtures(project(":modelCore")))
     testFixturesApi(testFixtures(project(":diagnostics")))
+
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("RuntimeShadedJarCreatorTest requires a distribution to access the ...-relocated.txt metadata")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }
 
 classycle {

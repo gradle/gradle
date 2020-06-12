@@ -308,7 +308,7 @@ class CIConfigIntegrationTests {
         val projectsWithFunctionalTests = model.subprojects.subprojects.filter { it.functionalTests }
         val projectFoldersWithFunctionalTests = subProjectFolderList().filter {
             File(it, "src/integTest").exists() &&
-                it.name != "distributions" && // distributions:integTest is part of Build Distributions
+                it.name != "distributions-integ-tests" && // distributions:integTest is part of Build Distributions
                 it.name != "soak" // soak tests have their own test category
         }
         assertFalse(projectFoldersWithFunctionalTests.isEmpty())
