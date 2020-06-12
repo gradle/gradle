@@ -20,29 +20,21 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.NONE
 
+// Note: most of the other tests are structure to implicitly also exercise configuration caching
+// This tests some specific aspects, and serves as an early smoke test.
 class GradleEnterprisePluginConfigurationCachingIntegrationTest extends AbstractIntegrationSpec {
 
     def plugin = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
-        settingsFile << plugin.pluginManagement()
+        settingsFile << plugin.pluginManagement() << plugin.plugins()
         plugin.publishDummyPlugin(executer)
         buildFile << """
             task t
-            task f { doLast { throw new RuntimeException("failed") } }
-        """
-    }
-
-    void applyPlugin() {
-        settingsFile << """
-            plugins { id "$plugin.id" version "$plugin.artifactVersion" }
         """
     }
 
     def "registered service factory is invoked for from cache build"() {
-        given:
-        applyPlugin()
-
         when:
         succeeds "t", "--configuration-cache"
 
@@ -60,9 +52,6 @@ class GradleEnterprisePluginConfigurationCachingIntegrationTest extends Abstract
 
     def "returned service ref refers to service for that build"() {
         given:
-        applyPlugin()
-
-        and:
         buildFile << """
             def serviceRef = gradle.extensions.serviceRef
             task p {
@@ -71,6 +60,7 @@ class GradleEnterprisePluginConfigurationCachingIntegrationTest extends Abstract
                 }
             }
         """
+
         when:
         succeeds "p", "--configuration-cache"
         def firstInvocationId = output.find(~/(?<=extension-buildInvocationId=).+(?=\n)/)
