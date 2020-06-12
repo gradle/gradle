@@ -16,6 +16,7 @@
 
 package org.gradle.resolve
 
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -44,6 +45,10 @@ class DependencyResolutionStressTest extends Specification {
 
     def setup() {
         concurrent.shortTimeout = 180000
+    }
+
+    def cleanup() {
+        new DaemonLogsAnalyzer(workspace.file("daemon")).daemons.each { it.kill() }
     }
 
     def "handles concurrent access to changing artifacts"() {
