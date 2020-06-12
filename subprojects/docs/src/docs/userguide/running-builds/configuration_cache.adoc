@@ -141,6 +141,51 @@ $ rm -rf .gradle/configuration-cache
 Configuration cache entries are checked periodically (at most every 24 hours) for whether they are still in use.
 They are deleted if they haven't been used for 7 days.
 
+== IDE support
+
+If you enable and configure the configuration cache from your `gradle.properties` file, then the configuration cache will be enabled when your IDE delegates to Gradle.
+There's nothing more to do.
+
+`gradle.properties` is usually checked in source control.
+If you don't want to enable the configuration cache for your whole team yet you can also enable the configuration cache from your IDE only.
+
+Note that syncing a build from an IDE doesn't benefit from the configuration cache, only running tasks does.
+Future Gradle versions will make IDE sync faster.
+
+=== IntelliJ based IDEs
+
+In IntelliJ IDEA or Android Studio this can be done in two ways, either globally or per run configuration.
+
+To enable it globally, go to `Help > Edit Custom VM Options...`.
+This will open the IntelliJ IDEA or Android Studio custom VM options file.
+You can use the properties described above as system properties.
+For example to enable the configuration cache, turning problems into warnings, add the following to this file:
+
+[source]
+----
+-Dorg.gradle.unsafe.configuration-cache=true
+-Dorg.gradle.unsafe.configuration-cache-problems=warn
+----
+
+To enable it for a given run configuration, simply add the same system properties to the `VM options` field.
+
+Combining these two ways you can enable globally and disable for certain run configurations, or the opposite.
+
+=== Eclipse IDEs
+
+In Eclipse IDEs you can enable and configure the configuration cache through Buildship in two ways, either globally or per run configuration.
+
+To enable it globally, go to `Preferences > Gradle`.
+You can use the properties described above as system properties.
+For example to enable the configuration cache, turning problems into warnings, add the following JVM arguments:
+
+* `-Dorg.gradle.unsafe.configuration-cache=true`
+* `-Dorg.gradle.unsafe.configuration-cache-problems=warn`
+
+To enable it for a given run configuration, go to `Run configurations...`, find the one you want to change, go to `Project Settings`, tick the `Override project settings` checkbox and add the same system properties as a `JVM argument`.
+
+Combining these two ways you can enable globally and disable for certain run configurations, or the opposite.
+
 [[troubleshooting]]
 == Troubleshooting
 
