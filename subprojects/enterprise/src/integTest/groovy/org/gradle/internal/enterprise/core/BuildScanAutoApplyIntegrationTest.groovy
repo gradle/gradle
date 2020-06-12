@@ -44,6 +44,10 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         fixture.publishDummyPlugin(executer)
     }
 
+    void applyPlugin() {
+        settingsFile << fixture.plugins()
+    }
+
     def "automatically applies plugin when --scan is provided on command-line"() {
         when:
         runBuildWithScanRequest()
@@ -111,11 +115,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         when:
         fixture.runtimeVersion = version
         fixture.artifactVersion = version
-        settingsFile << """
-            plugins {
-                id '$GRADLE_ENTERPRISE_PLUGIN_ID' version '$version'
-            }
-        """
+        settingsFile << fixture.plugins()
 
         and:
         runBuildWithScanRequest()
@@ -243,6 +243,58 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
             "The build scan plugin is not compatible with this version of Gradle.\n" +
                 "Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information."
         )
+    }
+
+    def "warns if scan requested but no scan plugin applied"() {
+        given:
+        applyPlugin()
+        fixture.doCheckIn = false
+
+        when:
+        succeeds "t", "--scan"
+
+        then:
+        fixture.issuedNoPluginWarning(output)
+    }
+
+    def "does not warn if no scan requested but no scan plugin applied"() {
+        given:
+        applyPlugin()
+        fixture.doCheckIn = false
+
+        when:
+        succeeds "t", "--no-scan"
+
+        then:
+        fixture.didNotIssuedNoPluginWarning(output)
+    }
+
+    @ToBeFixedForInstantExecution
+    def "does not warn for each nested build if --scan used"() {
+        given:
+        applyPlugin()
+        fixture.doCheckIn = false
+
+        file("buildSrc/build.gradle") << ""
+        file("a/buildSrc/build.gradle") << ""
+        file("a/build.gradle") << ""
+        file("a/settings.gradle") << ""
+        file("b/buildSrc/build.gradle") << ""
+        file("b/build.gradle") << ""
+        file("b/settings.gradle") << ""
+        settingsFile << """
+            includeBuild "a"
+            includeBuild "b"
+        """
+        buildFile.text = """
+            task t
+        """
+
+        when:
+        succeeds "t", "--scan"
+
+        then:
+        fixture.issuedNoPluginWarningCount(output, 1)
     }
 
     private void runBuildWithScanRequest(String... additionalArgs) {

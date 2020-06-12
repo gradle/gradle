@@ -17,17 +17,15 @@
 package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
-import org.gradle.internal.enterprise.impl.DefautGradleEnterprisePluginCheckInService
 import spock.lang.Unroll
 
 @Unroll
-class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSpec {
+class GradleEnterprisePluginEndOfBuildCallbackIntegrationTest extends AbstractIntegrationSpec {
 
     def plugin = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
-        settingsFile << plugin.pluginManagement()
+        settingsFile << plugin.pluginManagement() << plugin.plugins()
         plugin.publishDummyPlugin(executer)
         buildFile << """
             task t
@@ -35,40 +33,21 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         """
     }
 
-
-    void applyPlugin() {
-        settingsFile << plugin.plugins()
-    }
-
-    def "detects that the build scan plugin has been [applied=#applied]"() {
-        given:
-        if (applied) {
-            applyPlugin()
-        }
-
-        settingsFile << """
-            println "present: " + services.get($GradleEnterprisePluginManager.name).present
-        """
-
+    def "end of build listener is notified on success"() {
         when:
         succeeds "t"
 
         then:
-        output.contains("present: ${applied}")
-
-        where:
-        applied << [true, false]
+        plugin.assertEndOfBuildWithFailure(output, null)
     }
 
-    def "can convey unsupported to plugin that supports it"() {
-        given:
-        applyPlugin()
-
+    def "end of build listener is notified on failure"() {
         when:
-        succeeds "t", "-D${DefautGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE}=true"
+        fails "f"
 
         then:
-        plugin.assertUnsupportedMessage(output, DefautGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE)
+        plugin.assertEndOfBuildWithFailure(output, "org.gradle.internal.exceptions.LocationAwareException: Build file")
     }
+
 
 }

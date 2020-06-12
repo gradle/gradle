@@ -17,12 +17,14 @@
 package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
-import org.gradle.internal.enterprise.impl.DefautGradleEnterprisePluginCheckInService
 import spock.lang.Unroll
 
+import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.NONE
+import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.REQUESTED
+import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.SUPPRESSED
+
 @Unroll
-class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSpec {
+class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpec {
 
     def plugin = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
@@ -31,44 +33,44 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         plugin.publishDummyPlugin(executer)
         buildFile << """
             task t
-            task f { doLast { throw new RuntimeException("failed") } }
         """
     }
 
-
-    void applyPlugin() {
-        settingsFile << plugin.plugins()
-    }
-
-    def "detects that the build scan plugin has been [applied=#applied]"() {
+    def "has none requestedness if no switch present"() {
         given:
-        if (applied) {
-            applyPlugin()
-        }
-
-        settingsFile << """
-            println "present: " + services.get($GradleEnterprisePluginManager.name).present
-        """
+        applyPlugin()
 
         when:
         succeeds "t"
 
         then:
-        output.contains("present: ${applied}")
-
-        where:
-        applied << [true, false]
+        plugin.assertBuildScanRequest(output, NONE)
     }
 
-    def "can convey unsupported to plugin that supports it"() {
+    def "is requested with --scan"() {
         given:
         applyPlugin()
 
         when:
-        succeeds "t", "-D${DefautGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE}=true"
+        succeeds "t", "--scan"
 
         then:
-        plugin.assertUnsupportedMessage(output, DefautGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE)
+        plugin.assertBuildScanRequest(output, REQUESTED)
+    }
+
+    def "is suppressed with --no-scan"() {
+        given:
+        applyPlugin()
+
+        when:
+        succeeds "t", "--no-scan"
+
+        then:
+        plugin.assertBuildScanRequest(output, SUPPRESSED)
+    }
+
+    void applyPlugin() {
+        settingsFile << plugin.plugins()
     }
 
 }
