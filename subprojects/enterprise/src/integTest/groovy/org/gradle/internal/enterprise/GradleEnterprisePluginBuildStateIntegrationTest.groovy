@@ -22,9 +22,7 @@ import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.scopeids.id.UserScopeId
 import org.gradle.internal.scopeids.id.WorkspaceScopeId
 import org.gradle.internal.time.Clock
-import spock.lang.Unroll
 
-@Unroll
 class GradleEnterprisePluginBuildStateIntegrationTest extends AbstractIntegrationSpec {
 
     def plugin = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())

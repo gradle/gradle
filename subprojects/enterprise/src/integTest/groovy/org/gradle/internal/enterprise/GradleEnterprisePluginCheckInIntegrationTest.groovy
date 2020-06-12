@@ -21,7 +21,6 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.enterprise.impl.DefautGradleEnterprisePluginCheckInService
 import spock.lang.Unroll
 
-@Unroll
 class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSpec {
 
     def plugin = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
@@ -40,6 +39,7 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         settingsFile << plugin.plugins()
     }
 
+    @Unroll
     def "detects that the build scan plugin has been [applied=#applied]"() {
         given:
         if (applied) {

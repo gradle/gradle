@@ -18,6 +18,7 @@ package org.gradle.internal.enterprise
 
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
+import org.gradle.execution.RunRootBuildWorkBuildOperationType
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.operations.notify.BuildOperationFinishedNotification
@@ -114,7 +115,11 @@ class GradleEnterprisePluginCheckInFixture {
 
                             $BuildOperationNotificationListener.name getBuildOperationNotificationListener() {
                                 new $BuildOperationNotificationListener.name() {
-                                    void started($BuildOperationStartedNotification.name notification) {}
+                                    void started($BuildOperationStartedNotification.name notification) {
+                                        if (notification.notificationOperationDetails instanceof ${RunRootBuildWorkBuildOperationType.Details.name}) {
+                                            println "gradleEnterprisePlugin.buildOperationNotificationListener.received = true"
+                                        }
+                                    }
                                     void progress($BuildOperationProgressNotification.name notification) {}
                                     void finished($BuildOperationFinishedNotification.name notification) {}
                                 }
@@ -162,6 +167,10 @@ class GradleEnterprisePluginCheckInFixture {
 
     void assertEndOfBuildWithFailure(String output, @Nullable String failure) {
         assert output.contains("gradleEnterprisePlugin.endOfBuild.buildResult.failure = $failure")
+    }
+
+    void receivedBuildOperationNotifications(String output) {
+        assert output.contains("gradleEnterprisePlugin.buildOperationNotificationListener.received = true")
     }
 
     void issuedNoPluginWarning(String output) {

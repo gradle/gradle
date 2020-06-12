@@ -20,9 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.internal.scan.eob.BuildScanEndOfBuildNotifier
 import spock.lang.Issue
-import spock.lang.Unroll
 
-@Unroll
 class BuildScanEndOfBuildNotifierIntegrationTest extends AbstractIntegrationSpec {
 
     def scanPlugin = new GradleEnterprisePluginLegacyContactPointFixture(testDirectory, mavenRepo, createExecuter())
