@@ -32,7 +32,6 @@ import org.gradle.api.internal.artifacts.transform.TransformedExternalArtifactSe
 import org.gradle.api.internal.artifacts.transform.TransformedProjectArtifactSet;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
@@ -133,7 +132,7 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
     }
 
     @Override
-    public ResolvedArtifactSet asTransformed(ResolvedArtifactSet artifacts, AttributeContainerInternal targetAttributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformationNodeRegistry transformationNodeRegistry) {
+    public ResolvedArtifactSet asTransformed(ResolvedArtifactSet artifacts, ImmutableAttributes targetAttributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformationNodeRegistry transformationNodeRegistry) {
         if (componentIdentifier instanceof ProjectComponentIdentifier) {
             return new TransformedProjectArtifactSet(componentIdentifier, artifacts, targetAttributes, transformation, dependenciesResolver, transformationNodeRegistry);
         } else {

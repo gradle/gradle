@@ -27,7 +27,7 @@ import org.gradle.process.JavaForkOptions;
 import java.util.concurrent.Executor;
 
 /**
- * Use {@link ExecActionFactory} or {@link DslExecActionFactory} instead.
+ * Use {@link ExecActionFactory} (for core code) or {@link org.gradle.process.ExecOperations} (for plugin code) instead.
  */
 public class DefaultJavaExecAction extends JavaExecHandleBuilder implements JavaExecAction {
     public DefaultJavaExecAction(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Executor executor, BuildCancellationToken buildCancellationToken, JavaModuleDetector javaModuleDetector, JavaForkOptions javaOptions) {

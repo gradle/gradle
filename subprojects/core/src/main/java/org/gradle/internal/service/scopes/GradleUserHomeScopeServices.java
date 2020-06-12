@@ -23,9 +23,11 @@ import org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJourna
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
@@ -62,6 +64,7 @@ import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -69,6 +72,7 @@ import org.gradle.internal.vfs.AdditiveCache;
 import org.gradle.internal.vfs.AdditiveCacheLocations;
 import org.gradle.internal.vfs.DefaultAdditiveCacheLocations;
 import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
@@ -167,10 +171,13 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
             additiveCaches);
     }
 
+    ExecFactory createExecFactory(ExecFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
+        return parent.forContext(fileResolver, fileCollectionFactory, instantiator, objectFactory, javaModuleDetector);
+    }
+
     WorkerProcessFactory createWorkerProcessFactory(LoggingManagerInternal loggingManagerInternal, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
                                                     TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory, JvmVersionDetector jvmVersionDetector,
-                                                    JavaModuleDetector javaModuleDetector, MemoryManager memoryManager, GradleUserHomeDirProvider gradleUserHomeDirProvider,
-                                                    OutputEventListener outputEventListener) {
+                                                    MemoryManager memoryManager, GradleUserHomeDirProvider gradleUserHomeDirProvider, OutputEventListener outputEventListener) {
         return new DefaultWorkerProcessFactory(
             loggingManagerInternal,
             messagingServer,
@@ -180,7 +187,6 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
             temporaryFileProvider,
             execHandleFactory,
             jvmVersionDetector,
-            javaModuleDetector,
             outputEventListener,
             memoryManager
         );
