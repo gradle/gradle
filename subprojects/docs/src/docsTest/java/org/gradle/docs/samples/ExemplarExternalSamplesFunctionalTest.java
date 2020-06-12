@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.FailOnDeprecationSampleModifier;
 import org.gradle.integtests.fixtures.executer.MoreMemorySampleModifier;
 import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.DependencyInsightOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.GradleWelcomeOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.PlayComponentReportOutputNormalizer;
@@ -37,6 +38,7 @@ import org.junit.runner.RunWith;
     SampleOutputNormalizer.class,
     JavaObjectSerializationOutputNormalizer.class,
     FileSeparatorOutputNormalizer.class,
+    GradleWelcomeOutputNormalizer.class,
     GradleOutputNormalizer.class,
     ArtifactResolutionOmittingOutputNormalizer.class,
     NativeComponentReportOutputNormalizer.class,
