@@ -61,6 +61,35 @@ Apart from skipping the configuration phase, the configuration cache provides so
 
 == Using the configuration cache
 
+It is recommended to get started with the simplest task invocation possible.
+Running `help` with the configuration cache enabled is a good first step:
+
+[source,text]
+----
+❯ gradle --configuration-cache help
+include::{snippetsPath}/configurationCache/noProblem/tests/store.out[]
+----
+
+Running this for the first time, the configuration phase is executed, calculating the task graph.
+
+Then, run the same command again.
+This will reuse the cached configuration:
+
+[source,text]
+----
+❯ gradle --configuration-cache help
+include::{snippetsPath}/configurationCache/noProblem/tests/load.out[]
+----
+
+If it succeeds on your build, congratulations, you can now try with more useful tasks.
+You should target your development loop.
+A good example is running tests after making incremental changes.
+
+If any problem is found caching or reusing the configuration, an HTML report is generated to help you diagnose and fix the issues.
+See the <<configuration_cache#troubleshooting>> section below for more information.
+
+Keep reading to learn how to tweak the configuration cache, manually invalidate the state if something goes wrong and use the configuration cache from an IDE.
+
 [[enable]]
 === Enabling the configuration cache
 
