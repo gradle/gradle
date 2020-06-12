@@ -141,6 +141,27 @@ $ rm -rf .gradle/configuration-cache
 Configuration cache entries are checked periodically (at most every 24 hours) for whether they are still in use.
 They are deleted if they haven't been used for 7 days.
 
+[[troubleshooting]]
+== Troubleshooting
+
+Upon failure to serialize the state required to run the tasks, an HTML report of detected problems is generated.
+The Gradle failure output includes a clickable link to the report.
+
+// TODO sample output from snippet
+
+The report displays the set of problems twice.
+First grouped by problem message, then grouped by task.
+The former allows to quickly see what classes of problems your build is facing.
+The latter allows to quickly see which tasks are problematic.
+In both cases you can expand the tree in order to discover where in the object graph is the culprit.
+
+[TIP]
+====
+Problems displayed in the report have links to the corresponding <<configuration_cache#requirements,requirement>> where you can find guidance on how to fix the problem or to the corresponding <<configuration_cache#not_yet_implemented,not yet implemented>> feature.
+
+When changing your build or plugin to fix the problems you should consider <<configuration_cache#testkit, testing your build logic with TestKit>>.
+====
+
 [[plugin_support]]
 == Supported plugins
 
@@ -218,27 +239,6 @@ a|
 [.gray]#✖#:: Won't fix
 
 Later Gradle releases will add support for more core plugins.
-
-[[troubleshooting]]
-== Troubleshooting
-
-Upon failure to serialize the state required to run the tasks, an HTML report of detected problems is generated.
-The Gradle failure output includes a clickable link to the report.
-
-// TODO sample output from snippet
-
-The report displays the set of problems twice.
-First grouped by problem message, then grouped by task.
-The former allows to quickly see what classes of problems your build is facing.
-The latter allows to quickly see which tasks are problematic.
-In both cases you can expand the tree in order to discover where in the object graph is the culprit.
-
-[TIP]
-====
-Problems displayed in the report have links to the corresponding <<configuration_cache#requirements,requirement>> where you can find guidance on how to fix the problem or to the corresponding <<configuration_cache#not_yet_implemented,not yet implemented>> feature.
-
-When changing your build or plugin to fix the problems you should consider <<configuration_cache#testkit, testing your build logic with TestKit>>.
-====
 
 [[requirements]]
 == Requirements
