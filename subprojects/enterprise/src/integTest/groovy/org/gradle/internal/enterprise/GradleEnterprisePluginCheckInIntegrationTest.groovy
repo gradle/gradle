@@ -71,4 +71,21 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         plugin.assertUnsupportedMessage(output, DefautGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE)
     }
 
+    def "checkin happens once for build with buildSrc"() {
+        given:
+        applyPlugin()
+        file("buildSrc/src/main/groovy/Thing.groovy") << "class Thing {}"
+
+        when:
+        succeeds "t"
+
+        then:
+        plugin.serviceCreatedOnce(output)
+
+        when:
+        succeeds "t"
+
+        then:
+        plugin.serviceCreatedOnce(output)
+    }
 }

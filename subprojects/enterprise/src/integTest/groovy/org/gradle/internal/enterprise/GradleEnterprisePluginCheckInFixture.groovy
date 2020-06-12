@@ -185,6 +185,10 @@ class GradleEnterprisePluginCheckInFixture {
         assert output.count(GradleEnterprisePluginManager.NO_SCAN_PLUGIN_MSG) == count
     }
 
+    void serviceCreatedOnce(String output) {
+        assert output.count("gradleEnterprisePlugin.serviceFactoryCreate.config.buildScanRequest") == 1
+    }
+
     void appliedOnce(String output) {
         assert output.count("gradleEnterprisePlugin.apply.runtimeVersion = $runtimeVersion") == 1
     }
