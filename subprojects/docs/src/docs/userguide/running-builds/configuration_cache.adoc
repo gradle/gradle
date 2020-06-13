@@ -22,6 +22,10 @@ In other words, the configuration cache caches the output of the configuration p
 [IMPORTANT]
 ====
 This feature is currently *experimental* and not enabled by default.
+
+Not all <<#core_plugins, core Gradle plugins>> are supported.
+Your build and the plugins you depend on might require changes to fulfil the <<#requirements, requirements>>.
+Some Gradle features are <<#not_yet_implemented, not yet implemented>>.
 ====
 
 === How does it work?
