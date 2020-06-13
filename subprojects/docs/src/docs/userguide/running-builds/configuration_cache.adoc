@@ -699,6 +699,12 @@ When it comes to link:https://gradle.com/build-scans/[build scans], only the `--
 The build scan plugin is currently ignored when applied via an init script or build script, as is any configuration done via the build scan extension (server location, accept license, tags, etc).
 This means that scans will be published to the public `scans.gradle.com` instance by default.
 
+=== Sharing the configuration cache
+
+The configuration cache is currently stored locally only.
+It can be reused by hot or cold local Gradle daemons.
+But it can't be shared between developers or CI machines.
+
 [[composite_builds]]
 === Composite builds
 
