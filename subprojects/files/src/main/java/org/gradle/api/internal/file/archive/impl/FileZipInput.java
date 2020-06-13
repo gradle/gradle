@@ -52,11 +52,8 @@ public class FileZipInput implements ZipInput {
      * {@link ZipFile} is more efficient, but causes memory leaks on older Java versions, so we only use it on more recent ones.
      */
     private static boolean isZipFileSafeToUse() {
-        return isJava11OrLater();
-    }
-
-    private static boolean isJava11OrLater() {
         String versionString = System.getProperty("java.specification.version");
+        // Java versions 8 and older had 1.8 versioning scheme, later ones have single number 9, 10, ...
         String[] versionParts = versionString.split("\\.");
         if (versionParts.length < 1) {
             throw new IllegalArgumentException("Could not determine java version from '" + versionString + "'.");
