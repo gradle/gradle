@@ -663,7 +663,8 @@ To fix this problem, read files using link:{javadocPath}/org/gradle/api/provider
 .build.gradle
 [source,groovy]
 ----
-def config = providers.fileContents("some.conf").forUseAtConfigurationTime().asText
+def config = providers.fileContents(layout.projectDirectory.file('some.conf'))
+    .asText.forUseAtConfigurationTime()
 ----
 =====
 
@@ -672,7 +673,8 @@ def config = providers.fileContents("some.conf").forUseAtConfigurationTime().asT
 .build.gradle.kts
 [source,kotlin]
 ----
-val config = providers.fileContents("some.conf").forUseAtConfigurationTime().asText
+val config = providers.fileContents(layout.projectDirectory.file("some.conf"))
+    .asText.forUseAtConfigurationTime()
 ----
 =====
 ====
