@@ -17,11 +17,14 @@
 package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.NONE
 
 // Note: most of the other tests are structure to implicitly also exercise configuration caching
 // This tests some specific aspects, and serves as an early smoke test.
+@IgnoreIf({ GradleContextualExecuter.instant })
 class GradleEnterprisePluginConfigurationCachingIntegrationTest extends AbstractIntegrationSpec {
 
     def plugin = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
