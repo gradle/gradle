@@ -42,8 +42,6 @@ import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -67,16 +65,11 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 
-import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 
-import static org.gradle.internal.enterprise.core.GradleEnterprisePluginManager.NO_SCAN_PLUGIN_MSG;
-
 public abstract class DefaultGradle extends AbstractPluginAware implements GradleInternal {
-
-    private static final Logger LOGGER = Logging.getLogger(DefaultGradle.class);
 
     private SettingsInternal settings;
     private ProjectInternal rootProject;
@@ -113,29 +106,8 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             }
         });
 
-        registerMissingBuildScanPluginWarningListenerIfRootBuild(parent, startParameter);
-    }
-
-    /**
-     * Causes a warning to be emitted if the --scan was used but the plugin didn't show up.
-     *
-     * This should never happen due to the auto apply behavior.
-     * It's only here as a kind of safeguard or fallback.
-     */
-    private void registerMissingBuildScanPluginWarningListenerIfRootBuild(GradleInternal parent, StartParameter startParameter) {
         if (parent == null) {
-            boolean requested = !startParameter.isNoBuildScan() && startParameter.isBuildScan();
-            if (requested) {
-                addListener(new InternalBuildAdapter() {
-                    @Override
-                    public void projectsEvaluated(@Nonnull Gradle ignored) {
-                        boolean present = getServices().get(GradleEnterprisePluginManager.class).isPresent();
-                        if (!present) {
-                            LOGGER.warn(NO_SCAN_PLUGIN_MSG);
-                        }
-                    }
-                });
-            }
+            services.get(GradleEnterprisePluginManager.class).registerMissingPluginWarning(this);
         }
     }
 

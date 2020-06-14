@@ -17,10 +17,19 @@
 package org.gradle.internal.enterprise.core;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.StartParameter;
+import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.internal.InternalBuildAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class GradleEnterprisePluginManager {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GradleEnterprisePluginManager.class);
 
     @VisibleForTesting
     public static final String NO_SCAN_PLUGIN_MSG = "An internal error occurred that prevented a build scan from being created.\n" +
@@ -51,4 +60,26 @@ public class GradleEnterprisePluginManager {
             adapter.buildFinished(buildFailure);
         }
     }
+
+    /**
+     * This should never happen due to the auto apply behavior.
+     * It's only here as a kind of safeguard or fallback.
+     */
+    public void registerMissingPluginWarning(GradleInternal gradle) {
+        if (gradle.getParent() == null) {
+            StartParameter startParameter = gradle.getStartParameter();
+            boolean requested = !startParameter.isNoBuildScan() && startParameter.isBuildScan();
+            if (requested) {
+                gradle.addListener(new InternalBuildAdapter() {
+                    @Override
+                    public void settingsEvaluated(@Nonnull Settings settings) {
+                        if (!isPresent()) {
+                            LOGGER.warn(NO_SCAN_PLUGIN_MSG);
+                        }
+                    }
+                });
+            }
+        }
+    }
+
 }
