@@ -16,7 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -33,13 +33,13 @@ import org.gradle.internal.work.WorkerLeaseService;
  * Contains the singleton services for a single build tree which consists of one or more builds.
  */
 public class BuildTreeScopeServices extends DefaultServiceRegistry {
-    public BuildTreeScopeServices(final ServiceRegistry parent, GradleInternal.BuildType buildType) {
+    public BuildTreeScopeServices(final ServiceRegistry parent, BuildType buildType) {
         super(parent);
         register(registration -> {
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerBuildTreeServices(registration);
             }
-            registration.add(GradleInternal.BuildType.class, buildType);
+            registration.add(BuildType.class, buildType);
         });
 
     }

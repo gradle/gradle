@@ -17,6 +17,7 @@
 package org.gradle.internal.enterprise.impl;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
 
@@ -25,9 +26,9 @@ public class DefaultGradleEnterprisePluginConfig implements GradleEnterprisePlug
     private final BuildScanRequest buildScanRequest;
     private final boolean taskExecutingBuild;
 
-    public DefaultGradleEnterprisePluginConfig(GradleInternal gradle) {
+    public DefaultGradleEnterprisePluginConfig(GradleInternal gradle, BuildType buildType) {
         this.buildScanRequest = buildScanRequest(gradle.getStartParameter());
-        this.taskExecutingBuild = gradle.getBuildType() == GradleInternal.BuildType.TASKS;
+        this.taskExecutingBuild = buildType == BuildType.TASKS;
     }
 
     @Override

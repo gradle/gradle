@@ -17,6 +17,7 @@
 package org.gradle.internal.scan.config
 
 import org.gradle.StartParameter
+import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.GradleInternal
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
@@ -105,6 +106,7 @@ class LegacyGradleEnterprisePluginCheckInServiceTest extends Specification {
         new LegacyGradleEnterprisePluginCheckInService(
             gradle,
             new GradleEnterprisePluginManager(),
+            BuildType.TASKS
         )
     }
 

@@ -17,6 +17,7 @@
 package org.gradle.internal.enterprise.impl.legacy;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -42,16 +43,19 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
 
     private final GradleInternal gradle;
     private final GradleEnterprisePluginManager manager;
+    private final BuildType buildType;
 
     private BuildScanEndOfBuildNotifier.Listener listener;
 
     @Inject
     public LegacyGradleEnterprisePluginCheckInService(
         GradleInternal gradle,
-        GradleEnterprisePluginManager manager
+        GradleEnterprisePluginManager manager,
+        BuildType buildType
     ) {
         this.gradle = gradle;
         this.manager = manager;
+        this.buildType = buildType;
     }
 
     public static String unsupportedReason() {
@@ -101,7 +105,7 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
         }
 
         if (unsupportedReason == null || isPluginAwareOfUnsupported(pluginVersion)) {
-            BuildScanConfig.Attributes configAttributes = configAttributes(gradle);
+            BuildScanConfig.Attributes configAttributes = configAttributes(buildType);
             return requestedness(gradle).toConfig(unsupportedReason, configAttributes);
         } else {
             throw new UnsupportedBuildScanPluginVersionException(unsupportedReason);
@@ -127,7 +131,7 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
         }
     }
 
-    private static BuildScanConfig.Attributes configAttributes(GradleInternal gradle) {
+    private static BuildScanConfig.Attributes configAttributes(BuildType buildType) {
         return new BuildScanConfig.Attributes() {
             @Override
             public boolean isRootProjectHasVcsMappings() {
@@ -137,7 +141,7 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
             @Override
             public boolean isTaskExecutingBuild() {
                 boolean forceTaskExecutingBuild = System.getProperty("org.gradle.internal.ide.scan") != null;
-                return forceTaskExecutingBuild || gradle.getBuildType() == GradleInternal.BuildType.TASKS;
+                return forceTaskExecutingBuild || buildType == BuildType.TASKS;
             }
         };
     }

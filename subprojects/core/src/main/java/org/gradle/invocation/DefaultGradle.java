@@ -85,7 +85,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private boolean projectsLoaded;
     private Path identityPath;
     private ClassLoaderScope classLoaderScope;
-    private BuildType buildType = BuildType.NONE;
     private ClassLoaderScope baseProjectClassLoaderScope;
 
     public DefaultGradle(GradleInternal parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
@@ -553,13 +552,4 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public BuildType getBuildType() {
-        return buildType;
-    }
-
-    @Override
-    public void setBuildType(BuildType buildType) {
-        this.buildType = buildType;
-    }
 }

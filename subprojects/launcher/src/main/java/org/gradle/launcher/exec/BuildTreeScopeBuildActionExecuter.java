@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.BuildType;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
@@ -39,7 +39,7 @@ public class BuildTreeScopeBuildActionExecuter implements BuildActionExecuter<Bu
         if (!(contextServices instanceof BuildSessionScopeServices)) {
             throw new IllegalArgumentException("Service registry must be of build session scope");
         }
-        GradleInternal.BuildType buildType = action instanceof ExecuteBuildAction ? GradleInternal.BuildType.TASKS : GradleInternal.BuildType.NONE;
+        BuildType buildType = action instanceof ExecuteBuildAction ? BuildType.TASKS : BuildType.MODEL;
         BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(contextServices, buildType);
         try {
             return delegate.execute(action, requestContext, actionParameters, buildTreeScopeServices);
