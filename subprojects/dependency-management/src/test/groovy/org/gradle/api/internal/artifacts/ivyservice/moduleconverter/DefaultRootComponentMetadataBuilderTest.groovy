@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
@@ -37,7 +36,6 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     }
     ComponentIdentifierFactory componentIdentifierFactory = Mock()
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
-    ProjectFinder projectFinder = Mock()
     LocalComponentMetadataBuilder configurationComponentMetaDataBuilder = Mock()
     def configurationsProvider = Stub(ConfigurationsProvider) {
         getAll() >> ([] as Set)
@@ -51,7 +49,6 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         metaDataProvider,
         componentIdentifierFactory,
         moduleIdentifierFactory,
-        projectFinder,
         configurationComponentMetaDataBuilder,
         configurationsProvider,
         projectStateRegistry,

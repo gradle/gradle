@@ -161,7 +161,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         visitors.add(fileDependencyVisitor);
         visitors.add(artifactsBuilder);
         if (resolutionStrategy.getConflictResolution() == ConflictResolution.strict) {
-            visitors.add(new FailOnVersionConflictArtifactsVisitor(configuration.getModule().getProjectPath(), configuration.getName()));
+            visitors.add(new FailOnVersionConflictArtifactsVisitor(configuration.getModule().getProjectId().getProjectPath(), configuration.getName()));
         }
         DependencyLockingArtifactVisitor lockingVisitor = null;
         if (resolutionStrategy.isDependencyLockingEnabled()) {

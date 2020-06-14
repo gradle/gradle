@@ -379,7 +379,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ArtifactTransformListener artifactTransformListener,
             FileCollectionFactory fileCollectionFactory,
             FileCollectionSnapshotter fileCollectionSnapshotter,
-            ProjectFinder projectFinder,
+            ProjectStateRegistry projectStateRegistry,
             BuildOperationExecutor buildOperationExecutor
         ) {
             return new DefaultTransformerInvocationFactory(
@@ -389,7 +389,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 transformationWorkspaceProvider,
                 fileCollectionFactory,
                 fileCollectionSnapshotter,
-                projectFinder,
+                projectStateRegistry,
                 buildOperationExecutor
             );
         }
@@ -487,7 +487,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         ConfigurationContainerInternal createConfigurationContainer(Instantiator instantiator,
                                                                     ConfigurationResolver configurationResolver, DomainObjectContext domainObjectContext,
                                                                     ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider, ProjectAccessListener projectAccessListener,
-                                                                    ProjectFinder projectFinder, LocalComponentMetadataBuilder metaDataBuilder, FileCollectionFactory fileCollectionFactory,
+                                                                    LocalComponentMetadataBuilder metaDataBuilder, FileCollectionFactory fileCollectionFactory,
                                                                     GlobalDependencyResolutionRules globalDependencyResolutionRules, VcsMappingsStore vcsMappingsStore, ComponentIdentifierFactory componentIdentifierFactory,
                                                                     BuildOperationExecutor buildOperationExecutor, ImmutableAttributesFactory attributesFactory,
                                                                     ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter,
@@ -505,7 +505,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 listenerManager,
                 metaDataProvider,
                 projectAccessListener,
-                projectFinder,
                 metaDataBuilder,
                 fileCollectionFactory,
                 globalDependencyResolutionRules.getDependencySubstitutionRules(),
@@ -618,34 +617,34 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        TransformationNodeRegistry transformationNodeRegistry,
                                                        DependencyVerificationOverride dependencyVerificationOverride) {
             return new ErrorHandlingConfigurationResolver(
-                    new ShortCircuitEmptyConfigurationResolver(
-                        new DefaultConfigurationResolver(
-                            artifactDependencyResolver,
-                            repositories,
-                            metadataHandler,
-                            resolutionResultsStoreFactory,
-                            startParameter.isBuildProjectDependencies(),
-                            attributesSchema,
-                            new DefaultArtifactTransforms(
-                                new ConsumerProvidedVariantFinder(
-                                    variantTransforms,
-                                    attributesSchema,
-                                    attributesFactory),
+                new ShortCircuitEmptyConfigurationResolver(
+                    new DefaultConfigurationResolver(
+                        artifactDependencyResolver,
+                        repositories,
+                        metadataHandler,
+                        resolutionResultsStoreFactory,
+                        startParameter.isBuildProjectDependencies(),
+                        attributesSchema,
+                        new DefaultArtifactTransforms(
+                            new ConsumerProvidedVariantFinder(
+                                variantTransforms,
                                 attributesSchema,
-                                attributesFactory,
-                                transformationNodeRegistry
-                            ),
-                            moduleIdentifierFactory,
-                            buildOperationExecutor,
-                            artifactTypeRegistry,
-                            componentSelectorConverter,
-                            attributeContainerSerializer,
-                            currentBuild.getBuildIdentifier(),
-                            new AttributeDesugaring(attributesFactory),
-                            dependencyVerificationOverride),
-                        componentIdentifierFactory,
+                                attributesFactory),
+                            attributesSchema,
+                            attributesFactory,
+                            transformationNodeRegistry
+                        ),
                         moduleIdentifierFactory,
-                        currentBuild.getBuildIdentifier()));
+                        buildOperationExecutor,
+                        artifactTypeRegistry,
+                        componentSelectorConverter,
+                        attributeContainerSerializer,
+                        currentBuild.getBuildIdentifier(),
+                        new AttributeDesugaring(attributesFactory),
+                        dependencyVerificationOverride),
+                    componentIdentifierFactory,
+                    moduleIdentifierFactory,
+                    currentBuild.getBuildIdentifier()));
         }
 
         ArtifactPublicationServices createArtifactPublicationServices(ServiceRegistry services) {

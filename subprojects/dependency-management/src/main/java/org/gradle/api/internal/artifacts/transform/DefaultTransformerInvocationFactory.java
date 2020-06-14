@@ -23,11 +23,11 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.transform.TransformationWorkspaceProvider.TransformationWorkspace;
 import org.gradle.api.internal.file.DefaultFileSystemLocation;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Try;
@@ -92,7 +92,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     private final CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider;
     private final FileCollectionFactory fileCollectionFactory;
     private final FileCollectionSnapshotter fileCollectionSnapshotter;
-    private final ProjectFinder projectFinder;
+    private final ProjectStateRegistry projectStateRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
 
     public DefaultTransformerInvocationFactory(
@@ -102,7 +102,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
         FileCollectionFactory fileCollectionFactory,
         FileCollectionSnapshotter fileCollectionSnapshotter,
-        ProjectFinder projectFinder,
+        ProjectStateRegistry projectStateRegistry,
         BuildOperationExecutor buildOperationExecutor
     ) {
         this.workExecutor = workExecutor;
@@ -111,7 +111,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         this.immutableTransformationWorkspaceProvider = immutableTransformationWorkspaceProvider;
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileCollectionSnapshotter = fileCollectionSnapshotter;
-        this.projectFinder = projectFinder;
+        this.projectStateRegistry = projectStateRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -139,17 +139,17 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 return cachedResult != null
                     ? cachedResult
                     : doTransform(
-                        workspaceProvider,
-                        identity,
-                        transformer,
-                        subject,
-                        inputArtifact,
-                        inputArtifactSnapshot,
-                        dependencies,
-                        dependenciesFingerprint,
-                        inputArtifactFingerprinter,
-                        outputFingerprinter
-                    );
+                    workspaceProvider,
+                    identity,
+                    transformer,
+                    subject,
+                    inputArtifact,
+                    inputArtifactSnapshot,
+                    dependencies,
+                    dependenciesFingerprint,
+                    inputArtifactFingerprinter,
+                    outputFingerprinter
+                );
             }
 
             @Override
@@ -260,7 +260,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             return null;
         }
         ProjectComponentIdentifier projectComponentIdentifier = subject.getProducer().get();
-        return projectFinder.findProject(projectComponentIdentifier.getBuild(), projectComponentIdentifier.getProjectPath());
+        return projectStateRegistry.stateFor(projectComponentIdentifier).getMutableModel();
     }
 
     private Try<ImmutableList<File>> fireTransformListeners(Transformer transformer, TransformationSubject subject, Supplier<Try<ImmutableList<File>>> execution) {
