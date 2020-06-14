@@ -24,6 +24,7 @@ import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -40,8 +41,8 @@ public class BuildTreeScopeServices extends DefaultServiceRegistry {
                 pluginServiceRegistry.registerBuildTreeServices(registration);
             }
             registration.add(BuildType.class, buildType);
+            registration.add(GradleEnterprisePluginManager.class);
         });
-
     }
 
     protected ListenerManager createListenerManager(ListenerManager parent) {
