@@ -19,6 +19,8 @@ package org.gradle.jvm.toolchain.internal
 import org.gradle.api.file.Directory
 import spock.lang.Specification
 
+import static org.gradle.jvm.toolchain.internal.InstallationProviders.forDirectory
+
 class SharedJavaInstallationRegistryTest extends Specification {
 
     def registry = new SharedJavaInstallationRegistry()
@@ -26,7 +28,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
     def "registry keeps track of newly added installations"() {
         when:
         def path = Mock(Directory)
-        registry.add({ path })
+        registry.add(forDirectory(path))
 
         then:
         registry.listInstallations() == [path] as Set
@@ -34,11 +36,12 @@ class SharedJavaInstallationRegistryTest extends Specification {
 
     def "registry cannot be mutated after finalizing"() {
         given:
-        registry.add({ Mock(Directory) })
+        registry.add(forDirectory(Mock(Directory)))
+        registry.add(forDirectory(Mock(Directory)))
 
         when:
         registry.finalizeValue()
-        registry.add({ Mock(Directory) })
+        registry.add(forDirectory(Mock(Directory)))
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -47,11 +50,11 @@ class SharedJavaInstallationRegistryTest extends Specification {
 
     def "accessing the list of installations finalizes it"() {
         given:
-        registry.add({ Mock(Directory) })
+        registry.add(forDirectory(Mock(Directory)))
 
         when:
         registry.listInstallations()
-        registry.add({ Mock(Directory) })
+        registry.add(forDirectory(Mock(Directory)))
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -60,8 +63,8 @@ class SharedJavaInstallationRegistryTest extends Specification {
 
     def "list of installations is cached"() {
         given:
-        registry.add({ Mock(Directory) })
-        registry.add({ Mock(Directory) })
+        registry.add(forDirectory(Mock(Directory)))
+        registry.add(forDirectory(Mock(Directory)))
 
         when:
         def installations = registry.listInstallations();
