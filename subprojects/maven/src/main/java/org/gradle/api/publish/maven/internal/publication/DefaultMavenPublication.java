@@ -365,9 +365,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     private boolean isNotDefaultCapability(Capability capability) {
-        return !capability.getGroup().equals(getCoordinates().getGroup())
-            || !capability.getName().equals(getCoordinates().getName())
-            || !capability.getVersion().equals(getCoordinates().getVersion());
+        ModuleVersionIdentifier coordinates = getCoordinates();
+        return !capability.getGroup().equals(coordinates.getGroup())
+            || !capability.getName().equals(coordinates.getName())
+            || !capability.getVersion().equals(coordinates.getVersion());
     }
 
     private boolean isDependencyWithDefaultArtifact(ModuleDependency dependency) {
