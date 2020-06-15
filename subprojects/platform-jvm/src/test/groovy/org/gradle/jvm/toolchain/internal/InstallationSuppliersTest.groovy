@@ -19,12 +19,12 @@ package org.gradle.jvm.toolchain.internal
 import org.gradle.api.file.Directory
 import spock.lang.Specification
 
-class InstallationProvidersTest extends Specification {
+class InstallationSuppliersTest extends Specification {
 
     def "offers provider for known directory"() {
         def directory = Mock(Directory)
         given:
-        def provider = InstallationProviders.forDirectory(directory)
+        def provider = InstallationSuppliers.forDirectory(directory)
 
         when:
         def directories = provider.get()

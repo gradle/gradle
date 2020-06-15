@@ -25,18 +25,18 @@ import org.gradle.api.file.Directory;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.gradle.jvm.toolchain.internal.InstallationProviders.InstallationProvider;
+import static org.gradle.jvm.toolchain.internal.InstallationSuppliers.InstallationSupplier;
 
 public class SharedJavaInstallationRegistry {
 
-    private final Set<InstallationProvider> providers = Sets.newConcurrentHashSet();
+    private final Set<InstallationSupplier> suppliers = Sets.newConcurrentHashSet();
     private final Supplier<Set<Directory>> finalizedInstallations = Suppliers.memoize(this::mapToDirectories);
 
     private boolean finalized;
 
-    public void add(InstallationProvider provider) {
+    public void add(InstallationSupplier provider) {
         Preconditions.checkArgument(!finalized, "Installation must not be mutated after being finalized");
-        providers.add(provider);
+        suppliers.add(provider);
     }
 
     public void finalizeValue() {
@@ -49,7 +49,7 @@ public class SharedJavaInstallationRegistry {
     }
 
     private Set<Directory> mapToDirectories() {
-        return providers.stream().map(InstallationProvider::get).flatMap(Set::stream).collect(Collectors.toSet());
+        return suppliers.stream().map(InstallationSupplier::get).flatMap(Set::stream).collect(Collectors.toSet());
     }
 
 }

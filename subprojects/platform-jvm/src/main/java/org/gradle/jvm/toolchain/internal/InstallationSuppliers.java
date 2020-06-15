@@ -22,13 +22,13 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.function.Supplier;
 
-class InstallationProviders {
+class InstallationSuppliers {
 
-    interface InstallationProvider extends Supplier<Set<Directory>> {
+    interface InstallationSupplier extends Supplier<Set<Directory>> {
     }
 
-    public static InstallationProvider forDirectory(Directory directory) {
-        return new InstallationProvider() {
+    public static InstallationSupplier forDirectory(Directory directory) {
+        return new InstallationSupplier() {
             @Override
             public Set<Directory> get() {
                 return Collections.singleton(directory);
