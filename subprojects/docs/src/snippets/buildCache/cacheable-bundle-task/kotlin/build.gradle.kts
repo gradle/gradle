@@ -20,12 +20,12 @@ open class NpmTask : DefaultTask() {
 // tag::bundle-task[]
 @CacheableTask                                       // <1>
 open class BundleTask : NpmTask() {
-    
+
     @get:Internal                                    // <2>
     override val args
         get() = super.args
 
-    
+
     @get:InputDirectory
     @get:SkipWhenEmpty
     @get:PathSensitive(PathSensitivity.RELATIVE)     // <3>
@@ -33,7 +33,7 @@ open class BundleTask : NpmTask() {
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)     // <4>
-    val configFiles: ConfigurableFileCollection = project.files()
+    val configFiles: ConfigurableFileCollection = project.objects.fileCollection()
 
     @get:OutputFile
     val bundle: RegularFileProperty = project.objects.fileProperty()

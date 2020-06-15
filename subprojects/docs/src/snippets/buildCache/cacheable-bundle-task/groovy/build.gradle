@@ -33,7 +33,7 @@ class BundleTask extends NpmTask {
 
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)         // <4>
-    final ConfigurableFileCollection configFiles = project.files()
+    final ConfigurableFileCollection configFiles = project.objects.fileCollection()
 
     @OutputFile
     final RegularFileProperty bundle = project.objects.fileProperty()

@@ -84,7 +84,7 @@ class NativeProjectWithDepsGeneratorTask extends TemplateProjectGeneratorTask {
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    final ConfigurableFileCollection resources = project.files()
+    final ConfigurableFileCollection resources = project.objects.fileCollection()
 
     /**
      * @return names of all generated subprojects

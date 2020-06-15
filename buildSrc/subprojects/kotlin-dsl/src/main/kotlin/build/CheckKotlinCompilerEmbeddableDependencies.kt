@@ -31,13 +31,13 @@ open class CheckKotlinCompilerEmbeddableDependencies : DefaultTask() {
      * Current classpath to be validated.
      */
     @Classpath
-    val current = project.files()
+    val current = project.objects.fileCollection()
 
     /**
      * Expected classpath for a `kotlin-compiler-embeddable` dependency.
      */
     @Classpath
-    val expected = project.files()
+    val expected = project.objects.fileCollection()
 
     @OutputFile
     val receiptFile = project.buildDir.resolve("receipts/$name/receipt.txt")
