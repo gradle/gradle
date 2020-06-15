@@ -28,11 +28,6 @@ class InstallationSuppliers {
     }
 
     public static InstallationSupplier forDirectory(Directory directory) {
-        return new InstallationSupplier() {
-            @Override
-            public Set<Directory> get() {
-                return Collections.singleton(directory);
-            }
-        };
+        return () -> Collections.singleton(directory);
     }
 }
