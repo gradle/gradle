@@ -19,7 +19,7 @@ package org.gradle.jvm.toolchain.internal
 import org.gradle.api.file.Directory
 import spock.lang.Specification
 
-import static org.gradle.jvm.toolchain.internal.InstallationProviders.forDirectory
+import static InstallationSuppliers.forDirectory
 
 class SharedJavaInstallationRegistryTest extends Specification {
 
