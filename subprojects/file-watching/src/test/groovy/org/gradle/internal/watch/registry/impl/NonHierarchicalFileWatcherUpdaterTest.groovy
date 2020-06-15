@@ -31,7 +31,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         def fileInProjectRootDirectory = file("first/inside/root/dir/file.txt")
 
         when:
-        updater.updateProjectRootDirectories(projectRootDirectories)
+        updater.updateRootProjectDirectories(projectRootDirectories)
         then:
         0 * _
 
@@ -43,7 +43,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         0 * _
 
         when:
-        updater.updateProjectRootDirectories([])
+        updater.updateRootProjectDirectories([])
         then:
         0 * _
     }

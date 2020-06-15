@@ -22,34 +22,8 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
 
-public class WatchRootUtil {
-    /**
-     * Filters out directories whose ancestor is also among the watched directories.
-     */
-    public static Set<Path> resolveRootsToWatch(Set<Path> directories) {
-        Set<Path> roots = new HashSet<>();
-        directories.stream()
-            .sorted(Comparator.comparingInt(Path::getNameCount))
-            .filter(path -> {
-                Path parent = path;
-                while (true) {
-                    parent = parent.getParent();
-                    if (parent == null) {
-                        break;
-                    }
-                    if (roots.contains(parent)) {
-                        return false;
-                    }
-                }
-                return true;
-            })
-            .forEach(roots::add);
-        return roots;
-    }
+public class SnapshotWatchedDirectoryFinder {
 
     /**
      * Resolves the directories to watch for a snapshot.
