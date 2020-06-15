@@ -25,9 +25,12 @@ import org.gradle.api.publish.maven.internal.publisher.MavenDuplicatePublication
 import org.gradle.api.publish.maven.internal.publisher.MavenPublishers;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.internal.serialization.Transient;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
+
+import static org.gradle.internal.serialization.Transient.varOf;
 
 /**
  * Base class for tasks that publish a {@link org.gradle.api.publish.maven.MavenPublication}.
@@ -36,7 +39,7 @@ import java.util.concurrent.Callable;
  */
 public abstract class AbstractPublishToMaven extends DefaultTask {
 
-    private MavenPublicationInternal publication;
+    private final Transient.Var<MavenPublicationInternal> publication = varOf();
 
     public AbstractPublishToMaven() {
         // Allow the publication to participate in incremental build
@@ -54,7 +57,6 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
         // Dependencies: Can't think of a case here
     }
 
-
     /**
      * The publication to be published.
      *
@@ -62,7 +64,7 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
      */
     @Internal
     public MavenPublication getPublication() {
-        return publication;
+        return publication.get();
     }
 
     /**
@@ -71,7 +73,7 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
      * @param publication The publication to be published
      */
     public void setPublication(MavenPublication publication) {
-        this.publication = toPublicationInternal(publication);
+        this.publication.set(toPublicationInternal(publication));
     }
 
     @Internal
@@ -86,11 +88,11 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
             return (MavenPublicationInternal) publication;
         } else {
             throw new InvalidUserDataException(
-                    String.format(
-                            "publication objects must implement the '%s' interface, implementation '%s' does not",
-                            MavenPublicationInternal.class.getName(),
-                            publication.getClass().getName()
-                    )
+                String.format(
+                    "publication objects must implement the '%s' interface, implementation '%s' does not",
+                    MavenPublicationInternal.class.getName(),
+                    publication.getClass().getName()
+                )
             );
         }
     }

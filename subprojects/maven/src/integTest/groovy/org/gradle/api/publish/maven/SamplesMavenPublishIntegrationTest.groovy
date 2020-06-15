@@ -55,7 +55,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/quickstart")
-    @ToBeFixedForInstantExecution
     def "quickstart publish local with #dsl dsl"() {
         using m2
 

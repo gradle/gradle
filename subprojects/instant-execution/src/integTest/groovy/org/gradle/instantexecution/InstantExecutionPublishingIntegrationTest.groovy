@@ -105,9 +105,13 @@ class InstantExecutionPublishingIntegrationTest extends AbstractInstantExecution
         """
         def instant = newInstantExecutionFixture()
         def metadataFile = file('build/publications/maven/module.json')
+        def tasks = [
+            'generateMetadataFileForMavenPublication',
+            'generatePomFileForMavenPublication'
+        ]
 
         when:
-        instantRun 'generateMetadataFileForMavenPublication'
+        instantRun(*tasks)
 
         then:
         instant.assertStateStored()
@@ -116,7 +120,7 @@ class InstantExecutionPublishingIntegrationTest extends AbstractInstantExecution
         when:
         def storeTimeMetadata = metadataFile.text
         metadataFile.delete()
-        instantRun 'generateMetadataFileForMavenPublication'
+        instantRun(*tasks)
 
         then:
         instant.assertStateLoaded()

@@ -79,9 +79,9 @@ public class MavenPomFileGenerator {
             StringBuilder builder = xmlProvider.asString();
             int idx = builder.indexOf("<modelVersion");
             builder.insert(idx, xmlComments(MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES)
-                    + "  "
-                    + xmlComment(MetaDataParser.GRADLE_6_METADATA_MARKER)
-                    + "  ");
+                + "  "
+                + xmlComment(MetaDataParser.GRADLE_6_METADATA_MARKER)
+                + "  ");
         }
     };
 
@@ -371,6 +371,33 @@ public class MavenPomFileGenerator {
     }
 
     public MavenPomFileGenerator writeTo(File file) {
+        writeTo(file, model, xmlTransformer);
+        return this;
+    }
+
+    public MavenPomSpec toSpec() {
+        return new MavenPomSpec(
+            model,
+            xmlTransformer
+        );
+    }
+
+    public static class MavenPomSpec {
+
+        private final Model model;
+        private final XmlTransformer xmlTransformer;
+
+        public MavenPomSpec(Model model, XmlTransformer xmlTransformer) {
+            this.model = model;
+            this.xmlTransformer = xmlTransformer;
+        }
+
+        public void writeTo(File file) {
+            MavenPomFileGenerator.writeTo(file, model, xmlTransformer);
+        }
+    }
+
+    private static void writeTo(File file, Model model, XmlTransformer xmlTransformer) {
         xmlTransformer.transform(file, POM_FILE_ENCODING, writer -> {
             try {
                 new MavenXpp3Writer().write(writer, model);
@@ -378,6 +405,5 @@ public class MavenPomFileGenerator {
                 throw new UncheckedIOException(e);
             }
         });
-        return this;
     }
 }
