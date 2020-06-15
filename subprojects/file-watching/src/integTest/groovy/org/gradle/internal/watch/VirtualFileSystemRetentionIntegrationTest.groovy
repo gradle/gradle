@@ -925,9 +925,9 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
     private static List<Set<File>> determineWatchedBuildRootDirectories(String output) {
         output.readLines()
-            .findAll { it.contains("] as root directories to watch") }
+            .findAll { it.contains("] as root project directories") }
             .collect { line ->
-                def matcher = line =~ /Now considering \[(.*)\] as root directories to watch/
+                def matcher = line =~ /Now considering watching \[(.*)\] as root project directories/
                 String directories = matcher[0][1]
                 return directories.split(', ').collect { new File(it) } as Set
             }

@@ -79,15 +79,15 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             ImmutableList<Path> directoriesToWatch = WatchRootUtil.getDirectoriesToWatch(snapshot);
             trackedDirectoriesForSnapshot.putAll(snapshot.getAbsolutePath(), directoriesToWatch);
         });
-        determineAndUpdateWatchedRoots();
+        determineAndUpdateWatchedHierarchies();
     }
 
     @Override
     public void buildFinished() {
         watchedRootProjectDirectoriesFromPreviousBuild.addAll(knownRootProjectDirectoriesFromCurrentBuild);
-        knownRootProjectDirectoriesFromCurrentBuild.clear();
-        determineAndUpdateWatchedRoots();
         watchedRootProjectDirectoriesFromPreviousBuild.retainAll(watchedHierarchies);
+        knownRootProjectDirectoriesFromCurrentBuild.clear();
+        determineAndUpdateWatchedHierarchies();
     }
 
     @Override
@@ -97,21 +97,21 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             .map(Path::toAbsolutePath)
             .collect(Collectors.toSet());
         Set<Path> newRootProjectDirectories = WatchRootUtil.resolveRootsToWatch(rootPaths);
-        LOGGER.info("Now considering {} as root directories to watch", newRootProjectDirectories);
+        LOGGER.info("Now considering watching {} as root project directories", newRootProjectDirectories);
 
         knownRootProjectDirectoriesFromCurrentBuild.clear();
         knownRootProjectDirectoriesFromCurrentBuild.addAll(newRootProjectDirectories);
         watchedRootProjectDirectoriesFromPreviousBuild.removeAll(knownRootProjectDirectoriesFromCurrentBuild);
 
-        determineAndUpdateWatchedRoots();
+        determineAndUpdateWatchedHierarchies();
     }
 
-    private void determineAndUpdateWatchedRoots() {
-        Set<Path> rootsToWatch = determineWatchRoots();
-        updateWatchRoots(rootsToWatch);
+    private void determineAndUpdateWatchedHierarchies() {
+        Set<Path> hierarchiesToWatch = determineHierarchiesToWatch();
+        updateWatchedHierarchies(hierarchiesToWatch);
     }
 
-    private Set<Path> determineWatchRoots() {
+    private Set<Path> determineHierarchiesToWatch() {
         Set<Path> directoriesToWatch = trackedDirectoriesForSnapshot.values().stream()
             .map(trackedDirectory -> Stream.concat(knownRootProjectDirectoriesFromCurrentBuild.stream(), watchedRootProjectDirectoriesFromPreviousBuild.stream())
                 .filter(trackedDirectory::startsWith)
@@ -122,29 +122,30 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         return WatchRootUtil.resolveRootsToWatch(directoriesToWatch);
     }
 
-    private void updateWatchRoots(Set<Path> newWatchRoots) {
-        Set<Path> watchRootsToRemove = new HashSet<>(watchedHierarchies);
-        if (newWatchRoots.isEmpty()) {
+    private void updateWatchedHierarchies(Set<Path> newHierarchiesToWatch) {
+        if (newHierarchiesToWatch.isEmpty()) {
             LOGGER.info("Not watching anything anymore");
         }
-        watchRootsToRemove.removeAll(newWatchRoots);
-        newWatchRoots.removeAll(watchedHierarchies);
-        if (newWatchRoots.isEmpty() && watchRootsToRemove.isEmpty()) {
+        Set<Path> hierarchiesToStopWatching = new HashSet<>(watchedHierarchies);
+        Set<Path> hierarchiesToStartWatching = new HashSet<>(newHierarchiesToWatch);
+        hierarchiesToStopWatching.removeAll(newHierarchiesToWatch);
+        hierarchiesToStartWatching.removeAll(watchedHierarchies);
+        if (hierarchiesToStartWatching.isEmpty() && hierarchiesToStopWatching.isEmpty()) {
             return;
         }
-        if (!watchRootsToRemove.isEmpty()) {
-            watcher.stopWatching(watchRootsToRemove.stream()
+        if (!hierarchiesToStopWatching.isEmpty()) {
+            watcher.stopWatching(hierarchiesToStopWatching.stream()
                 .map(Path::toFile)
                 .collect(Collectors.toList())
             );
-            watchedHierarchies.removeAll(watchRootsToRemove);
+            watchedHierarchies.removeAll(hierarchiesToStopWatching);
         }
-        if (!newWatchRoots.isEmpty()) {
-            watcher.startWatching(newWatchRoots.stream()
+        if (!hierarchiesToStartWatching.isEmpty()) {
+            watcher.startWatching(hierarchiesToStartWatching.stream()
                 .map(Path::toFile)
                 .collect(Collectors.toList())
             );
-            watchedHierarchies.addAll(newWatchRoots);
+            watchedHierarchies.addAll(hierarchiesToStartWatching);
         }
         LOGGER.info("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
     }
