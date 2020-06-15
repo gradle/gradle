@@ -761,7 +761,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         outputContains("result = [a.jar.red.green, b.jar.red.green, c.jar.red.green]")
     }
 
-    def "reports failure to transform prebuilt file dependency and invalidates the cache"() {
+    def "reports failure to transform prebuilt file dependency"() {
         settingsFile << """
             include 'a'
         """
@@ -801,16 +801,13 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         instantFails(":resolve")
 
         then:
-        // TODO - this should fail
-        fixture.assertStateStored()
-        // TODO - should not attempt to run the task
+        fixture.assertStateStored() // transform spec is stored
         failure.assertHasFailure("Execution failed for task ':resolve'.") {
             it.assertHasCause("Failed to transform root.blue to match attributes {artifactType=blue, color=green}.")
+            it.assertHasCause("Failed to transform a.jar (project :a) to match attributes {artifactType=jar, color=green}.")
             it.assertHasCause("Failed to transform a.blue to match attributes {artifactType=blue, color=green}.")
         }
-        failure.assertHasDescription("Configuration cache problems found in this build.")
-        // TODO - there should be 1 failure
-        failure.assertHasFailures(2)
+        failure.assertHasFailures(1)
 
         when:
         instantFails(":resolve")
@@ -818,6 +815,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         then:
         fixture.assertStateLoaded()
         failure.assertHasDescription("Execution failed for task ':resolve'.")
+        // TODO - is missing context exception
     }
 
     def "reports failure transforming project dependency"() {
@@ -848,7 +846,6 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         instantFails(":resolve")
 
         then:
-        // TODO - this should fail
         fixture.assertStateStored()
         failure.assertHasFailure("Execution failed for task ':resolve'.") {
             it.assertHasCause("Failed to transform a.jar (project :a) to match attributes {artifactType=jar, color=green}.")
@@ -860,6 +857,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         then:
         fixture.assertStateLoaded()
         failure.assertHasDescription("Execution failed for task ':resolve'.")
+        // TODO - is missing context exception
     }
 
     @Ignore("wip")

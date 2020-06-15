@@ -721,7 +721,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    @ToBeFixedForInstantExecution(because = "transform failures are ignored")
     def "transform is run again and old output is removed after it failed in previous build"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks() << withLibJarDependency("lib3.jar")
@@ -761,7 +760,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    @ToBeFixedForInstantExecution(because = "file dependencies that are not the output of a task are not treated as build inputs")
     def "transform is re-executed when input file content changes between builds"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform() << withLibJarDependency()
@@ -1124,7 +1122,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     """
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "file dependencies that are not the output of a task are not treated as build inputs")
     def "transform is rerun when output is #action between builds"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform() << withLibJarDependency()

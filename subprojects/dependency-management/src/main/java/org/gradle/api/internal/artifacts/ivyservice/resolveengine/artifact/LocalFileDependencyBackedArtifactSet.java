@@ -147,10 +147,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             return artifact.getFile();
         }
 
-        public boolean isBuildable() {
-            return !dependencyMetadata.getFiles().getBuildDependencies().getDependencies(null).isEmpty();
-        }
-
         public ComponentIdentifier getComponentId() {
             return artifactIdentifier.getComponentIdentifier();
         }
@@ -235,10 +231,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         public Transformation getTransformation() {
             return transformation;
-        }
-
-        public boolean isBuildable() {
-            return delegate.isBuildable();
         }
 
         public DisplayName getTargetVariantName() {
