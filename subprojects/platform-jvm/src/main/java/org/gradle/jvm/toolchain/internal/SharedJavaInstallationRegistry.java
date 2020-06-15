@@ -49,7 +49,7 @@ public class SharedJavaInstallationRegistry {
     }
 
     private Set<Directory> mapToDirectories() {
-        return providers.stream().map(InstallationProvider::resolvePath).collect(Collectors.toSet());
+        return providers.stream().map(InstallationProvider::get).flatMap(Set::stream).collect(Collectors.toSet());
     }
 
 }

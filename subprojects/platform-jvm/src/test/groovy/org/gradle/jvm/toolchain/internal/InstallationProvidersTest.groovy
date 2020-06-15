@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal;
+package org.gradle.jvm.toolchain.internal
 
-import org.gradle.api.file.Directory;
+import org.gradle.api.file.Directory
+import spock.lang.Specification
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.function.Supplier;
+class InstallationProvidersTest extends Specification {
 
-class InstallationProviders {
+    def "offers provider for known directory"() {
+        def directory = Mock(Directory)
+        given:
+        def provider = InstallationProviders.forDirectory(directory)
 
-    interface InstallationProvider extends Supplier<Set<Directory>> {
-    }
+        when:
+        def directories = provider.get()
 
-    public static InstallationProvider forDirectory(Directory directory) {
-        return new InstallationProvider() {
-            @Override
-            public Set<Directory> get() {
-                return Collections.singleton(directory);
-            }
-        };
+        then:
+        directories == [directory] as Set
     }
 }
