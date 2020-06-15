@@ -31,6 +31,8 @@ import org.gradle.api.tasks.PathSensitivity
 @CacheableTask
 abstract class IntegrationTest : DistributionTest() {
 
+    override val prefix = if (name.contains("CrossVersion")) "crossVersion" else "integ"
+
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     val samplesDir = gradleInstallationForTest.gradleSnippetsDir

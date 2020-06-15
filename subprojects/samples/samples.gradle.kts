@@ -1,4 +1,3 @@
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
@@ -20,13 +19,8 @@ dependencies {
         exclude(module = "slf4j-simple")
     }
     integTestImplementation(testFixtures(project(":core")))
-}
-configurations.integTestRuntimeClasspath {
-    extendsFrom(configurations.fullGradleRuntime.get())
-}
 
-tasks.withType<IntegrationTest>().configureEach {
-    libsRepository.required = true
+    integTestDistributionRuntimeOnly(project(":distributionsFull"))
 }
 
 testFilesCleanup {

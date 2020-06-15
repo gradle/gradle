@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
@@ -215,7 +216,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
         private Set<TestedGradleDistribution> determineTestedGradleDistributions() {
             if (target.getAnnotation(NonCrossVersion)) {
-                return [TestedGradleDistribution.UNDER_DEVELOPMENT] as Set
+                return [underDevelopmentDistribution()] as Set
             }
 
             String version = System.getProperty(COMPATIBILITY_SYSPROP_NAME, 'current')
@@ -224,13 +225,22 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
                     crossVersion = true
                     return (getMinCompatibleVersions().collect { TestedGradleDistribution.forVersion(it) } +
                         TestedGradleDistribution.mostRecentFinalRelease() +
-                        TestedGradleDistribution.UNDER_DEVELOPMENT) as SortedSet
+                        underDevelopmentDistribution()) as SortedSet
                 case 'current': return [
-                    TestedGradleDistribution.UNDER_DEVELOPMENT
+                    underDevelopmentDistribution()
                 ] as Set
                 default:
                     throw new IllegalArgumentException("Invalid value for $COMPATIBILITY_SYSPROP_NAME system property: $version (valid values: 'all', 'current')")
             }
+        }
+
+        private static TestedGradleDistribution underDevelopmentDistribution() {
+            if (GradleContextualExecuter.embedded) {
+                TestedGradleDistribution.EMBEDDED_UNDER_DEVELOPMENT
+            } else {
+                TestedGradleDistribution.UNDER_DEVELOPMENT
+            }
+
         }
 
         private void addExecutions(@Nullable GradleDistribution releasedDist, TestedGradleDistribution testedGradleDistribution) {
@@ -278,6 +288,14 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
                 @Override
                 String getDisplayName() {
                     return "current"
+                }
+            }
+
+            private static
+            final TestedGradleDistribution EMBEDDED_UNDER_DEVELOPMENT = new TestedGradleDistribution(BUILD_CONTEXT.version, GradleProvider.embedded()) {
+                @Override
+                String getDisplayName() {
+                    return "current embedded"
                 }
             }
 

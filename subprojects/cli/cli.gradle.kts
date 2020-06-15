@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 description = "Utilities for parsing command line arguments"

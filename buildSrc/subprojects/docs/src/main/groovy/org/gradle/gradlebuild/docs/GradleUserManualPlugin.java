@@ -57,9 +57,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         checkXrefLinksInUserManualAreValid(layout, tasks, extension);
     }
 
-    // TODO: This doesn't really make sense to be part of the user manual generation, but it's so tied up into it
-    // it's left here for a future project.
-    private void generateDefaultImports(Project project, TaskContainer tasks, GradleDocumentationExtension extension) {
+    public static List<String> getDefaultExcludedPackages() {
         // TODO: This should be configured via the extension vs hardcoded in the plugin
         List<String> excludedPackages = new ArrayList<>();
         // These are part of the API, but not the DSL
@@ -76,6 +74,13 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
         // Exclude classes that were moved in a different package but the deprecated ones are not removed yet
         excludedPackages.add("org.gradle.platform.base.test");
+        return excludedPackages;
+    }
+
+    // TODO: This doesn't really make sense to be part of the user manual generation, but it's so tied up into it
+    // it's left here for a future project.
+    private void generateDefaultImports(Project project, TaskContainer tasks, GradleDocumentationExtension extension) {
+        List<String> excludedPackages = getDefaultExcludedPackages();
 
         Provider<Directory> generatedDirectory = extension.getUserManual().getStagingRoot().dir("generated");
 

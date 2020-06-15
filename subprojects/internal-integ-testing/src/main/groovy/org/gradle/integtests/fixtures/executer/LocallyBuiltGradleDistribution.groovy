@@ -26,7 +26,7 @@ class LocallyBuiltGradleDistribution extends DefaultGradleDistribution {
     }
 
     private static TestFile getGradleHome(String version) {
-        return IntegrationTestBuildContext.INSTANCE.getDistributionsDir().file("gradle-${version}")
+        return getDistributionsDir().file("gradle-${version}")
     }
 
     static boolean isLocallyBuiltVersion(String version) {
@@ -34,6 +34,11 @@ class LocallyBuiltGradleDistribution extends DefaultGradleDistribution {
     }
 
     static File getToolingApiJar(String version) {
-        return IntegrationTestBuildContext.INSTANCE.getDistributionsDir().file("gradle-tooling-api-${version}.jar")
+        return getDistributionsDir().file("gradle-tooling-api-${version}.jar")
+    }
+
+    static private TestFile getDistributionsDir() {
+        // See BuildCommitDistribution.kt
+        new TestFile(IntegrationTestBuildContext.TEST_DIR.file("build/distributions").getAbsoluteFile())
     }
 }

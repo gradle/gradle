@@ -22,18 +22,14 @@ import org.gradle.kotlin.dsl.caching.fixtures.cachedSettingsFile
 import org.gradle.kotlin.dsl.caching.fixtures.compilationCache
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
-import org.gradle.soak.categories.SoakTest
-
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
-import org.junit.experimental.categories.Category
 
 import java.io.File
 
 
-@Category(SoakTest::class)
 class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
     @Test

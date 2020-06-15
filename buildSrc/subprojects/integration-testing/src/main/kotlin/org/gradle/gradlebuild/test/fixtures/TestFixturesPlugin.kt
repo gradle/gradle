@@ -33,7 +33,6 @@ import org.gradle.api.plugins.internal.JvmPluginsHelper
 import org.gradle.language.jvm.tasks.ProcessResources
 import testLibrary
 import java.io.File
-import java.util.Locale
 
 
 /**
@@ -46,7 +45,6 @@ import java.util.Locale
  *
  * Configures the Project as a test fixtures consumer according to the `testFixtures` extension configuration.
  */
-// TODO convert this to use variant aware dependency management
 @Suppress("unused")
 open class TestFixturesPlugin : Plugin<Project> {
 
@@ -61,26 +59,25 @@ open class TestFixturesPlugin : Plugin<Project> {
      */
     private
     fun Project.configureAsProducer() {
-        project.pluginManager.apply(JavaTestFixturesPlugin::class.java)
+        project.apply<JavaTestFixturesPlugin>()
 
-        java.sourceSets.matching { it.name.toLowerCase(Locale.ROOT).endsWith("test") }.all {
-            if (name != "test") {
-                // the main test source set is already configured to use test fixtures by the Java test fixtures plugin
-                configurations.findByName(implementationConfigurationName)!!.dependencies.add(
-                    dependencies.testFixtures(project)
-                )
-            }
+        java.sourceSets.matching { it.name.endsWith("Test") }.all {
+            // the 'test' (with lower case 't') source set is already configured to use test fixtures by the JavaTestFixturesPlugin
+            configurations[implementationConfigurationName]!!.dependencies.add(
+                dependencies.testFixtures(project)
+            )
         }
 
         val testFixtures by java.sourceSets.getting
-
-        removeTestFixturesFromArchivesConfiguration()
 
         val testFixturesApi by configurations
         val testFixturesImplementation by configurations
         val testFixturesRuntimeOnly by configurations
         val testFixturesRuntimeElements by configurations
         val testFixturesApiElements by configurations
+
+        // Required due to: https://github.com/gradle/gradle/issues/13278
+        testFixturesRuntimeElements.extendsFrom(testFixturesRuntimeOnly)
 
         dependencies {
             testFixturesApi(project(":internalTesting"))
@@ -98,9 +95,9 @@ open class TestFixturesPlugin : Plugin<Project> {
         // as this is required at least by one project (idePlay)
         val processResources = tasks.named<ProcessResources>("processTestFixturesResources")
         testFixturesRuntimeElements.outgoing.variants.maybeCreate("resources").run {
-            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
-            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.LIBRARY))
-            attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, LibraryElements.RESOURCES))
+            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+            attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.RESOURCES))
 
             artifact(object : JvmPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources) {
                 override fun getFile(): File {
@@ -126,12 +123,5 @@ open class TestFixturesPlugin : Plugin<Project> {
                 }
             }
         }
-    }
-
-    // This is a hack to get rid of `Cannot publish artifact 'testFixtures' as it does not exist.`
-    // https://builds.gradle.org/viewLog.html?buildId=15853642&buildTypeId=bt39
-    private
-    fun Project.removeTestFixturesFromArchivesConfiguration() = afterEvaluate {
-        configurations["archives"]?.artifacts?.removeIf { it.name == "testFixtures" }
     }
 }

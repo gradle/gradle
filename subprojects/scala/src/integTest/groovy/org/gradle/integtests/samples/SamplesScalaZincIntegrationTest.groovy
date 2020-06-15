@@ -33,7 +33,7 @@ class SamplesScalaZincIntegrationTest extends AbstractSampleIntegrationTest {
 
         when:
         // Build and test projects
-        executer.inDirectory(projectDir).requireGradleDistribution().withTasks('clean', 'build').run()
+        executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
         then:
         // Check contents of Jar

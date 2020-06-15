@@ -2,7 +2,7 @@ import org.gradle.build.GradleStartScriptGenerator
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -53,18 +53,17 @@ dependencies {
     testImplementation(testFixtures(project(":logging")))
     testImplementation(testFixtures(project(":toolingApi")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-    testRuntimeOnly(project(":kotlinDsl"))
-
     integTestImplementation(project(":persistentCache"))
-    integTestImplementation(project(":internalIntegTesting"))
     integTestImplementation(library("slf4j_api"))
     integTestImplementation(library("guava"))
     integTestImplementation(library("commons_lang"))
     integTestImplementation(library("commons_io"))
-    integTestRuntimeOnly(project(":plugins"))
-    integTestRuntimeOnly(project(":languageNative")) {
-        because("for 'ProcessCrashHandlingIntegrationTest.session id of daemon is different from daemon client'")
+
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsNative")) {
+        because("'native' distribution requried for 'ProcessCrashHandlingIntegrationTest.session id of daemon is different from daemon client'")
     }
 }
 

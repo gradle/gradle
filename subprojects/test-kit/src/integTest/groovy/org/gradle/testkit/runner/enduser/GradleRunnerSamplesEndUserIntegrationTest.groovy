@@ -20,11 +20,13 @@ package org.gradle.testkit.runner.enduser
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testing.internal.util.RetryUtil
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
@@ -32,6 +34,7 @@ import static org.gradle.util.TestPrecondition.ONLINE
 
 @NonCrossVersion
 @NoDebug
+@IgnoreIf({ GradleContextualExecuter.embedded }) // These tests run builds that themselves run a build in a test worker with 'gradleTestKit()' dependency, which needs to pick up Gradle modules from a real distribution
 class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
     @Rule

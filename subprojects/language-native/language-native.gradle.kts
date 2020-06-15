@@ -16,7 +16,7 @@
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -68,15 +68,16 @@ dependencies {
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":snapshots")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
     integTestImplementation(project(":native"))
     integTestImplementation(project(":resources"))
     integTestImplementation(library("nativePlatform"))
     integTestImplementation(library("ant"))
     integTestImplementation(library("jgit"))
 
-    integTestRuntimeOnly(project(":ideNative"))
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsNative"))
 }
 
 classycle {

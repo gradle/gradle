@@ -26,10 +26,7 @@ import releasedVersions
 class CrossVersionTestsPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         val sourceSet = addSourceSet(TestType.CROSSVERSION)
-        addDependenciesAndConfigurations(TestType.CROSSVERSION)
-        dependencies {
-            "crossVersionTestRuntimeOnly"(project(":toolingApiBuilders"))
-        }
+        addDependenciesAndConfigurations(TestType.CROSSVERSION.prefix)
         createTasks(sourceSet, TestType.CROSSVERSION)
         createAggregateTasks(sourceSet)
         configureIde(TestType.CROSSVERSION)

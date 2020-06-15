@@ -31,7 +31,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
 import org.gradle.internal.ImmutableActionSet;
@@ -150,7 +149,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final List<String> buildJvmOpts = new ArrayList<>();
     private final List<String> commandLineJvmOpts = new ArrayList<>();
     private boolean useOnlyRequestedJvmOpts;
-    private boolean requiresGradleDistribution;
     private boolean useOwnUserHomeServices;
     private ConsoleOutput consoleType;
     protected WarningMode warningMode = WarningMode.All;
@@ -363,9 +361,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (!stackTraceChecksOn) {
             executer.withStackTraceChecksDisabled();
-        }
-        if (requiresGradleDistribution) {
-            executer.requireGradleDistribution();
         }
         if (useOwnUserHomeServices) {
             executer.withOwnUserHomeServices();
@@ -995,12 +990,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (useOwnUserHomeServices || useCustomGradleUserHomeDir) {
             properties.put(REUSE_USER_HOME_SERVICES, "false");
         }
-        if (!useCustomGradleUserHomeDir) {
-            TestFile generatedApiJarCacheDir = buildContext.getGradleGeneratedApiJarCacheDir();
-            if (generatedApiJarCacheDir != null) {
-                properties.put(DefaultGeneratedGradleJarCache.BASE_DIR_OVERRIDE_PROPERTY, generatedApiJarCacheDir.getAbsolutePath());
-            }
-        }
         if (!noExplicitTmpDir) {
             if (tmpDir == null) {
                 tmpDir = getDefaultTmpDir();
@@ -1329,16 +1318,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public boolean isAllowExtraLogging() {
         return allowExtraLogging;
-    }
-
-    public boolean isRequiresGradleDistribution() {
-        return requiresGradleDistribution;
-    }
-
-    @Override
-    public GradleExecuter requireGradleDistribution() {
-        this.requiresGradleDistribution = true;
-        return this;
     }
 
     @Override

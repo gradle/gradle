@@ -19,7 +19,7 @@ package org.gradle.api.tasks.compile
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-public class AbstractOptionsTest extends Specification {
+class AbstractOptionsTest extends Specification {
     def "options map contains all properties with non-null values"() {
         expect:
         options.optionMap() == map

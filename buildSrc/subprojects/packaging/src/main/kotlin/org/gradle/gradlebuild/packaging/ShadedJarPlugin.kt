@@ -20,7 +20,6 @@ import accessors.base
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.DocsType
@@ -226,8 +225,7 @@ open class ShadedJarPlugin : Plugin<Project> {
             attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
                 attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-                attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.SOURCES))
-                attribute(Attribute.of("org.gradle.docselements", String::class.java), "sources")
+                attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-source-folders"))
             }
         }
         tasks.named<Jar>("sourcesJar") {

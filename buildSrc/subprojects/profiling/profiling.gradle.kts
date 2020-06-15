@@ -5,6 +5,7 @@ dependencies {
     implementation(project(":docs"))
     implementation(project(":kotlinDsl"))
     implementation(project(":plugins"))
+    implementation(project(":packaging"))
 
     implementation("me.champeau.gradle:jmh-gradle-plugin:0.5.0")
     implementation("org.jsoup:jsoup:1.11.3")

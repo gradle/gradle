@@ -1,5 +1,5 @@
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 description = "A set of general-purpose resource abstractions"
@@ -21,6 +21,5 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
 
-    integTestImplementation(project(":internalIntegTesting"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }

@@ -25,10 +25,10 @@ import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.compile.AbstractCompile
-import org.gradle.build.ClasspathManifest
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
 import org.gradle.gradlebuild.BuildEnvironment.isJenkins
 import org.gradle.gradlebuild.BuildEnvironment.isTravis
+import org.gradle.gradlebuild.packaging.ClasspathManifest
 import org.gradle.kotlin.dsl.*
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser

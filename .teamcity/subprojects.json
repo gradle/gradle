@@ -147,6 +147,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "core-platform",
+    "name": "corePlatform",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "dependency-management",
     "name": "dependencyManagement",
     "unitTests": true,
@@ -161,15 +168,57 @@
     "crossVersionTests": false
   },
   {
-    "dirName": "distributions",
-    "name": "distributions",
+    "dirName": "distributions-basics",
+    "name": "distributionsBasics",
     "unitTests": false,
-    "functionalTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-core",
+    "name": "distributionsCore",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "dirName": "distributions-dependencies",
     "name": "distributionsDependencies",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-full",
+    "name": "distributionsFull",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-integ-tests",
+    "name": "distributionsIntegTests",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-jvm",
+    "name": "distributionsJvm",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-native",
+    "name": "distributionsNative",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-publishing",
+    "name": "distributionsPublishing",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -486,7 +535,7 @@
     "dirName": "native",
     "name": "native",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -613,13 +662,6 @@
     "name": "resourcesSftp",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "dirName": "runtime-api-info",
-    "name": "runtimeApiInfo",
-    "unitTests": false,
-    "functionalTests": false,
     "crossVersionTests": false
   },
   {

@@ -1,6 +1,6 @@
 import org.gradle.gradlebuild.PublicApi
 plugins {
-    gradlebuild.distribution.`core-implementation-java`
+    gradlebuild.distribution.`implementation-java`
     gradlebuild.`api-metadata`
 }
 

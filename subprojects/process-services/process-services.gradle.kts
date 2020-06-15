@@ -2,7 +2,7 @@
  * Process execution abstractions.
  */
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 gradlebuildJava.usedInWorkers()
@@ -19,7 +19,7 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
 
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }
 
 classycle {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -54,7 +54,6 @@ dependencies {
     testImplementation(project(":fileCollections"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":baseServices")))
-    testRuntimeOnly(project(":workers"))
-    testRuntimeOnly(project(":dependencyManagement"))
-    testRuntimeOnly(project(":runtimeApiInfo"))
+
+    integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }

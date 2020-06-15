@@ -26,7 +26,7 @@ class AbstractWrapperIntegrationSpec extends AbstractIntegrationSpec {
     void installationIn(TestFile userHomeDir) {
         def distDir = userHomeDir.file("wrapper/dists/${FilenameUtils.getBaseName(distribution.binDistribution.absolutePath)}").assertIsDir()
         assert distDir.listFiles().length == 1
-        distDir.listFiles()[0].file("gradle-${distribution.version.version}").assertIsDir()
+        distDir.listFiles()[0].file("gradle-${distribution.version.baseVersion.version}").assertIsDir()
     }
 
     void prepareWrapper(URI distributionUri = distribution.binDistribution.toURI()) {

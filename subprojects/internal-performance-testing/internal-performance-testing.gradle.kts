@@ -67,13 +67,15 @@ dependencies {
     implementation(testFixtures(project(":toolingApi")))
 
     runtimeOnly("mysql:mysql-connector-java:8.0.17")
+
+    integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }
 
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
 val reportResources = tasks.register<Copy>("reportResources") {
     from(reports)
-    into("$generatedResourcesDir/org/gradle/reporting")
+    into(generatedResourcesDir.dir("org/gradle/reporting").get().asFile)
 }
 
 java.sourceSets.main { output.dir(mapOf("builtBy" to reportResources), generatedResourcesDir) }
