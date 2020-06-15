@@ -143,7 +143,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
                     classpath '${"com.gradle:gradle-enterprise-gradle-plugin:$version"}'
                 }
             }
-            apply plugin: '$GRADLE_ENTERPRISE_PLUGIN_ID'
+            apply plugin: '$fixture.id'
         """
 
         and:
@@ -197,7 +197,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         when:
         settingsFile << """
             plugins {
-                id '$GRADLE_ENTERPRISE_PLUGIN_ID' version '${PLUGIN_AUTO_APPLY_VERSION}' apply false
+                id '$fixture.id' version '${fixture.artifactVersion}' apply false
             }
         """
 
