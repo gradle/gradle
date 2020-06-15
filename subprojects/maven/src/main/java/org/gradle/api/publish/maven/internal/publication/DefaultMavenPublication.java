@@ -635,30 +635,32 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     @Override
     public MavenNormalizedPublication asNormalisedPublication() {
         populateFromComponent();
-        Set<MavenArtifact> artifactsToBePublished = new LinkedHashSet<>(CompositeDomainObjectSet.create(
-            MavenArtifact.class,
-            Cast.uncheckedCast(new DomainObjectCollection<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts})
-        ).matching(new Spec<MavenArtifact>() {
-            @Override
-            public boolean isSatisfiedBy(MavenArtifact element) {
-                if (!PUBLISHED_ARTIFACTS.isSatisfiedBy(element)) {
-                    return false;
-                }
-                if (moduleMetadataArtifact == element) {
-                    // We temporarily want to allow skipping the publication of Gradle module metadata
-                    return moduleMetadataArtifact.isEnabled();
-                }
-                return true;
-            }
-        }));
         return new MavenNormalizedPublication(
             name,
             projectIdentity,
             pom.getPackaging(),
             getPomArtifact(),
             determineMainArtifact(),
-            artifactsToBePublished
+            new LinkedHashSet<>(artifactsToBePublished())
         );
+    }
+
+    private DomainObjectSet<MavenArtifact> artifactsToBePublished() {
+        return CompositeDomainObjectSet.create(
+            MavenArtifact.class,
+            Cast.uncheckedCast(
+                new DomainObjectCollection<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}
+            )
+        ).matching(element -> {
+            if (!PUBLISHED_ARTIFACTS.isSatisfiedBy(element)) {
+                return false;
+            }
+            if (moduleMetadataArtifact == element) {
+                // We temporarily want to allow skipping the publication of Gradle module metadata
+                return moduleMetadataArtifact.isEnabled();
+            }
+            return true;
+        });
     }
 
     private MavenArtifact getPomArtifact() {
