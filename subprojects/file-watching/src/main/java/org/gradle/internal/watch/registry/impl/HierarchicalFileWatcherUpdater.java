@@ -16,6 +16,7 @@
 
 package org.gradle.internal.watch.registry.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
@@ -28,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -76,7 +78,7 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     public void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots) {
         removedSnapshots.forEach(snapshot -> trackedDirectoriesForSnapshot.removeAll(snapshot.getAbsolutePath()));
         addedSnapshots.forEach(snapshot -> {
-            ImmutableList<Path> directoriesToWatch = WatchRootUtil.getDirectoriesToWatch(snapshot);
+            ImmutableList<Path> directoriesToWatch = SnapshotWatchedDirectoryFinder.getDirectoriesToWatch(snapshot);
             trackedDirectoriesForSnapshot.putAll(snapshot.getAbsolutePath(), directoriesToWatch);
         });
         determineAndUpdateWatchedHierarchies();
@@ -96,7 +98,7 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             .map(File::toPath)
             .map(Path::toAbsolutePath)
             .collect(Collectors.toSet());
-        Set<Path> newRootProjectDirectories = WatchRootUtil.resolveRootsToWatch(rootPaths);
+        Set<Path> newRootProjectDirectories = resolveHierarchiesToWatch(rootPaths);
         LOGGER.info("Now considering watching {} as root project directories", newRootProjectDirectories);
 
         knownRootProjectDirectoriesFromCurrentBuild.clear();
@@ -119,7 +121,7 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
                 .orElse(trackedDirectory))
             .collect(Collectors.toSet());
 
-        return WatchRootUtil.resolveRootsToWatch(directoriesToWatch);
+        return resolveHierarchiesToWatch(directoriesToWatch);
     }
 
     private void updateWatchedHierarchies(Set<Path> newHierarchiesToWatch) {
@@ -148,5 +150,30 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             watchedHierarchies.addAll(hierarchiesToStartWatching);
         }
         LOGGER.info("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
+    }
+
+    /**
+     * Filters out directories whose ancestor is also among the watched directories.
+     */
+    @VisibleForTesting
+    static Set<Path> resolveHierarchiesToWatch(Set<Path> directories) {
+        Set<Path> hierarchies = new HashSet<>();
+        directories.stream()
+            .sorted(Comparator.comparingInt(Path::getNameCount))
+            .filter(path -> {
+                Path parent = path;
+                while (true) {
+                    parent = parent.getParent();
+                    if (parent == null) {
+                        break;
+                    }
+                    if (hierarchies.contains(parent)) {
+                        return false;
+                    }
+                }
+                return true;
+            })
+            .forEach(hierarchies::add);
+        return hierarchies;
     }
 }

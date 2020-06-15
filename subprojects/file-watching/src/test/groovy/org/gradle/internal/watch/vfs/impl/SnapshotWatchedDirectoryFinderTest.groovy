@@ -22,55 +22,16 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.PathUtil
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.gradle.internal.watch.registry.impl.WatchRootUtil
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.internal.watch.registry.impl.SnapshotWatchedDirectoryFinder
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import java.nio.file.Paths
-
 @Unroll
-class WatchRootUtilTest extends Specification {
-    @Requires(TestPrecondition.UNIX_DERIVATIVE)
-    def "resolves recursive UNIX roots #directories to #resolvedRoots"() {
-        expect:
-        resolveRecursiveRoots(directories) == resolvedRoots
-
-        where:
-        directories        | resolvedRoots
-        []                 | []
-        ["/a"]             | ["/a"]
-        ["/a", "/b"]       | ["/a", "/b"]
-        ["/a", "/a/b"]     | ["/a"]
-        ["/a/b", "/a"]     | ["/a"]
-        ["/a", "/a/b/c/d"] | ["/a"]
-        ["/a/b/c/d", "/a"] | ["/a"]
-        ["/a", "/b/a"]     | ["/a", "/b/a"]
-        ["/b/a", "/a"]     | ["/a", "/b/a"]
-    }
-
-    @Requires(TestPrecondition.WINDOWS)
-    def "resolves recursive Windows roots #directories to #resolvedRoots"() {
-        expect:
-        resolveRecursiveRoots(directories) == resolvedRoots
-
-        where:
-        directories                 | resolvedRoots
-        []                          | []
-        ["C:\\a"]                   | ["C:\\a"]
-        ["C:\\a", "C:\\b"]          | ["C:\\a", "C:\\b"]
-        ["C:\\a", "C:\\a\\b"]       | ["C:\\a"]
-        ["C:\\a\\b", "C:\\a"]       | ["C:\\a"]
-        ["C:\\a", "C:\\a\\b\\c\\d"] | ["C:\\a"]
-        ["C:\\a\\b\\c\\d", "C:\\a"] | ["C:\\a"]
-        ["C:\\a", "C:\\b\\a"]       | ["C:\\a", "C:\\b\\a"]
-        ["C:\\b\\a", "C:\\a"]       | ["C:\\a", "C:\\b\\a"]
-    }
+class SnapshotWatchedDirectoryFinderTest extends Specification {
 
     def "resolves directories to watch from snapshot"() {
         when:
-        def directoriesToWatch = WatchRootUtil.getDirectoriesToWatch(snapshot).collect { it.toString() } as Set
+        def directoriesToWatch = SnapshotWatchedDirectoryFinder.getDirectoriesToWatch(snapshot).collect { it.toString() } as Set
         then:
         normalizeLineSeparators(directoriesToWatch) == (expectedDirectoriesToWatch as Set)
 
@@ -86,12 +47,6 @@ class WatchRootUtilTest extends Specification {
 
     private static CompleteDirectorySnapshot directorySnapshot(String absolutePath) {
         new CompleteDirectorySnapshot(absolutePath, PathUtil.getFileName(absolutePath), [], Hashing.md5().hashString(absolutePath), AccessType.DIRECT)
-    }
-
-    private static List<String> resolveRecursiveRoots(List<String> directories) {
-        WatchRootUtil.resolveRootsToWatch(directories.collect { Paths.get(it) } as Set)
-            .collect { it.toString() }
-            .sort()
     }
 
     private static Set<String> normalizeLineSeparators(Set<String> paths) {

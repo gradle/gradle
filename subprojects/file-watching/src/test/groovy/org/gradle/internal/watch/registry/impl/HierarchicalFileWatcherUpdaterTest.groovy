@@ -21,6 +21,10 @@ import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.watch.registry.FileWatcherUpdater
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+
+import java.nio.file.Paths
 
 class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
 
@@ -290,6 +294,42 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
     }
 
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "resolves recursive UNIX roots #directories to #resolvedRoots"() {
+        expect:
+        resolveRecursiveRoots(directories) == resolvedRoots
+
+        where:
+        directories        | resolvedRoots
+        []                 | []
+        ["/a"]             | ["/a"]
+        ["/a", "/b"]       | ["/a", "/b"]
+        ["/a", "/a/b"]     | ["/a"]
+        ["/a/b", "/a"]     | ["/a"]
+        ["/a", "/a/b/c/d"] | ["/a"]
+        ["/a/b/c/d", "/a"] | ["/a"]
+        ["/a", "/b/a"]     | ["/a", "/b/a"]
+        ["/b/a", "/a"]     | ["/a", "/b/a"]
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "resolves recursive Windows roots #directories to #resolvedRoots"() {
+        expect:
+        resolveRecursiveRoots(directories) == resolvedRoots
+
+        where:
+        directories                 | resolvedRoots
+        []                          | []
+        ["C:\\a"]                   | ["C:\\a"]
+        ["C:\\a", "C:\\b"]          | ["C:\\a", "C:\\b"]
+        ["C:\\a", "C:\\a\\b"]       | ["C:\\a"]
+        ["C:\\a\\b", "C:\\a"]       | ["C:\\a"]
+        ["C:\\a", "C:\\a\\b\\c\\d"] | ["C:\\a"]
+        ["C:\\a\\b\\c\\d", "C:\\a"] | ["C:\\a"]
+        ["C:\\a", "C:\\b\\a"]       | ["C:\\a", "C:\\b\\a"]
+        ["C:\\b\\a", "C:\\a"]       | ["C:\\a", "C:\\b\\a"]
+    }
+
     MissingFileSnapshot missingFileSnapshot(File location) {
         new MissingFileSnapshot(location.getAbsolutePath(), AccessType.DIRECT)
     }
@@ -300,5 +340,11 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
             addSnapshot(snapshotRegularFile(fileInside))
             return fileInside.parentFile
         }
+    }
+
+    private static List<String> resolveRecursiveRoots(List<String> directories) {
+        HierarchicalFileWatcherUpdater.resolveHierarchiesToWatch(directories.collect { Paths.get(it) } as Set)
+            .collect { it.toString() }
+            .sort()
     }
 }
