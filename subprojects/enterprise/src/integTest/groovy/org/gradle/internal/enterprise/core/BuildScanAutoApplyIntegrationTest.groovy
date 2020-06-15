@@ -26,7 +26,6 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
-import static org.gradle.internal.enterprise.legacy.GradleEnterprisePluginLegacyContactPointFixture.GRADLE_ENTERPRISE_PLUGIN_ID
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
@@ -92,11 +91,11 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         when:
         settingsFile << """
             includeBuild 'a'
-            assert pluginManager.hasPlugin('$GRADLE_ENTERPRISE_PLUGIN_ID')
+            assert pluginManager.hasPlugin('$fixture.id')
         """
         file('a/settings.gradle') << """
             rootProject.name = 'a'
-            assert !pluginManager.hasPlugin('$GRADLE_ENTERPRISE_PLUGIN_ID')
+            assert !pluginManager.hasPlugin('$fixture.id')
         """
         file('a/build.gradle') << """
             println 'in nested build'
