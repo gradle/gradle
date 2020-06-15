@@ -85,7 +85,7 @@ class BuildActionSerializerTest extends SerializerSpec {
         ]
     }
 
-    def "serializes other actions"() {
+    def "serializes other actions #action.class"() {
         expect:
         def result = serialize(action, BuildActionSerializer.create())
         result.class == action.class
