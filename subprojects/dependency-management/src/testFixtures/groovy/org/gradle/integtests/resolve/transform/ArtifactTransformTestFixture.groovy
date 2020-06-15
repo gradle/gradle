@@ -414,19 +414,14 @@ allprojects { p ->
          */
         void produceFiles() {
             producerTaskClassName = "FileProducer"
+            // TODO - should not require forUseAtConfigurationTime()
             producerConfig = """
-                output = layout.buildDir.file("\${project.name}.jar")
+                output.convention(layout.buildDirectory.file(providers.gradleProperty("\${project.name}FileName").forUseAtConfigurationTime().orElse("\${project.name}.jar")))
                 content.convention(providers.gradleProperty("\${project.name}Content").orElse(project.name))
             """.stripIndent()
+            // TODO - should not require forUseAtConfigurationTime()
             producerConfigOverrides = """
-                if (project.hasProperty("\${project.name}OutputDir")) {
-                    buildDir = project.file(project.property("\${project.name}OutputDir"))
-                }
-                tasks.withType(FileProducer) {
-                    if (project.hasProperty("\${project.name}FileName")) {
-                        output = layout.buildDir.file(project.property("\${project.name}FileName"))
-                    }
-                }
+                layout.buildDirectory.convention(layout.projectDirectory.dir(providers.gradleProperty("\${project.name}OutputDir").forUseAtConfigurationTime().orElse("build")))
             """.stripIndent()
         }
 
@@ -439,10 +434,9 @@ allprojects { p ->
                 output = layout.buildDir.file("\${project.name}.jar")
                 content = project.name
             """.stripIndent()
+            // TODO - should not require forUseAtConfigurationTime()
             producerConfigOverrides = """
-                if (project.hasProperty("\${project.name}OutputDir")) {
-                    buildDir = project.file(project.property("\${project.name}OutputDir"))
-                }
+                layout.buildDirectory.convention(layout.projectDirectory.dir(providers.gradleProperty("\${project.name}OutputDir").forUseAtConfigurationTime().orElse("build")))
                 tasks.withType(JarProducer) {
                     if (project.hasProperty("\${project.name}ProduceNothing")) {
                         content = ""
@@ -473,29 +467,23 @@ allprojects { p ->
          */
         void produceDirs() {
             producerTaskClassName = "DirProducer"
+            // TODO - should not require forUseAtConfigurationTime()
             producerConfig = """
-                output = layout.buildDir.dir("\${project.name}-dir")
-                content = project.name
-                names = [project.name]
+                output.convention(layout.buildDirectory.dir(providers.gradleProperty("\${project.name}DirName").forUseAtConfigurationTime().orElse("\${project.name}-dir")))
+                def defaultContent = project.name
+                content.convention(providers.gradleProperty("\${project.name}Content").orElse(defaultContent))
+                def defaultNames = [project.name]
+                names.convention(providers.gradleProperty("\${project.name}Name").map { [it] }.orElse(defaultNames))
             """.stripIndent()
+            // TODO - should not require forUseAtConfigurationTime()
             producerConfigOverrides = """
-                if (project.hasProperty("\${project.name}OutputDir")) {
-                    buildDir = project.file(project.property("\${project.name}OutputDir"))
-                }
+                layout.buildDirectory.convention(layout.projectDirectory.dir(providers.gradleProperty("\${project.name}OutputDir").forUseAtConfigurationTime().orElse("build")))
                 tasks.withType(DirProducer) {
                     if (project.hasProperty("\${project.name}ProduceNothing")) {
                         content = ""
-                    } else if (project.hasProperty("\${project.name}Content")) {
-                        content = project.property("\${project.name}Content")
-                    }
-                    if (project.hasProperty("\${project.name}Name")) {
-                        names = [project.property("\${project.name}Name")]
                     }
                     if (project.hasProperty("\${project.name}Names")) {
                         names.set(project.property("\${project.name}Names").split(',') as List)
-                    }
-                    if (project.hasProperty("\${project.name}DirName")) {
-                        output = layout.buildDir.dir(project.property("\${project.name}DirName"))
                     }
                 }
             """.stripIndent()
