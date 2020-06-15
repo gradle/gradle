@@ -157,28 +157,28 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                     for (LambdaFactoryDetails factory : lambdaFactories) {
                         if (next != null) {
                             visitLabel(next);
-                            F_SAME();
+                            _F_SAME();
                         }
                         next = new Label();
-                        ALOAD(0);
-                        INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getImplMethodName", RETURN_STRING);
-                        LDC(((Handle) factory.bootstrapMethodArguments.get(1)).getName());
-                        INVOKEVIRTUAL(OBJECT_TYPE, "equals", RETURN_BOOLEAN_FROM_OBJECT);
-                        IFEQ(next);
+                        _ALOAD(0);
+                        _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getImplMethodName", RETURN_STRING);
+                        _LDC(((Handle) factory.bootstrapMethodArguments.get(1)).getName());
+                        _INVOKEVIRTUAL(OBJECT_TYPE, "equals", RETURN_BOOLEAN_FROM_OBJECT);
+                        _IFEQ(next);
                         Type[] argumentTypes = Type.getArgumentTypes(factory.descriptor);
                         for (int i = 0; i < argumentTypes.length; i++) {
-                            ALOAD(0);
-                            LDC(i);
-                            INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getCapturedArg", RETURN_OBJECT_FROM_INT);
+                            _ALOAD(0);
+                            _LDC(i);
+                            _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getCapturedArg", RETURN_OBJECT_FROM_INT);
                             unboxOrCastTo(argumentTypes[i]);
                         }
-                        INVOKEDYNAMIC(factory.name, factory.descriptor, factory.bootstrapMethodHandle, factory.bootstrapMethodArguments);
-                        ARETURN();
+                        _INVOKEDYNAMIC(factory.name, factory.descriptor, factory.bootstrapMethodHandle, factory.bootstrapMethodArguments);
+                        _ARETURN();
                     }
                     visitLabel(next);
-                    F_SAME();
-                    ACONST_NULL();
-                    ARETURN();
+                    _F_SAME();
+                    _ACONST_NULL();
+                    _ARETURN();
                     visitMaxs(0, 0);
                     visitEnd();
                 }
@@ -191,10 +191,10 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             ) {
                 {
                     visitCode();
-                    INVOKESTATIC(className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY);
-                    DUP();
-                    INVOKESTATIC(INSTRUMENTED_TYPE, "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY);
-                    ARETURN();
+                    _INVOKESTATIC(className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY);
+                    _DUP();
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY);
+                    _ARETURN();
                     visitMaxs(2, 0);
                     visitEnd();
                 }
@@ -229,58 +229,58 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 if (owner.equals(SYSTEM_TYPE.getInternalName())) {
                     if (name.equals("getProperty")) {
                         if (descriptor.equals(RETURN_STRING_FROM_STRING)) {
-                            LDC(binaryClassNameOf(className));
-                            INVOKESTATIC(INSTRUMENTED_TYPE, "systemProperty", RETURN_STRING_FROM_STRING_STRING);
+                            _LDC(binaryClassNameOf(className));
+                            _INVOKESTATIC(INSTRUMENTED_TYPE, "systemProperty", RETURN_STRING_FROM_STRING_STRING);
                             return;
                         }
                         if (descriptor.equals(RETURN_STRING_FROM_STRING_STRING)) {
-                            LDC(binaryClassNameOf(className));
-                            INVOKESTATIC(INSTRUMENTED_TYPE, "systemProperty", RETURN_STRING_FROM_STRING_STRING_STRING);
+                            _LDC(binaryClassNameOf(className));
+                            _INVOKESTATIC(INSTRUMENTED_TYPE, "systemProperty", RETURN_STRING_FROM_STRING_STRING_STRING);
                             return;
                         }
                     } else if (name.equals("getProperties") && descriptor.equals(RETURN_PROPERTIES)) {
-                        LDC(binaryClassNameOf(className));
-                        INVOKESTATIC(INSTRUMENTED_TYPE, "systemProperties", RETURN_PROPERTIES_FROM_STRING);
+                        _LDC(binaryClassNameOf(className));
+                        _INVOKESTATIC(INSTRUMENTED_TYPE, "systemProperties", RETURN_PROPERTIES_FROM_STRING);
                         return;
                     }
                 } else if (owner.equals(INTEGER_TYPE.getInternalName()) && name.equals("getInteger")) {
                     if (descriptor.equals(RETURN_INTEGER_FROM_STRING)) {
-                        LDC(binaryClassNameOf(className));
-                        INVOKESTATIC(INSTRUMENTED_TYPE, "getInteger", RETURN_INTEGER_FROM_STRING_STRING);
+                        _LDC(binaryClassNameOf(className));
+                        _INVOKESTATIC(INSTRUMENTED_TYPE, "getInteger", RETURN_INTEGER_FROM_STRING_STRING);
                         return;
                     }
                     if (descriptor.equals(RETURN_INTEGER_FROM_STRING_INT)) {
-                        LDC(binaryClassNameOf(className));
-                        INVOKESTATIC(INSTRUMENTED_TYPE, "getInteger", RETURN_INTEGER_FROM_STRING_INT_STRING);
+                        _LDC(binaryClassNameOf(className));
+                        _INVOKESTATIC(INSTRUMENTED_TYPE, "getInteger", RETURN_INTEGER_FROM_STRING_INT_STRING);
                         return;
                     }
                     if (descriptor.equals(RETURN_INTEGER_FROM_STRING_INTEGER)) {
-                        LDC(binaryClassNameOf(className));
-                        INVOKESTATIC(INSTRUMENTED_TYPE, "getInteger", RETURN_INTEGER_FROM_STRING_INTEGER_STRING);
+                        _LDC(binaryClassNameOf(className));
+                        _INVOKESTATIC(INSTRUMENTED_TYPE, "getInteger", RETURN_INTEGER_FROM_STRING_INTEGER_STRING);
                         return;
                     }
                 } else if (owner.equals(LONG_TYPE.getInternalName()) && name.equals("getLong")) {
                     if (descriptor.equals(RETURN_LONG_FROM_STRING)) {
-                        LDC(binaryClassNameOf(className));
-                        INVOKESTATIC(INSTRUMENTED_TYPE, "getLong", RETURN_LONG_FROM_STRING_STRING);
+                        _LDC(binaryClassNameOf(className));
+                        _INVOKESTATIC(INSTRUMENTED_TYPE, "getLong", RETURN_LONG_FROM_STRING_STRING);
                         return;
                     }
                     if (descriptor.equals(RETURN_LONG_FROM_STRING_PRIMITIVE_LONG)) {
-                        LDC(binaryClassNameOf(className));
-                        INVOKESTATIC(INSTRUMENTED_TYPE, "getLong", RETURN_LONG_FROM_STRING_PRIMITIVE_LONG_STRING);
+                        _LDC(binaryClassNameOf(className));
+                        _INVOKESTATIC(INSTRUMENTED_TYPE, "getLong", RETURN_LONG_FROM_STRING_PRIMITIVE_LONG_STRING);
                         return;
                     }
                     if (descriptor.equals(RETURN_LONG_FROM_STRING_LONG)) {
-                        LDC(binaryClassNameOf(className));
-                        INVOKESTATIC(INSTRUMENTED_TYPE, "getLong", RETURN_LONG_FROM_STRING_LONG_STRING);
+                        _LDC(binaryClassNameOf(className));
+                        _INVOKESTATIC(INSTRUMENTED_TYPE, "getLong", RETURN_LONG_FROM_STRING_LONG_STRING);
                         return;
                     }
                 } else if (owner.equals(BOOLEAN_TYPE.getInternalName()) && name.equals("getBoolean") && descriptor.equals(RETURN_PRIMITIVE_BOOLEAN_FROM_STRING)) {
-                    LDC(binaryClassNameOf(className));
-                    INVOKESTATIC(INSTRUMENTED_TYPE, "getBoolean", RETURN_PRIMITIVE_BOOLEAN_FROM_STRING_STRING);
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "getBoolean", RETURN_PRIMITIVE_BOOLEAN_FROM_STRING_STRING);
                     return;
                 } else if (owner.equals(className) && name.equals(CREATE_CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
-                    INVOKESTATIC(className, INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY);
+                    _INVOKESTATIC(className, INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY);
                     return;
                 }
             }
@@ -352,47 +352,47 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         /**
          * @see F_SAME
          */
-        protected void F_SAME() {
+        protected void _F_SAME() {
             super.visitFrame(F_SAME, 0, new Object[0], 0, new Object[0]);
         }
 
-        protected void INVOKESTATIC(Type owner, String name, String descriptor) {
-            INVOKESTATIC(owner.getInternalName(), name, descriptor);
+        protected void _INVOKESTATIC(Type owner, String name, String descriptor) {
+            _INVOKESTATIC(owner.getInternalName(), name, descriptor);
         }
 
-        protected void INVOKESTATIC(String owner, String name, String descriptor) {
+        protected void _INVOKESTATIC(String owner, String name, String descriptor) {
             super.visitMethodInsn(INVOKESTATIC, owner, name, descriptor, false);
         }
 
-        protected void INVOKEVIRTUAL(Type owner, String name, String descriptor) {
+        protected void _INVOKEVIRTUAL(Type owner, String name, String descriptor) {
             super.visitMethodInsn(INVOKEVIRTUAL, owner.getInternalName(), name, descriptor, false);
         }
 
-        protected void INVOKEDYNAMIC(String name, String descriptor, Handle bootstrapMethodHandle, List<?> bootstrapMethodArguments) {
+        protected void _INVOKEDYNAMIC(String name, String descriptor, Handle bootstrapMethodHandle, List<?> bootstrapMethodArguments) {
             super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments.toArray());
         }
 
-        protected void DUP() {
+        protected void _DUP() {
             super.visitInsn(DUP);
         }
 
-        protected void ACONST_NULL() {
+        protected void _ACONST_NULL() {
             super.visitInsn(ACONST_NULL);
         }
 
-        protected void LDC(Object value) {
+        protected void _LDC(Object value) {
             super.visitLdcInsn(value);
         }
 
-        protected void ALOAD(int var) {
+        protected void _ALOAD(int var) {
             super.visitVarInsn(ALOAD, var);
         }
 
-        protected void IFEQ(Label label) {
+        protected void _IFEQ(Label label) {
             super.visitJumpInsn(IFEQ, label);
         }
 
-        protected void ARETURN() {
+        protected void _ARETURN() {
             super.visitInsn(ARETURN);
         }
     }
