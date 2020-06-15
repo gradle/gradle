@@ -38,6 +38,7 @@ import org.gradle.jvm.internal.resolve.VariantsMetaData;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.internal.DefaultJavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
+import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 import java.util.Collection;
@@ -53,6 +54,7 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.add(JavaInstallationProbe.class);
+        registration.add(SharedJavaInstallationRegistry.class);
     }
 
     @Override
