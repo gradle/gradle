@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.DependencyArtifact;
@@ -124,7 +125,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         if (!((PublicationArtifactInternal) artifact).shouldBePublished()) {
             return false;
         }
-        return artifact.getFile().exists();
+        File file = artifact.getFile();
+        return file != null && file.exists();
     };
 
     @VisibleForTesting
