@@ -29,10 +29,10 @@ public abstract class PublishOperation implements Runnable {
     private final String repository;
 
     protected PublishOperation(Publication publication, String repository) {
-        this(repository, publication.getName());
+        this(publication.getName(), repository);
     }
 
-    protected PublishOperation(String repository, String publicationName) {
+    protected PublishOperation(String publicationName, String repository) {
         this.publicationName = publicationName;
         this.repository = repository;
     }
