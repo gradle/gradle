@@ -16,7 +16,6 @@
 package org.gradle.internal.invocation;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
@@ -54,15 +53,15 @@ public class GradleBuildController implements BuildController {
 
     @Override
     public GradleInternal run() {
-        return doBuild(BuildType.TASKS, GradleLauncher::executeTasks);
+        return doBuild(GradleLauncher::executeTasks);
     }
 
     @Override
     public GradleInternal configure() {
-        return doBuild(BuildType.MODEL, GradleLauncher::getConfiguredBuild);
+        return doBuild(GradleLauncher::getConfiguredBuild);
     }
 
-    private GradleInternal doBuild(final BuildType buildType, final Action<? super GradleLauncher> build) {
+    private GradleInternal doBuild(final Action<? super GradleLauncher> build) {
         try {
             // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
             return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), new Factory<GradleInternal>() {
