@@ -12,7 +12,7 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 
 
 enum class TestType(val prefix: String, val executers: List<String>, val libRepoRequired: Boolean) {
-    INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel", "instant", "vfsRetention"), false),
+    INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel", "instant", "watchFs"), false),
     CROSSVERSION("crossVersion", listOf("embedded", "forking"), true)
 }
 
