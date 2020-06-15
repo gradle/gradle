@@ -217,6 +217,7 @@ class InstantExecutionState(
         writeCollection(relevantProjects) { project ->
             writeString(project.path)
             writeFile(project.projectDir)
+            writeFile(project.buildDir)
         }
     }
 
@@ -225,7 +226,8 @@ class InstantExecutionState(
         readCollection {
             val projectPath = readString()
             val projectDir = readFile()
-            build.createProject(projectPath, projectDir)
+            val buildDir = readFile()
+            build.createProject(projectPath, projectDir, buildDir)
         }
     }
 

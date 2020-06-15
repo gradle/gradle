@@ -98,6 +98,8 @@ class InstantExecutionHost internal constructor(
         private val fileResolver: PathToFileResolver,
         private val rootProjectName: String
     ) : InstantExecutionBuild {
+        private
+        val buildDirs = mutableMapOf<Path, File>()
 
         init {
             gradle.run {
@@ -118,7 +120,7 @@ class InstantExecutionHost internal constructor(
             }
         }
 
-        override fun createProject(path: String, dir: File) {
+        override fun createProject(path: String, dir: File, buildDir: File) {
             val projectPath = Path.path(path)
             val name = projectPath.name
             val projectDescriptor = DefaultProjectDescriptor(
@@ -129,6 +131,7 @@ class InstantExecutionHost internal constructor(
                 fileResolver
             )
             projectDescriptorRegistry.addProject(projectDescriptor)
+            buildDirs[projectPath] = buildDir
         }
 
         override fun registerProjects() {
@@ -161,6 +164,8 @@ class InstantExecutionHost internal constructor(
         private
         fun createProject(descriptor: ProjectDescriptor, parent: ProjectInternal?): ProjectInternal {
             val project = projectFactory.createProject(gradle, descriptor, parent, coreAndPluginsScope, coreAndPluginsScope)
+            // Build dir is restored in order to use the correct workspace directory for transforms of project dependencies when the build dir has been customized
+            buildDirs.get(project.identityPath)?.let { project.setBuildDir(it) }
             for (child in descriptor.children) {
                 createProject(child, project)
             }
