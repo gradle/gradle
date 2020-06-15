@@ -18,6 +18,9 @@ package org.gradle.internal.enterprise;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+/**
+ * Information eagerly conveyed about the plugin from Gradle to the plugin.
+ */
 @UsedByScanPlugin
 public interface GradleEnterprisePluginConfig {
 

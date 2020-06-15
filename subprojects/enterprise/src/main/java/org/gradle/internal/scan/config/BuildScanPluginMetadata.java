@@ -23,7 +23,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 4.0
  */
-@UsedByScanPlugin("Implemented by the scan plugin")
+@UsedByScanPlugin("Implemented by plugin")
 public interface BuildScanPluginMetadata {
 
     /**

@@ -20,6 +20,12 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 
+/**
+ * Used to signal the end of build to the plugin.
+ *
+ * Uses a specific listener to guarantee being invoked after user buildFinished callbacks.
+ * Expected to be invoked once for a build tree.
+ */
 @UsedByScanPlugin("implemented by plugin")
 public interface GradleEnterprisePluginEndOfBuildListener {
 

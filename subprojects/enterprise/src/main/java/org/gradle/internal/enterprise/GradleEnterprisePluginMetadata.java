@@ -18,7 +18,10 @@ package org.gradle.internal.enterprise;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-@UsedByScanPlugin
+/**
+ * Information about the plugin to be conveyed to Gradle.
+ */
+@UsedByScanPlugin("implemented by plugin")
 public interface GradleEnterprisePluginMetadata {
 
     String getVersion();

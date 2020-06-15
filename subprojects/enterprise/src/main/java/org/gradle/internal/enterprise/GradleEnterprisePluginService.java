@@ -19,11 +19,22 @@ package org.gradle.internal.enterprise;
 import org.gradle.internal.operations.notify.BuildOperationNotificationListener;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-@UsedByScanPlugin
+/**
+ * A service for a particular build invocation
+ */
+@UsedByScanPlugin("implemented by plugin")
 public interface GradleEnterprisePluginService {
 
+    /**
+     * To be registered for notifications by Gradle.
+     *
+     * It expects to receive notifications about all operations from the very start of the build.
+     */
     BuildOperationNotificationListener getBuildOperationNotificationListener();
 
+    /**
+     * Notified when the build invocation has finished by Gradle.
+     */
     GradleEnterprisePluginEndOfBuildListener getEndOfBuildListener();
 
 }

@@ -18,11 +18,24 @@ package org.gradle.internal.enterprise;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-@UsedByScanPlugin
+/**
+ *
+ */
+@UsedByScanPlugin("implemented by plugin")
 public interface GradleEnterprisePluginCheckInResultHandler {
 
+    /**
+     * Causes the plugin to effectively no-op and disable all of its functionality.
+     *
+     * Intended to be used to drop support for old versions somewhat gracefully.
+     */
     void unsupported(String reasonMessage);
 
+    /**
+     * Indicates that the plugin is supported and that it should function.
+     *
+     * @param serviceRef a configuration caching friendly dynamic reference to the plugin service for the “current build invocation”
+     */
     void supported(GradleEnterprisePluginServiceRef serviceRef);
 
 }

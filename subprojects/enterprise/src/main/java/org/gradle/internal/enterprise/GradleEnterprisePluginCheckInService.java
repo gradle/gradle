@@ -18,9 +18,21 @@ package org.gradle.internal.enterprise;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+/**
+ * The plugin uses this to announce its presence and provide its service.
+ *
+ * It is obtained via the settings object's service registry for the root build only.
+ */
 @UsedByScanPlugin
 public interface GradleEnterprisePluginCheckInService {
 
+    /**
+     * Registers the plugin with Gradle.
+     *
+     * @param pluginMetadata any information provided by the plugin to Gradle
+     * @param serviceFactory a factory for a per-build-invocation service for the plugin
+     * @param resultHandler a handler for the check in result
+     */
     void checkIn(
         GradleEnterprisePluginMetadata pluginMetadata,
         GradleEnterprisePluginServiceFactory serviceFactory,

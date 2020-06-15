@@ -18,6 +18,9 @@ package org.gradle.internal.enterprise;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+/**
+ * Information about the current build invocation or build invocation environment required by the plugin.
+ */
 @UsedByScanPlugin
 public interface GradleEnterprisePluginBuildState {
 

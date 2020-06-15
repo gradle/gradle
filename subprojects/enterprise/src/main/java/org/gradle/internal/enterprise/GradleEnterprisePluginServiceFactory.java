@@ -20,9 +20,24 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.io.Serializable;
 
-@UsedByScanPlugin
+/**
+ * Creates a per-build-invocation plugin service.
+ *
+ * Gradle is responsible for creating the service via this factory for each build invocation.
+ */
+@UsedByScanPlugin("implemented by plugin")
 public interface GradleEnterprisePluginServiceFactory extends Serializable {
 
+    /**
+     * Creates a per-build-invocation plugin service.
+     *
+     * Should be called at-most-once for the build tree scope.
+     *
+     * @param config information about the plugin conveyed by Gradle
+     * @param requiredServices infrastructure like services required by the plugin
+     * @param buildState state particular to the build invocation
+     * @return the plugin service
+     */
     GradleEnterprisePluginService create(
         GradleEnterprisePluginConfig config,
         GradleEnterprisePluginRequiredServices requiredServices,

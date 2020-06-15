@@ -20,6 +20,9 @@ import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+/**
+ * Infrastructure like services used by the plugin.
+ */
 @UsedByScanPlugin
 public interface GradleEnterprisePluginRequiredServices {
 
