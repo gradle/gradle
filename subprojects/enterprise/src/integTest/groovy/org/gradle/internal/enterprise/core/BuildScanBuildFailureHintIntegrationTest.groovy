@@ -32,7 +32,7 @@ import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.Stack
 @Issue("https://github.com/gradle/gradle/issues/3516")
 @Requires(TestPrecondition.ONLINE)
 @Unroll
-class BuildFailureBuildScanHintIntegrationTest extends AbstractPluginIntegrationTest {
+class BuildScanBuildFailureHintIntegrationTest extends AbstractPluginIntegrationTest {
 
     private static final List<String> DUMMY_TASK_ONLY = [DUMMY_TASK_NAME]
     private static final List<String> DUMMY_TASK_AND_BUILD_SCAN = [DUMMY_TASK_NAME, "--$BuildScanOption.LONG_OPTION"]
