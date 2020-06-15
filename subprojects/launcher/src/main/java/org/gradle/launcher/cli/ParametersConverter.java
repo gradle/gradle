@@ -16,89 +16,76 @@
 
 package org.gradle.launcher.cli;
 
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.cli.SystemPropertiesCommandLineConverter;
-import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.launcher.cli.converter.DaemonCommandLineConverter;
+import org.gradle.launcher.configuration.AllProperties;
+import org.gradle.launcher.cli.converter.BuildLayoutConverter;
+import org.gradle.launcher.configuration.BuildLayoutResult;
+import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
+import org.gradle.launcher.configuration.InitialProperties;
+import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
-import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
-import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
+import org.gradle.launcher.cli.converter.StartParameterConverter;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
-import java.util.HashMap;
-import java.util.Map;
+import javax.annotation.Nullable;
+import java.io.File;
 
-public class ParametersConverter extends AbstractCommandLineConverter<Parameters> {
+public class ParametersConverter {
 
-    private final LayoutCommandLineConverter layoutConverter;
-
-    private final SystemPropertiesCommandLineConverter propertiesConverter;
+    private final InitialPropertiesConverter initialPropertiesConverter;
+    private final BuildLayoutConverter buildLayoutConverter;
     private final LayoutToPropertiesConverter layoutToPropertiesConverter;
-
-    private final PropertiesToStartParameterConverter propertiesToStartParameterConverter;
-    private final DefaultCommandLineConverter commandLineConverter;
-
-    private final DaemonCommandLineConverter daemonConverter;
-    private final PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter;
+    private final StartParameterConverter startParameterConverter;
+    private final BuildOptionBackedConverter<DaemonParameters> daemonParametersConverter;
     private final FileCollectionFactory fileCollectionFactory;
 
-    ParametersConverter(LayoutCommandLineConverter layoutConverter,
-                        SystemPropertiesCommandLineConverter propertiesConverter,
+    ParametersConverter(InitialPropertiesConverter initialPropertiesConverter,
+                        BuildLayoutConverter buildLayoutConverter,
                         LayoutToPropertiesConverter layoutToPropertiesConverter,
-                        PropertiesToStartParameterConverter propertiesToStartParameterConverter,
-                        DefaultCommandLineConverter commandLineConverter,
-                        DaemonCommandLineConverter daemonConverter,
-                        PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter,
+                        StartParameterConverter startParameterConverter,
+                        BuildOptionBackedConverter<DaemonParameters> daemonParametersConverter,
                         FileCollectionFactory fileCollectionFactory) {
-        this.layoutConverter = layoutConverter;
-        this.propertiesConverter = propertiesConverter;
+        this.initialPropertiesConverter = initialPropertiesConverter;
+        this.buildLayoutConverter = buildLayoutConverter;
         this.layoutToPropertiesConverter = layoutToPropertiesConverter;
-        this.propertiesToStartParameterConverter = propertiesToStartParameterConverter;
-        this.commandLineConverter = commandLineConverter;
-        this.daemonConverter = daemonConverter;
-        this.propertiesToDaemonParametersConverter = propertiesToDaemonParametersConverter;
+        this.startParameterConverter = startParameterConverter;
+        this.daemonParametersConverter = daemonParametersConverter;
         this.fileCollectionFactory = fileCollectionFactory;
     }
 
     public ParametersConverter(BuildLayoutFactory buildLayoutFactory, FileCollectionFactory fileCollectionFactory) {
-        this(new LayoutCommandLineConverter(),
-            new SystemPropertiesCommandLineConverter(),
+        this(new InitialPropertiesConverter(),
+            new BuildLayoutConverter(),
             new LayoutToPropertiesConverter(buildLayoutFactory),
-            new PropertiesToStartParameterConverter(),
-            new DefaultCommandLineConverter(),
-            new DaemonCommandLineConverter(),
-            new PropertiesToDaemonParametersConverter(),
+            new StartParameterConverter(),
+            new BuildOptionBackedConverter<>(new DaemonBuildOptions()),
             fileCollectionFactory);
     }
 
-    @Override
-    public Parameters convert(ParsedCommandLine args, Parameters target) throws CommandLineArgumentException {
-        layoutConverter.convert(args, target.getLayout());
+    public Parameters convert(ParsedCommandLine args, @Nullable File currentDir) throws CommandLineArgumentException {
+        InitialProperties initialProperties = initialPropertiesConverter.convert(args);
+        BuildLayoutResult buildLayout = buildLayoutConverter.convert(initialProperties, args, currentDir);
+        AllProperties properties = layoutToPropertiesConverter.convert(initialProperties, buildLayout);
 
-        Map<String, String> properties = new HashMap<String, String>();
-        layoutToPropertiesConverter.convert(target.getLayout(), properties);
-        propertiesConverter.convert(args, properties);
+        StartParameterInternal startParameter = new StartParameterInternal();
+        startParameterConverter.convert(args, buildLayout, properties, startParameter);
 
-        propertiesToStartParameterConverter.convert(properties, target.getStartParameter());
-        commandLineConverter.convert(args, target.getStartParameter());
+        DaemonParameters daemonParameters = new DaemonParameters(buildLayout, fileCollectionFactory, properties.getRequestedSystemProperties());
+        daemonParametersConverter.convert(args, properties, daemonParameters);
 
-        DaemonParameters daemonParameters = new DaemonParameters(target.getLayout(), fileCollectionFactory, target.getStartParameter().getSystemPropertiesArgs());
-        propertiesToDaemonParametersConverter.convert(properties, daemonParameters);
-        daemonConverter.convert(args, daemonParameters);
-        target.setDaemonParameters(daemonParameters);
-
-        return target;
+        return new Parameters(buildLayout, startParameter, daemonParameters);
     }
 
-    @Override
     public void configure(CommandLineParser parser) {
-        commandLineConverter.configure(parser);
-        daemonConverter.configure(parser);
+        initialPropertiesConverter.configure(parser);
+        buildLayoutConverter.configure(parser);
+        startParameterConverter.configure(parser);
+        daemonParametersConverter.configure(parser);
     }
 }

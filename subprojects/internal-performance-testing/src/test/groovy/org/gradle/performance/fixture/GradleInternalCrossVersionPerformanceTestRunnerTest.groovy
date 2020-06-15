@@ -25,7 +25,6 @@ import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
@@ -49,7 +48,6 @@ class GradleInternalCrossVersionPerformanceTestRunnerTest extends ResultSpecific
     final reporter = Mock(ReporterAndStore)
     final currentGradle = Stub(GradleDistribution)
     final releases = Stub(ReleasedVersionDistributions)
-    final currentBaseVersion = GradleVersion.current().baseVersion.version
 
     def setup() {
         releases.all >> [

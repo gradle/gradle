@@ -18,14 +18,15 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
+import spock.lang.IgnoreIf
 
+@IgnoreIf({ GradleContextualExecuter.embedded }) // Gradle API and TesKit JARs are not generated when running embedded
 class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec {
     public static final String GRADLE_TEST_KIT_JAR_BASE_NAME = 'gradle-test-kit-'
 
     def setup() {
-        executer.requireGradleDistribution()
-
         buildFile << """
             apply plugin: 'java'
 
@@ -119,7 +120,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
             configurations { a; b; c }
             dependencies {
                 a gradleApi()
-                b gradleTestKit() 
+                b gradleTestKit()
                 c localGroovy()
             }
             task showArtifacts {

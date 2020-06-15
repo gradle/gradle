@@ -36,4 +36,8 @@ dependencies {
     implementation(testLibrary("mockito_kotlin"))
     implementation(testLibrary("jackson_kotlin"))
     implementation(library("asm"))
+
+    testRuntimeOnly(project(":distributionsJvm")) {
+        because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt).")
+    }
 }

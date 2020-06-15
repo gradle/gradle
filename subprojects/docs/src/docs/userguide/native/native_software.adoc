@@ -244,7 +244,7 @@ Gradle provides a report that you can run from the command-line that shows a gra
 .Output of **`gradle dependentComponents`**
 ----
 > gradle dependentComponents
-include::{snippetsPath}/native-binaries/cunit/tests/dependentComponentsReport.out
+include::{snippetsPath}/native-binaries/cunit/tests/dependentComponentsReport.out[]
 ----
 
 [NOTE]
@@ -259,7 +259,7 @@ By default, non-buildable binaries and test suites are hidden from the report. T
 .Output of **`gradle dependentComponents --all`**
 ----
 > gradle dependentComponents --all
-include::{snippetsPath}/native-binaries/cunit/tests/dependentComponentsReportAll.out
+include::{snippetsPath}/native-binaries/cunit/tests/dependentComponentsReportAll.out[]
 ----
 
 Here is the corresponding report for the `operators` component, showing dependents of all its binaries:
@@ -269,7 +269,7 @@ Here is the corresponding report for the `operators` component, showing dependen
 .Output of **`gradle dependentComponents --component operators`**
 ----
 > gradle dependentComponents --component operators
-include::{snippetsPath}/native-binaries/cunit/tests/assembleDependentComponentsReport.out
+include::{snippetsPath}/native-binaries/cunit/tests/assembleDependentComponentsReport.out[]
 ----
 
 Here is the corresponding report for the `operators` component, showing dependents of all its binaries, including test suites:
@@ -279,7 +279,7 @@ Here is the corresponding report for the `operators` component, showing dependen
 .Output of **`gradle dependentComponents --test-suites --component operators`**
 ----
 > gradle dependentComponents --test-suites --component operators
-include::{snippetsPath}/native-binaries/cunit/tests/buildDependentComponentsReport.out
+include::{snippetsPath}/native-binaries/cunit/tests/buildDependentComponentsReport.out[]
 ----
 
 
@@ -297,7 +297,7 @@ For example, to assemble the dependents of the "passing" flavor of the "static" 
 .Output of **`gradle assembleDependentsOperatorsPassingStaticLibrary --max-workers=1`**
 ----
 > gradle assembleDependentsOperatorsPassingStaticLibrary --max-workers=1
-include::{snippetsPath}/native-binaries/cunit/tests/assembleDependentComponents.out
+include::{snippetsPath}/native-binaries/cunit/tests/assembleDependentComponents.out[]
 ----
 
 In the output above, the targeted binary gets assembled as well as the test suite binary that depends on it.
@@ -318,7 +318,7 @@ For example, to build the dependents of the "passing" flavor of the "static" lib
 .Output of **`gradle buildDependentsOperatorsPassingStaticLibrary --max-workers=1`**
 ----
 > gradle buildDependentsOperatorsPassingStaticLibrary --max-workers=1
-include::{snippetsPath}/native-binaries/cunit/tests/buildDependentComponents.out
+include::{snippetsPath}/native-binaries/cunit/tests/buildDependentComponents.out[]
 ----
 
 In the output above, the targeted binary as well as the test suite binary that depends on it are built and the test suite has run.
@@ -402,7 +402,7 @@ Now, running `check` or any of the _check tasks_ for the `hello` binaries will r
 .Output of **`gradle checkHelloSharedLibrary`**
 ----
 > gradle checkHelloSharedLibrary
-include::{snippetsPath}/native-binaries/custom-check/tests/nativeComponentCustomCheckOutput.out
+include::{snippetsPath}/native-binaries/custom-check/tests/nativeComponentCustomCheckOutput.out[]
 ----
 
 
@@ -421,7 +421,7 @@ Gradle provides a report that you can run from the command-line that shows some 
 .Output of **`gradle components`**
 ----
 > gradle components
-include::{snippetsPath}/native-binaries/cpp/tests/nativeComponentReport.out
+include::{snippetsPath}/native-binaries/cpp/tests/nativeComponentReport.out[]
 ----
 
 
@@ -968,7 +968,7 @@ include::{snippetsPath}/native-binaries/cunit/groovy/build.gradle[tag=complete-e
 .Output of `gradle -q runOperatorsTestFailingCUnitExe`
 ----
 > gradle -q runOperatorsTestFailingCUnitExe
-include::{snippetsPath}/native-binaries/cunit/tests/completeCUnitExample.out
+include::{snippetsPath}/native-binaries/cunit/tests/completeCUnitExample.out[]
 ----
 
 

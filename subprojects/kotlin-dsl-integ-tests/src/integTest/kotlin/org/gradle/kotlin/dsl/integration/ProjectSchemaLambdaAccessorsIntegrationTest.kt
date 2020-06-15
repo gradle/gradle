@@ -66,7 +66,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
     @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `accessors to __untyped__ kotlin lambda extensions are typed Any`() {
 
-        requireGradleDistributionOnEmbeddedExecuter()
+        assumeNonEmbeddedGradleExecuter()
 
         withDefaultSettings()
         withKotlinBuildSrc()
@@ -188,7 +188,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
     @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `accessors to __typed__ kotlin lambda extensions are typed`() {
 
-        requireGradleDistributionOnEmbeddedExecuter()
+        assumeNonEmbeddedGradleExecuter()
 
         withDefaultSettings()
         withKotlinBuildSrc()

@@ -17,7 +17,7 @@
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -58,22 +58,21 @@ dependencies {
     testImplementation(testFixtures(project(":modelCore")))
     testImplementation(testFixtures(project(":dependencyManagement")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
     integTestImplementation(project(":ear"))
     integTestImplementation(testLibrary("jetty"))
-    integTestRuntimeOnly(project(":resourcesS3"))
-    integTestRuntimeOnly(project(":resourcesSftp"))
-    integTestRuntimeOnly(project(":apiMetadata"))
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 
     testFixturesApi(project(":baseServices")) {
         because("Test fixtures export the Action class")
     }
     testFixturesImplementation(project(":coreApi"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(project(":dependencyManagement"))
+
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributionsCore"))
 }
 
 strictCompile {

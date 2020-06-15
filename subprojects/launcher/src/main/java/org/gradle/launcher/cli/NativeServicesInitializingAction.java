@@ -18,19 +18,19 @@ package org.gradle.launcher.cli;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
-import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.launcher.bootstrap.ExecutionListener;
+import org.gradle.launcher.configuration.BuildLayoutResult;
 
 public class NativeServicesInitializingAction implements Action<ExecutionListener> {
 
-    private final BuildLayoutParameters buildLayout;
+    private final BuildLayoutResult buildLayout;
     private final LoggingConfiguration loggingConfiguration;
     private final LoggingManagerInternal loggingManager;
     private final Action<ExecutionListener> action;
 
-    public NativeServicesInitializingAction(BuildLayoutParameters buildLayout, LoggingConfiguration loggingConfiguration, LoggingManagerInternal loggingManager, Action<ExecutionListener> action) {
+    public NativeServicesInitializingAction(BuildLayoutResult buildLayout, LoggingConfiguration loggingConfiguration, LoggingManagerInternal loggingManager, Action<ExecutionListener> action) {
         this.buildLayout = buildLayout;
         this.loggingConfiguration = loggingConfiguration;
         this.loggingManager = loggingManager;

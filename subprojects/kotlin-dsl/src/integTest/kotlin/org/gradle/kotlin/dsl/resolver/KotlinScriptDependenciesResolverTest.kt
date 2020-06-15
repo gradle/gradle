@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.resolver
 
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 
@@ -113,6 +114,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `succeeds on precompiled init script`() {
+        assumeNonEmbeddedGradleExecuter()
 
         withKotlinBuildSrc()
 
@@ -124,6 +126,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `succeeds on precompiled settings script`() {
+        assumeNonEmbeddedGradleExecuter()
 
         withKotlinBuildSrc()
 
@@ -139,6 +142,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `succeeds on precompiled project script`() {
+        assumeNonEmbeddedGradleExecuter()
 
         withKotlinBuildSrc()
 
@@ -169,6 +173,8 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `pass environment`() {
+        assumeNonEmbeddedGradleExecuter()
+
         assertSucceeds(
             withBuildScript("""
                 require(System.getProperty("myJvmSysProp") == "systemValue") { "gradleJvmOptions" }
@@ -267,6 +273,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `do not report file warning on script compilation failure in currently edited script`() {
         // because the IDE already provides user feedback for those
+        assumeNonEmbeddedGradleExecuter()
 
         val editedScript = withBuildScript("""
             doNotExists()
@@ -284,6 +291,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `report file warning on script compilation failure in another script`() {
+        assumeNonEmbeddedGradleExecuter()
 
         withDefaultSettings().appendText("""
             include("a", "b")
@@ -306,6 +314,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `report file warning on runtime failure in currently edited script`() {
+        assumeNonEmbeddedGradleExecuter()
 
         val editedScript = withBuildScript("""
             configurations.getByName("doNotExists")
@@ -323,6 +332,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `report line warning on runtime failure in currently edited script when location aware hints are enabled`() {
+        assumeNonEmbeddedGradleExecuter()
 
         withFile("gradle.properties", """
             ${EditorReports.locationAwareEditorHintsPropertyName}=true
@@ -343,6 +353,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `report file warning on runtime failure in another script`() {
+        assumeNonEmbeddedGradleExecuter()
 
         withDefaultSettings().appendText("""
             include("a", "b")
@@ -374,8 +385,9 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     fun environment(vararg entries: Pair<String, Any?>) =
         mapOf(
             "projectRoot" to projectRoot,
-            "gradleHome" to distribution.gradleHomeDir,
             "gradleUserHome" to buildContext.gradleUserHomeDir.canonicalPath
+        ) + (
+            if (GradleContextualExecuter.isEmbedded()) emptyMap() else mapOf("gradleHome" to distribution.gradleHomeDir)
         ) + entries.toMap()
 
     private

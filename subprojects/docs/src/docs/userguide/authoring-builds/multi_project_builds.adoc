@@ -97,7 +97,7 @@ include::sample[dir="snippets/multiproject/firstExample/kotlin",files="build.gra
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{snippetsPath}/multiproject/firstExample/tests/multiprojectFirstExample.out
+include::{snippetsPath}/multiproject/firstExample/tests/multiprojectFirstExample.out[]
 ----
 ====
 
@@ -149,7 +149,7 @@ include::sample[dir="snippets/multiproject/addKrill/kotlin",files="build.gradle.
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{snippetsPath}/multiproject/addKrill/tests/multiprojectAddKrill.out
+include::{snippetsPath}/multiproject/addKrill/tests/multiprojectAddKrill.out[]
 ----
 ====
 
@@ -177,7 +177,7 @@ include::sample[dir="snippets/multiproject/useSubprojects/kotlin",files="build.g
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{snippetsPath}/multiproject/useSubprojects/tests/multiprojectUseSubprojects.out
+include::{snippetsPath}/multiproject/useSubprojects/tests/multiprojectUseSubprojects.out[]
 ----
 ====
 
@@ -196,7 +196,7 @@ include::sample[dir="snippets/multiproject/subprojectsAddFromTop/kotlin",files="
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{snippetsPath}/multiproject/subprojectsAddFromTop/tests/multiprojectSubprojectsAddFromTop.out
+include::{snippetsPath}/multiproject/subprojectsAddFromTop/tests/multiprojectSubprojectsAddFromTop.out[]
 ----
 ====
 
@@ -242,7 +242,7 @@ include::sample[dir="snippets/multiproject/spreadSpecifics/kotlin",files="settin
 .Output of `gradle -q hello`
 ----
 > gradle -q hello
-include::{snippetsPath}/multiproject/spreadSpecifics/tests/multiprojectSpreadSpecifics.out
+include::{snippetsPath}/multiproject/spreadSpecifics/tests/multiprojectSpreadSpecifics.out[]
 ----
 ====
 
@@ -297,7 +297,7 @@ include::sample[dir="snippets/multiproject/addTropical/kotlin",files="settings.g
 .Output of `gradle -q hello`
 ----
 > gradle -q hello
-include::{snippetsPath}/multiproject/addTropical/tests/multiprojectAddTropical.out
+include::{snippetsPath}/multiproject/addTropical/tests/multiprojectAddTropical.out[]
 ----
 ====
 
@@ -352,7 +352,7 @@ include::sample[dir="snippets/multiproject/tropicalWithProperties/kotlin",files=
 .Output of `gradle -q hello`
 ----
 > gradle -q hello
-include::{snippetsPath}/multiproject/tropicalWithProperties/tests/multiprojectTropicalWithProperties.out
+include::{snippetsPath}/multiproject/tropicalWithProperties/tests-common/multiprojectTropicalWithProperties.out[]
 ----
 ====
 
@@ -366,7 +366,7 @@ When we executed the `hello` task from the root project dir, things behaved in a
 .Running build from subproject
 ----
 > gradle -q hello
-include::{snippetsPath}/multiproject/tropicalWithProperties/tests/multiprojectSubBuild.out
+include::{snippetsPath}/multiproject/tropicalWithProperties/tests-common/multiprojectSubBuild.out[]
 ----
 
 The basic rule behind Gradle's behavior is simple. Gradle looks down the hierarchy, starting with the _current dir_, for tasks with the name `hello` and executes them. One thing is very important to note. Gradle _always_ evaluates _every_ project of the multi-project build and creates all existing task objects. Then, according to the task name arguments and the current dir, Gradle filters the tasks which should be executed. Because of Gradle's cross project configuration _every_ project has to be evaluated before _any_ task gets executed. We will have a closer look at this in the next section. Let's now have our last marine example. Let's add a task to `bluewhale` and `krill`.
@@ -379,7 +379,7 @@ include::sample[dir="snippets/multiproject/partialTasks/kotlin",files="bluewhale
 .Output of `gradle -q distanceToIceberg`
 ----
 > gradle -q distanceToIceberg
-include::{snippetsPath}/multiproject/partialTasks/tests/multiprojectPartialTasks.out
+include::{snippetsPath}/multiproject/partialTasks/tests/multiprojectPartialTasks.out[]
 ----
 
 Here's the output without the `-q` option:
@@ -387,7 +387,7 @@ Here's the output without the `-q` option:
 .Output of **`gradle distanceToIceberg`**
 ----
 > gradle distanceToIceberg
-include::{snippetsPath}/multiproject/partialTasks/tests/multiprojectPartialTasksNotQuiet.out
+include::{snippetsPath}/multiproject/partialTasks/tests/multiprojectPartialTasksNotQuiet.out[]
 ----
 ====
 
@@ -401,7 +401,7 @@ As we have seen, you can run a multi-project build by entering any subproject di
 .Running tasks by their absolute path
 ----
 > gradle -q :hello :krill:hello hello
-include::{snippetsPath}/multiproject/tropicalWithProperties/tests/multiprojectAbsoluteTaskPaths.out
+include::{snippetsPath}/multiproject/tropicalWithProperties/tests-common/multiprojectAbsoluteTaskPaths.out[]
 ----
 
 The build is executed from the `tropicalFish` project. We execute the `hello` tasks of the `water`, the `krill` and the `tropicalFish` project. The first two tasks are specified by their absolute path, the last task is executed using the name matching mechanism described above.
@@ -465,7 +465,7 @@ include::sample[dir="snippets/multiproject/dependencies-firstMessages/kotlin",fi
 .Output of `gradle -q action`
 ----
 > gradle -q action
-include::{snippetsPath}/multiproject/dependencies-firstMessages/tests/multiprojectFirstMessages.out
+include::{snippetsPath}/multiproject/dependencies-firstMessages/tests/multiprojectFirstMessages.out[]
 ----
 ====
 
@@ -510,7 +510,7 @@ include::sample[dir="snippets/multiproject/dependencies-messagesHack/kotlin",fil
 .Output of `gradle -q action`
 ----
 > gradle -q action
-include::{snippetsPath}/multiproject/dependencies-messagesHack/tests/multiprojectMessagesHack.out
+include::{snippetsPath}/multiproject/dependencies-messagesHack/tests-common/multiprojectMessagesHack.out[]
 ----
 
 We can show where this hack doesn't work if we now switch to the `consumer` dir and execute the build.
@@ -518,7 +518,7 @@ We can show where this hack doesn't work if we now switch to the `consumer` dir 
 .Output of `gradle -q action` from the `consumer` dir
 ----
 > gradle -q action
-include::{snippetsPath}/multiproject/dependencies-messagesHack/tests/multiprojectMessagesHackBroken.out
+include::{snippetsPath}/multiproject/dependencies-messagesHack/tests-common/multiprojectMessagesHackBroken.out[]
 ----
 ====
 
@@ -817,7 +817,7 @@ Assume you are working on a single project, the “`:api`” project. You have b
 .Output of **`gradle :api:build`**
 ----
 > gradle :api:build
-include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuild.out
+include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuild.out[]
 ----
 =====
 ====
@@ -831,7 +831,7 @@ If you have just gotten the latest version of source from your version control s
 .Output of **`gradle :api:buildNeeded`**
 ----
 > gradle :api:buildNeeded
-include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuildNeeded.out
+include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuildNeeded.out[]
 ----
 =====
 ====
@@ -845,7 +845,7 @@ You also might want to refactor some part of the “`:api`” project that is us
 .Output of **`gradle :api:buildDependents`**
 ----
 > gradle :api:buildDependents
-include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuildDependents.out
+include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuildDependents.out[]
 ----
 =====
 ====

@@ -49,6 +49,7 @@ import org.gradle.api.attributes.CompatibilityRuleChain
 import org.gradle.api.attributes.DisambiguationRuleChain
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.publish.Publication
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
@@ -121,4 +122,7 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<ComponentResult>())
     bind(unsupported<ArtifactResult>())
     bind(unsupported<ResolvedVariantResult>())
+
+    // Publishing types
+    bind(unsupported<Publication>())
 }

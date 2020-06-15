@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
@@ -55,7 +54,7 @@ import java.lang.management.ManagementFactory;
 import java.util.UUID;
 
 class BuildActionsFactory implements CommandLineAction {
-    private final CommandLineConverter<Parameters> parametersConverter;
+    private final ParametersConverter parametersConverter;
     private final ServiceRegistry loggingServices;
     private final JvmVersionDetector jvmVersionDetector;
     private final FileCollectionFactory fileCollectionFactory;
@@ -79,7 +78,7 @@ class BuildActionsFactory implements CommandLineAction {
 
     @Override
     public Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
-        Parameters parameters = parametersConverter.convert(commandLine, new Parameters(fileCollectionFactory));
+        Parameters parameters = parametersConverter.convert(commandLine, null);
 
         parameters.getDaemonParameters().applyDefaultsFor(jvmVersionDetector.getJavaVersion(parameters.getDaemonParameters().getEffectiveJvm()));
 
@@ -135,11 +134,11 @@ class BuildActionsFactory implements CommandLineAction {
 
     private Runnable runBuildInProcess(StartParameterInternal startParameter, DaemonParameters daemonParameters) {
         ServiceRegistry globalServices = ServiceRegistryBuilder.builder()
-                .displayName("Global services")
-                .parent(loggingServices)
-                .parent(NativeServices.getInstance())
-                .provider(new GlobalScopeServices(startParameter.isContinuous()))
-                .build();
+            .displayName("Global services")
+            .parent(loggingServices)
+            .parent(NativeServices.getInstance())
+            .provider(new GlobalScopeServices(startParameter.isContinuous()))
+            .build();
 
         // Force the user home services to be stopped first, the dependencies between the user home services and the global services are not preserved currently
         return runBuildAndCloseServices(startParameter, daemonParameters, globalServices.get(BuildExecuter.class), globalServices, globalServices.get(GradleUserHomeScopeServiceRegistry.class));
@@ -182,13 +181,13 @@ class BuildActionsFactory implements CommandLineAction {
 
     private BuildActionParameters createBuildActionParameters(StartParameter startParameter, DaemonParameters daemonParameters) {
         return new DefaultBuildActionParameters(
-                daemonParameters.getEffectiveSystemProperties(),
-                daemonParameters.getEnvironmentVariables(),
-                SystemProperties.getInstance().getCurrentDir(),
-                startParameter.getLogLevel(),
-                daemonParameters.isEnabled(),
-                startParameter.isContinuous(),
-                ClassPath.EMPTY);
+            daemonParameters.getEffectiveSystemProperties(),
+            daemonParameters.getEnvironmentVariables(),
+            SystemProperties.getInstance().getCurrentDir(),
+            startParameter.getLogLevel(),
+            daemonParameters.isEnabled(),
+            startParameter.isContinuous(),
+            ClassPath.EMPTY);
     }
 
     private long getBuildStartTime() {

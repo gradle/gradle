@@ -45,10 +45,10 @@ class JavaProcessStackTracesMonitorSpec extends Specification {
 
         then:
         suspiciousDaemons == [
-            new JavaProcessStackTracesMonitor.JavaProcessInfo(pid: '2477', javaCommand: '/opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/java'),
-            new JavaProcessStackTracesMonitor.JavaProcessInfo(pid: '15818', javaCommand: '/opt/jdk/oracle-jdk-8/bin/java'),
-            new JavaProcessStackTracesMonitor.JavaProcessInfo(pid: '24438', javaCommand: '/opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/java'),
-            new JavaProcessStackTracesMonitor.JavaProcessInfo(pid: '32167', javaCommand: '/opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/java'),
+            new JavaProcessStackTracesMonitor.JavaProcessInfo('2477', '/opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/java'),
+            new JavaProcessStackTracesMonitor.JavaProcessInfo('15818', '/opt/jdk/oracle-jdk-8/bin/java'),
+            new JavaProcessStackTracesMonitor.JavaProcessInfo('24438', '/opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/java'),
+            new JavaProcessStackTracesMonitor.JavaProcessInfo('32167', '/opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/java'),
         ]
     }
 
@@ -56,20 +56,20 @@ class JavaProcessStackTracesMonitorSpec extends Specification {
     def 'can extract process info from windows wmic'() {
         given:
         def output = '''
-CommandLine ProcessId 
-\\SystemRoot\\System32\\smss.exe            244    
-%SystemRoot%\\system32\\csrss.exe ObjectDirectory=\\Windows SharedSection=1024,20480,768 Windows=On SubSystemType=Windows ServerDll=basesrv,1 ServerDll=winsrv:UserServerDllInitialization,3 ServerDll=winsrv:ConServerDllInitialization,2 ServerDll=sxssrv,4 ProfileControl=Off MaxRequestThreads=16               312    
-C:\\Windows\\system32\\svchost.exe -k LocalServiceAndNoImpersonation                           1168    
-c:\\salt\\nssm.exe                   1316    
-"C:\\Windows\\system32\\Dwm.exe"            1436    
-C:\\Windows\\Explorer.EXE               1460    
-"taskhost.exe"                    1592    
-"C:\\Program Files\\Java\\jdk1.8\\bin\\java" -Xrs -Djava.library.path="../launcher/lib;../launcher/bin" -classpath "../launcher/lib/wrapper.jar;../launcher/lib/launcher.jar" -Dwrapper.key="ywQQx5XMpKTXa1_y" -Dwrapper.port=32000 -Dwrapper.jvm.port.min=31000 -Dwrapper.jvm.port.max=31999 -Dwrapper.pid=1964 -Dwrapper.version="3.2.3" -Dwrapper.native_library="wrapper" -Dwrapper.service="TRUE" -Dwrapper.cpu.timeout="10" -Dwrapper.jvmid=2 org.tanukisoftware.wrapper.WrapperSimpleApp jetbrains.buildServer.agent.StandAloneLauncher -ea -Xmx512m -XX:+HeapDumpOnOutOfMemoryError -Xrs -Dlog4j.configuration=file:../conf/teamcity-agent-log4j.xml -Dteamcity_logs=../logs/ jetbrains.buildServer.agent.AgentMain -file ../conf/buildAgent.properties 8084    
-"C:\\Program Files\\Java\\jdk1.8\\jre\\bin\\java" -ea -Xmx512m -XX:+HeapDumpOnOutOfMemoryError -Xrs -Dlog4j.configuration=file:../conf/teamcity-agent-log4j.xml -Dteamcity_logs=../logs/ -classpath C:\\tcagent1\\lib\\agent-configurator.jar;C:\\tcagent1\\lib\\agent-installer-ui.jar;C:\\tcagent1\\lib\\agent-launcher.jar;C:\\tcagent1\\lib\\agent-openapi.jar;C:\\tcagent1\\lib\\agent-upgrade.jar;C:\\tcagent1\\lib\\agent.jar;C:\\tcagent1\\lib\\annotations.jar;C:\\tcagent1\\lib\\app-wrapper.jar;C:\\tcagent1\\lib\\buildAgent-updates-applying.jar;C:\\tcagent1\\lib\\cloud-shared.jar;C:\\tcagent1\\lib\\common-impl.jar;C:\\tcagent1\\lib\\common-runtime.jar;C:\\tcagent1\\lib\\common.jar;C:\\tcagent1\\lib\\commons-beanutils-core.jar;C:\\tcagent1\\lib\\commons-codec.jar;C:\\tcagent1\\lib\\commons-collections-3.2.2.jar;C:\\tcagent1\\lib\\commons-compress-1.9.jar;C:\\tcagent1\\lib\\commons-httpclient-3.1.jar;C:\\tcagent1\\lib\\commons-io-1.3.2.jar;C:\\tcagent1\\lib\\commons-logging.jar;C:\\tcagent1\\lib\\coverage-agent-common.jar;C:\\tcagent1\\lib\\coverage-report.jar;C:\\tcagent1\\lib\\duplicator-util.jar;C:\\tcagent1\\lib\\ehcache-1.6.0-patch.jar;C:\\tcagent1\\lib\\ehcache-1.7.2.jar;C:\\tcagent1\\lib\\freemarker.jar;C:\\tcagent1\\lib\\gson.jar;C:\\tcagent1\\lib\\idea-settings.jar;C:\\tcagent1\\lib\\inspections-util.jar;C:\\tcagent1\\lib\\jaxen-1.1.1.jar;C:\\tcagent1\\lib\\jdk-searcher.jar;C:\\tcagent1\\lib\\jdom.jar;C:\\tcagent1\\lib\\joda-time.jar;C:\\tcagent1\\lib\\launcher-api.jar;C:\\tcagent1\\lib\\launcher.jar;C:\\tcagent1\\lib\\log4j-1.2.12-json-layout-1.0.9.jar;C:\\tcagent1\\lib\\log4j-1.2.12.jar;C:\\tcagent1\\lib\\messages.jar;C:\\tcagent1\\lib\\nuget-utils.jar;C:\\tcagent1\\lib\\openapi.jar;C:\\tcagent1\\lib\\patches-impl.jar;C:\\tcagent1\\lib\\patches.jar;C:\\tcagent1\\lib\\processesTerminator.jar;C:\\tcagent1\\lib\\resources_en.jar;C:\\tcagent1\\lib\\runtime-util.jar;C:\\tcagent1\\lib\\server-logging.jar;C:\\tcagent1\\lib\\serviceMessages.jar;C:\\tcagent1\\lib\\slf4j-api-1.7.5.jar;C:\\tcagent1\\lib\\slf4j-log4j12-1.7.5.jar;C:\\tcagent1\\lib\\spring-scripting\\spring-scripting-bsh.jar;C:\\tcagent1\\lib\\spring-scripting\\spring-scripting-groovy.jar;C:\\tcagent1\\lib\\spring-scripting\\spring-scripting-jruby.jar;C:\\tcagent1\\lib\\spring.jar;C:\\tcagent1\\lib\\trove-3.0.3.jar;C:\\tcagent1\\lib\\trove4j.jar;C:\\tcagent1\\lib\\util.jar;C:\\tcagent1\\lib\\xercesImpl.jar;C:\\tcagent1\\lib\\xml-rpc-wrapper.jar;C:\\tcagent1\\lib\\xmlrpc-2.0.1.jar;C:\\tcagent1\\lib\\xpp3-1.1.4c.jar;C:\\tcagent1\\lib\\xstream-1.4.10-custom.jar;C:\\tcagent1\\lib\\xz-1.5.jar jetbrains.buildServer.agent.AgentMain -file ../conf/buildAgent.properties -launcher.version 51228 4956    
-usr\\bin\\mintty.exe -o AppID=GitForWindows.Bash -o RelaunchCommand="C:\\Program Files\\Git\\git-bash.exe" -o RelaunchDisplayName="Git Bash" -i /mingw64/share/git/git-for-windows.ico /usr/bin/bash --login -i      7788    
-\\??\\C:\\Windows\\system32\\conhost.exe "472490228-68470907838922115481214932-363220106-1296027029-1014590852-1678361664 7824    
-"C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Tools\\MSVC\\14.14.26428\\bin\\HostX64\\x86\\VCTIP.EXE"  11880   
-"C:\\Program Files\\Java\\jdk1.8\\bin\\java.exe" -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -Xmx2500m -Dfile.encoding=UTF-8 -Djava.io.tmpdir=C:\\tcagent1\\temp\\buildTmp -Duser.country=US -Duser.language=en -Duser.variant -cp C:\\Users\\tcagent1\\.gradle\\wrapper\\dists\\gradle-4.9-20180624235932+0000-bin\\8osj55b0zpcwza9pdf19suxvr\\gradle-4.9-20180624235932+0000\\lib\\gradle-launcher-4.9.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 4.9-20180624235932+0000         1368    
+CommandLine ProcessId
+\\SystemRoot\\System32\\smss.exe            244
+%SystemRoot%\\system32\\csrss.exe ObjectDirectory=\\Windows SharedSection=1024,20480,768 Windows=On SubSystemType=Windows ServerDll=basesrv,1 ServerDll=winsrv:UserServerDllInitialization,3 ServerDll=winsrv:ConServerDllInitialization,2 ServerDll=sxssrv,4 ProfileControl=Off MaxRequestThreads=16               312
+C:\\Windows\\system32\\svchost.exe -k LocalServiceAndNoImpersonation                           1168
+c:\\salt\\nssm.exe                   1316
+"C:\\Windows\\system32\\Dwm.exe"            1436
+C:\\Windows\\Explorer.EXE               1460
+"taskhost.exe"                    1592
+"C:\\Program Files\\Java\\jdk1.8\\bin\\java" -Xrs -Djava.library.path="../launcher/lib;../launcher/bin" -classpath "../launcher/lib/wrapper.jar;../launcher/lib/launcher.jar" -Dwrapper.key="ywQQx5XMpKTXa1_y" -Dwrapper.port=32000 -Dwrapper.jvm.port.min=31000 -Dwrapper.jvm.port.max=31999 -Dwrapper.pid=1964 -Dwrapper.version="3.2.3" -Dwrapper.native_library="wrapper" -Dwrapper.service="TRUE" -Dwrapper.cpu.timeout="10" -Dwrapper.jvmid=2 org.tanukisoftware.wrapper.WrapperSimpleApp jetbrains.buildServer.agent.StandAloneLauncher -ea -Xmx512m -XX:+HeapDumpOnOutOfMemoryError -Xrs -Dlog4j.configuration=file:../conf/teamcity-agent-log4j.xml -Dteamcity_logs=../logs/ jetbrains.buildServer.agent.AgentMain -file ../conf/buildAgent.properties 8084
+"C:\\Program Files\\Java\\jdk1.8\\jre\\bin\\java" -ea -Xmx512m -XX:+HeapDumpOnOutOfMemoryError -Xrs -Dlog4j.configuration=file:../conf/teamcity-agent-log4j.xml -Dteamcity_logs=../logs/ -classpath C:\\tcagent1\\lib\\agent-configurator.jar;C:\\tcagent1\\lib\\agent-installer-ui.jar;C:\\tcagent1\\lib\\agent-launcher.jar;C:\\tcagent1\\lib\\agent-openapi.jar;C:\\tcagent1\\lib\\agent-upgrade.jar;C:\\tcagent1\\lib\\agent.jar;C:\\tcagent1\\lib\\annotations.jar;C:\\tcagent1\\lib\\app-wrapper.jar;C:\\tcagent1\\lib\\buildAgent-updates-applying.jar;C:\\tcagent1\\lib\\cloud-shared.jar;C:\\tcagent1\\lib\\common-impl.jar;C:\\tcagent1\\lib\\common-runtime.jar;C:\\tcagent1\\lib\\common.jar;C:\\tcagent1\\lib\\commons-beanutils-core.jar;C:\\tcagent1\\lib\\commons-codec.jar;C:\\tcagent1\\lib\\commons-collections-3.2.2.jar;C:\\tcagent1\\lib\\commons-compress-1.9.jar;C:\\tcagent1\\lib\\commons-httpclient-3.1.jar;C:\\tcagent1\\lib\\commons-io-1.3.2.jar;C:\\tcagent1\\lib\\commons-logging.jar;C:\\tcagent1\\lib\\coverage-agent-common.jar;C:\\tcagent1\\lib\\coverage-report.jar;C:\\tcagent1\\lib\\duplicator-util.jar;C:\\tcagent1\\lib\\ehcache-1.6.0-patch.jar;C:\\tcagent1\\lib\\ehcache-1.7.2.jar;C:\\tcagent1\\lib\\freemarker.jar;C:\\tcagent1\\lib\\gson.jar;C:\\tcagent1\\lib\\idea-settings.jar;C:\\tcagent1\\lib\\inspections-util.jar;C:\\tcagent1\\lib\\jaxen-1.1.1.jar;C:\\tcagent1\\lib\\jdk-searcher.jar;C:\\tcagent1\\lib\\jdom.jar;C:\\tcagent1\\lib\\joda-time.jar;C:\\tcagent1\\lib\\launcher-api.jar;C:\\tcagent1\\lib\\launcher.jar;C:\\tcagent1\\lib\\log4j-1.2.12-json-layout-1.0.9.jar;C:\\tcagent1\\lib\\log4j-1.2.12.jar;C:\\tcagent1\\lib\\messages.jar;C:\\tcagent1\\lib\\nuget-utils.jar;C:\\tcagent1\\lib\\openapi.jar;C:\\tcagent1\\lib\\patches-impl.jar;C:\\tcagent1\\lib\\patches.jar;C:\\tcagent1\\lib\\processesTerminator.jar;C:\\tcagent1\\lib\\resources_en.jar;C:\\tcagent1\\lib\\runtime-util.jar;C:\\tcagent1\\lib\\server-logging.jar;C:\\tcagent1\\lib\\serviceMessages.jar;C:\\tcagent1\\lib\\slf4j-api-1.7.5.jar;C:\\tcagent1\\lib\\slf4j-log4j12-1.7.5.jar;C:\\tcagent1\\lib\\spring-scripting\\spring-scripting-bsh.jar;C:\\tcagent1\\lib\\spring-scripting\\spring-scripting-groovy.jar;C:\\tcagent1\\lib\\spring-scripting\\spring-scripting-jruby.jar;C:\\tcagent1\\lib\\spring.jar;C:\\tcagent1\\lib\\trove-3.0.3.jar;C:\\tcagent1\\lib\\trove4j.jar;C:\\tcagent1\\lib\\util.jar;C:\\tcagent1\\lib\\xercesImpl.jar;C:\\tcagent1\\lib\\xml-rpc-wrapper.jar;C:\\tcagent1\\lib\\xmlrpc-2.0.1.jar;C:\\tcagent1\\lib\\xpp3-1.1.4c.jar;C:\\tcagent1\\lib\\xstream-1.4.10-custom.jar;C:\\tcagent1\\lib\\xz-1.5.jar jetbrains.buildServer.agent.AgentMain -file ../conf/buildAgent.properties -launcher.version 51228 4956
+usr\\bin\\mintty.exe -o AppID=GitForWindows.Bash -o RelaunchCommand="C:\\Program Files\\Git\\git-bash.exe" -o RelaunchDisplayName="Git Bash" -i /mingw64/share/git/git-for-windows.ico /usr/bin/bash --login -i      7788
+\\??\\C:\\Windows\\system32\\conhost.exe "472490228-68470907838922115481214932-363220106-1296027029-1014590852-1678361664 7824
+"C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Tools\\MSVC\\14.14.26428\\bin\\HostX64\\x86\\VCTIP.EXE"  11880
+"C:\\Program Files\\Java\\jdk1.8\\bin\\java.exe" -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -Xmx2500m -Dfile.encoding=UTF-8 -Djava.io.tmpdir=C:\\tcagent1\\temp\\buildTmp -Duser.country=US -Duser.language=en -Duser.variant -cp C:\\Users\\tcagent1\\.gradle\\wrapper\\dists\\gradle-4.9-20180624235932+0000-bin\\8osj55b0zpcwza9pdf19suxvr\\gradle-4.9-20180624235932+0000\\lib\\gradle-launcher-4.9.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 4.9-20180624235932+0000         1368
 cmd /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:\\tcagent1\\plugins\\gradle-runner\\scripts\\init.gradle -PmaxParallelForks=4 -s --daemon --continue "-Djava7Home=C:\\Program Files\\Java\\jdk1.7" "-Djava9Home=C:\\Program Files\\Java\\jdk1.9" -Dorg.gradle.internal.tasks.createops "-PtestJavaHome=C:\\Program Files\\Java\\jdk1.8" -Dorg.gradle.daemon=false clean buildCacheHttp:platformTest 4100
 "C:\\Program Files\\Java\\jdk1.8/bin/java.exe" -Xmx128m -Dfile.encoding=UTF-8 -XX:MaxPermSize=512m "-Djava.io.tmpdir=C:\\tcagent1\\temp\\buildTmp" "-Dorg.gradle.appname=gradlew" -classpath "C:\\tcagent1\\work\\668602365d1521fc\\\\gradle\\wrapper\\gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain --init-script C:\\tcagent1\\plugins\\gradle-runner\\scripts\\init.gradle -PmaxParallelForks=4 -s --daemon --continue "-Djava7Home=C:\\Program Files\\Java\\jdk1.7" "-Djava9Home=C:\\Program Files\\Java\\jdk1.9" -Dorg.gradle.internal.tasks.createops "-PtestJavaHome=C:\\Program Files\\Java\\jdk1.8" -Dorg.gradle.daemon=false clean buildCacheHttp:platformTest 3908
 '''
@@ -78,8 +78,8 @@ cmd /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:\\tcage
 
         then:
         suspiciousDaemons == [
-            new JavaProcessStackTracesMonitor.JavaProcessInfo(pid: '1368', javaCommand: "C:\\Program Files\\Java\\jdk1.8\\bin\\java.exe"),
-            new JavaProcessStackTracesMonitor.JavaProcessInfo(pid: '3908', javaCommand: "C:\\Program Files\\Java\\jdk1.8/bin/java.exe")
+            new JavaProcessStackTracesMonitor.JavaProcessInfo('1368', "C:\\Program Files\\Java\\jdk1.8\\bin\\java.exe"),
+            new JavaProcessStackTracesMonitor.JavaProcessInfo('3908', "C:\\Program Files\\Java\\jdk1.8/bin/java.exe")
         ]
     }
 
@@ -87,7 +87,7 @@ cmd /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:\\tcage
     @Requires(TestPrecondition.NOT_WINDOWS)
     def 'can locate jstack on Unix'() {
         expect:
-        new JavaProcessStackTracesMonitor.JavaProcessInfo(pid: '0', javaCommand: javaCommand).jstackCommand == jstackCommand
+        new JavaProcessStackTracesMonitor.JavaProcessInfo('0', javaCommand).jstackCommand == jstackCommand
 
         where:
         javaCommand                                                | jstackCommand
@@ -100,13 +100,13 @@ cmd /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:\\tcage
     @Requires(TestPrecondition.WINDOWS)
     def 'can locate jstack on Windows'() {
         expect:
-        new JavaProcessStackTracesMonitor.JavaProcessInfo(pid: '0', javaCommand: javaCommand).jstackCommand == jstackCommand
+        new JavaProcessStackTracesMonitor.JavaProcessInfo('0', javaCommand).jstackCommand == jstackCommand
 
         where:
         javaCommand                                           | jstackCommand
-        "C:\\Program Files\\Java\\jdk1.8\\bin\\java.exe"      | "C:\\Program Files\\Java\\jdk1.8\\bin\\jstack.exe"
-        "C:\\Program Files\\Java\\jdk1.8\\jre\\bin\\java.exe" | "C:\\Program Files\\Java\\jdk1.8\\bin\\jstack.exe"
-        "C:\\Program Files\\Java\\jdk1.8/bin/java.exe"        | "C:\\Program Files\\Java\\jdk1.8\\bin\\jstack.exe"
+        "C:\\Program Files\\Java\\jdk1.8\\bin\\java.exe"      | "C:\\Program Files\\Java\\jdk1.8\\bin\\jstack"
+        "C:\\Program Files\\Java\\jdk1.8\\jre\\bin\\java.exe" | "C:\\Program Files\\Java\\jdk1.8\\bin\\jstack"
+        "C:\\Program Files\\Java\\jdk1.8/bin/java.exe"        | "C:\\Program Files\\Java\\jdk1.8\\bin\\jstack"
     }
 
     @Ignore

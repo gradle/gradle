@@ -29,7 +29,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.jvm.DefaultModularitySpec;
-import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
@@ -37,7 +36,7 @@ import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
-import org.gradle.process.internal.DslExecActionFactory;
+import org.gradle.process.internal.DefaultJavaExecSpec;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.JavaExecAction;
 
@@ -108,7 +107,7 @@ import java.util.Map;
  * </pre>
  */
 public class JavaExec extends ConventionTask implements JavaExecSpec {
-    private final JavaExecAction javaExecHandleBuilder;
+    private final DefaultJavaExecSpec javaExecSpec;
     private final Property<String> mainModule;
     private final Property<String> mainClass;
     private final ModularitySpec modularity;
@@ -121,10 +120,10 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         execResult = objectFactory.property(ExecResult.class);
 
-        javaExecHandleBuilder = getDslExecActionFactory().newDecoratedJavaExecAction();
-        javaExecHandleBuilder.getMainClass().convention(getProviderFactory().provider(this::getMain)); // go through 'main' to keep this compatible with existing convention mappings
-        javaExecHandleBuilder.getMainModule().convention(mainModule);
-        javaExecHandleBuilder.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
+        javaExecSpec = objectFactory.newInstance(DefaultJavaExecSpec.class);
+        javaExecSpec.getMainClass().convention(getProviderFactory().provider(this::getMain)); // go through 'main' to keep this compatible with existing convention mappings
+        javaExecSpec.getMainModule().convention(mainModule);
+        javaExecSpec.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
     }
 
     @Inject
@@ -142,20 +141,12 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         throw new UnsupportedOperationException();
     }
 
-    @Inject
-    protected DslExecActionFactory getDslExecActionFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected JavaModuleDetector getJavaModuleDetector() {
-        throw new UnsupportedOperationException();
-    }
-
     @TaskAction
     public void exec() {
         setJvmArgs(getJvmArgs()); // convention mapping for 'jvmArgs'
-        execResult.set(javaExecHandleBuilder.execute());
+        JavaExecAction javaExecAction = getExecActionFactory().newJavaExecAction();
+        javaExecSpec.copyTo(javaExecAction);
+        execResult.set(javaExecAction.execute());
     }
 
     /**
@@ -163,7 +154,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public List<String> getAllJvmArgs() {
-        return javaExecHandleBuilder.getAllJvmArgs();
+        return javaExecSpec.getAllJvmArgs();
     }
 
     /**
@@ -171,7 +162,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setAllJvmArgs(List<String> arguments) {
-        javaExecHandleBuilder.setAllJvmArgs(arguments);
+        javaExecSpec.setAllJvmArgs(arguments);
     }
 
     /**
@@ -179,7 +170,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setAllJvmArgs(Iterable<?> arguments) {
-        javaExecHandleBuilder.setAllJvmArgs(arguments);
+        javaExecSpec.setAllJvmArgs(arguments);
     }
 
     /**
@@ -187,7 +178,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public List<String> getJvmArgs() {
-        return javaExecHandleBuilder.getJvmArgs();
+        return javaExecSpec.getJvmArgs();
     }
 
     /**
@@ -195,7 +186,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setJvmArgs(List<String> arguments) {
-        javaExecHandleBuilder.setJvmArgs(arguments);
+        javaExecSpec.setJvmArgs(arguments);
     }
 
     /**
@@ -203,7 +194,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setJvmArgs(Iterable<?> arguments) {
-        javaExecHandleBuilder.setJvmArgs(arguments);
+        javaExecSpec.setJvmArgs(arguments);
     }
 
     /**
@@ -211,7 +202,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec jvmArgs(Iterable<?> arguments) {
-        javaExecHandleBuilder.jvmArgs(arguments);
+        javaExecSpec.jvmArgs(arguments);
         return this;
     }
 
@@ -220,7 +211,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec jvmArgs(Object... arguments) {
-        javaExecHandleBuilder.jvmArgs(arguments);
+        javaExecSpec.jvmArgs(arguments);
         return this;
     }
 
@@ -229,7 +220,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public Map<String, Object> getSystemProperties() {
-        return javaExecHandleBuilder.getSystemProperties();
+        return javaExecSpec.getSystemProperties();
     }
 
     /**
@@ -237,7 +228,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setSystemProperties(Map<String, ?> properties) {
-        javaExecHandleBuilder.setSystemProperties(properties);
+        javaExecSpec.setSystemProperties(properties);
     }
 
     /**
@@ -245,7 +236,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec systemProperties(Map<String, ?> properties) {
-        javaExecHandleBuilder.systemProperties(properties);
+        javaExecSpec.systemProperties(properties);
         return this;
     }
 
@@ -254,7 +245,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec systemProperty(String name, Object value) {
-        javaExecHandleBuilder.systemProperty(name, value);
+        javaExecSpec.systemProperty(name, value);
         return this;
     }
 
@@ -263,7 +254,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public FileCollection getBootstrapClasspath() {
-        return javaExecHandleBuilder.getBootstrapClasspath();
+        return javaExecSpec.getBootstrapClasspath();
     }
 
     /**
@@ -271,7 +262,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setBootstrapClasspath(FileCollection classpath) {
-        javaExecHandleBuilder.setBootstrapClasspath(classpath);
+        javaExecSpec.setBootstrapClasspath(classpath);
     }
 
     /**
@@ -279,7 +270,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec bootstrapClasspath(Object... classpath) {
-        javaExecHandleBuilder.bootstrapClasspath(classpath);
+        javaExecSpec.bootstrapClasspath(classpath);
         return this;
     }
 
@@ -288,7 +279,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public String getMinHeapSize() {
-        return javaExecHandleBuilder.getMinHeapSize();
+        return javaExecSpec.getMinHeapSize();
     }
 
     /**
@@ -296,7 +287,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setMinHeapSize(String heapSize) {
-        javaExecHandleBuilder.setMinHeapSize(heapSize);
+        javaExecSpec.setMinHeapSize(heapSize);
     }
 
     /**
@@ -304,7 +295,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public String getDefaultCharacterEncoding() {
-        return javaExecHandleBuilder.getDefaultCharacterEncoding();
+        return javaExecSpec.getDefaultCharacterEncoding();
     }
 
     /**
@@ -312,7 +303,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
-        javaExecHandleBuilder.setDefaultCharacterEncoding(defaultCharacterEncoding);
+        javaExecSpec.setDefaultCharacterEncoding(defaultCharacterEncoding);
     }
 
     /**
@@ -320,7 +311,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public String getMaxHeapSize() {
-        return javaExecHandleBuilder.getMaxHeapSize();
+        return javaExecSpec.getMaxHeapSize();
     }
 
     /**
@@ -328,7 +319,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setMaxHeapSize(String heapSize) {
-        javaExecHandleBuilder.setMaxHeapSize(heapSize);
+        javaExecSpec.setMaxHeapSize(heapSize);
     }
 
     /**
@@ -336,7 +327,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public boolean getEnableAssertions() {
-        return javaExecHandleBuilder.getEnableAssertions();
+        return javaExecSpec.getEnableAssertions();
     }
 
     /**
@@ -344,7 +335,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setEnableAssertions(boolean enabled) {
-        javaExecHandleBuilder.setEnableAssertions(enabled);
+        javaExecSpec.setEnableAssertions(enabled);
     }
 
     /**
@@ -352,7 +343,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public boolean getDebug() {
-        return javaExecHandleBuilder.getDebug();
+        return javaExecSpec.getDebug();
     }
 
     /**
@@ -361,17 +352,17 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @Option(option = "debug-jvm", description = "Enable debugging for the process. The process is started suspended and listening on port 5005.")
     public void setDebug(boolean enabled) {
-        javaExecHandleBuilder.setDebug(enabled);
+        javaExecSpec.setDebug(enabled);
     }
 
     @Override
     public JavaDebugOptions getDebugOptions() {
-        return javaExecHandleBuilder.getDebugOptions();
+        return javaExecSpec.getDebugOptions();
     }
 
     @Override
     public void debugOptions(Action<JavaDebugOptions> action) {
-        javaExecHandleBuilder.debugOptions(action);
+        javaExecSpec.debugOptions(action);
     }
 
     /**
@@ -413,7 +404,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public List<String> getArgs() {
-        return javaExecHandleBuilder.getArgs();
+        return javaExecSpec.getArgs();
     }
 
     /**
@@ -443,7 +434,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec setArgs(List<String> applicationArgs) {
-        javaExecHandleBuilder.setArgs(applicationArgs);
+        javaExecSpec.setArgs(applicationArgs);
         return this;
     }
 
@@ -452,7 +443,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec setArgs(Iterable<?> applicationArgs) {
-        javaExecHandleBuilder.setArgs(applicationArgs);
+        javaExecSpec.setArgs(applicationArgs);
         return this;
     }
 
@@ -461,7 +452,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec args(Object... args) {
-        javaExecHandleBuilder.args(args);
+        javaExecSpec.args(args);
         return this;
     }
 
@@ -470,7 +461,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExecSpec args(Iterable<?> args) {
-        javaExecHandleBuilder.args(args);
+        javaExecSpec.args(args);
         return this;
     }
 
@@ -479,7 +470,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public List<CommandLineArgumentProvider> getArgumentProviders() {
-        return javaExecHandleBuilder.getArgumentProviders();
+        return javaExecSpec.getArgumentProviders();
     }
 
     /**
@@ -487,7 +478,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec setClasspath(FileCollection classpath) {
-        javaExecHandleBuilder.setClasspath(classpath);
+        javaExecSpec.setClasspath(classpath);
         return this;
     }
 
@@ -496,7 +487,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec classpath(Object... paths) {
-        javaExecHandleBuilder.classpath(paths);
+        javaExecSpec.classpath(paths);
         return this;
     }
 
@@ -505,7 +496,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public FileCollection getClasspath() {
-        return javaExecHandleBuilder.getClasspath();
+        return javaExecSpec.getClasspath();
     }
 
     /**
@@ -521,7 +512,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec copyTo(JavaForkOptions options) {
-        javaExecHandleBuilder.copyTo(options);
+        javaExecSpec.copyTo(options);
         return this;
     }
 
@@ -542,7 +533,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Nullable
     @Override
     public String getExecutable() {
-        return javaExecHandleBuilder.getExecutable();
+        return javaExecSpec.getExecutable();
     }
 
     /**
@@ -550,7 +541,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setExecutable(String executable) {
-        javaExecHandleBuilder.setExecutable(executable);
+        javaExecSpec.setExecutable(executable);
     }
 
     /**
@@ -558,7 +549,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setExecutable(Object executable) {
-        javaExecHandleBuilder.setExecutable(executable);
+        javaExecSpec.setExecutable(executable);
     }
 
     /**
@@ -566,7 +557,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec executable(Object executable) {
-        javaExecHandleBuilder.executable(executable);
+        javaExecSpec.executable(executable);
         return this;
     }
 
@@ -576,7 +567,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @Internal
     public File getWorkingDir() {
-        return javaExecHandleBuilder.getWorkingDir();
+        return javaExecSpec.getWorkingDir();
     }
 
     /**
@@ -584,7 +575,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setWorkingDir(File dir) {
-        javaExecHandleBuilder.setWorkingDir(dir);
+        javaExecSpec.setWorkingDir(dir);
     }
 
     /**
@@ -592,7 +583,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setWorkingDir(Object dir) {
-        javaExecHandleBuilder.setWorkingDir(dir);
+        javaExecSpec.setWorkingDir(dir);
     }
 
     /**
@@ -600,7 +591,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec workingDir(Object dir) {
-        javaExecHandleBuilder.workingDir(dir);
+        javaExecSpec.workingDir(dir);
         return this;
     }
 
@@ -610,7 +601,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @Internal
     public Map<String, Object> getEnvironment() {
-        return javaExecHandleBuilder.getEnvironment();
+        return javaExecSpec.getEnvironment();
     }
 
     /**
@@ -618,7 +609,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setEnvironment(Map<String, ?> environmentVariables) {
-        javaExecHandleBuilder.setEnvironment(environmentVariables);
+        javaExecSpec.setEnvironment(environmentVariables);
     }
 
     /**
@@ -626,7 +617,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec environment(String name, Object value) {
-        javaExecHandleBuilder.environment(name, value);
+        javaExecSpec.environment(name, value);
         return this;
     }
 
@@ -635,7 +626,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec environment(Map<String, ?> environmentVariables) {
-        javaExecHandleBuilder.environment(environmentVariables);
+        javaExecSpec.environment(environmentVariables);
         return this;
     }
 
@@ -644,7 +635,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec copyTo(ProcessForkOptions target) {
-        javaExecHandleBuilder.copyTo(target);
+        javaExecSpec.copyTo(target);
         return this;
     }
 
@@ -653,7 +644,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec setStandardInput(InputStream inputStream) {
-        javaExecHandleBuilder.setStandardInput(inputStream);
+        javaExecSpec.setStandardInput(inputStream);
         return this;
     }
 
@@ -663,7 +654,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @Internal
     public InputStream getStandardInput() {
-        return javaExecHandleBuilder.getStandardInput();
+        return javaExecSpec.getStandardInput();
     }
 
     /**
@@ -671,7 +662,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec setStandardOutput(OutputStream outputStream) {
-        javaExecHandleBuilder.setStandardOutput(outputStream);
+        javaExecSpec.setStandardOutput(outputStream);
         return this;
     }
 
@@ -681,7 +672,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @Internal
     public OutputStream getStandardOutput() {
-        return javaExecHandleBuilder.getStandardOutput();
+        return javaExecSpec.getStandardOutput();
     }
 
     /**
@@ -689,7 +680,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec setErrorOutput(OutputStream outputStream) {
-        javaExecHandleBuilder.setErrorOutput(outputStream);
+        javaExecSpec.setErrorOutput(outputStream);
         return this;
     }
 
@@ -699,7 +690,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @Internal
     public OutputStream getErrorOutput() {
-        return javaExecHandleBuilder.getErrorOutput();
+        return javaExecSpec.getErrorOutput();
     }
 
     /**
@@ -707,7 +698,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
-        javaExecHandleBuilder.setIgnoreExitValue(ignoreExitValue);
+        javaExecSpec.setIgnoreExitValue(ignoreExitValue);
         return this;
     }
 
@@ -717,7 +708,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @Input
     public boolean isIgnoreExitValue() {
-        return javaExecHandleBuilder.isIgnoreExitValue();
+        return javaExecSpec.isIgnoreExitValue();
     }
 
     /**
@@ -726,7 +717,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @Internal
     public List<String> getCommandLine() {
-        return javaExecHandleBuilder.getCommandLine();
+        return javaExecSpec.getCommandLine();
     }
 
     /**
@@ -734,7 +725,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
-        return javaExecHandleBuilder.getJvmArgumentProviders();
+        return javaExecSpec.getJvmArgumentProviders();
     }
 
     /**

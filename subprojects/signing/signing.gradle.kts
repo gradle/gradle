@@ -16,7 +16,7 @@
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -41,8 +41,12 @@ dependencies {
     testImplementation(project(":ivy"))
     testImplementation(testFixtures(project(":core")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
     testRuntimeOnly(testFixtures(project(":security")))
+    testRuntimeOnly(project(":distributionsPublishing")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+
+    integTestDistributionRuntimeOnly(project(":distributionsPublishing"))
 }
 
 strictCompile {

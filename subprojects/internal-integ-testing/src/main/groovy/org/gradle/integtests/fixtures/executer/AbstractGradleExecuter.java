@@ -31,7 +31,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
 import org.gradle.internal.ImmutableActionSet;
@@ -150,7 +149,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final List<String> buildJvmOpts = new ArrayList<>();
     private final List<String> commandLineJvmOpts = new ArrayList<>();
     private boolean useOnlyRequestedJvmOpts;
-    private boolean requiresGradleDistribution;
     private boolean useOwnUserHomeServices;
     private ConsoleOutput consoleType;
     protected WarningMode warningMode = WarningMode.All;
@@ -363,9 +361,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (!stackTraceChecksOn) {
             executer.withStackTraceChecksDisabled();
-        }
-        if (requiresGradleDistribution) {
-            executer.requireGradleDistribution();
         }
         if (useOwnUserHomeServices) {
             executer.withOwnUserHomeServices();
@@ -931,11 +926,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             ensureSettingsFileAvailable();
         }
 
-        // This will cause problems on Windows if the path to the Gradle executable that is used has a space in it (e.g. the user's dir is c:/Users/Luke Daley/)
-        // This is fundamentally a windows issue: You can't have arguments with spaces in them if the path to the batch script has a space
-        // We could work around this by setting -Dgradle.user.home but GRADLE-1730 (which affects 1.0-milestone-3) means that that
-        // is problematic as well. For now, we just don't support running the int tests from a path with a space in it on Windows.
-        // When we stop testing against M3 we should change to use the system property.
         if (getGradleUserHomeDir() != null) {
             allArgs.add("--gradle-user-home");
             allArgs.add(getGradleUserHomeDir().getAbsolutePath());
@@ -999,12 +989,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         boolean useCustomGradleUserHomeDir = gradleUserHomeDir != null && !gradleUserHomeDir.equals(buildContext.getGradleUserHomeDir());
         if (useOwnUserHomeServices || useCustomGradleUserHomeDir) {
             properties.put(REUSE_USER_HOME_SERVICES, "false");
-        }
-        if (!useCustomGradleUserHomeDir) {
-            TestFile generatedApiJarCacheDir = buildContext.getGradleGeneratedApiJarCacheDir();
-            if (generatedApiJarCacheDir != null) {
-                properties.put(DefaultGeneratedGradleJarCache.BASE_DIR_OVERRIDE_PROPERTY, generatedApiJarCacheDir.getAbsolutePath());
-            }
         }
         if (!noExplicitTmpDir) {
             if (tmpDir == null) {
@@ -1334,16 +1318,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public boolean isAllowExtraLogging() {
         return allowExtraLogging;
-    }
-
-    public boolean isRequiresGradleDistribution() {
-        return requiresGradleDistribution;
-    }
-
-    @Override
-    public GradleExecuter requireGradleDistribution() {
-        this.requiresGradleDistribution = true;
-        return this;
     }
 
     @Override

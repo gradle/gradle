@@ -73,7 +73,7 @@ abstract class ToolingApiVersionSpecification extends ToolingApiSpecification {
 apply plugin: 'java'
 repositories {
     maven {
-        url '${buildContext.libsRepo.toURI()}'
+        url '${buildContext.localRepository.toURI()}'
     }
 }
 ${mavenCentralRepository()}

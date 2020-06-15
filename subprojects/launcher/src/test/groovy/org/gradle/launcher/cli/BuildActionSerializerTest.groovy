@@ -42,15 +42,12 @@ class BuildActionSerializerTest extends SerializerSpec {
     def "serializes ExecuteBuildAction with non-defaults"() {
         def startParameter = new StartParameterInternal()
         startParameter.taskNames = ['a', 'b']
-        startParameter.addDeprecation('warning 1')
-        startParameter.addDeprecation('warning 2')
         def action = new ExecuteBuildAction(startParameter)
 
         expect:
         def result = serialize(action, BuildActionSerializer.create())
         result instanceof ExecuteBuildAction
         result.startParameter.taskNames == ['a', 'b']
-        result.startParameter.deprecations == ['warning 1', 'warning 2'] as Set
     }
 
     def "serializes #buildOptionName boolean build option"() {
@@ -88,7 +85,7 @@ class BuildActionSerializerTest extends SerializerSpec {
         ]
     }
 
-    def "serializes other actions"() {
+    def "serializes other actions #action.class"() {
         expect:
         def result = serialize(action, BuildActionSerializer.create())
         result.class == action.class

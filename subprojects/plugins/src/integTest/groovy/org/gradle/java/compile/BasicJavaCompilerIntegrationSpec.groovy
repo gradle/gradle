@@ -19,10 +19,10 @@ package org.gradle.java.compile
 
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Unroll
 
 abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
@@ -68,7 +68,6 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         javaClassFile("").assertHasDescendants()
     }
 
-    @ToBeFixedForInstantExecution(because = "run task")
     def compileWithSpecifiedEncoding() {
         given:
         goodCodeEncodedWith('ISO8859_7')
@@ -143,12 +142,13 @@ public class FxApp extends Application {
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Unroll
     def "compile with release option"() {
         given:
         goodCode()
         buildFile << """
 java.targetCompatibility = JavaVersion.VERSION_1_7
-compileJava.options.compilerArgs.addAll(['--release', '8'])
+compileJava.options.compilerArgs.addAll(['--release', $notation])
 compileJava {
     doFirst {
         assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
@@ -162,6 +162,13 @@ compileJava {
         expect:
         succeeds 'compileJava'
         bytecodeVersion() == 52
+
+        where:
+        notation << [
+            "'8'",
+            '8', // Integer, see #13351
+            '"${8}"' // GString, see #13351
+        ]
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)

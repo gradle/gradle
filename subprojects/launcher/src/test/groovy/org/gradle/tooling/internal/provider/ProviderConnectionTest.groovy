@@ -17,17 +17,17 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.tooling.events.OperationType
-import org.gradle.util.GradleVersion
-import spock.lang.Specification
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
+import org.gradle.util.GradleVersion
+import spock.lang.Specification
 
 class ProviderConnectionTest extends Specification {
 
     def "ignores unknown operation types"() {
         given:
         def parameters = Stub(ProviderOperationParameters) {
-            getBuildProgressListener(_) >> Stub(InternalBuildProgressListener) {
+            getBuildProgressListener() >> Stub(InternalBuildProgressListener) {
                 getSubscribedOperations() >> ["UNKNOWN_OPERATION"]
             }
         }
@@ -42,7 +42,7 @@ class ProviderConnectionTest extends Specification {
     def "adds specific types when generic type requested by old consumer versions"() {
         given:
         def parameters = Stub(ProviderOperationParameters) {
-            getBuildProgressListener(_) >> Stub(InternalBuildProgressListener) {
+            getBuildProgressListener() >> Stub(InternalBuildProgressListener) {
                 getSubscribedOperations() >> ["BUILD_EXECUTION"]
             }
         }

@@ -12,5 +12,6 @@ public class TestMain {
         File file = new File(args[1]);
         file.getParentFile().mkdirs();
         file.createNewFile();
+        System.out.println("Created file " + file.getCanonicalPath());
     }
 }

@@ -22,5 +22,5 @@ This will create a `Sign` task for each publication you specify and wire all `pu
 .Output of `gradle publish`
 ----
 > gradle publish
-include::{snippetsPath}/signing/maven-publish/tests/publishingMavenSignAndPublish.out
+include::{snippetsPath}/signing/maven-publish/tests/publishingMavenSignAndPublish.out[]
 ----

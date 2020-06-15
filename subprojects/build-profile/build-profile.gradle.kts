@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`plugins-implementation-java`
+    gradlebuild.distribution.`implementation-java`
 }
 
 description = "Provides high-level insights into a Gradle build (--profile)"
@@ -25,13 +25,13 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":coreApi"))
     implementation(project(":core"))
+    implementation(project(":buildOption"))
 
     implementation(library("guava"))
 
     testImplementation(project(":internalTesting"))
 
-    integTestImplementation(project(":buildOption"))
     integTestImplementation(testLibrary("jsoup"))
 
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestDistributionRuntimeOnly(project(":distributionsFull"))
 }

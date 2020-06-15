@@ -17,13 +17,14 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 
 class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
-    @ToBeFixedForInstantExecution
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'groovy-gradle-plugin', '--dsl', scriptDsl.id)
@@ -37,7 +38,6 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         commonJvmFilesGenerated(scriptDsl)
 
         when:
-        executer.requireGradleDistribution() // TestKit and Kotlin DSL both require a distribution
         run("build")
 
         then:

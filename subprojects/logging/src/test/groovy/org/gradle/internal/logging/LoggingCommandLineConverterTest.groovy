@@ -17,15 +17,14 @@ package org.gradle.internal.logging
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.cli.CommandLineArgumentException
 import spock.lang.Specification
 
 class LoggingCommandLineConverterTest extends Specification {
-    final LoggingCommandLineConverter converter = new LoggingCommandLineConverter()
-    final LoggingConfiguration expectedConfig = new DefaultLoggingConfiguration()
+    def converter = new LoggingConfigurationBuildOptions().commandLineConverter()
+    def expectedConfig = new DefaultLoggingConfiguration()
 
     def convertsEmptyArgs() {
         expect:
@@ -109,12 +108,6 @@ class LoggingCommandLineConverterTest extends Specification {
 
         expect:
         checkConversion(['-s', '--debug', '-q', '--full-stacktrace'])
-    }
-
-    def providesLogLevelOptions() {
-        expect:
-        converter.logLevelOptions == ['d', 'q', 'i', 'w'] as Set
-        converter.logLevels == [LogLevel.DEBUG, LogLevel.INFO, LogLevel.LIFECYCLE, LogLevel.QUIET, LogLevel.WARN] as Set
     }
 
     def getsWarningMode() {

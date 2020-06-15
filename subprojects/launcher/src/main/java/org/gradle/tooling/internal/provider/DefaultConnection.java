@@ -200,7 +200,7 @@ public class DefaultConnection implements ConnectionVersion4, org.gradle.tooling
         ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object result = connection.run(modelIdentifier.getName(), buildCancellationToken, providerParameters);
-        return new ProviderBuildResult<Object>(result);
+        return new ProviderBuildResult<>(result);
     }
 
     /**

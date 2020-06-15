@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
@@ -29,7 +29,7 @@ public class TransformedExternalArtifactSet extends AbstractTransformedArtifactS
     public TransformedExternalArtifactSet(
         ComponentIdentifier componentIdentifier,
         ResolvedArtifactSet delegate,
-        AttributeContainerInternal target,
+        ImmutableAttributes target,
         Transformation transformation,
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
         TransformationNodeRegistry transformationNodeRegistry

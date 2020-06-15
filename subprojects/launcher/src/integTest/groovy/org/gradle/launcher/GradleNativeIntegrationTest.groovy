@@ -25,7 +25,7 @@ class GradleNativeIntegrationTest extends AbstractIntegrationSpec {
         given:
         executer.withNoExplicitNativeServicesDir()
         executer.requireOwnGradleUserHomeDir()
-        executer.requireGradleDistribution()
+        executer.requireDaemon().requireIsolatedDaemons()
 
         when:
         succeeds "help"

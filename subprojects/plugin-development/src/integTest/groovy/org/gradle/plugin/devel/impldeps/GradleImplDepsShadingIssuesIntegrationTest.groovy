@@ -16,14 +16,13 @@
 
 package org.gradle.plugin.devel.impldeps
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testfixtures.ProjectBuilder
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
+@IgnoreIf({ GradleContextualExecuter.embedded }) // This tests class loader isolation which is not given in embedded mode
 class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsIntegrationTest {
-
-    def setup() {
-        requireOwnGradleUserHomeDir()
-    }
 
     @Issue("GRADLE-3456")
     def "doesn't fail when using Ivy in a plugin"() {

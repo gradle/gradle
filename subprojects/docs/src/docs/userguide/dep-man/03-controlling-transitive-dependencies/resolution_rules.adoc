@@ -183,6 +183,81 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-conditi
 Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`).
 Dependency substitution rules take care of replacing the module dependency with the project dependency, but do not implicitly include the project in the build.
 
+[[sec:variant_aware_substitutions]]
+=== Substituting a dependency with another variant
+
+Gradle's dependency management engine is <<variant_model.adoc#understanding-variant-selection,variant-aware>> meaning that for a single component, the engine may select different artifacts and transitive dependencies.
+
+What to select is determined by the attributes of the consumer configuration and the attributes of the variants found on the producer side.
+It is, however, possible that some specific dependencies override attributes from the configuration itself.
+This is typically the case when using the <<java_platform_plugin.adoc#java_platform_plugin,Java Platform plugin>>: this plugin builds a special kind of component which is called a "platform" and can be addressed by setting the component category attribute to `platform`, in opposition to typical dependencies which are targetting libraries.
+
+Therefore, you may face situations where you want to substitute a platform dependency with a regular dependency, or the other way around.
+
+[[sec:substitution_with_attributes]]
+==== Substituting a dependency with attributes
+
+Let's imagine that you want to substitute a platform dependency with a regular dependency.
+This means that the library you are consuming declared something like this:
+
+.An incorrect dependency on a platform
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="lib/build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/kotlin",files="lib/build.gradle.kts[tags=dependencies]"]
+====
+
+The `platform` keyword is actually a short-hand notation for a _dependency with attributes_.
+If we want to substitute this dependency with a regular dependency, then we need to select precisely the dependencies which have the `platform` attribute.
+
+This can be done by using a substitution rule:
+
+.Substitute a platform dependency with a regular dependency
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="build.gradle[tags=substitution_rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/kotlin",files="build.gradle.kts[tags=substitution_rule]"]
+====
+
+The same rule _without_ the `platform` keyword would try to substitute _regular dependencies_ with a regular dependency, which is not what you want, so it's important to understand that the substitution rules apply on a _dependency specification_: it matches the requested dependency (`substitute XXX`) with a substitute (`with YYY`).
+
+You can have attributes on both the requested dependency _or_ the substitute and the substitution is not limited to `platform`: you can actually specify the whole set of dependency attributes using the `variant` notation.
+The following rule is _strictly equivalent_ to the rule above:
+
+.Substitute a platform dependency with a regular dependency using the variant notation
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="build.gradle[tags=substitution_rule_alternative]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/kotlin",files="build.gradle.kts[tags=substitution_rule_alternative]"]
+====
+
+Please refer to the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.html#variant-org.gradle.api.artifacts.component.ComponentSelector-org.gradle.api.Action-[Substitution DSL API docs] for a complete reference of the variant substitution API.
+
+[WARNING]
+====
+In <<composite_builds.adoc#composite_build_intro,composite builds>>, the rule that you have to match the exact requested dependency attributes is not applied: when using composites, Gradle will automatically match the requested attributes. In other words, it is implicit that if you include another build, you are substituting _all variants__ of the substituted module with an equivalent variant in the included build.]
+====
+
+[[sec:substitution_with_capabilities]]
+==== Substituting a dependency with a dependency with capabilities
+
+Similarly to <<resolution_rules.adoc#sec:substitution_with_attributes,attributes substitution>>, Gradle lets you substitute a dependency with or without capabilities with another dependency with or without capabilities.
+
+For example, let's imagine that you need to substitute a regular dependency with its <<java_testing.adoc#sec:java_test_fixtures,test fixtures>> instead.
+You can achieve this by using the following dependency substitution rule:
+
+.Substitute a dependency with its test fixtures
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-capabilitySubstitutionRule/groovy",files="build.gradle[tags=substitution_rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-capabilitySubstitutionRule/kotlin",files="build.gradle.kts[tags=substitution_rule]"]
+====
+
+Capabilities which are declared in a substitution rule on the requested dependency constitute part of the dependency match specification, and therefore dependencies which do _not_ require the capabilities will not be matched.
+
+Please refer to the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.html#variant-org.gradle.api.artifacts.component.ComponentSelector-org.gradle.api.Action-[Substitution DSL API docs] for a complete reference of the variant substitution API.
+
+[WARNING]
+====
+In <<composite_builds.adoc#composite_build_intro,composite builds>>, the rule that you have to match the exact requested dependency capabilities is not applied: when using composites, Gradle will automatically match the requested capabilities. In other words, it is implicit that if you include another build, you are substituting _all variants__ of the substituted module with an equivalent variant in the included build.]
+====
+
 [[sec:substitution_with_classifier]]
 === Substituting a dependency with a classifier or artifact
 

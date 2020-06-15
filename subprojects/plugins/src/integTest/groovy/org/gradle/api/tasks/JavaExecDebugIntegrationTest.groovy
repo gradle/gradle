@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -32,7 +31,6 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = ".* :runProjectJavaExec")
-    @ToBeFixedForInstantExecution(iterationMatchers = ".* :runJavaExec")
     def "debug is disabled by default with task :#taskName"() {
         setup:
         sampleProject """
@@ -49,7 +47,6 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = ".* :runProjectJavaExec")
-    @ToBeFixedForInstantExecution(iterationMatchers = ".* :runJavaExec")
     def "debug session fails without debugger with task :#taskName"() {
         setup:
         sampleProject """
@@ -69,7 +66,6 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = ".* :runProjectJavaExec")
-    @ToBeFixedForInstantExecution(iterationMatchers = ".* :runJavaExec")
     def "can debug Java exec with socket listen type debugger (server = false) with task :#taskName"() {
         setup:
         sampleProject """
@@ -92,7 +88,6 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
     @Ignore
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = ".* :runProjectJavaExec")
-    @ToBeFixedForInstantExecution(iterationMatchers = ".* :runJavaExec")
     def "can debug Java exec with socket attach type debugger (server = true) with task :#taskName"() {
         setup:
         sampleProject """
@@ -122,7 +117,6 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = ".* :runProjectJavaExec")
-    @ToBeFixedForInstantExecution(iterationMatchers = ".* :runJavaExec")
     def "debug options overrides debug property with task :#taskName"() {
         setup:
         sampleProject """
@@ -143,7 +137,6 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = ".* :runProjectJavaExec")
-    @ToBeFixedForInstantExecution(iterationMatchers = ".* :runJavaExec")
     def "if custom debug argument is passed to the build then debug options is ignored with task :#taskName"() {
         setup:
         sampleProject """

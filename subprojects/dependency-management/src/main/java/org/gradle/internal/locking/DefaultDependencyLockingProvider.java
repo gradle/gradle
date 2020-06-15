@@ -307,6 +307,11 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             }
 
             @Override
+            public void withoutArtifactSelectors() {
+
+            }
+
+            @Override
             public void selectArtifact(String type, @Nullable String extension, @Nullable String classifier) {
 
             }

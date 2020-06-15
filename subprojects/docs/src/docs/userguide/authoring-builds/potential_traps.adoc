@@ -33,7 +33,7 @@ include::{snippetsPath}/tutorial/groovyScope/groovy/src/main/groovy/scope.groovy
 .Output of `groovy scope.groovy`
 ----
 > groovy scope.groovy
-include::{snippetsPath}/tutorial/groovyScope/tests/scope.out
+include::{snippetsPath}/tutorial/groovyScope/tests/scope.out[]
 ----
 
 Variables which are declared with a type modifier are visible within closures but not visible within methods.
@@ -52,7 +52,7 @@ include::sample[dir="snippets/tutorial/mkdirTrap/kotlin", files="build.gradle.kt
 .Output of **`gradle -q compile`**
 ----
 > gradle -q compile
-include::{snippetsPath}/tutorial/mkdirTrap/tests/mkdirTrap.out
+include::{snippetsPath}/tutorial/mkdirTrap/tests/mkdirTrap.out[]
 ----
 
 As the creation of the directory happens during the configuration phase, the `clean` task removes the directory during the execution phase.

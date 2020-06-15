@@ -15,7 +15,7 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -30,6 +30,7 @@ dependencies {
     implementation(project(":snapshots"))
     implementation(project(":dependencyManagement"))
     implementation(project(":baseServicesGroovy"))
+    implementation(project(":buildOption"))
 
     implementation(library("slf4j_api"))
     implementation(library("groovy"))
@@ -43,25 +44,20 @@ dependencies {
     testImplementation(testFixtures(project(":dependencyManagement")))
     testImplementation(testFixtures(project(":logging")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-    testRuntimeOnly(project(":kotlinDsl"))
-    testRuntimeOnly(project(":kotlinDslProviderPlugins"))
-
     integTestImplementation(testLibrary("jsoup"))
     integTestImplementation(testLibrary("jetty"))
 
     testFixturesApi(testFixtures(project(":platformNative")))
     testFixturesImplementation(project(":baseServices"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(library("guava"))
 
-    // These are only here for 'DiagnosticsComponentReportIntegrationTest.shows details of multiple components'
-    integTestRuntimeOnly(project(":plugins"))
-    integTestRuntimeOnly(project(":platformNative"))
-    integTestRuntimeOnly(project(":languageNative"))
-    integTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
-
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsFull"))  {
+        because("There are integration tests that assert that all the tasks of a full distribution are reported (these should probably move to ':integTests').")
+    }
 }
 
 classycle {

@@ -18,10 +18,10 @@ package org.gradle.launcher.daemon.configuration;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.jvm.GroovyJpmsWorkarounds;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -56,11 +56,11 @@ public class DaemonParameters {
     private Priority priority = Priority.NORMAL;
     private JavaInfo jvm = Jvm.current();
 
-    public DaemonParameters(BuildLayoutParameters layout, FileCollectionFactory fileCollectionFactory) {
+    public DaemonParameters(BuildLayoutResult layout, FileCollectionFactory fileCollectionFactory) {
         this(layout, fileCollectionFactory, Collections.<String, String>emptyMap());
     }
 
-    public DaemonParameters(BuildLayoutParameters layout, FileCollectionFactory fileCollectionFactory, Map<String, String> extraSystemProperties) {
+    public DaemonParameters(BuildLayoutResult layout, FileCollectionFactory fileCollectionFactory, Map<String, String> extraSystemProperties) {
         jvmOptions = new DaemonJvmOptions(fileCollectionFactory);
         if (!extraSystemProperties.isEmpty()) {
             List<String> immutableBefore = jvmOptions.getAllImmutableJvmArgs();
@@ -70,7 +70,7 @@ public class DaemonParameters {
         }
         baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
         gradleUserHomeDir = layout.getGradleUserHomeDir();
-        envVariables = new HashMap<String, String>(System.getenv());
+        envVariables = new HashMap<>(System.getenv());
     }
 
     public boolean isEnabled() {

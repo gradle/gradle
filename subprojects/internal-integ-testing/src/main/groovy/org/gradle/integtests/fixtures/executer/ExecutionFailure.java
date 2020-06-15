@@ -96,5 +96,10 @@ public interface ExecutionFailure extends ExecutionResult {
          * Asserts that this failure has the given number of direct causes.
          */
         void assertHasCauses(int count);
+
+        /**
+         * Asserts that this failure has the given cause
+         */
+        void assertHasCause(String message);
     }
 }

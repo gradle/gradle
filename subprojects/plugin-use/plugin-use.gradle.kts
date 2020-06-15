@@ -16,7 +16,7 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -27,8 +27,7 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":core"))
     implementation(project(":dependencyManagement"))
-
-    runtimeOnly(project(":resourcesHttp"))
+    implementation(project(":buildOption"))
 
     implementation(library("groovy"))
     implementation(library("guava"))
@@ -38,15 +37,9 @@ dependencies {
     integTestImplementation(project(":baseServicesGroovy"))
     integTestImplementation(library("jetbrains_annotations"))
 
-    integTestRuntimeOnly(project(":plugins"))
-    integTestRuntimeOnly(project(":pluginDevelopment"))
-    integTestRuntimeOnly(project(":testKit"))
-    integTestRuntimeOnly(project(":toolingApiBuilders"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
-    integTestRuntimeOnly(project(":apiMetadata"))
-    integTestRuntimeOnly(project(":kotlinDsl"))
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    integTestDistributionRuntimeOnly(project(":distributionsBasics")) {
+        because("Requires test-kit: 'java-gradle-plugin' is used in integration tests which always adds the test-kit dependency.")
+    }
 }
 
 testFilesCleanup {

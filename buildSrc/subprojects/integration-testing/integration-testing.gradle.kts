@@ -23,10 +23,6 @@ gradlePlugin {
             id = "gradlebuild.integration-tests"
             implementationClass = "org.gradle.gradlebuild.test.integrationtests.IntegrationTestsPlugin"
         }
-        register("gradleDistribution") {
-            id = "gradlebuild.gradle-distribution"
-            implementationClass = "org.gradle.gradlebuild.test.fixtures.GradleDistributionPlugin"
-        }
         register("testFixtures") {
             id = "gradlebuild.test-fixtures"
             implementationClass = "org.gradle.gradlebuild.test.fixtures.TestFixturesPlugin"

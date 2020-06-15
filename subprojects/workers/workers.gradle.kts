@@ -1,5 +1,5 @@
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -29,18 +29,18 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-    testRuntimeOnly(project(":dependencyManagement"))
-
     integTestRuntimeOnly(project(":kotlinDsl"))
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
     integTestRuntimeOnly(project(":apiMetadata"))
     integTestRuntimeOnly(project(":testKit"))
 
     integTestImplementation(project(":jvmServices"))
-    integTestImplementation(project(":internalIntegTesting"))
 
     testFixturesImplementation(library("inject"))
     testFixturesImplementation(project(":baseServices"))
-    testFixturesImplementation(project(":internalTesting"))
+
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }

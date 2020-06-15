@@ -23,7 +23,7 @@ import org.gradle.api.Project
 class IntegrationTestsPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         val sourceSet = addSourceSet(TestType.INTEGRATION)
-        addDependenciesAndConfigurations(TestType.INTEGRATION)
+        addDependenciesAndConfigurations(TestType.INTEGRATION.prefix)
         createTasks(sourceSet, TestType.INTEGRATION)
         configureIde(TestType.INTEGRATION)
 

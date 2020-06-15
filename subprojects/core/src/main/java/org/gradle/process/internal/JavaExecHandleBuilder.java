@@ -15,7 +15,6 @@
  */
 package org.gradle.process.internal;
 
-import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -34,7 +33,6 @@ import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.GUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -43,7 +41,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -58,16 +55,15 @@ import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasC
 /**
  * Use {@link JavaExecHandleFactory} instead.
  */
-public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements JavaExecSpec {
+public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements JavaExecSpec, ProcessArgumentsSpec.HasExecutable {
     private static final Logger LOGGER = Logging.getLogger(JavaExecHandleBuilder.class);
     private final FileCollectionFactory fileCollectionFactory;
-    private JavaModuleDetector javaModuleDetector;
-    private Property<String> mainModule;
-    private Property<String> mainClass;
-    private final List<Object> applicationArgs = new ArrayList<>();
+    private final JavaModuleDetector javaModuleDetector;
+    private final Property<String> mainModule;
+    private final Property<String> mainClass;
     private ConfigurableFileCollection classpath;
     private final JavaForkOptions javaOptions;
-    private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<>();
+    private final ProcessArgumentsSpec applicationArgsSpec = new ProcessArgumentsSpec(this);
     private final ModularitySpec modularity;
 
     public JavaExecHandleBuilder(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Executor executor, BuildCancellationToken buildCancellationToken, @Nullable JavaModuleDetector javaModuleDetector, JavaForkOptions javaOptions) {
@@ -80,10 +76,6 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         this.javaOptions = javaOptions;
         this.modularity = new DefaultModularitySpec(objectFactory);
         executable(javaOptions.getExecutable());
-    }
-
-    public void setJavaModuleDetector(JavaModuleDetector javaModuleDetector) {
-        this.javaModuleDetector = javaModuleDetector;
     }
 
     @Override
@@ -303,42 +295,36 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     @Override
     @Nonnull
     public List<String> getArgs() {
-        List<String> args = new ArrayList<String>();
-        for (Object applicationArg : applicationArgs) {
-            args.add(applicationArg.toString());
-        }
-        return args;
+        return applicationArgsSpec.getArgs();
     }
 
     @Override
     public JavaExecHandleBuilder setArgs(List<String> applicationArgs) {
-        this.applicationArgs.clear();
-        args(applicationArgs);
+        applicationArgsSpec.setArgs(applicationArgs);
         return this;
     }
 
     @Override
     public JavaExecHandleBuilder setArgs(Iterable<?> applicationArgs) {
-        this.applicationArgs.clear();
-        args(applicationArgs);
+        applicationArgsSpec.setArgs(applicationArgs);
         return this;
     }
 
     @Override
     public JavaExecHandleBuilder args(Object... args) {
-        args(Arrays.asList(args));
+        applicationArgsSpec.args(args);
         return this;
     }
 
     @Override
     public JavaExecSpec args(Iterable<?> args) {
-        GUtil.addToCollection(applicationArgs, true, args);
+        applicationArgsSpec.args(args);
         return this;
     }
 
     @Override
     public List<CommandLineArgumentProvider> getArgumentProviders() {
-        return argumentProviders;
+        return applicationArgsSpec.getArgumentProviders();
     }
 
     @Override
@@ -373,10 +359,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     private List<String> getAllArguments(FileCollection realClasspath) {
         List<String> arguments = new ArrayList<>(getAllJvmArgs(realClasspath));
-        arguments.addAll(getArgs());
-        for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
-            Iterables.addAll(arguments, argumentProvider.asArguments());
-        }
+        arguments.addAll(applicationArgsSpec.getAllArguments());
         return arguments;
     }
 

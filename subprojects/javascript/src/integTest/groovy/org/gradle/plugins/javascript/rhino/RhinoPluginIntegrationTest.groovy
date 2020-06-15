@@ -89,7 +89,6 @@ class RhinoPluginIntegrationTest extends WellBehavedPluginTest {
         fails "rhino"
     }
 
-    @ToBeFixedForInstantExecution
     def "can use older rhino version"() {
         given:
         buildFile << """

@@ -17,7 +17,7 @@ class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildTyp
     }
 
     artifactRules = """$artifactRules
-        build/distributions/*.zip => distributions
+        subprojects/distributions-full/build/distributions/*.zip => distributions
         build/build-receipt.properties
     """.trimIndent()
 

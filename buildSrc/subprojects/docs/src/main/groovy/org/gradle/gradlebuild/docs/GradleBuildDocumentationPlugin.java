@@ -20,14 +20,16 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.DocsType;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Exec;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -88,19 +90,24 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
 
         extension.getRenderedDocumentation().from(stageDocs);
 
-        extension.getClasspath().from(project.getConfigurations().getByName("gradleApi"));
+        Configuration runtimeClasspath = project.getConfigurations().getByName("runtimeClasspath");
+        Configuration sourcesPath = project.getConfigurations().create("sourcesPath");
+        sourcesPath.attributes(a -> {
+            a.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME));
+            a.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.DOCUMENTATION));
+            a.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, "gradle-source-folders"));
+        });
+        sourcesPath.setCanBeConsumed(false);
+        sourcesPath.setCanBeResolved(true);
+        sourcesPath.setVisible(false);
+        sourcesPath.extendsFrom(runtimeClasspath);
 
-        // TODO: This should not reach across project boundaries
-        for (Project subproject : project.getRootProject().getSubprojects()) {
-            subproject.getPlugins().withId("gradlebuild.distribution.api", p -> {
-                SourceDirectorySet javaSources = subproject.getExtensions().getByType(SourceSetContainer.class).getByName("main").getAllJava();
-                extension.getDocumentedSource().from(javaSources.matching(pattern -> {
-                    // Filter out any non-public APIs
-                    pattern.include(PublicApi.INSTANCE.getIncludes());
-                    pattern.exclude(PublicApi.INSTANCE.getExcludes());
-                }));
-            });
-        }
+        extension.getClasspath().from(runtimeClasspath);
+        extension.getDocumentedSource().from(sourcesPath.getIncoming().artifactView(v -> v.lenient(true)).getFiles().getAsFileTree().matching(f -> {
+            // Filter out any non-public APIs
+            f.include(PublicApi.INSTANCE.getIncludes());
+            f.exclude(PublicApi.INSTANCE.getExcludes());
+        }));
     }
 
     private void addUtilityTasks(TaskContainer tasks, GradleDocumentationExtension extension) {
@@ -134,13 +141,10 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
     private void checkDocumentation(TaskContainer tasks, GradleDocumentationExtension extension) {
         tasks.named("test", Test.class).configure(task -> {
             task.getInputs().file(extension.getReleaseNotes().getRenderedDocumentation()).withPropertyName("releaseNotes").withPathSensitivity(PathSensitivity.NONE);
-            task.getInputs().file(extension.getReleaseFeatures().getReleaseFeaturesFile()).withPropertyName("releaseFeatures").withPathSensitivity(PathSensitivity.NONE);
 
             task.getInputs().property("systemProperties", Collections.emptyMap());
             // TODO: This breaks the provider
             task.systemProperty("org.gradle.docs.releasenotes.rendered", extension.getReleaseNotes().getRenderedDocumentation().get().getAsFile());
-            // TODO: This breaks the provider
-            task.systemProperty("org.gradle.docs.releasefeatures", extension.getReleaseFeatures().getReleaseFeaturesFile().get().getAsFile());
         });
     }
 }

@@ -30,8 +30,7 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     @ToBeFixedForInstantExecution
     fun `withPluginClasspath works`() {
-
-        requireGradleDistributionOnEmbeddedExecuter()
+        assumeNonEmbeddedGradleExecuter()
 
         withDefaultSettings()
 

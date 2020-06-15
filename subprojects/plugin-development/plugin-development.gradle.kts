@@ -16,10 +16,9 @@
 
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -57,28 +56,22 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
 
-    testRuntimeOnly(project(":toolingApi"))
-    testRuntimeOnly(project(":testKit"))
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
     integTestImplementation(project(":baseServicesGroovy"))
     integTestImplementation(library("jetbrains_annotations"))
 
-    integTestRuntimeOnly(project(":toolingApiBuilders"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
-    integTestRuntimeOnly(project(":codeQuality"))
+    integTestLocalRepository(project(":toolingApi")) {
+        because("Required by GradleImplDepsCompatibilityIntegrationTest")
+    }
 
-    integTestRuntimeOnly(project(":kotlinDsl"))
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
-    integTestRuntimeOnly(project(":apiMetadata"))
+    testRuntimeOnly(project(":distributionsBasics")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributionsBasics"))
 }
 
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
-}
-tasks.withType<IntegrationTest>().configureEach {
-    libsRepository.required = true
 }
 
 integrationTestUsesSampleDir("subprojects/plugin-development/src/main")

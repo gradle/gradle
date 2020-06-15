@@ -65,7 +65,7 @@ Most of the examples in this user guide are run with the `-q` command-line optio
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{snippetsPath}/tutorial/hello/tests/hello.out
+include::{snippetsPath}/tutorial/hello/tests/hello.out[]
 ----
 ====
 
@@ -86,7 +86,7 @@ include::sample[dir="snippets/tutorial/upper/kotlin", files="build.gradle.kts[]"
 .Output of **`gradle -q upper`**
 ----
 > gradle -q upper
-include::{snippetsPath}/tutorial/upper/tests/upper.out
+include::{snippetsPath}/tutorial/upper/tests/upper.out[]
 ----
 ====
 
@@ -100,7 +100,7 @@ include::sample[dir="snippets/tutorial/count/kotlin", files="build.gradle.kts[]"
 .Output of **`gradle -q count`**
 ----
 > gradle -q count
-include::{snippetsPath}/tutorial/count/tests/count.out
+include::{snippetsPath}/tutorial/count/tests/count.out[]
 ----
 ====
 
@@ -118,7 +118,7 @@ include::sample[dir="snippets/tutorial/intro/kotlin", files="build.gradle.kts[]"
 .Output of **`gradle -q intro`**
 ----
 > gradle -q intro
-include::{snippetsPath}/tutorial/intro/tests/intro.out
+include::{snippetsPath}/tutorial/intro/tests/intro.out[]
 ----
 ====
 
@@ -132,7 +132,7 @@ include::sample[dir="snippets/tutorial/lazyDependsOn/kotlin", files="build.gradl
 .Output of **`gradle -q taskX`**
 ----
 > gradle -q taskX
-include::{snippetsPath}/tutorial/lazyDependsOn/tests/lazyDependsOn.out
+include::{snippetsPath}/tutorial/lazyDependsOn/tests/lazyDependsOn.out[]
 ----
 ====
 
@@ -153,7 +153,7 @@ include::sample[dir="snippets/tutorial/dynamic/kotlin", files="build.gradle.kts[
 .Output of **`gradle -q task1`**
 ----
 > gradle -q task1
-include::{snippetsPath}/tutorial/dynamic/tests/dynamic.out
+include::{snippetsPath}/tutorial/dynamic/tests/dynamic.out[]
 ----
 ====
 
@@ -171,7 +171,7 @@ include::sample[dir="snippets/tutorial/dynamicDepends/kotlin", files="build.grad
 .Output of **`gradle -q task0`**
 ----
 > gradle -q task0
-include::{snippetsPath}/tutorial/dynamicDepends/tests/dynamicDepends.out
+include::{snippetsPath}/tutorial/dynamicDepends/tests/dynamicDepends.out[]
 ----
 ====
 
@@ -185,7 +185,7 @@ include::sample[dir="snippets/tutorial/helloEnhanced/kotlin", files="build.gradl
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{snippetsPath}/tutorial/helloEnhanced/tests/helloEnhanced.out
+include::{snippetsPath}/tutorial/helloEnhanced/tests/helloEnhanced.out[]
 ----
 ====
 
@@ -203,7 +203,7 @@ include::sample[dir="snippets/tutorial/helloWithShortCut/groovy", files="build.g
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{snippetsPath}/tutorial/helloWithShortCut/tests/helloWithShortCut.out
+include::{snippetsPath}/tutorial/helloWithShortCut/tests/helloWithShortCut.out[]
 ----
 ====
 
@@ -222,7 +222,7 @@ include::sample[dir="snippets/tutorial/extraProperties/kotlin", files="build.gra
 .Output of **`gradle -q printTaskProperties`**
 ----
 > gradle -q printTaskProperties
-include::{snippetsPath}/tutorial/extraProperties/tests/extraTaskProperties.out
+include::{snippetsPath}/tutorial/extraProperties/tests/extraTaskProperties.out[]
 ----
 ====
 
@@ -241,7 +241,7 @@ include::sample[dir="snippets/tutorial/antLoadfile/kotlin", files="build.gradle.
 .Output of **`gradle -q loadfile`**
 ----
 > gradle -q loadfile
-include::{snippetsPath}/tutorial/antLoadfile/tests/antLoadfile.out
+include::{snippetsPath}/tutorial/antLoadfile/tests/antLoadfile.out[]
 ----
 ====
 
@@ -260,7 +260,7 @@ include::sample[dir="snippets/tutorial/antLoadfileWithMethod/kotlin", files="bui
 .Output of **`gradle -q loadfile`**
 ----
 > gradle -q loadfile
-include::{snippetsPath}/tutorial/antLoadfileWithMethod/tests/antLoadfileWithMethod.out
+include::{snippetsPath}/tutorial/antLoadfileWithMethod/tests/antLoadfileWithMethod.out[]
 ----
 ====
 
@@ -279,7 +279,7 @@ include::sample[dir="snippets/tutorial/defaultTasks/kotlin", files="build.gradle
 .Output of **`gradle -q`**
 ----
 > gradle -q
-include::{snippetsPath}/tutorial/defaultTasks/tests/defaultTasks.out
+include::{snippetsPath}/tutorial/defaultTasks/tests/defaultTasks.out[]
 ----
 ====
 
@@ -304,13 +304,13 @@ include::sample[dir="snippets/tutorial/configByDag/kotlin", files="build.gradle.
 .Output of `gradle -q distribution`
 ----
 > gradle -q distribution
-include::{snippetsPath}/tutorial/configByDag/tests/configByDagNoRelease.out
+include::{snippetsPath}/tutorial/configByDag/tests/configByDagNoRelease.out[]
 ----
 
 .Output of `gradle -q release`
 ----
 > gradle -q release
-include::{snippetsPath}/tutorial/configByDag/tests/configByDag.out
+include::{snippetsPath}/tutorial/configByDag/tests/configByDag.out[]
 ----
 ====
 
@@ -350,7 +350,7 @@ include::sample[dir="snippets/tutorial/externalDependency/kotlin", files="build.
 .Output of **`gradle -q encode`**
 ----
 > gradle -q encode
-include::{snippetsPath}/tutorial/externalDependency/tests/externalBuildDependency.out
+include::{snippetsPath}/tutorial/externalDependency/tests/externalBuildDependency.out[]
 ----
 ====
 

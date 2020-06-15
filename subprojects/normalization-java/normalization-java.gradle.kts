@@ -16,15 +16,20 @@
 description = "API extraction for Java"
 
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    gradlebuild.distribution.`api-java`
     gradlebuild.`publish-public-libraries`
 }
 
 dependencies {
     implementation(project(":baseAnnotations"))
+    implementation(project(":hashing"))
+    implementation(project(":files"))
+    implementation(project(":snapshots"))
 
     implementation(library("asm")) { version { require(libraryVersion("asm")) } }
     implementation(library("guava")) { version { require(libraryVersion("guava")) } }
+    implementation(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
+    implementation(library("commons_io")) { version { require(libraryVersion("commons_io")) } }
 
     testImplementation(project(":baseServices"))
     testImplementation(project(":internalTesting"))

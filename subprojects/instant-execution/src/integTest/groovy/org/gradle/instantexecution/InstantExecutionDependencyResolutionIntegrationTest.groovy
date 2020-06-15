@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+
 import org.gradle.integtests.resolve.transform.ArtifactTransformTestFixture
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -133,6 +134,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         result.assertTaskSkipped(":b:producer")
         outputContains("files = [a.thing, b.thing, a.out, b.out, lib1-6500.jar]")
         outputContains("artifacts = [a.thing, b.thing, a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
+        outputContains("variants = [{artifactType=thing}, {artifactType=thing}, {artifactType=out}, {artifactType=out}, {artifactType=jar, org.gradle.status=release}]")
 
         when:
         instantRun(":resolve", "-PaContent=changed")
@@ -147,6 +149,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         result.assertTaskSkipped(":b:producer")
         outputContains("files = [a.thing, b.thing, a.out, b.out, lib1-6500.jar]")
         outputContains("artifacts = [a.thing, b.thing, a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
+        outputContains("variants = [{artifactType=thing}, {artifactType=thing}, {artifactType=out}, {artifactType=out}, {artifactType=jar, org.gradle.status=release}]")
     }
 
     def "task input property can include mapped configuration elements that contain project dependencies"() {
@@ -280,6 +283,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         assertTransformed("a.jar", "b.jar")
         outputContains("files = [root.green, a.jar.green, b.jar.green]")
         outputContains("artifacts = [root.green, a.jar.green (project :a), b.jar.green (project :b)]")
+        outputContains("variants = [{artifactType=green, color=green}, {artifactType=jar, color=green}, {artifactType=jar, color=green}]")
 
         when:
         instantRun(":resolveArtifacts")
@@ -293,6 +297,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         assertTransformed()
         outputContains("files = [root.green, a.jar.green, b.jar.green]")
         outputContains("artifacts = [root.green, a.jar.green (project :a), b.jar.green (project :b)]")
+        outputContains("variants = [{artifactType=green, color=green}, {artifactType=jar, color=green}, {artifactType=jar, color=green}]")
 
         when:
         instantRun(":resolveArtifacts", "-PaContent=changed")
@@ -306,6 +311,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         assertTransformed("a.jar")
         outputContains("files = [root.green, a.jar.green, b.jar.green]")
         outputContains("artifacts = [root.green, a.jar.green (project :a), b.jar.green (project :b)]")
+        outputContains("variants = [{artifactType=green, color=green}, {artifactType=jar, color=green}, {artifactType=jar, color=green}]")
     }
 
     def setupBuildWithArtifactTransformsOfExternalDependencies() {
@@ -360,6 +366,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         assertTransformed("thing1-1.2.jar", "thing2-1.2.jar")
         outputContains("files = [thing1-1.2.jar.green, thing2-1.2.jar.green]")
         outputContains("artifacts = [thing1-1.2.jar.green (group:thing1:1.2), thing2-1.2.jar.green (group:thing2:1.2)]")
+        outputContains("variants = [{artifactType=jar, color=green, org.gradle.status=release}, {artifactType=jar, color=green, org.gradle.status=release}]")
 
         when:
         instantRun(":resolveArtifacts")
@@ -369,6 +376,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         assertTransformed()
         outputContains("files = [thing1-1.2.jar.green, thing2-1.2.jar.green]")
         outputContains("artifacts = [thing1-1.2.jar.green (group:thing1:1.2), thing2-1.2.jar.green (group:thing2:1.2)]")
+        outputContains("variants = [{artifactType=jar, color=green, org.gradle.status=release}, {artifactType=jar, color=green, org.gradle.status=release}]")
     }
 
     def setupBuildWithArtifactTransformsOfPrebuiltFileDependencies() {
@@ -430,6 +438,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         assertTransformed("root.blue", "a.blue", "a.jar")
         outputContains("files = [root.blue.green, a.jar.green, a.blue.green]")
         outputContains("artifacts = [root.blue.green (root.blue), a.jar.green (project :a), a.blue.green (a.blue)]")
+        outputContains("variants = [{artifactType=blue, color=green}, {artifactType=jar, color=green}, {artifactType=blue, color=green}]")
 
         when:
         instantRun(":resolveArtifacts")
@@ -440,6 +449,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         assertTransformed()
         outputContains("files = [root.blue.green, a.jar.green, a.blue.green]")
         outputContains("artifacts = [root.blue.green (root.blue), a.jar.green (project :a), a.blue.green (a.blue)]")
+        outputContains("variants = [{artifactType=blue, color=green}, {artifactType=jar, color=green}, {artifactType=blue, color=green}]")
     }
 
     def setupBuildWithArtifactTransformsOfFileDependenciesThatContainTaskOutputs() {
@@ -510,6 +520,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         assertTransformed("root.blue", "root.additional.blue", "a.additional.blue", "a.jar")
         outputContains("files = [root.additional.blue.green, root.blue.green, a.jar.green, a.additional.blue.green]")
         outputContains("artifacts = [root.additional.blue.green (root.additional.blue), root.blue.green (root.blue), a.jar.green (project :a), a.additional.blue.green (a.additional.blue)]")
+        outputContains("variants = [{artifactType=blue, color=green}, {artifactType=blue, color=green}, {artifactType=jar, color=green}, {artifactType=blue, color=green}]")
 
         when:
         instantRun(":resolveArtifacts")
@@ -522,6 +533,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         assertTransformed()
         outputContains("files = [root.additional.blue.green, root.blue.green, a.jar.green, a.additional.blue.green]")
         outputContains("artifacts = [root.additional.blue.green (root.additional.blue), root.blue.green (root.blue), a.jar.green (project :a), a.additional.blue.green (a.additional.blue)]")
+        outputContains("variants = [{artifactType=blue, color=green}, {artifactType=blue, color=green}, {artifactType=jar, color=green}, {artifactType=blue, color=green}]")
     }
 
     def "task input file collection can include the output of chained artifact transform of project dependencies"() {
@@ -747,6 +759,107 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         outputContains("processing b.jar.red using []")
         outputContains("processing a.jar.red using [b.jar.red, c.jar.red]")
         outputContains("result = [a.jar.red.green, b.jar.red.green, c.jar.red.green]")
+    }
+
+    def "reports failure to transform prebuilt file dependency and invalidates the cache"() {
+        settingsFile << """
+            include 'a'
+        """
+        setupBuildWithColorTransformAction()
+        buildFile << """
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing \${input.name}"
+                    throw new RuntimeException("broken: \${input.name}")
+                }
+            }
+
+            dependencies.artifactTypes {
+                blue {
+                    attributes.attribute(color, 'blue')
+                }
+            }
+            dependencies {
+                implementation files('root.blue')
+                implementation project(':a')
+            }
+            project(':a') {
+                dependencies {
+                    implementation files('a.blue')
+                }
+            }
+        """
+        file('root.blue') << 'root'
+        file('a/a.blue') << 'a'
+        def fixture = newInstantExecutionFixture()
+
+        when:
+        instantFails(":resolve")
+
+        then:
+        // TODO - this should fail
+        fixture.assertStateStored()
+        // TODO - should not attempt to run the task
+        failure.assertHasFailure("Execution failed for task ':resolve'.") {
+            it.assertHasCause("Failed to transform root.blue to match attributes {artifactType=blue, color=green}.")
+            it.assertHasCause("Failed to transform a.blue to match attributes {artifactType=blue, color=green}.")
+        }
+        failure.assertHasDescription("Configuration cache problems found in this build.")
+        // TODO - there should be 1 failure
+        failure.assertHasFailures(2)
+
+        when:
+        instantFails(":resolve")
+
+        then:
+        fixture.assertStateLoaded()
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
+    }
+
+    def "reports failure transforming project dependency"() {
+        settingsFile << """
+            include 'a'
+        """
+        setupBuildWithColorTransformAction()
+        buildFile << """
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing \${input.name}"
+                    throw new RuntimeException("broken: \${input.name}")
+                }
+            }
+
+            dependencies {
+                implementation project(':a')
+            }
+        """
+
+        def fixture = newInstantExecutionFixture()
+
+        when:
+        instantFails(":resolve")
+
+        then:
+        // TODO - this should fail
+        fixture.assertStateStored()
+        failure.assertHasFailure("Execution failed for task ':resolve'.") {
+            it.assertHasCause("Failed to transform a.jar (project :a) to match attributes {artifactType=jar, color=green}.")
+        }
+
+        when:
+        instantFails(":resolve")
+
+        then:
+        fixture.assertStateLoaded()
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
     }
 
     @Ignore("wip")

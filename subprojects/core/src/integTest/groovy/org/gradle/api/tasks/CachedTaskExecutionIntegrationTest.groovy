@@ -19,7 +19,6 @@ package org.gradle.api.tasks
 import org.gradle.initialization.StartParameterBuildOptions.BuildCacheDebugLoggingOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
@@ -89,13 +88,12 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*upToDateWhen.*")
     def "cached tasks are executed with #rerunMethod"() {
         expect:
         cacheDir.listFiles() as List == []
         buildFile << """
-            def upToDate = project.findProperty("upToDateWhenFalse") == null
-            tasks.withType(JavaCompile).configureEach { it.outputs.upToDateWhen { upToDate } }
+            def upToDate = providers.gradleProperty('upToDateWhenFalse')
+            tasks.withType(JavaCompile).configureEach { it.outputs.upToDateWhen { !upToDate.present } }
         """
 
         when:
@@ -147,7 +145,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         executedAndNotSkipped ":compileJava", ":jar"
     }
 
-    @ToBeFixedForInstantExecution(because = "JavaExec")
     def "outputs are correctly loaded from cache"() {
         buildFile << """
             apply plugin: "application"
@@ -280,7 +277,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
-    @ToBeFixedForInstantExecution(because = "JavaExec")
     def "can load twice from the cache with no changes"() {
         given:
         buildFile << """

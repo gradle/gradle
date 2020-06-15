@@ -16,6 +16,8 @@
 
 package org.gradle.performance.util
 
+import org.gradle.util.GradleVersion
+
 class Git {
     static final Git INSTANCE = new Git()
     final String commitId
@@ -26,9 +28,7 @@ class Git {
     }
 
     private Git() {
-        commitId = System.getProperty("gradleBuildCommitId")
-        branchName = System.getProperty("gradleBuildBranch")
-        assert commitId: "commitId must not be null!"
-        assert branchName: "branchName must not be null!"
+        commitId = System.getProperty("gradleBuildCommitId", GradleVersion.current().revision)
+        branchName = System.getProperty("gradleBuildBranch", "unknown-branch")
     }
 }

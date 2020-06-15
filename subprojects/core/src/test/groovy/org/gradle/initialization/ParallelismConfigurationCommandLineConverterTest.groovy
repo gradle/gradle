@@ -18,12 +18,11 @@ package org.gradle.initialization
 import org.gradle.cli.CommandLineArgumentException
 import org.gradle.concurrent.ParallelismConfiguration
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
-import org.gradle.util.ToBeImplemented
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class ParallelismConfigurationCommandLineConverterTest extends Specification {
-    final def converter = new ParallelismConfigurationCommandLineConverter()
+    final def converter = new ParallelismBuildOptions().commandLineConverter()
 
     def "converts parallel executor"() {
         when:
@@ -70,8 +69,6 @@ class ParallelismConfigurationCommandLineConverterTest extends Specification {
         value << ["foo", "0"]
     }
 
-    // This behavior is actually broken
-    @ToBeImplemented
     def "throws exception for invalid max workers argument when converting"() {
         when:
         convert("--max-workers", "-1")

@@ -17,7 +17,7 @@
 package org.gradle.api.plugins.antlr.internal;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.antlr.AntlrTask;
 
 import java.io.File;
@@ -26,7 +26,7 @@ import java.util.Set;
 
 public class AntlrSpecFactory {
 
-    public AntlrSpec create(AntlrTask antlrTask, Set<File> grammarFiles, SourceDirectorySet sourceDirectorySet) {
+    public AntlrSpec create(AntlrTask antlrTask, Set<File> grammarFiles, FileCollection sourceSetDirectories) {
         List<String> arguments = Lists.newLinkedList(antlrTask.getArguments());
 
         if (antlrTask.isTrace() && !arguments.contains("-trace")) {
@@ -42,6 +42,6 @@ public class AntlrSpecFactory {
             arguments.add("-traceTreeWalker");
         }
 
-        return new AntlrSpec(arguments, grammarFiles, sourceDirectorySet.getSrcDirs(), antlrTask.getOutputDirectory(), antlrTask.getMaxHeapSize());
+        return new AntlrSpec(arguments, grammarFiles, sourceSetDirectories.getFiles(), antlrTask.getOutputDirectory(), antlrTask.getMaxHeapSize());
     }
 }

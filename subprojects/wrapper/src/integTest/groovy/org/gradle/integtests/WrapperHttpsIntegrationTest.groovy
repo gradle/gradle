@@ -17,17 +17,20 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.BlockingHttpsServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.wrapper.Download
 import org.junit.Rule
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.MatcherAssert.assertThat
 
+@IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
 class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Rule BlockingHttpsServer server = new BlockingHttpsServer()
     @Rule TestProxyServer proxyServer = new TestProxyServer()

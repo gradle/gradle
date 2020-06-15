@@ -25,15 +25,16 @@ class CheckstylePluginDependenciesIntegrationTest extends AbstractIntegrationSpe
         badCode()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":dependencies")
     def "allows configuring tool dependencies explicitly"() {
+        //Language has to be English, because the error message is localised
+        defaultLocale('en')
+
         expect:
         succeeds("dependencies", "--configuration", "checkstyle")
         output.contains "com.puppycrawl.tools:checkstyle:"
 
         when:
-        //Language has to be English, because the error message is localised
-        defaultLocale('en')
         buildFile << """
             dependencies {
                 //downgrade version:

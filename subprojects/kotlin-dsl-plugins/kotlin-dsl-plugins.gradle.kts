@@ -17,10 +17,8 @@
 import build.futureKotlin
 import build.kotlin
 import codegen.GenerateKotlinDslPluginsExtensions
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import plugins.bundledGradlePlugin
-import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesKotlinDslPlugins
 
 plugins {
     gradlebuild.portalplugin.kotlin
@@ -81,16 +79,14 @@ dependencies {
     integTestImplementation(project(":platformJvm"))
     integTestImplementation(project(":kotlinDsl"))
     integTestImplementation(project(":internalTesting"))
-    integTestImplementation(project(":internalIntegTesting"))
     integTestImplementation(project(":kotlinDslTestFixtures"))
     integTestImplementation(library("slf4j_api"))
     integTestImplementation(testLibrary("mockito_kotlin"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
-    integTestRuntimeOnly(project(":apiMetadata"))
-    integTestRuntimeOnly(project(":pluginDevelopment"))
-    integTestRuntimeOnly(project(":toolingApiBuilders"))
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+
+    integTestDistributionRuntimeOnly(project(":distributionsBasics")) {
+        because("KotlinDslPluginTest tests against TestKit")
+    }
+    integTestLocalRepository(project)
 }
 
 classycle {
@@ -129,15 +125,9 @@ bundledGradlePlugin(
     pluginId = "org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins",
     pluginClass = "org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins")
 
-
-// testing ------------------------------------------------------------
-tasks.withType<IntegrationTest>().configureEach {
-    dependsOn("publishPluginsToTestRepository")
-}
-
 // TODO:kotlin-dsl investigate
 // See https://builds.gradle.org/viewLog.html?buildId=19024848&problemId=23230
-tasks.noDaemonIntegTest {
+tasks.noDaemonIntegTest.configure {
     enabled = false
 }
 
@@ -154,5 +144,3 @@ afterEvaluate {
         it.name == "java"
     }
 }
-
-integrationTestUsesKotlinDslPlugins()

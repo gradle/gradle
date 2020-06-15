@@ -2,7 +2,7 @@ import build.futureKotlin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    gradlebuild.distribution.`plugins-implementation-kotlin`
+    gradlebuild.distribution.`implementation-kotlin`
 }
 
 tasks {
@@ -48,6 +48,7 @@ dependencies {
     implementation(project(":dependencyManagement"))
     implementation(project(":persistentCache"))
     implementation(project(":plugins"))
+    implementation(project(":publish"))
     implementation(project(":kotlinDsl"))
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     implementation(project(":workers"))
@@ -68,8 +69,6 @@ dependencies {
     testImplementation(testLibrary("mockito_kotlin2"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.3.3")
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":toolingApi"))
     integTestImplementation(project(":platformJvm"))
@@ -82,14 +81,15 @@ dependencies {
     integTestImplementation(testFixtures(project(":dependencyManagement")))
     integTestImplementation(testFixtures(project(":jacoco")))
 
-    integTestRuntimeOnly(project(":apiMetadata"))
-    integTestRuntimeOnly(project(":toolingApiBuilders"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
-    integTestRuntimeOnly(project(":kotlinDsl"))
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
-
     crossVersionTestImplementation(project(":cli"))
+
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsJvm")) {
+        because("Includes tests for builds with TestKit involved; InstantExecutionJacocoIntegrationTest requires JVM distribution")
+    }
+    crossVersionTestDistributionRuntimeOnly(project(":distributionsCore"))
 }
 
 classycle {

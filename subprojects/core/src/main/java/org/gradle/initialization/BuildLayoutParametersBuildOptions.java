@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.BasicFileResolver;
 import org.gradle.internal.buildoption.BuildOption;
+import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
@@ -28,9 +29,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class BuildLayoutParametersBuildOptions {
+public class BuildLayoutParametersBuildOptions extends BuildOptionSet<BuildLayoutParameters> {
 
-    private static List<BuildOption<BuildLayoutParameters>> options;
+    private static List<BuildOption<? super BuildLayoutParameters>> options;
 
     static {
         List<BuildOption<BuildLayoutParameters>> options = new ArrayList<BuildOption<BuildLayoutParameters>>();
@@ -39,11 +40,9 @@ public class BuildLayoutParametersBuildOptions {
         BuildLayoutParametersBuildOptions.options = Collections.unmodifiableList(options);
     }
 
-    public static List<BuildOption<BuildLayoutParameters>> get() {
+    @Override
+    public List<BuildOption<? super BuildLayoutParameters>> getAllOptions() {
         return options;
-    }
-
-    private BuildLayoutParametersBuildOptions() {
     }
 
     public static class GradleUserHomeOption extends StringBuildOption<BuildLayoutParameters> {
@@ -66,7 +65,9 @@ public class BuildLayoutParametersBuildOptions {
         @Override
         public void applyTo(String value, BuildLayoutParameters settings, Origin origin) {
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
-            settings.setProjectDir(resolver.transform(value));
+            File projectDir = resolver.transform(value);
+            settings.setCurrentDir(projectDir);
+            settings.setProjectDir(projectDir);
         }
     }
 }

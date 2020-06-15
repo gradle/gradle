@@ -23,11 +23,18 @@ plugins {
     `maven-publish`
 }
 
+val localRepository = layout.buildDirectory.dir("repo")
+
 publishing {
     publications {
         create<MavenPublication>("gradleDistribution") {
             from(components["java"])
             artifactId = base.archivesBaseName
+        }
+        create<MavenPublication>("local") {
+            from(components["java"])
+            artifactId = base.archivesBaseName
+            version = rootProject.buildVersion.baseVersion
         }
     }
     repositories {
@@ -42,7 +49,7 @@ publishing {
         }
         maven {
             name = "local"
-            url = uri(rootProject.file("build/repo"))
+            url = uri(localRepository)
         }
     }
     configurePublishingTasks()
@@ -53,9 +60,9 @@ fun Project.configurePublishingTasks() {
         onlyIf { !project.hasProperty("noUpload") }
         failEarlyIfCredentialsAreNotSet(this)
     }
-    tasks.named("publishGradleDistributionPublicationToLocalRepository") {
+    val localPublish = tasks.named("publishLocalPublicationToLocalRepository") {
         doFirst {
-            val moduleBaseDir = rootProject.file("build/repo/org/gradle/${base.archivesBaseName}")
+            val moduleBaseDir = localRepository.get().dir("org/gradle/${base.archivesBaseName}").asFile
             if (moduleBaseDir.exists()) {
                 // Make sure artifacts do not pile up locally
                 moduleBaseDir.deleteRecursively()
@@ -63,20 +70,12 @@ fun Project.configurePublishingTasks() {
         }
 
         doLast {
-            val mavenMetadataXml = rootProject.file("build/repo/org/gradle/${base.archivesBaseName}/maven-metadata.xml")
-            val content = mavenMetadataXml.readText()
-//            "size": 4523517,
-//            "sha512": "4748d3d1ad52021b14b41f308dab461684d5e281a28f393f1dd171e8ea4678ac71e87ada205d552630e8ac59185d2a68848f2b279ad0acd8d08941efd0171b63",
-//            "sha256": "bef23d15246d347f45857ccb5cb258510f33065433b42b46c6705ef957c7c576",
-//            "sha1": "7615d66924c610d4fa49bb31973489118308f1a0",
-//            "md5": "966c70fc54674d6c1043c534b3889622"
-            mavenMetadataXml.writeText(content.replace("\\Q<lastUpdated>\\E\\d+\\Q</lastUpdated>\\E".toRegex(), "<lastUpdated>${Year.now().value}0101000000</lastUpdated>"))
-
-            rootProject.fileTree("build/repo/org/gradle/${base.archivesBaseName}").matching {
-                include("**/*.module")
-            }.forEach {
-                var content = it.readText()
-                content = content
+            localRepository.get().file("org/gradle/${base.archivesBaseName}/maven-metadata.xml").asFile.apply {
+                writeText(readText().replace("\\Q<lastUpdated>\\E\\d+\\Q</lastUpdated>\\E".toRegex(), "<lastUpdated>${Year.now().value}0101000000</lastUpdated>"))
+            }
+            localRepository.get().asFileTree.matching { include("**/*.module") }.forEach {
+                val content = it.readText()
+                    .replace("\"buildId\":\\s+\"\\w+\"".toRegex(), "\"buildId\": \"\"")
                     .replace("\"size\":\\s+\\d+".toRegex(), "\"size\": 0")
                     .replace("\"sha512\":\\s+\"\\w+\"".toRegex(), "\"sha512\": \"\"")
                     .replace("\"sha1\":\\s+\"\\w+\"".toRegex(), "\"sha1\": \"\"")
@@ -85,6 +84,23 @@ fun Project.configurePublishingTasks() {
                 it.writeText(content)
             }
         }
+    }
+
+    // For local consumption by tests
+    configurations.create("localLibsRepositoryElements") {
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("gradle-local-repository"))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EMBEDDED))
+        }
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        isVisible = false
+        outgoing.artifact(mapOf(
+            "file" to localRepository.get().asFile, // This is not lazy
+            "builtBy" to localPublish
+        ))
     }
 }
 

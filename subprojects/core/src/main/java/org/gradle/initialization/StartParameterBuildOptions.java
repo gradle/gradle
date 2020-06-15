@@ -26,6 +26,7 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
+import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
 import org.gradle.internal.buildoption.EnumBuildOption;
@@ -40,7 +41,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class StartParameterBuildOptions {
+public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInternal> {
 
     private static List<BuildOption<StartParameterInternal>> options;
 
@@ -79,11 +80,9 @@ public class StartParameterBuildOptions {
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
-    public static List<BuildOption<StartParameterInternal>> get() {
+    @Override
+    public List<? extends BuildOption<? super StartParameterInternal>> getAllOptions() {
         return options;
-    }
-
-    private StartParameterBuildOptions() {
     }
 
     public static class ProjectCacheDirOption extends StringBuildOption<StartParameterInternal> {
