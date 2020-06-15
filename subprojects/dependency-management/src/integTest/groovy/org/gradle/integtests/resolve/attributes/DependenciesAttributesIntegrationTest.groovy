@@ -18,14 +18,14 @@ package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.ToBeFixedForFileSystemWatching
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
-@ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/13135", failsOnlyIf = TestPrecondition.WINDOWS)
+@ToBeFixedForFileSystemWatching(because = "https://github.com/gradle/gradle/issues/13135", failsOnlyIf = TestPrecondition.WINDOWS)
 class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def setup() {

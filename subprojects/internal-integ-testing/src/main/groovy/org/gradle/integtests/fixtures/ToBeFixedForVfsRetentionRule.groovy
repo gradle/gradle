@@ -23,14 +23,14 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 /**
- * JUnit Rule supporting the {@link ToBeFixedForVfsRetention} annotation.
+ * JUnit Rule supporting the {@link ToBeFixedForFileSystemWatching} annotation.
  */
 class ToBeFixedForVfsRetentionRule implements TestRule {
 
     @Override
     Statement apply(Statement base, Description description) {
-        def annotation = description.getAnnotation(ToBeFixedForVfsRetention.class) ?: description.getTestClass().getAnnotation(ToBeFixedForVfsRetention.class)
-        if (GradleContextualExecuter.isVfsRetention() && annotation != null && annotation.failsOnlyIf().fulfilled) {
+        def annotation = description.getAnnotation(ToBeFixedForFileSystemWatching.class) ?: description.getTestClass().getAnnotation(ToBeFixedForFileSystemWatching.class)
+        if (GradleContextualExecuter.isWatchFs() && annotation != null && annotation.failsOnlyIf().fulfilled) {
             Assume.assumeFalse("Test needs to be fixed for instant execution", true)
         }
         return base

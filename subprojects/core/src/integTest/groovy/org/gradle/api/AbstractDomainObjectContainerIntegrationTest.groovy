@@ -24,7 +24,7 @@ import spock.lang.Unroll
 // Ignored for VFS retention since the test
 //  - takes very long
 //  - never runs any tasks
-@IgnoreIf({ GradleContextualExecuter.vfsRetention })
+@IgnoreIf({ GradleContextualExecuter.watchFs })
 abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractIntegrationSpec {
     abstract String makeContainer()
     abstract String getContainerStringRepresentation()

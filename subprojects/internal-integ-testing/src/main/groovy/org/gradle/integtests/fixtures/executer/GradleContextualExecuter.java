@@ -67,7 +67,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         return getSystemPropertyExecuter() == Executer.noDaemon;
     }
 
-    public static boolean isVfsRetention() {
+    public static boolean isWatchFs() {
         return getSystemPropertyExecuter() == Executer.vfsRetention;
     }
 
@@ -141,7 +141,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
                 return new InstantExecutionGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case vfsRetention:
                 requireIsolatedDaemons();
-                return new VfsRetentionGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+                return new FileSystemWatchingGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             default:
                 throw new RuntimeException("Not a supported executer type: " + executerType);
         }

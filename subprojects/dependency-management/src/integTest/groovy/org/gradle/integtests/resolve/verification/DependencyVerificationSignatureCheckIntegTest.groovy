@@ -17,8 +17,8 @@
 package org.gradle.integtests.resolve.verification
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.integtests.fixtures.ToBeFixedForFileSystemWatching
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.security.fixtures.KeyServer
 import org.gradle.security.fixtures.SigningFixtures
@@ -31,7 +31,7 @@ import static org.gradle.security.fixtures.SigningFixtures.signAsciiArmored
 import static org.gradle.security.fixtures.SigningFixtures.validPublicKeyHexString
 import static org.gradle.security.internal.SecuritySupport.toLongIdHexString
 
-@ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/13135", failsOnlyIf = TestPrecondition.WINDOWS)
+@ToBeFixedForFileSystemWatching(because = "https://github.com/gradle/gradle/issues/13135", failsOnlyIf = TestPrecondition.WINDOWS)
 class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVerificationIntegrationTest {
 
     def "doesn't need checksums if signature is verified"() {

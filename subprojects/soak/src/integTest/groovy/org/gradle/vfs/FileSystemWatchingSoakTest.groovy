@@ -16,7 +16,7 @@
 
 package org.gradle.vfs
 
-import org.gradle.integtests.fixtures.VfsRetentionFixture
+import org.gradle.integtests.fixtures.FileSystemWatchingFixture
 import org.gradle.integtests.fixtures.daemon.DaemonFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
@@ -25,7 +25,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 import java.nio.file.Files
 
-class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implements VfsRetentionFixture {
+class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSystemWatchingFixture {
 
     private static final int NUMBER_OF_SUBPROJECTS = 50
     private static final int NUMBER_OF_SOURCES_PER_SUBPROJECT = 100
@@ -56,7 +56,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
         }
 
         executer.beforeExecute {
-            withRetention()
+            withWatchFs()
             // running in parallel, so the soak test doesn't take this long.
             withArgument("--parallel")
         }
@@ -183,11 +183,11 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
     private static void modifySourceFile(TestFile sourceFile, int numberOfMethods) {
         String className = sourceFile.name - ".java"
         sourceFile.text = """
-                    package my.domain;
+            package my.domain;
 
-                    public class ${className} {
-                        ${ (1..numberOfMethods).collect { "public void doNothing${it}() {}" }.join("\n")}
-                    }
-                """
+            public class ${className} {
+                ${ (1..numberOfMethods).collect { "public void doNothing${it}() {}" }.join("\n")}
+            }
+        """
     }
 }

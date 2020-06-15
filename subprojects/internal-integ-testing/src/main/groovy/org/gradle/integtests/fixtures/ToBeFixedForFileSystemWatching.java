@@ -27,9 +27,9 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
-@ExtensionAnnotation(ToBeFixedForVfsRetentionExtension.class)
+@ExtensionAnnotation(ToBeFixedForFileSystemWatchingExtension.class)
 @Inherited
-public @interface ToBeFixedForVfsRetention {
+public @interface ToBeFixedForFileSystemWatching {
     /**
      * The reason why the test doesn't work.
      */
