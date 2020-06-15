@@ -106,7 +106,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                 noWatchRegistry.run();
                 return currentRoot;
             }
-            return handleWatcherChangeErrors(currentRoot, () -> updateFunction.accept(watchRegistry));
+            return withWatcherChangeErrorHandling(currentRoot, () -> updateFunction.accept(watchRegistry));
         });
     }
 
@@ -130,7 +130,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                 SnapshotHierarchy newRoot = removeSymbolicLinks(currentRoot);
                 newRoot = handleWatcherRegistryEvents(newRoot, "for current build");
                 if (watchRegistry != null) {
-                    newRoot = handleWatcherChangeErrors(newRoot, () -> watchRegistry.getFileWatcherUpdater().buildFinished());
+                    newRoot = withWatcherChangeErrorHandling(newRoot, () -> watchRegistry.getFileWatcherUpdater().buildFinished());
                 }
                 printStatistics(newRoot, "retains", "till next build");
                 return newRoot;
@@ -173,7 +173,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                             getRoot().update(root -> {
                                 SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener(watchFilter);
                                 SnapshotHierarchy newRoot = root.invalidate(absolutePath, diffListener);
-                                return handleWatcherChangeErrors(
+                                return withWatcherChangeErrorHandling(
                                     newRoot,
                                     () -> diffListener.publishSnapshotDiff(snapshotDiffListener)
                                 );
@@ -192,7 +192,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                 }
             });
             watchRegistry.getFileWatcherUpdater().updateRootProjectDirectories(rootProjectDirectoriesForWatching);
-            delegatingUpdateFunctionDecorator.setSnapshotDiffListener(snapshotDiffListener, this::handleWatcherChangeErrors);
+            delegatingUpdateFunctionDecorator.setSnapshotDiffListener(snapshotDiffListener, this::withWatcherChangeErrorHandling);
             long endTime = System.currentTimeMillis() - startTime;
             LOGGER.warn("Spent {} ms registering watches for file system events", endTime);
             // TODO: Move start watching early enough so that the root is always empty
@@ -204,7 +204,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         }
     }
 
-    private SnapshotHierarchy handleWatcherChangeErrors(SnapshotHierarchy currentRoot, Runnable runnable) {
+    private SnapshotHierarchy withWatcherChangeErrorHandling(SnapshotHierarchy currentRoot, Runnable runnable) {
         try {
             runnable.run();
             return currentRoot;
