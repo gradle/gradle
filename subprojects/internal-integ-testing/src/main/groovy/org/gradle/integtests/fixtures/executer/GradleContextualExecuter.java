@@ -40,7 +40,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         noDaemon(true),
         parallel(true, true),
         instant(true),
-        vfsRetention(true);
+        watchFs(true);
 
         final public boolean forks;
         final public boolean executeParallel;
@@ -68,7 +68,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
     }
 
     public static boolean isWatchFs() {
-        return getSystemPropertyExecuter() == Executer.vfsRetention;
+        return getSystemPropertyExecuter() == Executer.watchFs;
     }
 
     public static boolean isDaemon() {
@@ -139,7 +139,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
                 return new DaemonGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case instant:
                 return new InstantExecutionGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
-            case vfsRetention:
+            case watchFs:
                 requireIsolatedDaemons();
                 return new FileSystemWatchingGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             default:
