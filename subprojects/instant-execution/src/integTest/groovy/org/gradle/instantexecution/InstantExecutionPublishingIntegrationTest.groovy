@@ -140,6 +140,26 @@ class InstantExecutionPublishingIntegrationTest extends AbstractInstantExecution
 
     private Map<File, String> mavenRepoFiles() {
         listFiles(mavenRepo.rootDir, null, true)
-            .collectEntries { [it, it.text] }
+            .collectEntries { [it, textForComparisonOf(it)] }
+    }
+
+    private String textForComparisonOf(File repositoryFile) {
+        def fileName = repositoryFile.name
+        if (fileName.startsWith('maven-metadata.xml')) {
+            if (fileName == 'maven-metadata.xml') {
+                return clearLastUpdatedElementOf(repositoryFile.text)
+            }
+            // Ignore contents of maven-metadata.xml.sha256, etc, because hashes will most likely
+            // change between runs due to <lastUpdated /> differences.
+            return ''
+        }
+        return repositoryFile.text
+    }
+
+    private String clearLastUpdatedElementOf(String metadata) {
+        metadata.replaceAll(
+            "<lastUpdated>\\d+</lastUpdated>",
+            "<lastUpdated />"
+        )
     }
 }
