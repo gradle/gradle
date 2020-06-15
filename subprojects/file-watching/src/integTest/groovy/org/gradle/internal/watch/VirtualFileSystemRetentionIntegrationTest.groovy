@@ -30,7 +30,6 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -346,7 +345,6 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     }
 
     @ToBeFixedForInstantExecution(because = "composite build not yet supported")
-    @Ignore('https://github.com/gradle/gradle-private/issues/3116')
     def "works with composite build"() {
         buildTestFixture.withBuildInSubDir()
         def includedBuild = singleProjectBuild("includedBuild") {
@@ -394,7 +392,6 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     }
 
     @ToBeFixedForInstantExecution(because = "GradleBuild task is not yet supported")
-    @Ignore('https://github.com/gradle/gradle-private/issues/3116')
     def "works with GradleBuild task"() {
         buildTestFixture.withBuildInSubDir()
         def buildInBuild = singleProjectBuild("buildInBuild") {
