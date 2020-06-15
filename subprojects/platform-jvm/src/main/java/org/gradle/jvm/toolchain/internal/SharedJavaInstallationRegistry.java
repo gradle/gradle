@@ -16,5 +16,40 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.google.common.collect.Sets;
+import org.gradle.api.file.Directory;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.gradle.jvm.toolchain.internal.InstallationProviders.InstallationProvider;
+
 public class SharedJavaInstallationRegistry {
+
+    private final Set<InstallationProvider> providers = Sets.newConcurrentHashSet();
+    private final Supplier<Set<Directory>> finalizedInstallations = Suppliers.memoize(this::mapToDirectories);
+
+    private boolean finalized;
+
+    public void add(InstallationProvider provider) {
+        Preconditions.checkArgument(!finalized, "Installation must not be mutated after being finalized");
+        providers.add(provider);
+    }
+
+    public void finalizeValue() {
+        finalized = true;
+    }
+
+    public Set<Directory> listInstallations() {
+        finalizeValue();
+        return finalizedInstallations.get();
+    }
+
+    private Set<Directory> mapToDirectories() {
+        return providers.stream().map(InstallationProvider::resolvePath).collect(Collectors.toSet());
+    }
+
 }
