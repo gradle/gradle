@@ -92,13 +92,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
-import org.gradle.internal.scan.BuildScanServices;
-import org.gradle.internal.scan.config.BuildScanPluginApplied;
-import org.gradle.internal.scan.scopeids.BuildScanScopeIds;
-import org.gradle.internal.scan.scopeids.DefaultBuildScanScopeIds;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
-import org.gradle.internal.scopeids.id.UserScopeId;
-import org.gradle.internal.scopeids.id.WorkspaceScopeId;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.AdditiveCacheLocations;
@@ -126,17 +120,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
                 pluginServiceRegistry.registerGradleServices(registration);
             }
         });
-
-        if (gradle.getParent() == null) {
-            addProvider(new BuildScanServices());
-        } else {
-            // Task execution services at all levels needs this
-            addProvider(new Object() {
-                BuildScanPluginApplied createBuildScanPluginApplied() {
-                    return gradle.getRoot().getServices().get(BuildScanPluginApplied.class);
-                }
-            });
-        }
     }
 
     TaskSelector createTaskSelector(GradleInternal gradle, ProjectConfigurer projectConfigurer) {
@@ -323,18 +306,16 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return ConfigurationTargetIdentifier.of(gradle);
     }
 
-    // Note: This would be better housed in a scope that encapsulated the tree of Gradle objects.
-    // as we don't have this right now we simulate it by reaching up the tree.
-    protected BuildInvocationScopeId createBuildScopeId(GradleInternal gradle) {
-        if (gradle.getParent() == null) {
+    // This needs to go here instead of being “build tree” scoped due to the GradleBuild task.
+    // Builds launched by that task are part of the same build tree, but should have their own invocation ID.
+    // Such builds also have their own root Gradle object.
+    protected BuildInvocationScopeId createBuildInvocationScopeId(GradleInternal gradle) {
+        GradleInternal rootGradle = gradle.getRoot();
+        if (gradle == rootGradle) {
             return new BuildInvocationScopeId(UniqueId.generate());
         } else {
-            return gradle.getRoot().getServices().get(BuildInvocationScopeId.class);
+            return rootGradle.getServices().get(BuildInvocationScopeId.class);
         }
-    }
-
-    protected BuildScanScopeIds createBuildScanScopeIds(BuildInvocationScopeId buildInvocationScopeId, WorkspaceScopeId workspaceScopeId, UserScopeId userScopeId) {
-        return new DefaultBuildScanScopeIds(buildInvocationScopeId, workspaceScopeId, userScopeId);
     }
 
     @Override

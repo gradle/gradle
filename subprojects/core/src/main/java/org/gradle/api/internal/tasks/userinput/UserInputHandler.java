@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.userinput;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
 import javax.annotation.Nullable;
 import java.util.Collection;
 
@@ -27,6 +29,7 @@ public interface UserInputHandler {
      * @return the answer or {@code null} if not connected to a user console.
      */
     @Nullable
+    @UsedByScanPlugin
     Boolean askYesNoQuestion(String question);
 
     /**

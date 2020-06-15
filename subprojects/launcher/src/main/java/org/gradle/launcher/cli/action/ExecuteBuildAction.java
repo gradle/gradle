@@ -29,4 +29,9 @@ public class ExecuteBuildAction implements BuildAction {
     public StartParameterInternal getStartParameter() {
         return startParameter;
     }
+
+    @Override
+    public boolean isRunTasks() {
+        return true;
+    }
 }

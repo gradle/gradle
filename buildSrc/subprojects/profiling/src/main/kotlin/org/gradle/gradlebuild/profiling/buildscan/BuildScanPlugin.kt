@@ -19,7 +19,6 @@ import com.gradle.scan.plugin.BuildScanExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CodeNarc
@@ -79,10 +78,10 @@ open class BuildScanPlugin : Plugin<Project> {
         extractCheckstyleAndCodenarcData()
         extractBuildCacheData()
         extractVfsRetentionData()
-
-        if ((project.gradle as GradleInternal).buildType != GradleInternal.BuildType.TASKS) {
-            buildScan.tag("SYNC")
-        }
+// TODO LD - adapt after changes merged and master updated to build with them
+//        if ((project.gradle as GradleInternal).buildType != GradleInternal.BuildType.TASKS) {
+//            buildScan.tag("SYNC")
+//        }
     }
 
     private
@@ -121,7 +120,7 @@ open class BuildScanPlugin : Plugin<Project> {
     // 1. CompileAll is the seed build for docs:distDocs
     // 2. Gradle_Check_BuildDistributions is the seed build for other asciidoctor tasks
     // 3. buildScanPerformance test, which doesn't depend on compileAll
-    // 4. buildScanPerformance test, which doesn't depend on compileAll
+        // 4. buildScanPerformance test, which doesn't depend on compileAll
         isInBuild(
             "Gradle_Check_CompileAll",
             "Gradle_Check_BuildDistributions",
@@ -135,7 +134,7 @@ open class BuildScanPlugin : Plugin<Project> {
     // 1. CompileAll is the seed build
     // 2. Gradleception which re-builds Gradle with a new Gradle version
     // 3. buildScanPerformance test, which doesn't depend on compileAll
-    // 4. buildScanPerformance test, which doesn't depend on compileAll
+        // 4. buildScanPerformance test, which doesn't depend on compileAll
         isInBuild(
             "Gradle_Check_CompileAll",
             "Enterprise_Master_Components_GradleBuildScansPlugin_Performance_PerformanceLinux",

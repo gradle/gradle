@@ -38,32 +38,6 @@ import javax.inject.Inject
 
 class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    def "--scan works"() {
-        given:
-        settingsKotlinFile << '''
-            plugins {
-                `gradle-enterprise`
-            }
-
-            gradleEnterprise.buildScan {
-                termsOfServiceUrl = "https://gradle.com/terms-of-service"
-                termsOfServiceAgree = "yes"
-            }
-        '''
-
-        when:
-        instantRun "help", "--scan", "-Dscan.dump"
-
-        then:
-        postBuildOutputContains("Build scan written to")
-
-        when:
-        instantRun "help", "--scan", "-Dscan.dump"
-
-        then:
-        postBuildOutputContains("Build scan written to")
-    }
-
     def "instant execution for help on empty project"() {
         given:
         instantRun "help"
@@ -688,7 +662,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         """
 
         when:
-        instantFails  WARN_PROBLEMS_CLI_OPT,"broken"
+        instantFails WARN_PROBLEMS_CLI_OPT, "broken"
 
         then:
         problems.assertResultHasProblems(result) {

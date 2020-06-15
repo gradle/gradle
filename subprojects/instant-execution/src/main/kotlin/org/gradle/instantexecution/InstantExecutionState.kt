@@ -38,6 +38,8 @@ import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeFile
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.tooling.events.OperationCompletionListener
@@ -104,6 +106,7 @@ class InstantExecutionState(
             writeBuildCacheConfiguration(gradle)
             writeBuildEventListenerSubscriptions()
             writeBuildOutputCleanupRegistrations()
+            writeGradleEnterprisePluginManager()
         }
     }
 
@@ -114,6 +117,7 @@ class InstantExecutionState(
             readBuildCacheConfiguration(gradle)
             readBuildEventListenerSubscriptions()
             readBuildOutputCleanupRegistrations()
+            readGradleEnterprisePluginManager()
         }
     }
 
@@ -183,6 +187,26 @@ class InstantExecutionState(
         readCollection {
             val files = readNonNull<FileCollection>()
             buildOutputCleanupRegistry.registerOutputs(files)
+        }
+    }
+
+    private
+    suspend fun DefaultWriteContext.writeGradleEnterprisePluginManager() {
+        val manager = service<GradleEnterprisePluginManager>()
+        val adapter = manager.adapter
+        val writtenAdapter = if (adapter == null) null else {
+            if (adapter.isConfigurationCacheCompatible) adapter else null
+        }
+        write(writtenAdapter)
+    }
+
+    private
+    suspend fun DefaultReadContext.readGradleEnterprisePluginManager() {
+        val adapter = read() as GradleEnterprisePluginAdapter?
+        if (adapter != null) {
+            val manager = service<GradleEnterprisePluginManager>()
+            manager.registerAdapter(adapter)
+            adapter.onLoadFromConfigurationCache()
         }
     }
 

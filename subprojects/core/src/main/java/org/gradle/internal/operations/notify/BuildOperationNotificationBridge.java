@@ -28,6 +28,8 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +41,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class BuildOperationNotificationBridge {
+@ServiceScope(Scopes.BuildTree)
+public class BuildOperationNotificationBridge implements BuildOperationNotificationListenerRegistrar {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildOperationNotificationBridge.class);
 
@@ -47,8 +50,8 @@ public class BuildOperationNotificationBridge {
     private final ListenerManager listenerManager;
 
     private class State {
-        private ReplayAndAttachListener replayAndAttachListener = new ReplayAndAttachListener();
-        private BuildOperationListener buildOperationListener = new Adapter(replayAndAttachListener);
+        private final ReplayAndAttachListener replayAndAttachListener = new ReplayAndAttachListener();
+        private final BuildOperationListener buildOperationListener = new Adapter(replayAndAttachListener);
         private BuildOperationNotificationListener notificationListener;
 
         private void assignSingleListener(BuildOperationNotificationListener notificationListener) {
@@ -91,7 +94,6 @@ public class BuildOperationNotificationBridge {
     // This avoids buffering until the end of the build when no listener comes.
     private final BuildListener buildListener = new InternalBuildAdapter() {
         @Override
-        @SuppressWarnings("deprecation")
         public void buildStarted(Gradle gradle) {
             if (gradle.getParent() == null) {
                 gradle.projectsLoaded((InternalAction<Gradle>) project -> {
@@ -104,33 +106,26 @@ public class BuildOperationNotificationBridge {
         }
     };
 
-    private final BuildOperationNotificationListenerRegistrar registrar = new BuildOperationNotificationListenerRegistrar() {
-
-        @Override
-        public void register(BuildOperationNotificationListener listener) {
-            State state = requireState();
-            state.assignSingleListener(listener);
-            state.replayAndAttachListener.attach(listener);
-        }
-
-        private State requireState() {
-            State s = state;
-            if (s == null) {
-                throw new IllegalStateException("state is null");
-            }
-
-            return s;
-        }
-    };
-
     public BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager, ListenerManager listenerManager) {
         this.buildOperationListenerManager = buildOperationListenerManager;
         this.listenerManager = listenerManager;
         listenerManager.addListener(buildListener);
     }
 
-    public BuildOperationNotificationListenerRegistrar getRegistrar() {
-        return registrar;
+    @Override
+    public void register(BuildOperationNotificationListener listener) {
+        State state = requireState();
+        state.assignSingleListener(listener);
+        state.replayAndAttachListener.attach(listener);
+    }
+
+    private State requireState() {
+        State s = state;
+        if (s == null) {
+            throw new IllegalStateException("state is null");
+        }
+
+        return s;
     }
 
     public BuildOperationNotificationValve getValve() {
@@ -148,8 +143,8 @@ public class BuildOperationNotificationBridge {
 
         private final BuildOperationNotificationListener notificationListener;
 
-        private final Map<OperationIdentifier, OperationIdentifier> parents = new ConcurrentHashMap<OperationIdentifier, OperationIdentifier>();
-        private final Map<OperationIdentifier, Object> active = new ConcurrentHashMap<OperationIdentifier, Object>();
+        private final Map<OperationIdentifier, OperationIdentifier> parents = new ConcurrentHashMap<>();
+        private final Map<OperationIdentifier, Object> active = new ConcurrentHashMap<>();
 
         private Adapter(BuildOperationNotificationListener notificationListener) {
             this.notificationListener = notificationListener;
@@ -238,7 +233,7 @@ public class BuildOperationNotificationBridge {
 
     private static class RecordingListener implements BuildOperationNotificationListener {
 
-        private final Queue<Object> storedEvents = new ConcurrentLinkedQueue<Object>();
+        private final Queue<Object> storedEvents = new ConcurrentLinkedQueue<>();
 
         @Override
         public void started(BuildOperationStartedNotification notification) {
