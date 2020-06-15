@@ -37,6 +37,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.internal.build.DefaultPublicBuildPath
 import org.gradle.internal.build.PublicBuildPath
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
@@ -82,6 +83,7 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(ListenerBuildOperationDecorator) >> listenerBuildOperationDecorator
         _ * serviceRegistry.get(CrossProjectConfigurator) >> crossProjectConfigurator
         _ * serviceRegistry.get(PublicBuildPath) >> new DefaultPublicBuildPath(Path.ROOT)
+        _ * serviceRegistry.get(GradleEnterprisePluginManager) >> new GradleEnterprisePluginManager()
 
         gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
     }
