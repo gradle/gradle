@@ -250,7 +250,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         fixture.doCheckIn = false
 
         when:
-        succeeds "t", "--scan"
+        succeeds "dummy", "--scan"
 
         then:
         fixture.issuedNoPluginWarning(output)
@@ -262,7 +262,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         fixture.doCheckIn = false
 
         when:
-        succeeds "t", "--no-scan"
+        succeeds "dummy", "--no-scan"
 
         then:
         fixture.didNotIssuedNoPluginWarning(output)
