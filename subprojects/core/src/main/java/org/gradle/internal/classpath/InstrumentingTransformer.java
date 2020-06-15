@@ -19,6 +19,7 @@ package org.gradle.internal.classpath;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.gradle.api.Action;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
@@ -292,7 +293,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         @Override
         public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
-            if (descriptor.endsWith(")" + Type.getType(Action.class).getDescriptor()) && bootstrapMethodHandle.getOwner().equals(Type.getType(LambdaMetafactory.class).getInternalName()) && bootstrapMethodHandle.getName().equals("metafactory")) {
+            if (isGradleLambdaDescriptor(descriptor) && bootstrapMethodHandle.getOwner().equals(getType(LambdaMetafactory.class).getInternalName()) && bootstrapMethodHandle.getName().equals("metafactory")) {
                 Handle altMethod = new Handle(
                     H_INVOKESTATIC,
                     getType(LambdaMetafactory.class).getInternalName(),
@@ -308,6 +309,15 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             } else {
                 super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
             }
+        }
+
+        private boolean isGradleLambdaDescriptor(String descriptor) {
+            return isLambdaDescriptorOf(Action.class, descriptor)
+                || isLambdaDescriptorOf(Spec.class, descriptor);
+        }
+
+        private boolean isLambdaDescriptorOf(Class<?> clazz, String descriptor) {
+            return descriptor.endsWith(")" + getType(clazz).getDescriptor());
         }
     }
 
