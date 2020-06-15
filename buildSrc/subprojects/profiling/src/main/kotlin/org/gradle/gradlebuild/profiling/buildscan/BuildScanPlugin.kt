@@ -79,10 +79,10 @@ open class BuildScanPlugin : Plugin<Project> {
         extractCheckstyleAndCodenarcData()
         extractBuildCacheData()
         extractVfsRetentionData()
-
-        if ((project.gradle as GradleInternal).buildType != GradleInternal.BuildType.TASKS) {
-            buildScan.tag("SYNC")
-        }
+// TODO LD - adapt after changes merged and master updated to build with them
+//        if ((project.gradle as GradleInternal).buildType != GradleInternal.BuildType.TASKS) {
+//            buildScan.tag("SYNC")
+//        }
     }
 
     private
