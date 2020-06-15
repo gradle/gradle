@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.SelfExecutingNode;
@@ -70,7 +70,7 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
 
     @Nullable
     @Override
-    public Project getOwningProject() {
+    public ProjectInternal getOwningProject() {
         return transformationStep.getOwningProject();
     }
 
@@ -120,7 +120,7 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
 
     @Nullable
     @Override
-    public Project getProjectToLock() {
+    public ResourceLock getProjectToLock() {
         // Transforms do not require project state
         return null;
     }

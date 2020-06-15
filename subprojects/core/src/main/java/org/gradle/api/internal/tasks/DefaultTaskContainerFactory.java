@@ -49,7 +49,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     private final Instantiator instantiator;
     private final ITaskFactory taskFactory;
     private final CollectionCallbackActionDecorator callbackDecorator;
-    private Project project;
+    private final Project project;
     private final ProjectAccessListener projectAccessListener;
     private final TaskStatistics statistics;
     private final BuildOperationExecutor buildOperationExecutor;

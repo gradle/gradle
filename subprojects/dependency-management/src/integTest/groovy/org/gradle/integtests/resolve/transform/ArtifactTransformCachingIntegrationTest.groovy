@@ -721,7 +721,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "transform failures are ignored")
     def "transform is run again and old output is removed after it failed in previous build"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks() << withLibJarDependency("lib3.jar")
@@ -761,7 +761,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "file dependencies that are not the output of a task are not treated as build inputs")
     def "transform is re-executed when input file content changes between builds"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform() << withLibJarDependency()
@@ -1124,7 +1124,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     """
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "file dependencies that are not the output of a task are not treated as build inputs")
     def "transform is rerun when output is #action between builds"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform() << withLibJarDependency()
@@ -1192,7 +1192,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         action << ['changed', 'removed', 'added']
     }
 
-    @ToBeFixedForInstantExecution
     def "transform is supplied with a different output directory when transform implementation changes"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform(parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
@@ -1242,7 +1241,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         useParameterObject << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "cannot decode isolated transform parameters")
     def "transform is supplied with a different output directory when parameters change"() {
         given:
         // Use another script to define the value, so that transform implementation does not change when the value is changed
@@ -1296,7 +1295,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         useParameterObject << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "changing and dynamic versions are not honored")
     def "transform is supplied with a different output directory when external dependency changes"() {
         def m1 = mavenHttpRepo.module("test", "changing", "1.2").publish()
         def m2 = mavenHttpRepo.module("test", "snapshot", "1.2-SNAPSHOT").publish()

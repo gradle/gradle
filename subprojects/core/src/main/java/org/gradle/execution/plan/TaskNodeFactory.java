@@ -19,7 +19,6 @@ package org.gradle.execution.plan;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
@@ -96,14 +95,14 @@ public class TaskNodeFactory {
 
         @Nullable
         @Override
-        public Project getProjectToLock() {
+        public ResourceLock getProjectToLock() {
             // Ignore, as the node in the other build's execution graph takes care of this
             return null;
         }
 
         @Nullable
         @Override
-        public Project getOwningProject() {
+        public ProjectInternal getOwningProject() {
             // Ignore, as the node in the other build's execution graph takes care of this
             return null;
         }

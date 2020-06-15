@@ -205,12 +205,13 @@ class DependencyManagementBuildScopeServices {
 
     DependencyFactory createDependencyFactory(
         Instantiator instantiator,
-        ProjectAccessListener projectAccessListener,
+        ListenerManager listenerManager,
         StartParameter startParameter,
         ClassPathRegistry classPathRegistry,
         CurrentGradleInstallation currentGradleInstallation,
         FileCollectionFactory fileCollectionFactory,
         RuntimeShadedJarFactory runtimeShadedJarFactory,
+        ProjectAccessListener projectAccessListener,
         ImmutableAttributesFactory attributesFactory,
         SimpleMapInterner stringInterner) {
         NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();

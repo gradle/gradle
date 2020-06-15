@@ -17,10 +17,7 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.isInstant() })
 class CompositeBuildPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
     def "included build properties take precedence over root build properties"() {

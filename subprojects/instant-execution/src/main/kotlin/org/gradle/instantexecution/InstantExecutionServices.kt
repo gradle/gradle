@@ -53,6 +53,7 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
             add(InstantExecutionClassLoaderScopeRegistryListener::class.java)
             add(InstantExecutionBuildScopeListenerManagerAction::class.java)
             add(SystemPropertyAccessListener::class.java)
+            add(RelevantProjectsRegistry::class.java)
             addProvider(BuildServicesProvider())
         }
     }
