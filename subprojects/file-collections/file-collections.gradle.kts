@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -40,20 +40,16 @@ dependencies {
     testImplementation(testFixtures(project(":coreApi")))
     testImplementation(testFixtures(project(":modelCore")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-    testRuntimeOnly(project(":workers"))
-    testRuntimeOnly(project(":dependencyManagement"))
-
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":native"))
 
-    testFixturesImplementation(project(":internalTesting"))
-
     testFixturesImplementation(library("guava"))
 
-    integTestRuntimeOnly(project(":apiMetadata"))
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }
 
 strictCompile {

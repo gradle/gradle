@@ -38,7 +38,6 @@ class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
         when:
         executer
             .inDirectory(projectDir)
-            .requireGradleDistribution()
             .withTasks('check')
             .run()
 

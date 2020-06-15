@@ -18,7 +18,7 @@ import accessors.java
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    gradlebuild.distribution.`implementation-java`
 }
 
 dependencies {
@@ -55,11 +55,6 @@ dependencies {
     implementation(library("ivy"))
     implementation(library("maven3"))
 
-    runtimeOnly(library("bouncycastle_provider"))
-    runtimeOnly(project(":installationBeacon"))
-    runtimeOnly(project(":compositeBuilds"))
-    runtimeOnly(project(":versionControl"))
-
     testImplementation(project(":processServices"))
     testImplementation(project(":diagnostics"))
     testImplementation(project(":buildCachePackaging"))
@@ -73,8 +68,6 @@ dependencies {
     testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":execution")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
     integTestImplementation(project(":buildOption"))
     integTestImplementation(library("jansi"))
     integTestImplementation(library("ansi_control_sequence_util"))
@@ -82,16 +75,6 @@ dependencies {
         because("tests use HttpServlet directly")
     }
     integTestImplementation(testFixtures(project(":security")))
-    integTestRuntimeOnly(project(":ivy"))
-    integTestRuntimeOnly(project(":maven"))
-    integTestRuntimeOnly(project(":resourcesS3"))
-    integTestRuntimeOnly(project(":resourcesSftp"))
-    integTestRuntimeOnly(project(":testKit"))
-
-    integTestRuntimeOnly(project(":apiMetadata"))
-    integTestRuntimeOnly(project(":kotlinDsl"))
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
-    integTestRuntimeOnly(project(":pluginDevelopment"))
 
     testFixturesApi(project(":baseServices")) {
         because("Test fixtures export the Action class")
@@ -106,7 +89,6 @@ dependencies {
     testFixturesImplementation(testFixtures(project(":resourcesHttp")))
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":messaging"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(library("slf4j_api"))
     testFixturesImplementation(library("inject"))
@@ -120,7 +102,12 @@ dependencies {
     testFixturesImplementation(project(":jvmServices")) {
         because("Groovy compiler bug leaks internals")
     }
-    crossVersionTestRuntimeOnly(project(":maven"))
+
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributionsCore"))
 }
 
 classycle {
@@ -129,10 +116,6 @@ classycle {
 
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
-}
-
-tasks.classpathManifest {
-    additionalProjects.add(":runtimeApiInfo")
 }
 
 tasks.clean {

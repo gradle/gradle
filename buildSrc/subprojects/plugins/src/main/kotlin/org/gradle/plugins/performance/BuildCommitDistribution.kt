@@ -47,8 +47,8 @@ open class BuildCommitDistribution : DefaultTask() {
 
     init {
         onlyIf { commitBaseline.getOrElse("").matches(commitVersionRegex) }
-        commitDistributionHome.set(project.rootProject.layout.buildDirectory.dir(commitBaseline.map { "distributions/gradle-$it" }))
-        commitDistributionToolingApiJar.set(project.rootProject.layout.buildDirectory.file(commitBaseline.map { "distributions/gradle-tooling-api-$it.jar" }))
+        commitDistributionHome.set(project.layout.buildDirectory.dir(commitBaseline.map { "distributions/gradle-$it" }))
+        commitDistributionToolingApiJar.set(project.layout.buildDirectory.file(commitBaseline.map { "distributions/gradle-tooling-api-$it.jar" }))
     }
 
     @TaskAction
@@ -61,10 +61,10 @@ open class BuildCommitDistribution : DefaultTask() {
 
     private
     fun tryBuildDistribution(checkoutDir: File) {
-        project.exec({
+        project.exec {
             commandLine(*getBuildCommands(checkoutDir))
             workingDir = checkoutDir
-        })
+        }
     }
 
     private
@@ -75,7 +75,7 @@ open class BuildCommitDistribution : DefaultTask() {
             "--init-script",
             File(checkoutDir, "gradle/init-scripts/build-scan.init.gradle.kts").absolutePath,
             "clean",
-            ":distributions:install",
+            ":distributionsFull:install",
             "-Pgradle_installPath=" + commitDistributionHome.get().asFile.absolutePath,
             ":toolingApi:installToolingApiShadedJar",
             "-PtoolingApiShadedJarInstallPath=" + commitDistributionToolingApiJar.get().asFile.absolutePath)

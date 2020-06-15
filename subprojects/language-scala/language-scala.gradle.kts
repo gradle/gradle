@@ -1,5 +1,5 @@
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -30,8 +30,6 @@ dependencies {
     testImplementation(testFixtures(project(":platformBase")))
     testImplementation(testFixtures(project(":plugins")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
     integTestImplementation(library("commons_lang"))
     integTestImplementation(library("ant"))
 
@@ -39,11 +37,15 @@ dependencies {
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":modelCore"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":platformBase"))
     testFixturesImplementation(testFixtures(project(":languageJvm")))
 
     compileOnly("org.scala-sbt:zinc_2.12:1.3.5")
+
+    testRuntimeOnly(project(":distributionsJvm")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
 }
 
 strictCompile {

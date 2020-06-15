@@ -21,6 +21,10 @@ import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.watch.registry.FileWatcherUpdater
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+
+import java.nio.file.Paths
 
 class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
 
@@ -35,7 +39,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         def fileInProjectRootDirectory = projectRootDirectory.file("some/path/file.txt").createFile()
 
         when:
-        updater.updateProjectRootDirectories([projectRootDirectory, secondProjectRootDirectory])
+        updater.updateRootProjectDirectories([projectRootDirectory, secondProjectRootDirectory])
         then:
         0 * _
 
@@ -50,7 +54,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         def watchedDirsInsideProjectRootDirectories = addSnapshotsInProjectRootDirectories(projectRootDirectories)
 
         when:
-        updater.updateProjectRootDirectories(projectRootDirectories)
+        updater.updateRootProjectDirectories(projectRootDirectories)
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, watchedDirsInsideProjectRootDirectories )})
         then:
@@ -58,11 +62,20 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
-        updater.updateProjectRootDirectories([])
+        invalidate(watchedDirsInsideProjectRootDirectories[0].absolutePath)
         then:
-        1 * watcher.stopWatching({ equalIgnoringOrder(it, projectRootDirectories) })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [projectRootDirectories[0]]) })
+        0 * _
+
+        when:
+        updater.updateRootProjectDirectories(projectRootDirectories[1..2])
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, watchedDirsInsideProjectRootDirectories) })
+        0 * _
+
+        when:
+        addSnapshotsInProjectRootDirectories([projectRootDirectories[0]])
+        then:
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [watchedDirsInsideProjectRootDirectories[0]]) })
         0 * _
     }
 
@@ -73,7 +86,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         def watchedDirsInsideProjectRootDirectories = addSnapshotsInProjectRootDirectories(projectRootDirectories)
 
         when:
-        updater.updateProjectRootDirectories(projectRootDirectories + nonExistingProjectRootDirectory)
+        updater.updateRootProjectDirectories(projectRootDirectories + nonExistingProjectRootDirectory)
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, watchedDirsInsideProjectRootDirectories) })
         then:
@@ -95,7 +108,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         def watchedDirsInsideThirdDir = addSnapshotsInProjectRootDirectories([file("third")])
 
         when:
-        updater.updateProjectRootDirectories(firstProjectRootDirectories)
+        updater.updateRootProjectDirectories(firstProjectRootDirectories)
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, watchedDirsInsideFirstDir + watchedDirsInsideSecondDir) })
         then:
@@ -103,11 +116,33 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
-        updater.updateProjectRootDirectories(secondProjectRootDirectories)
+        updater.buildFinished()
         then:
-        1 * watcher.stopWatching({ equalIgnoringOrder(it, [file("first")] + watchedDirsInsideThirdDir) })
+        0 * _
+
+        when:
+        updater.updateRootProjectDirectories(secondProjectRootDirectories)
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [file("third")] + watchedDirsInsideFirstDir) })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, watchedDirsInsideThirdDir) })
+        then:
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [file("third")]) })
+        0 * _
+
+        when:
+        invalidate(watchedDirsInsideFirstDir[0].absolutePath)
+        then:
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [file("first")]) })
+        0 * _
+
+        when:
+        updater.buildFinished()
+        then:
+        0 * _
+
+        when:
+        addSnapshotsInProjectRootDirectories([file("first")])
+        then:
+        1 * watcher.startWatching({ equalIgnoringOrder(it, watchedDirsInsideFirstDir) })
         0 * _
     }
 
@@ -118,7 +153,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         def watchedDirsInsideProjectRootDirectories = addSnapshotsInProjectRootDirectories([secondDir, directoryWithinFirst])
 
         when:
-        updater.updateProjectRootDirectories([firstDir, directoryWithinFirst, secondDir])
+        updater.updateRootProjectDirectories([firstDir, directoryWithinFirst, secondDir])
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, watchedDirsInsideProjectRootDirectories) })
         then:
@@ -133,7 +168,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         def watchedDirsInsideProjectRootDirectories = addSnapshotsInProjectRootDirectories([secondDir, directoryWithinFirst])
 
         when:
-        updater.updateProjectRootDirectories([firstDir, directoryWithinFirst, secondDir])
+        updater.updateRootProjectDirectories([firstDir, directoryWithinFirst, secondDir])
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, watchedDirsInsideProjectRootDirectories) })
         then:
@@ -141,7 +176,12 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
-        updater.updateProjectRootDirectories([directoryWithinFirst, secondDir])
+        updater.buildFinished()
+        then:
+        0 * _
+
+        when:
+        updater.updateRootProjectDirectories([directoryWithinFirst, secondDir])
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [firstDir]) })
         then:
@@ -156,7 +196,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         def watchedDirsInsideProjectRootDirectories = addSnapshotsInProjectRootDirectories([secondDir, directoryWithinFirst])
 
         when:
-        updater.updateProjectRootDirectories([directoryWithinFirst, secondDir])
+        updater.updateRootProjectDirectories([directoryWithinFirst, secondDir])
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, watchedDirsInsideProjectRootDirectories) })
         then:
@@ -164,7 +204,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
-        updater.updateProjectRootDirectories([firstDir, secondDir])
+        updater.updateRootProjectDirectories([firstDir, secondDir])
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [directoryWithinFirst]) })
         then:
@@ -174,7 +214,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
 
     def "does not watch snapshot roots in project root directories"() {
         def rootDir = file("root").createDir()
-        updater.updateProjectRootDirectories([rootDir])
+        updater.updateRootProjectDirectories([rootDir])
         def subDirInRootDir = rootDir.file("some/path").createDir()
         def snapshotInRootDir = snapshotDirectory(subDirInRootDir)
 
@@ -185,11 +225,25 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
-        updater.updateProjectRootDirectories([])
+        updater.buildFinished()
+        then:
+        0 * _
+
+        when:
+        updater.updateRootProjectDirectories([])
+        then:
+        0 * _
+
+        when:
+        invalidate(snapshotInRootDir)
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [rootDir]) })
+        0 * _
+
+        when:
+        addSnapshot(snapshotInRootDir)
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, ([subDirInRootDir.parentFile])) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, ([rootDir])) })
         0 * _
     }
 
@@ -240,6 +294,42 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
     }
 
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "resolves recursive UNIX roots #directories to #resolvedRoots"() {
+        expect:
+        resolveRecursiveRoots(directories) == resolvedRoots
+
+        where:
+        directories        | resolvedRoots
+        []                 | []
+        ["/a"]             | ["/a"]
+        ["/a", "/b"]       | ["/a", "/b"]
+        ["/a", "/a/b"]     | ["/a"]
+        ["/a/b", "/a"]     | ["/a"]
+        ["/a", "/a/b/c/d"] | ["/a"]
+        ["/a/b/c/d", "/a"] | ["/a"]
+        ["/a", "/b/a"]     | ["/a", "/b/a"]
+        ["/b/a", "/a"]     | ["/a", "/b/a"]
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "resolves recursive Windows roots #directories to #resolvedRoots"() {
+        expect:
+        resolveRecursiveRoots(directories) == resolvedRoots
+
+        where:
+        directories                 | resolvedRoots
+        []                          | []
+        ["C:\\a"]                   | ["C:\\a"]
+        ["C:\\a", "C:\\b"]          | ["C:\\a", "C:\\b"]
+        ["C:\\a", "C:\\a\\b"]       | ["C:\\a"]
+        ["C:\\a\\b", "C:\\a"]       | ["C:\\a"]
+        ["C:\\a", "C:\\a\\b\\c\\d"] | ["C:\\a"]
+        ["C:\\a\\b\\c\\d", "C:\\a"] | ["C:\\a"]
+        ["C:\\a", "C:\\b\\a"]       | ["C:\\a", "C:\\b\\a"]
+        ["C:\\b\\a", "C:\\a"]       | ["C:\\a", "C:\\b\\a"]
+    }
+
     MissingFileSnapshot missingFileSnapshot(File location) {
         new MissingFileSnapshot(location.getAbsolutePath(), AccessType.DIRECT)
     }
@@ -250,5 +340,11 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
             addSnapshot(snapshotRegularFile(fileInside))
             return fileInside.parentFile
         }
+    }
+
+    private static List<String> resolveRecursiveRoots(List<String> directories) {
+        HierarchicalFileWatcherUpdater.resolveHierarchiesToWatch(directories.collect { Paths.get(it) } as Set)
+            .collect { it.toString() }
+            .sort()
     }
 }

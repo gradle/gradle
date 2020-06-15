@@ -36,7 +36,7 @@ val parameterNamesIndex by tasks.registering(ParameterNamesIndex::class) {
         classpath.from(tasks.named<GroovyCompile>("compileGroovy"))
     }
     destinationFile.set(
-        gradlebuildJava.generatedResourcesDir.resolve("${base.archivesBaseName}-parameter-names.properties")
+        gradlebuildJava.generatedResourcesDir.file("${base.archivesBaseName}-parameter-names.properties")
     )
 }
 

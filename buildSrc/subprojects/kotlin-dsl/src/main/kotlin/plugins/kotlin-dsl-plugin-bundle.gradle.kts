@@ -4,6 +4,7 @@ import accessors.pluginBundle
 import accessors.publishing
 
 import plugins.futurePluginVersionsFile
+import java.time.Year
 
 
 plugins {
@@ -43,9 +44,26 @@ afterEvaluate {
 
 // publish plugin to local repository for integration testing -----------------
 // See AbstractPluginTest
+val localRepository = layout.buildDirectory.dir("repository")
 
 val publishPluginsToTestRepository by tasks.registering {
     dependsOn("publishPluginMavenPublicationToTestRepository")
+    // This should be unified with publish-public-libraries if possible
+    doLast {
+        localRepository.get().asFileTree.matching { include("**/maven-metadata.xml") }.forEach {
+            it.writeText(it.readText().replace("\\Q<lastUpdated>\\E\\d+\\Q</lastUpdated>\\E".toRegex(), "<lastUpdated>${Year.now().value}0101000000</lastUpdated>"))
+        }
+        localRepository.get().asFileTree.matching { include("**/*.module") }.forEach {
+            val content = it.readText()
+                .replace("\"buildId\":\\s+\"\\w+\"".toRegex(), "\"buildId\": \"\"")
+                .replace("\"size\":\\s+\\d+".toRegex(), "\"size\": 0")
+                .replace("\"sha512\":\\s+\"\\w+\"".toRegex(), "\"sha512\": \"\"")
+                .replace("\"sha1\":\\s+\"\\w+\"".toRegex(), "\"sha1\": \"\"")
+                .replace("\"sha256\":\\s+\"\\w+\"".toRegex(), "\"sha256\": \"\"")
+                .replace("\"md5\":\\s+\"\\w+\"".toRegex(), "\"md5\": \"\"")
+            it.writeText(content)
+        }
+    }
 }
 
 afterEvaluate {
@@ -61,7 +79,7 @@ afterEvaluate {
         repositories {
             maven {
                 name = "test"
-                url = uri("$buildDir/repository")
+                url = uri(localRepository)
             }
         }
     }
@@ -71,7 +89,7 @@ afterEvaluate {
 
             val plugin = this
 
-            publishPluginsToTestRepository {
+            publishPluginsToTestRepository.configure {
                 dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")
             }
 
@@ -79,5 +97,22 @@ afterEvaluate {
                 property(plugin.id, version)
             }
         }
+    }
+
+    // For local consumption by tests - this should be unified with publish-public-libraries if possible
+    configurations.create("localLibsRepositoryElements") {
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("gradle-local-repository"))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EMBEDDED))
+        }
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        isVisible = false
+        outgoing.artifact(mapOf(
+            "file" to localRepository.get().asFile, // This is not lazy
+            "builtBy" to publishPluginsToTestRepository
+        ))
     }
 }

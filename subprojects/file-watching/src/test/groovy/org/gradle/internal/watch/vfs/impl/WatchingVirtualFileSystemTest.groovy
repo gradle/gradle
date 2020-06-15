@@ -60,7 +60,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         _ * delegate.getRoot() >> new AtomicSnapshotHierarchyReference(snapshotHierarchy)
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.updateProjectRootDirectories(ImmutableSet.of())
+        1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of())
         1 * capturingUpdateFunctionDecorator.setSnapshotDiffListener(_, _)
         0 * _
 
@@ -69,6 +69,8 @@ class WatchingVirtualFileSystemTest extends Specification {
         then:
         _ * delegate.getRoot() >> new AtomicSnapshotHierarchyReference(snapshotHierarchy)
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
+        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
+        1 * fileWatcherUpdater.buildFinished()
         0 * _
 
         when:
@@ -88,7 +90,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         _ * delegate.getRoot() >> new AtomicSnapshotHierarchyReference(snapshotHierarchy)
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.updateProjectRootDirectories(ImmutableSet.of())
+        1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of())
         1 * capturingUpdateFunctionDecorator.setSnapshotDiffListener(_, _)
         0 * _
 
@@ -97,6 +99,8 @@ class WatchingVirtualFileSystemTest extends Specification {
         then:
         _ * delegate.getRoot() >> new AtomicSnapshotHierarchyReference(snapshotHierarchy)
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
+        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
+        1 * fileWatcherUpdater.buildFinished()
         0 * _
 
         when:
@@ -124,7 +128,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         _ * delegate.getRoot() >> new AtomicSnapshotHierarchyReference(snapshotHierarchy)
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.updateProjectRootDirectories(ImmutableSet.of(rootDirectory))
+        1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of(rootDirectory))
         1 * capturingUpdateFunctionDecorator.setSnapshotDiffListener(_, _)
         0 * _
 
@@ -133,13 +137,15 @@ class WatchingVirtualFileSystemTest extends Specification {
         then:
         _ * delegate.getRoot() >> new AtomicSnapshotHierarchyReference(snapshotHierarchy)
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.updateProjectRootDirectories(ImmutableSet.of(rootDirectory, anotherBuildRootDirectory))
+        1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of(rootDirectory, anotherBuildRootDirectory))
 
         when:
         watchingVirtualFileSystem.beforeBuildFinished(true)
         then:
         _ * delegate.getRoot() >> new AtomicSnapshotHierarchyReference(snapshotHierarchy)
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
+        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
+        1 * fileWatcherUpdater.buildFinished()
         0 * _
 
         when:
@@ -147,6 +153,6 @@ class WatchingVirtualFileSystemTest extends Specification {
         then:
         _ * delegate.getRoot() >> new AtomicSnapshotHierarchyReference(snapshotHierarchy)
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.updateProjectRootDirectories(ImmutableSet.of(newRootDirectory))
+        1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of(newRootDirectory))
     }
 }

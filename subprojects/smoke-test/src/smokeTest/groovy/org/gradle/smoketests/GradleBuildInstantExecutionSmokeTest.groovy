@@ -65,8 +65,8 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
 
         and:
         def supportedTasks = [
-            ":distributions:binZip",
-            ":core:integTest", "--tests=NameValidationIntegrationTest"
+            ":distributionsFull:binDistributionZip",
+            ":core:embeddedIntegTest", "--tests=NameValidationIntegrationTest"
         ]
 
         when:
@@ -80,8 +80,8 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
 
         then:
         result.output.count("Reusing configuration cache") == 1
-        result.task(":distributions:binZip").outcome == TaskOutcome.UP_TO_DATE
-        result.task(":core:integTest").outcome == TaskOutcome.UP_TO_DATE
+        result.task(":distributionsFull:binDistributionZip").outcome == TaskOutcome.UP_TO_DATE
+        result.task(":core:embeddedIntegTest").outcome == TaskOutcome.UP_TO_DATE
 
         when:
         run("clean")
@@ -93,9 +93,9 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
         result.output.count("Reusing configuration cache") == 1
 
         and:
-        file("build/distributions").allDescendants().count { it ==~ /gradle-.*-bin.zip/ } == 1
-        result.task(":core:integTest").outcome == TaskOutcome.SUCCESS
-        new DefaultTestExecutionResult(file("subprojects/core"), "build", "", "", "integTest")
+        file("subprojects/distributions-full/build/distributions").allDescendants().count { it ==~ /gradle-.*-bin.zip/ } == 1
+        result.task(":core:embeddedIntegTest").outcome == TaskOutcome.SUCCESS
+        new DefaultTestExecutionResult(file("subprojects/core"), "build", "", "", "embeddedIntegTest")
             .assertTestClassesExecuted("org.gradle.NameValidationIntegrationTest")
     }
 

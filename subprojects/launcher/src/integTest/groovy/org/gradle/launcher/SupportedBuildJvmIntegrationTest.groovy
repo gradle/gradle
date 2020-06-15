@@ -18,17 +18,17 @@ package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6", "1.7") })
 class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
-    def setup() {
-        requireGradleDistribution()
-    }
 
     @Unroll
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // This test requires to start Gradle from scratch with the wrong Java version
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
         given:
         executer.withJavaHome(jdk.javaHome)

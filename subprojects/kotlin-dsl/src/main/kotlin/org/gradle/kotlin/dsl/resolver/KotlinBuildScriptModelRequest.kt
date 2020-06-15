@@ -27,6 +27,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 
 import com.google.common.annotations.VisibleForTesting
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 
 import java.io.File
 import java.util.function.Function
@@ -42,6 +43,8 @@ sealed class GradleInstallation {
     data class Version(val number: String) : GradleInstallation()
 
     object Wrapper : GradleInstallation()
+
+    object Embedded : GradleInstallation()
 }
 
 
@@ -125,6 +128,10 @@ fun GradleConnector.useGradleFrom(gradleInstallation: GradleInstallation): Gradl
             is GradleInstallation.Local -> useInstallation(dir)
             is GradleInstallation.Remote -> useDistribution(uri)
             is GradleInstallation.Version -> useGradleVersion(number)
+            is GradleInstallation.Embedded -> (this@useGradleFrom as DefaultGradleConnector).apply {
+                embedded(true)
+                useClasspathDistribution()
+            }
             GradleInstallation.Wrapper -> useBuildDistribution()
         }
     }

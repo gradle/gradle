@@ -18,6 +18,8 @@ package org.gradle.launcher.daemon
 
 import org.gradle.cache.internal.HeapProportionalCacheSizer
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 @Issue("GRADLE-2460")
@@ -107,9 +109,9 @@ task verify {
         daemons.daemons.size() == 2
     }
 
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // need to start Gradle process from command line to use GRADLE_OPTS
     def "forks new daemon when file encoding is set to different value via GRADLE_OPTS"() {
         setup:
-        executer.requireGradleDistribution()
         buildScript """
             println "GRADLE_VERSION: " + gradle.gradleVersion
 
@@ -138,9 +140,9 @@ task verify {
         daemons(gradleVersion).daemons.size() == 2
     }
 
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // need to start Gradle process from command line to use GRADLE_OPTS
     def "forks new daemon when tmpdir is set to different value via GRADLE_OPTS"() {
         setup:
-        executer.requireGradleDistribution()
         buildScript """
             println "GRADLE_VERSION: " + gradle.gradleVersion
 
@@ -169,9 +171,9 @@ task verify {
         daemons(gradleVersion).daemons.size() == 2
     }
 
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // need to start Gradle process from command line to use GRADLE_OPTS
     def "forks new daemon for changed javax.net.ssl sys properties"() {
         setup:
-        executer.requireGradleDistribution()
         buildScript """
             println "GRADLE_VERSION: " + gradle.gradleVersion
 
@@ -200,9 +202,9 @@ task verify {
         daemons(gradleVersion).daemons.size() == 2
     }
 
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // need to start Gradle process from command line to use GRADLE_OPTS
     def "forks new daemon for changed cache reserved space sys property"() {
         setup:
-        executer.requireGradleDistribution()
         buildScript """
             println "GRADLE_VERSION: " + gradle.gradleVersion
 

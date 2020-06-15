@@ -64,7 +64,8 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
     )
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin `() {
 
-        requireGradleDistributionOnEmbeddedExecuter()
+        assumeNonEmbeddedGradleExecuter()
+
         executer.noDeprecationChecks()
         // Ignore stacktraces when the Kotlin daemon fails
         // See https://github.com/gradle/gradle-private/issues/2936

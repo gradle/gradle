@@ -18,7 +18,7 @@
  * Groovy specific adaptations to the model management.
  */
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -33,5 +33,8 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":modelCore")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("NonTransformedModelDslBackingTest instantiates DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }

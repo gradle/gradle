@@ -21,8 +21,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.provider.MapProperty;
-import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.gradlebuild.versioning.BuildVersion;
@@ -45,7 +43,6 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
         GradleDocumentationExtension extension = project.getExtensions().getByType(GradleDocumentationExtension.class);
 
         generateReleaseNotes(project, layout, tasks, extension);
-        generateReleaseFeatures(project, tasks, extension);
     }
 
     private void generateReleaseNotes(Project project, ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
@@ -101,21 +98,5 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
         return Cast.uncheckedNonnullCast(
             project.getRootProject().getExtensions().getByName("buildVersion")
         );
-    }
-
-    private void generateReleaseFeatures(Project project, TaskContainer tasks, GradleDocumentationExtension extension) {
-        // TODO: I don't know if this is really necessary since we don't modify the release features in any way.
-        TaskProvider<Sync> copyReleaseFeatures = tasks.register("copyReleaseFeatures", Sync.class, task -> {
-            task.from(extension.getReleaseFeatures().getReleaseFeaturesFile());
-            task.into(extension.getStagingRoot().dir("generated-release-features"));
-        });
-
-        extension.releaseFeatures(releaseFeatures -> {
-            releaseFeatures.getReleaseFeaturesFile().convention(extension.getSourceRoot().file("release/release-features.txt"));
-            // TODO: Wire in the output of copyReleaseFeatures as part of the model if we need to still copy it.
-        });
-
-        SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
-        sourceSets.getByName("main", main -> main.getResources().srcDirs(copyReleaseFeatures));
     }
 }

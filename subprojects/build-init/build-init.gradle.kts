@@ -17,7 +17,7 @@ import java.util.*
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -55,12 +55,10 @@ dependencies {
     integTestImplementation(project(":native"))
     integTestImplementation(testLibrary("jetty"))
 
-    testFixturesImplementation(project(":internalTesting"))
-
-    testRuntimeOnly(project(":runtimeApiInfo"))
-}
-configurations.integTestRuntimeClasspath {
-    extendsFrom(configurations.fullGradleRuntime.get())
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsFull"))
 }
 
 tasks {

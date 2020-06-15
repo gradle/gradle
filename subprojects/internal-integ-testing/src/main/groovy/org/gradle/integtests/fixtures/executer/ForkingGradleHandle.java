@@ -47,7 +47,7 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     private final boolean isDaemon;
 
     private final DurationMeasurement durationMeasurement;
-    private final AtomicReference<ExecHandle> execHandleRef = new AtomicReference<ExecHandle>();
+    private final AtomicReference<ExecHandle> execHandleRef = new AtomicReference<>();
 
     public ForkingGradleHandle(PipedOutputStream stdinPipe, boolean isDaemon, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory, DurationMeasurement durationMeasurement) {
         this.resultAssertion = resultAssertion;
@@ -95,13 +95,14 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     }
 
     private void checkDistributionExists() {
-        String hintForMissingDistribution = String.format("This integration test can not run embedded and the Gradle distribution is missing: run 'gradle %s:intTestImage'.", IntegrationTestBuildContext.INSTANCE.getCurrentSubprojectName());
-        new TestFile(getExecHandle().getCommand()).getParentFile().assertIsDir(hintForMissingDistribution);
+        //noinspection ResultOfMethodCallIgnored
+        new TestFile(getExecHandle().getCommand()).getParentFile().assertIsDir();
     }
 
     private ExecHandle buildExecHandle() {
-        return execHandleFactory
-            .create()
+        AbstractExecHandleBuilder builder = execHandleFactory.create();
+        assert builder != null;
+        return builder
             .setStandardOutput(standardOutputCapturer.getOutputStream())
             .setErrorOutput(errorOutputCapturer.getOutputStream())
             .build();
@@ -216,17 +217,17 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         ExecutionResult executionResult = buildFailed ? toExecutionFailure(output, error) : toExecutionResult(output, error);
 
         if (expectFailure && !buildFailed) {
-            throw unexpectedBuildStatus(execResult, output, error, "did not fail", executionResult);
+            throw unexpectedBuildStatus(execResult, output, error, "did not fail");
         }
         if (!expectFailure && buildFailed) {
-            throw unexpectedBuildStatus(execResult, output, error, "failed", executionResult);
+            throw unexpectedBuildStatus(execResult, output, error, "failed");
         }
 
         resultAssertion.execute(executionResult);
         return executionResult;
     }
 
-    private UnexpectedBuildFailure unexpectedBuildStatus(ExecResult execResult, String output, String error, String status, ExecutionResult executionResult) {
+    private UnexpectedBuildFailure unexpectedBuildStatus(ExecResult execResult, String output, String error, String status) {
         ExecHandle execHandle = getExecHandle();
         String message =
             format("Gradle execution %s in %s with: %s %s%n"

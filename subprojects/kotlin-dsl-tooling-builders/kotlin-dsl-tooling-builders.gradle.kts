@@ -18,7 +18,7 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 
 plugins {
-    gradlebuild.distribution.`plugins-implementation-kotlin`
+    gradlebuild.distribution.`implementation-kotlin`
 }
 
 description = "Kotlin DSL Tooling Builders for IDEs"
@@ -40,15 +40,13 @@ dependencies {
     integTestImplementation(project(":kotlinDslTestFixtures"))
     integTestImplementation(project(":internalTesting"))
 
-    integTestRuntimeOnly(project(":toolingApiBuilders"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
-
     crossVersionTestImplementation(project(":persistentCache"))
     crossVersionTestImplementation(library("slf4j_api"))
     crossVersionTestImplementation(library("guava"))
     crossVersionTestImplementation(library("ant"))
-    crossVersionTestRuntimeOnly(project(":pluginDevelopment"))
-    crossVersionTestRuntimeOnly(project(":runtimeApiInfo"))
+
+    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributionsBasics"))
 }
 
 testFilesCleanup {

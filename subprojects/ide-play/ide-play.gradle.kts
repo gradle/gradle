@@ -15,7 +15,7 @@ import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 val integTestRuntimeResources by configurations.creating {
@@ -50,14 +50,12 @@ dependencies {
     implementation(library("groovy"))
     implementation(library("guava"))
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":platformPlay")))
-    testImplementation(testFixtures(project(":ide")))
-
-    integTestRuntimeOnly(project(":compositeBuilds"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestImplementation(testFixtures(project(":platformPlay")))
+    integTestImplementation(testFixtures(project(":ide")))
 
     integTestRuntimeResources(testFixtures(project(":platformPlay")))
+
+    integTestDistributionRuntimeOnly(project(":distributionsFull"))
 }
 
 strictCompile {

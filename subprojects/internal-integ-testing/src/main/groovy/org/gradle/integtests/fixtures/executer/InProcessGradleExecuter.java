@@ -88,7 +88,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -97,7 +96,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -121,7 +119,6 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
@@ -394,15 +391,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     @Override
     public void assertCanExecute() {
         assertNull(getExecutable());
-        String defaultEncoding = getImplicitJvmSystemProperties().get("file.encoding");
-        if (defaultEncoding != null) {
-            assertEquals(Charset.forName(defaultEncoding), Charset.defaultCharset());
-        }
-        Locale defaultLocale = getDefaultLocale();
-        if (defaultLocale != null) {
-            assertEquals(defaultLocale, Locale.getDefault());
-        }
-        assertFalse(isRequiresGradleDistribution());
     }
 
     @Override

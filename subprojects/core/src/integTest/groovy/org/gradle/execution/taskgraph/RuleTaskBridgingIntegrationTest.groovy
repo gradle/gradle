@@ -51,7 +51,12 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
 
         then:
         output.contains "as map: ModelMap<Task> 'tasks'"
-        output.contains "as container: [task ':buildEnvironment', task ':components', task ':dependencies', task ':dependencyInsight', task ':dependentComponents', task ':help', task ':init', task ':model', task ':outgoingVariants', task ':prepareKotlinBuildScriptModel', task ':projects', task ':properties', task ':tasks', task ':wrapper']"
+        (
+            // testing against full distribution
+            output.contains("as container: [task ':buildEnvironment', task ':components', task ':dependencies', task ':dependencyInsight', task ':dependentComponents', task ':help', task ':init', task ':model', task ':outgoingVariants', task ':prepareKotlinBuildScriptModel', task ':projects', task ':properties', task ':tasks', task ':wrapper']")
+            // testing against reduced distribution
+            || output.contains("as container: [task ':buildEnvironment', task ':components', task ':dependencies', task ':dependencyInsight', task ':dependentComponents', task ':help', task ':model', task ':outgoingVariants', task ':prepareKotlinBuildScriptModel', task ':projects', task ':properties', task ':tasks']")
+        )
         output.contains "as model element: ModelMap<Task> 'tasks'"
         output.contains "name: tasks"
     }

@@ -16,7 +16,7 @@
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -52,23 +52,19 @@ dependencies {
     testImplementation(testFixtures(project(":languageJvm")))
     testImplementation(testFixtures(project(":languageJava")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(testFixtures(project(":languageScala")))
-    integTestRuntimeOnly(project(":ide"))
-    integTestRuntimeOnly(project(":maven"))
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
+
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
 }
 
 classycle {
     excludePatterns.set(listOf("org/gradle/api/internal/tasks/scala/**",
         // Unable to change package of public API
         "org/gradle/api/tasks/ScalaRuntime*"))
-}
-
-tasks.named<Test>("integTest") {
-    jvmArgs("-XX:MaxPermSize=1500m") // AntInProcessScalaCompilerIntegrationTest needs lots of permgen
 }
 
 integrationTestUsesSampleDir("subprojects/scala/src/main")

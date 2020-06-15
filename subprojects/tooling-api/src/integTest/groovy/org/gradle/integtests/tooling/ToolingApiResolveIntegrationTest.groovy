@@ -16,7 +16,6 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
@@ -24,13 +23,13 @@ class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can resolve tooling API via #configuration"() {
         given:
-        def tapiVersion = GradleVersion.current().version
+        def tapiVersion = distribution.getVersion().baseVersion.version
         buildFile << """
             plugins {
                 id 'java-library'
             }
             repositories {
-                maven { url '${buildContext.libsRepo.toURI().toURL()}' }
+                maven { url '${buildContext.localRepository.toURI().toURL()}' }
                 ${mavenCentralRepository()}
             }
 
@@ -60,13 +59,13 @@ class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
 
     def "can resolve sources variant of tooling API"() {
         given:
-        def tapiVersion = GradleVersion.current().version
+        def tapiVersion = distribution.getVersion().baseVersion.version
         buildFile << """
             plugins {
                 id 'java-library'
             }
             repositories {
-                maven { url '${buildContext.libsRepo.toURI().toURL()}' }
+                maven { url '${buildContext.localRepository.toURI().toURL()}' }
                 ${mavenCentralRepository()}
             }
 

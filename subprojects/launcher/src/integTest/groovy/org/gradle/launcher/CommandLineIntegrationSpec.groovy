@@ -32,7 +32,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     @Unroll
     def "reasonable failure message when --max-workers=#value"() {
         given:
-        requireGradleDistribution() // otherwise exception gets thrown in testing infrastructure
+        executer.requireDaemon().requireIsolatedDaemons()  // otherwise exception gets thrown in testing infrastructure
 
         when:
         args("--max-workers=$value")
@@ -50,7 +50,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     @Unroll
     def "reasonable failure message when org.gradle.workers.max=#value"() {
         given:
-        requireGradleDistribution() // otherwise exception gets thrown in testing infrastructure
+        executer.requireDaemon().requireIsolatedDaemons() // otherwise exception gets thrown in testing infrastructure
 
         when:
         args("-Dorg.gradle.workers.max=$value")
@@ -65,7 +65,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         value << ["-1", "0", "foo", " 1"]
     }
 
-    @IgnoreIf({ !CommandLineIntegrationSpec.debugPortIsFree() })
+    @IgnoreIf({ !CommandLineIntegrationSpec.debugPortIsFree() || GradleContextualExecuter.embedded })
     def "can debug with org.gradle.debug=true"() {
         when:
         def gradle = executer.withArgument("-Dorg.gradle.debug=true").withTasks("help").start()

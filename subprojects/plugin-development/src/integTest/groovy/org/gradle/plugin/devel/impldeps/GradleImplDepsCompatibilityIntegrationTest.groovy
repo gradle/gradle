@@ -18,14 +18,16 @@ package org.gradle.plugin.devel.impldeps
 
 import groovy.transform.TupleConstructor
 import org.gradle.api.Action
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.ErroringAction
 import org.gradle.internal.IoActions
-import org.gradle.util.GradleVersion
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
+@IgnoreIf({ GradleContextualExecuter.embedded }) // Gradle API and TestKit JARs are not generated when running embedded
 class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     def "TestKit dependency artifacts contain Gradle API artifact"() {
@@ -108,12 +110,17 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
         buildFile << spockDependency()
         buildFile << """
             repositories {
-                maven { url '${buildContext.libsRepo.toURI().toURL()}' }
+                maven { url '${buildContext.localRepository.toURI().toURL()}' }
             }
         """
 
         dependencyPermutations.each {
             buildFile << """
+                dependencies {
+                    constraints {
+                        implementation 'org.gradle:gradle-tooling-api:${distribution.version.baseVersion.version}'
+                    }
+                }
                 dependencies.add('$it.configurationName', $it.dependencyNotation)
             """
         }
@@ -162,7 +169,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
         where:
         dependencyPermutations << [new GradleDependency('Gradle API', 'implementation', 'dependencies.gradleApi()'),
                                    new GradleDependency('TestKit', 'testImplementation', 'dependencies.gradleTestKit()'),
-                                   new GradleDependency('Tooling API', 'implementation', "'org.gradle:gradle-tooling-api:${GradleVersion.current().version}'")].permutations()
+                                   new GradleDependency('Tooling API', 'implementation', "'org.gradle:gradle-tooling-api'")].permutations()
     }
 
     static void writeClassesInZipFileToTextFile(File zipFile, File txtFile) {

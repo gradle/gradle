@@ -18,6 +18,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
@@ -26,6 +27,7 @@ import org.gradle.util.GFileUtils
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.Assume
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -42,7 +44,6 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     @Before
     void setup() {
         NativeServicesTestFixture.initialize()
-        executer.requireGradleDistribution()
     }
 
     @Test
@@ -84,6 +85,8 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void failsWhenJavaHomeDoesNotPointToAJavaInstallation() {
+        Assume.assumeFalse(GradleContextualExecuter.embedded)
+
         def failure = executer.withEnvironmentVars('JAVA_HOME': testDirectory).withTasks('checkJavaHome').runWithFailure()
         assert failure.output.contains('ERROR: JAVA_HOME is set to an invalid directory')
     }
@@ -91,6 +94,8 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     @Test
     @Requires(TestPrecondition.SYMLINKS)
     void failsWhenJavaHomeNotSetAndPathDoesNotContainJava() {
+        Assume.assumeFalse(GradleContextualExecuter.embedded)
+
         def links = ['basename', 'dirname', 'uname', 'which', 'sed', 'sh', 'bash']
         def binDir = file('fake-bin')
         try {
@@ -138,6 +143,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     @Requires(TestPrecondition.NOT_EC2_AGENT)
     @Issue('https://github.com/gradle/gradle-private/issues/2876')
     void checkDefaultGradleUserHome() {
+        Assume.assumeFalse(GradleContextualExecuter.embedded)
         // the actual testing is done in the build script.
         File userHome = file('customUserHome')
         executer
@@ -157,6 +163,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void canSpecifySystemPropertiesUsingGradleOptsEnvironmentVariable() {
+        Assume.assumeFalse(GradleContextualExecuter.embedded)
         // the actual testing is done in the build script.
         executer.withTasks("checkSystemProperty").withEnvironmentVars("GRADLE_OPTS": '-DcustomProp1=custom-value "-DcustomProp2=custom value"').run();
     }
@@ -164,6 +171,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     @Test
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
     void canSpecifySystemPropertiesUsingGradleOptsEnvironmentVariableWithLinebreaks() {
+        Assume.assumeFalse(GradleContextualExecuter.embedded)
         // the actual testing is done in the build script.
         executer.withTasks("checkSystemProperty").withEnvironmentVars("GRADLE_OPTS": """
             -DcustomProp1=custom-value
@@ -173,6 +181,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void canSpecifySystemPropertiesUsingJavaOptsEnvironmentVariable() {
+        Assume.assumeFalse(GradleContextualExecuter.embedded)
         // the actual testing is done in the build script.
         executer.withTasks("checkSystemProperty").withEnvironmentVars("JAVA_OPTS": '-DcustomProp1=custom-value "-DcustomProp2=custom value"').run();
     }
@@ -220,6 +229,8 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     @Test
     @Requires(TestPrecondition.SYMLINKS)
     void resolvesLinksWhenDeterminingHomeDirectory() {
+        Assume.assumeFalse(GradleContextualExecuter.embedded)
+
         def script = file('bin/my app')
         script.parentFile.createDir()
         script.createLink(distribution.gradleHomeDir.file('bin/gradle'))
@@ -233,6 +244,8 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void usesScriptBaseNameAsApplicationNameForUseInLogMessages() {
+        Assume.assumeFalse(GradleContextualExecuter.embedded)
+
         def binDir = distribution.gradleHomeDir.file('bin')
         def newScript = binDir.file(OperatingSystem.current().getScriptName('my app'))
         try {

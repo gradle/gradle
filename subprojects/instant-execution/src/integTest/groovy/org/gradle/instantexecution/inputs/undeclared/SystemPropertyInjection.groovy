@@ -73,7 +73,7 @@ abstract class SystemPropertyInjection {
 
             @Override
             void setup(AbstractInstantExecutionIntegrationTest test) {
-                test.executer.requireGradleDistribution()
+                test.executer.requireDaemon().requireIsolatedDaemons()
                 test.executer.withCommandLineGradleOpts("-D${prop}=${value}")
             }
         }

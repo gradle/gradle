@@ -23,4 +23,6 @@ import org.gradle.api.tasks.CacheableTask
  * A test that verifies Gradle can be used with popular third party plugins.
  */
 @CacheableTask
-abstract class SmokeTest : DistributionTest()
+abstract class SmokeTest : DistributionTest() {
+    override val prefix = "smoke"
+}

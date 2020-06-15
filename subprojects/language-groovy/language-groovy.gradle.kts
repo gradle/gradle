@@ -1,5 +1,5 @@
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -30,15 +30,16 @@ dependencies {
     testImplementation(project(":resources"))
     testImplementation(testFixtures(project(":core")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
     testFixturesApi(testFixtures(project(":languageJvm")))
     testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":baseServices"))
 
     integTestImplementation(library("commons_lang"))
-    integTestRuntimeOnly(project(":plugins"))
+
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }
 
 classycle {
