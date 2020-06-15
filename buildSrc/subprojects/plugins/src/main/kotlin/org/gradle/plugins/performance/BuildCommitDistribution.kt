@@ -75,7 +75,7 @@ open class BuildCommitDistribution : DefaultTask() {
             "--init-script",
             File(checkoutDir, "gradle/init-scripts/build-scan.init.gradle.kts").absolutePath,
             "clean",
-            "install",
+            ":distributionsFull:install",
             "-Pgradle_installPath=" + commitDistributionHome.get().asFile.absolutePath,
             ":toolingApi:installToolingApiShadedJar",
             "-PtoolingApiShadedJarInstallPath=" + commitDistributionToolingApiJar.get().asFile.absolutePath)
