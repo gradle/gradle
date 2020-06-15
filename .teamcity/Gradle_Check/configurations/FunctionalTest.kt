@@ -29,7 +29,6 @@ class FunctionalTest(
         testTaskName
     else
         subprojects.joinToString(" ") { "$it:$testTaskName" }
-    val quickTest = testCoverage.testType == TestType.quick
     val buildScanTags = listOf("FunctionalTest")
     val buildScanValues = mapOf(
         "coverageOs" to testCoverage.os.name,
@@ -45,7 +44,7 @@ class FunctionalTest(
         }
     }
 
-    applyTestDefaults(model, this, testTasks, notQuick = !quickTest, os = testCoverage.os,
+    applyTestDefaults(model, this, testTasks, notQuick = !testCoverage.isQuick, os = testCoverage.os,
         extraParameters = (
             listOf(""""-PtestJavaHome=%${testCoverage.os}.${testCoverage.testJvmVersion}.${testCoverage.vendor}.64bit%"""") +
                 buildScanTags.map { buildScanTag(it) } +
