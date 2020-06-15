@@ -92,6 +92,9 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final String RETURN_VOID_FROM_CALL_SITE_ARRAY = getMethodDescriptor(Type.VOID_TYPE, getType(CallSiteArray.class));
     private static final String RETURN_OBJECT_FROM_SERIALIZED_LAMBDA = getMethodDescriptor(OBJECT_TYPE, SERIALIZED_LAMBDA_TYPE);
 
+    private static final String LAMBDA_METAFACTORY_TYPE = getType(LambdaMetafactory.class).getInternalName();
+    private static final String LAMBDA_METAFACTORY_METHOD_DESCRIPTOR = getMethodDescriptor(getType(CallSite.class), getType(MethodHandles.Lookup.class), STRING_TYPE, getType(MethodType.class), getType(Object[].class));
+
     private static final String INSTRUMENTED_CALL_SITE_METHOD = "$instrumentedCallSiteArray";
     private static final String CREATE_CALL_SITE_ARRAY_METHOD = "$createCallSiteArray";
 
@@ -293,12 +296,12 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         @Override
         public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
-            if (isGradleLambdaDescriptor(descriptor) && bootstrapMethodHandle.getOwner().equals(getType(LambdaMetafactory.class).getInternalName()) && bootstrapMethodHandle.getName().equals("metafactory")) {
+            if (isGradleLambdaDescriptor(descriptor) && bootstrapMethodHandle.getOwner().equals(LAMBDA_METAFACTORY_TYPE) && bootstrapMethodHandle.getName().equals("metafactory")) {
                 Handle altMethod = new Handle(
                     H_INVOKESTATIC,
-                    getType(LambdaMetafactory.class).getInternalName(),
+                    LAMBDA_METAFACTORY_TYPE,
                     "altMetafactory",
-                    getMethodDescriptor(getType(CallSite.class), getType(MethodHandles.Lookup.class), STRING_TYPE, getType(MethodType.class), getType(Object[].class)),
+                    LAMBDA_METAFACTORY_METHOD_DESCRIPTOR,
                     false
                 );
                 List<Object> args = new ArrayList<>(bootstrapMethodArguments.length + 1);
