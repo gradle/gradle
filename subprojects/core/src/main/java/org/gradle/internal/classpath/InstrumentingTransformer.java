@@ -290,10 +290,6 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         }
 
-        private String binaryClassNameOf(String className) {
-            return getObjectType(className).getClassName();
-        }
-
         @Override
         public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
             if (isGradleLambdaDescriptor(descriptor) && bootstrapMethodHandle.getOwner().equals(LAMBDA_METAFACTORY_TYPE) && bootstrapMethodHandle.getName().equals("metafactory")) {
@@ -315,13 +311,16 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         }
 
         private boolean isGradleLambdaDescriptor(String descriptor) {
-            return isLambdaDescriptorOf(Action.class, descriptor)
-                || isLambdaDescriptorOf(Spec.class, descriptor);
+            return descriptor.endsWith(ACTION_LAMBDA_SUFFIX)
+                || descriptor.endsWith(SPEC_LAMBDA_SUFFIX);
         }
 
-        private boolean isLambdaDescriptorOf(Class<?> clazz, String descriptor) {
-            return descriptor.endsWith(")" + getType(clazz).getDescriptor());
+        private String binaryClassNameOf(String className) {
+            return getObjectType(className).getClassName();
         }
+
+        private static final String ACTION_LAMBDA_SUFFIX = ")" + getType(Action.class).getDescriptor();
+        private static final String SPEC_LAMBDA_SUFFIX = ")" + getType(Spec.class).getDescriptor();
     }
 
     private static class LambdaFactoryDetails {
