@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile
 
+import com.google.common.base.Throwables
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration
-import org.hamcrest.BaseMatcher
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -33,14 +33,7 @@ import javax.tools.JavaCompiler
 import java.lang.annotation.ElementType
 import java.lang.annotation.Target
 
-import static spock.util.matcher.HamcrestSupport.that
-
 class AnnotationProcessingCompileTaskTest extends Specification {
-
-    List<File> procPath = Collections.emptyList()
-    AnnotationProcessingResult result = Stub(AnnotationProcessingResult)
-    JavaCompiler.CompilationTask compileTask = Stub(JavaCompiler.CompilationTask)
-    ClassLoader noopLoader = Stub(ClassLoader)
 
     @Issue("gradle/gradle#8996")
     def "stacktrace contains root cause"() {
@@ -53,9 +46,9 @@ class AnnotationProcessingCompileTaskTest extends Specification {
 
         then:
         def e = thrown(Throwable)
-        def root = getRootCause(e)
+        def root = Throwables.getRootCause(e)
         root.message == errorMsg
-        that root.stackTrace, hasFrame(throwingClass)
+        root.stackTrace.any({ frame -> frame.className == throwingClass })
 
         where:
         processorClassName              | throwingClass                      | errorMsg
@@ -64,51 +57,14 @@ class AnnotationProcessingCompileTaskTest extends Specification {
     }
 
     def createProcessingTask(AnnotationProcessorDeclaration proc) {
-        Set<AnnotationProcessorDeclaration> procs = Collections.singletonList(proc)
-        return new AnnotationProcessingCompileTask(compileTask, procs, procPath, result) {
+        def noopClassloader = Stub(ClassLoader)
+        return new AnnotationProcessingCompileTask(Stub(JavaCompiler.CompilationTask), [proc] as Set<AnnotationProcessorDeclaration>, [], Stub(AnnotationProcessingResult)) {
             ClassLoader createProcessorClassLoader() {
-                return new LimitedClassLoader(noopLoader)
+                return new LimitedClassLoader(noopClassloader)
             }
         }
     }
 
-    def getRootCause(Throwable t) {
-        if (t.getCause() == null || t.getCause() == t) {
-            return t
-        }
-        return getRootCause(t.getCause())
-    }
-
-    private hasFrame(final String className) {
-        [
-            matches: { frames ->
-                def foundFrame = null
-
-                for (StackTraceElement frame : frames) {
-                    if (className.equals(frame.className)) {
-                        foundFrame = frame
-                    }
-                }
-
-                if (foundFrame == null) {
-                    return false
-                }
-
-                assert foundFrame.fileName != null
-                assert foundFrame.lineNumber > 0
-                assert foundFrame.methodName != null
-                return true
-            },
-
-            describeTo: { description ->
-                description.appendText("stack trace contain frame for class ${className}")
-            },
-
-            describeMismatch: { frames, description ->
-                description.appendValue(frames.toArrayString()).appendText(" did not have frame for class ${className}")
-            }
-        ] as BaseMatcher
-    }
 }
 
 class LimitedClassLoader extends ClassLoader {
@@ -134,12 +90,12 @@ class LimitedClassLoader extends ClassLoader {
 @SupportedAnnotationTypes(RunsFaultyProcessor.QUALIFIED_NAME)
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 class FaultyProcessor extends AbstractProcessor {
-    public FaultyProcessor() {
+    FaultyProcessor() {
         throw new RuntimeException("Whoops!")
     }
 
     @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment env) {
+    boolean process(Set<? extends TypeElement> annotations, RoundEnvironment env) {
         return false
     }
 }
