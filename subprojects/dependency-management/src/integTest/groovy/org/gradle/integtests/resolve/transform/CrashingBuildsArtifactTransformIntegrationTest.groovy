@@ -17,10 +17,8 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class CrashingBuildsArtifactTransformIntegrationTest extends AbstractDependencyResolutionTest {
-    @ToBeFixedForInstantExecution
     def "cleans up cached output after build process crashes during transform"() {
         given:
         buildFile << """
@@ -32,6 +30,9 @@ abstract class ToColor implements TransformAction<Parameters> {
     interface Parameters extends TransformParameters {
         @Input
         Property<Color> getColor()
+
+        @Input
+        Property<Boolean> getBroken()
     }
 
     @InputArtifact
@@ -46,7 +47,7 @@ abstract class ToColor implements TransformAction<Parameters> {
         println "Transforming \$input.name to \$color"
         one.text = "one"
         // maybe killed here
-        if (System.getProperty("crash")) {
+        if (parameters.broken.get()) {
             Runtime.runtime.halt(1)
         }
         def two = outputs.file("two")
@@ -60,11 +61,12 @@ dependencies {
         to.attribute(type, "red")
         parameters {
             color = Color.Red
+            broken = providers.systemProperty("crash").map { true }.orElse(false)
         }
     }
 }
 
-configurations { 
+configurations {
     compile
 }
 dependencies {
@@ -74,10 +76,9 @@ dependencies {
 }
 
 task redThings {
+    def fileCollection = configurations.compile.incoming.artifactView { attributes { it.attribute(type, "red") } }.files
     doLast {
-        configurations.compile.incoming.artifactView {
-            attributes { it.attribute(type, "red") }
-        }.files.files
+        fileCollection.files
     }
 }
 """

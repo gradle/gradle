@@ -847,7 +847,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "changes to files in local file repositories are ignored for transforms")
     def "can attach @PathSensitive(NONE) to input artifact property for external artifact"() {
         setupBuildWithColorTransformAction()
         def lib1 = mavenRepo.module("group1", "lib", "1.0").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
@@ -867,11 +867,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
             dependencies {
-                if (project.hasProperty('externalCoords')) {
-                    implementation project.externalCoords
-                } else {
-                    implementation 'group1:lib:1.0'
-                }
+                implementation providers.gradleProperty('externalCoords').forUseAtConfigurationTime().orElse('group1:lib:1.0')
                 implementation 'group2:lib2:1.0'
             }
 
@@ -935,7 +931,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "can attach @PathSensitive(#sensitivity) to input artifact property for external artifact"() {
         setupBuildWithColorTransformAction()
         def lib1 = withColorVariants(mavenRepo.module("group1", "lib", "1.0")).publish()
@@ -955,11 +950,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
             dependencies {
-                if (project.hasProperty('externalCoords')) {
-                    implementation project.externalCoords
-                } else {
-                    implementation 'group1:lib:1.0'
-                }
+                implementation providers.gradleProperty('externalCoords').forUseAtConfigurationTime().orElse('group1:lib:1.0')
                 implementation 'group2:lib2:1.0'
             }
 
@@ -1018,7 +1009,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "honors content changes with @#annotation on input artifact property with project artifact file when not caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {
@@ -1119,7 +1109,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "honors @#annotation on input artifact property with project artifact file when caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {
@@ -1220,7 +1209,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         annotation << ["Classpath", "CompileClasspath"]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "classpath normalization configuration is not serialized")
     def "honors runtime classpath normalization for input artifact"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {

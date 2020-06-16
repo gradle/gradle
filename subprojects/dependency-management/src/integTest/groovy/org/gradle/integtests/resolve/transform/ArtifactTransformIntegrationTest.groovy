@@ -412,7 +412,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "PublishArtifactLocalArtifactMetadata instances are used as their own id and when serialized as an id drags in unnecessary and unserializable state")
     def "does not apply transform to variants with requested implicit format attribute"() {
         given:
         buildFile << """
@@ -462,7 +462,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "PublishArtifactLocalArtifactMetadata instances are used as their own id, as above")
     def "does not apply transforms to artifacts from local projects matching requested format attribute"() {
         given:
         buildFile << """
@@ -746,7 +746,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForInstantExecution
     def "transforms can be applied to multiple files with the same name"() {
         given:
         buildFile << """
@@ -1285,7 +1284,7 @@ Found the following transforms:
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "task that uses file collection containing transforms but does not declare this as an input may be encoded before the transform nodes it references")
     def "transforms are created as required and a new instance created for each file"() {
         given:
         buildFile << """
@@ -1373,7 +1372,6 @@ Found the following transforms:
         outputContains("files: [jar1.jar.txt, jar2.jar.txt]")
     }
 
-    @ToBeFixedForInstantExecution
     def "user gets a reasonable error message when a transform throws exception and continues with other inputs"() {
         given:
         buildFile << """
@@ -1422,7 +1420,7 @@ Found the following transforms:
         outputContains("files: [b.jar]")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary")
     def "user gets a reasonable error message when a transform input cannot be downloaded and proceeds with other inputs"() {
         def m1 = ivyHttpRepo.module("test", "test", "1.3")
             .artifact(type: 'jar', name: 'test-api')
@@ -1476,7 +1474,7 @@ Found the following transforms:
         outputContains("files: [test-api-1.3.jar.txt, test-impl2-1.3.jar.txt, test-2-0.1.jar.txt]")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary")
     def "user gets a reasonable error message when file dependency cannot be listed and continues with other inputs"() {
         given:
         buildFile << """
@@ -1513,7 +1511,6 @@ Found the following transforms:
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "user gets a reasonable error message when null is registered via outputs.#method"() {
         given:
         buildFile << """
@@ -1546,7 +1543,6 @@ Found the following transforms:
         method << ['dir', 'file']
     }
 
-    @ToBeFixedForInstantExecution
     def "user gets a reasonable error message when transform returns a non-existing file"() {
         given:
         buildFile << """
@@ -1583,7 +1579,6 @@ Found the following transforms:
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "user gets a reasonable error message when transform registers a #type output via #method"() {
         given:
         buildFile << """
@@ -1623,9 +1618,7 @@ Found the following transforms:
             task resolve(type: Copy) {
                 def artifacts = configurations.compile.incoming.artifactView {
                     attributes { it.attribute(artifactType, 'size') }
-                    if (project.hasProperty("lenient")) {
-                        lenient(true)
-                    }
+                    lenient(providers.gradleProperty("lenient").forUseAtConfigurationTime().present)
                 }.artifacts
                 from artifacts.artifactFiles
                 into "\${buildDir}/libs"
@@ -1692,7 +1685,6 @@ Found the following transforms:
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "directories are not created for output #method which is part of the input"() {
         given:
         buildFile << """
@@ -1739,7 +1731,6 @@ Found the following transforms:
         method << ["file", "dir"]
     }
 
-    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "user gets a reasonable error message when transform returns a file that is not part of the input artifact or in the output directory"() {
         given:
         buildFile << """
@@ -1772,7 +1763,6 @@ Found the following transforms:
         failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
     }
 
-    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "user gets a reasonable error message when transform registers an output that is not part of the input artifact or in the output directory"() {
         given:
         buildFile << """
@@ -1813,7 +1803,6 @@ Found the following transforms:
         failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
     }
 
-    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "user gets a reasonable error message when transform cannot be instantiated"() {
         given:
         buildFile << """
@@ -1846,7 +1835,7 @@ Found the following transforms:
         failure.assertHasCause("broken")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary")
     def "collects multiple failures"() {
         def m1 = mavenHttpRepo.module("test", "a", "1.3").publish()
         def m2 = mavenHttpRepo.module("test", "broken", "2.0").publish()
@@ -1972,7 +1961,7 @@ Found the following transforms:
 
     @Unroll
     @ToBeFixedForInstantExecution(
-        because = "broken file collection",
+        because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary",
         iterationMatchers = ".*immediate transform"
     )
     def "provides useful error message when parameter value cannot be isolated for #type transform"() {
@@ -2095,7 +2084,7 @@ Found the following transforms:
         outputContains("ids: [out-foo.txt (test:test:1.3), out-bar.txt (test:test:1.3)]")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "PublishArtifactLocalArtifactMetadata instances are used as their own id, as above")
     def "transform runs only once even when variant is consumed from multiple projects"() {
         given:
         settingsFile << """
@@ -2379,9 +2368,7 @@ Found the following transforms:
                 duplicatesStrategy = 'INCLUDE'
                 def artifacts = configurations.compile.incoming.artifactView {
                     attributes { it.attribute(artifactType, 'size') }
-                    if (project.hasProperty("lenient")) {
-                        lenient(true)
-                    }
+                    lenient(providers.gradleProperty("lenient").forUseAtConfigurationTime().present)
                 }.artifacts
                 from artifacts.artifactFiles
                 into "\${buildDir}/libs"
