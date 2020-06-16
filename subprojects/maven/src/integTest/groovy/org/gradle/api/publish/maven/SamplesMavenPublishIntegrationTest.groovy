@@ -18,8 +18,8 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.util.TextUtil
@@ -183,7 +183,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(
+        iterationMatchers = ".* kotlin dsl"
+    )
     def "shorthand publish to external repository with #dsl dsl"() {
         given:
         inDirectory(sampleProject.dir.file(dsl))
@@ -202,7 +204,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(
+        iterationMatchers = ".* kotlin dsl"
+    )
     def "shorthand publish for development with #dsl dsl"() {
         given:
         inDirectory(sampleProject.dir.file(dsl))
@@ -223,7 +227,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/publish-artifact")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(
+        iterationMatchers = ".* kotlin dsl"
+    )
     def "publishes rpm artifact with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -248,7 +254,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("maven-publish/pomGeneration")
-    @ToBeFixedForInstantExecution
     def pomGeneration() {
         given:
         inDirectory(sampleProject.dir.file('groovy'))
