@@ -25,13 +25,8 @@ import spock.lang.Specification
 
 import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.RoundEnvironment
-import javax.annotation.processing.SupportedAnnotationTypes
-import javax.annotation.processing.SupportedSourceVersion
-import javax.lang.model.SourceVersion
 import javax.lang.model.element.TypeElement
 import javax.tools.JavaCompiler
-import java.lang.annotation.ElementType
-import java.lang.annotation.Target
 import java.lang.reflect.InvocationTargetException
 
 class AnnotationProcessingCompileTaskTest extends Specification {
@@ -84,13 +79,6 @@ class LimitedClassLoader extends ClassLoader {
     }
 }
 
-@Target(ElementType.TYPE)
-@interface RunsFaultyProcessor {
-    String QUALIFIED_NAME = "org.gradle.api.internal.tasks.compile.RunsFaultyProcessor"
-}
-
-@SupportedAnnotationTypes(RunsFaultyProcessor.QUALIFIED_NAME)
-@SupportedSourceVersion(SourceVersion.RELEASE_6)
 class FaultyProcessor extends AbstractProcessor {
     FaultyProcessor() {
         throw new RuntimeException("Whoops!")
