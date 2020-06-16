@@ -32,6 +32,7 @@ import javax.lang.model.element.TypeElement
 import javax.tools.JavaCompiler
 import java.lang.annotation.ElementType
 import java.lang.annotation.Target
+import java.lang.reflect.InvocationTargetException
 
 class AnnotationProcessingCompileTaskTest extends Specification {
 
@@ -48,7 +49,8 @@ class AnnotationProcessingCompileTaskTest extends Specification {
         def e = thrown(Throwable)
         def root = Throwables.getRootCause(e)
         root.message == errorMsg
-        root.stackTrace.any({ frame -> frame.className == throwingClass })
+        root.stackTrace.any { frame -> frame.className == throwingClass }
+        !Throwables.getCausalChain(e).any { c -> c.class == InvocationTargetException.class }
 
         where:
         processorClassName              | throwingClass                      | errorMsg
