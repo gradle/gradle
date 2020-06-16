@@ -22,10 +22,7 @@ import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDecla
 import org.hamcrest.BaseMatcher
 import spock.lang.Issue
 import spock.lang.Specification
-import static spock.util.matcher.HamcrestSupport.that
 
-import java.lang.annotation.ElementType
-import java.lang.annotation.Target
 import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.RoundEnvironment
 import javax.annotation.processing.SupportedAnnotationTypes
@@ -33,6 +30,10 @@ import javax.annotation.processing.SupportedSourceVersion
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.TypeElement
 import javax.tools.JavaCompiler
+import java.lang.annotation.ElementType
+import java.lang.annotation.Target
+
+import static spock.util.matcher.HamcrestSupport.that
 
 class AnnotationProcessingCompileTaskTest extends Specification {
 
@@ -44,22 +45,22 @@ class AnnotationProcessingCompileTaskTest extends Specification {
     @Issue("gradle/gradle#8996")
     def "stacktrace contains root cause"() {
         given:
-            def proc = new AnnotationProcessorDeclaration(processorClassName, IncrementalAnnotationProcessorType.UNKNOWN)
-            def processTask = createProcessingTask(proc)
+        def proc = new AnnotationProcessorDeclaration(processorClassName, IncrementalAnnotationProcessorType.UNKNOWN)
+        def processTask = createProcessingTask(proc)
 
         when:
-            processTask.call()
+        processTask.call()
 
         then:
-            def e = thrown(Throwable)
-            def root = getRootCause(e)
-            root.message.equals(errorMsg)
-            that root.stackTrace, hasFrame(throwingClass)
+        def e = thrown(Throwable)
+        def root = getRootCause(e)
+        root.message == errorMsg
+        that root.stackTrace, hasFrame(throwingClass)
 
         where:
-            processorClassName              | throwingClass                      | errorMsg
-            FaultyProcessor.class.getName() | FaultyProcessor.class.getName()    | "Whoops!"
-            "you.wont.find.Me"              | LimitedClassLoader.class.getName() | "Unexpected class load: you.wont.find.Me"
+        processorClassName              | throwingClass                      | errorMsg
+        FaultyProcessor.class.getName() | FaultyProcessor.class.getName()    | "Whoops!"
+        "you.wont.find.Me"              | LimitedClassLoader.class.getName() | "Unexpected class load: you.wont.find.Me"
     }
 
     def createProcessingTask(AnnotationProcessorDeclaration proc) {
@@ -116,8 +117,8 @@ class LimitedClassLoader extends ClassLoader {
     }
 
     @Override
-    public Class<?> loadClass(String name) throws ClassNotFoundException {
-        if (FaultyProcessor.class.getName().equals(name)) {
+    Class<?> loadClass(String name) throws ClassNotFoundException {
+        if (FaultyProcessor.class.getName() == name) {
             return FaultyProcessor.class
         } else {
             throw new ClassNotFoundException("Unexpected class load: " + name)
