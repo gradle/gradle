@@ -22,32 +22,39 @@ import java.util.Set;
 
 public class PendingDependencies {
     private final ModuleIdentifier moduleIdentifier;
-    private final Set<NodeState> affectedComponents;
+    private final Set<NodeState> constraintProvidingNodes;
     private int hardEdges;
     private boolean reportActivePending;
 
     PendingDependencies(ModuleIdentifier moduleIdentifier) {
         this.moduleIdentifier = moduleIdentifier;
-        this.affectedComponents = Sets.newLinkedHashSet();
+        this.constraintProvidingNodes = Sets.newLinkedHashSet();
         this.hardEdges = 0;
         this.reportActivePending = true;
     }
 
-    void addNode(NodeState state) {
+    void registerConstraintProvider(NodeState nodeState) {
         if (hardEdges != 0) {
             throw new IllegalStateException("Cannot add a pending node for a dependency which is not pending");
         }
-        affectedComponents.add(state);
-        if (state.getComponent().getModule().isVirtualPlatform()) {
+        constraintProvidingNodes.add(nodeState);
+        if (nodeState.getComponent().getModule().isVirtualPlatform()) {
             reportActivePending = false;
         }
     }
 
+    public void unregisterConstraintProvider(NodeState nodeState) {
+        if (hardEdges != 0) {
+            throw new IllegalStateException("Cannot remove a pending node for a dependency which is not pending");
+        }
+        boolean removed = constraintProvidingNodes.remove(nodeState);
+    }
+
     void turnIntoHardDependencies() {
-        for (NodeState affectedComponent : affectedComponents) {
+        for (NodeState affectedComponent : constraintProvidingNodes) {
             affectedComponent.prepareForConstraintNoLongerPending(moduleIdentifier);
         }
-        affectedComponents.clear();
+        constraintProvidingNodes.clear();
         reportActivePending = true;
     }
 
@@ -55,8 +62,8 @@ public class PendingDependencies {
         return hardEdges == 0;
     }
 
-    boolean hasPendingComponents() {
-        return !affectedComponents.isEmpty();
+    boolean hasConstraintProviders() {
+        return !constraintProvidingNodes.isEmpty();
     }
 
     void increaseHardEdgeCount() {
@@ -71,4 +78,5 @@ public class PendingDependencies {
     public boolean shouldReportActivatePending() {
         return reportActivePending;
     }
+
 }

@@ -281,7 +281,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         assertNestedTaskOutputTracked()
     }
 
-    @IgnoreIf({ GradleContextualExecuter.vfsRetention })
+    @IgnoreIf({ GradleContextualExecuter.watchFs })
     def "supports debug level logging"() {
         when:
         buildFile << """

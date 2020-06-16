@@ -77,7 +77,8 @@ open class BuildScanPlugin : Plugin<Project> {
 
         extractCheckstyleAndCodenarcData()
         extractBuildCacheData()
-        extractVfsRetentionData()
+        extractWatchFsData()
+
 // TODO LD - adapt after changes merged and master updated to build with them
 //        if ((project.gradle as GradleInternal).buildType != GradleInternal.BuildType.TASKS) {
 //            buildScan.tag("SYNC")
@@ -268,7 +269,7 @@ open class BuildScanPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.extractVfsRetentionData() {
+    fun Project.extractWatchFsData() {
         val watchFileSystem = (project.gradle.startParameter as StartParameterInternal).isWatchFileSystem
         buildScan.value(watchFileSystemName, watchFileSystem.toString())
     }

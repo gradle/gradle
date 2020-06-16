@@ -32,13 +32,14 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import javax.annotation.processing.Processor;
 import javax.tools.JavaCompiler;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import static org.gradle.api.internal.tasks.compile.filter.AnnotationProcessorFilter.*;
+import static org.gradle.api.internal.tasks.compile.filter.AnnotationProcessorFilter.getFilteredClassLoader;
 
 /**
  * Wraps another {@link JavaCompiler.CompilationTask} and sets up its annotation processors
@@ -58,7 +59,7 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
     private final List<File> annotationProcessorPath;
     private final AnnotationProcessingResult result;
 
-    private URLClassLoader processorClassloader;
+    private ClassLoader processorClassloader;
     private boolean called;
 
     AnnotationProcessingCompileTask(JavaCompiler.CompilationTask delegate, Set<AnnotationProcessorDeclaration> processorDeclarations, List<File> annotationProcessorPath, AnnotationProcessingResult result) {
@@ -117,7 +118,7 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
         delegate.setProcessors(processors);
     }
 
-    private URLClassLoader createProcessorClassLoader() {
+    ClassLoader createProcessorClassLoader() {
         return new URLClassLoader(
             DefaultClassPath.of(annotationProcessorPath).getAsURLArray(),
             getFilteredClassLoader(delegate.getClass().getClassLoader())
@@ -128,7 +129,7 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
         try {
             return processorClassloader.loadClass(declaredProcessor.getClassName());
         } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException("Annotation processor '" + declaredProcessor.getClassName() + "' not found");
+            throw new IllegalArgumentException("Annotation processor '" + declaredProcessor.getClassName() + "' not found", unwrapCause(e));
         }
     }
 
@@ -136,8 +137,15 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
         try {
             return (Processor) processorClass.getConstructor().newInstance();
         } catch (Exception e) {
-            throw new IllegalArgumentException("Could not instantiate annotation processor '" + processorClass.getName() + "'");
+            throw new IllegalArgumentException("Could not instantiate annotation processor '" + processorClass.getName() + "'", unwrapCause(e));
         }
+    }
+
+    private Throwable unwrapCause(Throwable throwable) {
+        if (throwable instanceof InvocationTargetException) {
+            return throwable.getCause();
+        }
+        return throwable;
     }
 
     private Processor decorateForIncrementalProcessing(Processor processor, IncrementalAnnotationProcessorType type, AnnotationProcessorResult processorResult) {

@@ -22,7 +22,7 @@ import spock.lang.IgnoreIf
 
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY
 
-@IgnoreIf({ GradleContextualExecuter.vfsRetention })
+@IgnoreIf({ GradleContextualExecuter.watchFs })
 class VirtualFileSystemPartialInvalidationIntegrationTest extends AbstractIntegrationSpec {
 
     private static final INCUBATING_MESSAGE = "Partial virtual file system invalidation is an incubating feature"

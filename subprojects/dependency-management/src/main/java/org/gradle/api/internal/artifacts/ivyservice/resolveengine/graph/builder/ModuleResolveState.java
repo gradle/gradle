@@ -387,8 +387,12 @@ class ModuleResolveState implements CandidateModule {
         return pendingDependencies;
     }
 
-    void addPendingNode(NodeState node) {
-        pendingDependencies.addNode(node);
+    void registerConstraintProvider(NodeState node) {
+        pendingDependencies.registerConstraintProvider(node);
+    }
+
+    void unregisterConstraintProvider(NodeState nodeState) {
+        pendingDependencies.unregisterConstraintProvider(nodeState);
     }
 
     public void maybeUpdateSelection() {

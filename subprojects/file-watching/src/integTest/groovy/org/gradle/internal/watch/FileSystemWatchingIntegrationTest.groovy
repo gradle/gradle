@@ -21,8 +21,8 @@ import org.apache.commons.io.FileUtils
 import org.gradle.initialization.StartParameterBuildOptions.WatchFileSystemOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.FileSystemWatchingFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.integtests.fixtures.VfsRetentionFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
@@ -35,9 +35,9 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 // The whole test makes no sense if there isn't a daemon to retain the state.
-@IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.vfsRetention })
+@IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.watchFs })
 @Unroll
-class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, VfsRetentionFixture {
+class FileSystemWatchingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, FileSystemWatchingFixture {
     private static final String INCUBATING_MESSAGE = "Watching the file system is an incubating feature"
 
     @Rule
@@ -61,7 +61,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         mainSourceFile.text = sourceFileWithGreeting("Hello World!")
 
         when:
-        withRetention().run "run", "--info"
+        withWatchFs().run "run", "--info"
         then:
         outputContains "Hello World!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
@@ -70,7 +70,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
         waitForChangesToBePickedUp()
-        withRetention().run "run", "--info"
+        withWatchFs().run "run", "--info"
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
@@ -89,7 +89,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         mainSourceFile.text = sourceFileWithGreeting("Hello World!")
 
         when:
-        withRetention().run "classes", "--info"
+        withWatchFs().run "classes", "--info"
         then:
         executedAndNotSkipped ":compileJava", ":classes"
         assertWatchedRootDirectories([ImmutableSet.of(testDirectory)])
@@ -97,7 +97,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
         waitForChangesToBePickedUp()
-        withRetention().run "classes", "--info"
+        withWatchFs().run "classes", "--info"
         then:
         executedAndNotSkipped ":compileJava", ":classes"
         assertWatchedRootDirectories([ImmutableSet.of(testDirectory)])
@@ -112,7 +112,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         """
 
         when:
-        withRetention().run "hello", "--info"
+        withWatchFs().run "hello", "--info"
         then:
         outputContains "Hello from original task!"
         assertWatchedRootDirectories([ImmutableSet.of(testDirectory)] * 2)
@@ -120,7 +120,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         when:
         taskSourceFile.text = taskWithGreeting("Hello from modified task!")
         waitForChangesToBePickedUp()
-        withRetention().run "hello", "--info"
+        withWatchFs().run "hello", "--info"
         then:
         outputContains "Hello from modified task!"
         assertWatchedRootDirectories([ImmutableSet.of(testDirectory)] * 2)
@@ -131,7 +131,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         buildFile.text = """
             println "Hello from the build!"
         """
-        withRetention().run "help"
+        withWatchFs().run "help"
         then:
         outputContains "Hello from the build!"
 
@@ -139,7 +139,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         buildFile.text = """
             println "Hello from the modified build!"
         """
-        withRetention().run "help"
+        withWatchFs().run "help"
         then:
         outputContains "Hello from the modified build!"
     }
@@ -149,7 +149,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         buildKotlinFile.text = """
             println("Hello from the build!")
         """
-        withRetention().run "help"
+        withWatchFs().run "help"
         then:
         outputContains "Hello from the build!"
 
@@ -157,7 +157,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         buildKotlinFile.text = """
             println("Hello from the modified build!")
         """
-        withRetention().run "help"
+        withWatchFs().run "help"
         then:
         outputContains "Hello from the modified build!"
     }
@@ -167,7 +167,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         settingsFile.text = """
             println "Hello from settings!"
         """
-        withRetention().run "help"
+        withWatchFs().run "help"
         then:
         outputContains "Hello from settings!"
 
@@ -175,7 +175,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         settingsFile.text = """
             println "Hello from modified settings!"
         """
-        withRetention().run "help"
+        withWatchFs().run "help"
         then:
         outputContains "Hello from modified settings!"
     }
@@ -192,14 +192,14 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         mainSourceFile.text = sourceFileWithGreeting("Hello World!")
 
         when:
-        withoutRetention().run "run"
+        withoutWatchFs().run "run"
         then:
         outputContains "Hello World!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
 
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
-        withRetention().run "run"
+        withWatchFs().run "run"
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
@@ -217,14 +217,14 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         mainSourceFile.text = sourceFileWithGreeting("Hello World!")
 
         when:
-        withRetention().run "run"
+        withWatchFs().run "run"
         then:
         outputContains "Hello World!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
 
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
-        withoutRetention().run "run"
+        withoutWatchFs().run "run"
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
@@ -328,7 +328,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
         when:
         server.expect("userInput")
-        withRetention().run("waitForUserChanges")
+        withWatchFs().run("waitForUserChanges")
         then:
         executedAndNotSkipped(":consumer")
         outputFile.text == "changedAgain"
@@ -336,7 +336,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     }
 
     private void runWithRetentionAndDoChangesWhen(String task, String expectedCall, Closure action) {
-        def handle = withRetention().executer.withTasks(task).start()
+        def handle = withWatchFs().executer.withTasks(task).start()
         def userInput = server.expectAndBlock(expectedCall)
         userInput.waitForAllPendingCalls()
         action()
@@ -345,6 +345,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     }
 
     @ToBeFixedForInstantExecution(because = "composite build not yet supported")
+    @Requires(TestPrecondition.NOT_WINDOWS) // https://github.com/gradle/gradle-private/issues/3116
     def "works with composite build"() {
         buildTestFixture.withBuildInSubDir()
         def includedBuild = singleProjectBuild("includedBuild") {
@@ -373,24 +374,25 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         ]
 
         when:
-        withRetention().run "assemble", "--info"
+        withWatchFs().run "assemble", "--info"
         then:
         executedAndNotSkipped(":includedBuild:jar")
         assertWatchedRootDirectories(expectedBuildRootDirectories)
 
         when:
-        withRetention().run("assemble", "--info")
+        withWatchFs().run("assemble", "--info")
         then:
         skipped(":includedBuild:jar")
         assertWatchedRootDirectories(expectedBuildRootDirectories)
 
         when:
         includedBuild.file("src/main/java/NewClass.java")  << "public class NewClass {}"
-        withRetention().run("assemble")
+        withWatchFs().run("assemble")
         then:
         executedAndNotSkipped(":includedBuild:jar")
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS) // https://github.com/gradle/gradle-private/issues/3116
     @ToBeFixedForInstantExecution(because = "GradleBuild task is not yet supported")
     def "works with GradleBuild task"() {
         buildTestFixture.withBuildInSubDir()
@@ -417,12 +419,12 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         ]
 
         when:
-        withRetention().run "buildInBuild", "--info"
+        withWatchFs().run "buildInBuild", "--info"
         then:
         assertWatchedRootDirectories(expectedBuildRootDirectories)
 
         when:
-        withRetention().run "buildInBuild", "--info"
+        withWatchFs().run "buildInBuild", "--info"
         then:
         assertWatchedRootDirectories(expectedBuildRootDirectories)
     }
@@ -433,12 +435,12 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         """
 
         when:
-        withRetention().run("assemble")
+        withWatchFs().run("assemble")
         then:
         outputContains(INCUBATING_MESSAGE)
 
         when:
-        withoutRetention().run("assemble")
+        withoutWatchFs().run("assemble")
         then:
         outputDoesNotContain(INCUBATING_MESSAGE)
     }
@@ -536,7 +538,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         def outputFile = file("build/output/output.txt")
 
         when:
-        withRetention().run ":consumer"
+        withWatchFs().run ":consumer"
         then:
         executedAndNotSkipped(":sourceTask", ":consumer")
         outputFile.assertExists()
@@ -544,7 +546,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         when:
         sourceFile.delete()
         waitForChangesToBePickedUp()
-        withRetention().run ":consumer"
+        withWatchFs().run ":consumer"
         then:
         executedAndNotSkipped(":sourceTask", ":consumer")
         outputFile.assertDoesNotExist()
@@ -569,7 +571,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         def outputFile = file("build/output.txt")
 
         when:
-        withRetention().run ":producer"
+        withWatchFs().run ":producer"
         then:
         executedAndNotSkipped(":producer")
         outputFile.assertExists()
@@ -577,7 +579,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         when:
         invalidateBuildOutputCleanupState()
         waitForChangesToBePickedUp()
-        withRetention().run ":producer", "--info"
+        withWatchFs().run ":producer", "--info"
         then:
         output.contains("Deleting stale output file: ${outputFile.absolutePath}")
         executedAndNotSkipped(":producer")
@@ -613,21 +615,21 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         file("sources/input.txt").text = "input"
 
         when:
-        withRetention().run ":incremental", "-DoutputDir=output1"
+        withWatchFs().run ":incremental", "-DoutputDir=output1"
         then:
         executedAndNotSkipped(":incremental")
 
         when:
         file("build/output2/overlapping.txt").text = "overlapping"
         waitForChangesToBePickedUp()
-        withRetention().run ":incremental", "-DoutputDir=output2"
+        withWatchFs().run ":incremental", "-DoutputDir=output2"
         then:
         executedAndNotSkipped(":incremental")
         file("build/output1").assertDoesNotExist()
 
         when:
         waitForChangesToBePickedUp()
-        withRetention().run ":incremental", "-DoutputDir=output1"
+        withWatchFs().run ":incremental", "-DoutputDir=output1"
         then:
         executedAndNotSkipped(":incremental")
         file("build/output1").assertExists()
@@ -648,13 +650,13 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         """
 
         when:
-        withRetention().run "jar", "-Dcreator=first"
+        withWatchFs().run "jar", "-Dcreator=first"
         then:
         file("build/tmp/jar/MANIFEST.MF").text.contains("first")
         executedAndNotSkipped(":jar")
 
         when:
-        withRetention().run "jar", "-Dcreator=second"
+        withWatchFs().run "jar", "-Dcreator=second"
         then:
         file("build/tmp/jar/MANIFEST.MF").text.contains("second")
         executedAndNotSkipped(":jar")
@@ -704,7 +706,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         def localStateOutputFile = file("build/localStateOutput.txt")
 
         when:
-        withRetention().withBuildCache().run("localStateTask", "outputFileTask")
+        withWatchFs().withBuildCache().run("localStateTask", "outputFileTask")
         then:
         executedAndNotSkipped(":localStateTask", ":outputFileTask")
         localStateOutputFile.exists()
@@ -712,7 +714,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         when:
         localStateOutputFile.delete()
         waitForChangesToBePickedUp()
-        withRetention().withBuildCache().run("localStateTask", "outputFileTask")
+        withWatchFs().withBuildCache().run("localStateTask", "outputFileTask")
         then:
         skipped(":localStateTask")
         executedAndNotSkipped(":outputFileTask")
@@ -724,7 +726,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         """
 
         when:
-        withRetention().fails("help")
+        withWatchFs().fails("help")
         then:
         failureHasCause("Boom")
     }
@@ -741,7 +743,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
         when:
         inDirectory(settingsDir)
-        withRetention().run("thing")
+        withWatchFs().run("thing")
         then:
         executed ":sub:thing"
 
@@ -768,12 +770,12 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         """
 
         when:
-        withRetention().run "myTask"
+        withWatchFs().run "myTask"
         then:
         executedAndNotSkipped(":myTask")
 
         when:
-        withRetention().run "myTask"
+        withWatchFs().run "myTask"
         then:
         skipped(":myTask")
     }
@@ -797,19 +799,19 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         """
 
         when:
-        withRetention().run "myTask"
+        withWatchFs().run "myTask"
         then:
         executedAndNotSkipped ":myTask"
 
         when:
-        withRetention().run "myTask"
+        withWatchFs().run "myTask"
         then:
         skipped(":myTask")
 
         when:
         file(fileToChange).text = "changed"
         waitForChangesToBePickedUp()
-        withRetention().run "myTask"
+        withWatchFs().run "myTask"
         then:
         executedAndNotSkipped ":myTask"
 
@@ -844,13 +846,13 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         """
 
         when:
-        withRetention().run "producer"
+        withWatchFs().run "producer"
         then:
         executedAndNotSkipped ":producer"
 
         when:
-        withRetention().run "myClean"
-        withRetention().run "producer"
+        withWatchFs().run "myClean"
+        withWatchFs().run "producer"
         then:
         executedAndNotSkipped ":producer"
 
@@ -873,7 +875,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
         when:
         inDirectory(projectDir)
-        withRetention().run "assemble"
+        withWatchFs().run "assemble"
         then:
         executedAndNotSkipped ":assemble"
 

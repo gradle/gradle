@@ -33,5 +33,5 @@ dependencies {
     integTestImplementation(library("slf4j_api"))
     integTestImplementation(testLibrary("jetty"))
 
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributionsFull"))
 }

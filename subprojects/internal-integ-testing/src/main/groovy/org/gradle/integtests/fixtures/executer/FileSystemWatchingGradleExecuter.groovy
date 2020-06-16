@@ -16,13 +16,13 @@
 
 package org.gradle.integtests.fixtures.executer
 
-import org.gradle.integtests.fixtures.VfsRetentionHelper
+import org.gradle.integtests.fixtures.FileSystemWatchingHelper
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.GradleVersion
 
-class VfsRetentionGradleExecuter extends DaemonGradleExecuter {
+class FileSystemWatchingGradleExecuter extends DaemonGradleExecuter {
 
-    VfsRetentionGradleExecuter(
+    FileSystemWatchingGradleExecuter(
         GradleDistribution distribution,
         TestDirectoryProvider testDirectoryProvider,
         GradleVersion gradleVersion,
@@ -30,14 +30,14 @@ class VfsRetentionGradleExecuter extends DaemonGradleExecuter {
     ) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext)
         beforeExecute {
-            VfsRetentionHelper.waitForChangesToBePickedUp()
+            FileSystemWatchingHelper.waitForChangesToBePickedUp()
         }
     }
 
     @Override
     protected List<String> getAllArgs() {
         super.getAllArgs() + ([
-            VfsRetentionHelper.enableVfsRetentionArgument,
+            FileSystemWatchingHelper.enableFsWatchingArgument,
         ])
     }
 }
