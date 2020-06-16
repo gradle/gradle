@@ -44,3 +44,10 @@ tasks.register<RunEmbeddedGradle>("runDevGradle") {
     description = "Runs an embedded Gradle using the partial distribution for ${project.path}."
     gradleClasspath.from(configurations.runtimeClasspath.get(), tasks.runtimeApiInfoJar)
 }
+
+// This is required for the separate promotion build and should be adjusted there in the future
+tasks.register<Copy>("copyDistributionsToRootBuild") {
+    dependsOn("buildDists")
+    from(layout.buildDirectory.dir("distributions"))
+    into(rootProject.layout.buildDirectory.dir("distributions"))
+}

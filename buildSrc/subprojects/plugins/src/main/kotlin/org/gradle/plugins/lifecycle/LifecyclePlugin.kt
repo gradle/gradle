@@ -233,7 +233,7 @@ class LifecyclePlugin : Plugin<Project> {
         register("promotionBuild") {
             description = "Build production distros, smoke test them and publish"
             group = "publishing"
-            dependsOn(":distributionsFull:verifyIsProductionBuildEnvironment", ":distributionsFull:buildDists",
+            dependsOn(":distributionsFull:verifyIsProductionBuildEnvironment", ":distributionsFull:buildDists", ":distributionsFull:copyDistributionsToRootBuild"
                 ":distributionsIntegTests:forkingIntegTest", ":docs:releaseNotes", "publish", ":docs:incubationReport", ":docs:checkDeadInternalLinks")
         }
     }
