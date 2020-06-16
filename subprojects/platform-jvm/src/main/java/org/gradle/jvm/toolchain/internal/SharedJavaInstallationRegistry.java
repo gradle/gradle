@@ -21,6 +21,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Sets;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -32,6 +33,11 @@ public class SharedJavaInstallationRegistry {
     private final Supplier<Set<File>> finalizedInstallations = Suppliers.memoize(this::mapToDirectories);
 
     private boolean finalized;
+
+    @Inject
+    public SharedJavaInstallationRegistry() {
+        add(new SystemPropertyInstallationSupplier());
+    }
 
     public void add(InstallationSupplier provider) {
         Preconditions.checkArgument(!finalized, "Installation must not be mutated after being finalized");
