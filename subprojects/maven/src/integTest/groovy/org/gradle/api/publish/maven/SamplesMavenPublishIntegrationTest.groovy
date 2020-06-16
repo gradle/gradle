@@ -27,7 +27,8 @@ import org.junit.Rule
 import spock.lang.Unroll
 
 class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
-    @Rule public final Sample sampleProject = new Sample(temporaryFolder)
+    @Rule
+    public final Sample sampleProject = new Sample(temporaryFolder)
 
     @Unroll
     @UsesSample("maven-publish/quickstart")
