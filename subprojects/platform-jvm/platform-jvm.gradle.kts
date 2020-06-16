@@ -32,6 +32,7 @@ dependencies {
     testImplementation(library("ant"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":diagnostics")))
+    testImplementation(testFixtures(project(":logging")))
     testImplementation(testFixtures(project(":platformBase")))
     testImplementation(testFixtures(project(":platformNative")))
 
