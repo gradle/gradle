@@ -345,6 +345,7 @@ class FileSystemWatchingIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     @ToBeFixedForInstantExecution(because = "composite build not yet supported")
+    @Requires(TestPrecondition.NOT_WINDOWS) // https://github.com/gradle/gradle-private/issues/3116
     def "works with composite build"() {
         buildTestFixture.withBuildInSubDir()
         def includedBuild = singleProjectBuild("includedBuild") {
@@ -391,6 +392,7 @@ class FileSystemWatchingIntegrationTest extends AbstractIntegrationSpec implemen
         executedAndNotSkipped(":includedBuild:jar")
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS) // https://github.com/gradle/gradle-private/issues/3116
     @ToBeFixedForInstantExecution(because = "GradleBuild task is not yet supported")
     def "works with GradleBuild task"() {
         buildTestFixture.withBuildInSubDir()
