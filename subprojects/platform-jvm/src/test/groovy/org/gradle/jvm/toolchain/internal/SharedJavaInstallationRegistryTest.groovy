@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal
 
-import org.gradle.api.file.Directory
+
 import spock.lang.Specification
 
 import static InstallationSuppliers.forDirectory
@@ -27,7 +27,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
 
     def "registry keeps track of newly added installations"() {
         when:
-        def path = Mock(Directory)
+        def path = new File("/foo/bar")
         registry.add(forDirectory(path))
 
         then:
@@ -36,12 +36,12 @@ class SharedJavaInstallationRegistryTest extends Specification {
 
     def "registry cannot be mutated after finalizing"() {
         given:
-        registry.add(forDirectory(Mock(Directory)))
-        registry.add(forDirectory(Mock(Directory)))
+        registry.add(forDirectory(new File("/foo/bar")))
+        registry.add(forDirectory(new File("/foo/bar")))
 
         when:
         registry.finalizeValue()
-        registry.add(forDirectory(Mock(Directory)))
+        registry.add(forDirectory(new File("/foo/bar")))
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -50,11 +50,11 @@ class SharedJavaInstallationRegistryTest extends Specification {
 
     def "accessing the list of installations finalizes it"() {
         given:
-        registry.add(forDirectory(Mock(Directory)))
+        registry.add(forDirectory(new File("/foo/bar")))
 
         when:
         registry.listInstallations()
-        registry.add(forDirectory(Mock(Directory)))
+        registry.add(forDirectory(new File("/foo/bar")))
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -63,8 +63,8 @@ class SharedJavaInstallationRegistryTest extends Specification {
 
     def "list of installations is cached"() {
         given:
-        registry.add(forDirectory(Mock(Directory)))
-        registry.add(forDirectory(Mock(Directory)))
+        registry.add(forDirectory(new File("/foo/bar")))
+        registry.add(forDirectory(new File("/foo/bar")))
 
         when:
         def installations = registry.listInstallations();

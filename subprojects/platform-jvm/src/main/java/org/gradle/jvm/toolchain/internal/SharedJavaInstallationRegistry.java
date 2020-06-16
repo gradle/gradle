@@ -20,17 +20,16 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Sets;
-import org.gradle.api.file.Directory;
 
+import java.io.File;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.gradle.jvm.toolchain.internal.InstallationSuppliers.InstallationSupplier;
 
 public class SharedJavaInstallationRegistry {
 
     private final Set<InstallationSupplier> suppliers = Sets.newConcurrentHashSet();
-    private final Supplier<Set<Directory>> finalizedInstallations = Suppliers.memoize(this::mapToDirectories);
+    private final Supplier<Set<File>> finalizedInstallations = Suppliers.memoize(this::mapToDirectories);
 
     private boolean finalized;
 
@@ -43,12 +42,12 @@ public class SharedJavaInstallationRegistry {
         finalized = true;
     }
 
-    public Set<Directory> listInstallations() {
+    public Set<File> listInstallations() {
         finalizeValue();
         return finalizedInstallations.get();
     }
 
-    private Set<Directory> mapToDirectories() {
+    private Set<File> mapToDirectories() {
         return suppliers.stream().map(InstallationSupplier::get).flatMap(Set::stream).collect(Collectors.toSet());
     }
 
