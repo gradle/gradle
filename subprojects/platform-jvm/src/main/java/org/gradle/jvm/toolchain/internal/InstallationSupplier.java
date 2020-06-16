@@ -17,12 +17,8 @@
 package org.gradle.jvm.toolchain.internal;
 
 import java.io.File;
-import java.util.Collections;
+import java.util.Set;
+import java.util.function.Supplier;
 
-class InstallationSuppliers {
-
-    public static InstallationSupplier forDirectory(File directory) {
-        return () -> Collections.singleton(directory);
-    }
-
+public interface InstallationSupplier extends Supplier<Set<File>> {
 }
