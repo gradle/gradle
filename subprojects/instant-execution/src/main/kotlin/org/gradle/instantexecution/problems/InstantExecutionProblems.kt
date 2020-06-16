@@ -75,7 +75,7 @@ class InstantExecutionProblems(
     var isFailingBuildDueToSerializationError = false
 
     private
-    lateinit var cacheAction: InstantExecutionCacheAction
+    var cacheAction: InstantExecutionCacheAction? = null
 
     init {
         listenerManager.addListener(problemHandler)
@@ -121,13 +121,10 @@ class InstantExecutionProblems(
     inner class BuildFinishedProblemsHandler : BuildAdapter() {
 
         override fun buildFinished(result: BuildResult) {
-            if (result.gradle?.parent != null || problems.isEmpty()) {
+            if (result.gradle?.parent != null || cacheAction == null || problems.isEmpty()) {
                 return
             }
-            val cacheActionText = when (cacheAction) {
-                LOAD -> "reusing"
-                STORE -> "storing"
-            }
+            val cacheActionText = requireNotNull(cacheAction).summaryText()
             report.writeReportFiles(cacheActionText, problems)
             if (isFailOnProblems) {
                 // TODO - always include this as a build failure; currently it is disabled when a serialization problem happens
@@ -138,6 +135,13 @@ class InstantExecutionProblems(
                 report.logConsoleSummary(cacheActionText, problems)
             }
         }
+
+        private
+        fun InstantExecutionCacheAction.summaryText() =
+            when (this) {
+                LOAD -> "reusing"
+                STORE -> "storing"
+            }
     }
 
     private
@@ -146,7 +150,7 @@ class InstantExecutionProblems(
         override fun afterStart(gradle: GradleInternal) = Unit
 
         override fun beforeComplete(gradle: GradleInternal) {
-            if (!this@InstantExecutionProblems::cacheAction.isInitialized) return
+            if (cacheAction == null) return
             when {
                 isFailingBuildDueToSerializationError && problems.isEmpty() -> log("Configuration cache entry discarded.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCount)
