@@ -908,7 +908,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     }
 
     @Unroll
-    def "restores task with action that is Java lambda"() {
+    def "restores task with action and spec that are Java lambdas"() {
         given:
         file("buildSrc/src/main/java/my/LambdaPlugin.java").tap {
             parentFile.mkdirs()
@@ -923,7 +923,11 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
                         $type value = $expression;
                         project.getTasks().register("ok", task -> {
                             task.doLast(t -> {
-                                System.out.println(task.getName() + " value is " + value);
+                                System.out.println(task.getName() + " action value is " + value);
+                            });
+                            task.onlyIf(t -> {
+                                System.out.println(task.getName() + " spec value is " + value);
+                                return true;
                             });
                         });
                     }
@@ -940,7 +944,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "ok"
 
         then:
-        outputContains("ok value is ${value}")
+        outputContains("ok action value is ${value}")
+        outputContains("ok spec value is ${value}")
 
         where:
         type      | expression | value
