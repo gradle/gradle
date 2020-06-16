@@ -121,14 +121,15 @@ class InstantExecutionProblems(
             if (result.gradle?.parent != null || problems.isEmpty()) {
                 return
             }
+            val cacheAction = if (isLoading) "reusing" else "storing"
             report.writeReportFiles(problems)
             if (isFailOnProblems) {
                 // TODO - always include this as a build failure; currently it is disabled when a serialization problem happens
-                throw InstantExecutionProblemsException(problems.causes(), problems, report.htmlReportFile)
+                throw InstantExecutionProblemsException(problems.causes(), cacheAction, problems, report.htmlReportFile)
             } else if (problems.size > startParameter.maxProblems) {
-                throw TooManyInstantExecutionProblemsException(problems.causes(), problems, report.htmlReportFile)
+                throw TooManyInstantExecutionProblemsException(problems.causes(), cacheAction, problems, report.htmlReportFile)
             } else {
-                report.logConsoleSummary(problems)
+                report.logConsoleSummary(cacheAction, problems)
             }
         }
     }

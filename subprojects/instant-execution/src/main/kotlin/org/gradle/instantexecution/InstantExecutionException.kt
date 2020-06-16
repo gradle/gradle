@@ -70,22 +70,25 @@ open class InstantExecutionProblemsException : InstantExecutionException {
     constructor(
         message: String,
         causes: List<Throwable>,
+        cacheAction: String,
         problems: List<PropertyProblem>,
         htmlReportFile: File
     ) : super(
-        { "$message\n${buildConsoleSummary(problems, htmlReportFile)}" },
+        { "$message\n${buildConsoleSummary(cacheAction, problems, htmlReportFile)}" },
         causes
     )
 
     internal
     constructor(
         causes: List<Throwable>,
+        cacheAction: String,
         problems: List<PropertyProblem>,
         htmlReportFile: File
     ) : this(
         "Configuration cache problems found in this build.\n" +
             "Gradle can be made to ignore these problems, see ${Documentation.ignoreProblems}.",
         causes,
+        cacheAction,
         problems,
         htmlReportFile
     )
@@ -94,12 +97,14 @@ open class InstantExecutionProblemsException : InstantExecutionException {
 
 class TooManyInstantExecutionProblemsException internal constructor(
     causes: List<Throwable>,
+    cacheAction: String,
     problems: List<PropertyProblem>,
     htmlReportFile: File
 ) : InstantExecutionProblemsException(
     "Maximum number of configuration cache problems has been reached.\n" +
         "This behavior can be adjusted, see ${Documentation.maxProblems}.",
     causes,
+    cacheAction,
     problems,
     htmlReportFile
 )

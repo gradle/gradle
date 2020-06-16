@@ -74,8 +74,8 @@ class InstantExecutionReport(
         get() = outputDirectory.resolve(reportHtmlFileName)
 
     internal
-    fun logConsoleSummary(problems: List<PropertyProblem>) {
-        logger.warn(buildConsoleSummary(problems, htmlReportFile))
+    fun logConsoleSummary(cacheAction: String, problems: List<PropertyProblem>) {
+        logger.warn(buildConsoleSummary(cacheAction, problems, htmlReportFile))
     }
 
     internal
