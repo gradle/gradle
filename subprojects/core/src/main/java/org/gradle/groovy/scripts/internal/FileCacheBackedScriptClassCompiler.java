@@ -165,12 +165,6 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         return new File(cache.getBaseDir(), "metadata");
     }
 
-    private static class BrokenCacheException extends IllegalStateException {
-        public BrokenCacheException(String s) {
-            super(s);
-        }
-    }
-
     private class CompileToCrossBuildCacheAction implements Action<PersistentCache> {
         private final Action<? super ClassNode> verifier;
         private final Class<? extends Script> scriptBaseClass;

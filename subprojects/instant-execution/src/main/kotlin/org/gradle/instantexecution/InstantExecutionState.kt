@@ -49,7 +49,8 @@ import java.util.ArrayList
 internal
 class InstantExecutionState(
     private val codecs: Codecs,
-    private val host: DefaultInstantExecution.Host
+    private val host: DefaultInstantExecution.Host,
+    private val relevantProjectsRegistry: RelevantProjectsRegistry
 ) {
 
     suspend fun DefaultWriteContext.writeState() {
@@ -72,7 +73,7 @@ class InstantExecutionState(
         writeGradleState(build.gradle)
 
         val scheduledNodes = build.scheduledWork
-        writeRelevantProjectsFor(scheduledNodes)
+        writeRelevantProjectsFor(scheduledNodes, relevantProjectsRegistry)
 
         WorkNodeCodec(build.gradle, codecs.internalTypesCodec).run {
             writeWork(scheduledNodes)
@@ -211,26 +212,22 @@ class InstantExecutionState(
     }
 
     private
-    fun Encoder.writeRelevantProjectsFor(nodes: List<Node>) {
-        writeCollection(fillTheGapsOf(relevantProjectsFor(nodes))) { project ->
+    fun Encoder.writeRelevantProjectsFor(nodes: List<Node>, relevantProjectsRegistry: RelevantProjectsRegistry) {
+        val relevantProjects = fillTheGapsOf(relevantProjectsRegistry.relevantProjects(nodes))
+        writeCollection(relevantProjects) { project ->
             writeString(project.path)
             writeFile(project.projectDir)
+            writeFile(project.buildDir)
         }
     }
-
-    private
-    fun relevantProjectsFor(nodes: List<Node>): List<Project> =
-        nodes.mapNotNullTo(mutableListOf()) { node ->
-            node.owningProject
-                ?.takeIf { it.parent != null }
-        }
 
     private
     fun Decoder.readRelevantProjects(build: InstantExecutionBuild) {
         readCollection {
             val projectPath = readString()
             val projectDir = readFile()
-            build.createProject(projectPath, projectDir)
+            val buildDir = readFile()
+            build.createProject(projectPath, projectDir, buildDir)
         }
     }
 

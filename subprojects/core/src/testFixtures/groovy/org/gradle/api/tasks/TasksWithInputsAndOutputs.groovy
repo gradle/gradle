@@ -79,14 +79,19 @@ trait TasksWithInputsAndOutputs {
                 @Input
                 abstract ListProperty<String> getNames()
                 @Input
-                String content = "content" // set to empty string to delete directory
+                abstract Property<String> getContent() // set to empty string to delete directory
 
                 @Inject
                 abstract FileSystemOperations getFs()
 
+                DirProducer() {
+                    content.convention("content")
+                }
+
                 @TaskAction
                 def go() {
                     def dir = output.get().asFile
+                    def content = this.content.get()
                     if (content.empty) {
                         fs.delete { delete(dir) }
                     } else {

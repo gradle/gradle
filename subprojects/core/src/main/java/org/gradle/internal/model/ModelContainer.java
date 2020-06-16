@@ -26,18 +26,24 @@ public interface ModelContainer {
     /**
      * Runs the given action against the public mutable model. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads.
      * However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
+     *
+     * Note also that the mutable state should be passed to the action, but is not yet. This is to help with migration.
      */
     <T> T withMutableState(Factory<? extends T> factory);
 
     /**
      * Runs the given action against the public mutable model. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads.
      * However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
+     *
+     * Note also that the mutable state should be passed to the action, but is not yet. This is to help with migration.
      */
     void withMutableState(Runnable runnable);
 
     /**
      * Accesses the public mutable model without any synchronization. Please do not use this method, except for backwards compatibility (and deprecate the behaviour that requires this).
      * Use {@link #withMutableState(Runnable)} instead.
+     *
+     * Note also that the mutable state should be passed to the action, but is not yet. This is to help with migration.
      */
     void withLenientState(Runnable runnable);
 

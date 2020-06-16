@@ -116,7 +116,7 @@ class CollectingArtifactVisitor : ArtifactVisitor {
     override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType {
         return if (source is ConsumerProvidedVariantFiles) {
             FileCollectionStructureVisitor.VisitType.NoContents
-        } else if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet && source.isBuildable) {
+        } else if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet) {
             FileCollectionStructureVisitor.VisitType.NoContents
         } else {
             FileCollectionStructureVisitor.VisitType.Visit

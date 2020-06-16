@@ -18,7 +18,6 @@ package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
@@ -70,20 +69,20 @@ public class LocalTaskNode extends TaskNode {
 
     @Nullable
     @Override
-    public Project getProjectToLock() {
+    public ResourceLock getProjectToLock() {
         if (isolated) {
             return null;
         } else {
             // Running the task requires access to the task's owning project
-            return task.getProject();
+            return ((ProjectInternal) task.getProject()).getMutationState().getAccessLock();
         }
     }
 
     @Nullable
     @Override
-    public Project getOwningProject() {
+    public ProjectInternal getOwningProject() {
         // Task requires its owning project's execution services
-        return task.getProject();
+        return (ProjectInternal) task.getProject();
     }
 
     @Override

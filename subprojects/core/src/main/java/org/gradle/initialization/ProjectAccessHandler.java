@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.initialization;
 
-import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.execution.plan.Node
-import java.io.File
+import org.gradle.api.internal.project.ProjectInternal;
 
 
-interface InstantExecutionBuild {
+public interface ProjectAccessHandler {
 
-    val gradle: GradleInternal
+    void beforeRequestingTaskByPath(ProjectInternal targetProject);
 
-    fun createProject(path: String, dir: File, buildDir: File)
-
-    fun getProject(path: String): ProjectInternal
-
-    fun registerProjects()
-
-    fun scheduleNodes(nodes: Collection<Node>)
+    void beforeResolvingProjectDependency(ProjectInternal dependencyProject);
 }

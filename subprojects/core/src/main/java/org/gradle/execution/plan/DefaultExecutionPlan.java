@@ -28,10 +28,8 @@ import org.gradle.api.BuildCancelledException;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Pair;
@@ -70,7 +68,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Set<Node> entryNodes = new LinkedHashSet<>();
     private final NodeMapping nodeMapping = new NodeMapping();
     private final List<Node> executionQueue = Lists.newLinkedList();
-    private final Map<Project, ResourceLock> projectLocks = Maps.newHashMap();
+    private final Set<ResourceLock> projectLocks = Sets.newHashSet();
     private final FailureCollector failureCollector = new FailureCollector();
     private final TaskNodeFactory taskNodeFactory;
     private final TaskDependencyResolver dependencyResolver;
@@ -312,9 +310,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     dependency.getMutationInfo().consumingNodes.add(node);
                 }
 
-                Project project = node.getProjectToLock();
-                if (project != null) {
-                    projectLocks.put(project, getProjectLock(project));
+                ResourceLock projectLock = node.getProjectToLock();
+                if (projectLock != null) {
+                    projectLocks.add(projectLock);
                 }
 
                 // Add any finalizers to the queue
@@ -577,22 +575,19 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private boolean tryLockProjectFor(Node node) {
-        Project toLock = node.getProjectToLock();
+        ResourceLock toLock = node.getProjectToLock();
         if (toLock != null) {
-            return getProjectLock(toLock).tryLock();
+            return toLock.tryLock();
         } else {
             return true;
         }
     }
 
     private void unlockProjectFor(Node node) {
-        if (node.getProjectToLock() != null) {
-            getProjectLock(node.getProjectToLock()).unlock();
+        ResourceLock toUnlock = node.getProjectToLock();
+        if (toUnlock != null) {
+            toUnlock.unlock();
         }
-    }
-
-    private ResourceLock getProjectLock(Project project) {
-        return ((ProjectInternal) project).getMutationState().getAccessLock();
     }
 
     private boolean tryLockSharedResourceFor(Node node) {
@@ -612,7 +607,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private boolean allProjectsLocked() {
-        for (ResourceLock lock : projectLocks.values()) {
+        for (ResourceLock lock : projectLocks) {
             if (!lock.isLocked()) {
                 return false;
             }

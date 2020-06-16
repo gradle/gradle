@@ -17,17 +17,13 @@
 package org.gradle.api.internal.artifacts.component
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModule
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ProjectBackedModule
-import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
-import org.gradle.util.Path
 import spock.lang.Specification
 
 class DefaultComponentIdentifierFactoryTest extends Specification {
@@ -44,8 +40,9 @@ class DefaultComponentIdentifierFactoryTest extends Specification {
         def componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module)
 
         then:
-        project.path >> ':a'
-        buildIdentity.getIdentifierForProject(Path.path(':a')) >> expectedId
+        project.mutationState >> Stub(ProjectState) {
+            getComponentIdentifier() >> expectedId
+        }
 
         and:
         componentIdentifier == expectedId
@@ -60,20 +57,5 @@ class DefaultComponentIdentifierFactoryTest extends Specification {
 
         then:
         componentIdentifier == new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('some-group', 'some-name'), '1.0')
-    }
-
-    def "can create component identifier for project dependency in same build"() {
-        given:
-        def buildId = new DefaultBuildIdentifier("build")
-        def selector = new DefaultProjectComponentSelector(buildId, Path.path(":id:path"), Path.path(":project:path"), "name", ImmutableAttributes.EMPTY, [])
-
-        when:
-        def componentIdentifier = componentIdentifierFactory.createProjectComponentIdentifier(selector)
-
-        then:
-        buildIdentity.getCurrentBuild() >> buildId
-
-        and:
-        componentIdentifier == new DefaultProjectComponentIdentifier(buildId, selector.identityPath, selector.projectPath(), selector.projectName)
     }
 }

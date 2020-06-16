@@ -130,6 +130,7 @@ import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.NotifyingBuildLoader;
+import org.gradle.initialization.ProjectAccessHandler;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
@@ -207,6 +208,25 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 pluginServiceRegistry.registerBuildServices(registration);
             }
         });
+    }
+
+    protected ProjectAccessListener createProjectAccessListener(List<ProjectAccessHandler> handlers) {
+        // Cannot use the listener infrastructure here because these events can be nested (that is, handling an event may trigger further events)
+        return new ProjectAccessListener() {
+            @Override
+            public void beforeRequestingTaskByPath(ProjectInternal targetProject) {
+                for (ProjectAccessHandler handler : handlers) {
+                    handler.beforeRequestingTaskByPath(targetProject);
+                }
+            }
+
+            @Override
+            public void beforeResolvingProjectDependency(ProjectInternal dependencyProject) {
+                for (ProjectAccessHandler handler : handlers) {
+                    handler.beforeResolvingProjectDependency(dependencyProject);
+                }
+            }
+        };
     }
 
     protected BuildLayout createBuildLayout(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
@@ -505,7 +525,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             buildOperationExecutor);
     }
 
-    protected ProjectAccessListener createProjectAccessListener() {
+    protected ProjectAccessHandler createProjectAccessHandler() {
         return new ConfigurationOnDemandProjectAccessListener();
     }
 
