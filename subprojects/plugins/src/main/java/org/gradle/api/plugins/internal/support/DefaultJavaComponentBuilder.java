@@ -24,6 +24,7 @@ import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
@@ -35,6 +36,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.util.TextUtil;
 
@@ -45,7 +47,7 @@ import static org.gradle.api.attributes.DocsType.JAVADOC;
 import static org.gradle.api.attributes.DocsType.SOURCES;
 import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureJavaDocTask;
 
-class DefaultJavaComponentBuilder implements JvmEcosystemUtilities.JavaComponentBuilder {
+class DefaultJavaComponentBuilder implements JavaComponentBuilderInternal {
     private final String name;
     private final JavaPluginExtension javaPluginExtension;
     private final JvmEcosystemUtilities jvmEcosystemUtilities;
@@ -53,6 +55,7 @@ class DefaultJavaComponentBuilder implements JvmEcosystemUtilities.JavaComponent
     private final ConfigurationContainer configurations;
     private final TaskContainer tasks;
     private final SoftwareComponentContainer components;
+    private final ProjectInternal project;
     private String displayName;
     private SourceSet sourceSet;
     private boolean exposeApi;
@@ -70,7 +73,14 @@ class DefaultJavaComponentBuilder implements JvmEcosystemUtilities.JavaComponent
                                        SourceSetContainer sourceSets,
                                        ConfigurationContainer configurations,
                                        TaskContainer tasks,
-                                       SoftwareComponentContainer components) {
+                                       SoftwareComponentContainer components,
+                                       // Ideally we should use project but more specific components
+                                       // like the previous parameters. However for project derived
+                                       // capabilities we need a handle on the project coordinates
+                                       // which can't be externalized. So we use Project but must
+                                       // reduce the scope to this usage only so that we can replace
+                                       // it later
+                                       ProjectInternal project) {
         this.name = name;
         this.javaPluginExtension = javaPluginExtension;
         this.jvmEcosystemUtilities = jvmEcosystemUtilities;
@@ -78,6 +88,7 @@ class DefaultJavaComponentBuilder implements JvmEcosystemUtilities.JavaComponent
         this.configurations = configurations;
         this.tasks = tasks;
         this.components = components;
+        this.project = project;
         this.capabilities.add(defaultCapability);
     }
 
@@ -130,6 +141,11 @@ class DefaultJavaComponentBuilder implements JvmEcosystemUtilities.JavaComponent
     @Override
     public JvmEcosystemUtilities.JavaComponentBuilder capability(String group, String name, @Nullable String version) {
         return capability(new ImmutableCapability(group, name, version));
+    }
+
+    @Override
+    public JvmEcosystemUtilities.JavaComponentBuilder secondaryComponent() {
+        return capability(new ProjectDerivedCapability(project, name));
     }
 
     @Override
