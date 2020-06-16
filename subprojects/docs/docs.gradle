@@ -42,6 +42,7 @@ configurations {
         canBeResolved = false
         canBeConsumed = true
     }
+    docsTestRuntimeClasspath.extendsFrom(integTestDistributionRuntimeOnly)
 }
 
 dependencies {
@@ -558,7 +559,7 @@ tasks.named("docsTest") { task ->
     // Exemplar doesn't know about that it's running in the context of the gradle/gradle build
     // so it uses the Gradle distribution from the running build. This is not correct, because
     // we want to verify that the samples work with the Gradle distribution being built.
-    def installationEnvProvider = new GradleInstallationForTestEnvironmentProvider(project)
+    def installationEnvProvider = new GradleInstallationForTestEnvironmentProvider(project, task)
     installationEnvProvider.gradleHomeDir.from(configurations.integTestDistributionRuntimeClasspath)
     installationEnvProvider.samplesdir.set(project.layout.buildDirectory.dir("working/samples/testing"))
     jvmArgumentProviders.add(installationEnvProvider)
@@ -614,11 +615,14 @@ tasks.named('platformTest') {
     dependsOn(tasks.named('checkSamples'))
 }
 
+// TODO there is some duplication with DistributionTest.kt here - https://github.com/gradle/gradle-private/issues/3126
 class GradleInstallationForTestEnvironmentProvider implements CommandLineArgumentProvider {
     private Project project
+    private Test testTask
 
-    GradleInstallationForTestEnvironmentProvider(Project project) {
+    GradleInstallationForTestEnvironmentProvider(Project project, Test testTask) {
         this.project = project
+        this.testTask = testTask
     }
 
     @Internal
@@ -633,7 +637,9 @@ class GradleInstallationForTestEnvironmentProvider implements CommandLineArgumen
 
     @Override
     Iterable<String> asArguments() {
+        def distributionName = testTask.classpath.filter { it.name.startsWith("gradle-runtime-api-info") }.singleFile.parentFile.parentFile.parentFile.name
         ["-DintegTest.gradleHomeDir=${gradleHomeDir.singleFile}",
-         "-DintegTest.samplesdir=${samplesdir.get().asFile}"]
+         "-DintegTest.samplesdir=${samplesdir.get().asFile}",
+         "-Dorg.gradle.testkit.dir=${project.rootProject.layout.projectDirectory.dir("intTestHomeDir/$distributionName").asFile}"]
     }
 }
