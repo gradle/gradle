@@ -45,7 +45,7 @@ public abstract class AbstractIntegrationTest {
     public final ToBeFixedForInstantExecutionRule toBeFixedForInstantExecution = new ToBeFixedForInstantExecutionRule();
 
     @Rule
-    public final ToBeFixedForVfsRetentionRule toBeFixedForVfsRetention = new ToBeFixedForVfsRetentionRule();
+    public final ToBeFixedForFileSystemWatchingRule toBeFixedForFileSystemWatching = new ToBeFixedForFileSystemWatchingRule();
 
     public final GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext());
     public final GradleContextualExecuter executer = createExecuter();

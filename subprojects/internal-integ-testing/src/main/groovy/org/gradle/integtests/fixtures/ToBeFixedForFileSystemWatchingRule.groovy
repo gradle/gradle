@@ -25,7 +25,7 @@ import org.junit.runners.model.Statement
 /**
  * JUnit Rule supporting the {@link ToBeFixedForFileSystemWatching} annotation.
  */
-class ToBeFixedForVfsRetentionRule implements TestRule {
+class ToBeFixedForFileSystemWatchingRule implements TestRule {
 
     @Override
     Statement apply(Statement base, Description description) {

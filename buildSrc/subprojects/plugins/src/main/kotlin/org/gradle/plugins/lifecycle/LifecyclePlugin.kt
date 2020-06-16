@@ -284,7 +284,7 @@ class LifecyclePlugin : Plugin<Project> {
         }
 
         register(watchFsTest) {
-            description = "Run all integration tests with vfs retention enabled"
+            description = "Run all integration tests with file-system watching enabled"
             group = ciGroup
         }
 
