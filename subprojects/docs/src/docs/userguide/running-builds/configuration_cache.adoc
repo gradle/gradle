@@ -6,6 +6,7 @@
 The configuration cache is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, and the details described here may change.
 ====
 
+// TODO prefix anchors sec:, problem:,
 
 == Introduction
 
@@ -21,6 +22,10 @@ In other words, the configuration cache caches the output of the configuration p
 [IMPORTANT]
 ====
 This feature is currently *experimental* and not enabled by default.
+
+Not all <<#core_plugins, core Gradle plugins>> are supported.
+Your build and the plugins you depend on might require changes to fulfil the <<#requirements, requirements>>.
+Some Gradle features are <<#not_yet_implemented, not yet implemented>>.
 ====
 
 === How does it work?
@@ -58,8 +63,36 @@ Apart from skipping the configuration phase, the configuration cache provides so
 - All tasks run in parallel by default.
 - Dependency resolution is cached.
 
-
 == Using the configuration cache
+
+It is recommended to get started with the simplest task invocation possible.
+Running `help` with the configuration cache enabled is a good first step:
+
+[source,text]
+----
+❯ gradle --configuration-cache help
+include::{snippetsPath}/configurationCache/noProblem/tests/store.out[]
+----
+
+Running this for the first time, the configuration phase is executed, calculating the task graph.
+
+Then, run the same command again.
+This will reuse the cached configuration:
+
+[source,text]
+----
+❯ gradle --configuration-cache help
+include::{snippetsPath}/configurationCache/noProblem/tests/load.out[]
+----
+
+If it succeeds on your build, congratulations, you can now try with more useful tasks.
+You should target your development loop.
+A good example is running tests after making incremental changes.
+
+If any problem is found caching or reusing the configuration, an HTML report is generated to help you diagnose and fix the issues.
+See the <<configuration_cache#troubleshooting>> section below for more information.
+
+Keep reading to learn how to tweak the configuration cache, manually invalidate the state if something goes wrong and use the configuration cache from an IDE.
 
 [[enable]]
 === Enabling the configuration cache
@@ -69,7 +102,7 @@ It can be enabled from the command line:
 
 [source,bash]
 ----
-$ gradle --configuration-cache
+❯ gradle --configuration-cache
 ----
 
 It can also be enabled persistently in a `gradle.properties` file:
@@ -83,7 +116,7 @@ If it is enabled in a `gradle.properties` file, it can be disabled on the comman
 
 [source,bash]
 ----
-$ gradle --no-configuration-cache
+❯ gradle --no-configuration-cache
 ----
 
 [[ignore_problems]]
@@ -94,7 +127,7 @@ Configuration cache problems can be turned into warnings on the command line:
 
 [source,bash]
 ----
-$ gradle --configuration-cache-problems=warn
+❯ gradle --configuration-cache-problems=warn
 ----
 
 or in a `gradle.properties` file:
@@ -113,7 +146,7 @@ This can be adjusted by specifying an allowed maximum number of problems on the 
 
 [source,bash]
 ----
-$ gradle -Dorg.gradle.unsafe.configuration-cache.max-problems=5
+❯ gradle -Dorg.gradle.unsafe.configuration-cache.max-problems=5
 ----
 
 or in a `gradle.properties` file:
@@ -127,7 +160,7 @@ org.gradle.unsafe.configuration-cache.max-problems=5
 
 The configuration cache is automatically invalidated when inputs to the configuration phase change.
 But, you may have to manually invalidate the configuration cache when untracked inputs to the configuration phase change.
-This can happen if you <<configuration_cache#ignore_problems,ignored problems>>, or when remote dependencies changed for example.
+This can happen if you <<configuration_cache#ignore_problems,ignored problems>>, or when your build uses <<dynamic_versions#sec:dynamic_versions_and_changing_modules, dynamic dependency versions>> and remote dependencies changed for example.
 See the <<configuration_cache#requirements>> and <<configuration_cache#not_yet_implemented>> sections below for more information.
 
 The configuration cache state is stored on disk in a directory named `.gradle/configuration-cache` in the root directory of the Gradle build in use.
@@ -135,9 +168,157 @@ If you need to invalidate the cache, simply delete that directory:
 
 [source,bash]
 ----
-$ rm -rf .gradle/configuration-cache
+❯ rm -rf .gradle/configuration-cache
 ----
 
+Configuration cache entries are checked periodically (at most every 24 hours) for whether they are still in use.
+They are deleted if they haven't been used for 7 days.
+
+== IDE support
+
+If you enable and configure the configuration cache from your `gradle.properties` file, then the configuration cache will be enabled when your IDE delegates to Gradle.
+There's nothing more to do.
+
+`gradle.properties` is usually checked in source control.
+If you don't want to enable the configuration cache for your whole team yet you can also enable the configuration cache from your IDE only.
+
+Note that syncing a build from an IDE doesn't benefit from the configuration cache, only running tasks does.
+Future Gradle versions will make IDE sync faster.
+
+=== IntelliJ based IDEs
+
+In IntelliJ IDEA or Android Studio this can be done in two ways, either globally or per run configuration.
+
+To enable it globally, go to `Help > Edit Custom VM Options...`.
+This will open the IntelliJ IDEA or Android Studio custom VM options file.
+You can use the properties described above as system properties.
+For example to enable the configuration cache, turning problems into warnings, add the following to this file:
+
+[source]
+----
+-Dorg.gradle.unsafe.configuration-cache=true
+-Dorg.gradle.unsafe.configuration-cache-problems=warn
+----
+
+To enable it for a given run configuration, simply add the same system properties to the `VM options` field.
+
+Combining these two ways you can enable globally and disable for certain run configurations, or the opposite.
+
+=== Eclipse IDEs
+
+In Eclipse IDEs you can enable and configure the configuration cache through Buildship in two ways, either globally or per run configuration.
+
+To enable it globally, go to `Preferences > Gradle`.
+You can use the properties described above as system properties.
+For example to enable the configuration cache, turning problems into warnings, add the following JVM arguments:
+
+* `-Dorg.gradle.unsafe.configuration-cache=true`
+* `-Dorg.gradle.unsafe.configuration-cache-problems=warn`
+
+To enable it for a given run configuration, go to `Run configurations...`, find the one you want to change, go to `Project Settings`, tick the `Override project settings` checkbox and add the same system properties as a `JVM argument`.
+
+Combining these two ways you can enable globally and disable for certain run configurations, or the opposite.
+
+[[troubleshooting]]
+== Troubleshooting
+
+Upon failure to serialize the state required to run the tasks, an HTML report of detected problems is generated.
+The Gradle failure output includes a clickable link to the report.
+
+// TODO sample output from snippet
+
+The report displays the set of problems twice.
+First grouped by problem message, then grouped by task.
+The former allows to quickly see what classes of problems your build is facing.
+The latter allows to quickly see which tasks are problematic.
+In both cases you can expand the tree in order to discover where in the object graph is the culprit.
+
+[TIP]
+====
+Problems displayed in the report have links to the corresponding <<configuration_cache#requirements,requirement>> where you can find guidance on how to fix the problem or to the corresponding <<configuration_cache#not_yet_implemented,not yet implemented>> feature.
+
+When changing your build or plugin to fix the problems you should consider <<configuration_cache#testkit, testing your build logic with TestKit>>.
+====
+
+[[plugin_support]]
+== Supported plugins
+
+[[core_plugins]]
+=== Core Gradle plugins
+
+Not all <<plugin_reference#plugin_reference, core Gradle plugins>> support configuration caching yet.
+
+[cols=3*]
+|===
+h| JVM languages and frameworks
+h| Native languages
+h| Packaging and distribution
+
+a|
+[horizontal]
+[.yellow]#⚠#:: <<java_plugin.adoc#java_plugin,Java>>
+[.yellow]#⚠#:: <<java_library_plugin.adoc#java_library_plugin,Java Library>>
+[.yellow]#⚠#:: <<java_platform_plugin.adoc#java_platform_plugin,Java Platform>>
+[.yellow]#⚠#:: <<groovy_plugin.adoc#groovy_plugin,Groovy>>
+[.red]#✖#:: <<scala_plugin.adoc#scala_plugin,Scala>>
+[.yellow]#⚠#:: <<antlr_plugin.adoc#antlr_plugin,ANTLR>>
+
+a|
+[horizontal]
+[.red]#✖#:: <<cpp_application_plugin.adoc#cpp_application_plugin,C++ Application>>
+[.red]#✖#:: <<cpp_library_plugin.adoc#cpp_library_plugin,C++ Library>>
+[.red]#✖#:: <<cpp_unit_test_plugin.adoc#cpp_unit_test_plugin,C++ Unit Test>>
+[.red]#✖#:: <<swift_application_plugin.adoc#swift_application_plugin,Swift Application>>
+[.red]#✖#:: <<swift_library_plugin.adoc#swift_library_plugin,Swift Library>>
+[.red]#✖#:: <<xctest_plugin.adoc#xctest_plugin,XCTest>>
+
+a|
+[horizontal]
+[.green]#✓#:: <<application_plugin.adoc#application_plugin,Application>>
+[.green]#✓#:: <<war_plugin.adoc#war_plugin,WAR>>
+[.green]#✓#:: <<ear_plugin.adoc#ear_plugin,EAR>>
+[.yellow]#⚠#:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
+[.red]#✖#:: <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
+[.gray]#✖#:: <<maven_plugin.adoc#maven_plugin,Legacy Maven Plugin>>
+[.green]#✓#:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
+[.yellow]#⚠#:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
+
+h| Code analysis
+h| IDE integration
+h| Utility
+
+a|
+[horizontal]
+[.red]#✖#:: <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle>>
+[.red]#✖#:: <<pmd_plugin.adoc#pmd_plugin,PMD>>
+[.red]#✖#:: <<jacoco_plugin.adoc#jacoco_plugin,JaCoCo>>
+[.red]#✖#:: <<codenarc_plugin.adoc#codenarc_plugin,CodeNarc>>
+
+a|
+[horizontal]
+[.red]#✖#:: <<eclipse_plugin.adoc#eclipse_plugin,Eclipse>>
+[.red]#✖#:: <<idea_plugin.adoc#idea_plugin,IntelliJ IDEA>>
+[.red]#✖#:: <<visual_studio_plugin.adoc#visual_studio_plugin,Visual Studio>>
+[.red]#✖#:: <<xcode_plugin.adoc#xcode_plugin,Xcode>>
+
+a|
+[horizontal]
+[.green]#✓#:: <<base_plugin.adoc#base_plugin,Base>>
+[.yellow]#⚠#:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
+[.red]#✖#:: <<signing_plugin.adoc#signing_plugin,Signing>>
+[.yellow]#⚠#:: <<java_gradle_plugin.adoc#java_gradle_plugin,Plugin Development>>
+[.red]#✖#:: <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL Plugin Development>>
+[.red]#✖#:: <<project_report_plugin.adoc#project_report_plugin,Project Report Plugin>>
+
+|===
+
+[horizontal]
+[.green]#✓#:: Supported plugin
+[.yellow]#⚠#:: Partially supported plugin
+[.red]#✖#:: Unsupported plugin
+[.gray]#✖#:: Won't fix
+
+Later Gradle releases will add support for more core plugins.
 
 [[requirements]]
 == Requirements
@@ -156,6 +337,14 @@ Usually these types are used to carry some task input that should be explicitly 
 To fix, you can often replace such a field with a `Property` or `Provider` typed field that exposes the exact information that the task will need at execution time.
 
 // TODO - examples, more details
+// - Live JVM state
+// - Gradle, Settings, Project -> data
+// - SourceSet or SourceSetContainer -> FileCollection(s) for the source directories|files, classpath or outputs
+// - Dependency resolution types
+//   - explain global rule, results NO, specs YES
+//   - Configuration -> FileCollection
+//   - Dependencies -> ArtifactCollection
+
 
 [[use_project_during_execution]]
 === Using the `Project` object
@@ -165,18 +354,103 @@ This includes calling `Task.getProject()` while the task is running.
 
 Some cases can be fixed in the same way as the previous requirement.
 
-Otherwise, to fix, use <<custom_gradle_types#service_injection,injected services>> instead of the methods of `Project`:
+Often, similar things are available on both `Project` and `Task`.
+For example if you need a `Logger` in your task actions you should use `Task.logger` instead of `Project.logger`.
 
-* `project.file(path)` -> `ProjectLayout.projectDirectory.file(path)` or `ProjectLayout.buildDirectory.file(path)`
-* `project.files(paths)` -> `ObjectFactory.fileCollection().from(paths)`
-* `project.fileTree(dir)` -> `ObjectFactory.fileTree().from(dir)`
-* `project.exec {}`  -> `ExecOperations.exec {}`
-* `project.javaexec {}` -> `ExecOperations.javaexec {}`
-* `project.copy {}` -> `FileSystemOperations.copy {}`
-* `project.sync {}` -> `FileSystemOperations.sync {}`
-* `project.delete {}` -> `FileSystemOperations.delete {}`
+Otherwise, you can use <<custom_gradle_types#service_injection,injected services>> instead of the methods of `Project`.
 
-// TODO - examples, more details
+// TODO - examples
+// - with 2 problems
+// - p1 is using `project.version`
+// - p2 is using `project.exec {}`
+// - in task types
+// - in tasks declared in scripts
+//   https://gradle.slack.com/archives/CH43P3A10/p1591477979141600
+
+[cols="a,a",options="header"]
+|===
+| Instead of:
+| Use:
+
+| `project.rootDir`
+| A task field or script variable to capture the root directory.
+
+| `project.projectDir`
+| `link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout].projectDirectory`
+
+| `project.buildDir`
+| `link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout].buildDirectory`
+
+| `project.name`
+| A task field or script variable to capture the project name.
+
+| `project.description`
+| A task field or script variable to capture the project description.
+
+| `project.group`
+| A task field or script variable to capture the project group.
+
+| `project.version`
+| A task field or script variable to capture the project version.
+
+| `project.properties`, `project.property(name)`, `project.hasProperty(name)`, `project.getProperty(name)` or `project.findProperty(name)`
+| <<configuration_cache#undeclared_gradle_prop_read, Value providers for Gradle properties>>
+
+| `project.provider {}`
+| `link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html[ProviderFactory].provider {}`
+
+| `project.file(path)`
+| `link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout].projectDirectory.file(path)` or `link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout].buildDirectory.file(path)`
+
+| `project.uri(path)`
+| [.red]#✖# Unsupported
+
+| `project.relativePath(path)`
+| `ProjectLayout.projectDirectory.file(path)`
+
+| `project.files(paths)`
+| `link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory].fileCollection().from(paths)`
+
+| `project.fileTree(paths)`
+| `link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory].fileTree().from(dir)`
+
+| `project.zipTree(path)`
+| `link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html[ArchiveOperations].zipTree(path)`
+
+| `project.tarTree(path)`
+| `link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html[ArchiveOperations].tarTree(path)`
+
+| `project.resources`
+| [.red]#✖# Unsupported
+
+| `project.copySpec {}`
+| [.red]#✖# Unsupported
+
+| `project.copy {}`
+| `link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[FileSystemOperations].copy {}`
+
+| `project.sync {}`
+| `link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[FileSystemOperations].sync {}`
+
+| `project.delete {}`
+| `link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[FileSystemOperations].delete {}`
+
+| `project.mkdir(path)`
+| The Kotlin, Groovy or Java API available to your build logic.
+
+| `project.exec {}`
+| `link:{javadocPath}/org/gradle/process/ExecOperations.html[ExecOperations].exec {}`
+
+| `project.javaexec {}`
+| `link:{javadocPath}/org/gradle/process/ExecOperations.html[ExecOperations].javaexec {}`
+
+| `project.ant {}`
+| [.red]#✖# Unsupported
+
+| `project.createAntBuilder()`
+| [.red]#✖# Unsupported
+
+|===
 
 [[task_access]]
 === Accessing a task instance from another instance
@@ -188,6 +462,7 @@ To fix, connect tasks using input and output relationships.
 `Property` and `Provider` types can be useful for this.
 
 // TODO - examples, more details
+// TODO - tasks configuring another tasks are unsupported
 
 [[build_listeners]]
 === Using build listeners
@@ -197,6 +472,59 @@ Plugins and build scripts must not register any build listeners.
 To fix, use a <<build_services#build_services,build service>>.
 
 // TODO - examples, more details
+
+[[undeclared_gradle_prop_read]]
+=== Undeclared reading of Gradle properties
+
+Plugins and build scripts should not read Gradle properties directly at configuration time.
+Instead, these Gradle properties must be declared as a potential build input by using the value supplier APIs.
+
+This problem is caused by build logic similar to this:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+def enabled = project.getProperty("some-property")
+----
+=====
+
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+val enabled = project.getProperty("some-property")
+----
+=====
+====
+
+To fix this problem, read Gradle properties using link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#gradleProperty-java.lang.String-[providers.gradleProperty()] instead:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+def enabled = providers.gradleProperty("some-property").forUseAtConfigurationTime().present
+----
+=====
+
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+val enabled = providers.gradleProperty("some-property").forUseAtConfigurationTime().isPresent
+----
+=====
+====
+
+In general, you should avoid reading the value of Gradle properties at configuration time, to avoid invalidating configuration cache entries when the Gradle property value changes.
+Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#gradleProperty-java.lang.String-[providers.gradleProperty()] to task properties.
 
 [[undeclared_sys_prop_read]]
 === Undeclared reading of system properties
@@ -210,15 +538,16 @@ This problem is caused by build logic similar to this:
 [.multi-language-sample]
 =====
 .build.gradle
-[source, groovy]
+[source,groovy]
 ----
 def enabled = System.getProperty("some-property")
 ----
 =====
+
 [.multi-language-sample]
 =====
 .build.gradle.kts
-[source, kotlin]
+[source,kotlin]
 ----
 val enabled = System.getProperty("some-property")
 ----
@@ -231,15 +560,16 @@ To fix this problem, read system properties using link:{javadocPath}/org/gradle/
 [.multi-language-sample]
 =====
 .build.gradle
-[source, groovy]
+[source,groovy]
 ----
 def enabled = providers.systemProperty("some-property").forUseAtConfigurationTime().present
 ----
 =====
+
 [.multi-language-sample]
 =====
 .build.gradle.kts
-[source, kotlin]
+[source,kotlin]
 ----
 val enabled = providers.systemProperty("some-property").forUseAtConfigurationTime().isPresent
 ----
@@ -261,15 +591,16 @@ This problem is caused by build logic similar to this:
 [.multi-language-sample]
 =====
 .build.gradle
-[source, groovy]
+[source,groovy]
 ----
 def enabled = System.getenv("SOME_ENV_VAR")
 ----
 =====
+
 [.multi-language-sample]
 =====
 .build.gradle.kts
-[source, kotlin]
+[source,kotlin]
 ----
 val enabled = System.getenv("SOME_ENV_VAR")
 ----
@@ -282,15 +613,16 @@ To fix this problem, read environment variables using link:{javadocPath}/org/gra
 [.multi-language-sample]
 =====
 .build.gradle
-[source, groovy]
+[source,groovy]
 ----
 def enabled = providers.environmentVariable("SOME_ENV_VAR").forUseAtConfigurationTime().present
 ----
 =====
+
 [.multi-language-sample]
 =====
 .build.gradle.kts
-[source, kotlin]
+[source,kotlin]
 ----
 val enabled = providers.environmentVariable("SOME_ENV_VAR").forUseAtConfigurationTime().isPresent
 ----
@@ -312,15 +644,16 @@ This problem is caused by build logic similar to this:
 [.multi-language-sample]
 =====
 .build.gradle
-[source, groovy]
+[source,groovy]
 ----
 def config = file("some.conf").text
 ----
 =====
+
 [.multi-language-sample]
 =====
 .build.gradle.kts
-[source, kotlin]
+[source,kotlin]
 ----
 val config = file("some.conf").readText()
 ----
@@ -333,25 +666,26 @@ To fix this problem, read files using link:{javadocPath}/org/gradle/api/provider
 [.multi-language-sample]
 =====
 .build.gradle
-[source, groovy]
+[source,groovy]
 ----
-def config = providers.fileContents("some.conf").forUseAtConfigurationTime().asText
+def config = providers.fileContents(layout.projectDirectory.file('some.conf'))
+    .asText.forUseAtConfigurationTime()
 ----
 =====
+
 [.multi-language-sample]
 =====
 .build.gradle.kts
-[source, kotlin]
+[source,kotlin]
 ----
-val config = providers.fileContents("some.conf").forUseAtConfigurationTime().asText
+val config = providers.fileContents(layout.projectDirectory.file("some.conf"))
+    .asText.forUseAtConfigurationTime()
 ----
 =====
 ====
 
 In general, you should avoid reading files at configuration time, to avoid invalidating configuration cache entries when the file content changes.
 Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#fileContents-org.gradle.api.file.RegularFile-[providers.fileContents()] to task properties.
-
-
 
 [[not_yet_implemented]]
 == Not yet implemented
@@ -365,6 +699,12 @@ When it comes to link:https://gradle.com/build-scans/[build scans], only the `--
 
 The build scan plugin is currently ignored when applied via an init script or build script, as is any configuration done via the build scan extension (server location, accept license, tags, etc).
 This means that scans will be published to the public `scans.gradle.com` instance by default.
+
+=== Sharing the configuration cache
+
+The configuration cache is currently stored locally only.
+It can be reused by hot or cold local Gradle daemons.
+But it can't be shared between developers or CI machines.
 
 [[composite_builds]]
 === Composite builds
@@ -387,6 +727,8 @@ With the configuration cache enabled, no problem will be reported and dependency
 <<dynamic_versions#sec:dynamic_versions_and_changing_modules,Dependencies with versions which change over time>> aren't supported yet.
 With the configuration cache enabled, no problem will be reported and changes to dependencies won't be detected.
 
+You can force refresh dynamic dependencies using `--refresh-dependencies`.
+
 === Filesystem repositories
 
 Repositories on local file systems are not supported yet.
@@ -397,7 +739,6 @@ This includes:
 * <<declaring_repositories#sec:declaring_custom_repository,Maven or Ivy repositories>> with `file://` URLs,
 * <<declaring_repositories#sub:maven_local,`mavenLocal()`>>,
 * and <<declaring_repositories#sub:flat_dir_resolver,flat directory repositories>>.
-
 
 [[testkit]]
 == Testing Build Logic with TestKit
@@ -423,17 +764,3 @@ include::sample[dir="snippets/configurationCache/testKit/kotlin",files="src/test
 If problems with the configuration cache are found then Gradle will fail the build reporting the problems, and the test will fail.
 
 When gradually improving your plugin or build logic to support the configuration cache it can be useful to temporarily <<configuration_cache.adoc#ignore_problems,ignore problems>> or <<configuration_cache.adoc#max_problems,allow a given number of problems>>.
-
-
-== Troubleshooting
-
-Upon failure to serialize the state required to run the tasks, an HTML report of detected problems is generated.
-The Gradle failure output includes a clickable link to the report.
-
-The report displays the set of problems twice.
-First grouped by error message, then grouped by task.
-The former allows to quickly see what classes of problems your build is facing.
-The latter allows to quickly see which tasks are problematic.
-In both cases you can expand the tree in order to discover where in the object graph is the culprit.
-
-Problems displayed in the report have links to the corresponding <<configuration_cache#requirements,requirement>> where you can find guidance on how to fix the problem or to the corresponding <<configuration_cache#not_yet_implemented,not yet implemented>> feature.

@@ -29,17 +29,18 @@ You should see something like this:
 ----
 ❯ gradle --version
 
------------------------------------------------------------
-Gradle 4.6
+------------------------------------------------------------
+Gradle 6.5
 ------------------------------------------------------------
 
-Build time:   2018-02-21 15:28:42 UTC
-Revision:     819e0059da49f469d3e9b2896dc4e72537c4847d
+Build time:   2020-06-02 20:46:21 UTC
+Revision:     a27f41e4ae5e8a41ab9b19f8dd6d86d7b384dad4
 
-Groovy:       2.4.12
-Ant:          Apache Ant(TM) version 1.9.9 compiled on February 2 2017
-JVM:          1.8.0_151 (Oracle Corporation 25.151-b12)
-OS:           Mac OS X 10.13.3 x86_64
+Kotlin:       1.3.72
+Groovy:       2.5.11
+Ant:          Apache Ant(TM) version 1.10.7 compiled on September 1 2019
+JVM:          14 (AdoptOpenJDK 14+36)
+OS:           Mac OS X 10.15.2 x86_64
 ----
 
 If not, here are some things you might see instead.
