@@ -17,14 +17,11 @@ package org.gradle.groovy
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForFileSystemWatching
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
-@ToBeFixedForFileSystemWatching(because = "https://github.com/gradle/gradle/issues/13135", failsOnlyIf = TestPrecondition.WINDOWS)
 class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyResolutionTest {
 
     ResolveTestFixture resolve
