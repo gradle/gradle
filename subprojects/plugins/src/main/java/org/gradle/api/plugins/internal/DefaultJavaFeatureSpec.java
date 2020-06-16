@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.plugins.JvmEcosystemUtilities;
+import org.gradle.api.plugins.internal.support.JavaComponentBuilderInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 
@@ -101,7 +102,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
                 builder.published();
             }
             for (Capability capability : capabilities) {
-                builder.capability(capability);
+                ((JavaComponentBuilderInternal)builder).capability(capability);
             }
         });
 

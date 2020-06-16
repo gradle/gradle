@@ -28,6 +28,9 @@ import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.component.AdhocComponentWithVariants;
+import org.gradle.api.component.ConfigurationVariantDetails;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
@@ -196,7 +199,8 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
             sourceSets,
             configurations,
             tasks,
-            components);
+            components,
+            project);
         configuration.execute(builder);
         builder.build();
     }
@@ -219,6 +223,7 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
         Action<? super JvmEcosystemAttributesDetails> attributesRefiner;
         List<Capability> capabilities;
         boolean classDirectory;
+        private boolean published;
 
         private DefaultElementsConfigurationBuilder(String name) {
             this.name = name;
@@ -271,6 +276,12 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
                     throw new IllegalStateException("Cannot add a class directory variant without specifying the source set");
                 }
                 configureClassesDirectoryVariant(name, sourceSet);
+            }
+            if (published) {
+                AdhocComponentWithVariants component = findJavaComponent();
+                if (component != null) {
+                    component.addVariantsFromConfiguration(cnf, ConfigurationVariantDetails::mapToOptional);
+                }
             }
             return cnf;
         }
@@ -330,6 +341,21 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
         public OutgoingElementsBuilder withClassDirectoryVariant() {
             this.classDirectory = true;
             return this;
+        }
+
+        @Override
+        public OutgoingElementsBuilder published() {
+            this.published = true;
+            return this;
+        }
+
+        @Nullable
+        public AdhocComponentWithVariants findJavaComponent() {
+            SoftwareComponent component = components.findByName("java");
+            if (component instanceof AdhocComponentWithVariants) {
+                return (AdhocComponentWithVariants) component;
+            }
+            return null;
         }
     }
 

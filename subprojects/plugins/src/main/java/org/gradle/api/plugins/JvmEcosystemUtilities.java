@@ -232,6 +232,13 @@ public interface JvmEcosystemUtilities {
          * This should only be called in association with {@link #fromSourceSet(SourceSet)}
          */
         OutgoingElementsBuilder withClassDirectoryVariant();
+
+        /**
+         * Configures this outgoing variant for publication. A published outgoing variant
+         * configured this way will be mapped to the "optional" scope, meaning that its
+         * dependencies will appear as optional in the generated POM file.
+         */
+        OutgoingElementsBuilder published();
     }
 
     /**
@@ -241,6 +248,7 @@ public interface JvmEcosystemUtilities {
      * @since 6.6
      */
     @Incubating
+    @HasInternalProtocol
     interface JavaComponentBuilder {
         /**
          * If this method is called, this allows using an existing source set instead
@@ -278,17 +286,20 @@ public interface JvmEcosystemUtilities {
 
         /**
          * Explicitly declares a capability provided by this component
-         * @param capability the capability this component provides
-         */
-        JavaComponentBuilder capability(Capability capability);
-
-        /**
-         * Explicitly declares a capability provided by this component
          * @param group the capability group
          * @param name the capability name
          * @param version the capability version
          */
         JavaComponentBuilder capability(String group, String name, @Nullable String version);
+
+        /**
+         * Tells that this component is not the main component and corresponds to a different "thing"
+         * than the main one. For example, test fixtures are different than the component method.
+         * It will implicitly declare a capability which name is derived from the project name and
+         * this component name. For example, for project "lib" and a component named "languageSupport",
+         * the capability name for this component will be "lib-language-support"
+         */
+        JvmEcosystemUtilities.JavaComponentBuilder secondaryComponent();
 
         /**
          * If this method is called, then this component will automatically be
