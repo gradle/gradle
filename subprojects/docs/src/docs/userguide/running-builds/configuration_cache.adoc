@@ -243,6 +243,7 @@ When changing your build or plugin to fix the problems you should consider <<con
 [[plugin_support]]
 == Supported plugins
 
+[[core_plugins]]
 === Core Gradle plugins
 
 Not all <<plugin_reference#plugin_reference, core Gradle plugins>> support configuration caching yet.
