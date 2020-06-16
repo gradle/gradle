@@ -19,8 +19,6 @@ package org.gradle.api.publish.internal;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.publish.Publication;
 
-import java.util.function.Supplier;
-
 import static java.lang.String.format;
 
 public abstract class PublishOperation implements Runnable {
@@ -44,22 +42,10 @@ public abstract class PublishOperation implements Runnable {
         try {
             publish();
         } catch (Exception e) {
-            throw publishExceptionFor(e, publicationName, repository);
+            throw new PublishException(
+                format("Failed to publish publication '%s' to repository '%s'", publicationName, repository),
+                e
+            );
         }
-    }
-
-    public static <T> T run(String publicationName, String repository, Supplier<T> supplier) {
-        try {
-            return supplier.get();
-        } catch (Exception e) {
-            throw publishExceptionFor(e, publicationName, repository);
-        }
-    }
-
-    private static PublishException publishExceptionFor(Exception e, String publicationName, String repository) {
-        return new PublishException(
-            format("Failed to publish publication '%s' to repository '%s'", publicationName, repository),
-            e
-        );
     }
 }
