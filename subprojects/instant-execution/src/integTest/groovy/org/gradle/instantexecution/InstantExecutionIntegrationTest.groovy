@@ -43,11 +43,13 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "help"
         def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
             .replaceAll(/Calculating task graph as no configuration cache is available for tasks: help\n/, '')
+            .replaceAll(/Configuration cache entry stored.\n/, '')
 
         when:
         instantRun "help"
         def secondRunOutput = removeVfsLogOutput(result.normalizedOutput)
             .replaceAll(/Reusing configuration cache.\n/, '')
+            .replaceAll(/Configuration cache entry reused.\n/, '')
 
         then:
         firstRunOutput == secondRunOutput

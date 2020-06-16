@@ -18,6 +18,9 @@ package org.gradle.instantexecution.problems
 
 import org.gradle.BuildAdapter
 import org.gradle.BuildResult
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.logging.Logging
+import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.instantexecution.InstantExecutionProblemsException
 import org.gradle.instantexecution.InstantExecutionReport
 import org.gradle.instantexecution.TooManyInstantExecutionProblemsException
@@ -57,19 +60,38 @@ class InstantExecutionProblems(
     val buildFinishedHandler = BuildFinishedProblemsHandler()
 
     private
+    val postBuildHandler = PostBuildProblemsHandler()
+
+    private
     val problems = CopyOnWriteArrayList<PropertyProblem>()
 
     private
     var isFailOnProblems = startParameter.failOnProblems
 
+    private
+    var isFailingBuildDueToSerializationError = false
+
+    private
+    var isLoading = false
+
     init {
         listenerManager.addListener(problemHandler)
         listenerManager.addListener(buildFinishedHandler)
+        listenerManager.addListener(postBuildHandler)
     }
 
     override fun close() {
         listenerManager.removeListener(problemHandler)
         listenerManager.removeListener(buildFinishedHandler)
+        listenerManager.removeListener(postBuildHandler)
+    }
+
+    fun storing() {
+        isLoading = false
+    }
+
+    fun loading() {
+        isLoading = true
     }
 
     override fun onProblem(problem: PropertyProblem) {
@@ -77,6 +99,7 @@ class InstantExecutionProblems(
     }
 
     fun failingBuildDueToSerializationError() {
+        isFailingBuildDueToSerializationError = true
         isFailOnProblems = false
     }
 
@@ -108,5 +131,35 @@ class InstantExecutionProblems(
                 report.logConsoleSummary(problems)
             }
         }
+    }
+
+    private
+    inner class PostBuildProblemsHandler : RootBuildLifecycleListener {
+
+        override fun afterStart(gradle: GradleInternal) = Unit
+
+        override fun beforeComplete(gradle: GradleInternal) {
+            when {
+                isFailingBuildDueToSerializationError && problems.isEmpty() -> log("Configuration cache entry not stored.")
+                isFailingBuildDueToSerializationError -> log("Configuration cache entry not stored with {}.", problemCount)
+                isLoading && problems.isEmpty() -> log("Configuration cache entry reused.")
+                isLoading -> log("Configuration cache entry reused with {}.", problemCount)
+                problems.isEmpty() -> log("Configuration cache entry stored.")
+                else -> log("Configuration cache entry stored with {}.", problemCount)
+            }
+        }
+
+        private
+        val problemCount: String
+            get() = if (problems.size == 1) "1 problem"
+            else "${problems.size} problems"
+
+        private
+        fun log(msg: String, vararg args: Any = emptyArray()) {
+            logger.warn(msg, *args)
+        }
+
+        private
+        val logger = Logging.getLogger(InstantExecutionProblems::class.java)
     }
 }
