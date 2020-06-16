@@ -16,6 +16,7 @@
 package gradlebuild
 
 import accessors.base
+import org.gradle.gradlebuild.packaging.ShadedJarPlugin
 import org.gradle.gradlebuild.versioning.buildVersion
 import java.time.Year
 
@@ -23,18 +24,11 @@ plugins {
     `maven-publish`
 }
 
-val localRepository = layout.buildDirectory.dir("repo")
-
 publishing {
     publications {
         create<MavenPublication>("gradleDistribution") {
             from(components["java"])
             artifactId = base.archivesBaseName
-        }
-        create<MavenPublication>("local") {
-            from(components["java"])
-            artifactId = base.archivesBaseName
-            version = rootProject.buildVersion.baseVersion
         }
     }
     repositories {
@@ -47,10 +41,6 @@ publishing {
                 password = artifactoryUserPassword
             }
         }
-        maven {
-            name = "local"
-            url = uri(localRepository)
-        }
     }
     configurePublishingTasks()
 }
@@ -60,47 +50,9 @@ fun Project.configurePublishingTasks() {
         onlyIf { !project.hasProperty("noUpload") }
         failEarlyIfCredentialsAreNotSet(this)
     }
-    val localPublish = tasks.named("publishLocalPublicationToLocalRepository") {
-        doFirst {
-            val moduleBaseDir = localRepository.get().dir("org/gradle/${base.archivesBaseName}").asFile
-            if (moduleBaseDir.exists()) {
-                // Make sure artifacts do not pile up locally
-                moduleBaseDir.deleteRecursively()
-            }
-        }
 
-        doLast {
-            localRepository.get().file("org/gradle/${base.archivesBaseName}/maven-metadata.xml").asFile.apply {
-                writeText(readText().replace("\\Q<lastUpdated>\\E\\d+\\Q</lastUpdated>\\E".toRegex(), "<lastUpdated>${Year.now().value}0101000000</lastUpdated>"))
-            }
-            localRepository.get().asFileTree.matching { include("**/*.module") }.forEach {
-                val content = it.readText()
-                    .replace("\"buildId\":\\s+\"\\w+\"".toRegex(), "\"buildId\": \"\"")
-                    .replace("\"size\":\\s+\\d+".toRegex(), "\"size\": 0")
-                    .replace("\"sha512\":\\s+\"\\w+\"".toRegex(), "\"sha512\": \"\"")
-                    .replace("\"sha1\":\\s+\"\\w+\"".toRegex(), "\"sha1\": \"\"")
-                    .replace("\"sha256\":\\s+\"\\w+\"".toRegex(), "\"sha256\": \"\"")
-                    .replace("\"md5\":\\s+\"\\w+\"".toRegex(), "\"md5\": \"\"")
-                it.writeText(content)
-            }
-        }
-    }
-
-    // For local consumption by tests
-    configurations.create("localLibsRepositoryElements") {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("gradle-local-repository"))
-            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EMBEDDED))
-        }
-        isCanBeResolved = false
-        isCanBeConsumed = true
-        isVisible = false
-        outgoing.artifact(mapOf(
-            "file" to localRepository.get().asFile, // This is not lazy
-            "builtBy" to localPublish
-        ))
+    plugins.withType<ShadedJarPlugin> {
+        publishNormalizedToLocalRepository()
     }
 }
 
@@ -123,4 +75,70 @@ val Project.artifactoryUserName
 val Project.artifactoryUserPassword
     get() = findProperty("artifactoryUserPassword") as String?
 
+fun Project.publishNormalizedToLocalRepository() {
+    val localRepository = layout.buildDirectory.dir("repo")
 
+    publishing {
+        repositories {
+            maven {
+                name = "local"
+                url = uri(localRepository)
+            }
+        }
+        publications {
+            create<MavenPublication>("local") {
+                from(project.components["java"])
+                artifactId = project.base.archivesBaseName
+                version = project.rootProject.buildVersion.baseVersion
+            }
+        }
+    }
+    project.tasks.named("publishLocalPublicationToRemoteRepository") {
+        enabled = false // don't publish normalized local version to remote repository when using 'publish' lifecycle task
+    }
+    project.tasks.named("publishGradleDistributionPublicationToLocalRepository") {
+        enabled = false // this should not be used so we disable it to avoid confusion when using 'publish' lifecycle task
+    }
+    val localPublish = project.tasks.named("publishLocalPublicationToLocalRepository") {
+        doFirst {
+            val moduleBaseDir = localRepository.get().dir("org/gradle/${project.base.archivesBaseName}").asFile
+            if (moduleBaseDir.exists()) {
+                // Make sure artifacts do not pile up locally
+                moduleBaseDir.deleteRecursively()
+            }
+        }
+
+        doLast {
+            localRepository.get().file("org/gradle/${project.base.archivesBaseName}/maven-metadata.xml").asFile.apply {
+                writeText(readText().replace("\\Q<lastUpdated>\\E\\d+\\Q</lastUpdated>\\E".toRegex(), "<lastUpdated>${Year.now().value}0101000000</lastUpdated>"))
+            }
+            localRepository.get().asFileTree.matching { include("**/*.module") }.forEach {
+                val content = it.readText()
+                    .replace("\"buildId\":\\s+\"\\w+\"".toRegex(), "\"buildId\": \"\"")
+                    .replace("\"size\":\\s+\\d+".toRegex(), "\"size\": 0")
+                    .replace("\"sha512\":\\s+\"\\w+\"".toRegex(), "\"sha512\": \"\"")
+                    .replace("\"sha1\":\\s+\"\\w+\"".toRegex(), "\"sha1\": \"\"")
+                    .replace("\"sha256\":\\s+\"\\w+\"".toRegex(), "\"sha256\": \"\"")
+                    .replace("\"md5\":\\s+\"\\w+\"".toRegex(), "\"md5\": \"\"")
+                it.writeText(content)
+            }
+        }
+    }
+
+    // For local consumption by tests
+    project.configurations.create("localLibsRepositoryElements") {
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category.LIBRARY))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named("gradle-local-repository"))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling.EMBEDDED))
+        }
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        isVisible = false
+        outgoing.artifact(mapOf(
+            "file" to localRepository.get().asFile, // This is not lazy
+            "builtBy" to localPublish
+        ))
+    }
+}
