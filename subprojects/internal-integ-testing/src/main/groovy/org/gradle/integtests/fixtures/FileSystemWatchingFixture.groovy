@@ -20,26 +20,26 @@ import groovy.transform.SelfType
 import org.junit.Before
 
 @SelfType(AbstractIntegrationSpec)
-trait VfsRetentionFixture {
+trait FileSystemWatchingFixture {
 
     @Before
     void setupFirstBuild() {
         // Make the first build in each test drop the VFS state
-        executer.withArgument(VfsRetentionHelper.dropVfsArgument)
+        executer.withArgument(FileSystemWatchingHelper.dropVfsArgument)
     }
 
-    AbstractIntegrationSpec withRetention() {
-        executer.withArgument(VfsRetentionHelper.enableVfsRetentionArgument)
+    AbstractIntegrationSpec withWatchFs() {
+        executer.withArgument(FileSystemWatchingHelper.enableFsWatchingArgument)
         this
     }
 
-    def withoutRetention() {
-        executer.withArgument(VfsRetentionHelper.disableVfsRetentionArgument)
+    def withoutWatchFs() {
+        executer.withArgument(FileSystemWatchingHelper.disableFsWatchingArgument)
         this
     }
 
     void waitForChangesToBePickedUp() {
-        VfsRetentionHelper.waitForChangesToBePickedUp()
+        FileSystemWatchingHelper.waitForChangesToBePickedUp()
     }
 
     int getReceivedFileSystemEventsInCurrentBuild() {

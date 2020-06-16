@@ -22,19 +22,19 @@ import org.spockframework.runtime.model.FeatureInfo;
 import org.spockframework.runtime.model.ISkippable;
 import org.spockframework.runtime.model.SpecInfo;
 
-public class ToBeFixedForVfsRetentionExtension extends AbstractAnnotationDrivenExtension<ToBeFixedForVfsRetention> {
+public class ToBeFixedForFileSystemWatchingExtension extends AbstractAnnotationDrivenExtension<ToBeFixedForFileSystemWatching> {
     @Override
-    public void visitSpecAnnotation(ToBeFixedForVfsRetention annotation, SpecInfo spec) {
+    public void visitSpecAnnotation(ToBeFixedForFileSystemWatching annotation, SpecInfo spec) {
         doVisit(spec, annotation);
     }
 
     @Override
-    public void visitFeatureAnnotation(ToBeFixedForVfsRetention annotation, FeatureInfo feature) {
+    public void visitFeatureAnnotation(ToBeFixedForFileSystemWatching annotation, FeatureInfo feature) {
         doVisit(feature, annotation);
     }
 
-    private void doVisit(ISkippable skippable, ToBeFixedForVfsRetention annotation) {
-        if (GradleContextualExecuter.isVfsRetention() && annotation.failsOnlyIf().isFulfilled()) {
+    private void doVisit(ISkippable skippable, ToBeFixedForFileSystemWatching annotation) {
+        if (GradleContextualExecuter.isWatchFs() && annotation.failsOnlyIf().isFulfilled()) {
             skippable.setSkipped(true);
         }
     }

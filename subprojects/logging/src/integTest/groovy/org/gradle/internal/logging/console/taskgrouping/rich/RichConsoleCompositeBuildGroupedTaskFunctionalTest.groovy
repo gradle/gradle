@@ -17,11 +17,11 @@
 package org.gradle.internal.logging.console.taskgrouping.rich
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
+import org.gradle.integtests.fixtures.ToBeFixedForFileSystemWatching
 import org.gradle.internal.logging.console.taskgrouping.AbstractConsoleCompositeBuildGroupedTaskFunctionalTest
 import org.gradle.util.TestPrecondition
 
-@ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/13366", failsOnlyIf = TestPrecondition.WINDOWS)
+@ToBeFixedForFileSystemWatching(because = "https://github.com/gradle/gradle/issues/13366", failsOnlyIf = TestPrecondition.WINDOWS)
 class RichConsoleCompositeBuildGroupedTaskFunctionalTest extends AbstractConsoleCompositeBuildGroupedTaskFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Rich
 }

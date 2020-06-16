@@ -66,7 +66,7 @@ class LifecyclePlugin : Plugin<Project> {
     val instantTest = "instantTest"
 
     private
-    val vfsRetentionTest = "vfsRetentionTest"
+    val watchFsTest = "watchFsTest"
 
     private
     val soakTest = "soakTest"
@@ -283,8 +283,8 @@ class LifecyclePlugin : Plugin<Project> {
             group = ciGroup
         }
 
-        register(vfsRetentionTest) {
-            description = "Run all integration tests with vfs retention enabled"
+        register(watchFsTest) {
+            description = "Run all integration tests with file-system watching enabled"
             group = ciGroup
         }
 
@@ -322,8 +322,8 @@ class LifecyclePlugin : Plugin<Project> {
             dependsOn("instantIntegTest")
         }
 
-        named(vfsRetentionTest) {
-            dependsOn("vfsRetentionIntegTest")
+        named(watchFsTest) {
+            dependsOn("watchFsIntegTest")
         }
 
         named(forceRealizeDependencyManagementTest) {

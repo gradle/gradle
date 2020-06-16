@@ -20,7 +20,7 @@ import org.gradle.initialization.StartParameterBuildOptions;
 
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_DROP_PROPERTY;
 
-public class VfsRetentionHelper {
+public class FileSystemWatchingHelper {
 
     private static final int WAIT_FOR_CHANGES_PICKED_UP_MILLIS = 80;
 
@@ -28,11 +28,11 @@ public class VfsRetentionHelper {
         Thread.sleep(WAIT_FOR_CHANGES_PICKED_UP_MILLIS);
     }
 
-    public static String getEnableVfsRetentionArgument() {
+    public static String getEnableFsWatchingArgument() {
         return booleanBuildOption(StartParameterBuildOptions.WatchFileSystemOption.LONG_OPTION, true);
     }
 
-    public static String getDisableVfsRetentionArgument() {
+    public static String getDisableFsWatchingArgument() {
         return booleanBuildOption(StartParameterBuildOptions.WatchFileSystemOption.LONG_OPTION, false);
     }
 
