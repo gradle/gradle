@@ -128,8 +128,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         if (!((PublicationArtifactInternal) artifact).shouldBePublished()) {
             return false;
         }
-        File file = artifact.getFile();
-        return file != null && file.exists();
+        return artifact.getFile().exists();
     };
 
     @VisibleForTesting
