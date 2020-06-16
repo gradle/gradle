@@ -78,6 +78,7 @@ import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInterna
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
@@ -96,6 +97,8 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
+import static java.util.stream.Collectors.toSet;
 
 public class DefaultMavenPublication implements MavenPublicationInternal {
     private final static Logger LOG = Logging.getLogger(DefaultMavenPublication.class);
@@ -635,14 +638,19 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     @Override
     public MavenNormalizedPublication asNormalisedPublication() {
         populateFromComponent();
+        MavenArtifact mainArtifact = determineMainArtifact();
         return new MavenNormalizedPublication(
             name,
             projectIdentity,
             pom.getPackaging(),
-            getPomArtifact(),
-            determineMainArtifact(),
-            new LinkedHashSet<>(artifactsToBePublished())
+            serializableArtifactFor(getPomArtifact()),
+            mainArtifact != null ? serializableArtifactFor(mainArtifact) : null,
+            artifactsToBePublished().stream().map(this::serializableArtifactFor).collect(toSet())
         );
+    }
+
+    private MavenArtifact serializableArtifactFor(MavenArtifact pomArtifact) {
+        return new SerializableMavenArtifact(pomArtifact);
     }
 
     private DomainObjectSet<MavenArtifact> artifactsToBePublished() {
@@ -883,6 +891,63 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         @Override
         public int hashCode() {
             return Objects.hashCode(group, name, targetConfiguration, attributes, artifacts, excludeRules, requestedCapabilities);
+        }
+    }
+
+    private static class SerializableMavenArtifact implements MavenArtifact, PublicationArtifactInternal {
+
+        private final File file;
+        private final String extension;
+        private final String classifier;
+        private final boolean shouldBePublished;
+
+        public SerializableMavenArtifact(MavenArtifact artifact) {
+            PublicationArtifactInternal artifactInternal = (PublicationArtifactInternal) artifact;
+            this.file = artifact.getFile();
+            this.extension = artifact.getExtension();
+            this.classifier = artifact.getClassifier();
+            this.shouldBePublished = artifactInternal.shouldBePublished();
+        }
+
+        @Override
+        public String getExtension() {
+            return extension;
+        }
+
+        @Override
+        public void setExtension(String extension) {
+            throw new IllegalStateException();
+        }
+
+        @Nullable
+        @Override
+        public String getClassifier() {
+            return classifier;
+        }
+
+        @Override
+        public void setClassifier(@Nullable String classifier) {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public File getFile() {
+            return file;
+        }
+
+        @Override
+        public void builtBy(Object... tasks) {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public TaskDependency getBuildDependencies() {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public boolean shouldBePublished() {
+            return shouldBePublished;
         }
     }
 }

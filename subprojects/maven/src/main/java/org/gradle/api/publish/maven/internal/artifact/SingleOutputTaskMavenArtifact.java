@@ -21,36 +21,29 @@ import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.internal.serialization.Cached;
-import org.gradle.internal.serialization.Transient;
 
 import java.io.File;
 
 public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
-    private final Transient<TaskProvider<? extends Task>> generator;
+    private final TaskProvider<? extends Task> generator;
     private final String extension;
     private final String classifier;
-    private final Transient<TaskDependencyInternal> buildDependencies;
-    private final Cached<File> file = Cached.of(this::computeFile);
+    private final TaskDependencyInternal buildDependencies;
 
     public SingleOutputTaskMavenArtifact(TaskProvider<? extends Task> generator, String extension, String classifier) {
-        this.generator = Transient.of(generator);
+        this.generator = generator;
         this.extension = extension;
         this.classifier = classifier;
-        this.buildDependencies = Transient.of(new GeneratorTaskDependency());
+        this.buildDependencies = new GeneratorTaskDependency();
     }
 
     @Override
     public File getFile() {
-        return file.get();
-    }
-
-    private File computeFile() {
         return getGenerator().getOutputs().getFiles().getSingleFile();
     }
 
     private Task getGenerator() {
-        return generator.get().get();
+        return generator.get();
     }
 
     @Override
@@ -65,7 +58,7 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
 
     @Override
     protected TaskDependencyInternal getDefaultBuildDependencies() {
-        return buildDependencies.get();
+        return buildDependencies;
     }
 
     public boolean isEnabled() {
