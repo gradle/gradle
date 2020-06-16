@@ -52,7 +52,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         and:
         instant.assertStateStoreFailed()
-        outputContains("Configuration cache entry not stored.")
+        outputContains("Configuration cache entry discarded.")
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
@@ -69,7 +69,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         and:
         instant.assertStateStoreFailed()
-        outputContains("Configuration cache entry not stored.")
+        outputContains("Configuration cache entry discarded.")
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
@@ -110,7 +110,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         and:
         instant.assertStateStoreFailed()
-        outputContains("Configuration cache entry not stored with 2 problems.")
+        outputContains("Configuration cache entry discarded with 2 problems.")
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
@@ -130,7 +130,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         and:
         instant.assertStateStoreFailed()
-        outputContains("Configuration cache entry not stored with 2 problems.")
+        outputContains("Configuration cache entry discarded with 2 problems.")
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)

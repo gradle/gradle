@@ -141,8 +141,8 @@ class InstantExecutionProblems(
 
         override fun beforeComplete(gradle: GradleInternal) {
             when {
-                isFailingBuildDueToSerializationError && problems.isEmpty() -> log("Configuration cache entry not stored.")
-                isFailingBuildDueToSerializationError -> log("Configuration cache entry not stored with {}.", problemCount)
+                isFailingBuildDueToSerializationError && problems.isEmpty() -> log("Configuration cache entry discarded.")
+                isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCount)
                 isLoading && problems.isEmpty() -> log("Configuration cache entry reused.")
                 isLoading -> log("Configuration cache entry reused with {}.", problemCount)
                 problems.isEmpty() -> log("Configuration cache entry stored.")
