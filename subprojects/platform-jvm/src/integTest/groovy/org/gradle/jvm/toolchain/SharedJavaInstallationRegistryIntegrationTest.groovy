@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 
 class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
-    def "plugin can query information about the current JVM"() {
+    def "installation registry is populated by system properties"() {
         def someJavaHome = AvailableJavaHomes.bestJre;
 
         buildFile << """
