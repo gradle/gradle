@@ -20,6 +20,7 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JvmEcosystemUtilities;
@@ -93,6 +94,12 @@ class DefaultJvmEcosystemAttributesDetails implements JvmEcosystemUtilities.JvmE
     @Override
     public JvmEcosystemUtilities.JvmEcosystemAttributesDetails asJar() {
         attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
+        return this;
+    }
+
+    @Override
+    public JvmEcosystemUtilities.JvmEcosystemAttributesDetails withTargetJvmVersion(int version) {
+        attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, version);
         return this;
     }
 }

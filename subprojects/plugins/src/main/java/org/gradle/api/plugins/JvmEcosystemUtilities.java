@@ -165,6 +165,16 @@ public interface JvmEcosystemUtilities {
          * resources
          */
         JvmEcosystemAttributesDetails asJar();
+
+        /**
+         * Configures the target JVM version. For producers of a library, it's in general
+         * a better idea to rely on inference which will calculate the target JVM version
+         * lazily, for example calling {@link JvmEcosystemUtilities#useDefaultTargetPlatformInference(Configuration, SourceSet)}.
+         * For consumers, it makes sense to specify a specific version of JVM they target.
+         *
+         * @param version the Java version
+         */
+        JvmEcosystemAttributesDetails withTargetJvmVersion(int version);
     }
 
     /**
