@@ -37,7 +37,8 @@ dependencies {
     integTestImplementation(project(":native"))
     integTestImplementation(library("guava"))
     integTestRuntimeOnly(project(":apiMetadata"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
+
+    integTestDistributionRuntimeOnly(project(":distributionsFull"))
 
     integTestRuntimeOnly(project(":pluginDevelopment")) {
         because("used by PluginBuilder")

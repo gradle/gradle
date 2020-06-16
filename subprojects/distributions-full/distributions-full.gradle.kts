@@ -19,6 +19,7 @@ dependencies {
     pluginsRuntimeOnly(project(":buildInit"))
     pluginsRuntimeOnly(project(":buildProfile"))
     pluginsRuntimeOnly(project(":antlr"))
+    pluginsRuntimeOnly(project(":enterprise"))
 
     // The following are scheduled to be removed from the distribution completely in Gradle 7.0
     pluginsRuntimeOnly(project(":javascript"))
