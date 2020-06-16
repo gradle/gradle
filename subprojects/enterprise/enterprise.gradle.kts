@@ -37,20 +37,6 @@ dependencies {
     integTestImplementation(project(":persistentCache"))
     integTestImplementation(project(":native"))
     integTestImplementation(library("guava"))
-    integTestRuntimeOnly(project(":apiMetadata"))
 
     integTestDistributionRuntimeOnly(project(":distributionsFull"))
-
-    integTestRuntimeOnly(project(":pluginDevelopment")) {
-        because("used by PluginBuilder")
-    }
-
-    integTestRuntimeOnly(project(":testKit")) {
-        because("needed for some reason by builds executed with PluginBuilder")
-    }
-
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins")) {
-        because("some integ test builds use Kotlin")
-    }
-
 }
