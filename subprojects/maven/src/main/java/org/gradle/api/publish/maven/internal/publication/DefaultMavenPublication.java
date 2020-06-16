@@ -96,9 +96,11 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toMap;
 
 public class DefaultMavenPublication implements MavenPublicationInternal {
     private final static Logger LOG = Logging.getLogger(DefaultMavenPublication.class);
@@ -637,18 +639,41 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     @Override
     public MavenNormalizedPublication asNormalisedPublication() {
         populateFromComponent();
-        MavenArtifact mainArtifact = determineMainArtifact();
+
+        // Preserve identity of artifacts
+        Map<MavenArtifact, MavenArtifact> normalizedArtifacts = normalizedMavenArtifacts();
+
         return new MavenNormalizedPublication(
             name,
             projectIdentity,
             pom.getPackaging(),
-            serializableArtifactFor(getPomArtifact()),
-            mainArtifact != null ? serializableArtifactFor(mainArtifact) : null,
-            artifactsToBePublished().stream().map(this::serializableArtifactFor).collect(toSet())
+            normalizedArtifactFor(getPomArtifact(), normalizedArtifacts),
+            normalizedArtifactFor(determineMainArtifact(), normalizedArtifacts),
+            new LinkedHashSet<>(normalizedArtifacts.values())
         );
     }
 
-    private MavenArtifact serializableArtifactFor(MavenArtifact pomArtifact) {
+    private MavenArtifact normalizedArtifactFor(MavenArtifact artifact, Map<MavenArtifact, MavenArtifact> normalizedArtifacts) {
+        if (artifact == null) {
+            return null;
+        }
+        MavenArtifact normalized = normalizedArtifacts.get(artifact);
+        if (normalized != null) {
+            return normalized;
+        }
+        return normalizedArtifactFor(artifact);
+    }
+
+    private Map<MavenArtifact, MavenArtifact> normalizedMavenArtifacts() {
+        return artifactsToBePublished()
+            .stream()
+            .collect(toMap(
+                Function.identity(),
+                this::normalizedArtifactFor
+            ));
+    }
+
+    private MavenArtifact normalizedArtifactFor(MavenArtifact pomArtifact) {
         // TODO: introduce something like a NormalizedMavenArtifact to capture the required MavenArtifact
         //  information and only that instead of having MavenArtifact references in
         //  MavenNormalizedPublication
