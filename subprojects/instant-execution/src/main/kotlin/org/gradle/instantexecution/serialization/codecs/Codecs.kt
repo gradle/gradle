@@ -147,6 +147,7 @@ class Codecs(
 
         bind(IsolatedManagedValueCodec(managedFactoryRegistry))
         bind(IsolatedImmutableManagedValueCodec(managedFactoryRegistry))
+        bind(IsolatedSerializedValueSnapshotCodec)
         bind(IsolatedArrayCodec)
         bind(IsolatedSetCodec)
         bind(IsolatedListCodec)

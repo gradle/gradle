@@ -1238,7 +1238,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         useParameterObject << [true, false]
     }
 
-    @ToBeFixedForInstantExecution(because = "cannot decode isolated transform parameters")
     def "transform is supplied with a different output directory when parameters change"() {
         given:
         // Use another script to define the value, so that transform implementation does not change when the value is changed
