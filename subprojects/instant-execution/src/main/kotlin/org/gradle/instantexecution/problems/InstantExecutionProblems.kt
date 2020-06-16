@@ -21,6 +21,9 @@ import org.gradle.BuildResult
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.RootBuildLifecycleListener
+import org.gradle.instantexecution.InstantExecutionCacheAction
+import org.gradle.instantexecution.InstantExecutionCacheAction.LOAD
+import org.gradle.instantexecution.InstantExecutionCacheAction.STORE
 import org.gradle.instantexecution.InstantExecutionProblemsException
 import org.gradle.instantexecution.InstantExecutionReport
 import org.gradle.instantexecution.TooManyInstantExecutionProblemsException
@@ -72,7 +75,7 @@ class InstantExecutionProblems(
     var isFailingBuildDueToSerializationError = false
 
     private
-    var isLoading = false
+    lateinit var cacheAction: InstantExecutionCacheAction
 
     init {
         listenerManager.addListener(problemHandler)
@@ -87,11 +90,11 @@ class InstantExecutionProblems(
     }
 
     fun storing() {
-        isLoading = false
+        cacheAction = STORE
     }
 
     fun loading() {
-        isLoading = true
+        cacheAction = LOAD
     }
 
     override fun onProblem(problem: PropertyProblem) {
@@ -121,15 +124,18 @@ class InstantExecutionProblems(
             if (result.gradle?.parent != null || problems.isEmpty()) {
                 return
             }
-            val cacheAction = if (isLoading) "reusing" else "storing"
-            report.writeReportFiles(cacheAction, problems)
+            val cacheActionText = when (cacheAction) {
+                LOAD -> "reusing"
+                STORE -> "storing"
+            }
+            report.writeReportFiles(cacheActionText, problems)
             if (isFailOnProblems) {
                 // TODO - always include this as a build failure; currently it is disabled when a serialization problem happens
-                throw InstantExecutionProblemsException(problems.causes(), cacheAction, problems, report.htmlReportFile)
+                throw InstantExecutionProblemsException(problems.causes(), cacheActionText, problems, report.htmlReportFile)
             } else if (problems.size > startParameter.maxProblems) {
-                throw TooManyInstantExecutionProblemsException(problems.causes(), cacheAction, problems, report.htmlReportFile)
+                throw TooManyInstantExecutionProblemsException(problems.causes(), cacheActionText, problems, report.htmlReportFile)
             } else {
-                report.logConsoleSummary(cacheAction, problems)
+                report.logConsoleSummary(cacheActionText, problems)
             }
         }
     }
@@ -140,11 +146,12 @@ class InstantExecutionProblems(
         override fun afterStart(gradle: GradleInternal) = Unit
 
         override fun beforeComplete(gradle: GradleInternal) {
+            if (!this@InstantExecutionProblems::cacheAction.isInitialized) return
             when {
                 isFailingBuildDueToSerializationError && problems.isEmpty() -> log("Configuration cache entry discarded.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCount)
-                isLoading && problems.isEmpty() -> log("Configuration cache entry reused.")
-                isLoading -> log("Configuration cache entry reused with {}.", problemCount)
+                cacheAction == LOAD && problems.isEmpty() -> log("Configuration cache entry reused.")
+                cacheAction == LOAD -> log("Configuration cache entry reused with {}.", problemCount)
                 problems.isEmpty() -> log("Configuration cache entry stored.")
                 else -> log("Configuration cache entry stored with {}.", problemCount)
             }
