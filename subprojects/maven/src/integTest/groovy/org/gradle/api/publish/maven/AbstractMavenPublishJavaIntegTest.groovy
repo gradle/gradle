@@ -846,7 +846,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         javaLibrary.assertApiDependencies("org.test:a:1.0", "org.gradle.test:subproject:1.2")
         javaLibrary.assertRuntimeDependencies("org.test:b:2.0")
         with(javaLibrary.parsedPom) {
-            with (scopes.compile) {
+            with(scopes.compile) {
                 hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("apiElements-group", "apiElements-module"))
                 hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("runtime-group", "runtime-module"))
                 hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("api-group", "api-module"))
@@ -854,7 +854,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                 hasDependencyExclusion("org.gradle.test:subproject:1.2", new MavenDependencyExclusion("runtime-group", "runtime-module"))
                 hasDependencyExclusion("org.gradle.test:subproject:1.2", new MavenDependencyExclusion("api-group", "api-module"))
             }
-            with (scopes.runtime) {
+            with(scopes.runtime) {
                 hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("runtimeElements-group", "runtimeElements-module"))
                 hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("implementation-group", "implementation-module"))
                 hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("api-group", "api-module"))
@@ -1318,7 +1318,7 @@ include(':platform')
             }
 
             java {
-                ${features().findAll { it != MavenJavaModule.MAIN_FEATURE }.collect { "registerFeature('$it') { usingSourceSet(sourceSets.${it}SourceSet); ${withDocs() ? 'withJavadocJar(); withSourcesJar()' : ''} }"}.join('\n')}
+                ${features().findAll { it != MavenJavaModule.MAIN_FEATURE }.collect { "registerFeature('$it') { usingSourceSet(sourceSets.${it}SourceSet); ${withDocs() ? 'withJavadocJar(); withSourcesJar()' : ''} }" }.join('\n')}
                 ${withDocs() ? 'withJavadocJar(); withSourcesJar()' : ''}
             }
 
