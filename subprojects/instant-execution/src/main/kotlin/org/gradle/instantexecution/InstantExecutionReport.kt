@@ -79,12 +79,12 @@ class InstantExecutionReport(
     }
 
     internal
-    fun writeReportFiles(problems: List<PropertyProblem>) {
+    fun writeReportFiles(cacheAction: String, problems: List<PropertyProblem>) {
         require(outputDirectory.mkdirs()) {
             "Could not create configuration cache report directory '$outputDirectory'"
         }
         copyReportResources(outputDirectory)
-        writeJsReportData(problems, outputDirectory)
+        writeJsReportData(cacheAction, problems, outputDirectory)
     }
 
     private
@@ -109,20 +109,21 @@ class InstantExecutionReport(
      * from it by skipping the first and last lines of the file.
      */
     private
-    fun writeJsReportData(problems: List<PropertyProblem>, outputDirectory: File) {
+    fun writeJsReportData(cacheAction: String, problems: List<PropertyProblem>, outputDirectory: File) {
         outputDirectory.resolve("configuration-cache-report-data.js").bufferedWriter().use { writer ->
             writer.run {
                 appendln("function configurationCacheProblems() { return (")
-                writeJsonModelFor(problems)
+                writeJsonModelFor(cacheAction, problems)
                 appendln(");}")
             }
         }
     }
 
     private
-    fun BufferedWriter.writeJsonModelFor(problems: List<PropertyProblem>) {
+    fun BufferedWriter.writeJsonModelFor(cacheAction: String, problems: List<PropertyProblem>) {
         val documentationRegistry = DocumentationRegistry()
         appendln("{") // begin JSON
+        appendln("\"cacheAction\": \"$cacheAction\",")
         appendln("\"documentationLink\": \"${documentationRegistry.getDocumentationFor("configuration_cache")}\",")
         appendln("\"problems\": [") // begin problems
         problems.forEachIndexed { index, problem ->

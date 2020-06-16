@@ -122,7 +122,7 @@ class InstantExecutionProblems(
                 return
             }
             val cacheAction = if (isLoading) "reusing" else "storing"
-            report.writeReportFiles(problems)
+            report.writeReportFiles(cacheAction, problems)
             if (isFailOnProblems) {
                 // TODO - always include this as a build failure; currently it is disabled when a serialization problem happens
                 throw InstantExecutionProblemsException(problems.causes(), cacheAction, problems, report.htmlReportFile)
