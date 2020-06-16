@@ -977,7 +977,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     }
 
     @Issue("gradle/gradle#5450")
-    @ToBeFixedForInstantExecution
     def "doesn't fail with NPE if no component is attached to a publication"() {
         createBuildScripts("""
         publishing {
@@ -1232,7 +1231,6 @@ include(':platform')
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:
         createBuildScripts("""
@@ -1279,7 +1277,6 @@ include(':platform')
         failure.assertHasCause("Variant for configuration annotationProcessor does not exist in component java")
     }
 
-    @ToBeFixedForInstantExecution
     def "fails if trying to publish a component with all variants filtered"() {
         createBuildScripts("""
             publishing {
