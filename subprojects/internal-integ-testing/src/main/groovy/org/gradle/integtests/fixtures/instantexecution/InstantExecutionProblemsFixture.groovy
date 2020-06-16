@@ -337,7 +337,7 @@ final class InstantExecutionProblemsFixture {
     }
 
     private static ProblemsSummary extractSummary(String text) {
-        def headerPattern = Pattern.compile("(\\d+) configuration cache (problems were|problem was) found(, (\\d+) of which seem(s)? unique)?.*")
+        def headerPattern = Pattern.compile("(\\d+) (problems were|problem was) found (storing|reusing) the configuration cache(, (\\d+) of which seem(s)? unique)?.*")
         def problemPattern = Pattern.compile("- (.*)")
         def docPattern = Pattern.compile(" {2}\\QSee https://docs.gradle.org\\E.*")
         def tooManyProblemsPattern = Pattern.compile("plus (\\d+) more problems. Please see the report for details.")
@@ -355,7 +355,7 @@ ${text}
         def matcher = headerPattern.matcher(summary.first)
         assert matcher.matches()
         def totalProblems = matcher.group(1).toInteger()
-        def expectedUniqueProblems = matcher.group(4)?.toInteger() ?: totalProblems
+        def expectedUniqueProblems = matcher.group(5)?.toInteger() ?: totalProblems
         summary = summary.drop(1)
 
         def problems = []

@@ -133,6 +133,8 @@ class DefaultInstantExecution internal constructor(
             return
         }
 
+        problems.storing()
+
         Instrumented.discardListener()
         stopCollectingCacheFingerprint()
 
@@ -153,6 +155,8 @@ class DefaultInstantExecution internal constructor(
     override fun loadScheduledWork() {
 
         require(isInstantExecutionEnabled)
+
+        problems.loading()
 
         // No need to record the `ClassLoaderScope` tree
         // when loading the task graph.
