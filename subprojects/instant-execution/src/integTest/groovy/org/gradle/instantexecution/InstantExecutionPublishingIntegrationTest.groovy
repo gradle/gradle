@@ -140,7 +140,9 @@ class InstantExecutionPublishingIntegrationTest extends AbstractInstantExecution
 
     private Map<File, String> mavenRepoFiles() {
         listFiles(mavenRepo.rootDir, null, true)
-            .collectEntries { [it, textForComparisonOf(it)] }
+            .collectEntries { File repoFile ->
+                [repoFile, textForComparisonOf(repoFile)]
+            }
     }
 
     private String textForComparisonOf(File repositoryFile) {
