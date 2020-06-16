@@ -126,13 +126,17 @@ class InstantExecutionProblems(
             }
             val cacheActionText = requireNotNull(cacheAction).summaryText()
             report.writeReportFiles(cacheActionText, problems)
-            if (isFailOnProblems) {
-                // TODO - always include this as a build failure; currently it is disabled when a serialization problem happens
-                throw InstantExecutionProblemsException(problems.causes(), cacheActionText, problems, report.htmlReportFile)
-            } else if (problems.size > startParameter.maxProblems) {
-                throw TooManyInstantExecutionProblemsException(problems.causes(), cacheActionText, problems, report.htmlReportFile)
-            } else {
-                report.logConsoleSummary(cacheActionText, problems)
+            when {
+                isFailOnProblems -> {
+                    // TODO - always include this as a build failure; currently it is disabled when a serialization problem happens
+                    throw newProblemsException(cacheActionText)
+                }
+                problems.size > startParameter.maxProblems -> {
+                    throw newTooManyProblemsException(cacheActionText)
+                }
+                else -> {
+                    report.logConsoleSummary(cacheActionText, problems)
+                }
             }
         }
 
@@ -142,6 +146,24 @@ class InstantExecutionProblems(
                 LOAD -> "reusing"
                 STORE -> "storing"
             }
+
+        private
+        fun newProblemsException(cacheActionText: String) =
+            InstantExecutionProblemsException(
+                problems.causes(),
+                cacheActionText,
+                problems,
+                report.htmlReportFile
+            )
+
+        private
+        fun newTooManyProblemsException(cacheActionText: String) =
+            TooManyInstantExecutionProblemsException(
+                problems.causes(),
+                cacheActionText,
+                problems,
+                report.htmlReportFile
+            )
     }
 
     private
