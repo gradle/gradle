@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal
 
+import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.ToStringLogger
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -66,6 +67,17 @@ class SystemPropertyInstallationSupplierTest extends Specification {
 
         then:
         directories == [new File("/foo/bar")] as Set
+    }
+
+    def "uses org_gradle_java_installations_paths as source"() {
+        SystemProperties.withSystemProperty("org.gradle.java.installations.paths", "/foo/bar", {
+            when:
+            def directories = supplier.get()
+
+            then:
+            directories == [new File("/foo/bar")] as Set
+        });
+
     }
 
     def "supplies multiple installations for multiple paths"() {
