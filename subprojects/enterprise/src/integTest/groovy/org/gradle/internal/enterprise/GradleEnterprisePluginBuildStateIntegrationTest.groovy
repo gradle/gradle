@@ -17,6 +17,7 @@
 package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.buildevents.BuildStartedTime
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.scopeids.id.UserScopeId
@@ -50,6 +51,8 @@ class GradleEnterprisePluginBuildStateIntegrationTest extends AbstractIntegratio
                     assert buildState.buildInvocationId == services.get(${BuildInvocationScopeId.name}).id.asString()
                     assert buildState.workspaceId == services.get(${WorkspaceScopeId.name}).id.asString()
                     assert buildState.userId == services.get(${UserScopeId.name}).id.asString()
+
+                    assert (buildState.daemonScanInfo != null) == ${GradleContextualExecuter.isDaemon()}
                 }
             }
         """

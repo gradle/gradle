@@ -16,6 +16,7 @@
 
 package org.gradle.internal.enterprise.impl;
 
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.enterprise.GradleEnterprisePluginBuildState;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -24,6 +25,7 @@ import org.gradle.internal.scopeids.id.WorkspaceScopeId;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Clock;
+import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
 
 @ServiceScope(Scopes.BuildTree)
 public class DefaultGradleEnterprisePluginBuildState implements GradleEnterprisePluginBuildState {
@@ -33,19 +35,22 @@ public class DefaultGradleEnterprisePluginBuildState implements GradleEnterprise
     private final BuildInvocationScopeId buildInvocationId;
     private final WorkspaceScopeId workspaceId;
     private final UserScopeId userId;
+    private final GradleInternal gradle;
 
     public DefaultGradleEnterprisePluginBuildState(
         Clock clock,
         BuildStartedTime buildStartedTime,
         BuildInvocationScopeId buildInvocationId,
         WorkspaceScopeId workspaceId,
-        UserScopeId userId
+        UserScopeId userId,
+        GradleInternal gradle
     ) {
         this.clock = clock;
         this.buildStartedTime = buildStartedTime;
         this.buildInvocationId = buildInvocationId;
         this.workspaceId = workspaceId;
         this.userId = userId;
+        this.gradle = gradle;
     }
 
     @Override
@@ -71,5 +76,10 @@ public class DefaultGradleEnterprisePluginBuildState implements GradleEnterprise
     @Override
     public String getUserId() {
         return userId.getId().asString();
+    }
+
+    @Override
+    public DaemonScanInfo getDaemonScanInfo() {
+        return (DaemonScanInfo) gradle.getServices().find(DaemonScanInfo.class);
     }
 }

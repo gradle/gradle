@@ -106,6 +106,7 @@ class GradleEnterprisePluginCheckInFixture {
                         println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.buildInvocationId = \$buildState.buildInvocationId"
                         println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.workspaceId = \$buildState.workspaceId"
                         println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.userId = \$buildState.userId"
+                        println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.daemonScanInfo.numberOfBuilds = \${buildState.daemonScanInfo?.numberOfBuilds}"
 
                         new $GradleEnterprisePluginService.name() {
 

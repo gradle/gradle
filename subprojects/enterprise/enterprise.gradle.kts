@@ -26,6 +26,7 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":coreApi"))
     implementation(project(":core"))
+    implementation(project(":launcher"))
 
     integTestImplementation(project(":internalTesting"))
     integTestImplementation(project(":internalIntegTesting"))

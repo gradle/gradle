@@ -17,6 +17,9 @@
 package org.gradle.internal.enterprise;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
+
+import javax.annotation.Nullable;
 
 /**
  * Information about the current build invocation or build invocation environment required by the plugin.
@@ -33,5 +36,8 @@ public interface GradleEnterprisePluginBuildState {
     String getWorkspaceId();
 
     String getUserId();
+
+    @Nullable // if not a daemon build
+    DaemonScanInfo getDaemonScanInfo();
 
 }
