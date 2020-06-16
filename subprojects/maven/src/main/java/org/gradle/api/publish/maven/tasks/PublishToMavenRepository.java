@@ -68,65 +68,6 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
         doPublish(spec.publication, spec.repository.get(getServices()));
     }
 
-    static abstract class RepositorySpec {
-
-        static RepositorySpec of(MavenArtifactRepository repository) {
-            return new Configured(repository);
-        }
-
-        abstract MavenArtifactRepository get(ServiceRegistry services);
-
-        static class Configured extends RepositorySpec implements java.io.Serializable {
-            final MavenArtifactRepository repository;
-
-            public Configured(MavenArtifactRepository repository) {
-                this.repository = repository;
-            }
-
-            @Override
-            MavenArtifactRepository get(ServiceRegistry services) {
-                return repository;
-            }
-
-            private Object writeReplace() {
-                if ("file".equals(repository.getUrl().getScheme())) {
-                    return new LocalRepositorySpec(repository.getUrl());
-                }
-                return this;
-            }
-        }
-
-        static class LocalRepositorySpec extends RepositorySpec {
-
-            private final URI repositoryUrl;
-
-            public LocalRepositorySpec(URI repositoryUrl) {
-                this.repositoryUrl = repositoryUrl;
-            }
-
-            @Override
-            MavenArtifactRepository get(ServiceRegistry services) {
-                MavenArtifactRepository repository = services.get(BaseRepositoryFactory.class).createMavenRepository();
-                repository.setUrl(repositoryUrl);
-                return repository;
-            }
-        }
-    }
-
-    static class PublishSpec {
-
-        private final RepositorySpec repository;
-        private final MavenNormalizedPublication publication;
-
-        public PublishSpec(
-            RepositorySpec repository,
-            MavenNormalizedPublication publication
-        ) {
-            this.repository = repository;
-            this.publication = publication;
-        }
-    }
-
     private PublishSpec computeSpec() {
         MavenPublicationInternal publicationInternal = getPublicationInternal();
         if (publicationInternal == null) {
@@ -159,5 +100,79 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
         return new ValidatingMavenPublisher(
             getMavenPublishers().getRemotePublisher(getTemporaryDirFactory())
         );
+    }
+
+    static class PublishSpec {
+
+        private final RepositorySpec repository;
+        private final MavenNormalizedPublication publication;
+
+        public PublishSpec(
+            RepositorySpec repository,
+            MavenNormalizedPublication publication
+        ) {
+            this.repository = repository;
+            this.publication = publication;
+        }
+    }
+
+    static abstract class RepositorySpec {
+
+        static RepositorySpec of(MavenArtifactRepository repository) {
+            return new Configured(repository);
+        }
+
+        abstract MavenArtifactRepository get(ServiceRegistry services);
+
+        static class Configured extends RepositorySpec implements java.io.Serializable {
+            final MavenArtifactRepository repository;
+
+            public Configured(MavenArtifactRepository repository) {
+                this.repository = repository;
+            }
+
+            @Override
+            MavenArtifactRepository get(ServiceRegistry services) {
+                return repository;
+            }
+
+            private Object writeReplace() {
+                if ("file".equals(repository.getUrl().getScheme())) {
+                    return new LocalRepositorySpec(repository.getUrl());
+                }
+                // Let the configuration cache report on the unsupported repository
+                return new UnsupportedRepositorySpec(repository);
+            }
+        }
+
+        static class LocalRepositorySpec extends RepositorySpec {
+
+            private final URI repositoryUrl;
+
+            public LocalRepositorySpec(URI repositoryUrl) {
+                this.repositoryUrl = repositoryUrl;
+            }
+
+            @Override
+            MavenArtifactRepository get(ServiceRegistry services) {
+                MavenArtifactRepository repository = services.get(BaseRepositoryFactory.class).createMavenRepository();
+                repository.setUrl(repositoryUrl);
+                return repository;
+            }
+        }
+
+        static class UnsupportedRepositorySpec extends RepositorySpec {
+
+            private final MavenArtifactRepository repository;
+
+            public UnsupportedRepositorySpec(MavenArtifactRepository repository) {
+                this.repository = repository;
+            }
+
+            @Override
+            MavenArtifactRepository get(ServiceRegistry services) {
+                return repository;
+            }
+        }
     }
 }
