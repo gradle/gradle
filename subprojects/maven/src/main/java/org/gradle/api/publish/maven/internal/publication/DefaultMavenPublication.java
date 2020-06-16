@@ -649,6 +649,9 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     private MavenArtifact serializableArtifactFor(MavenArtifact pomArtifact) {
+        // TODO: introduce something like a NormalizedMavenArtifact to capture the required MavenArtifact
+        //  information and only that instead of having MavenArtifact references in
+        //  MavenNormalizedPublication
         return new SerializableMavenArtifact(pomArtifact);
     }
 
