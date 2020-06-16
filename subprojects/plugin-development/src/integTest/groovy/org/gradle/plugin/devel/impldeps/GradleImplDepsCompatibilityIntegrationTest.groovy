@@ -21,6 +21,7 @@ import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.ErroringAction
 import org.gradle.internal.IoActions
+import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
@@ -154,6 +155,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
+                        .withTestKitDir(new java.io.File("${TextUtil.normaliseFileSeparators(executer.gradleUserHomeDir.absolutePath)}"))
                         .build()
 
                     then:

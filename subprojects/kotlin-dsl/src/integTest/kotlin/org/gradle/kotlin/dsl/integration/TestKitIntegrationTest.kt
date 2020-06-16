@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
@@ -115,6 +116,7 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
                         .withProjectDir(temporaryFolder.root)
                         .withPluginClasspath()
                         .withArguments(*arguments)
+                        .withTestKitDir(java.io.File("${executer.gradleUserHomeDir.normalisedPath}"))
                         .build()
 
                 private
