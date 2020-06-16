@@ -108,7 +108,6 @@ Found the following publications in project ':project3':
   - Maven publication 'extra' with coordinates extra.group:extra:extra"""
     }
 
-    @ToBeFixedForInstantExecution
     def "referenced project can have additional non-component publications"() {
         createBuildScripts("""
 project(":project3") {
@@ -294,7 +293,7 @@ project(":project2") {
             subprojects {
                 apply plugin: 'java'
                 apply plugin: 'maven'
-                
+
                 group = "org.gradle.test"
                 version = "1.0"
 
@@ -303,7 +302,7 @@ project(":project2") {
                     println project.name + " RESOLUTION"
                 }
             }
-           
+
             subprojects {
                 if (name.startsWith("consumer")) {
                     dependencies {
@@ -313,7 +312,7 @@ project(":project2") {
                     }
                 }
             }
-            
+
             def verify = tasks.register("verify") {
                 dependsOn ((0..${parallelProjectCount}).collect { ":consumer" + it + ":install" })
                 doLast {
