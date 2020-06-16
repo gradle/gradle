@@ -42,6 +42,7 @@ import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.FileReference;
 import org.gradle.plugins.ide.eclipse.model.Library;
+import org.gradle.plugins.ide.eclipse.model.UnresolvedLibrary;
 import org.gradle.plugins.ide.eclipse.model.Variable;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
@@ -131,23 +132,23 @@ public class EclipseDependenciesCreator {
             File javaDocFile = javaDoc.isEmpty() ? null : javaDoc.iterator().next().getFile();
             ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
             ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier.getModuleIdentifier(), componentIdentifier.getVersion());
-            modules.add(createLibraryEntry(artifact.getFile(), sourceFile, javaDocFile, classpath, moduleVersionIdentifier, pathToSourceSets, testDependency, asJavaModule));
+            modules.add(createLibraryEntry(artifact.getFile(), sourceFile, javaDocFile, classpath, moduleVersionIdentifier, pathToSourceSets, testDependency, asJavaModule, false));
         }
 
         @Override
         public void visitFileDependency(ResolvedArtifactResult artifact, boolean testDependency) {
-            files.add(createLibraryEntry(artifact.getFile(), null, null, classpath, null, pathToSourceSets, testDependency, false));
+            files.add(createLibraryEntry(artifact.getFile(), null, null, classpath, null, pathToSourceSets, testDependency, false, false));
         }
 
         @Override
         public void visitGradleApiDependency(ResolvedArtifactResult artifact, File sources, boolean testConfiguration) {
-            files.add(createLibraryEntry(artifact.getFile(), sources, null, classpath, null, pathToSourceSets, testConfiguration, false));
+            files.add(createLibraryEntry(artifact.getFile(), sources, null, classpath, null, pathToSourceSets, testConfiguration, false, false));
         }
 
         @Override
         public void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency) {
             File unresolvedFile = unresolvedIdeDependencyHandler.asFile(unresolvedDependency, project.getProjectDir());
-            files.add(createLibraryEntry(unresolvedFile, null, null, classpath, null, pathToSourceSets, false, false));
+            files.add(createLibraryEntry(unresolvedFile, null, null, classpath, null, pathToSourceSets, false, false, true));
             unresolvedIdeDependencyHandler.log(unresolvedDependency);
         }
 
@@ -201,14 +202,15 @@ public class EclipseDependenciesCreator {
             return result.build();
         }
 
-        private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath classpath, ModuleVersionIdentifier id, Multimap<String, String> pathToSourceSets, boolean testDependency, boolean asJavaModule) {
+        private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath classpath, ModuleVersionIdentifier id, Multimap<String, String> pathToSourceSets, boolean testDependency, boolean asJavaModule, boolean isUnresolved) {
             FileReferenceFactory referenceFactory = classpath.getFileReferenceFactory();
 
             FileReference binaryRef = referenceFactory.fromFile(binary);
             FileReference sourceRef = referenceFactory.fromFile(source);
             FileReference javadocRef = referenceFactory.fromFile(javadoc);
 
-            final AbstractLibrary out = binaryRef.isRelativeToPathVariable() ? new Variable(binaryRef) : new Library(binaryRef);
+            final AbstractLibrary out = binaryRef.isRelativeToPathVariable() ?
+                new Variable(binaryRef) : (isUnresolved ? new UnresolvedLibrary(binaryRef) : new Library(binaryRef));
 
             out.setJavadocPath(javadocRef);
             out.setSourcePath(sourceRef);

@@ -43,12 +43,14 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
     Project child1
     Project child2
     Project child3
+    Project child4
 
     def setup() {
         project = TestUtil.builder(temporaryFolder.testDirectory).withName("project").build()
         child1 = ProjectBuilder.builder().withName("child1").withParent(project).build()
         child2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
         child3 = ProjectBuilder.builder().withName("child3").withParent(project).build()
+        child4 = ProjectBuilder.builder().withName("child4").withParent(project).build()
         new File(project.projectDir, "settings.gradle") << """
             rootProject.name = 'test'
         """
@@ -56,8 +58,8 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
         def libsDir = new File(project.projectDir, "libs")
         libsDir.mkdirs()
         new File(libsDir, "test-1.0.jar").createNewFile()
-        [project, child1, child2, child3].each { it.pluginManager.apply(EclipsePlugin) }
-        [child1, child2, child3].each {
+        [project, child1, child2, child3, child4].each { it.pluginManager.apply(EclipsePlugin) }
+        [child1, child2, child3, child4].each {
             it.plugins.apply(JavaPlugin)
             it.repositories.flatDir {
                 dirs libsDir
@@ -87,6 +89,11 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
                 entries += [customDependency]
             }
         }
+        child4.dependencies {
+            implementation child1.dependencies.project(path: ":child1")
+            implementation "unresolved:dependency:10.0"
+            implementation "fakegroup:test:1.0"
+        }
     }
 
     def "project dependencies are mapped to eclipse model"() {
@@ -103,6 +110,20 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
         eclipseChild2.classpath.collect { it.file.name } == ["test-1.0.jar"]
     }
 
+    def "unresolved dependencies are marked as such"(){
+        setup:
+        def modelBuilder = createEclipseModelBuilder()
+
+        when:
+        def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
+
+        then:
+        DefaultEclipseProject eclipseChild4 = eclipseModel.children.find { it.name == 'child4' }
+        def unresolvedRefs = eclipseChild4.classpath.findAll { it.isUnresolved() }
+        unresolvedRefs.size == 1
+        unresolvedRefs[0].file.name.contains("unresolved dependency")
+    }
+
     def "project dependencies are mapped to eclipse model with supplied runtime"() {
         setup:
         def eclipseRuntime = eclipseRuntime([gradleProject(child1), gradleProject(child2)])
@@ -117,7 +138,6 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
         // verify we inherit the transitive dependency
         eclipseChild2.classpath.collect { it.file.name } == ["test-1.0.jar"]
     }
-
 
     def "project dependency is replaced when project is closed"() {
         setup:
