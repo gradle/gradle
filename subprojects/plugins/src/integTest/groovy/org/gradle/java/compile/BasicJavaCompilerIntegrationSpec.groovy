@@ -195,6 +195,20 @@ compileJava {
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "fails to compile with release property and flag set"() {
+        given:
+        goodCode()
+        buildFile << """
+compileJava.options.compilerArgs.addAll(['--release', '12'])
+compileJava.release.set(8)
+"""
+
+        expect:
+        fails 'compileJava'
+        failureHasCause('Cannot specify --release via `CompileOptions.compilerArgs` when using `JavaCompile.release`.')
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
     def "compile with release property and autoTargetJvmDisabled"() {
         given:
         goodCode()
