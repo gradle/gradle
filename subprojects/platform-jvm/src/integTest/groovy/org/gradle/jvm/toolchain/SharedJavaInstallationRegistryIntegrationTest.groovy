@@ -44,10 +44,16 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
 
         when:
         result = executer.withArgument("-Dorg.gradle.java.installations.paths=/unknown/path," + someJavaHome).withTasks("show").run()
-
         then:
         outputContains("Directory '/unknown/path' used for java installations does not exist")
         outputContains("[" + someJavaHome + "]")
+
+        when:
+        result = executer.withArgument("-Dorg.gradle.java.installations.paths=/other/path," + someJavaHome).withTasks("show").run()
+        then:
+        outputContains("Directory '/other/path' used for java installations does not exist")
+        outputContains("[" + someJavaHome + "]")
+
     }
 
 }

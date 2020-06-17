@@ -39,6 +39,7 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.internal.DefaultJavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
+import org.gradle.jvm.toolchain.internal.SystemPropertyInstallationSupplier;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 import java.util.Collection;
@@ -54,13 +55,15 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.add(JavaInstallationProbe.class);
-        registration.add(SharedJavaInstallationRegistry.class);
     }
+
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(DefaultJavaInstallationRegistry.class);
         registration.addProvider(new BuildScopeServices());
+        registration.add(SharedJavaInstallationRegistry.class);
+        registration.add(SystemPropertyInstallationSupplier.class);
     }
 
     private static class BuildScopeServices {

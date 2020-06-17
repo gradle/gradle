@@ -18,7 +18,9 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.provider.ProviderFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Set;
@@ -28,19 +30,22 @@ public class SystemPropertyInstallationSupplier implements InstallationSupplier 
 
     private final String systemPropertyName;
     private final Logger logger;
+    private ProviderFactory factory;
 
-    public SystemPropertyInstallationSupplier() {
+    @Inject
+    public SystemPropertyInstallationSupplier(ProviderFactory factory) {
         this("org.gradle.java.installations.paths", Logging.getLogger(SystemPropertyInstallationSupplier.class));
+        this.factory = factory;
     }
 
-    SystemPropertyInstallationSupplier(String systemPropertyName, Logger logger) {
+    private SystemPropertyInstallationSupplier(String systemPropertyName, Logger logger) {
         this.systemPropertyName = systemPropertyName;
         this.logger = logger;
     }
 
     @Override
     public Set<File> get() {
-        final String listOfDirectories = System.getProperty(systemPropertyName, "");
+        final String listOfDirectories = factory.systemProperty(systemPropertyName).forUseAtConfigurationTime().get();
         return Arrays.stream(listOfDirectories.split(",")).map(File::new).filter(this::pathMayBeValid).collect(Collectors.toSet());
     }
 
