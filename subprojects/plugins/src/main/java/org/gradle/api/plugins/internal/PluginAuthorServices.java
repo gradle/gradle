@@ -22,6 +22,9 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JvmEcosystemUtilities;
 import org.gradle.api.plugins.internal.support.DefaultJvmEcosystemUtilities;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.Describables;
+import org.gradle.internal.instantiation.InstanceGenerator;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -50,8 +53,16 @@ public class PluginAuthorServices extends AbstractPluginServiceRegistry {
         JvmEcosystemUtilities createJvmEcosystemUtilities(ConfigurationContainer configurations,
                                                           ObjectFactory objectFactory,
                                                           TaskContainer tasks,
-                                                          SoftwareComponentContainer components) {
-            return new DefaultJvmEcosystemUtilities(configurations, objectFactory, tasks, components);
+                                                          SoftwareComponentContainer components,
+                                                          InstantiatorFactory instantiatorFactory) {
+            InstanceGenerator instantiator = instantiatorFactory.decorateScheme().instantiator();
+            return instantiator.newInstanceWithDisplayName(DefaultJvmEcosystemUtilities.class,
+                Describables.of("JVM Plugin Utilities"),
+                configurations,
+                objectFactory,
+                tasks,
+                components,
+                instantiator);
         }
     }
 }

@@ -25,12 +25,15 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JvmEcosystemUtilities;
 
+import javax.inject.Inject;
+
 import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE;
 
-class DefaultJvmEcosystemAttributesDetails implements JvmEcosystemUtilities.JvmEcosystemAttributesDetails {
+public class DefaultJvmEcosystemAttributesDetails implements JvmEcosystemUtilities.JvmEcosystemAttributesDetails {
     private final ObjectFactory objectFactory;
     private final AttributeContainerInternal attributes;
 
+    @Inject
     public DefaultJvmEcosystemAttributesDetails(ObjectFactory objectFactory, AttributeContainerInternal attributes) {
         this.objectFactory = objectFactory;
         this.attributes = attributes;
