@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -25,9 +25,9 @@ import org.junit.Rule
  * Tests maven POM customization
  */
 class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTest {
-    @Rule SetSystemProperties sysProp = new SetSystemProperties()
+    @Rule
+    SetSystemProperties sysProp = new SetSystemProperties()
 
-    @ToBeFixedForInstantExecution
     def "can customize pom xml"() {
         given:
         settingsFile << "rootProject.name = 'customizePom'"
@@ -231,7 +231,6 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         parsedPom.properties["prop.with.dots"].text() == "anotherValue"
     }
 
-    @ToBeFixedForInstantExecution
     def "can generate pom file without publishing"() {
         given:
         settingsFile << "rootProject.name = 'generatePom'"
@@ -278,7 +277,6 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         pom.description == "Test for pom generation"
     }
 
-    @ToBeFixedForInstantExecution
     def "has reasonable error message when withXml fails"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -313,7 +311,6 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         failure.assertHasCause("No such property: foo for class: groovy.util.Node")
     }
 
-    @ToBeFixedForInstantExecution
     def "has reasonable error message when withXml produces invalid POM file"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -346,7 +343,6 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         failure.assertHasCause("Invalid publication 'maven': POM file is invalid. Check any modifications you have made to the POM file.")
     }
 
-    @ToBeFixedForInstantExecution
     def "has reasonable error message when withXML modifies publication coordinates"() {
         when:
         settingsFile << "rootProject.name = 'root'"
@@ -379,7 +375,6 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         failure.assertHasCause("Invalid publication 'maven': supplied version (1.0) does not match value from POM file (2.0). Cannot edit version directly in the POM file.")
     }
 
-    @ToBeFixedForInstantExecution
     def "withXml should not loose Gradle metadata marker"() {
         settingsFile << """
             rootProject.name = 'customizePom'

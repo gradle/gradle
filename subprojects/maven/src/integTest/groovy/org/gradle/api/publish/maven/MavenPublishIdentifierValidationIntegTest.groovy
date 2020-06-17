@@ -118,7 +118,6 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         identifier << Identifier.all
     }
 
-    @ToBeFixedForInstantExecution
     def "fails with reasonable error message for invalid identifier value"() {
         buildFile << """
             apply plugin: 'maven-publish'
@@ -157,9 +156,9 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
 
             publishing {
                 repositories {
-                    maven { 
+                    maven {
                         name '${repoName}'
-                        url "${mavenRepo.uri}" 
+                        url "${mavenRepo.uri}"
                     }
                 }
                 publications {

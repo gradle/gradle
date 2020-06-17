@@ -64,7 +64,6 @@ class MavenPublishLoggingIntegTest extends AbstractMavenPublishIntegTest {
         output.contains("Uploading maven-metadata.xml to ")
     }
 
-    @ToBeFixedForInstantExecution
     def "does not log uploads when installing to mavenLocal"() {
         when:
         succeeds 'publishToMavenLocal', '-i'

@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
 class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest {
     def publishedModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
 
-    @ToBeFixedForInstantExecution
     def "cannot publish custom component with no usages or variants"() {
         createBuildScripts("""
             publishing {
@@ -92,7 +91,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
         publishedModule.assertPublished()
         publishedModule.parsedPom.scopes.isEmpty()
         publishedModule.parsedModuleMetadata.variants*.name == ["usage"]
-        with (publishedModule.parsedModuleMetadata.variant("usage")) { variant ->
+        with(publishedModule.parsedModuleMetadata.variant("usage")) { variant ->
             variant.files.empty
             variant.dependencies.empty
             variant.availableAt.coords == 'org.gradle.test:nested:1.9-SNAPSHOT'

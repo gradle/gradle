@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.DependencyArtifact;
@@ -77,6 +78,7 @@ import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInterna
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
@@ -94,7 +96,11 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+
+import static java.util.stream.Collectors.toMap;
 
 public class DefaultMavenPublication implements MavenPublicationInternal {
     private final static Logger LOG = Logging.getLogger(DefaultMavenPublication.class);
@@ -365,9 +371,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     private boolean isNotDefaultCapability(Capability capability) {
-        return !capability.getGroup().equals(getCoordinates().getGroup())
-            || !capability.getName().equals(getCoordinates().getName())
-            || !capability.getVersion().equals(getCoordinates().getVersion());
+        ModuleVersionIdentifier coordinates = getCoordinates();
+        return !capability.getGroup().equals(coordinates.getGroup())
+            || !capability.getName().equals(coordinates.getName())
+            || !capability.getVersion().equals(coordinates.getVersion());
     }
 
     private boolean isDependencyWithDefaultArtifact(ModuleDependency dependency) {
@@ -632,20 +639,63 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     @Override
     public MavenNormalizedPublication asNormalisedPublication() {
         populateFromComponent();
-        Set<MavenArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(MavenArtifact.class, Cast.uncheckedCast(new DomainObjectCollection<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts})).matching(new Spec<MavenArtifact>() {
-            @Override
-            public boolean isSatisfiedBy(MavenArtifact element) {
-                if (!PUBLISHED_ARTIFACTS.isSatisfiedBy(element)) {
-                    return false;
-                }
-                if (moduleMetadataArtifact == element) {
-                    // We temporarily want to allow skipping the publication of Gradle module metadata
-                    return moduleMetadataArtifact.isEnabled();
-                }
-                return true;
+
+        // Preserve identity of artifacts
+        Map<MavenArtifact, MavenArtifact> normalizedArtifacts = normalizedMavenArtifacts();
+
+        return new MavenNormalizedPublication(
+            name,
+            projectIdentity,
+            pom.getPackaging(),
+            normalizedArtifactFor(getPomArtifact(), normalizedArtifacts),
+            normalizedArtifactFor(determineMainArtifact(), normalizedArtifacts),
+            new LinkedHashSet<>(normalizedArtifacts.values())
+        );
+    }
+
+    private MavenArtifact normalizedArtifactFor(MavenArtifact artifact, Map<MavenArtifact, MavenArtifact> normalizedArtifacts) {
+        if (artifact == null) {
+            return null;
+        }
+        MavenArtifact normalized = normalizedArtifacts.get(artifact);
+        if (normalized != null) {
+            return normalized;
+        }
+        return normalizedArtifactFor(artifact);
+    }
+
+    private Map<MavenArtifact, MavenArtifact> normalizedMavenArtifacts() {
+        return artifactsToBePublished()
+            .stream()
+            .collect(toMap(
+                Function.identity(),
+                this::normalizedArtifactFor
+            ));
+    }
+
+    private MavenArtifact normalizedArtifactFor(MavenArtifact pomArtifact) {
+        // TODO: introduce something like a NormalizedMavenArtifact to capture the required MavenArtifact
+        //  information and only that instead of having MavenArtifact references in
+        //  MavenNormalizedPublication
+        return new SerializableMavenArtifact(pomArtifact);
+    }
+
+    private DomainObjectSet<MavenArtifact> artifactsToBePublished() {
+        return CompositeDomainObjectSet.create(
+            MavenArtifact.class,
+            Cast.uncheckedCast(
+                new DomainObjectCollection<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}
+            )
+        ).matching(element -> {
+            if (!PUBLISHED_ARTIFACTS.isSatisfiedBy(element)) {
+                return false;
             }
+            if (moduleMetadataArtifact == element) {
+                // We temporarily want to allow skipping the publication of Gradle module metadata
+                return moduleMetadataArtifact.isEnabled();
+            }
+            return true;
         });
-        return new MavenNormalizedPublication(name, projectIdentity, pom.getPackaging(), getPomArtifact(), determineMainArtifact(), artifactsToBePublished);
     }
 
     private MavenArtifact getPomArtifact() {
@@ -868,6 +918,63 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         @Override
         public int hashCode() {
             return Objects.hashCode(group, name, targetConfiguration, attributes, artifacts, excludeRules, requestedCapabilities);
+        }
+    }
+
+    private static class SerializableMavenArtifact implements MavenArtifact, PublicationArtifactInternal {
+
+        private final File file;
+        private final String extension;
+        private final String classifier;
+        private final boolean shouldBePublished;
+
+        public SerializableMavenArtifact(MavenArtifact artifact) {
+            PublicationArtifactInternal artifactInternal = (PublicationArtifactInternal) artifact;
+            this.file = artifact.getFile();
+            this.extension = artifact.getExtension();
+            this.classifier = artifact.getClassifier();
+            this.shouldBePublished = artifactInternal.shouldBePublished();
+        }
+
+        @Override
+        public String getExtension() {
+            return extension;
+        }
+
+        @Override
+        public void setExtension(String extension) {
+            throw new IllegalStateException();
+        }
+
+        @Nullable
+        @Override
+        public String getClassifier() {
+            return classifier;
+        }
+
+        @Override
+        public void setClassifier(@Nullable String classifier) {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public File getFile() {
+            return file;
+        }
+
+        @Override
+        public void builtBy(Object... tasks) {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public TaskDependency getBuildDependencies() {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public boolean shouldBePublished() {
+            return shouldBePublished;
         }
     }
 }

@@ -183,7 +183,6 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
      * Cannot publish module metadata for component when artifacts are modified.
      * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
      */
-    @ToBeFixedForInstantExecution
     def "fails when publishing module metadata for component with modified artifacts"() {
         given:
         createBuildScripts("""
@@ -384,7 +383,6 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
 //        resolveArtifact(module, '', 'classified') == ["projectText-1.0-classifier"]
     }
 
-    @ToBeFixedForInstantExecution
     def "reports failure publishing when validation fails"() {
         given:
         file("a-directory.dir").createDir()
