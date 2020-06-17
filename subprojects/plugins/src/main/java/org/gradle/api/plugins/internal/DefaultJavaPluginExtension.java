@@ -127,6 +127,11 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         return modularity;
     }
 
+    @Override
+    public void configure(Action<? super JvmEcosystemUtilities> action) {
+        action.execute(jvmEcosystemUtilities);
+    }
+
     private static String validateFeatureName(String name) {
         if (!VALID_FEATURE_NAME.matcher(name).matches()) {
             throw new InvalidUserDataException("Invalid feature name '" + name + "'. Must match " + VALID_FEATURE_NAME.pattern());

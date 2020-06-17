@@ -41,13 +41,14 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.util.TextUtil;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.util.List;
 
 import static org.gradle.api.attributes.DocsType.JAVADOC;
 import static org.gradle.api.attributes.DocsType.SOURCES;
 import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureJavaDocTask;
 
-class DefaultJavaComponentBuilder implements JavaComponentBuilderInternal {
+public class DefaultJavaComponentBuilder implements JavaComponentBuilderInternal {
     private final String name;
     private final JavaPluginExtension javaPluginExtension;
     private final JvmEcosystemUtilities jvmEcosystemUtilities;
@@ -66,6 +67,7 @@ class DefaultJavaComponentBuilder implements JavaComponentBuilderInternal {
     private boolean overrideDefaultCapability = true;
     private final List<Capability> capabilities = Lists.newArrayListWithExpectedSize(2);
 
+    @Inject
     public DefaultJavaComponentBuilder(String name,
                                        Capability defaultCapability,
                                        JavaPluginExtension javaPluginExtension,

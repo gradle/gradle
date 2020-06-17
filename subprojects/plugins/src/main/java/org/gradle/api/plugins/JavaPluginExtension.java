@@ -118,4 +118,15 @@ public interface JavaPluginExtension {
      */
     @Incubating
     ModularitySpec getModularity();
+
+    /**
+     * Provides access to the JVM utilities which can be handy to create new source sets,
+     * Java components, configure the default attributes, etc...
+     *
+     * @param action the action to execute
+     *
+     * @since 6.6
+     */
+    @Incubating
+    void configure(Action<? super JvmEcosystemUtilities> action);
 }

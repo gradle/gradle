@@ -53,8 +53,10 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
+import org.gradle.internal.instantiation.InstanceGenerator;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
@@ -64,20 +66,24 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
     private final ObjectFactory objectFactory;
     private final TaskContainer tasks;
     private final SoftwareComponentContainer components;
+    private final InstanceGenerator instanceGenerator;
 
     private JavaPluginConvention javaConvention;
     private JavaPluginExtension javaPluginExtension;
     private SourceSetContainer sourceSets;
     private ProjectInternal project; // would be great to avoid this but for lazy capabilities it's hard to avoid!
 
+    @Inject
     public DefaultJvmEcosystemUtilities(ConfigurationContainer configurations,
                                         ObjectFactory objectFactory,
                                         TaskContainer tasks,
-                                        SoftwareComponentContainer components) {
+                                        SoftwareComponentContainer components,
+                                        InstanceGenerator instanceGenerator) {
         this.configurations = configurations;
         this.objectFactory = objectFactory;
         this.tasks = tasks;
         this.components = components;
+        this.instanceGenerator = instanceGenerator;
     }
 
     @Override
@@ -129,9 +135,10 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
     }
 
     @Override
-    public <T> void configureAttributes(HasConfigurableAttributes<T> configurable, Action<? super JvmEcosystemAttributesDetails> details) {
+    public <T> void configureAttributes(HasConfigurableAttributes<T> configurable, Action<? super JvmEcosystemAttributesDetails> configuration) {
         AttributeContainerInternal attributes = (AttributeContainerInternal) configurable.getAttributes();
-        details.execute(new DefaultJvmEcosystemAttributesDetails(objectFactory, attributes));
+        DefaultJvmEcosystemAttributesDetails details = instanceGenerator.newInstance(DefaultJvmEcosystemAttributesDetails.class, objectFactory, attributes);
+        configuration.execute(details);
     }
 
     @Override
@@ -185,14 +192,19 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
 
     @Override
     public Configuration createOutgoingElements(String name, Action<? super OutgoingElementsBuilder> configuration) {
-        DefaultElementsConfigurationBuilder builder = new DefaultElementsConfigurationBuilder(name);
+        DefaultElementsConfigurationBuilder builder = instanceGenerator.newInstance(DefaultElementsConfigurationBuilder.class,
+            name,
+            this,
+            configurations,
+            components);
         configuration.execute(builder);
         return builder.build();
     }
 
     @Override
     public void createJavaComponent(String name, Action<? super JavaComponentBuilder> configuration) {
-        DefaultJavaComponentBuilder builder = new DefaultJavaComponentBuilder(name,
+        DefaultJavaComponentBuilder builder = instanceGenerator.newInstance(DefaultJavaComponentBuilder.class,
+            name,
             new ProjectDerivedCapability(project, name),
             javaPluginExtension,
             this,
@@ -213,8 +225,11 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
         return 0;
     }
 
-    private class DefaultElementsConfigurationBuilder implements OutgoingElementsBuilder {
+    public static class DefaultElementsConfigurationBuilder implements OutgoingElementsBuilder {
         final String name;
+        final JvmEcosystemUtilitiesInternal jvmEcosystemUtilities;
+        final ConfigurationContainer configurations;
+        final SoftwareComponentContainer components;
         String description;
         boolean api;
         Configuration[] extendsFrom;
@@ -225,8 +240,12 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
         boolean classDirectory;
         private boolean published;
 
-        private DefaultElementsConfigurationBuilder(String name) {
+        @Inject
+        public DefaultElementsConfigurationBuilder(String name, JvmEcosystemUtilitiesInternal jvmEcosystemUtilities, ConfigurationContainer configurations, SoftwareComponentContainer components) {
             this.name = name;
+            this.jvmEcosystemUtilities = jvmEcosystemUtilities;
+            this.configurations = configurations;
+            this.components = components;
         }
 
         Configuration build() {
@@ -240,7 +259,7 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
             if (extendsFrom != null) {
                 cnf.extendsFrom(extendsFrom);
             }
-            configureAttributes(cnf, details -> {
+            jvmEcosystemUtilities.configureAttributes(cnf, details -> {
                     details.library()
                         .asJar()
                         .withExternalDependencies();
@@ -255,7 +274,7 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
                 }
             );
             if (sourceSet != null) {
-                useDefaultTargetPlatformInference(cnf, sourceSet);
+                jvmEcosystemUtilities.useDefaultTargetPlatformInference(cnf, sourceSet);
             }
             if (artifactProducers != null) {
                 for (TaskProvider<Task> provider : artifactProducers) {
@@ -275,7 +294,7 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
                 if (sourceSet == null) {
                     throw new IllegalStateException("Cannot add a class directory variant without specifying the source set");
                 }
-                configureClassesDirectoryVariant(name, sourceSet);
+                jvmEcosystemUtilities.configureClassesDirectoryVariant(name, sourceSet);
             }
             if (published) {
                 AdhocComponentWithVariants component = findJavaComponent();
