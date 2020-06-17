@@ -40,6 +40,8 @@ class JavaApplicationDeploymentIntegrationTest extends AbstractContinuousIntegra
             import java.io.File;
             import java.io.FileOutputStream;
             import java.io.PrintWriter;
+            import java.util.concurrent.CountDownLatch;
+            import java.util.concurrent.TimeUnit;
 
             public class Main {
                 public static void main(String... args) throws Exception {
@@ -51,13 +53,7 @@ class JavaApplicationDeploymentIntegrationTest extends AbstractContinuousIntegra
 
                     // wait forever
                     new File(args[1]).createNewFile();
-                    Object lock = new Object();
-                    synchronized(lock) {
-                        while (true) {
-                            // Wait at most 10 minutes
-                            lock.wait(10 * 60 * 1000);
-                        }
-                    }
+                    new CountDownLatch(1).await(10, TimeUnit.MINUTES);
                 }
             }
         """
