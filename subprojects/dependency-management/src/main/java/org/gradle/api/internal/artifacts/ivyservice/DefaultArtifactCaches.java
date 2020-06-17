@@ -29,6 +29,7 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.IncubationLogger;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.util.List;
@@ -39,6 +40,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
 
     private final DefaultArtifactCacheMetadata writableCacheMetadata;
     private final DefaultArtifactCacheMetadata readOnlyCacheMetadata;
+    private final File readOnlyCacheBaseDir;
     private final LateInitWritableArtifactCacheLockingManager writableArtifactCacheLockingManager;
     private final ReadOnlyArtifactCacheLockingManager readOnlyArtifactCacheLockingManager;
 
@@ -56,18 +58,22 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
             IncubationLogger.incubatingFeatureUsed("Shared read-only dependency cache");
             File baseDir = validateReadOnlyCache(documentationRegistry, new File(roCache));
             if (baseDir != null) {
+                readOnlyCacheBaseDir = baseDir;
                 readOnlyCacheMetadata = new DefaultArtifactCacheMetadata(cacheScopeMapping, baseDir);
                 readOnlyArtifactCacheLockingManager = new ReadOnlyArtifactCacheLockingManager(cacheRepository, readOnlyCacheMetadata);
             } else {
+                readOnlyCacheBaseDir = null;
                 readOnlyCacheMetadata = null;
                 readOnlyArtifactCacheLockingManager = null;
             }
         } else {
+            readOnlyCacheBaseDir = null;
             readOnlyCacheMetadata = null;
             readOnlyArtifactCacheLockingManager = null;
         }
     }
 
+    @Nullable
     private static File validateReadOnlyCache(DocumentationRegistry documentationRegistry, File cacheDir) {
         if (!cacheDir.exists()) {
             LOGGER.warn("The read-only dependency cache is disabled because of a configuration problem:");
@@ -82,7 +88,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
                 CacheLayout.ROOT.getKey() + " directory at " + root + " . Please follow the instructions at " + docLink);
             return null;
         }
-        return cacheDir;
+        return cacheDir.getAbsoluteFile();
     }
 
     @Override
@@ -107,14 +113,9 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
 
     @Override
     public List<File> getGlobalCacheRoots() {
-        ImmutableList.Builder<File> builder = ImmutableList.builderWithExpectedSize(4);
-        builder.add(writableCacheMetadata.getFileStoreDirectory());
-        builder.add(writableCacheMetadata.getTransformsStoreDirectory());
-        if (readOnlyCacheMetadata != null) {
-            builder.add(readOnlyCacheMetadata.getFileStoreDirectory());
-            builder.add(readOnlyCacheMetadata.getTransformsStoreDirectory());
-        }
-        return builder.build();
+        return readOnlyCacheBaseDir == null
+            ? ImmutableList.of()
+            : ImmutableList.of(readOnlyCacheBaseDir);
     }
 
     @Override
