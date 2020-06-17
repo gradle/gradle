@@ -100,8 +100,9 @@ fun Project.publishNormalizedToLocalRepository() {
         enabled = false // this should not be used so we disable it to avoid confusion when using 'publish' lifecycle task
     }
     val localPublish = project.tasks.named("publishLocalPublicationToLocalRepository") {
+        val archivesBaseName = project.base.archivesBaseName
         doFirst {
-            val moduleBaseDir = localRepository.get().dir("org/gradle/${project.base.archivesBaseName}").asFile
+            val moduleBaseDir = localRepository.get().dir("org/gradle/$archivesBaseName").asFile
             if (moduleBaseDir.exists()) {
                 // Make sure artifacts do not pile up locally
                 moduleBaseDir.deleteRecursively()
@@ -109,7 +110,7 @@ fun Project.publishNormalizedToLocalRepository() {
         }
 
         doLast {
-            localRepository.get().file("org/gradle/${project.base.archivesBaseName}/maven-metadata.xml").asFile.apply {
+            localRepository.get().file("org/gradle/$archivesBaseName/maven-metadata.xml").asFile.apply {
                 writeText(readText().replace("\\Q<lastUpdated>\\E\\d+\\Q</lastUpdated>\\E".toRegex(), "<lastUpdated>${Year.now().value}0101000000</lastUpdated>"))
             }
             localRepository.get().asFileTree.matching { include("**/*.module") }.forEach {
