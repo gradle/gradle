@@ -147,6 +147,22 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
             configureDefaultTargetPlatform(configuration.isCanBeConsumed(), tasks.named(sourceSet.getCompileJavaTaskName(), JavaCompile.class)));
     }
 
+    @Override
+    public void replaceArtifacts(Configuration outgoingConfiguration, Object... providers) {
+        clearArtifacts(outgoingConfiguration);
+        ConfigurationPublications outgoing = outgoingConfiguration.getOutgoing();
+        for (Object provider : providers) {
+            outgoing.artifact(provider);
+        }
+    }
+
+    private void clearArtifacts(Configuration outgoingConfiguration) {
+        outgoingConfiguration.getOutgoing().getArtifacts().clear();
+        for (Configuration configuration : outgoingConfiguration.getExtendsFrom()) {
+            clearArtifacts(configuration);
+        }
+    }
+
     private void registerClassesDirVariant(final SourceSet sourceSet, Configuration configuration) {
         // Define a classes variant to use for compilation
         ConfigurationPublications publications = configuration.getOutgoing();

@@ -74,6 +74,16 @@ public interface JvmEcosystemUtilities {
     <T> void configureAttributes(HasConfigurableAttributes<T> configurableAttributes, Action<? super JvmEcosystemAttributesDetails> details);
 
     /**
+     * Replaces the artifacts of an outgoing configuration with a new set of artifacts.
+     * This can be used whenever the default artifacts configured are not the ones you want to publish.
+     * If this configuration inherits from other configurations, their artifacts will be removed.
+     *
+     * @param outgoingConfiguration the configuration for which to replace artifacts
+     * @param providers the artifacts or providers of artifacts (e.g tasks providers) which should be associated with this configuration
+     */
+    void replaceArtifacts(Configuration outgoingConfiguration, Object... providers);
+
+    /**
      * Configures a configuration so that its exposed target jvm version is inferred from
      * the specified source set.
      * @param configuration the configuration to configure
