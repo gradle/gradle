@@ -20,10 +20,13 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.invocation.Gradle
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.invocation.DefaultGradle
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 
+@IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
 class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     def "state serialization errors always halt the build and invalidate the cache"() {
