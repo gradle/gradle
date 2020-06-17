@@ -35,8 +35,8 @@ public class SharedJavaInstallationRegistry {
     private boolean finalized;
 
     @Inject
-    public SharedJavaInstallationRegistry() {
-        add(new SystemPropertyInstallationSupplier());
+    public SharedJavaInstallationRegistry(SystemPropertyInstallationSupplier supplier) {
+        add(supplier);
     }
 
     public void add(InstallationSupplier provider) {
