@@ -315,4 +315,21 @@ class DefaultFileHierarchySetTest extends Specification {
         def s7 = s3.plus(parent)
         s7.flatten() == [parent.path]
     }
+
+    def "has a nice toString representation"() {
+        def parent = tmpDir.createDir()
+        def dir1 = parent.createDir("dir1")
+        def dir2 = parent.createDir("common/dir2")
+        def dir3 = parent.createDir("common/dir3")
+        def set = DefaultFileHierarchySet.of([dir1, dir2, dir3])
+
+        expect:
+        set.toString() == """
+            ${parent.absolutePath}
+              dir1
+              common
+                dir2
+                dir3
+        """.stripIndent().trim()
+    }
 }

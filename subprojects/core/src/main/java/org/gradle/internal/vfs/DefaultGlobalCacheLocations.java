@@ -39,4 +39,9 @@ public class DefaultGlobalCacheLocations implements GlobalCacheLocations {
     public boolean isInsideGlobalCache(String path) {
         return globalCacheRoots.contains(path);
     }
+
+    @Override
+    public String toString() {
+        return globalCacheRoots.toString();
+    }
 }
