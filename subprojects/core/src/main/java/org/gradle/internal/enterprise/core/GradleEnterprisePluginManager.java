@@ -42,13 +42,26 @@ public class GradleEnterprisePluginManager {
     @Nullable
     private GradleEnterprisePluginAdapter adapter;
 
+    // Indicates plugin checked in, but was unsupported
+    private boolean unsupported;
+
     @Nullable
     public GradleEnterprisePluginAdapter getAdapter() {
         return adapter;
     }
 
     public void registerAdapter(GradleEnterprisePluginAdapter adapter) {
+        if (unsupported) {
+            throw new IllegalStateException("plugin already noted as unsupported");
+        }
         this.adapter = adapter;
+    }
+
+    public void unsupported() {
+        if (adapter != null) {
+            throw new IllegalStateException("plugin already noted as supported");
+        }
+        this.unsupported = true;
     }
 
     public boolean isPresent() {
@@ -73,7 +86,7 @@ public class GradleEnterprisePluginManager {
                 gradle.addListener(new InternalBuildAdapter() {
                     @Override
                     public void settingsEvaluated(@Nonnull Settings settings) {
-                        if (!isPresent()) {
+                        if (!isPresent() && !unsupported) {
                             LOGGER.warn(NO_SCAN_PLUGIN_MSG);
                         }
                     }

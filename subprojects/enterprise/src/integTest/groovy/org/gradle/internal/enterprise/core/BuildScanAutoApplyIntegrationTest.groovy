@@ -19,6 +19,7 @@ package org.gradle.internal.enterprise.core
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
+import org.gradle.internal.enterprise.impl.DefautGradleEnterprisePluginCheckInService
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.util.VersionNumber
@@ -254,6 +255,18 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fixture.issuedNoPluginWarning(output)
+    }
+
+    def "does not warns if scan requested but no scan plugin unsupported"() {
+        given:
+        applyPlugin()
+
+        when:
+        succeeds "dummy", "--scan", "-D${DefautGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE}=true"
+
+        then:
+        fixture.assertUnsupportedMessage(output, DefautGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE)
+        fixture.didNotIssuedNoPluginWarning(output)
     }
 
     def "does not warn if no scan requested but no scan plugin applied"() {

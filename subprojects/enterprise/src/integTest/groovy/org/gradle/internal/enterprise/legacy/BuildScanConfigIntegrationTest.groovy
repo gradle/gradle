@@ -98,6 +98,15 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         scanPlugin.issuedNoPluginWarning(output)
     }
 
+    def "does not warns if scan requested but no scan plugin unsupported"() {
+        when:
+        succeeds "t", "--scan", "-D${LegacyGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE}=true"
+
+        then:
+        scanPlugin.assertUnsupportedMessage(output, LegacyGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE)
+        scanPlugin.issuedNoPluginWarning(output)
+    }
+
     def "does not warn if no scan requested but no scan plugin applied"() {
         given:
         scanPlugin.collectConfig = false
@@ -205,6 +214,5 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
     void assertFailedVersionCheck() {
         failureCauseContains(GradleEnterprisePluginManager.OLD_SCAN_PLUGIN_VERSION_MESSAGE)
     }
-
 
 }

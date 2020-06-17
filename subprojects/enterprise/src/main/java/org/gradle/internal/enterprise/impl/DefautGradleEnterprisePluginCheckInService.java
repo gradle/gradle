@@ -43,6 +43,7 @@ public class DefautGradleEnterprisePluginCheckInService implements GradleEnterpr
     @Override
     public void checkIn(GradleEnterprisePluginMetadata pluginMetadata, GradleEnterprisePluginServiceFactory serviceFactory, GradleEnterprisePluginCheckInResultHandler resultHandler) {
         if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
+            manager.unsupported();
             resultHandler.unsupported(UNSUPPORTED_TOGGLE_MESSAGE);
         } else {
             GradleEnterprisePluginServiceRef ref = adapter.register(serviceFactory);

@@ -78,38 +78,19 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
 
         String unsupportedReason = unsupportedReason();
         if (unsupportedReason == null) {
-            manager.registerAdapter(new GradleEnterprisePluginAdapter() {
-                @Override
-                public boolean isConfigurationCacheCompatible() {
-                    return false;
-                }
-
-                @Override
-                public void onLoadFromConfigurationCache() {
-                    throw new UnsupportedOperationException();
-                }
-
-                @Override
-                public void buildFinished(@Nullable Throwable buildFailure) {
-                    if (listener != null) {
-                        listener.execute(new BuildResult() {
-                            @Nullable
-                            @Override
-                            public Throwable getFailure() {
-                                return buildFailure;
-                            }
-                        });
-                    }
-                }
-            });
-        }
-
-        if (unsupportedReason == null || isPluginAwareOfUnsupported(pluginVersion)) {
-            BuildScanConfig.Attributes configAttributes = configAttributes(buildType);
-            return requestedness(gradle).toConfig(unsupportedReason, configAttributes);
+            manager.registerAdapter(new Adapter());
         } else {
-            throw new UnsupportedBuildScanPluginVersionException(unsupportedReason);
+            manager.unsupported();
+            if (!isPluginAwareOfUnsupported(pluginVersion)) {
+                throw new UnsupportedBuildScanPluginVersionException(unsupportedReason);
+            }
         }
+
+        return new Config(
+            Requestedness.from(gradle),
+            new Attributes(buildType),
+            unsupportedReason
+        );
     }
 
     @Override
@@ -120,34 +101,40 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
         this.listener = listener;
     }
 
-    private static Requestedness requestedness(GradleInternal gradle) {
-        StartParameter startParameter = gradle.getStartParameter();
-        if (startParameter.isNoBuildScan()) {
-            return Requestedness.DISABLED;
-        } else if (startParameter.isBuildScan()) {
-            return Requestedness.ENABLED;
-        } else {
-            return Requestedness.DEFAULTED;
-        }
-    }
-
-    private static BuildScanConfig.Attributes configAttributes(BuildType buildType) {
-        return new BuildScanConfig.Attributes() {
-            @Override
-            public boolean isRootProjectHasVcsMappings() {
-                return false;
-            }
-
-            @Override
-            public boolean isTaskExecutingBuild() {
-                boolean forceTaskExecutingBuild = System.getProperty("org.gradle.internal.ide.scan") != null;
-                return forceTaskExecutingBuild || buildType == BuildType.TASKS;
-            }
-        };
-    }
-
     private boolean isPluginAwareOfUnsupported(VersionNumber pluginVersion) {
         return pluginVersion.compareTo(FIRST_VERSION_AWARE_OF_UNSUPPORTED) >= 0;
+    }
+
+    private static class Config implements BuildScanConfig {
+        private final Requestedness requestedness;
+        private final String unsupported;
+        private final Attributes attributes;
+
+        public Config(Requestedness requestedness, Attributes attributes, String unsupported) {
+            this.requestedness = requestedness;
+            this.unsupported = unsupported;
+            this.attributes = attributes;
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return requestedness.enabled;
+        }
+
+        @Override
+        public boolean isDisabled() {
+            return requestedness.disabled;
+        }
+
+        @Override
+        public String getUnsupportedMessage() {
+            return unsupported;
+        }
+
+        @Override
+        public Attributes getAttributes() {
+            return attributes;
+        }
     }
 
     private enum Requestedness {
@@ -164,29 +151,59 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
             this.disabled = disabled;
         }
 
-        BuildScanConfig toConfig(final String unsupported, final BuildScanConfig.Attributes attributes) {
-            return new BuildScanConfig() {
-                @Override
-                public boolean isEnabled() {
-                    return enabled;
-                }
-
-                @Override
-                public boolean isDisabled() {
-                    return disabled;
-                }
-
-                @Override
-                public String getUnsupportedMessage() {
-                    return unsupported;
-                }
-
-                @Override
-                public Attributes getAttributes() {
-                    return attributes;
-                }
-            };
+        private static Requestedness from(GradleInternal gradle) {
+            StartParameter startParameter = gradle.getStartParameter();
+            if (startParameter.isNoBuildScan()) {
+                return DISABLED;
+            } else if (startParameter.isBuildScan()) {
+                return ENABLED;
+            } else {
+                return DEFAULTED;
+            }
         }
     }
 
+    private static class Attributes implements BuildScanConfig.Attributes {
+        private final BuildType buildType;
+
+        public Attributes(BuildType buildType) {
+            this.buildType = buildType;
+        }
+
+        @Override
+        public boolean isRootProjectHasVcsMappings() {
+            return false;
+        }
+
+        @Override
+        public boolean isTaskExecutingBuild() {
+            boolean forceTaskExecutingBuild = System.getProperty("org.gradle.internal.ide.scan") != null;
+            return forceTaskExecutingBuild || buildType == BuildType.TASKS;
+        }
+    }
+
+    private class Adapter implements GradleEnterprisePluginAdapter {
+        @Override
+        public boolean isConfigurationCacheCompatible() {
+            return false;
+        }
+
+        @Override
+        public void onLoadFromConfigurationCache() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void buildFinished(@Nullable Throwable buildFailure) {
+            if (listener != null) {
+                listener.execute(new BuildResult() {
+                    @Nullable
+                    @Override
+                    public Throwable getFailure() {
+                        return buildFailure;
+                    }
+                });
+            }
+        }
+    }
 }
