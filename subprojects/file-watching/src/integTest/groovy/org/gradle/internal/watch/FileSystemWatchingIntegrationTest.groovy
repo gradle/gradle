@@ -26,9 +26,11 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
+import org.gradle.internal.vfs.GlobalCacheLocations
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -884,6 +886,16 @@ class FileSystemWatchingIntegrationTest extends AbstractIntegrationSpec implemen
         waitForChangesToBePickedUp()
         then:
         projectDir.delete()
+    }
+
+    def "the caches dir in the Gradle user home is part of the global caches"() {
+        def globalCachesLocation = executer.gradleUserHomeDir.file('caches').absolutePath
+        buildFile << """
+            assert services.get(${GlobalCacheLocations.name}).isInsideGlobalCache('${TextUtil.escapeString(globalCachesLocation)}')
+        """
+
+        expect:
+        succeeds "help"
     }
 
     // This makes sure the next Gradle run starts with a clean BuildOutputCleanupRegistry
