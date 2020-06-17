@@ -72,6 +72,7 @@ Running `help` with the configuration cache enabled is a good first step:
 ----
 ❯ gradle --configuration-cache help
 include::{snippetsPath}/configurationCache/noProblem/tests/store.out[]
+Configuration cache entry stored.
 ----
 
 Running this for the first time, the configuration phase is executed, calculating the task graph.
@@ -83,6 +84,7 @@ This will reuse the cached configuration:
 ----
 ❯ gradle --configuration-cache help
 include::{snippetsPath}/configurationCache/noProblem/tests/load.out[]
+Configuration cache entry reused.
 ----
 
 If it succeeds on your build, congratulations, you can now try with more useful tasks.
