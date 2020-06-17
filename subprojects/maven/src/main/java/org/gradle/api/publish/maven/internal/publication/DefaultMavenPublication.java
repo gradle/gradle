@@ -126,12 +126,6 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         }
         return left.compareTo(right);
     };
-    private static final Spec<MavenArtifact> PUBLISHED_ARTIFACTS = artifact -> {
-        if (!((PublicationArtifactInternal) artifact).shouldBePublished()) {
-            return false;
-        }
-        return artifact.getFile().exists();
-    };
 
     @VisibleForTesting
     public static final String INCOMPATIBLE_FEATURE = " contains dependencies that will produce a pom file that cannot be consumed by a Maven client.";
@@ -673,11 +667,11 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             ));
     }
 
-    private MavenArtifact normalizedArtifactFor(MavenArtifact pomArtifact) {
+    private MavenArtifact normalizedArtifactFor(MavenArtifact artifact) {
         // TODO: introduce something like a NormalizedMavenArtifact to capture the required MavenArtifact
         //  information and only that instead of having MavenArtifact references in
         //  MavenNormalizedPublication
-        return new SerializableMavenArtifact(pomArtifact);
+        return new SerializableMavenArtifact(artifact);
     }
 
     private DomainObjectSet<MavenArtifact> artifactsToBePublished() {
@@ -687,7 +681,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                 new DomainObjectCollection<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}
             )
         ).matching(element -> {
-            if (!PUBLISHED_ARTIFACTS.isSatisfiedBy(element)) {
+            if (!((PublicationArtifactInternal) element).shouldBePublished()) {
                 return false;
             }
             if (moduleMetadataArtifact == element) {
