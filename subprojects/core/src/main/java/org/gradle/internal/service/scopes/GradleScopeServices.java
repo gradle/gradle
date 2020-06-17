@@ -95,7 +95,7 @@ import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.vfs.AdditiveCacheLocations;
+import org.gradle.internal.vfs.GlobalCacheLocations;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.util.Arrays;
@@ -272,7 +272,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     FileContentCacheFactory createFileContentCacheFactory(
-        AdditiveCacheLocations additiveCacheLocations,
+        GlobalCacheLocations globalCacheLocations,
         CacheRepository cacheRepository,
         FileContentCacheFactory globalCacheFactory,
         Gradle gradle,
@@ -290,7 +290,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new SplitFileContentCacheFactory(
             globalCacheFactory,
             localCacheFactory,
-            additiveCacheLocations
+            globalCacheLocations
         );
     }
 

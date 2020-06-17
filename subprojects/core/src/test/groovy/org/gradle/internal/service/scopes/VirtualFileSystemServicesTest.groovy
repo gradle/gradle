@@ -23,7 +23,7 @@ import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.internal.vfs.AdditiveCacheLocations
+import org.gradle.internal.vfs.GlobalCacheLocations
 import org.gradle.internal.vfs.RoutingVirtualFileSystem
 import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem
@@ -32,7 +32,7 @@ import spock.lang.Unroll
 
 @Unroll
 class VirtualFileSystemServicesTest extends Specification {
-    def additiveCacheLocations = Mock(AdditiveCacheLocations)
+    def additiveCacheLocations = Mock(GlobalCacheLocations)
     def fileHasher = Mock(FileHasher)
     def fileSystem = Mock(FileSystem)
     def listenerManager = Mock(ListenerManager)

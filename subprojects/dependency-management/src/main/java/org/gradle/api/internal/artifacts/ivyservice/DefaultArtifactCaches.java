@@ -106,7 +106,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
     }
 
     @Override
-    public List<File> getAdditiveCacheRoots() {
+    public List<File> getGlobalCacheRoots() {
         ImmutableList.Builder<File> builder = ImmutableList.builderWithExpectedSize(4);
         builder.add(writableCacheMetadata.getFileStoreDirectory());
         builder.add(writableCacheMetadata.getTransformsStoreDirectory());

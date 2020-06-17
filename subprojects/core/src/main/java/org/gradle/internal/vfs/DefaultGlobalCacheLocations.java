@@ -22,21 +22,21 @@ import org.gradle.internal.file.FileHierarchySet;
 import java.io.File;
 import java.util.List;
 
-public class DefaultAdditiveCacheLocations implements AdditiveCacheLocations {
-    private final FileHierarchySet additiveCacheRoots;
+public class DefaultGlobalCacheLocations implements GlobalCacheLocations {
+    private final FileHierarchySet globalCacheRoots;
 
-    public DefaultAdditiveCacheLocations(List<AdditiveCache> fileStores) {
-        FileHierarchySet additiveCacheRoots = DefaultFileHierarchySet.of();
-        for (AdditiveCache fileStore : fileStores) {
-            for (File file : fileStore.getAdditiveCacheRoots()) {
-                additiveCacheRoots = additiveCacheRoots.plus(file);
+    public DefaultGlobalCacheLocations(List<GlobalCache> globalCaches) {
+        FileHierarchySet globalCacheRoots = DefaultFileHierarchySet.of();
+        for (GlobalCache globalCache : globalCaches) {
+            for (File file : globalCache.getGlobalCacheRoots()) {
+                globalCacheRoots = globalCacheRoots.plus(file);
             }
         }
-        this.additiveCacheRoots = additiveCacheRoots;
+        this.globalCacheRoots = globalCacheRoots;
     }
 
     @Override
-    public boolean isInsideAdditiveCache(String path) {
-        return additiveCacheRoots.contains(path);
+    public boolean isInsideGlobalCache(String path) {
+        return globalCacheRoots.contains(path);
     }
 }

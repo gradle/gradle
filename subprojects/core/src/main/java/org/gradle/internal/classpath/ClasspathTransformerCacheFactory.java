@@ -22,10 +22,10 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.vfs.AdditiveCache;
+import org.gradle.internal.vfs.GlobalCache;
 
 @ServiceScope(Scopes.UserHome)
-public interface ClasspathTransformerCacheFactory extends AdditiveCache {
+public interface ClasspathTransformerCacheFactory extends GlobalCache {
     PersistentCache createCache(CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal);
 
     FileAccessTracker createFileAccessTracker(FileAccessTimeJournal fileAccessTimeJournal);

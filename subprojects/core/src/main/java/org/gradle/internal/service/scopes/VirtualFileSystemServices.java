@@ -72,7 +72,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
-import org.gradle.internal.vfs.AdditiveCacheLocations;
+import org.gradle.internal.vfs.GlobalCacheLocations;
 import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
@@ -163,14 +163,14 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         WatchingAwareVirtualFileSystem createVirtualFileSystem(
-            AdditiveCacheLocations additiveCacheLocations,
+            GlobalCacheLocations globalCacheLocations,
             FileHasher hasher,
             FileSystem fileSystem,
             Stat stat,
             StringInterner stringInterner,
             ListenerManager listenerManager
         ) {
-            Predicate<String> watchFilter = path -> !additiveCacheLocations.isInsideAdditiveCache(path);
+            Predicate<String> watchFilter = path -> !globalCacheLocations.isInsideGlobalCache(path);
             DelegatingDiffCapturingUpdateFunctionDecorator updateFunctionDecorator = new DelegatingDiffCapturingUpdateFunctionDecorator(watchFilter);
             DefaultVirtualFileSystem delegate = new DefaultVirtualFileSystem(
                 hasher,
@@ -241,7 +241,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         FileHasher createFileHasher(
-            AdditiveCacheLocations additiveCacheLocations,
+            GlobalCacheLocations globalCacheLocations,
             BuildScopeFileTimeStampInspector fileTimeStampInspector,
             CrossBuildFileHashCache cacheAccess,
             FileHasher globalHasher,
@@ -250,11 +250,11 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             StringInterner stringInterner
         ) {
             CachingFileHasher localHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
-            return new SplitFileHasher(globalHasher, localHasher, additiveCacheLocations);
+            return new SplitFileHasher(globalHasher, localHasher, globalCacheLocations);
         }
 
         VirtualFileSystem createVirtualFileSystem(
-            AdditiveCacheLocations additiveCacheLocations,
+            GlobalCacheLocations globalCacheLocations,
             FileHasher hasher,
             FileSystem fileSystem,
             ListenerManager listenerManager,
@@ -273,7 +273,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 DirectoryScanner.getDefaultExcludes()
             );
             RoutingVirtualFileSystem routingVirtualFileSystem = new RoutingVirtualFileSystem(
-                additiveCacheLocations,
+                globalCacheLocations,
                 gradleUserHomeVirtualFileSystem,
                 buildSessionsScopedVirtualFileSystem,
                 startParameterInternal::isWatchFileSystem
@@ -338,13 +338,13 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         ResourceSnapshotterCacheService createResourceSnapshotterCacheService(
-            AdditiveCacheLocations additiveCacheLocations,
+            GlobalCacheLocations globalCacheLocations,
             CrossBuildFileHashCache store,
             ResourceSnapshotterCacheService globalCache
         ) {
             PersistentIndexedCache<HashCode, HashCode> resourceHashesCache = store.createCache(PersistentIndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()), 800000, true);
             DefaultResourceSnapshotterCacheService localCache = new DefaultResourceSnapshotterCacheService(resourceHashesCache);
-            return new SplitResourceSnapshotterCacheService(globalCache, localCache, additiveCacheLocations);
+            return new SplitResourceSnapshotterCacheService(globalCache, localCache, globalCacheLocations);
         }
 
         CompileClasspathFingerprinter createCompileClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {

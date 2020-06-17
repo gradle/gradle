@@ -16,18 +16,18 @@
 
 package org.gradle.internal.vfs;
 
-/**
- * Identifies if a path is underneath one of Gradle's "additive caches".
- *
- * Over time more files can be added to an additive cache, but existing files can never be modified.
- * Files in additive caches can only be deleted as part of cleanup.
- *
- * This quasi-immutability of additive caches allows for some optimizations by retaining file system state in-memory.
- */
-public interface AdditiveCacheLocations {
+import java.io.File;
+import java.util.List;
 
+/**
+ * Represents a location for global Gradle caches.
+ *
+ * The global cache is managed by Gradle, so we Gradle needs to take care
+ * of informing all the infrastructure about changes to it.
+ */
+public interface GlobalCache {
     /**
-     * Checks if a given path is inside one of Gradle's additive caches.
+     * Returns the root directories of the global cache.
      */
-    boolean isInsideAdditiveCache(String path);
+    List<File> getGlobalCacheRoots();
 }

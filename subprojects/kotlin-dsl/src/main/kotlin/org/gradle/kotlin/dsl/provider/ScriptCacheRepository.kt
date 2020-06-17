@@ -20,7 +20,7 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.VersionStrategy
-import org.gradle.internal.vfs.AdditiveCache
+import org.gradle.internal.vfs.GlobalCache
 import org.gradle.kotlin.dsl.accessors.accessorCacheKeyPrefix
 import java.io.File
 
@@ -29,12 +29,12 @@ internal
 class ScriptCacheRepository(
     private val cacheScopeMapping: CacheScopeMapping,
     private val cacheRepository: CacheRepository
-) : AdditiveCache {
+) : GlobalCache {
 
     fun cache(key: String): CacheBuilder =
         cacheRepository.cache(key)
 
-    override fun getAdditiveCacheRoots(): List<File> =
+    override fun getGlobalCacheRoots(): List<File> =
         listOf(
             cacheRootFor(scriptCacheKeyPrefix),
             cacheRootFor(accessorCacheKeyPrefix)

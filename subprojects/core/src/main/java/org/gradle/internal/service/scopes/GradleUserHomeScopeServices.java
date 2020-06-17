@@ -68,9 +68,9 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.vfs.AdditiveCache;
-import org.gradle.internal.vfs.AdditiveCacheLocations;
-import org.gradle.internal.vfs.DefaultAdditiveCacheLocations;
+import org.gradle.internal.vfs.DefaultGlobalCacheLocations;
+import org.gradle.internal.vfs.GlobalCache;
+import org.gradle.internal.vfs.GlobalCacheLocations;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.JavaExecHandleFactory;
@@ -146,8 +146,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         );
     }
 
-    AdditiveCacheLocations createAdditiveCacheLocations(List<AdditiveCache> additiveCaches) {
-        return new DefaultAdditiveCacheLocations(additiveCaches);
+    GlobalCacheLocations createGlobalCacheLocations(List<GlobalCache> globalCaches) {
+        return new DefaultGlobalCacheLocations(globalCaches);
     }
 
     CachedClasspathTransformer createCachedClasspathTransformer(
@@ -158,7 +158,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         ClasspathWalker classpathWalker,
         ClasspathBuilder classpathBuilder,
         ExecutorFactory executorFactory,
-        List<AdditiveCache> additiveCaches
+        List<GlobalCache> globalCaches
     ) {
         return new DefaultCachedClasspathTransformer(
             cacheRepository,
@@ -168,7 +168,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
             classpathBuilder,
             virtualFileSystem,
             executorFactory,
-            additiveCaches);
+            globalCaches);
     }
 
     ExecFactory createExecFactory(ExecFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {

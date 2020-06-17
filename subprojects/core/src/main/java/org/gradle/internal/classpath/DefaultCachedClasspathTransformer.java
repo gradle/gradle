@@ -28,7 +28,7 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.vfs.AdditiveCache;
+import org.gradle.internal.vfs.GlobalCache;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.Closeable;
@@ -52,7 +52,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
     private final VirtualFileSystem virtualFileSystem;
-    private final List<AdditiveCache> otherCaches;
+    private final List<GlobalCache> otherCaches;
     private final ManagedExecutor executor;
 
     public DefaultCachedClasspathTransformer(
@@ -63,7 +63,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         ClasspathBuilder classpathBuilder,
         VirtualFileSystem virtualFileSystem,
         ExecutorFactory executorFactory,
-        List<AdditiveCache> otherCaches
+        List<GlobalCache> otherCaches
     ) {
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
