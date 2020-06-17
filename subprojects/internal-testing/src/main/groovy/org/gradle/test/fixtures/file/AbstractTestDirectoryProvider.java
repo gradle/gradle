@@ -47,7 +47,9 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
 
     protected AbstractTestDirectoryProvider(TestFile root, Class<?> testClass) {
         this.root = root;
-        this.className = testClass.getSimpleName();
+        this.className = testClass.getAnnotation(TestDir.class) == null
+            ? testClass.getSimpleName()
+            : testClass.getAnnotation(TestDir.class).value();
     }
 
     @Override
@@ -135,8 +137,8 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         }
         if (prefix == null) {
             String safeMethodName = methodName.replaceAll("[^\\w]", "_");
-            if (safeMethodName.length() > 30) {
-                safeMethodName = safeMethodName.substring(0, 19) + "..." + safeMethodName.substring(safeMethodName.length() - 9);
+            if (safeMethodName.length() > 20) {
+                safeMethodName = safeMethodName.substring(0, 9) + "..." + safeMethodName.substring(safeMethodName.length() - 9);
             }
             prefix = String.format("%s/%s", className, safeMethodName);
         }

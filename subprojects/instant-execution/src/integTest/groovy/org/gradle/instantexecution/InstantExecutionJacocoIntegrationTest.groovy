@@ -16,12 +16,14 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.test.fixtures.file.TestDir
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 import org.gradle.util.Requires
 
 import static org.gradle.util.TestPrecondition.JDK14_OR_EARLIER
 
 @Requires(JDK14_OR_EARLIER)
+@TestDir("IEJIT")
 class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     def "can use jacoco"() {

@@ -20,9 +20,11 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.AbstractNativePreCompiledHeaderIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
+import org.gradle.test.fixtures.file.TestDir
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+@TestDir("CPCHSIT")
 class CPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompiledHeaderIntegrationTest {
     @Requires(TestPrecondition.MAC_OS_X)
     @ToBeFixedForInstantExecution

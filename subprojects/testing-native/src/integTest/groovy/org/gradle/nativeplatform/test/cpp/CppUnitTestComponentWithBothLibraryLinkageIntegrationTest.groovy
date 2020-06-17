@@ -18,7 +18,9 @@ package org.gradle.nativeplatform.test.cpp
 
 import org.gradle.nativeplatform.fixtures.app.CppLibWithSimpleUnitTest
 import org.gradle.nativeplatform.fixtures.app.SourceElement
+import org.gradle.test.fixtures.file.TestDir
 
+@TestDir('CUTCWBLLIT')
 class CppUnitTestComponentWithBothLibraryLinkageIntegrationTest extends AbstractCppUnitTestComponentWithTestedComponentIntegrationTest {
     @Override
     protected void makeSingleProject() {

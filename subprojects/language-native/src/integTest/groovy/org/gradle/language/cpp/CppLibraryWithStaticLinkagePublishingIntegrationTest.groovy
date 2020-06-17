@@ -21,8 +21,10 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.test.fixtures.archive.ZipTestFixture
+import org.gradle.test.fixtures.file.TestDir
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
+@TestDir('CLWSLPIT')
 class CppLibraryWithStaticLinkagePublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
     @ToBeFixedForInstantExecution
@@ -35,7 +37,7 @@ class CppLibraryWithStaticLinkagePublishingIntegrationTest extends AbstractInsta
         buildFile << """
             apply plugin: 'cpp-library'
             apply plugin: 'maven-publish'
-            
+
             group = 'some.group'
             version = '1.2'
             library {
@@ -138,13 +140,13 @@ class CppLibraryWithStaticLinkagePublishingIntegrationTest extends AbstractInsta
         producer.file("build.gradle") << """
             apply plugin: 'cpp-library'
             apply plugin: 'maven-publish'
-            
+
             group = 'some.group'
             version = '1.2'
             publishing {
                 repositories { maven { url '${repoDir.toURI()}' } }
             }
-            
+
             library {
                 linkage = [Linkage.STATIC]
                 binaries.configureEach {

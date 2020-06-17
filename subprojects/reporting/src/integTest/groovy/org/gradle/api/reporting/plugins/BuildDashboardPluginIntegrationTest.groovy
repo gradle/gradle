@@ -19,10 +19,12 @@ package org.gradle.api.reporting.plugins
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.test.fixtures.file.TestDir
 import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
+@TestDir("BDPIT")
 class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
     def setup() {

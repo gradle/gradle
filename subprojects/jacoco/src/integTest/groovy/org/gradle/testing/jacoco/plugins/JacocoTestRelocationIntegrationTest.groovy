@@ -17,12 +17,14 @@
 package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
+import org.gradle.test.fixtures.file.TestDir
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 
 import static org.gradle.util.BinaryDiffUtils.levenshteinDistance
 import static org.gradle.util.BinaryDiffUtils.toHexStrings
 
+@TestDir("JTRIT")
 class JacocoTestRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
 
     @Override
