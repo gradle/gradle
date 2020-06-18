@@ -23,7 +23,7 @@ import static InstallationSuppliers.forDirectory
 
 class SharedJavaInstallationRegistryTest extends Specification {
 
-    def registry = new SharedJavaInstallationRegistry()
+    def registry = new SharedJavaInstallationRegistry(Collections.emptyList())
 
     def "registry keeps track of newly added installations"() {
         when:
