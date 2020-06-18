@@ -373,7 +373,8 @@ The build fails again, reporting the observed problems.
 The first problem that happened at configuration time when storing is not reported given the configuration phase was skipped.
 The second problem about using `Project` at execution time is reported.
 
-With the help of the links present in the console problem summary and in the HTML report we can fix our problems. Here's a fixed version of the build script:
+With the help of the links present in the console problem summary and in the HTML report we can fix our problems.
+Here's a fixed version of the build script:
 
 ====
 include::sample[dir="snippets/configurationCache/problemsFixed/groovy",files="build.gradle[]"]
