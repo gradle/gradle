@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
     def "installation registry empty without environment setup"() {
-        def someJavaHome = AvailableJavaHomes.bestJre;
-
         buildFile << """
             import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
             import javax.inject.Inject
@@ -48,8 +46,9 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
         outputContains("installations:[]")
     }
 
-    def "installation registry is populated by system properties"() {
-        def someJavaHome = AvailableJavaHomes.bestJre;
+    def "installation registry is populated by environment"() {
+        def firstJavaHome = AvailableJavaHomes.availableJvms[0].javaHome.absolutePath
+        def secondJavaHome = AvailableJavaHomes.availableJvms[1].javaHome.absolutePath
 
         buildFile << """
             import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
@@ -70,16 +69,30 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
         """
 
         when:
-        result = executer.withArgument("-Porg.gradle.java.installations.paths=/unknown/path," + someJavaHome).withTasks("show").run()
+        result = executer
+            .withEnvironmentVars([JDK1: "/unknown/env", JDK2: firstJavaHome])
+            .withArgument("-Porg.gradle.java.installations.paths=/unknown/path," + secondJavaHome)
+            .withArgument("-Porg.gradle.java.installations.fromEnv=JDK1,JDK2")
+            .withTasks("show")
+            .run()
         then:
         outputContains("Directory '/unknown/path' used for java installations does not exist")
-        outputContains("[" + someJavaHome + "]")
+        outputContains("Directory '/unknown/env' used for java installations does not exist")
+        outputContains(firstJavaHome)
+        outputContains(secondJavaHome)
 
         when:
-        result = executer.withArgument("-Porg.gradle.java.installations.paths=/other/path," + someJavaHome).withTasks("show").run()
+        result = executer
+            .withEnvironmentVars([JDK1: "/unknown/env", JDK2: firstJavaHome])
+            .withArgument("-Porg.gradle.java.installations.paths=/other/path," + secondJavaHome)
+            .withArgument("-Porg.gradle.java.installations.fromEnv=JDK1,JDK2")
+            .withTasks("show")
+            .run()
         then:
         outputContains("Directory '/other/path' used for java installations does not exist")
-        outputContains("[" + someJavaHome + "]")
+        outputContains("Directory '/unknown/env' used for java installations does not exist")
+        outputContains(firstJavaHome)
+        outputContains(secondJavaHome)
     }
 
 }
