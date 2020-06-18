@@ -477,7 +477,7 @@ This will help you while iterating on the required changes and prevent future re
 == Testing your build logic
 
 The Gradle TestKit (a.k.a. just TestKit) is a library that aids in testing Gradle plugins and build logic generally.
-For general guidance on how to use TestKit see the <<test_kit.adoc#test_kit,dedicated chapter>>.
+For general guidance on how to use TestKit, see the <<test_kit.adoc#test_kit,dedicated chapter>>.
 
 To enable configuration caching in your tests, you can pass the `--configuration-cache` argument to link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner] or use one of the other methods described in <<configuration_cache.adoc#enable,Enabling the configuration cache>>.
 
