@@ -1,6 +1,9 @@
 [[config_cache]]
 = Configuration cache
 
+// Run tests for snippets included in this chapter with:
+// ./gradlew :docs:docsTest --tests="ExemplarExternalSamplesFunctionalTest.snippet-configuration-cache-*"
+
 [NOTE]
 ====
 The configuration cache is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, and the details described here may change.
