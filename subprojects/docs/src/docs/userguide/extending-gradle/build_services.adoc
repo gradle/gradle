@@ -94,6 +94,7 @@ Currently, it is not possible to use a build service with a worker API action th
 You can constrain concurrent execution when you register the service, by using the `Property` object returned from link:{javadocPath}/org/gradle/api/services/BuildServiceSpec.html#getMaxParallelUsages--[BuildServiceSpec.getMaxParallelUsages()].
 When this property has no value, which is the default, Gradle does not constrain access to the service. When this property has a value > 0, Gradle will allow no more than the specified number of tasks to use the service concurrently.
 
+[[operation_listener]]
 == Receiving information about task execution
 
 A build service can be used to receive events as tasks are executed. To do this, create and register a build service that implements link:{javadocPath}/org/gradle/tooling/events/OperationCompletionListener.html[OperationCompletionListener].
