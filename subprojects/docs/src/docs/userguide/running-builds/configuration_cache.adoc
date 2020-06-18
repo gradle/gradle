@@ -75,7 +75,6 @@ Apart from skipping the configuration phase, the configuration cache provides so
 It is recommended to get started with the simplest task invocation possible.
 Running `help` with the configuration cache enabled is a good first step:
 
-[source,text]
 ----
 ❯ gradle --configuration-cache help
 include::{snippetsPath}/configurationCache/noProblem/tests/store.out[]
@@ -90,7 +89,6 @@ Running this for the first time, the configuration phase is executed, calculatin
 Then, run the same command again.
 This will reuse the cached configuration:
 
-[source,text]
 ----
 ❯ gradle --configuration-cache help
 include::{snippetsPath}/configurationCache/noProblem/tests/load.out[]
@@ -346,7 +344,6 @@ include::sample[dir="snippets/configurationCache/problemsKotlin/kotlin",files="b
 
 Running that task fails and print the following in the console:
 
-[source,text]
 ----
 ❯ gradle --configuration-cache someTask -DsomeMessage=hello
 ...
@@ -372,7 +369,6 @@ At this stage, you can decide to either <<configuration_cache#ignore_problems, t
 
 Let's ignore the problems reported when storing the configuration cache, and run the same build again to see what happens when reusing the problematic cached configuration:
 
-[source,text]
 ----
 ❯ gradle --configuration-cache someTask -DsomeMessage=hello
 ...
@@ -397,7 +393,6 @@ include::sample[dir="snippets/configurationCache/problemsFixed/kotlin",files="bu
 
 Running the task twice now succeeds without reporting any problem and reusing the configuration cache on the second run:
 
-[source,text]
 ----
 ❯ gradle --configuration-cache someTask -DsomeMessage=hello
 include::{snippetsPath}/configurationCache/problemsFixed/tests/store.out[]
@@ -409,7 +404,6 @@ Configuration cache entry reused.
 
 But, what if we change the value of the system property?
 
-[source,text]
 ----
 ❯ gradle --configuration-cache someTask -DsomeMessage=bye
 include::{snippetsPath}/configurationCache/problemsFixed/tests/store-bye.out[]
@@ -429,7 +423,6 @@ include::sample[dir="snippets/configurationCache/problemsFixedReuse/kotlin",file
 
 With those changes in place we can run the task twice, changing the system property value:
 
-[source,text]
 ----
 ❯ gradle --configuration-cache someTask -DsomeMessage=hello
 include::{snippetsPath}/configurationCache/problemsFixedReuse/tests/store.out[]
