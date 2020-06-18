@@ -656,14 +656,10 @@ The following table shows what APIs or injected service should be used as a repl
 [[task_access]]
 === Accessing a task instance from another instance
 
-Tasks should not directly access the state of another instance.
-Instead, tasks should be connected using inputs and outputs.
+Tasks should not directly access the state of another task instance.
+Instead, tasks should be connected using <<lazy_configuration#working_with_task_dependencies_in_lazy_properties, inputs and outputs relationships>>.
 
-To fix, connect tasks using input and output relationships.
-`Property` and `Provider` types can be useful for this.
-
-// TODO - examples, more details
-// TODO - tasks configuring another tasks are unsupported
+Note that this requirement makes it unsupported to write tasks that configure other tasks at execution time.
 
 [[build_listeners]]
 === Using build listeners
