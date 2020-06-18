@@ -18,17 +18,16 @@ package org.gradle.internal.classpath;
 
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.vfs.GlobalCache;
+import org.gradle.internal.vfs.GlobalCacheLocations;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.util.List;
 
 public class CopyingClasspathFileTransformer implements ClasspathFileTransformer {
-    private final List<GlobalCache> globalCaches;
+    private final GlobalCacheLocations globalCacheLocations;
 
-    public CopyingClasspathFileTransformer(List<GlobalCache> globalCaches) {
-        this.globalCaches = globalCaches;
+    public CopyingClasspathFileTransformer(GlobalCacheLocations globalCacheLocations) {
+        this.globalCacheLocations = globalCacheLocations;
     }
 
     @Override
@@ -39,13 +38,9 @@ public class CopyingClasspathFileTransformer implements ClasspathFileTransformer
             // Directories are ok to use outside the cache
             return source;
         }
-        for (GlobalCache cache : globalCaches) {
-            for (File root : cache.getGlobalCacheRoots()) {
-                if (source.toPath().startsWith(root.toPath())) {
-                    // It's not expected that the file will be deleted, so assume it is ok to use outside the cache
-                    return source;
-                }
-            }
+        if (globalCacheLocations.isInsideGlobalCache(source.getAbsolutePath())) {
+            // It's not expected that the file will be deleted, so assume it is ok to use outside the cache
+            return source;
         }
 
         // Copy the file into the cache

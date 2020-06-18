@@ -27,7 +27,7 @@ import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.io.ClassLoaderObjectInputStream
-import org.gradle.internal.vfs.GlobalCache
+import org.gradle.internal.vfs.GlobalCacheLocations
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -65,11 +65,11 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     def classpathWalker = new ClasspathWalker(TestFiles.fileSystem())
     def classpathBuilder = new ClasspathBuilder()
     def virtualFileSystem = TestFiles.virtualFileSystem()
-    def otherCache = Stub(GlobalCache)
+    def globalCacheLocations = Stub(GlobalCacheLocations)
     URLClassLoader testClassLoader = null
 
     @Subject
-    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, cacheFactory, fileAccessTimeJournal, classpathWalker, classpathBuilder, virtualFileSystem, executorFactory, [otherCache])
+    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, cacheFactory, fileAccessTimeJournal, classpathWalker, classpathBuilder, virtualFileSystem, executorFactory, globalCacheLocations)
 
     def cleanup() {
         testClassLoader?.close()
@@ -170,8 +170,8 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
 
     def "reuses file from its origin cache when transform is none"() {
         given:
-        _ * otherCache.globalCacheRoots >> [testDir.file("other")]
         def file = testDir.file("other/thing.jar")
+        _ * globalCacheLocations.isInsideGlobalCache(file.absolutePath) >> true
         jar(file)
         def classpath = DefaultClassPath.of(file)
         transformer.transform(classpath, None)
