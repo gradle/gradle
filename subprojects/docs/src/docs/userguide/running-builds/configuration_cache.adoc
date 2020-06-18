@@ -137,7 +137,9 @@ If it is enabled in a `gradle.properties` file, it can be disabled on the comman
 === Ignoring problems
 
 By default, Gradle will fail the build if any configuration cache problems are encountered.
-Configuration cache problems can be turned into warnings on the command line:
+When gradually improving your plugin or build logic to support the configuration cache it can be useful to temporarily turn problems into warnings.
+
+This can be done from the command line:
 
 [source,bash]
 ----
@@ -195,10 +197,9 @@ If you enable and configure the configuration cache from your `gradle.properties
 There's nothing more to do.
 
 `gradle.properties` is usually checked in source control.
-If you don't want to enable the configuration cache for your whole team yet you can also enable the configuration cache from your IDE only.
+If you don't want to enable the configuration cache for your whole team yet you can also enable the configuration cache from your IDE only as explained below.
 
 Note that syncing a build from an IDE doesn't benefit from the configuration cache, only running tasks does.
-Future Gradle versions will make IDE sync faster.
 
 === IntelliJ based IDEs
 
@@ -504,8 +505,6 @@ include::sample[dir="snippets/configurationCache/testKit/kotlin",files="src/test
 <3> Assert that the configuration cache gets reused.
 
 If problems with the configuration cache are found then Gradle will fail the build reporting the problems, and the test will fail.
-
-When gradually improving your plugin or build logic to support the configuration cache it can be useful to temporarily <<configuration_cache.adoc#ignore_problems,ignore problems>> or <<configuration_cache.adoc#max_problems,allow a given number of problems>>.
 
 [[requirements]]
 == Requirements
