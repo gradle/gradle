@@ -158,6 +158,7 @@ or in a `gradle.properties` file:
 org.gradle.unsafe.configuration-cache.max-problems=5
 ----
 
+[[invalidating_the_cache]]
 === Invalidating the cache
 
 The configuration cache is automatically invalidated when inputs to the configuration phase change.
@@ -313,10 +314,8 @@ Please refer to issue link:https://github.com/gradle/gradle/issues/13490[gradle/
 [[troubleshooting]]
 == Troubleshooting
 
-The following sections will go through some general guidelines on dealing with problems with the configuration cache as well as the steps we recommend following.
+The following sections will go through some general guidelines on dealing with problems with the configuration cache.
 This applies to both your build logic and to your Gradle plugins.
-
-=== Dealing with problems
 
 Upon failure to serialize the state required to run the tasks, an HTML report of detected problems is generated.
 The Gradle failure output includes a clickable link to the report.
@@ -428,6 +427,47 @@ Configuration cache entry reused.
 We're now done with fixing the problems with this simple task.
 
 Keep reading to learn how to adopt the configuration cache for your build or your plugins.
+
+[[adoption]]
+== Adoption steps
+
+An important prerequisite is to keep your Gradle and plugins versions up to date.
+The following explores the recommended steps for a successful adoption.
+It applies both to builds and plugins.
+While going through these steps, keep in mind the HTML report and the solutions explained in the <<configuration_cache#requirements, requirements>> chapter below.
+
+Start with `:help`::
+Always start by trying your build or plugin with the simplest task `:help`.
+This will exercise the minimal configuration phase of your build or plugin.
+
+Progressively target useful tasks::
+Don't go with running `build` right away.
+You can also use `--dry-run` to discover more configuration time problems first.
++
+When working on a build, progressively target your development feedback loop.
+For example, running tests after making some changes to the source code.
++
+When working on a plugin, progressively target the contributed or configured tasks.
+
+Explore by turning problems into warnings::
+Don't stop at the first build failure and <<configuration_cache#ignore_problems, turn problems into warnings>> to discover how your build or plugin behave.
+Use the HTML report to reason about the reported problems, read about them in the <<configuration_cache#requirements, requirements>> and <<configuration_cache#not_yet_implemented, not yet implemented>> sections below.
+Continue running more tasks.
++
+This will give you a good overview of what problems your build or plugin is facing.
+Remember that when turning problems into warnings you might need to <<configuration_cache#invalidating_the_cache, manually invalidating the cache>> in case of troubles.
+
+Step back and fix problems iteratively::
+When you feel you know enough about what needs to be fixed, take a step back and start iteratively fixing the most important problems.
+Use the HTML report and this documentation to help you in this journey.
++
+Start with problems reported when _storing_ the configuration cache.
+Once fixed, you can rely on a valid cached configuration phase and move on to fixing problems reported when _loading_ the configuration cache if any.
+
+Test, test, test::
+Consider adding tests for your build logic.
+See the below section on <<configuration_cache#testkit, testing your build logic>> for the configuration cache.
+This will help you while iterating on the required changes and prevent future regressions.
 
 [[testkit]]
 == Testing your build logic
