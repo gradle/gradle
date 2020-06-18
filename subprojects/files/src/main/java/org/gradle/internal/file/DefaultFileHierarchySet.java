@@ -89,9 +89,9 @@ public class DefaultFileHierarchySet {
         @VisibleForTesting
         List<String> flatten() {
             final List<String> prefixes = new ArrayList<String>();
-            rootNode.collect(0, new HierarchyConsumer() {
+            rootNode.visitHierarchy(0, new HierarchyVisitor() {
                 @Override
-                public void consumePrefix(int depth, String prefix) {
+                public void visitPrefix(int depth, String prefix) {
                     if (depth == 0) {
                         prefixes.add(prefix);
                     } else {
@@ -132,11 +132,11 @@ public class DefaultFileHierarchySet {
         @Override
         public String toString() {
             final StringBuilder builder = new StringBuilder();
-            rootNode.collect(0, new HierarchyConsumer() {
+            rootNode.visitHierarchy(0, new HierarchyVisitor() {
                 private boolean first = true;
 
                 @Override
-                public void consumePrefix(int depth, String prefix) {
+                public void visitPrefix(int depth, String prefix) {
                     if (first) {
                         first = false;
                     } else {
@@ -254,10 +254,10 @@ public class DefaultFileHierarchySet {
             return false;
         }
 
-        public void collect(int depth, HierarchyConsumer consumer) {
-            consumer.consumePrefix(depth, prefix);
+        public void visitHierarchy(int depth, HierarchyVisitor consumer) {
+            consumer.visitPrefix(depth, prefix);
             for (Node child : children) {
-                child.collect(depth + 1, consumer);
+                child.visitHierarchy(depth + 1, consumer);
             }
         }
 
@@ -267,7 +267,7 @@ public class DefaultFileHierarchySet {
         }
     }
 
-    private interface HierarchyConsumer {
-        void consumePrefix(int depth, String prefix);
+    private interface HierarchyVisitor {
+        void visitPrefix(int depth, String prefix);
     }
 }
