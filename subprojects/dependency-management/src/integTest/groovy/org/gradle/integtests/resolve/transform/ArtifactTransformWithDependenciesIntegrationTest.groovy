@@ -84,11 +84,7 @@ project(':common') {
 
 project(':lib') {
     dependencies {
-        if (rootProject.hasProperty("useOldDependencyVersion")) {
-            implementation 'org.slf4j:slf4j-api:1.7.24'
-        } else {
-            implementation 'org.slf4j:slf4j-api:1.7.25'
-        }
+        implementation providers.gradleProperty('useOldDependencyVersion').forUseAtConfigurationTime().map { 'org.slf4j:slf4j-api:1.7.24' }.orElse('org.slf4j:slf4j-api:1.7.25')
         implementation project(':common')
     }
 }
@@ -292,7 +288,6 @@ project(':common') {
         )
     }
 
-    @ToBeFixedForInstantExecution
     def "transform with changed set of dependencies are re-executed"() {
         given:
         setupBuildWithSingleStep()
@@ -331,7 +326,6 @@ project(':common') {
         assertTransformationsExecuted()
     }
 
-    @ToBeFixedForInstantExecution
     def "transform with changed project file dependencies content or path are re-executed"() {
         given:
         setupBuildWithSingleStep()
@@ -407,7 +401,6 @@ project(':common') {
         assertTransformationsExecuted()
     }
 
-    @ToBeFixedForInstantExecution
     def "can attach @PathSensitive(NONE) to dependencies property"() {
         given:
         setupBuildWithNoSteps()
@@ -503,7 +496,6 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "can attach @#classpathAnnotation.simpleName to dependencies property"() {
         given:
         setupBuildWithNoSteps {
@@ -661,7 +653,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         assert libTransformWithNewSlf4j < app2Resolve
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary")
     def "transform does not execute when dependencies cannot be found"() {
         given:
         mavenHttpRepo.module("unknown", "not-found", "4.3").allowAll().assertNotPublished()
@@ -685,7 +677,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         failure.assertThatCause(CoreMatchers.containsString("Could not find unknown:not-found:4.3"))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary")
     def "transform does not execute when dependencies cannot be downloaded"() {
         given:
         def cantBeDownloaded = withColorVariants(mavenHttpRepo.module("test", "cant-be-downloaded", "4.3")).publish()
@@ -722,7 +714,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         )
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary")
     def "transform does not execute when dependencies cannot be transformed"() {
         given:
         setupBuildWithFirstStepThatDoesNotUseDependencies()
@@ -749,7 +741,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         )
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "external dependencies are transformed eagerly")
     def "transform does not execute when dependencies cannot be built"() {
         given:
         setupBuildWithTwoSteps()
