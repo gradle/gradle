@@ -534,9 +534,6 @@ For example, if you reference a `Project` in order to get the `project.version` 
 Another example would be to reference a `SourceSet` to later get the source files, the compilation classpath or the outputs of the source set.
 You should instead declare these as a `FileCollection` input and reference just that.
 
-// TODO snippet with a task type
-// TODO snippet with a doLast closure
-
 The same requirement applies to dependency management types with some nuances.
 
 Referencing heavyweight model objects such as `Configuration`, `Dependency`, `Publication` or `ArtifactResolutionQuery` is forbidden, more precise types must be used instead.
@@ -544,10 +541,40 @@ For example, if you reference a `Configuration` to later get the resolved files,
 
 Referencing dependency resolution results is also forbidden (e.g. `ArtifactResolutionQuery`, `ResolvedArtifact`, `ArtifactResult` etc...).
 For example, if you reference some `ResolvedArtifactResult` instances, you should instead declare some `ArtifactCollection` as an input to your task.
-The rule of thumb here that tasks must not reference _resolved_ results, but lazy specifications instead, in order to do the dependency resolution at execution time.
+The rule of thumb here is that tasks must not reference _resolved_ results, but lazy specifications instead, in order to do the dependency resolution at execution time.
 
-// TODO snippet with a task type
-// TODO snippet with a doLast closure
+Here's an example of a problematic task type referencing a `SourceSet`:
+
+====
+include::sample[dir="snippets/configurationCache/disallowedTypes/groovy",files="build.gradle[tags=task-type]"]
+include::sample[dir="snippets/configurationCache/disallowedTypes/kotlin",files="build.gradle.kts[tags=task-type]"]
+====
+<1> this will be reported as a problem because referencing `SourceSet` is not allowed
+
+The following is how it should be done instead:
+
+====
+include::sample[dir="snippets/configurationCache/disallowedTypesFixed/groovy",files="build.gradle[tags=task-type]"]
+include::sample[dir="snippets/configurationCache/disallowedTypesFixed/kotlin",files="build.gradle.kts[tags=task-type]"]
+====
+<1> no more problems reported, we now reference the supported type `FileCollection`
+
+In the same vein, if you encounter the same problem with an ad-hoc task declared in a script as follows:
+
+====
+include::sample[dir="snippets/configurationCache/disallowedTypes/groovy",files="build.gradle[tags=ad-hoc-task]"]
+include::sample[dir="snippets/configurationCache/disallowedTypes/kotlin",files="build.gradle.kts[tags=ad-hoc-task]"]
+====
+<1> this will be reported as a problem because the `doLast {}` closure is capturing a reference to the `SourceSet`
+
+You still need to fulfil the same requirement, that is not referencing a disallowed type.
+Here's how the task declaration above can be fixed:
+
+====
+include::sample[dir="snippets/configurationCache/disallowedTypesFixed/groovy",files="build.gradle[tags=ad-hoc-task]"]
+include::sample[dir="snippets/configurationCache/disallowedTypesFixed/kotlin",files="build.gradle.kts[tags=ad-hoc-task]"]
+====
+<1> no more problems reported, the `doLast {}` closure now only captures `classpath` which is of the supported `FileCollection` type
 
 [[use_project_during_execution]]
 === Using the `Project` object
