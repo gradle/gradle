@@ -77,7 +77,6 @@ import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenDependency
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
@@ -125,12 +124,6 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             return 1;
         }
         return left.compareTo(right);
-    };
-    private static final Spec<MavenArtifact> PUBLISHED_ARTIFACTS = artifact -> {
-        if (!((PublicationArtifactInternal) artifact).shouldBePublished()) {
-            return false;
-        }
-        return artifact.getFile().exists();
     };
 
     @VisibleForTesting
@@ -673,11 +666,11 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             ));
     }
 
-    private MavenArtifact normalizedArtifactFor(MavenArtifact pomArtifact) {
+    private MavenArtifact normalizedArtifactFor(MavenArtifact artifact) {
         // TODO: introduce something like a NormalizedMavenArtifact to capture the required MavenArtifact
         //  information and only that instead of having MavenArtifact references in
         //  MavenNormalizedPublication
-        return new SerializableMavenArtifact(pomArtifact);
+        return new SerializableMavenArtifact(artifact);
     }
 
     private DomainObjectSet<MavenArtifact> artifactsToBePublished() {
@@ -687,7 +680,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                 new DomainObjectCollection<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}
             )
         ).matching(element -> {
-            if (!PUBLISHED_ARTIFACTS.isSatisfiedBy(element)) {
+            if (!((PublicationArtifactInternal) element).shouldBePublished()) {
                 return false;
             }
             if (moduleMetadataArtifact == element) {
