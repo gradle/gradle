@@ -58,6 +58,13 @@ public class DefaultJvmEcosystemAttributesDetails implements JvmEcosystemUtiliti
     }
 
     @Override
+    public JvmEcosystemUtilities.JvmEcosystemAttributesDetails library(String elementsType) {
+        library();
+        attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, elementsType));
+        return this;
+    }
+
+    @Override
     public JvmEcosystemUtilities.JvmEcosystemAttributesDetails platform() {
         attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.REGULAR_PLATFORM));
         return this;
