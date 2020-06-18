@@ -310,8 +310,6 @@ link:{gradle-issues}13473[[.red]#✖#]:: <<project_report_plugin.adoc#project_re
 [.red]#✖#:: Unsupported plugin
 [.gray]#✖#:: Won't fix
 
-Later Gradle releases will add support for more core plugins.
-
 [[third_party_plugins]]
 === Third party plugins
 
