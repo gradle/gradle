@@ -2,16 +2,64 @@
 
 /* configuration cache styles */
 
-.left {
-    float: left;
+.report {
+    margin: 0 auto;
+    width: 1200px;
+    display: flex;
 }
 
-.right {
-    float: right;
+.report-wrapper {
+    width: 100%;
+}
+
+.header {
+    padding-top: 24px;
+    padding-bottom: 16px;
+    display: flex;
+}
+
+.learn-more {
+    margin-left: auto;
+    align-self: center;
+    font-size: 0.875rem;
+    font-weight: normal;
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.filters {
+    margin-left: auto;
+    font-size: 0.875rem;
+}
+
+.content {
+    font-size: 0.875rem;
+    padding-top: 8px;
+}
+
+.content ol:first-of-type {
+    margin: 0;
+}
+
+.tree-btn.collapsed {
+    transform: rotateZ(90deg);
+}
+
+.tree-btn.expanded {
+    transform: rotateZ(180deg);
+}
+
+.tree-btn {
+    margin-right: 8px;
 }
 
 .tree-btn, .tree-icon {
-    color: #e0e0e0ff;
+    color: #999;
+    display: inline-block;
 }
 
 .tree-btn:hover {
@@ -19,23 +67,66 @@
     color: #d0d0d0ff;
 }
 
+.failure-icon {
+    color: red;
+    font-size: 18px;
+    line-height: 1rem;
+    margin-right: 8px;
+}
+
+.filters-group {
+    display: inline-flex;
+    background-color: #EDEEEF;
+    border-radius: 5px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    height: 30px;
+    align-items: center;
+    padding: 0 3px;
+    margin-left: 8px;
+    line-height: 1rem;
+}
+
 .btn {
-    padding: 0.25em;
-    border-radius: 0.25em;
-    background-color: #f0f0f0;
-    border-style: solid;
-    border-color: #d0d0d000;
+    padding: 4px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+    height: 24px;
+    min-width: 78px;
+    display: inline-block;
+    text-align: center;
 }
 
 .btn:hover {
-    cursor: pointer;
-    border-style: solid;
-    border-color: #e0e0e0ff;
+    color: #3cafc6;
+    background-color: #d8eff3;
+    box-shadow: none;
 }
 
 .btn-active {
-    color: white;
-    background-color: #dfdfdfff;
+    cursor: default;
+    background: #fff;
+}
+
+.groups {
+    display: flex;
+    border-bottom: 1px solid #EDEEEF;
+}
+
+.group-selector {
+    padding: 0 52px 24px 0;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #999999;
+    cursor: pointer;
+}
+
+.group-selector--active {
+    color: #02303A;
+    cursor: auto;
 }
 
 .accordion-header {
@@ -48,10 +139,7 @@
 }
 
 .stacktrace {
-    background-color: #f5f5f5;
     border-radius: 4px;
-    font-size: 1em;
-    line-height: 1.45;
     margin-bottom: 1.25em;
     overflow-x: auto;
     padding: 1rem;
@@ -61,7 +149,6 @@
     cursor: pointer;
 }
 
-
 /* Lato (bold, regular) */
 @font-face {
     font-display: swap;
@@ -70,6 +157,15 @@
     font-style: normal;
     src: url("https://assets.gradle.com/lato/fonts/lato-semibold/lato-semibold.woff2") format("woff2"),
          url("https://assets.gradle.com/lato/fonts/lato-semibold/lato-semibold.woff") format("woff");
+}
+
+@font-face {
+    font-display: swap;
+    font-family: Lato;
+    font-weight: bold;
+    font-style: normal;
+    src: url("https://assets.gradle.com/lato/fonts/lato-bold/lato-bold.woff2") format("woff2"),
+         url("https://assets.gradle.com/lato/fonts/lato-bold/lato-bold.woff") format("woff");
 }
 
 * {
@@ -93,59 +189,75 @@ html {
 
 body {
     color: #02303A;
-    background-color: #f7f7f8;
+    background-color: #ffffff;
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
     -webkit-font-smoothing: antialiased;
 }
 
+
+
 /* typography */
 h1, h2, h3, h4, h5, h6 {
-    margin-top: 0;
-    margin-bottom: 1rem;
-    font-weight: 500;
     color: #02303A;
     text-rendering: optimizeLegibility;
+    margin: 0;
 }
 
 h1 {
-    font-size: 2rem;
+    font-size: 1rem;
 }
 
 h2 {
-    margin-top: 2.5rem;
-    font-size: 1.5rem;
+    font-size: 0.9rem;
 }
 
 h3 {
-    margin-top: 1.5rem;
     font-size: 1.125rem;
 }
 
 h4, h5, h6 {
-    margin-top: 1rem;
-    font-size: 1.0625rem;
+    font-size: 0.875rem;
 }
 
 ul, ol, dl {
     list-style-position: outside;
     line-height: 1.6;
-    margin: 0 0 1rem 1em;
     padding: 0;
+    margin: 0 0 1rem 1em;
     list-style-type: none;
+}
+
+li {
+    line-height: 2;
+}
+
+a {
+    color: #1DA2BD;
+    text-decoration: none;
+    transition: all 0.3s ease, visibility 0s;
+}
+
+a:hover {
+    color: #35c1e4;
 }
 
 /* code */
 code, pre {
-    background-color: #f7f7f8;
-    border-radius: 4px;
-    font-family: "Fira Code", "Droid Sans Mono", "DejaVu Sans Mono", monospace;
-    font-size: 1em;
+    font-family: Inconsolata, Monaco, "Courier New", monospace;
     font-style: normal;
+    font-variant-ligatures: normal;
+    font-variant-caps: normal;
+    font-variant-numeric: normal;
+    font-variant-east-asian: normal;
+    font-weight: normal;
+    font-stretch: normal;
+    color: #686868;
+    font-size: 0.8rem;
+    line-height: 1.8;
 }
 
 *:not(pre) > code {
-    font-size: 0.9375em;
     letter-spacing: 0;
     padding: 0.1em 0.5ex;
     text-rendering: optimizeSpeed;
@@ -154,7 +266,7 @@ code, pre {
 }
 
 pre {
-    line-height: 1.45;
+    line-height: 1.8;
     margin-top: 0;
     margin-bottom: 1.5em;
     padding: 1rem;
@@ -163,7 +275,7 @@ pre {
 pre code {
     background-color: transparent;
     color: inherit;
-    line-height: 1.45;
+    line-height: 1.8;
     font-size: 100%;
     padding: 0;
 }

@@ -20,6 +20,7 @@ import elmish.a
 import elmish.attributes
 import elmish.code
 import elmish.div
+import elmish.img
 import elmish.empty
 import elmish.h1
 import elmish.h2
@@ -121,23 +122,37 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
     }
 
     override fun view(model: Model): View<Intent> = div(
-        attributes { className("container") },
+        attributes { className("report-wrapper") },
         div(
+            attributes { className("header") },
+            img( attributes { src("img/logo.png") }),
+            learnMore(model.documentationLink)
+        ),
+        div(
+            attributes { className("title") },
+            h1("${model.totalProblems} instant execution problems were found"),
             div(
-                attributes { className("right") },
+                attributes { className("filters") },
                 div(
-                    displayFilterButton(DisplayFilter.All, model.displayFilter),
-                    displayFilterButton(DisplayFilter.Errors, model.displayFilter),
-                    displayFilterButton(DisplayFilter.Warnings, model.displayFilter)
+                    span("View"),
+                    div(
+                        attributes { className("filters-group") },
+                        displayFilterButton(DisplayFilter.All, model.displayFilter),
+                        displayFilterButton(DisplayFilter.Errors, model.displayFilter),
+                        displayFilterButton(DisplayFilter.Warnings, model.displayFilter)
+                    )
                 )
-            ),
-            div(
-                attributes { className("left") },
-                h1("${model.totalProblems} problems were found ${model.cacheAction} the configuration cache"),
-                learnMore(model.documentationLink),
-                viewTree(model.messageTree, Intent::MessageTreeIntent, model.displayFilter),
-                viewTree(model.taskTree, Intent::TaskTreeIntent, model.displayFilter)
             )
+        ),
+        div(
+            attributes { className("groups") },
+            div(attributes { className("group-selector group-selector--active") }, "Problems grouped by message"),
+            div(attributes { className("group-selector") }, "Problems grouped by task")
+        ),
+        div(
+            attributes { className("content") },
+            viewTree(model.messageTree, Intent::MessageTreeIntent, model.displayFilter),
+            viewTree(model.taskTree, Intent::TaskTreeIntent, model.displayFilter)
         )
     )
 
@@ -155,6 +170,7 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
 
     private
     fun learnMore(documentationLink: String): View<Intent> = div(
+        attributes { className("learn-more") },
         span("Learn more about the "),
         a(
             attributes { href(documentationLink) },
@@ -165,7 +181,7 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
 
     private
     fun viewTree(model: ProblemTreeModel, treeIntent: (ProblemTreeIntent) -> Intent, displayFilter: DisplayFilter): View<Intent> = div(
-        h2(model.tree.label.unsafeCast<ProblemNode.Label>().text),
+//        h2(model.tree.label.unsafeCast<ProblemNode.Label>().text),
         ol(
             viewSubTrees(applyFilter(displayFilter, model)) { child ->
                 when (val node = child.tree.label) {
@@ -263,17 +279,23 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
     fun viewTreeButton(child: Tree.Focus<ProblemNode>, treeIntent: (ProblemTreeIntent) -> Intent): View<Intent> = span(
         attributes {
             className("tree-btn")
+            if(child.tree.state === Tree.ViewState.Collapsed ) {
+                className("collapsed")
+            }
+            if(child.tree.state === Tree.ViewState.Expanded ) {
+                className("expanded")
+            }
             title("Click to ${toggleVerb(child.tree.state)}")
             onClick { treeIntent(TreeView.Intent.Toggle(child)) }
         },
         when (child.tree.state) {
-            Tree.ViewState.Collapsed -> "► "
-            Tree.ViewState.Expanded -> "▼ "
+            Tree.ViewState.Collapsed -> "⌃ "
+            Tree.ViewState.Expanded -> "⌃ "
         }
     )
 
     private
-    val errorIcon = span<Intent>(" ❌")
+    val errorIcon = span<Intent>(attributes { className("failure-icon") }," ⨉")
 
     private
     val warningIcon = span<Intent>(" ⚠️")
