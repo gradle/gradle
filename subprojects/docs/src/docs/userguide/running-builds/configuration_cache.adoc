@@ -576,6 +576,11 @@ include::sample[dir="snippets/configurationCache/disallowedTypesFixed/kotlin",fi
 ====
 <1> no more problems reported, the `doLast {}` closure now only captures `classpath` which is of the supported `FileCollection` type
 
+Note that sometime the disallowed type is indirectly referenced.
+For example, you could have a task reference some type from a plugin that is allowed.
+That type could reference another allowed type that in turn references a disallowed type.
+The hierarchical view of the object graph provided in the HTML reports for problems should help you pinpoint the offender.
+
 [[use_project_during_execution]]
 === Using the `Project` object
 
