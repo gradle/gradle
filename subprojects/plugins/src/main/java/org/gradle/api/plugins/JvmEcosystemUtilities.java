@@ -100,6 +100,17 @@ public interface JvmEcosystemUtilities {
     Configuration createOutgoingElements(String name, Action<? super OutgoingElementsBuilder> configuration);
 
     /**
+     * Creates an incoming configuration for resolution of a dependency graph.
+     *
+     * The action is used to configure the created <i>resolvable</i> configuration.
+     *
+     * @param name the name of the configuration
+     * @param action the configuration of the resolvable configuration
+     * @return the resolvable configuration
+     */
+    Configuration createResolvableGraph(String name, Action<? super ResolvableGraphBuilder> action);
+
+    /**
      * Creates a generic "java component", which implies creation of an underlying source set,
      * compile tasks, jar tasks, possibly javadocs and sources jars and allows configuring if such
      * a component has to be published externally.
@@ -191,6 +202,61 @@ public interface JvmEcosystemUtilities {
          * @param version the Java version
          */
         JvmEcosystemAttributesDetails withTargetJvmVersion(int version);
+    }
+
+    /**
+     * An incoming configuration builder. Such a configuration is meant
+     * to be resolved.
+     *
+     * @since 6.6
+     */
+    @Incubating
+    interface ResolvableGraphBuilder {
+        /**
+         * Also create the dependency bucket of the provided name and
+         * make the resolvable configuration extend from it.
+         * @param name the name of the bucket of dependencies
+         */
+        ResolvableGraphBuilder usingDependencyBucket(String name);
+
+        /**
+         * Configures the resolution for runtime of java libraries
+         */
+        ResolvableGraphBuilder requiresJavaLibrariesRuntime();
+
+        /**
+         * Configures the resolution for API of java libraries
+         */
+        ResolvableGraphBuilder requiresJavaLibrariesAPI();
+
+        /**
+         * Adds configurations the resolvable configuration should extend from.
+         * Those configurations should be typically buckets of dependencies
+         * @param parentConfigurations the parent configurations
+         */
+        ResolvableGraphBuilder extendsFrom(Configuration... parentConfigurations);
+
+        /**
+         * Adds configurations the resolvable configuration should extend from.
+         * Those configurations should be typically buckets of dependencies
+         * @param parentConfigurations the parent configurations
+         */
+        ResolvableGraphBuilder extendsFrom(List<Provider<Configuration>> parentConfigurations);
+
+        /**
+         * Adds this configuration as a parent configuration of the resolvable configuration
+         * @param configuration the parent configuration
+         */
+        default ResolvableGraphBuilder extendsFrom(Provider<Configuration> configuration) {
+            return extendsFrom(Collections.singletonList(configuration));
+        }
+
+        /**
+         * Allows refining the attributes of this configuration in case the defaults are not
+         * sufficient. The refiner will be called after the default attributes are set.
+         * @param refiner the attributes refiner configuration
+         */
+        ResolvableGraphBuilder attributes(Action<? super JvmEcosystemAttributesDetails> refiner);
     }
 
     /**

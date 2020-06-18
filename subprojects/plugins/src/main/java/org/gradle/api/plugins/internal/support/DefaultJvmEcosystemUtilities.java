@@ -42,7 +42,6 @@ import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmEcosystemUtilitiesInternal;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -57,7 +56,6 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -218,6 +216,16 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
     }
 
     @Override
+    public Configuration createResolvableGraph(String name, Action<? super ResolvableGraphBuilder> action) {
+        DefaultResolvableGraphBuilder builder = instanceGenerator.newInstance(DefaultResolvableGraphBuilder.class,
+            name,
+            this,
+            configurations);
+        action.execute(builder);
+        return builder.build();
+    }
+
+    @Override
     public void createJavaComponent(String name, Action<? super JavaComponentBuilder> configuration) {
         DefaultJavaComponentBuilder builder = instanceGenerator.newInstance(DefaultJavaComponentBuilder.class,
             name,
@@ -241,29 +249,22 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
         return 0;
     }
 
-    public static class DefaultElementsConfigurationBuilder implements OutgoingElementsBuilder {
-        final String name;
-        final JvmEcosystemUtilitiesInternal jvmEcosystemUtilities;
-        final ConfigurationContainer configurations;
+    public static class DefaultElementsConfigurationBuilder extends AbstractConfigurationBuilder<DefaultElementsConfigurationBuilder> implements OutgoingElementsBuilder {
         final SoftwareComponentContainer components;
-        String description;
         boolean api;
-        List<Object> extendsFrom;
         SourceSet sourceSet;
         List<Object> artifactProducers;
-        Action<? super JvmEcosystemAttributesDetails> attributesRefiner;
         List<Capability> capabilities;
         boolean classDirectory;
         private boolean published;
 
         @Inject
         public DefaultElementsConfigurationBuilder(String name, JvmEcosystemUtilitiesInternal jvmEcosystemUtilities, ConfigurationContainer configurations, SoftwareComponentContainer components) {
-            this.name = name;
-            this.jvmEcosystemUtilities = jvmEcosystemUtilities;
-            this.configurations = configurations;
+            super(name, jvmEcosystemUtilities, configurations);
             this.components = components;
         }
 
+        @Override
         Configuration build() {
             Configuration cnf = configurations.maybeCreate(name);
             if (description != null) {
@@ -322,32 +323,6 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
             return cnf;
         }
 
-        @Nullable
-        private Configuration[] buildExtendsFrom() {
-            if (extendsFrom == null) {
-                return null;
-            }
-            Configuration[] out = new Configuration[extendsFrom.size()];
-            int i=0;
-            for (Object obj : extendsFrom) {
-                if (obj instanceof Configuration) {
-                    out[i] = (Configuration) obj;
-                } else if (obj instanceof Provider) {
-                    out[i] = Cast.<Provider<Configuration>>uncheckedCast(obj).get();
-                } else {
-                    throw new IllegalStateException("Unexpected configuration provider type: " + obj);
-                }
-                i++;
-            }
-            return out;
-        }
-
-        @Override
-        public OutgoingElementsBuilder withDescription(String description) {
-            this.description = description;
-            return this;
-        }
-
         @Override
         public OutgoingElementsBuilder providesApi() {
             this.api = true;
@@ -357,24 +332,6 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
         @Override
         public OutgoingElementsBuilder providesRuntime() {
             this.api = false;
-            return this;
-        }
-
-        @Override
-        public OutgoingElementsBuilder extendsFrom(Configuration... parentConfigurations) {
-            if (extendsFrom == null) {
-                extendsFrom = Lists.newArrayListWithExpectedSize(parentConfigurations.length);
-            }
-            Collections.addAll(extendsFrom, parentConfigurations);
-            return this;
-        }
-
-        @Override
-        public final OutgoingElementsBuilder extendsFrom(List<Provider<Configuration>> parentConfigurations) {
-            if (extendsFrom == null) {
-                extendsFrom = Lists.newArrayListWithExpectedSize(parentConfigurations.size());
-            }
-            extendsFrom.addAll(parentConfigurations);
             return this;
         }
 
@@ -390,12 +347,6 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
                 artifactProducers = Lists.newArrayList();
             }
             artifactProducers.add(producer);
-            return this;
-        }
-
-        @Override
-        public OutgoingElementsBuilder attributes(Action<? super JvmEcosystemAttributesDetails> refiner) {
-            this.attributesRefiner = refiner;
             return this;
         }
 
@@ -427,4 +378,88 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
         }
     }
 
+    public static class DefaultResolvableGraphBuilder extends AbstractConfigurationBuilder<DefaultResolvableGraphBuilder> implements ResolvableGraphBuilder {
+        private Boolean libraryApi;
+        private Boolean libraryRuntime;
+        private List<String> bucketNames;
+
+        @Inject
+        public DefaultResolvableGraphBuilder(String name,
+                                             JvmEcosystemUtilitiesInternal jvmEcosystemUtilities,
+                                             ConfigurationContainer configurations) {
+            super(name, jvmEcosystemUtilities, configurations);
+        }
+
+        @Override
+        public ResolvableGraphBuilder usingDependencyBucket(String name) {
+            if (bucketNames == null) {
+                bucketNames = Lists.newArrayList();
+            }
+            bucketNames.add(name);
+            return this;
+        }
+
+        @Override
+        Configuration build() {
+            if (bucketNames != null) {
+                for (String bucketName : bucketNames) {
+                    Configuration bucket = configurations.maybeCreate(bucketName);
+                    if (description != null) {
+                        bucket.setDescription("Dependencies for " + description);
+                    }
+                    bucket.setVisible(false);
+                    bucket.setCanBeConsumed(false);
+                    bucket.setCanBeResolved(false);
+                    extendsFrom(bucket);
+                }
+            }
+            Configuration resolvable = configurations.maybeCreate(name);
+            if (description != null) {
+                resolvable.setDescription(description);
+            }
+            resolvable.setVisible(false);
+            resolvable.setCanBeConsumed(false);
+            resolvable.setCanBeResolved(true);
+
+            Configuration[] extendsFrom = buildExtendsFrom();
+            if (extendsFrom != null) {
+                resolvable.extendsFrom(extendsFrom);
+            }
+            jvmEcosystemUtilities.configureAttributes(resolvable, details -> {
+                    if (libraryApi != null && libraryApi) {
+                        details.library()
+                            .asJar()
+                            .withExternalDependencies()
+                            .apiUsage();
+                    } else if (libraryRuntime != null && libraryRuntime) {
+                        details.library()
+                            .asJar()
+                            .withExternalDependencies()
+                            .runtimeUsage();
+                    }
+                    if (libraryRuntime == null && libraryApi == null && attributesRefiner == null) {
+                        throw new IllegalStateException("You didn't tell what kind of component to look for. You need to configure at least one attribute");
+                    }
+                    if (attributesRefiner != null) {
+                        attributesRefiner.execute(details);
+                    }
+                }
+            );
+            return resolvable;
+        }
+
+        @Override
+        public ResolvableGraphBuilder requiresJavaLibrariesRuntime() {
+            this.libraryApi = null;
+            this.libraryRuntime = true;
+            return this;
+        }
+
+        @Override
+        public ResolvableGraphBuilder requiresJavaLibrariesAPI() {
+            this.libraryRuntime = null;
+            this.libraryApi = true;
+            return this;
+        }
+    }
 }
