@@ -38,9 +38,13 @@ public class LocationListInstallationSupplier implements InstallationSupplier {
         this(factory, Logging.getLogger(LocationListInstallationSupplier.class));
     }
 
-    LocationListInstallationSupplier(ProviderFactory factory, Logger logger) {
+    private LocationListInstallationSupplier(ProviderFactory factory, Logger logger) {
         this.factory = factory;
         this.logger = logger;
+    }
+
+    public static LocationListInstallationSupplier withLogger(ProviderFactory factory, Logger logger) {
+        return new LocationListInstallationSupplier(factory, logger);
     }
 
     @Override

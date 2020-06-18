@@ -25,18 +25,10 @@ import spock.lang.Unroll
 class LocationListInstallationSupplierTest extends Specification {
 
     def supplier
-    def logger = new ToStringLogger()
-    ProviderFactory providerFactory
     def currentGradlePropertyValue
 
     void setup() {
-        providerFactory = Mock(ProviderFactory)
-        def provider = Mock(Provider)
-        provider.get() >> { currentGradlePropertyValue }
-        provider.isPresent() >> { currentGradlePropertyValue != null }
-        provider.forUseAtConfigurationTime() >> provider
-        providerFactory.gradleProperty("org.gradle.java.installations.paths") >> provider
-        supplier = new LocationListInstallationSupplier(providerFactory, logger) {
+        supplier = new LocationListInstallationSupplier(createProviderFactory()) {
             @Override
             boolean pathMayBeValid(File file) {
                 return file == new File("/foo/bar") || file == new File("/foo/123")
@@ -46,7 +38,7 @@ class LocationListInstallationSupplierTest extends Specification {
 
     def "supplies no installations for absent property"() {
         given:
-        def supplier = new LocationListInstallationSupplier(providerFactory)
+        def supplier = new LocationListInstallationSupplier(createProviderFactory())
 
         when:
         def directories = supplier.get()
@@ -101,7 +93,8 @@ class LocationListInstallationSupplierTest extends Specification {
     @Unroll
     def "warns and filters for installations pointing to files, exists: #exists, directory: #directory"() {
         given:
-        def supplier = new LocationListInstallationSupplier(providerFactory, logger)
+        def logger = new ToStringLogger()
+        def supplier = LocationListInstallationSupplier.withLogger(createProviderFactory(), logger)
         def file = Mock(File)
         file.exists() >> exists
         file.isDirectory() >> directory
@@ -119,6 +112,16 @@ class LocationListInstallationSupplierTest extends Specification {
         '/foo/bar'  | true   | true      | true  | ''
         '/unknown'  | false  | null      | false | 'Directory \'/unknown\' used for java installations does not exist\n'
         '/foo/file' | true   | false     | false | 'Path for java installation \'/foo/file\' points to a file, not a directory\n'
+    }
+
+    private ProviderFactory createProviderFactory() {
+        def providerFactory = Mock(ProviderFactory)
+        def provider = Mock(Provider)
+        provider.get() >> { currentGradlePropertyValue }
+        provider.isPresent() >> { currentGradlePropertyValue != null }
+        provider.forUseAtConfigurationTime() >> provider
+        providerFactory.gradleProperty("org.gradle.java.installations.paths") >> provider
+        providerFactory
     }
 
 }
