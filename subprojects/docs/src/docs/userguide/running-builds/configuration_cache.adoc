@@ -245,6 +245,10 @@ When changing your build or plugin to fix the problems you should consider <<con
 [[plugin_support]]
 == Supported plugins
 
+The configuration cache is brand new and has strong requirements.
+As a result, both core Gradle plugins, and third party plugins need to be adjusted.
+This section provides information about the current support in <<configuration_cache#core_plugins, core Gradle plugins>> and <<configuration_cache#third_party_plugins, third party plugins>>.
+
 [[core_plugins]]
 === Core Gradle plugins
 
@@ -321,6 +325,11 @@ a|
 [.gray]#✖#:: Won't fix
 
 Later Gradle releases will add support for more core plugins.
+
+[[third_party_plugins]]
+=== Third party plugins
+
+Please refer to issue link:https://github.com/gradle/gradle/issues/13490[gradle/gradle#13490] to learn about the status of third party plugins.
 
 [[requirements]]
 == Requirements
