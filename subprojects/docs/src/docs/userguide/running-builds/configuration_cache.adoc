@@ -247,32 +247,32 @@ h| Packaging and distribution
 
 a|
 [horizontal]
-[.yellow]#⚠#:: <<java_plugin.adoc#java_plugin,Java>>
-[.yellow]#⚠#:: <<java_library_plugin.adoc#java_library_plugin,Java Library>>
-[.yellow]#⚠#:: <<java_platform_plugin.adoc#java_platform_plugin,Java Platform>>
-[.yellow]#⚠#:: <<groovy_plugin.adoc#groovy_plugin,Groovy>>
-[.red]#✖#:: <<scala_plugin.adoc#scala_plugin,Scala>>
-[.yellow]#⚠#:: <<antlr_plugin.adoc#antlr_plugin,ANTLR>>
+link:{gradle-issues}13457[[.yellow]#⚠#]:: <<java_plugin.adoc#java_plugin,Java>>
+link:{gradle-issues}13458[[.yellow]#⚠#]:: <<java_library_plugin.adoc#java_library_plugin,Java Library>>
+link:{gradle-issues}13459[[.yellow]#⚠#]:: <<java_platform_plugin.adoc#java_platform_plugin,Java Platform>>
+link:{gradle-issues}13460[[.yellow]#⚠#]:: <<groovy_plugin.adoc#groovy_plugin,Groovy>>
+link:{gradle-issues}13461[[.red]#✖#]:: <<scala_plugin.adoc#scala_plugin,Scala>>
+link:{gradle-issues}13462[[.yellow]#⚠#]:: <<antlr_plugin.adoc#antlr_plugin,ANTLR>>
 
 a|
 [horizontal]
-[.red]#✖#:: <<cpp_application_plugin.adoc#cpp_application_plugin,C++ Application>>
-[.red]#✖#:: <<cpp_library_plugin.adoc#cpp_library_plugin,C++ Library>>
-[.red]#✖#:: <<cpp_unit_test_plugin.adoc#cpp_unit_test_plugin,C++ Unit Test>>
-[.red]#✖#:: <<swift_application_plugin.adoc#swift_application_plugin,Swift Application>>
-[.red]#✖#:: <<swift_library_plugin.adoc#swift_library_plugin,Swift Library>>
-[.red]#✖#:: <<xctest_plugin.adoc#xctest_plugin,XCTest>>
+link:{gradle-issues}13484[[.red]#✖#]:: <<cpp_application_plugin.adoc#cpp_application_plugin,C++ Application>>
+link:{gradle-issues}13485[[.red]#✖#]:: <<cpp_library_plugin.adoc#cpp_library_plugin,C++ Library>>
+link:{gradle-issues}13514[[.red]#✖#]:: <<cpp_unit_test_plugin.adoc#cpp_unit_test_plugin,C++ Unit Test>>
+link:{gradle-issues}13515[[.red]#✖#]:: <<swift_application_plugin.adoc#swift_application_plugin,Swift Application>>
+link:{gradle-issues}13487[[.red]#✖#]:: <<swift_library_plugin.adoc#swift_library_plugin,Swift Library>>
+link:{gradle-issues}13488[[.red]#✖#]:: <<xctest_plugin.adoc#xctest_plugin,XCTest>>
 
 a|
 [horizontal]
-[.green]#✓#:: <<application_plugin.adoc#application_plugin,Application>>
-[.yellow]#⚠#:: <<war_plugin.adoc#war_plugin,WAR>>
-[.green]#✓#:: <<ear_plugin.adoc#ear_plugin,EAR>>
-[.yellow]#⚠#:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
-[.red]#✖#:: <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
+link:{gradle-issues}13463[[.green]#✓#]:: <<application_plugin.adoc#application_plugin,Application>>
+link:{gradle-issues}13466[[.yellow]#⚠#]:: <<war_plugin.adoc#war_plugin,WAR>>
+link:{gradle-issues}13467[[.green]#✓#]:: <<ear_plugin.adoc#ear_plugin,EAR>>
+link:{gradle-issues}13468[[.yellow]#⚠#]:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
+link:{gradle-issues}13469[[.red]#✖#]:: <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
 [.gray]#✖#:: <<maven_plugin.adoc#maven_plugin,Legacy Maven Plugin>>
-[.green]#✓#:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
-[.yellow]#⚠#:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
+link:{gradle-issues}13464[[.green]#✓#]:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
+link:{gradle-issues}13465[[.yellow]#⚠#]:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
 
 h| Code analysis
 h| IDE integration
@@ -280,26 +280,26 @@ h| Utility
 
 a|
 [horizontal]
-[.red]#✖#:: <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle>>
-[.red]#✖#:: <<pmd_plugin.adoc#pmd_plugin,PMD>>
-[.red]#✖#:: <<jacoco_plugin.adoc#jacoco_plugin,JaCoCo>>
-[.red]#✖#:: <<codenarc_plugin.adoc#codenarc_plugin,CodeNarc>>
+link:{gradle-issues}13475[[.red]#✖#]:: <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle>>
+link:{gradle-issues}13476[[.red]#✖#]:: <<pmd_plugin.adoc#pmd_plugin,PMD>>
+link:{gradle-issues}13477[[.red]#✖#]:: <<jacoco_plugin.adoc#jacoco_plugin,JaCoCo>>
+link:{gradle-issues}13478[[.red]#✖#]:: <<codenarc_plugin.adoc#codenarc_plugin,CodeNarc>>
 
 a|
 [horizontal]
-[.red]#✖#:: <<eclipse_plugin.adoc#eclipse_plugin,Eclipse>>
-[.red]#✖#:: <<idea_plugin.adoc#idea_plugin,IntelliJ IDEA>>
-[.red]#✖#:: <<visual_studio_plugin.adoc#visual_studio_plugin,Visual Studio>>
-[.red]#✖#:: <<xcode_plugin.adoc#xcode_plugin,Xcode>>
+link:{gradle-issues}13479[[.red]#✖#]:: <<eclipse_plugin.adoc#eclipse_plugin,Eclipse>>
+link:{gradle-issues}13480[[.red]#✖#]:: <<idea_plugin.adoc#idea_plugin,IntelliJ IDEA>>
+link:{gradle-issues}13482[[.red]#✖#]:: <<visual_studio_plugin.adoc#visual_studio_plugin,Visual Studio>>
+link:{gradle-issues}13483[[.red]#✖#]:: <<xcode_plugin.adoc#xcode_plugin,Xcode>>
 
 a|
 [horizontal]
-[.green]#✓#:: <<base_plugin.adoc#base_plugin,Base>>
-[.green]#✓#:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
-[.red]#✖#:: <<signing_plugin.adoc#signing_plugin,Signing>>
-[.yellow]#⚠#:: <<java_gradle_plugin.adoc#java_gradle_plugin,Plugin Development>>
-[.red]#✖#:: <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL Plugin Development>>
-[.red]#✖#:: <<project_report_plugin.adoc#project_report_plugin,Project Report Plugin>>
+link:{gradle-issues}13455[[.green]#✓#]:: <<base_plugin.adoc#base_plugin,Base>>
+link:{gradle-issues}13456[[.green]#✓#]:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
+link:{gradle-issues}13470[[.red]#✖#]:: <<signing_plugin.adoc#signing_plugin,Signing>>
+link:{gradle-issues}13471[[.yellow]#⚠#]:: <<java_gradle_plugin.adoc#java_gradle_plugin,Plugin Development>>
+link:{gradle-issues}13472[[.red]#✖#]:: <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL Plugin Development>>
+link:{gradle-issues}13473[[.red]#✖#]:: <<project_report_plugin.adoc#project_report_plugin,Project Report Plugin>>
 
 |===
 
