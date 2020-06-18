@@ -518,19 +518,36 @@ The following sections describe each of the requirements and how to change your 
 === Certain types must not be referenced by tasks
 
 There are a number of types that task instances must not reference from their fields.
-Usually these types are used to carry some task input that should be explicitly declared instead.
+The same applies to task actions as closures such as `doFirst {}` or `doLast {}`.
 
-To fix, you can often replace such a field with a `Property` or `Provider` typed field that exposes the exact information that the task will need at execution time.
+These types fall into some categories as follows:
 
-// TODO - examples, more details
-// - Live JVM state
-// - Gradle, Settings, Project -> data
-// - SourceSet or SourceSetContainer -> FileCollection(s) for the source directories|files, classpath or outputs
-// - Dependency resolution types
-//   - explain global rule, results NO, specs YES
-//   - Configuration -> FileCollection
-//   - Dependencies -> ArtifactCollection
+* Live JVM state types
+* Gradle model types
+* Dependency management types
 
+Live JVM state types (e.g. `ClassLoader`, `Thread`, `OutputStream`, `Socket` etc...) are simply forbidden.
+
+Gradle model types (e.g. `Gradle`, `Settings`, `Project`, `SourceSet`, `Configuration` etc...) are usually used to carry some task input that should be explicitly and precisely declared instead.
+
+For example, if you reference a `Project` in order to get the `project.version` at execution time, you should instead directly declare the _project version_  as an input to your task using a `Property<String>`.
+Another example would be to reference a `SourceSet` to later get the source files, the compilation classpath or the outputs of the source set.
+You should instead declare these as a `FileCollection` input and reference just that.
+
+// TODO snippet with a task type
+// TODO snippet with a doLast closure
+
+The same requirement applies to dependency management types with some nuances.
+
+Referencing heavyweight model objects such as `Configuration`, `Dependency`, `Publication` or `ArtifactResolutionQuery` is forbidden, more precise types must be used instead.
+For example, if you reference a `Configuration` to later get the resolved files, you should instead declare a `FileCollection` as an input to your task.
+
+Referencing dependency resolution results is also forbidden (e.g. `ArtifactResolutionQuery`, `ResolvedArtifact`, `ArtifactResult` etc...).
+For example, if you reference some `ResolvedArtifactResult` instances, you should instead declare some `ArtifactCollection` as an input to your task.
+The rule of thumb here that tasks must not reference _resolved_ results, but lazy specifications instead, in order to do the dependency resolution at execution time.
+
+// TODO snippet with a task type
+// TODO snippet with a doLast closure
 
 [[use_project_during_execution]]
 === Using the `Project` object
