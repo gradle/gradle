@@ -32,7 +32,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/quickstart")
-    @ToBeFixedForInstantExecution
     def "quickstart publish with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -84,7 +83,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/javaProject")
-    @ToBeFixedForInstantExecution
     def "publish java project with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -113,7 +111,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/multiple-publications")
-    @ToBeFixedForInstantExecution
     def "multiple publications with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -146,7 +143,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(
+        iterationMatchers = ".* kotlin dsl"
+    )
     def "conditional publishing with #dsl dsl"() {
         using m2
 
@@ -270,7 +269,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/distribution")
-    @ToBeFixedForInstantExecution
     def "publishes distribution archives with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
