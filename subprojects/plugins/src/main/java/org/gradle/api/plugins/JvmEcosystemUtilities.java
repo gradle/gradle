@@ -127,6 +127,12 @@ public interface JvmEcosystemUtilities {
         JvmEcosystemAttributesDetails library();
 
         /**
+         * Provides or requires a library with specific elements.
+         * See {@link org.gradle.api.attributes.LibraryElements} for possible values.
+         */
+        JvmEcosystemAttributesDetails library(String elementsType);
+
+        /**
          * Provides or requires a platform
          */
         JvmEcosystemAttributesDetails platform();
