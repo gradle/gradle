@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.internal.vfs.GlobalCache;
+import org.gradle.cache.GlobalCache;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;

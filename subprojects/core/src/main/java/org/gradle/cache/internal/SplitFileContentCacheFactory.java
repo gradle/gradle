@@ -16,9 +16,9 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.vfs.GlobalCacheLocations;
 
 import java.io.Closeable;
 import java.io.File;

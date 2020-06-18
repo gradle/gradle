@@ -18,6 +18,7 @@ package org.gradle.internal.classpath;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -28,7 +29,6 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.vfs.GlobalCacheLocations;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.Closeable;

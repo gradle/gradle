@@ -20,8 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.GlobalCache;
 import org.gradle.cache.PersistentCache;
-import org.gradle.internal.vfs.GlobalCache;
 
 import java.io.Closeable;
 import java.io.File;

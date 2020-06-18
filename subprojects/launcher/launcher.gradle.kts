@@ -77,8 +77,10 @@ dependencies {
     integTestRuntimeOnly(files(toolsJar))
 }
 
-tasks.jar {
-    val classpath = listOf(":bootstrap", ":baseServices", ":coreApi", ":core").joinToString(" ") {
+evaluationDependsOn(":persistentCache")
+
+tasks.jar.configure {
+    val classpath = listOf(":bootstrap", ":baseServices", ":coreApi", ":core", ":persistentCache").joinToString(" ") {
         project(it).tasks.jar.get().archiveFile.get().asFile.name
     }
     manifest.attributes("Class-Path" to classpath)

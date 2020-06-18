@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs;
+package org.gradle.cache.internal;
 
+import org.gradle.cache.GlobalCache;
+import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 

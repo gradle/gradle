@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
+import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.vfs.GlobalCacheLocations;
 
 import java.io.Closeable;
 import java.io.File;

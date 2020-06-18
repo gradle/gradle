@@ -18,10 +18,10 @@ package org.gradle.api.internal.classpath;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
+import org.gradle.cache.GlobalCache;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.installation.GradleInstallation;
-import org.gradle.internal.vfs.GlobalCache;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;

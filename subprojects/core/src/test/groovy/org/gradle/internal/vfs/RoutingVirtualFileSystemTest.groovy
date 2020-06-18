@@ -16,6 +16,8 @@
 
 package org.gradle.internal.vfs
 
+import org.gradle.cache.GlobalCache
+import org.gradle.cache.internal.DefaultGlobalCacheLocations
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot

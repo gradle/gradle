@@ -18,6 +18,7 @@ package org.gradle.internal.watch
 
 import com.google.common.collect.ImmutableSet
 import org.apache.commons.io.FileUtils
+import org.gradle.cache.GlobalCacheLocations
 import org.gradle.initialization.StartParameterBuildOptions.WatchFileSystemOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
@@ -26,7 +27,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
-import org.gradle.internal.vfs.GlobalCacheLocations
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition

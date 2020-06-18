@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.vfs.GlobalCacheLocations;
 
 import java.io.File;
 

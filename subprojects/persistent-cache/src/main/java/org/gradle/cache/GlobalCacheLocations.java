@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs;
-
-import java.io.File;
-import java.util.List;
+package org.gradle.cache;
 
 /**
- * Represents a location for global Gradle caches.
+ * Identifies if a path is underneath one of Gradle's global caches.
  *
- * The global cache is managed by Gradle, so we Gradle needs to take care
- * of informing all the infrastructure about changes to it.
+ * We expect only Gradle itself to change things in the global caches directories.
+ *
+ * The quasi-immutability of global caches allows for some optimizations by retaining file system state in-memory.
  */
-public interface GlobalCache {
+public interface GlobalCacheLocations {
+
     /**
-     * Returns the root directories of the global cache.
+     * Checks if a given path is inside one of Gradle's global caches.
      */
-    List<File> getGlobalCacheRoots();
+    boolean isInsideGlobalCache(String path);
 }

@@ -17,6 +17,7 @@
 package org.gradle.internal.vfs;
 
 import com.google.common.collect.Iterables;
+import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
