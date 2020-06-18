@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
@@ -35,7 +34,6 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
@@ -44,6 +42,7 @@ import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmEcosystemUtilitiesInternal;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -58,6 +57,7 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -248,9 +248,9 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
         final SoftwareComponentContainer components;
         String description;
         boolean api;
-        Configuration[] extendsFrom;
+        List<Object> extendsFrom;
         SourceSet sourceSet;
-        List<TaskProvider<Task>> artifactProducers;
+        List<Object> artifactProducers;
         Action<? super JvmEcosystemAttributesDetails> attributesRefiner;
         List<Capability> capabilities;
         boolean classDirectory;
@@ -272,6 +272,7 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
             cnf.setVisible(false);
             cnf.setCanBeConsumed(true);
             cnf.setCanBeResolved(false);
+            Configuration[] extendsFrom = buildExtendsFrom();
             if (extendsFrom != null) {
                 cnf.extendsFrom(extendsFrom);
             }
@@ -292,13 +293,13 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
             if (sourceSet != null) {
                 jvmEcosystemUtilities.useDefaultTargetPlatformInference(cnf, sourceSet);
             }
+            ConfigurationPublications outgoing = cnf.getOutgoing();
             if (artifactProducers != null) {
-                for (TaskProvider<Task> provider : artifactProducers) {
-                    cnf.getArtifacts().add(new LazyPublishArtifact(provider));
+                for (Object provider : artifactProducers) {
+                    outgoing.artifact(provider);
                 }
             }
             if (capabilities != null) {
-                ConfigurationPublications outgoing = cnf.getOutgoing();
                 for (Capability capability : capabilities) {
                     outgoing.capability(capability);
                 }
@@ -321,6 +322,26 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
             return cnf;
         }
 
+        @Nullable
+        private Configuration[] buildExtendsFrom() {
+            if (extendsFrom == null) {
+                return null;
+            }
+            Configuration[] out = new Configuration[extendsFrom.size()];
+            int i=0;
+            for (Object obj : extendsFrom) {
+                if (obj instanceof Configuration) {
+                    out[i] = (Configuration) obj;
+                } else if (obj instanceof Provider) {
+                    out[i] = Cast.<Provider<Configuration>>uncheckedCast(obj).get();
+                } else {
+                    throw new IllegalStateException("Unexpected configuration provider type: " + obj);
+                }
+                i++;
+            }
+            return out;
+        }
+
         @Override
         public OutgoingElementsBuilder withDescription(String description) {
             this.description = description;
@@ -341,7 +362,19 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
 
         @Override
         public OutgoingElementsBuilder extendsFrom(Configuration... parentConfigurations) {
-            this.extendsFrom = parentConfigurations;
+            if (extendsFrom == null) {
+                extendsFrom = Lists.newArrayListWithExpectedSize(parentConfigurations.length);
+            }
+            Collections.addAll(extendsFrom, parentConfigurations);
+            return this;
+        }
+
+        @Override
+        public final OutgoingElementsBuilder extendsFrom(List<Provider<Configuration>> parentConfigurations) {
+            if (extendsFrom == null) {
+                extendsFrom = Lists.newArrayListWithExpectedSize(parentConfigurations.size());
+            }
+            extendsFrom.addAll(parentConfigurations);
             return this;
         }
 
@@ -352,7 +385,7 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
         }
 
         @Override
-        public OutgoingElementsBuilder addArtifact(TaskProvider<Task> producer) {
+        public OutgoingElementsBuilder addArtifact(Object producer) {
             if (artifactProducers == null) {
                 artifactProducers = Lists.newArrayList();
             }
