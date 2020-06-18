@@ -16,12 +16,14 @@
 
 package org.gradle.internal.enterprise.impl;
 
-import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInResultHandler;
+import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInResult;
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInService;
 import org.gradle.internal.enterprise.GradleEnterprisePluginMetadata;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceFactory;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceRef;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
+
+import javax.annotation.Nullable;
 
 public class DefautGradleEnterprisePluginCheckInService implements GradleEnterprisePluginCheckInService {
 
@@ -41,14 +43,35 @@ public class DefautGradleEnterprisePluginCheckInService implements GradleEnterpr
     public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Enterprise plugin unsupported due to secret toggle";
 
     @Override
-    public void checkIn(GradleEnterprisePluginMetadata pluginMetadata, GradleEnterprisePluginServiceFactory serviceFactory, GradleEnterprisePluginCheckInResultHandler resultHandler) {
+    public GradleEnterprisePluginCheckInResult checkIn(GradleEnterprisePluginMetadata pluginMetadata, GradleEnterprisePluginServiceFactory serviceFactory) {
         if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
             manager.unsupported();
-            resultHandler.unsupported(UNSUPPORTED_TOGGLE_MESSAGE);
+            return new GradleEnterprisePluginCheckInResult() {
+                @Override
+                public String getUnsupportedMessage() {
+                    return UNSUPPORTED_TOGGLE_MESSAGE;
+                }
+
+                @Override
+                public GradleEnterprisePluginServiceRef getPluginServiceRef() {
+                    throw new IllegalStateException();
+                }
+            };
         } else {
             GradleEnterprisePluginServiceRef ref = adapter.register(serviceFactory);
             manager.registerAdapter(adapter);
-            resultHandler.supported(ref);
+            return new GradleEnterprisePluginCheckInResult() {
+                @Nullable
+                @Override
+                public String getUnsupportedMessage() {
+                    return null;
+                }
+
+                @Override
+                public GradleEnterprisePluginServiceRef getPluginServiceRef() {
+                    return ref;
+                }
+            };
         }
     }
 
