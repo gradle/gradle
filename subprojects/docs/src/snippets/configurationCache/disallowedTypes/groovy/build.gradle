@@ -5,7 +5,7 @@ plugins {
 // tag::task-type[]
 abstract class SomeTask extends DefaultTask {
 
-    SourceSet sourceSet // <1>
+    @Input SourceSet sourceSet // <1>
 
     @TaskAction
     void action() {
@@ -22,7 +22,7 @@ tasks.register('someTaskType', SomeTask) {
 // tag::ad-hoc-task[]
 tasks.register('someTask') {
     doLast {
-        def classpathFiles = sourceSet.main.compileClasspath.files // <1>
+        def classpathFiles = sourceSets.main.compileClasspath.files // <1>
     }
 }
 // end::ad-hoc-task[]

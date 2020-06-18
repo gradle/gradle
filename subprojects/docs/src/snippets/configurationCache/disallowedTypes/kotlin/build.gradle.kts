@@ -5,7 +5,7 @@ plugins {
 // tag::task-type[]
 abstract class SomeTask : DefaultTask() {
 
-    lateinit var sourceSet: SourceSet // <1>
+    @get:Input lateinit var sourceSet: SourceSet // <1>
 
     @TaskAction
     fun action() {

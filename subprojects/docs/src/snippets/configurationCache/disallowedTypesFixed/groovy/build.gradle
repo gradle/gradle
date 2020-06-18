@@ -22,7 +22,7 @@ tasks.register("someTaskType", SomeTask) {
 
 // tag::ad-hoc-task[]
 tasks.register('someTask') {
-    def classpath = sourceSet.main.compileClasspath // <1>
+    def classpath = sourceSets.main.compileClasspath // <1>
     doLast {
         def classpathFiles = classpath.files
     }
