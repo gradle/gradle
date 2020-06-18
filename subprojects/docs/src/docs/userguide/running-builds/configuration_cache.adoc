@@ -277,7 +277,7 @@ a|
 a|
 [horizontal]
 [.green]#✓#:: <<application_plugin.adoc#application_plugin,Application>>
-[.green]#✓#:: <<war_plugin.adoc#war_plugin,WAR>>
+[.yellow]#⚠#:: <<war_plugin.adoc#war_plugin,WAR>>
 [.green]#✓#:: <<ear_plugin.adoc#ear_plugin,EAR>>
 [.yellow]#⚠#:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
 [.red]#✖#:: <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
@@ -306,7 +306,7 @@ a|
 a|
 [horizontal]
 [.green]#✓#:: <<base_plugin.adoc#base_plugin,Base>>
-[.yellow]#⚠#:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
+[.green]#✓#:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
 [.red]#✖#:: <<signing_plugin.adoc#signing_plugin,Signing>>
 [.yellow]#⚠#:: <<java_gradle_plugin.adoc#java_gradle_plugin,Plugin Development>>
 [.red]#✖#:: <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL Plugin Development>>
