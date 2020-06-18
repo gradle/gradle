@@ -587,15 +587,49 @@ The hierarchical view of the object graph provided in the HTML reports for probl
 A task must not use any `Project` objects at execution time.
 This includes calling `Task.getProject()` while the task is running.
 
-Most of the cases can be fixed in the same way as the previous requirement.
+Some cases can be fixed in the same way as the previous requirement.
 
 Often, similar things are available on both `Project` and `Task`.
 For example if you need a `Logger` in your task actions you should use `Task.logger` instead of `Project.logger`.
 
 Otherwise, you can use <<custom_gradle_types#service_injection,injected services>> instead of the methods of `Project`.
 
-// TODO snippet with a task type
-// TODO snippet with a doLast closure
+Here's an example of a problematic task type using the `Project` object at execution time:
+
+====
+include::sample[dir="snippets/configurationCache/projectAtExecution/groovy",files="build.gradle[tags=task-type]"]
+include::sample[dir="snippets/configurationCache/projectAtExecution/kotlin",files="build.gradle.kts[tags=task-type]"]
+====
+<1> this will be reported as a problem because the task action is using the `Project` object at execution time
+
+The following is how it should be done instead:
+
+====
+include::sample[dir="snippets/configurationCache/projectAtExecutionFixed/groovy",files="build.gradle[tags=task-type]"]
+include::sample[dir="snippets/configurationCache/projectAtExecutionFixed/kotlin",files="build.gradle.kts[tags=task-type]"]
+====
+<1> no more problem reported, the injected `ExecOperations` service is supported as a replacement for `project.exec {}`
+
+In the same vein, if you encounter the same problem with an ad-hoc task declared in a script as follows:
+
+====
+include::sample[dir="snippets/configurationCache/projectAtExecution/groovy",files="build.gradle[tags=ad-hoc-task]"]
+include::sample[dir="snippets/configurationCache/projectAtExecution/kotlin",files="build.gradle.kts[tags=ad-hoc-task]"]
+====
+<1> this will be reported as a problem because the task action is using the `Project` object at execution time
+
+Here's how the task declaration above can be fixed:
+
+====
+include::sample[dir="snippets/configurationCache/projectAtExecutionFixed/groovy",files="build.gradle[tags=ad-hoc-task]"]
+include::sample[dir="snippets/configurationCache/projectAtExecutionFixed/kotlin",files="build.gradle.kts[tags=ad-hoc-task]"]
+====
+<1> services can't be injected directly in scripts, we need an extra type to convey the injection point
+<2> create an instance of the extra type using `project.object` outside the task action
+<3> no more problem reported, the task action references `injected` that provides the `ExecOperations` service, supported as a replacement for `project.exec {}`
+
+As you can see above, fixing ad-hoc tasks declared in scripts requires quite a bit of ceremony.
+It is a good time to think about extracting your task declaration as a proper task class as shown previously.
 
 The following table shows what APIs or injected service should be used as a replacement for each of the `Project` methods.
 
