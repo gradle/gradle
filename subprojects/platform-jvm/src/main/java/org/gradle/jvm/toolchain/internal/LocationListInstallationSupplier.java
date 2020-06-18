@@ -18,35 +18,39 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class LocationListInstallationSupplier implements InstallationSupplier {
 
-    private final String systemPropertyName;
     private final Logger logger;
-    private ProviderFactory factory;
+    private final ProviderFactory factory;
 
     @Inject
     public LocationListInstallationSupplier(ProviderFactory factory) {
-        this("org.gradle.java.installations.paths", Logging.getLogger(LocationListInstallationSupplier.class));
-        this.factory = factory;
+        this(factory, Logging.getLogger(LocationListInstallationSupplier.class));
     }
 
-    private LocationListInstallationSupplier(String systemPropertyName, Logger logger) {
-        this.systemPropertyName = systemPropertyName;
+    LocationListInstallationSupplier(ProviderFactory factory, Logger logger) {
+        this.factory = factory;
         this.logger = logger;
     }
 
     @Override
     public Set<File> get() {
-        final String listOfDirectories = factory.systemProperty(systemPropertyName).forUseAtConfigurationTime().get();
-        return Arrays.stream(listOfDirectories.split(",")).map(File::new).filter(this::pathMayBeValid).collect(Collectors.toSet());
+        final Provider<String> property = factory.gradleProperty("org.gradle.java.installations.paths").forUseAtConfigurationTime();
+        if (property.isPresent()) {
+            final String listOfDirectories = property.get();
+            return Arrays.stream(listOfDirectories.split(",")).map(File::new).filter(this::pathMayBeValid).collect(Collectors.toSet());
+        }
+        return Collections.emptySet();
     }
 
     boolean pathMayBeValid(File file) {

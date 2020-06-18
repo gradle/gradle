@@ -21,6 +21,33 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 
 class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
+    def "installation registry empty without environment setup"() {
+        def someJavaHome = AvailableJavaHomes.bestJre;
+
+        buildFile << """
+            import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
+            import javax.inject.Inject
+
+            abstract class ShowPlugin implements Plugin<Project> {
+                @Inject
+                abstract SharedJavaInstallationRegistry getRegistry()
+
+                void apply(Project project) {
+                    project.tasks.register("show") {
+                        println "installations:" + registry.listInstallations()
+                    }
+                }
+            }
+
+            apply plugin: ShowPlugin
+        """
+
+        when:
+        succeeds("show")
+        then:
+        outputContains("installations:[]")
+    }
+
     def "installation registry is populated by system properties"() {
         def someJavaHome = AvailableJavaHomes.bestJre;
 
@@ -43,17 +70,16 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
         """
 
         when:
-        result = executer.withArgument("-Dorg.gradle.java.installations.paths=/unknown/path," + someJavaHome).withTasks("show").run()
+        result = executer.withArgument("-Porg.gradle.java.installations.paths=/unknown/path," + someJavaHome).withTasks("show").run()
         then:
         outputContains("Directory '/unknown/path' used for java installations does not exist")
         outputContains("[" + someJavaHome + "]")
 
         when:
-        result = executer.withArgument("-Dorg.gradle.java.installations.paths=/other/path," + someJavaHome).withTasks("show").run()
+        result = executer.withArgument("-Porg.gradle.java.installations.paths=/other/path," + someJavaHome).withTasks("show").run()
         then:
         outputContains("Directory '/other/path' used for java installations does not exist")
         outputContains("[" + someJavaHome + "]")
-
     }
 
 }
