@@ -93,6 +93,25 @@ class BuildLayoutFactoryTest extends Specification {
     }
 
     @Unroll
+    def "looks for child directory called 'master' that it contains a #settingsFilename file"() {
+        given:
+        def locator = buildLayoutFactoryFor()
+
+        and:
+        def masterDir = tmpDir.createDir("master")
+        def settingsFile = masterDir.createFile(settingsFilename)
+
+        expect:
+        def layout = locator.getLayoutFor(tmpDir.testDirectory, true)
+        layout.rootDirectory == masterDir.parentFile
+        layout.settingsDir == masterDir
+        refersTo(layout, settingsFile)
+
+        where:
+        settingsFilename << TEST_CASES
+    }
+
+    @Unroll
     def "searches ancestors for a directory called 'master' that contains a #settingsFilename file"() {
         given:
         def locator = buildLayoutFactoryFor()
