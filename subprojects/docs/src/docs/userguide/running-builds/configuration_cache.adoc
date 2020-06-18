@@ -78,6 +78,9 @@ Running `help` with the configuration cache enabled is a good first step:
 ----
 ❯ gradle --configuration-cache help
 include::{snippetsPath}/configurationCache/noProblem/tests/store.out[]
+...
+BUILD SUCCESSFUL in 200ms
+1 actionable task: 1 executed
 Configuration cache entry stored.
 ----
 
@@ -90,6 +93,9 @@ This will reuse the cached configuration:
 ----
 ❯ gradle --configuration-cache help
 include::{snippetsPath}/configurationCache/noProblem/tests/load.out[]
+...
+BUILD SUCCESSFUL in 50ms
+1 actionable task: 1 executed
 Configuration cache entry reused.
 ----
 
