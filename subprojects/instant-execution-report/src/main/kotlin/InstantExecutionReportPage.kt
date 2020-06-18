@@ -129,7 +129,7 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         ),
         div(
             attributes { className("title") },
-            h1("${model.totalProblems} instant execution problems were found"),
+            h1("${model.totalProblems} problems were found ${model.cacheAction} the configuration cache"),
             div(
                 attributes { className("filters") },
                 div(
