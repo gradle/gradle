@@ -59,8 +59,8 @@ If a build input has changed, Gradle will not use the entry and will run the con
 Build inputs include:
 
 - Init scripts, settings scripts, build scripts.
-- System properties, Gradle properties and configuration files used during the configuration phase, accessed using value suppliers (TODO - add docs for this).
-- build inputs and source files for `buildSrc` projects.
+- System properties, Gradle properties and configuration files used during the configuration phase, accessed using value suppliers such as providers for properties, environment variables etc...
+- Build inputs and source files for `buildSrc` projects.
 
 === Performance improvements
 
