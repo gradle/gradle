@@ -26,19 +26,19 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class SystemPropertyInstallationSupplier implements InstallationSupplier {
+public class LocationListInstallationSupplier implements InstallationSupplier {
 
     private final String systemPropertyName;
     private final Logger logger;
     private ProviderFactory factory;
 
     @Inject
-    public SystemPropertyInstallationSupplier(ProviderFactory factory) {
-        this("org.gradle.java.installations.paths", Logging.getLogger(SystemPropertyInstallationSupplier.class));
+    public LocationListInstallationSupplier(ProviderFactory factory) {
+        this("org.gradle.java.installations.paths", Logging.getLogger(LocationListInstallationSupplier.class));
         this.factory = factory;
     }
 
-    private SystemPropertyInstallationSupplier(String systemPropertyName, Logger logger) {
+    private LocationListInstallationSupplier(String systemPropertyName, Logger logger) {
         this.systemPropertyName = systemPropertyName;
         this.logger = logger;
     }

@@ -21,14 +21,14 @@ import org.gradle.internal.logging.ToStringLogger
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class SystemPropertyInstallationSupplierTest extends Specification {
+class LocationListInstallationSupplierTest extends Specification {
 
     def inputPropertyName = UUID.randomUUID().toString()
     def supplier
     def logger = new ToStringLogger()
 
     void setup() {
-        supplier = new SystemPropertyInstallationSupplier(inputPropertyName, logger) {
+        supplier = new LocationListInstallationSupplier(inputPropertyName, logger) {
             @Override
             boolean pathMayBeValid(File file) {
                 return file == new File("/foo/bar") || file == new File("/foo/123")
@@ -38,7 +38,7 @@ class SystemPropertyInstallationSupplierTest extends Specification {
 
     def "supplies no installations for absent property"() {
         given:
-        def supplier = new SystemPropertyInstallationSupplier()
+        def supplier = new LocationListInstallationSupplier()
 
         when:
         def directories = supplier.get()
@@ -94,7 +94,7 @@ class SystemPropertyInstallationSupplierTest extends Specification {
     @Unroll
     def "warns and filters for installations pointing to files, exists: #exists, directory: #directory"() {
         given:
-        def supplier = new SystemPropertyInstallationSupplier(inputPropertyName, logger)
+        def supplier = new LocationListInstallationSupplier(inputPropertyName, logger)
         def file = Mock(File)
         file.exists() >> exists
         file.isDirectory() >> directory
