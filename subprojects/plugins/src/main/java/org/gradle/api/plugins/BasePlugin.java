@@ -44,6 +44,8 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import javax.inject.Inject;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
+
 /**
  * <p>A  {@link org.gradle.api.Plugin}  which defines a basic project lifecycle and some common convention properties.</p>
  */
@@ -115,12 +117,13 @@ public class BasePlugin implements Plugin<Project> {
             }
             AtomicBoolean usesMaven = new AtomicBoolean();
             project.getPluginManager().withPlugin("maven", p -> usesMaven.set(true));
-            uploadArchives.doFirst(task -> DeprecationLogger
+            uploadArchives.doFirst(action(task -> DeprecationLogger
                 .deprecateTask(UPLOAD_ARCHIVES_TASK_NAME)
                 .withAdvice("Use the " + (usesMaven.get() ? "'maven-publish'" : "'ivy-publish'") + " plugin instead.")
                 .willBeRemovedInGradle7()
                 .withUpgradeGuideSection(5, "legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
-                .nagUser());
+                .nagUser()
+            ));
             boolean hasIvyRepo = !uploadArchives.getRepositories().withType(IvyArtifactRepository.class).isEmpty();
             if (!hasIvyRepo) {
                 return;

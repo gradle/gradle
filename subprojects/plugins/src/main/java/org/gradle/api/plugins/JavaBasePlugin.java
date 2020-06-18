@@ -60,6 +60,8 @@ import java.io.File;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
+
 /**
  * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
  */
@@ -340,11 +342,11 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             buildTask.setGroup(BasePlugin.BUILD_GROUP);
             buildTask.dependsOn(BUILD_TASK_NAME);
             boolean hasIncludedBuilds = !buildTask.getProject().getGradle().getIncludedBuilds().isEmpty();
-            buildTask.doFirst(task -> {
+            buildTask.doFirst(action(task -> {
                 if (hasIncludedBuilds) {
                     task.getLogger().warn("[composite-build] Warning: `" + task.getPath() + "` task does not build included builds.");
                 }
-            });
+            }));
         });
     }
 
