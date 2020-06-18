@@ -32,7 +32,7 @@ import spock.lang.Unroll
 
 @Unroll
 class VirtualFileSystemServicesTest extends Specification {
-    def additiveCacheLocations = Mock(GlobalCacheLocations)
+    def globalCacheLocations = Mock(GlobalCacheLocations)
     def fileHasher = Mock(FileHasher)
     def fileSystem = Mock(FileSystem)
     def listenerManager = Mock(ListenerManager)
@@ -47,7 +47,7 @@ class VirtualFileSystemServicesTest extends Specification {
 
         when:
         def buildSessionScopedVirtualFileSystem = new VirtualFileSystemServices.BuildSessionServices().createVirtualFileSystem(
-            additiveCacheLocations,
+            globalCacheLocations,
             fileHasher,
             fileSystem,
             listenerManager,

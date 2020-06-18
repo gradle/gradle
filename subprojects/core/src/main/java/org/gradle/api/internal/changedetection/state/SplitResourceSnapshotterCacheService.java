@@ -27,17 +27,17 @@ import org.gradle.internal.vfs.GlobalCacheLocations;
 public class SplitResourceSnapshotterCacheService implements ResourceSnapshotterCacheService {
     private final ResourceSnapshotterCacheService globalCache;
     private final ResourceSnapshotterCacheService localCache;
-    private final GlobalCacheLocations additiveCacheLocations;
+    private final GlobalCacheLocations globalCacheLocations;
 
-    public SplitResourceSnapshotterCacheService(ResourceSnapshotterCacheService globalCache, ResourceSnapshotterCacheService localCache, GlobalCacheLocations additiveCacheLocations) {
+    public SplitResourceSnapshotterCacheService(ResourceSnapshotterCacheService globalCache, ResourceSnapshotterCacheService localCache, GlobalCacheLocations globalCacheLocations) {
         this.globalCache = globalCache;
         this.localCache = localCache;
-        this.additiveCacheLocations = additiveCacheLocations;
+        this.globalCacheLocations = globalCacheLocations;
     }
 
     @Override
     public HashCode hashFile(RegularFileSnapshot fileSnapshot, RegularFileHasher hasher, HashCode configurationHash) {
-        if (additiveCacheLocations.isInsideGlobalCache(fileSnapshot.getAbsolutePath())) {
+        if (globalCacheLocations.isInsideGlobalCache(fileSnapshot.getAbsolutePath())) {
             return globalCache.hashFile(fileSnapshot, hasher, configurationHash);
         } else {
             return localCache.hashFile(fileSnapshot, hasher, configurationHash);
