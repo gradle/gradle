@@ -124,7 +124,7 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         attributes { className("report-wrapper") },
         div(
             attributes { className("header") },
-            img( attributes { src("configuration-cache-report-logo.png") }),
+            img(attributes { src("configuration-cache-report-logo.png") }),
             learnMore(model.documentationLink)
         ),
         div(
@@ -278,10 +278,10 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
     fun viewTreeButton(child: Tree.Focus<ProblemNode>, treeIntent: (ProblemTreeIntent) -> Intent): View<Intent> = span(
         attributes {
             className("tree-btn")
-            if(child.tree.state === Tree.ViewState.Collapsed ) {
+            if (child.tree.state === Tree.ViewState.Collapsed) {
                 className("collapsed")
             }
-            if(child.tree.state === Tree.ViewState.Expanded ) {
+            if (child.tree.state === Tree.ViewState.Expanded) {
                 className("expanded")
             }
             title("Click to ${toggleVerb(child.tree.state)}")
@@ -294,7 +294,7 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
     )
 
     private
-    val errorIcon = span<Intent>(attributes { className("failure-icon") }," ⨉")
+    val errorIcon = span<Intent>(attributes { className("failure-icon") }, " ⨉")
 
     private
     val warningIcon = span<Intent>(" ⚠️")
