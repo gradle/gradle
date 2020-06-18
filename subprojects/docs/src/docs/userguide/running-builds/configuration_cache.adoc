@@ -555,28 +555,23 @@ The rule of thumb here that tasks must not reference _resolved_ results, but laz
 A task must not use any `Project` objects at execution time.
 This includes calling `Task.getProject()` while the task is running.
 
-Some cases can be fixed in the same way as the previous requirement.
+Most of the cases can be fixed in the same way as the previous requirement.
 
 Often, similar things are available on both `Project` and `Task`.
 For example if you need a `Logger` in your task actions you should use `Task.logger` instead of `Project.logger`.
 
 Otherwise, you can use <<custom_gradle_types#service_injection,injected services>> instead of the methods of `Project`.
 
-// TODO - examples
-// - with 2 problems
-// - p1 is using `project.version`
-// - p2 is using `project.exec {}`
-// - in task types
-// - in tasks declared in scripts
-//   https://gradle.slack.com/archives/CH43P3A10/p1591477979141600
+The following table shows what APIs or injected service should be used as a replacement for each of the `Project` methods.
 
+// TODO fully qualified javadoc links
 [cols="a,a",options="header"]
 |===
 | Instead of:
 | Use:
 
 | `project.rootDir`
-| A task field or script variable to capture the root directory.
+| A task property or script variable to capture the root directory.
 
 | `project.projectDir`
 | `link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout].projectDirectory`
@@ -585,19 +580,22 @@ Otherwise, you can use <<custom_gradle_types#service_injection,injected services
 | `link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout].buildDirectory`
 
 | `project.name`
-| A task field or script variable to capture the project name.
+| A task property or script variable to capture the project name.
 
 | `project.description`
-| A task field or script variable to capture the project description.
+| A task property or script variable to capture the project description.
 
 | `project.group`
-| A task field or script variable to capture the project group.
+| A task property or script variable to capture the project group.
 
 | `project.version`
-| A task field or script variable to capture the project version.
+| A task property or script variable to capture the project version.
 
 | `project.properties`, `project.property(name)`, `project.hasProperty(name)`, `project.getProperty(name)` or `project.findProperty(name)`
 | <<configuration_cache#undeclared_gradle_prop_read, Value providers for Gradle properties>>
+
+| `project.logger`
+| `link:{javadocPath}/org/gradle/api/Task.html[Task].logger`
 
 | `project.provider {}`
 | `link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html[ProviderFactory].provider {}`
@@ -606,7 +604,7 @@ Otherwise, you can use <<custom_gradle_types#service_injection,injected services
 | `link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout].projectDirectory.file(path)` or `link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout].buildDirectory.file(path)`
 
 | `project.uri(path)`
-| [.red]#✖# Unsupported
+| [.red]#✖# Not supported yet
 
 | `project.relativePath(path)`
 | `ProjectLayout.projectDirectory.file(path)`
@@ -624,10 +622,10 @@ Otherwise, you can use <<custom_gradle_types#service_injection,injected services
 | `link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html[ArchiveOperations].tarTree(path)`
 
 | `project.resources`
-| [.red]#✖# Unsupported
+| [.red]#✖# Not supported yet
 
 | `project.copySpec {}`
-| [.red]#✖# Unsupported
+| [.red]#✖# Not supported yet
 
 | `project.copy {}`
 | `link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[FileSystemOperations].copy {}`
@@ -648,10 +646,10 @@ Otherwise, you can use <<custom_gradle_types#service_injection,injected services
 | `link:{javadocPath}/org/gradle/process/ExecOperations.html[ExecOperations].javaexec {}`
 
 | `project.ant {}`
-| [.red]#✖# Unsupported
+| [.red]#✖# Not supported yet
 
 | `project.createAntBuilder()`
-| [.red]#✖# Unsupported
+| [.red]#✖# Not supported yet
 
 |===
 
