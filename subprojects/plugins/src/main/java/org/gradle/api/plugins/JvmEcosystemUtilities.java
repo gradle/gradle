@@ -18,15 +18,15 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -219,6 +219,21 @@ public interface JvmEcosystemUtilities {
         OutgoingElementsBuilder extendsFrom(Configuration... parentConfigurations);
 
         /**
+         * Allows setting the configurations this outgoing elements will inherit from.
+         * Those configurations are typically buckets of dependencies
+         * @param parentConfigurations the parent configurations
+         */
+        OutgoingElementsBuilder extendsFrom(List<Provider<Configuration>> parentConfigurations);
+
+        /**
+         * Adds this configuration as a parent configuration
+         * @param configuration the parent configuration
+         */
+        default OutgoingElementsBuilder extendsFrom(Provider<Configuration> configuration) {
+            return extendsFrom(Collections.singletonList(configuration));
+        }
+
+        /**
          * If this method is called, the outgoing elements configuration will be automatically
          * configured to export the output of the source set.
          * @param sourceSet the source set which consistutes an output to share with this configuration
@@ -226,11 +241,13 @@ public interface JvmEcosystemUtilities {
         OutgoingElementsBuilder fromSourceSet(SourceSet sourceSet);
 
         /**
-         * Registers an artifact to be attached to this configuration. The artifact needs
-         * to be produced by a task.
-         * @param producer the producer task
+         * Registers an artifact to be attached to this configuration. Supports anything supported
+         * by the {@link org.gradle.api.artifacts.ConfigurationPublications#artifact(Object)} method,
+         * which includes task providers, or files.
+         *
+         * @param producer the producer
          */
-        OutgoingElementsBuilder addArtifact(TaskProvider<Task> producer);
+        OutgoingElementsBuilder addArtifact(Object producer);
 
         /**
          * Allows refining the attributes of this configuration in case the defaults are not
