@@ -40,7 +40,6 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
 
     private final DefaultArtifactCacheMetadata writableCacheMetadata;
     private final DefaultArtifactCacheMetadata readOnlyCacheMetadata;
-    private final File readOnlyCacheBaseDir;
     private final LateInitWritableArtifactCacheLockingManager writableArtifactCacheLockingManager;
     private final ReadOnlyArtifactCacheLockingManager readOnlyArtifactCacheLockingManager;
 
@@ -56,18 +55,15 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
         String roCache = System.getenv(READONLY_CACHE_ENV_VAR);
         if (StringUtils.isNotEmpty(roCache)) {
             IncubationLogger.incubatingFeatureUsed("Shared read-only dependency cache");
-            File baseDir = validateReadOnlyCache(documentationRegistry, new File(roCache));
+            File baseDir = validateReadOnlyCache(documentationRegistry, new File(roCache).getAbsoluteFile());
             if (baseDir != null) {
-                readOnlyCacheBaseDir = baseDir;
                 readOnlyCacheMetadata = new DefaultArtifactCacheMetadata(cacheScopeMapping, baseDir);
                 readOnlyArtifactCacheLockingManager = new ReadOnlyArtifactCacheLockingManager(cacheRepository, readOnlyCacheMetadata);
             } else {
-                readOnlyCacheBaseDir = null;
                 readOnlyCacheMetadata = null;
                 readOnlyArtifactCacheLockingManager = null;
             }
         } else {
-            readOnlyCacheBaseDir = null;
             readOnlyCacheMetadata = null;
             readOnlyArtifactCacheLockingManager = null;
         }
@@ -88,7 +84,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
                 CacheLayout.ROOT.getKey() + " directory at " + root + " . Please follow the instructions at " + docLink);
             return null;
         }
-        return cacheDir.getAbsoluteFile();
+        return cacheDir;
     }
 
     @Override
@@ -113,9 +109,9 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
 
     @Override
     public List<File> getGlobalCacheRoots() {
-        return readOnlyCacheBaseDir == null
+        return readOnlyCacheMetadata == null
             ? ImmutableList.of()
-            : ImmutableList.of(readOnlyCacheBaseDir);
+            : readOnlyCacheMetadata.getGlobalCacheRoots();
     }
 
     @Override
