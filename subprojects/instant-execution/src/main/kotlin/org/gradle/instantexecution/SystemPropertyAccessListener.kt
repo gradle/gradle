@@ -55,6 +55,8 @@ val allowedProperties = setOf(
     "file.separator",
     "path.separator",
     "line.separator",
+    "sun.arch.data.model",
+    "com.ibm.vm.bitmode",
     "user.name",
     "user.home",
     "java.runtime.version"

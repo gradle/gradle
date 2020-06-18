@@ -266,6 +266,8 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
             "file.separator",
             "path.separator",
             "line.separator",
+            "sun.arch.data.model",
+            "com.ibm.vm.bitmode",
             "user.name",
             "user.home"
             // Not java.io.tmpdir and user.dir at this stage
