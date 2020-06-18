@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import spock.lang.Issue
 
 class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishIntegTest {
 
@@ -546,6 +547,55 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
 
         then:
         executedAndNotSkipped ":myJar", ":publish"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/10960")
+    def "can consume an arbitrary output from another project using the artifact notation"() {
+        settingsFile << """
+            rootProject.name = 'repro'
+            include 'lib'
+        """
+
+        file('lib/build.gradle') << '''
+            plugins {
+                id 'java'
+            }
+
+            configurations.create("srcLicense") {
+                canBeResolved = false
+                canBeConsumed = true
+            }
+
+            def srcLicenseDir = tasks.register("srcLicenseDir", Sync) {
+                into("$buildDir/$name")
+                from("$rootDir/gradle")
+            }
+
+            artifacts {
+                srcLicense(srcLicenseDir)
+            }
+        '''
+
+        file("build.gradle") << """
+            configurations {
+                foo
+            }
+            dependencies {
+                foo(project(path: ':lib', configuration: 'srcLicense'))
+            }
+
+            task resolve {
+                doLast {
+                    println "Output: \${configurations.foo.files.name}"
+                }
+            }
+        """
+
+        when:
+        succeeds ':resolve'
+
+        then:
+        outputContains('Output: [srcLicenseDir]')
     }
 
 }
