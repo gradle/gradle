@@ -93,6 +93,7 @@ class InstantExecutionReport(
             reportHtmlFileName,
             "configuration-cache-report.js",
             "configuration-cache-report.css",
+            "configuration-cache-report-logo.png",
             "kotlin.js"
         ).forEach { resourceName ->
             copyURLToFile(

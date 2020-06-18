@@ -124,7 +124,7 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         attributes { className("report-wrapper") },
         div(
             attributes { className("header") },
-            img( attributes { src("img/logo.png") }),
+            img( attributes { src("configuration-cache-report-logo.png") }),
             learnMore(model.documentationLink)
         ),
         div(
