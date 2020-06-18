@@ -24,10 +24,12 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     implementation(project(":baseAnnotations"))
-    implementation(project(":baseServices"))
     implementation(library("guava")) { version { require(libraryVersion("guava")) } }
     implementation(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
 
     testImplementation(project(":native"))
+    testImplementation(project(":baseServices")) {
+        because("TextUtil is needed")
+    }
     testImplementation(testFixtures(project(":native")))
 }
