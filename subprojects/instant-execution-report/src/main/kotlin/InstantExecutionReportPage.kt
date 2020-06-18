@@ -23,7 +23,6 @@ import elmish.div
 import elmish.img
 import elmish.empty
 import elmish.h1
-import elmish.h2
 import elmish.ol
 import elmish.pre
 import elmish.small
@@ -181,7 +180,7 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
 
     private
     fun viewTree(model: ProblemTreeModel, treeIntent: (ProblemTreeIntent) -> Intent, displayFilter: DisplayFilter): View<Intent> = div(
-//        h2(model.tree.label.unsafeCast<ProblemNode.Label>().text),
+//        h2(model.tree.label.unsafeCast<ProblemNode.Label>().text), // TODO remove this once tab navigation is working
         ol(
             viewSubTrees(applyFilter(displayFilter, model)) { child ->
                 when (val node = child.tree.label) {
