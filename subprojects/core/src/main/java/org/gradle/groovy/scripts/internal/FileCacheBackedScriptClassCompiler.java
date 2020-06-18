@@ -52,6 +52,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 
+import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic;
+
 /**
  * A {@link ScriptClassCompiler} which compiles scripts to a cache directory, and loads them from there.
  */
@@ -129,7 +131,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private ClassPath remapClasses(File genericClassesDir, RemappingScriptSource source) {
         ScriptSource origin = source.getSource();
         String className = origin.getClassName();
-        return classpathTransformer.transform(DefaultClassPath.of(genericClassesDir), CachedClasspathTransformer.StandardTransform.BuildLogic, new CachedClasspathTransformer.Transform() {
+        return classpathTransformer.transform(DefaultClassPath.of(genericClassesDir), BuildLogic, new CachedClasspathTransformer.Transform() {
             @Override
             public void applyConfigurationTo(Hasher hasher) {
                 hasher.putString(FileCacheBackedScriptClassCompiler.class.getSimpleName());
