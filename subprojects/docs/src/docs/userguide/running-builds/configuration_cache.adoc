@@ -5,6 +5,7 @@
 
 // Run tests for snippets included in this chapter with:
 // ./gradlew :docs:docsTest --tests="ExemplarExternalSamplesFunctionalTest.snippet-configuration-cache-*"
+// ./gradlew :docs:docsTest --tests="ExemplarExternalSamplesFunctionalTest.snippet-value-providers-*"
 
 [NOTE]
 ====
@@ -662,45 +663,15 @@ Instead, these Gradle properties must be declared as a potential build input by 
 This problem is caused by build logic similar to this:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-def enabled = project.getProperty("some-property")
-----
-=====
-
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-val enabled = project.getProperty("some-property")
-----
-=====
+include::sample[dir="snippets/valueProviders/gradlePropsDont/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/valueProviders/gradlePropsDont/kotlin",files="build.gradle.kts[]"]
 ====
 
 To fix this problem, read Gradle properties using link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#gradleProperty-java.lang.String-[providers.gradleProperty()] instead:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-def enabled = providers.gradleProperty("some-property").forUseAtConfigurationTime().present
-----
-=====
-
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-val enabled = providers.gradleProperty("some-property").forUseAtConfigurationTime().isPresent
-----
-=====
+include::sample[dir="snippets/valueProviders/gradlePropsDo/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/valueProviders/gradlePropsDo/kotlin",files="build.gradle.kts[]"]
 ====
 
 In general, you should avoid reading the value of Gradle properties at configuration time, to avoid invalidating configuration cache entries when the Gradle property value changes.
@@ -715,45 +686,15 @@ Instead, these system properties must be declared as a potential build input by 
 This problem is caused by build logic similar to this:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-def enabled = System.getProperty("some-property")
-----
-=====
-
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-val enabled = System.getProperty("some-property")
-----
-=====
+include::sample[dir="snippets/valueProviders/sysPropsDont/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/valueProviders/sysPropsDont/kotlin",files="build.gradle.kts[]"]
 ====
 
 To fix this problem, read system properties using link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#systemProperty-java.lang.String-[providers.systemProperty()] instead:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-def enabled = providers.systemProperty("some-property").forUseAtConfigurationTime().present
-----
-=====
-
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-val enabled = providers.systemProperty("some-property").forUseAtConfigurationTime().isPresent
-----
-=====
+include::sample[dir="snippets/valueProviders/sysPropsDo/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/valueProviders/sysPropsDo/kotlin",files="build.gradle.kts[]"]
 ====
 
 In general, you should avoid reading the value of system properties at configuration time, to avoid invalidating configuration cache entries when the system property value changes.
@@ -768,45 +709,15 @@ Instead, declare environment variables as potential build inputs using the value
 This problem is caused by build logic similar to this:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-def enabled = System.getenv("SOME_ENV_VAR")
-----
-=====
-
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-val enabled = System.getenv("SOME_ENV_VAR")
-----
-=====
+include::sample[dir="snippets/valueProviders/envVarsDont/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/valueProviders/envVarsDont/kotlin",files="build.gradle.kts[]"]
 ====
 
 To fix this problem, read environment variables using link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#environmentVariable-java.lang.String-[providers.environmentVariable()] instead:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-def enabled = providers.environmentVariable("SOME_ENV_VAR").forUseAtConfigurationTime().present
-----
-=====
-
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-val enabled = providers.environmentVariable("SOME_ENV_VAR").forUseAtConfigurationTime().isPresent
-----
-=====
+include::sample[dir="snippets/valueProviders/envVarsDo/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/valueProviders/envVarsDo/kotlin",files="build.gradle.kts[]"]
 ====
 
 In general, you should avoid reading the value of environment variables at configuration time, to avoid invalidating configuration cache entries when the environment variable value changes.
@@ -821,47 +732,15 @@ Instead, declare files as potential build inputs using the value supplier APIs.
 This problem is caused by build logic similar to this:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-def config = file("some.conf").text
-----
-=====
-
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-val config = file("some.conf").readText()
-----
-=====
+include::sample[dir="snippets/valueProviders/fileContentsDont/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/valueProviders/fileContentsDont/kotlin",files="build.gradle.kts[]"]
 ====
 
 To fix this problem, read files using link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#fileContents-org.gradle.api.file.RegularFile-[providers.fileContents()] instead:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-def config = providers.fileContents(layout.projectDirectory.file('some.conf'))
-    .asText.forUseAtConfigurationTime()
-----
-=====
-
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-val config = providers.fileContents(layout.projectDirectory.file("some.conf"))
-    .asText.forUseAtConfigurationTime()
-----
-=====
+include::sample[dir="snippets/valueProviders/fileContentsDo/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/valueProviders/fileContentsDo/kotlin",files="build.gradle.kts[]"]
 ====
 
 In general, you should avoid reading files at configuration time, to avoid invalidating configuration cache entries when the file content changes.
