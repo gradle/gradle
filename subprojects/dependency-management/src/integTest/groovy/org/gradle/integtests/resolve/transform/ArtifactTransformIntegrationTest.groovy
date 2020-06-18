@@ -412,7 +412,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForInstantExecution(because = "PublishArtifactLocalArtifactMetadata instances are used as their own id and when serialized as an id drags in unnecessary and unserializable state")
     def "does not apply transform to variants with requested implicit format attribute"() {
         given:
         buildFile << """
@@ -462,7 +461,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForInstantExecution(because = "PublishArtifactLocalArtifactMetadata instances are used as their own id, as above")
     def "does not apply transforms to artifacts from local projects matching requested format attribute"() {
         given:
         buildFile << """
@@ -2084,7 +2082,6 @@ Found the following transforms:
         outputContains("ids: [out-foo.txt (test:test:1.3), out-bar.txt (test:test:1.3)]")
     }
 
-    @ToBeFixedForInstantExecution(because = "PublishArtifactLocalArtifactMetadata instances are used as their own id, as above")
     def "transform runs only once even when variant is consumed from multiple projects"() {
         given:
         settingsFile << """
