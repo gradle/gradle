@@ -1,3 +1,5 @@
+:gradle-issues: https://github.com/gradle/gradle/issues/
+
 [[config_cache]]
 = Configuration cache
 
@@ -312,7 +314,7 @@ Later Gradle releases will add support for more core plugins.
 [[third_party_plugins]]
 === Third party plugins
 
-Please refer to issue link:https://github.com/gradle/gradle/issues/13490[gradle/gradle#13490] to learn about the status of third party plugins.
+Please refer to issue link:{gradle-issues}13490[gradle/gradle#13490] to learn about the status of third party plugins.
 
 [[troubleshooting]]
 == Troubleshooting
@@ -878,11 +880,15 @@ When it comes to link:https://gradle.com/build-scans/[build scans], only the `--
 The build scan plugin is currently ignored when applied via an init script or build script, as is any configuration done via the build scan extension (server location, accept license, tags, etc).
 This means that scans will be published to the public `scans.gradle.com` instance by default.
 
+See link:{gradle-issues}13511[gradle/gradle#13511].
+
 === Sharing the configuration cache
 
 The configuration cache is currently stored locally only.
 It can be reused by hot or cold local Gradle daemons.
 But it can't be shared between developers or CI machines.
+
+See link:{gradle-issues}13510[gradle/gradle#13510].
 
 [[composite_builds]]
 === Composite builds
@@ -890,15 +896,21 @@ But it can't be shared between developers or CI machines.
 When using the configuration cache on a <<composite_builds#composite_builds,composite build>> a problem will be reported.
 If you <<configuration_cache#ignore_problems,ignore problems>> then the included builds will be skipped when reusing the configuration cache.
 
+See link:{gradle-issues}13503[gradle/gradle#13503].
+
 === Source dependencies
 
 Support for link:https://blog.gradle.org/introducing-source-dependencies[source dependencies] is not yet implemented.
 With the configuration cache enabled, no problem will be reported and the build will fail.
 
+See link:{gradle-issues}13506[gradle/gradle#13506].
+
 === Dependency locking
 
 <<dependency_locking#dependency-locking, Locking dependency versions>> isn't supported yet.
 With the configuration cache enabled, no problem will be reported and dependency locks will be ignored.
+
+See link:{gradle-issues}13507[gradle/gradle#13507].
 
 === Dynamic or changing dependencies
 
@@ -906,6 +918,8 @@ With the configuration cache enabled, no problem will be reported and dependency
 With the configuration cache enabled, no problem will be reported and changes to dependencies won't be detected.
 
 You can force refresh dynamic dependencies using `--refresh-dependencies`.
+
+See link:{gradle-issues}13508[gradle/gradle#13508].
 
 === Filesystem repositories
 
@@ -917,3 +931,5 @@ This includes:
 * <<declaring_repositories#sec:declaring_custom_repository,Maven or Ivy repositories>> with `file://` URLs,
 * <<declaring_repositories#sub:maven_local,`mavenLocal()`>>,
 * and <<declaring_repositories#sub:flat_dir_resolver,flat directory repositories>>.
+
+See link:{gradle-issues}13509[gradle/gradle#13509].
