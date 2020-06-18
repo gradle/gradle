@@ -462,4 +462,90 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
             $append
         """
     }
+
+    def "can attach a task provider as an artifact"() {
+        createBuildScripts("""
+            def customJar = tasks.register("myJar", Jar) {
+                classifier = 'classy'
+            }
+            publications {
+                mavenCustom(MavenPublication) {
+                    artifact(customJar)
+                }
+            }
+        """)
+
+        when:
+        succeeds(":publish")
+
+        then:
+        executedAndNotSkipped ":myJar", ":publish"
+    }
+
+    def "can attach an arbitrary task provider as an artifact if it has a single output file"() {
+        createBuildScripts("""
+            def customTask = tasks.register("myTask") {
+                outputs.file("\${buildDir}/output.txt")
+                doLast {
+                    file("\${buildDir}/output.txt") << 'custom task'
+                }
+            }
+            publications {
+                mavenCustom(MavenPublication) {
+                    artifact(customTask)
+                }
+            }
+        """)
+
+        when:
+        succeeds(":publish")
+
+        then:
+        executedAndNotSkipped ":myTask", ":publish"
+    }
+
+    @ToBeFixedForInstantExecution
+    def "reasonable error message when an arbitrary task provider as an artifact has more than one output file"() {
+        createBuildScripts("""
+            def customTask = tasks.register("myTask") {
+                outputs.file("\${buildDir}/output.txt")
+                outputs.file("\${buildDir}/output2.txt")
+                doLast {
+                    file("\${buildDir}/output.txt") << 'custom task'
+                    file("\${buildDir}/output2.txt") << 'custom task'
+                }
+            }
+            publications {
+                mavenCustom(MavenPublication) {
+                    artifact(customTask)
+                }
+            }
+        """)
+
+        when:
+        fails(":publish")
+
+        then:
+        failure.assertHasCause "Expected task 'myTask' output files to contain exactly one file, however, it contains more than one file."
+    }
+
+    def "can attach a mapped task provider output as an artifact"() {
+        createBuildScripts("""
+            def customJar = tasks.register("myJar", Jar) {
+                classifier = 'classy'
+            }
+            publications {
+                mavenCustom(MavenPublication) {
+                    artifact(customJar.flatMap { it.archiveFile })
+                }
+            }
+        """)
+
+        when:
+        succeeds(":publish")
+
+        then:
+        executedAndNotSkipped ":myJar", ":publish"
+    }
+
 }
