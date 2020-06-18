@@ -562,9 +562,11 @@ For example if you need a `Logger` in your task actions you should use `Task.log
 
 Otherwise, you can use <<custom_gradle_types#service_injection,injected services>> instead of the methods of `Project`.
 
+// TODO snippet with a task type
+// TODO snippet with a doLast closure
+
 The following table shows what APIs or injected service should be used as a replacement for each of the `Project` methods.
 
-// TODO fully qualified javadoc links
 [cols="a,a",options="header"]
 |===
 | Instead of:
@@ -574,10 +576,10 @@ The following table shows what APIs or injected service should be used as a repl
 | A task property or script variable to capture the root directory.
 
 | `project.projectDir`
-| `link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout].projectDirectory`
+| link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getProjectDirectory--[ProjectLayout.projectDirectory]
 
 | `project.buildDir`
-| `link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout].buildDirectory`
+| link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getBuildDirectory--[ProjectLayout.buildDirectory]
 
 | `project.name`
 | A task property or script variable to capture the project name.
@@ -595,31 +597,31 @@ The following table shows what APIs or injected service should be used as a repl
 | <<configuration_cache#undeclared_gradle_prop_read, Value providers for Gradle properties>>
 
 | `project.logger`
-| `link:{javadocPath}/org/gradle/api/Task.html[Task].logger`
+| link:{javadocPath}/org/gradle/api/Task.html#getLogger--[Task.logger]
 
 | `project.provider {}`
-| `link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html[ProviderFactory].provider {}`
+| link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#provider-java.util.concurrent.Callable-[ProviderFactory.provider {}]
 
 | `project.file(path)`
-| `link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout].projectDirectory.file(path)` or `link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[ProjectLayout].buildDirectory.file(path)`
+| link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getProjectDirectory--[ProjectLayout.projectDirectory].link:{javadocPath}/org/gradle/api/file/Directory.html#file-java.lang.String-[file(path)] or link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getBuildDirectory--[ProjectLayout.buildDirectory].link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#file-java.lang.String-[file(path)]
 
 | `project.uri(path)`
 | [.red]#✖# Not supported yet
 
 | `project.relativePath(path)`
-| `ProjectLayout.projectDirectory.file(path)`
+| link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getProjectDirectory--[ProjectLayout.projectDirectory].link:{javadocPath}/org/gradle/api/file/Directory.html#file-java.lang.String-[file(path)]
 
 | `project.files(paths)`
-| `link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory].fileCollection().from(paths)`
+| link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileCollection--[ObjectFactory.fileCollection()].link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html#from-java.lang.Object...-[from(paths)]
 
 | `project.fileTree(paths)`
-| `link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory].fileTree().from(dir)`
+| link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileTree--[ObjectFactory.fileTree()].link:{javadocPath}/org/gradle/api/file/ConfigurableFileTree.html#from-java.lang.Object-[from(dir)]
 
 | `project.zipTree(path)`
-| `link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html[ArchiveOperations].zipTree(path)`
+| link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html#zipTree-java.lang.Object-[ArchiveOperations.zipTree(path)]
 
 | `project.tarTree(path)`
-| `link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html[ArchiveOperations].tarTree(path)`
+| link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html#tarTree-java.lang.Object-[ArchiveOperations.tarTree(path)]
 
 | `project.resources`
 | [.red]#✖# Not supported yet
@@ -628,22 +630,22 @@ The following table shows what APIs or injected service should be used as a repl
 | [.red]#✖# Not supported yet
 
 | `project.copy {}`
-| `link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[FileSystemOperations].copy {}`
+| link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#copy-org.gradle.api.Action-[FileSystemOperations.copy {}]
 
 | `project.sync {}`
-| `link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[FileSystemOperations].sync {}`
+| link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#sync-org.gradle.api.Action-[FileSystemOperations.sync {}]
 
 | `project.delete {}`
-| `link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[FileSystemOperations].delete {}`
+| link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#delete-org.gradle.api.Action-[FileSystemOperations.delete {}]
 
 | `project.mkdir(path)`
 | The Kotlin, Groovy or Java API available to your build logic.
 
 | `project.exec {}`
-| `link:{javadocPath}/org/gradle/process/ExecOperations.html[ExecOperations].exec {}`
+| link:{javadocPath}/org/gradle/process/ExecOperations.html#exec-org.gradle.api.Action-[ExecOperations.exec {}]
 
 | `project.javaexec {}`
-| `link:{javadocPath}/org/gradle/process/ExecOperations.html[ExecOperations].javaexec {}`
+| link:{javadocPath}/org/gradle/process/ExecOperations.html#javaexec-org.gradle.api.Action-[ExecOperations.javaexec {}]
 
 | `project.ant {}`
 | [.red]#✖# Not supported yet
