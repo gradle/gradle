@@ -86,11 +86,17 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         val totalProblems: Int,
         val messageTree: ProblemTreeModel,
         val taskTree: ProblemTreeModel,
-        val displayFilter: DisplayFilter = DisplayFilter.All
+        val displayFilter: DisplayFilter = DisplayFilter.All,
+        val tab: Tab = Tab.ByMessage
     )
 
     enum class DisplayFilter {
         All, Errors, Warnings
+    }
+
+    enum class Tab(val text: String) {
+        ByMessage("Problems grouped by message"),
+        ByTask("Problems grouped by tasks")
     }
 
     sealed class Intent {
@@ -102,6 +108,8 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         data class Copy(val text: String) : Intent()
 
         data class SetFilter(val displayFilter: DisplayFilter) : Intent()
+
+        data class SetTab(val tab: Tab) : Intent()
     }
 
     override fun step(intent: Intent, model: Model): Model = when (intent) {
@@ -117,6 +125,9 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         }
         is Intent.SetFilter -> model.copy(
             displayFilter = intent.displayFilter
+        )
+        is Intent.SetTab -> model.copy(
+            tab = intent.tab
         )
     }
 
@@ -145,14 +156,29 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         ),
         div(
             attributes { className("groups") },
-            div(attributes { className("group-selector group-selector--active") }, "Problems grouped by message"),
-            div(attributes { className("group-selector") }, "Problems grouped by task")
+            displayTabButton(Tab.ByMessage, model.tab),
+            displayTabButton(Tab.ByTask, model.tab)
         ),
         div(
             attributes { className("content") },
-            viewTree(model.messageTree, Intent::MessageTreeIntent, model.displayFilter),
-            viewTree(model.taskTree, Intent::TaskTreeIntent, model.displayFilter)
+            when (model.tab) {
+                Tab.ByMessage -> viewTree(model.messageTree, Intent::MessageTreeIntent, model.displayFilter)
+                Tab.ByTask -> viewTree(model.taskTree, Intent::TaskTreeIntent, model.displayFilter)
+            }
         )
+    )
+
+    private
+    fun displayTabButton(tab: Tab, activeTab: Tab): View<Intent> = div(
+        attributes {
+            className("group-selector")
+            if (tab == activeTab) {
+                className("group-selector--active")
+            } else {
+                onClick { Intent.SetTab(tab) }
+            }
+        },
+        tab.text
     )
 
     private
@@ -180,7 +206,6 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
 
     private
     fun viewTree(model: ProblemTreeModel, treeIntent: (ProblemTreeIntent) -> Intent, displayFilter: DisplayFilter): View<Intent> = div(
-//        h2(model.tree.label.unsafeCast<ProblemNode.Label>().text), // TODO remove this once tab navigation is working
         ol(
             viewSubTrees(applyFilter(displayFilter, model)) { child ->
                 when (val node = child.tree.label) {
