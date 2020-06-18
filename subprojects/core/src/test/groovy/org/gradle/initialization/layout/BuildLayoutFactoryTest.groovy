@@ -216,6 +216,29 @@ class BuildLayoutFactoryTest extends Specification {
     }
 
     @Unroll
+    def "prefers the child 'master' directory over an ancestor directory with 'master' or a #settingsFilename file"() {
+        given:
+        def locator = buildLayoutFactoryFor()
+
+        and:
+        def currentDir = tmpDir.createDir("project")
+        def masterDir = currentDir.createDir("master")
+        def settingsFile = masterDir.createFile(settingsFilename)
+        def ancestorMasterDir = tmpDir.createDir("master")
+        ancestorMasterDir.createFile(settingsFilename)
+        tmpDir.createFile(settingsFilename)
+
+        expect:
+        def layout = locator.getLayoutFor(currentDir, true)
+        layout.rootDirectory == masterDir.parentFile
+        layout.settingsDir == masterDir
+        refersTo(layout, settingsFile)
+
+        where:
+        settingsFilename << TEST_CASES
+    }
+
+    @Unroll
     def "returns start directory when search upwards is disabled with a #settingsFilename file"() {
         given:
         def locator = buildLayoutFactoryFor()
