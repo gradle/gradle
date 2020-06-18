@@ -1,0 +1,9 @@
+tasks.register('someTask') {
+    def message = System.getProperty('someMessage') // <1>
+    inputs.property('message', message)
+    doLast {
+        project.exec {                              // <2>
+            commandLine = ['echo', message]
+        }
+    }
+}

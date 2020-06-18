@@ -1,0 +1,7 @@
+Calculating task graph as configuration cache cannot be reused because system property 'someMessage' has changed.
+
+> Task :someTask
+bye
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed

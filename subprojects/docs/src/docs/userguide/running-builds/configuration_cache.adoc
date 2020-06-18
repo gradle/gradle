@@ -221,27 +221,6 @@ To enable it for a given run configuration, go to `Run configurations...`, find 
 
 Combining these two ways you can enable globally and disable for certain run configurations, or the opposite.
 
-[[troubleshooting]]
-== Troubleshooting
-
-Upon failure to serialize the state required to run the tasks, an HTML report of detected problems is generated.
-The Gradle failure output includes a clickable link to the report.
-
-// TODO sample output from snippet
-
-The report displays the set of problems twice.
-First grouped by problem message, then grouped by task.
-The former allows to quickly see what classes of problems your build is facing.
-The latter allows to quickly see which tasks are problematic.
-In both cases you can expand the tree in order to discover where in the object graph is the culprit.
-
-[TIP]
-====
-Problems displayed in the report have links to the corresponding <<configuration_cache#requirements,requirement>> where you can find guidance on how to fix the problem or to the corresponding <<configuration_cache#not_yet_implemented,not yet implemented>> feature.
-
-When changing your build or plugin to fix the problems you should consider <<configuration_cache#testkit, testing your build logic with TestKit>>.
-====
-
 [[plugin_support]]
 == Supported plugins
 
@@ -330,6 +309,125 @@ Later Gradle releases will add support for more core plugins.
 === Third party plugins
 
 Please refer to issue link:https://github.com/gradle/gradle/issues/13490[gradle/gradle#13490] to learn about the status of third party plugins.
+
+[[troubleshooting]]
+== Troubleshooting
+
+The following sections will go through some general guidelines on dealing with problems with the configuration cache as well as the steps we recommend following.
+This applies to both your build logic and to your Gradle plugins.
+
+=== Dealing with problems
+
+Upon failure to serialize the state required to run the tasks, an HTML report of detected problems is generated.
+The Gradle failure output includes a clickable link to the report.
+This report is useful and allows to drill down into problems, understand what is causing them.
+
+Let's look at a simple example build script that contains a couple problems:
+
+====
+include::sample[dir="snippets/configurationCache/problemsGroovy/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/configurationCache/problemsKotlin/kotlin",files="build.gradle.kts[]"]
+====
+<1> <<configuration_cache#undeclared_sys_prop_read, Undeclared system property read at configuration time>>
+<2> <<configuration_cache#use_project_during_execution, Using the `Project` object at execution time>>
+
+Running that task fails and print the following in the console:
+
+[source,text]
+----
+❯ gradle --configuration-cache someTask -DsomeMessage=hello
+...
+include::{snippetsPath}/configurationCache/problemsKotlin/tests/store.out[]
+Configuration cache entry stored.
+----
+
+Details can be found in the linked HTML report.
+The report displays the set of problems twice.
+First grouped by problem message, then grouped by task.
+The former allows to quickly see what classes of problems your build is facing.
+The latter allows to quickly see which tasks are problematic.
+In both cases you can expand the tree in order to discover where in the object graph is the culprit.
+
+[TIP]
+====
+Problems displayed in the report have links to the corresponding <<configuration_cache#requirements,requirement>> where you can find guidance on how to fix the problem or to the corresponding <<configuration_cache#not_yet_implemented,not yet implemented>> feature.
+
+When changing your build or plugin to fix the problems you should consider <<configuration_cache#testkit, testing your build logic with TestKit>>.
+====
+
+At this stage, you can decide to either <<configuration_cache#ignore_problems, turn the problems into warnings>> and continue exploring how your build reacts to the configuration cache, or fix the problems at hand.
+
+Let's ignore the problems reported when storing the configuration cache, and run the same build again to see what happens when reusing the problematic cached configuration:
+
+[source,text]
+----
+❯ gradle --configuration-cache someTask -DsomeMessage=hello
+...
+include::{snippetsPath}/configurationCache/problemsKotlin/tests/load.out[]
+Configuration cache entry reused.
+----
+
+The build fails again, reporting the observed problems.
+The first problem that happened at configuration time when storing is not reported given the configuration phase was skipped.
+The second problem about using `Project` at execution time is reported.
+
+With the help of the links present in the console problem summary and in the HTML report we can fix our problems. Here's a fixed version of the build script:
+
+====
+include::sample[dir="snippets/configurationCache/problemsFixed/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/configurationCache/problemsFixed/kotlin",files="build.gradle.kts[]"]
+====
+<1> we turned our ad-hoc task into a proper task class
+<2> this allows the injection of the `ExecOperations` service, a supported replacement for `project.exec {}`
+<3> finally, we declare the system property as a build logic input, used at configuration time and wire it to our task input
+
+Running the task twice now succeeds without reporting any problem and reusing the configuration cache on the second run:
+
+[source,text]
+----
+❯ gradle --configuration-cache someTask -DsomeMessage=hello
+include::{snippetsPath}/configurationCache/problemsFixed/tests/store.out[]
+Configuration cache entry stored.
+❯ gradle --configuration-cache someTask -DsomeMessage=hello
+include::{snippetsPath}/configurationCache/problemsFixed/tests/load.out[]
+Configuration cache entry reused.
+----
+
+But, what if we change the value of the system property?
+
+[source,text]
+----
+❯ gradle --configuration-cache someTask -DsomeMessage=bye
+include::{snippetsPath}/configurationCache/problemsFixed/tests/store-bye.out[]
+Configuration cache entry stored.
+----
+
+The previous configuration cache entry could not be reused and the task graph had to be calculated again.
+This is because we read the system property at configuration time, hence requiring to run the configuration phase again when the value of that property changes.
+Fixing that is as simple as using a `Property<String>` as the task input and wiring the system property directly, without reading it at configuration time.
+
+====
+include::sample[dir="snippets/configurationCache/problemsFixedReuse/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/configurationCache/problemsFixedReuse/kotlin",files="build.gradle.kts[]"]
+====
+<1> we turned our task property into a proper `Property<String>`
+<2> this allows to wire the declared system property directly, without reading it at configuration time
+
+With those changes in place we can run the task twice, changing the system property value:
+
+[source,text]
+----
+❯ gradle --configuration-cache someTask -DsomeMessage=hello
+include::{snippetsPath}/configurationCache/problemsFixedReuse/tests/store.out[]
+Configuration cache entry stored.
+❯ gradle --configuration-cache someTask -DsomeMessage=bye
+include::{snippetsPath}/configurationCache/problemsFixedReuse/tests/load-bye.out[]
+Configuration cache entry reused.
+----
+
+We're now done with fixing the problems with this simple task.
+
+Keep reading to learn how to adopt the configuration cache for your build or your plugins.
 
 [[requirements]]
 == Requirements

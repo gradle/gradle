@@ -1,0 +1,22 @@
+import javax.inject.Inject
+
+abstract class MyExecTask extends DefaultTask {
+
+    @Input
+    abstract Property<String> getMessage() // <1>
+
+    @Inject
+    abstract ExecOperations getExecOperations()
+
+    @TaskAction
+    void action() {
+        execOperations.exec {
+            executable 'echo'
+            args message.get()
+        }
+    }
+}
+
+tasks.register('someTask', MyExecTask) {
+    message = providers.systemProperty('someMessage') // <2>
+}
