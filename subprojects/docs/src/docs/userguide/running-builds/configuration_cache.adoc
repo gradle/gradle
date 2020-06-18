@@ -429,6 +429,31 @@ We're now done with fixing the problems with this simple task.
 
 Keep reading to learn how to adopt the configuration cache for your build or your plugins.
 
+[[testkit]]
+== Testing your build logic
+
+The Gradle TestKit (a.k.a. just TestKit) is a library that aids in testing Gradle plugins and build logic generally.
+For general guidance on how to use TestKit see the <<test_kit.adoc#test_kit,dedicated chapter>>.
+
+To enable configuration caching in your tests, you can pass the `--configuration-cache` argument to link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner] or use one of the other methods described in <<configuration_cache.adoc#enable,Enabling the configuration cache>>.
+
+You need to run your tasks twice.
+Once to prime the configuration cache.
+Once to reuse the configuration cache.
+
+.Testing the configuration cache
+====
+include::sample[dir="snippets/configurationCache/testKit/groovy",files="src/test/groovy/org/example/BuildLogicFunctionalTest.groovy[tags=functional-test-configuration-cache]"]
+include::sample[dir="snippets/configurationCache/testKit/kotlin",files="src/test/kotlin/org/example/BuildLogicFunctionalTest.kt[tags=functional-test-configuration-cache]"]
+====
+<1> First run primes the configuration cache.
+<2> Second run reuses the configuration cache.
+<3> Assert that the configuration cache gets reused.
+
+If problems with the configuration cache are found then Gradle will fail the build reporting the problems, and the test will fail.
+
+When gradually improving your plugin or build logic to support the configuration cache it can be useful to temporarily <<configuration_cache.adoc#ignore_problems,ignore problems>> or <<configuration_cache.adoc#max_problems,allow a given number of problems>>.
+
 [[requirements]]
 == Requirements
 
@@ -848,28 +873,3 @@ This includes:
 * <<declaring_repositories#sec:declaring_custom_repository,Maven or Ivy repositories>> with `file://` URLs,
 * <<declaring_repositories#sub:maven_local,`mavenLocal()`>>,
 * and <<declaring_repositories#sub:flat_dir_resolver,flat directory repositories>>.
-
-[[testkit]]
-== Testing Build Logic with TestKit
-
-The Gradle TestKit (a.k.a. just TestKit) is a library that aids in testing Gradle plugins and build logic generally.
-For general guidance on how to use TestKit see the <<test_kit.adoc#test_kit,dedicated chapter>>.
-
-To enable configuration caching in your tests, you can pass the `--configuration-cache` argument to link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner] or use one of the other methods described in <<configuration_cache.adoc#enable,Enabling the configuration cache>>.
-
-You need to run your tasks twice.
-Once to prime the configuration cache.
-Once to reuse the configuration cache.
-
-.Testing the configuration cache
-====
-include::sample[dir="snippets/configurationCache/testKit/groovy",files="src/test/groovy/org/example/BuildLogicFunctionalTest.groovy[tags=functional-test-configuration-cache]"]
-include::sample[dir="snippets/configurationCache/testKit/kotlin",files="src/test/kotlin/org/example/BuildLogicFunctionalTest.kt[tags=functional-test-configuration-cache]"]
-====
-<1> First run primes the configuration cache.
-<2> Second run reuses the configuration cache.
-<3> Assert that the configuration cache gets reused.
-
-If problems with the configuration cache are found then Gradle will fail the build reporting the problems, and the test will fail.
-
-When gradually improving your plugin or build logic to support the configuration cache it can be useful to temporarily <<configuration_cache.adoc#ignore_problems,ignore problems>> or <<configuration_cache.adoc#max_problems,allow a given number of problems>>.
