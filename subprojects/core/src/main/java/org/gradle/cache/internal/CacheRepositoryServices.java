@@ -35,6 +35,7 @@ public class CacheRepositoryServices {
         this.projectCacheDir = projectCacheDir;
     }
 
+    // We need to return `DefaultCacheScopeMapping` instead of `CacheScopeMapping` so the `GlobalCache` interface is picked up.
     protected DefaultCacheScopeMapping createCacheScopeMapping() {
         return new DefaultCacheScopeMapping(gradleUserHomeDir, projectCacheDir, GradleVersion.current());
     }

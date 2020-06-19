@@ -39,7 +39,7 @@ public class CopyingClasspathFileTransformer implements ClasspathFileTransformer
             return source;
         }
         if (globalCacheLocations.isInsideGlobalCache(source.getAbsolutePath())) {
-            // It's not expected that the file will be deleted, so assume it is ok to use outside the cache
+            // The global caches are additive only, so we can use it directly since it shouldn't be deleted or changed during the build.
             return source;
         }
 

@@ -254,10 +254,10 @@ public class DefaultFileHierarchySet {
             return false;
         }
 
-        public void visitHierarchy(int depth, HierarchyVisitor consumer) {
-            consumer.visitPrefix(depth, prefix);
+        public void visitHierarchy(int depth, HierarchyVisitor visitor) {
+            visitor.visitPrefix(depth, prefix);
             for (Node child : children) {
-                child.visitHierarchy(depth + 1, consumer);
+                child.visitHierarchy(depth + 1, visitor);
             }
         }
 
