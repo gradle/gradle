@@ -124,9 +124,22 @@
     cursor: pointer;
 }
 
+.group-selector__count {
+    margin: 0 8px;
+    border-radius: 8px;
+    background-color: #999;
+    color: #fff;
+    padding: 1px 8px 2px;
+    font-size: 0.75rem;
+}
+
 .group-selector--active {
     color: #02303A;
     cursor: auto;
+}
+
+.group-selector--active .group-selector__count {
+    background-color: #686868;
 }
 
 .accordion-header {

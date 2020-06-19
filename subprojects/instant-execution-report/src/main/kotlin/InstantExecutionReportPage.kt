@@ -178,7 +178,10 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
                 onClick { Intent.SetTab(tab) }
             }
         },
-        tab.text
+        span(
+            tab.text,
+            span(attributes { className("group-selector__count") },"100")
+        )
     )
 
     private
