@@ -196,7 +196,7 @@ open class ShadedJarPlugin : Plugin<Project> {
             extendsFrom(shadedImplementation)
             outgoing.artifact(shadedJarTask) {
                 name = base.archivesBaseName
-                type ="jar"
+                type = "jar"
             }
         }
 
