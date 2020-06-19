@@ -102,7 +102,12 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     GradleRunner runner(String... arguments) {
-        boolean closeServices = (debug && requireIsolatedTestKitDir) || arguments.contains("-g")
+        def changesUserHome = arguments.contains("-g")
+        if (changesUserHome && !debug) {
+            // A separate daemon be started operating on the changed user home - lets isolate it so that we kill it in the end
+            requireIsolatedTestKitDir = true
+        }
+        boolean closeServices = (debug && requireIsolatedTestKitDir) || changesUserHome
         List<String> allArgs = arguments as List
         if (closeServices) {
             // Do not keep user home dir services open when running embedded or when using a custom user home dir

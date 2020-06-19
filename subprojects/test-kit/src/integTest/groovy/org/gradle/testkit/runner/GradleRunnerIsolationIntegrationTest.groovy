@@ -16,13 +16,10 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import spock.lang.IgnoreIf
 
 class GradleRunnerIsolationIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // flaky: Test sometimes keeps files open in embedded mode
     def "configuration in gradle user home is not used by gradle runner builds"() {
         when:
         def userHome = file("user-home")
