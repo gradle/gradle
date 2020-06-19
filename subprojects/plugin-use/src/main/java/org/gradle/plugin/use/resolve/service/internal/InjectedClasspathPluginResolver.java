@@ -36,6 +36,8 @@ import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.io.File;
 
+import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic;
+
 public class InjectedClasspathPluginResolver implements PluginResolver {
 
     private final ClassPath injectedClasspath;
@@ -43,7 +45,7 @@ public class InjectedClasspathPluginResolver implements PluginResolver {
 
     public InjectedClasspathPluginResolver(ClassLoaderScope parentScope, CachedClasspathTransformer classpathTransformer, PluginInspector pluginInspector, ClassPath injectedClasspath) {
         this.injectedClasspath = injectedClasspath;
-        ClassPath cachedClassPath = classpathTransformer.transform(injectedClasspath, CachedClasspathTransformer.StandardTransform.BuildLogic);
+        ClassPath cachedClassPath = classpathTransformer.transform(injectedClasspath, BuildLogic);
         this.pluginRegistry = new DefaultPluginRegistry(pluginInspector,
             parentScope.createChild("injected-plugin")
                 .local(cachedClassPath)

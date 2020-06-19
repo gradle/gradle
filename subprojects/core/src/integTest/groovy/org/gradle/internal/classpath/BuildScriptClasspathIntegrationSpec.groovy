@@ -115,7 +115,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         then:
         succeeds("showBuildscript")
         inJarCache("test-1.3-BUILD-SNAPSHOT.jar")
-        notInJarCache("commons-io-1.4.jar")
+        inJarCache("commons-io-1.4.jar")
     }
 
     private void createBuildFileThatPrintsClasspathURLs(String dependencies = '') {

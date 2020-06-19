@@ -21,9 +21,6 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.instantexecution.extensions.unsafeLazy
-import org.gradle.internal.classpath.BuildLogicTransformStrategy
-import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
-import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.None
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
@@ -33,7 +30,7 @@ import java.io.File
 class InstantExecutionStartParameter(
     private val buildLayout: BuildLayout,
     startParameter: StartParameter
-) : BuildLogicTransformStrategy {
+) {
 
     private
     val startParameter = startParameter as StartParameterInternal
@@ -71,14 +68,6 @@ class InstantExecutionStartParameter(
 
     val excludedTaskNames: Set<String>
         get() = startParameter.excludedTaskNames
-
-    override fun transformToApplyToBuildLogic() = if (isEnabled) {
-        BuildLogic
-    } else {
-        // For now, disable instrumentation when configuration caching is not used
-        // This means that build logic will use different classpaths when the configuration cache is enabled or disabled
-        None
-    }
 
     val allInitScripts: List<File>
         get() = startParameter.allInitScripts
