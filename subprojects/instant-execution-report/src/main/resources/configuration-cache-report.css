@@ -46,15 +46,29 @@
 }
 
 .tree-btn.collapsed {
-    transform: rotateZ(90deg);
+    color: transparent;
+    font-size: 18px;
+    line-height: 1rem;
+    width: 20px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 512"><path d="M166.9 264.5l-117.8 116c-4.7 4.7-12.3 4.7-17 0l-7.1-7.1c-4.7-4.7-4.7-12.3 0-17L127.3 256 25.1 155.6c-4.7-4.7-4.7-12.3 0-17l7.1-7.1c4.7-4.7 12.3-4.7 17 0l117.8 116c4.6 4.7 4.6 12.3-.1 17z" fill="%23999999" stroke="%23999999"/></svg>');
+    background-repeat: no-repeat;
+    background-size: 16px 16px;
+    background-position: bottom -2px left;
 }
 
 .tree-btn.expanded {
-    transform: rotateZ(180deg);
+    color: transparent;
+    font-size: 18px;
+    line-height: 1rem;
+    width: 20px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><path d="M119.5 326.9L3.5 209.1c-4.7-4.7-4.7-12.3 0-17l7.1-7.1c4.7-4.7 12.3-4.7 17 0L128 287.3l100.4-102.2c4.7-4.7 12.3-4.7 17 0l7.1 7.1c4.7 4.7 4.7 12.3 0 17L136.5 327c-4.7 4.6-12.3 4.6-17-.1z" fill="%23999999" stroke="%23999999"/></svg>');
+    background-repeat: no-repeat;
+    background-size: 16px 16px;
+    background-position: bottom -2px left;
 }
 
 .tree-btn {
-    margin-right: 8px;
+    padding-right: 8px;
 }
 
 .tree-btn, .tree-icon {
@@ -64,14 +78,80 @@
 
 .tree-btn:hover {
     cursor: pointer;
-    color: #d0d0d0ff;
 }
 
-.failure-icon {
-    color: red;
+ul .tree-btn {
+    margin-right: 4px;
+}
+
+.tree-icon {
     font-size: 18px;
     line-height: 1rem;
+    padding-left: 2px;
     margin-right: 8px;
+}
+
+.error-icon {
+    color: transparent;
+    font-size: 18px;
+    line-height: 1rem;
+    padding-left: 2px;
+    margin-right: 8px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path d="M193.94 256L296.5 153.44l21.15-21.15c3.12-3.12 3.12-8.19 0-11.31l-22.63-22.63c-3.12-3.12-8.19-3.12-11.31 0L160 222.06 36.29 98.34c-3.12-3.12-8.19-3.12-11.31 0L2.34 120.97c-3.12 3.12-3.12 8.19 0 11.31L126.06 256 2.34 379.71c-3.12 3.12-3.12 8.19 0 11.31l22.63 22.63c3.12 3.12 8.19 3.12 11.31 0L160 289.94 262.56 392.5l21.15 21.15c3.12 3.12 8.19 3.12 11.31 0l22.63-22.63c3.12-3.12 3.12-8.19 0-11.31L193.94 256z" fill="%23FC461E" stroke="%23FC461E"/></svg>');
+    background-repeat: no-repeat;
+    background-size: 16px 16px;
+    background-position: bottom right;
+}
+
+.error-icon::selection {
+    color: transparent;
+}
+
+.warning-icon {
+    color: transparent;
+    font-size: 18px;
+    line-height: 1rem;
+    padding-left: 2px;
+    margin-right: 0;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M270.2 160h35.5c3.4 0 6.1 2.8 6 6.2l-7.5 196c-.1 3.2-2.8 5.8-6 5.8h-20.5c-3.2 0-5.9-2.5-6-5.8l-7.5-196c-.1-3.4 2.6-6.2 6-6.2zM288 388c-15.5 0-28 12.5-28 28s12.5 28 28 28 28-12.5 28-28-12.5-28-28-28zm281.5 52L329.6 24c-18.4-32-64.7-32-83.2 0L6.5 440c-18.4 31.9 4.6 72 41.6 72H528c36.8 0 60-40 41.5-72zM528 480H48c-12.3 0-20-13.3-13.9-24l240-416c6.1-10.6 21.6-10.7 27.7 0l240 416c6.2 10.6-1.5 24-13.8 24z" fill="%23DEAD22" stroke="%23DEAD22"/></svg>');
+    background-repeat: no-repeat;
+    background-size: 13px 13px;
+    background-position: bottom 3px left
+}
+
+.warning-icon::selection {
+    color: transparent;
+}
+
+.documentation-button {
+    color: transparent;
+    font-size: 18px;
+    line-height: 1rem;
+    margin-left: 4px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 340c-15.464 0-28 12.536-28 28s12.536 28 28 28 28-12.536 28-28-12.536-28-28-28zm7.67-24h-16c-6.627 0-12-5.373-12-12v-.381c0-70.343 77.44-63.619 77.44-107.408 0-20.016-17.761-40.211-57.44-40.211-29.144 0-44.265 9.649-59.211 28.692-3.908 4.98-11.054 5.995-16.248 2.376l-13.134-9.15c-5.625-3.919-6.86-11.771-2.645-17.177C185.658 133.514 210.842 116 255.67 116c52.32 0 97.44 29.751 97.44 80.211 0 67.414-77.44 63.849-77.44 107.408V304c0 6.627-5.373 12-12 12zM256 40c118.621 0 216 96.075 216 216 0 119.291-96.61 216-216 216-119.244 0-216-96.562-216-216 0-119.203 96.602-216 216-216m0-32C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8z" fill="%23999999" stroke="%23999999"/></svg>');
+    background-repeat: no-repeat;
+    background-size: 12px 12px;
+    background-position: bottom 3px left;
+}
+
+.documentation-button::selection {
+    color: transparent;
+}
+
+.documentation-button:hover {
+    color: transparent;
+}
+
+.copy-button {
+    cursor: pointer;
+    color: transparent;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M433.941 193.941l-51.882-51.882A48 48 0 0 0 348.118 128H320V80c0-26.51-21.49-48-48-48h-66.752C198.643 13.377 180.858 0 160 0s-38.643 13.377-45.248 32H48C21.49 32 0 53.49 0 80v288c0 26.51 21.49 48 48 48h80v48c0 26.51 21.49 48 48 48h224c26.51 0 48-21.49 48-48V227.882a48 48 0 0 0-14.059-33.941zm-22.627 22.627a15.888 15.888 0 0 1 4.195 7.432H352v-63.509a15.88 15.88 0 0 1 7.431 4.195l51.883 51.882zM160 30c9.941 0 18 8.059 18 18s-8.059 18-18 18-18-8.059-18-18 8.059-18 18-18zM48 384c-8.822 0-16-7.178-16-16V80c0-8.822 7.178-16 16-16h66.752c6.605 18.623 24.389 32 45.248 32s38.643-13.377 45.248-32H272c8.822 0 16 7.178 16 16v48H176c-26.51 0-48 21.49-48 48v208H48zm352 96H176c-8.822 0-16-7.178-16-16V176c0-8.822 7.178-16 16-16h144v72c0 13.2 10.8 24 24 24h72v208c0 8.822-7.178 16-16 16z" fill="%23999999" stroke="%23999999"/></svg>');
+    background-repeat: no-repeat;
+    background-size: 12px 12px;
+}
+
+.copy-button::selection {
+    color: transparent;
 }
 
 .filters-group {
@@ -154,13 +234,9 @@
 
 .stacktrace {
     border-radius: 4px;
-    margin-bottom: 1.25em;
     overflow-x: auto;
-    padding: 1rem;
-}
-
-.copy-button {
-    cursor: pointer;
+    padding: 0.5rem;
+    margin-bottom: 0;
 }
 
 /* Lato (bold, regular) */
@@ -210,7 +286,6 @@ body {
 }
 
 
-
 /* typography */
 h1, h2, h3, h4, h5, h6 {
     color: #02303A;
@@ -238,7 +313,7 @@ ul, ol, dl {
     list-style-position: outside;
     line-height: 1.6;
     padding: 0;
-    margin: 0 0 1rem 1em;
+    margin: 0 0 0 20px;
     list-style-type: none;
 }
 

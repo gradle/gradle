@@ -216,7 +216,7 @@ fun exceptionNodeFor(it: JsProblem): ProblemNode? =
 
 private
 fun docLinkFor(it: JsProblem): ProblemNode? =
-    it.documentationLink?.let { ProblemNode.Link(it, "more info") }
+    it.documentationLink?.let { ProblemNode.Link(it, " ?") }
 
 
 private

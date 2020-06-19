@@ -272,7 +272,10 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
             node.prettyText
         )
         is ProblemNode.Link -> a(
-            attributes { href(node.href) },
+            attributes {
+                className("documentation-button")
+                href(node.href)
+            },
             node.label
         )
         else -> span(
@@ -295,11 +298,7 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         ) + if (docLink == null) {
             emptyList()
         } else {
-            listOf(
-                span(" ("),
-                viewNode(docLink),
-                span(")")
-            )
+            listOf(viewNode(docLink))
         })
 
     private
@@ -323,24 +322,27 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
             onClick { treeIntent(TreeView.Intent.Toggle(child)) }
         },
         when (child.tree.state) {
-            Tree.ViewState.Collapsed -> "⌃ "
-            Tree.ViewState.Expanded -> "⌃ "
+            Tree.ViewState.Collapsed -> "› "
+            Tree.ViewState.Expanded -> "⌄ "
         }
     )
 
     private
     val errorIcon = span<Intent>(
         attributes { className("error-icon") },
-        " ⨉"
+        "⨉"
     )
 
     private
-    val warningIcon = span<Intent>(" ⚠️")
+    val warningIcon = span<Intent>(
+        attributes { className("warning-icon") },
+        "⚠️"
+    )
 
     private
     val emptyTreeIcon = span<Intent>(
         attributes { className("tree-icon") },
-        "■ "
+        "■"
     )
 
     private
