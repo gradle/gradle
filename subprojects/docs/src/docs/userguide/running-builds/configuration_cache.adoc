@@ -380,7 +380,7 @@ include::sample[dir="snippets/configurationCache/problemsFixed/groovy",files="bu
 include::sample[dir="snippets/configurationCache/problemsFixed/kotlin",files="build.gradle.kts[]"]
 ====
 <1> we turned our ad-hoc task into a proper task class
-<2> this allows the injection of the `ExecOperations` service, a supported replacement for `project.exec {}`
+<2> this allows the injection of the `FileSystemOperations` service, a supported replacement for `project.copy {}`
 <3> finally, we declare the system property as a build logic input, used at configuration time and wire it to our task input
 
 Running the task twice now succeeds without reporting any problem and reusing the configuration cache on the second run:
@@ -594,7 +594,7 @@ The following is how it should be done instead:
 include::sample[dir="snippets/configurationCache/projectAtExecutionFixed/groovy",files="build.gradle[tags=task-type]"]
 include::sample[dir="snippets/configurationCache/projectAtExecutionFixed/kotlin",files="build.gradle.kts[tags=task-type]"]
 ====
-<1> no more problem reported, the injected `ExecOperations` service is supported as a replacement for `project.exec {}`
+<1> no more problem reported, the injected `FileSystemOperations` service is supported as a replacement for `project.copy {}`
 
 In the same vein, if you encounter the same problem with an ad-hoc task declared in a script as follows:
 
@@ -612,7 +612,7 @@ include::sample[dir="snippets/configurationCache/projectAtExecutionFixed/kotlin"
 ====
 <1> services can't be injected directly in scripts, we need an extra type to convey the injection point
 <2> create an instance of the extra type using `project.object` outside the task action
-<3> no more problem reported, the task action references `injected` that provides the `ExecOperations` service, supported as a replacement for `project.exec {}`
+<3> no more problem reported, the task action references `injected` that provides the `FileSystemOperations` service, supported as a replacement for `project.copy {}`
 
 As you can see above, fixing ad-hoc tasks declared in scripts requires quite a bit of ceremony.
 It is a good time to think about extracting your task declaration as a proper task class as shown previously.

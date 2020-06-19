@@ -3,12 +3,13 @@ import javax.inject.Inject
 // tag::task-type[]
 abstract class SomeTask extends DefaultTask {
 
-    @Inject abstract ExecOperations getExecOperations() // <1>
+    @Inject abstract FileSystemOperations getFs() // <1>
 
     @TaskAction
     void action() {
-        execOperations.exec {
-            commandLine('echo', 'hello')
+        fs.copy {
+            from 'source'
+            into 'destination'
         }
     }
 }
@@ -18,13 +19,14 @@ tasks.register('someTaskType', SomeTask)
 
 // tag::ad-hoc-task[]
 interface Injected {
-    @Inject ExecOperations getExecOperations() // <1>
+    @Inject FileSystemOperations getFs() // <1>
 }
 tasks.register('someTask') {
     def injected = project.objects.newInstance(Injected) // <2>
     doLast {
-        injected.execOperations.exec { // <3>
-            commandLine('echo', 'hello')
+        injected.fs.copy { // <3>
+            from 'source'
+            into 'destination'
         }
     }
 }

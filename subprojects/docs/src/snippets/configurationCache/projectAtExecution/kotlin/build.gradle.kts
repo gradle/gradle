@@ -2,8 +2,9 @@
 abstract class SomeTask : DefaultTask() {
     @TaskAction
     fun action() {
-        project.exec { // <1>
-            commandLine("echo", "hello")
+        project.copy { // <1>
+            from("source")
+            into("destination")
         }
     }
 }
@@ -14,8 +15,9 @@ tasks.register<SomeTask>("someTaskType")
 // tag::ad-hoc-task[]
 tasks.register("someTask") {
     doLast {
-        project.exec { // <1>
-            commandLine("echo", "hello")
+        project.copy { // <1>
+            from("source")
+            into("destination")
         }
     }
 }
