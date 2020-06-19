@@ -1,0 +1,28 @@
+import javax.inject.Inject
+
+abstract class MyCopyTask extends DefaultTask {
+
+    @InputDirectory abstract DirectoryProperty getSource()
+
+    @OutputDirectory abstract DirectoryProperty getDestination()
+
+    @Inject abstract FileSystemOperations getFs()
+
+    @TaskAction
+    void action() {
+        fs.copy {
+            from source
+            into destination
+        }
+    }
+}
+
+// tag::fixed-reuse[]
+tasks.register('someTask', MyCopyTask) {
+    def projectDir = layout.projectDirectory
+    source = projectDir.dir('source')
+    destination = providers.systemProperty('someDestination').map { path -> // <1>
+        projectDir.dir(path)
+    }
+}
+// end::fixed-reuse[]
