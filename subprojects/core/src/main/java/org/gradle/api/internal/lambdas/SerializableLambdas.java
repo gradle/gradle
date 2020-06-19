@@ -18,6 +18,7 @@ package org.gradle.api.internal.lambdas;
 
 import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Factory;
 
 import java.io.Serializable;
 
@@ -36,6 +37,10 @@ public class SerializableLambdas {
         return action;
     }
 
+    public static <T> Factory<T> factory(SerializableFactory<T> factory) {
+        return factory;
+    }
+
     /**
      * A {@link Serializable} version of {@link Spec}.
      */
@@ -46,6 +51,12 @@ public class SerializableLambdas {
      * A {@link Serializable} version of {@link Action}.
      */
     public interface SerializableAction<T> extends Action<T>, Serializable {
+    }
+
+    /**
+     * A {@link Serializable} version of {@link Factory}.
+     */
+    public interface SerializableFactory<T> extends Factory<T>, Serializable {
     }
 
     private SerializableLambdas() {
