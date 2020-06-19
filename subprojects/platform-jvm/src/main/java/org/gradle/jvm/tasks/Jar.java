@@ -34,6 +34,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.serialization.Cached;
 import org.gradle.util.ConfigureUtil;
 
 import java.nio.charset.Charset;
@@ -62,24 +63,29 @@ public class Jar extends Zip {
     }
 
     private FileTreeInternal manifestFileTree() {
+        final Cached<ManifestInternal> manifest = Cached.of(this::computeManifest);
+        final OutputChangeListener outputChangeListener = outputChangeListener();
         return fileCollectionFactory().generated(
             getTemporaryDirFactory(),
             "MANIFEST.MF",
-            action(file -> outputChangeListener().beforeOutputChange(ImmutableList.of(file.getAbsolutePath()))),
-            action(outputStream -> {
-                Manifest manifest1 = getManifest();
-                if (manifest1 == null) {
-                    manifest1 = new DefaultManifest(null);
-                }
-                ManifestInternal manifestInternal;
-                if (manifest1 instanceof ManifestInternal) {
-                    manifestInternal = (ManifestInternal) manifest1;
-                } else {
-                    manifestInternal = new CustomManifestInternalWrapper(manifest1);
-                }
-                manifestInternal.setContentCharset(manifestContentCharset);
-                manifestInternal.writeTo(outputStream);
-            }));
+            action(file -> outputChangeListener.beforeOutputChange(ImmutableList.of(file.getAbsolutePath()))),
+            action(outputStream -> manifest.get().writeTo(outputStream))
+        );
+    }
+
+    private ManifestInternal computeManifest() {
+        Manifest manifest1 = getManifest();
+        if (manifest1 == null) {
+            manifest1 = new DefaultManifest(null);
+        }
+        ManifestInternal manifestInternal;
+        if (manifest1 instanceof ManifestInternal) {
+            manifestInternal = (ManifestInternal) manifest1;
+        } else {
+            manifestInternal = new CustomManifestInternalWrapper(manifest1);
+        }
+        manifestInternal.setContentCharset(manifestContentCharset);
+        return manifestInternal;
     }
 
     private FileCollectionFactory fileCollectionFactory() {
