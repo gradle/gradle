@@ -55,7 +55,7 @@ public class SharedJavaInstallationRegistry {
     }
 
     private Set<File> mapToDirectories() {
-        return suppliers.stream().map(InstallationSupplier::get).flatMap(Set::stream).collect(Collectors.toSet());
+        return suppliers.stream().map(InstallationSupplier::get).flatMap(Set::stream).map(InstallationLocation::getLocation).collect(Collectors.toSet());
     }
 
 }

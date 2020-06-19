@@ -17,12 +17,23 @@
 package org.gradle.jvm.toolchain.internal;
 
 import java.io.File;
-import java.util.Collections;
 
-class InstallationSuppliers {
+public class InstallationLocation {
 
-    public static InstallationSupplier forDirectory(File directory) {
-        return () -> Collections.singleton(new InstallationLocation(directory, ""));
+    private File location;
+
+    private String source;
+
+    public InstallationLocation(File location, String source) {
+        this.location = location;
+        this.source = source;
     }
 
+    public File getLocation() {
+        return location;
+    }
+
+    public String getSource() {
+        return source;
+    }
 }
