@@ -78,6 +78,11 @@ typealias ProblemTreeIntent = TreeView.Intent<ProblemNode>
 
 
 internal
+val ProblemTreeModel.problemCount: Int
+    get() = tree.children.size
+
+
+internal
 object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, InstantExecutionReportPage.Intent> {
 
     data class Model(
@@ -88,10 +93,7 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         val taskTree: ProblemTreeModel,
         val displayFilter: DisplayFilter = DisplayFilter.All,
         val tab: Tab = Tab.ByMessage
-    ) {
-        val messageProblemsCount = messageTree.tree.children.size
-        val taskProblemsCount = taskTree.tree.children.size
-    }
+    )
 
     enum class DisplayFilter {
         All, Errors, Warnings
@@ -158,8 +160,8 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
             ),
             div(
                 attributes { className("groups") },
-                displayTabButton(Tab.ByMessage, model.tab, model.messageProblemsCount),
-                displayTabButton(Tab.ByTask, model.tab, model.taskProblemsCount)
+                displayTabButton(Tab.ByMessage, model.tab, model.messageTree.problemCount),
+                displayTabButton(Tab.ByTask, model.tab, model.taskTree.problemCount)
             )
         ),
         div(
