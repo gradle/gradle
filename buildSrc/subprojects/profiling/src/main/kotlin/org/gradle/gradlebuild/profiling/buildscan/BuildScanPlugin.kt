@@ -25,6 +25,7 @@ import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
+import org.gradle.gradlebuild.BuildEnvironment.isGhActions
 import org.gradle.gradlebuild.BuildEnvironment.isJenkins
 import org.gradle.gradlebuild.BuildEnvironment.isTravis
 import org.gradle.gradlebuild.packaging.ClasspathManifest
@@ -204,6 +205,11 @@ open class BuildScanPlugin : Plugin<Project> {
                         link("Jenkins Build", System.getenv("BUILD_URL"))
                         value("Build ID", System.getenv("BUILD_ID"))
                         setCommitId(System.getenv("GIT_COMMIT"))
+                    }
+                    isGhActions -> {
+                        link("GitHub Actions Build", "https://github.com/gradle/gradle/runs/${System.getenv("GITHUB_RUN_ID")}")
+                        value("Build ID", "${System.getenv("GITHUB_RUN_ID")} ${System.getenv("GITHUB_RUN_NUMBER")}")
+                        setCommitId(System.getenv("GITHUB_SHA"))
                     }
                     else -> {
                         link("TeamCity Build", System.getenv("BUILD_URL"))
