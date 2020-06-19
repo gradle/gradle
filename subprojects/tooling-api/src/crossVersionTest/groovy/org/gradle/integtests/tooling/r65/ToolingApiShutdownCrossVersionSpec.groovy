@@ -263,6 +263,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         resultHandler.assertFailedWith(BuildCancelledException)
     }
 
+    @Ignore('https://github.com/gradle/gradle-private/issues/3107')
     def "can call disconnect after project connection closed"() {
         buildFile << """
             task myTask {
@@ -284,6 +285,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         noExceptionThrown()
     }
 
+    @Ignore('https://github.com/gradle/gradle-private/issues/3107')
     def "can call disconnect before project connection closed"() {
         buildFile << """
             task hang {

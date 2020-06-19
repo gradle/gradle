@@ -23,7 +23,7 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 
 plugins {
-    gradlebuild.distribution.`core-api-kotlin`
+    gradlebuild.distribution.`api-kotlin`
 }
 
 description = "Kotlin DSL Provider"
@@ -80,7 +80,9 @@ dependencies {
     testImplementation(project(":buildCacheHttp"))
     testImplementation(project(":buildInit"))
     testImplementation(project(":jacoco"))
-    testImplementation(project(":platformNative"))
+    testImplementation(project(":platformNative")) {
+        because("BuildType from platform-native is used in ProjectAccessorsClassPathTest")
+    }
     testImplementation(project(":plugins"))
     testImplementation(project(":versionControl"))
     testImplementation(library("ant"))
@@ -92,18 +94,17 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.3")
     testImplementation("org.awaitility:awaitility-kotlin:3.1.6")
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
     integTestImplementation(project(":languageGroovy"))
+    integTestImplementation(project(":languageGroovy")) {
+        because("ClassBytesRepositoryTest makes use of Groovydoc task.")
+    }
     integTestImplementation(project(":internalTesting"))
     integTestImplementation(testLibrary("mockito_kotlin"))
 
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
-    integTestRuntimeOnly(project(":apiMetadata"))
-    integTestRuntimeOnly(project(":pluginDevelopment"))
-    integTestRuntimeOnly(project(":toolingApiBuilders"))
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
+    testRuntimeOnly(project(":distributionsNative")) {
+        because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt) and BuildType from platform-native is used in ProjectAccessorsClassPathTest.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
 }
 
 classycle {

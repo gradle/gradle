@@ -58,7 +58,8 @@ class DefaultInstantExecution internal constructor(
     private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
     private val cacheFingerprintController: InstantExecutionCacheFingerprintController,
     private val beanConstructors: BeanConstructors,
-    private val gradlePropertiesController: GradlePropertiesController
+    private val gradlePropertiesController: GradlePropertiesController,
+    private val relevantProjectsRegistry: RelevantProjectsRegistry
 ) : InstantExecution {
 
     interface Host {
@@ -132,6 +133,8 @@ class DefaultInstantExecution internal constructor(
             return
         }
 
+        problems.storing()
+
         Instrumented.discardListener()
         stopCollectingCacheFingerprint()
 
@@ -152,6 +155,8 @@ class DefaultInstantExecution internal constructor(
     override fun loadScheduledWork() {
 
         require(isInstantExecutionEnabled)
+
+        problems.loading()
 
         // No need to record the `ClassLoaderScope` tree
         // when loading the task graph.
@@ -174,7 +179,7 @@ class DefaultInstantExecution internal constructor(
     fun writeInstantExecutionState(stateFile: File) {
         service<ProjectStateRegistry>().withLenientState {
             withWriteContextFor(stateFile) {
-                InstantExecutionState(codecs, host).run {
+                InstantExecutionState(codecs, host, relevantProjectsRegistry).run {
                     writeState()
                 }
             }
@@ -184,7 +189,7 @@ class DefaultInstantExecution internal constructor(
     private
     fun readInstantExecutionState(stateFile: File) {
         withReadContextFor(stateFile) {
-            InstantExecutionState(codecs, host).run {
+            InstantExecutionState(codecs, host, relevantProjectsRegistry).run {
                 readState()
             }
         }

@@ -81,6 +81,7 @@ internal
 object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, InstantExecutionReportPage.Intent> {
 
     data class Model(
+        val cacheAction: String,
         val documentationLink: String,
         val totalProblems: Int,
         val messageTree: ProblemTreeModel,
@@ -132,7 +133,7 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
             ),
             div(
                 attributes { className("left") },
-                h1("${model.totalProblems} configuration cache problems were found"),
+                h1("${model.totalProblems} problems were found ${model.cacheAction} the configuration cache"),
                 learnMore(model.documentationLink),
                 viewTree(model.messageTree, Intent::MessageTreeIntent, model.displayFilter),
                 viewTree(model.taskTree, Intent::TaskTreeIntent, model.displayFilter)

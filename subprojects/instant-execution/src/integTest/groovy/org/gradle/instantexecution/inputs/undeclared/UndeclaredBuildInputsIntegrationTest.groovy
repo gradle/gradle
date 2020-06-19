@@ -209,11 +209,31 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
             "os.version",
             "os.arch",
             "java.version",
-            "java.vm.version",
+            "java.version.date",
+            "java.vendor",
+            "java.vendor.url",
+            "java.vendor.version",
             "java.specification.version",
+            "java.specification.vendor",
+            "java.specification.name",
+            "java.vm.version",
+            "java.vm.specification.version",
+            "java.vm.specification.vendor",
+            "java.vm.specification.name",
+            "java.vm.version",
+            "java.vm.vendor",
+            "java.vm.name",
+            "java.class.version",
+            "java.home",
+            "java.class.path",
+            "java.library.path",
+            "java.compiler",
+            "file.separator",
+            "path.separator",
             "line.separator",
             "user.name",
             "user.home"
+            // Not java.io.tmpdir and user.dir at this stage
         ]
     }
 

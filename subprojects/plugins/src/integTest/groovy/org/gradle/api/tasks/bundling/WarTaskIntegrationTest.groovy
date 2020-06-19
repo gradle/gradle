@@ -309,6 +309,7 @@ task war(type: War) {
         succeeds "war"
     }
 
+    @ToBeFixedForInstantExecution(because = "build cache not reused")
     def "can make war task cacheable with runtime api"() {
         given:
         def webXml = file('web.xml') << '<web/>'
@@ -318,9 +319,16 @@ task war(type: War) {
             }
         }
         and:
+        settingsFile << """
+            buildCache {
+                local {
+                    directory = file("local-build-cache")
+                }
+            }
+        """
         buildFile << """
             apply plugin: "base"
-            
+
             task war(type: War) {
                 webInf {
                     from 'web-inf'
@@ -336,6 +344,9 @@ task war(type: War) {
         withBuildCache().run "clean", "war"
 
         then:
+        executedAndNotSkipped ':war'
+
+        and:
         def war = new JarTestFixture(file('build/test.war'))
         war.assertContainsFile('META-INF/MANIFEST.MF')
         war.assertContainsFile('WEB-INF/web.xml')

@@ -17,16 +17,19 @@
 package org.gradle.integtests.resolve.rocache
 
 import org.gradle.containers.GradleInContainer
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.util.Requires
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.HAS_DOCKER
 
 @Requires([HAS_DOCKER])
+@IgnoreIf({ GradleContextualExecuter.embedded }) // needs real Gradle distribution to run in container
 class ReadOnlyDependencyCacheWithinContainerTest extends AbstractReadOnlyCacheDependencyResolutionTest {
 
     BlockingHttpServer synchronizer

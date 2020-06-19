@@ -129,8 +129,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `given a Kotlin project in buildSrc, it will be added to the compilation classpath`() {
 
-        requireGradleDistributionOnEmbeddedExecuter()
-
         withKotlinBuildSrc()
 
         withFile("buildSrc/src/main/kotlin/build/DeepThought.kt", """
@@ -181,8 +179,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     @ToBeFixedForInstantExecution
     fun `can compile against a different (but compatible) version of the Kotlin compiler`() {
-
-        requireGradleDistributionOnEmbeddedExecuter()
+        assumeNonEmbeddedGradleExecuter() // Class path isolation, tested here, is not correct in embedded mode
 
         val differentKotlinVersion = "1.3.30"
         val expectedKotlinCompilerVersionString = "1.3.30"
@@ -745,8 +742,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `given generic extension types they can be accessed and configured`() {
-
-        requireGradleDistributionOnEmbeddedExecuter()
 
         withDefaultSettingsIn("buildSrc")
 

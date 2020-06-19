@@ -40,6 +40,7 @@ external val configurationCacheProblems: () -> JsModel
 
 private
 external interface JsModel {
+    val cacheAction: String
     val documentationLink: String
     val problems: Array<JsProblem>
 }
@@ -112,6 +113,7 @@ fun reportPageModelFromJsModel(jsModel: JsModel): InstantExecutionReportPage.Mod
         )
     }
     return InstantExecutionReportPage.Model(
+        cacheAction = jsModel.cacheAction,
         documentationLink = jsModel.documentationLink,
         totalProblems = jsModel.problems.size,
         messageTree = treeModelFor(

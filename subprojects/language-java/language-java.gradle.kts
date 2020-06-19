@@ -2,7 +2,7 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -45,23 +45,21 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":platformBase")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
     testFixturesApi(testFixtures(project(":languageJvm")))
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":modelCore"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(project(":platformBase"))
     testFixturesImplementation(project(":persistentCache"))
     testFixturesImplementation(library("slf4j_api"))
 
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
-
-    // TODO - get rid of this cycle
-    integTestRuntimeOnly(project(":plugins"))
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder test (JavaLanguagePluginTest) loads services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributionsBasics"))
 }
 
 strictCompile {

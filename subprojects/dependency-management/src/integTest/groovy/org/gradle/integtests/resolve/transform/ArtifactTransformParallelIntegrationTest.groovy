@@ -212,6 +212,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         outputContains("Transforming c.jar to c.jar.txt")
     }
 
+    @ToBeFixedForInstantExecution(because = "external dependencies are transformed eagerly and file dependencies are transformed lazily", skip = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
     def "transformations are applied in parallel for a mix of external and file dependency artifacts"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -332,7 +333,6 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         outputContains("Transforming b.jar to b.jar.txt")
     }
 
-    @ToBeFixedForInstantExecution
     def "failures are collected from transformations applied parallel"() {
         given:
         buildFile << """
@@ -369,7 +369,6 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         failure.assertHasCause("Failed to transform bad-c.jar to match attributes {artifactType=size}")
     }
 
-    @ToBeFixedForInstantExecution
     def "only one transformer execution per workspace"() {
 
         settingsFile << """
@@ -418,7 +417,6 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         handle.waitForFinish()
     }
 
-    @ToBeFixedForInstantExecution
     def "only one process can run immutable transforms at the same time"() {
         given:
         List<BuildTestFile> builds = (1..3).collect { idx ->
@@ -437,9 +435,10 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                         }.artifacts
                         inputs.files(artifacts.artifactFiles)
 
+                        def projectName = project.name
                         doLast {
-                            ${server.callFromBuildUsingExpression('"resolveStarted_" + project.name')}
-                            assert artifacts.artifactFiles.collect { it.name } == [project.name + '.jar.txt']
+                            ${server.callFromBuildUsingExpression('"resolveStarted_" + projectName')}
+                            assert artifacts.artifactFiles.collect { it.name } == [projectName + '.jar.txt']
                         }
                     }
                 """

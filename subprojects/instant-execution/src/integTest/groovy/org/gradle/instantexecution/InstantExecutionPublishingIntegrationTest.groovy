@@ -16,6 +16,10 @@
 
 package org.gradle.instantexecution
 
+
+import static org.gradle.util.GFileUtils.deleteDirectory
+import static org.gradle.util.GFileUtils.listFiles
+
 class InstantExecutionPublishingIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     def setup() {
@@ -61,7 +65,7 @@ class InstantExecutionPublishingIntegrationTest extends AbstractInstantExecution
         """
     }
 
-    def "can generate metadata for maven publication"() {
+    def "can publish maven publication metadata to local repository"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: 'maven-publish'
@@ -105,22 +109,59 @@ class InstantExecutionPublishingIntegrationTest extends AbstractInstantExecution
         """
         def instant = newInstantExecutionFixture()
         def metadataFile = file('build/publications/maven/module.json')
+        def tasks = [
+            'generateMetadataFileForMavenPublication',
+            'generatePomFileForMavenPublication',
+            'publishMavenPublicationToMavenRepository',
+            'publishAllPublicationsToMavenRepository'
+        ]
 
         when:
-        instantRun 'generateMetadataFileForMavenPublication'
+        instantRun(*tasks)
 
         then:
         instant.assertStateStored()
         metadataFile.exists()
 
         when:
+        def storeTimeRepo = mavenRepoFiles()
         def storeTimeMetadata = metadataFile.text
         metadataFile.delete()
-        instantRun 'generateMetadataFileForMavenPublication'
+        deleteDirectory(mavenRepo.rootDir)
+        instantRun(*tasks)
 
         then:
         instant.assertStateLoaded()
+        def loadTimeRepo = mavenRepoFiles()
+        storeTimeRepo == loadTimeRepo
         def loadTimeMetadata = metadataFile.text
         storeTimeMetadata == loadTimeMetadata
+    }
+
+    private Map<File, String> mavenRepoFiles() {
+        listFiles(mavenRepo.rootDir, null, true)
+            .collectEntries { File repoFile ->
+                [repoFile, textForComparisonOf(repoFile)]
+            }
+    }
+
+    private String textForComparisonOf(File repositoryFile) {
+        def fileName = repositoryFile.name
+        if (fileName.startsWith('maven-metadata.xml')) {
+            if (fileName == 'maven-metadata.xml') {
+                return clearLastUpdatedElementOf(repositoryFile.text)
+            }
+            // Ignore contents of maven-metadata.xml.sha256, etc, because hashes will most likely
+            // change between runs due to <lastUpdated /> differences.
+            return ''
+        }
+        return repositoryFile.text
+    }
+
+    private String clearLastUpdatedElementOf(String metadata) {
+        metadata.replaceAll(
+            "<lastUpdated>\\d+</lastUpdated>",
+            "<lastUpdated />"
+        )
     }
 }

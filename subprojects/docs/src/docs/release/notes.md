@@ -8,6 +8,7 @@ We would like to thank the following community contributors to this release of G
 [Daiki Hirabayashi](https://github.com/dhirabayashi),
 [Sebastian Schuberth](https://github.com/sschuberth),
 [Frieder Bluemle](https://github.com/friederbluemle),
+[Brick Tamland](https://github.com/mleveill),
 and [Stefan Oehme](https://github.com/oehme).
 
 <!-- 

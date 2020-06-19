@@ -15,6 +15,28 @@
  */
 
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
+dependencies {
+    api(project(":baseServices")) // leaks BuildOperationNotificationListener on API
+
+    implementation(library("jsr305"))
+    implementation(library("inject"))
+    implementation(project(":logging"))
+    implementation(project(":coreApi"))
+    implementation(project(":core"))
+    implementation(project(":launcher"))
+
+    integTestImplementation(project(":internalTesting"))
+    integTestImplementation(project(":internalIntegTesting"))
+
+    // Dependencies of the integ test fixtures
+    integTestImplementation(project(":buildOption"))
+    integTestImplementation(project(":messaging"))
+    integTestImplementation(project(":persistentCache"))
+    integTestImplementation(project(":native"))
+    integTestImplementation(library("guava"))
+
+    integTestDistributionRuntimeOnly(project(":distributionsFull"))
+}

@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.ProjectBackedModule;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
@@ -93,7 +94,7 @@ public class OutgoingVariantsReportTask extends DefaultTask {
             reportNoMatchingVariant(configurations, output);
         } else {
             Legend legend = new Legend();
-            configurations.forEach(cnf -> reportVariant((ConfigurationInternal) cnf, new ProjectBackedModule(getProject()), output, legend));
+            configurations.forEach(cnf -> reportVariant((ConfigurationInternal) cnf, new ProjectBackedModule((ProjectInternal) getProject()), output, legend));
             legend.print(output);
         }
     }

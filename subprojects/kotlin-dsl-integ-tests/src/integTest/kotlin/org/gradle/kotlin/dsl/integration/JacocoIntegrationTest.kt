@@ -14,7 +14,7 @@ class JacocoIntegrationTest : AbstractPluginIntegrationTest() {
     @ToBeFixedForInstantExecution
     fun `jacoco ignore codegen`() {
 
-        requireGradleDistributionOnEmbeddedExecuter()
+        assumeNonEmbeddedGradleExecuter() // Classloader issue with pre-compiled script plugins lets ':compileKotlin' fail
 
         withBuildScript("""
             plugins {

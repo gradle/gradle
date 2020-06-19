@@ -1,10 +1,8 @@
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
-configurations {
-    create("reports")
-}
+val implementationResources: Configuration by configurations.creating
 
 repositories {
     googleApisJs()
@@ -23,21 +21,19 @@ dependencies {
     implementation(library("inject"))
     implementation(library("jatl"))
 
+    implementationResources("jquery:jquery.min:3.4.1@js")
+
     testImplementation(project(":processServices"))
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(testLibrary("jsoup"))
     testImplementation(testFixtures(project(":core")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-    testRuntimeOnly(project(":workers"))
-    testRuntimeOnly(project(":dependencyManagement"))
-
-    integTestRuntimeOnly(project(":codeQuality"))
-    integTestRuntimeOnly(project(":jacoco"))
-
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
-
-    add("reports", "jquery:jquery.min:3.4.1@js")
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsJvm")) {
+        because("BuildDashboard has specific support for JVM plugins (CodeNarc, JaCoCo)")
+    }
 }
 
 strictCompile {
@@ -52,8 +48,8 @@ classycle {
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
 val reportResources by tasks.registering(Copy::class) {
-    from(configurations["reports"])
-    into("$generatedResourcesDir/org/gradle/reporting")
+    from(implementationResources)
+    into(generatedResourcesDir.dir("org/gradle/reporting").get().asFile)
 }
 sourceSets.main {
     output.dir(generatedResourcesDir, "builtBy" to reportResources)

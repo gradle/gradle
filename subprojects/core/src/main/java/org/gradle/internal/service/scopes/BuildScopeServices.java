@@ -76,9 +76,6 @@ import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultBuildScanUserInputHandler;
-import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
-import org.gradle.api.internal.tasks.userinput.DefaultUserInputReader;
-import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.invocation.BuildInvocationDetails;
 import org.gradle.api.model.ObjectFactory;
@@ -118,7 +115,6 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.BuildOperatingFiringSettingsPreparer;
 import org.gradle.initialization.BuildOperationSettingsProcessor;
-import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.ClassLoaderScopeListeners;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
@@ -134,6 +130,7 @@ import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.NotifyingBuildLoader;
+import org.gradle.initialization.ProjectAccessHandler;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
@@ -172,7 +169,6 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
@@ -184,7 +180,6 @@ import org.gradle.internal.scripts.ScriptExecutionListener;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.Clock;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
@@ -213,6 +208,25 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 pluginServiceRegistry.registerBuildServices(registration);
             }
         });
+    }
+
+    protected ProjectAccessListener createProjectAccessListener(List<ProjectAccessHandler> handlers) {
+        // Cannot use the listener infrastructure here because these events can be nested (that is, handling an event may trigger further events)
+        return new ProjectAccessListener() {
+            @Override
+            public void beforeRequestingTaskByPath(ProjectInternal targetProject) {
+                for (ProjectAccessHandler handler : handlers) {
+                    handler.beforeRequestingTaskByPath(targetProject);
+                }
+            }
+
+            @Override
+            public void beforeResolvingProjectDependency(ProjectInternal dependencyProject) {
+                for (ProjectAccessHandler handler : handlers) {
+                    handler.beforeResolvingProjectDependency(dependencyProject);
+                }
+            }
+        };
     }
 
     protected BuildLayout createBuildLayout(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
@@ -511,7 +525,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             buildOperationExecutor);
     }
 
-    protected ProjectAccessListener createProjectAccessListener() {
+    protected ProjectAccessHandler createProjectAccessHandler() {
         return new ConfigurationOnDemandProjectAccessListener();
     }
 
@@ -576,14 +590,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             registryAction.execute(registry);
         }
         return registry;
-    }
-
-    protected UserInputHandler createUserInputHandler(BuildRequestMetaData requestMetaData, OutputEventListenerManager outputEventListenerManager, Clock clock) {
-        if (!requestMetaData.isInteractive()) {
-            return new NonInteractiveUserInputHandler();
-        }
-
-        return new DefaultUserInputHandler(outputEventListenerManager.getBroadcaster(), clock, new DefaultUserInputReader());
     }
 
     protected BuildScanUserInputHandler createBuildScanUserInputHandler(UserInputHandler userInputHandler) {

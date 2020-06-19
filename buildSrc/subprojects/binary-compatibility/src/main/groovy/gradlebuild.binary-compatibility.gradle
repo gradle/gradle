@@ -84,6 +84,7 @@ dependencies {
         to.attribute(ARTIFACT_TYPE, 'gradle-classpath')
     }
 
+    // TODO update this to use a dependency on :distributionFull instead of 'rootProject.subprojects { }'
     rootProject.subprojects { subproject ->
         plugins.withId('gradlebuild.distribution.api') {
             apiSourceFolders.from(subproject.sourceSets.main.allJava.sourceDirectories)

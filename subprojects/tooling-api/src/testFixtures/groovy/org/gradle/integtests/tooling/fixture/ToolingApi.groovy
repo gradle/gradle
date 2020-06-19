@@ -176,7 +176,7 @@ class ToolingApi implements TestRule {
         }
 
         connector.forProjectDirectory(testWorkDirProvider.testDirectory)
-        if (useClasspathImplementation) {
+        if (embedded) {
             connector.useClasspathDistribution()
         } else {
             connector.useInstallation(dist.gradleHomeDir.absoluteFile)
@@ -222,17 +222,9 @@ class ToolingApi implements TestRule {
         }
     }
 
-    boolean isUseClasspathImplementation() {
-        // Use classpath implementation only when running tests in embedded mode and for the current Gradle version
-        return embedded && GradleVersion.current() == dist.version
-    }
-
-    /*
-     * TODO Stefan the embedded executor has been broken by some
-     * change after 3.0. It can no longer handle changes to the
-     * serialized form of tooling models. The current -> 3.0 tests
-     * are failing as a result. Temporarily deactivating embedded
-     * mode except for current -> current.
+    /**
+     * Only 'current->[some-version]' can run embedded.
+     * If running '[other-version]->current' the other Gradle version does not know how to start Gradle from the embedded classpath.
      */
     boolean isEmbedded() {
         // Use in-process build when running tests in embedded mode and daemon is not required

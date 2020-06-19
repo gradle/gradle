@@ -22,10 +22,4 @@ import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 /**
  * Base class for tests that require plugins from `:plugins`.
  */
-open class AbstractPluginIntegrationTest : AbstractPluginTest() {
-
-    override val testRepositoryPaths: List<String>
-        get() = normalisedPathsOf(
-            "../kotlin-dsl-plugins/build/repository"
-        )
-}
+open class AbstractPluginIntegrationTest : AbstractPluginTest()

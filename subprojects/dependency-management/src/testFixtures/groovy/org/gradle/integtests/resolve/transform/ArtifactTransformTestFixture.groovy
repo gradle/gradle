@@ -97,22 +97,26 @@ class JarProducer extends DefaultTask {
     @OutputFile
     final RegularFileProperty output = project.objects.fileProperty()
     @Input
-    String content = "content"
+    final Property<String> content = project.objects.property(String).convention("content")
     @Input
-    long timestamp = 123L
+    final Property<Long> timestamp = project.objects.property(Long).convention(123L)
     @Input
-    String entryName = "thing.class"
+    final Property<String> entryName = project.objects.property(String).convention("thing.class")
 
     @TaskAction
     def go() {
         def file = output.get().asFile
         file.withOutputStream {
+            println "write \${entryName.get()} with timestamp \${timestamp.get()} and content \${content.get()}"
             def jarFile = new JarOutputStream(it)
-            def entry = new ZipEntry(entryName)
-            entry.time = timestamp
-            jarFile.putNextEntry(entry)
-            jarFile << content
-            jarFile.close()
+            try {
+                def entry = new ZipEntry(entryName.get())
+                entry.time = timestamp.get()
+                jarFile.putNextEntry(entry)
+                jarFile << content.get()
+            } finally {
+                jarFile.close()
+            }
         }
     }
 }
@@ -414,19 +418,14 @@ allprojects { p ->
          */
         void produceFiles() {
             producerTaskClassName = "FileProducer"
+            // TODO - should not require forUseAtConfigurationTime()
             producerConfig = """
-                output = layout.buildDir.file("\${project.name}.jar")
+                output.convention(layout.buildDirectory.file(providers.gradleProperty("\${project.name}FileName").forUseAtConfigurationTime().orElse("\${project.name}.jar")))
                 content.convention(providers.gradleProperty("\${project.name}Content").orElse(project.name))
             """.stripIndent()
+            // TODO - should not require forUseAtConfigurationTime()
             producerConfigOverrides = """
-                if (project.hasProperty("\${project.name}OutputDir")) {
-                    buildDir = project.file(project.property("\${project.name}OutputDir"))
-                }
-                tasks.withType(FileProducer) {
-                    if (project.hasProperty("\${project.name}FileName")) {
-                        output = layout.buildDir.file(project.property("\${project.name}FileName"))
-                    }
-                }
+                layout.buildDirectory.convention(layout.projectDirectory.dir(providers.gradleProperty("\${project.name}OutputDir").forUseAtConfigurationTime().orElse("build")))
             """.stripIndent()
         }
 
@@ -435,28 +434,19 @@ allprojects { p ->
          */
         void produceJars() {
             producerTaskClassName = "JarProducer"
+            // TODO - should not require forUseAtConfigurationTime()
             producerConfig = """
-                output = layout.buildDir.file("\${project.name}.jar")
-                content = project.name
+                output.convention(layout.buildDirectory.file(providers.gradleProperty("\${project.name}FileName").forUseAtConfigurationTime().orElse("\${project.name}.jar")))
+                content.convention(providers.gradleProperty("\${project.name}Content").orElse(project.name))
+                timestamp.convention(providers.gradleProperty("\${project.name}Timestamp").map { Long.parseLong(it) }.orElse(123L))
+                entryName.convention(providers.gradleProperty("\${project.name}EntryName").orElse("thing.class"))
             """.stripIndent()
+            // TODO - should not require forUseAtConfigurationTime()
             producerConfigOverrides = """
-                if (project.hasProperty("\${project.name}OutputDir")) {
-                    buildDir = project.file(project.property("\${project.name}OutputDir"))
-                }
+                layout.buildDirectory.convention(layout.projectDirectory.dir(providers.gradleProperty("\${project.name}OutputDir").forUseAtConfigurationTime().orElse("build")))
                 tasks.withType(JarProducer) {
                     if (project.hasProperty("\${project.name}ProduceNothing")) {
                         content = ""
-                    } else if (project.hasProperty("\${project.name}Content")) {
-                        content = project.property("\${project.name}Content")
-                    }
-                    if (project.hasProperty("\${project.name}FileName")) {
-                        output = layout.buildDir.file(project.property("\${project.name}FileName"))
-                    }
-                    if (project.hasProperty("\${project.name}Timestamp")) {
-                        timestamp = Long.parseLong(project.property("\${project.name}Timestamp"))
-                    }
-                    if (project.hasProperty("\${project.name}EntryName")) {
-                        entryName = project.property("\${project.name}EntryName")
                     }
                 }
             """.stripIndent()
@@ -473,29 +463,23 @@ allprojects { p ->
          */
         void produceDirs() {
             producerTaskClassName = "DirProducer"
+            // TODO - should not require forUseAtConfigurationTime()
             producerConfig = """
-                output = layout.buildDir.dir("\${project.name}-dir")
-                content = project.name
-                names = [project.name]
+                output.convention(layout.buildDirectory.dir(providers.gradleProperty("\${project.name}DirName").forUseAtConfigurationTime().orElse("\${project.name}-dir")))
+                def defaultContent = project.name
+                content.convention(providers.gradleProperty("\${project.name}Content").orElse(defaultContent))
+                def defaultNames = [project.name]
+                names.convention(providers.gradleProperty("\${project.name}Name").map { [it] }.orElse(defaultNames))
             """.stripIndent()
+            // TODO - should not require forUseAtConfigurationTime()
             producerConfigOverrides = """
-                if (project.hasProperty("\${project.name}OutputDir")) {
-                    buildDir = project.file(project.property("\${project.name}OutputDir"))
-                }
+                layout.buildDirectory.convention(layout.projectDirectory.dir(providers.gradleProperty("\${project.name}OutputDir").forUseAtConfigurationTime().orElse("build")))
                 tasks.withType(DirProducer) {
                     if (project.hasProperty("\${project.name}ProduceNothing")) {
                         content = ""
-                    } else if (project.hasProperty("\${project.name}Content")) {
-                        content = project.property("\${project.name}Content")
-                    }
-                    if (project.hasProperty("\${project.name}Name")) {
-                        names = [project.property("\${project.name}Name")]
                     }
                     if (project.hasProperty("\${project.name}Names")) {
                         names.set(project.property("\${project.name}Names").split(',') as List)
-                    }
-                    if (project.hasProperty("\${project.name}DirName")) {
-                        output = layout.buildDir.dir(project.property("\${project.name}DirName"))
                     }
                 }
             """.stripIndent()

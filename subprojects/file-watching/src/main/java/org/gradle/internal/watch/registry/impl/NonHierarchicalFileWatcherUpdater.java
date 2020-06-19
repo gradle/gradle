@@ -61,7 +61,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             snapshot.accept(new OnlyVisitSubDirectories(path -> decrement(path, changedWatchedDirectories)));
         });
         addedSnapshots.forEach(snapshot -> {
-            ImmutableList<String> directoriesToWatchForRoot = ImmutableList.copyOf(WatchRootUtil.getDirectoriesToWatch(snapshot).stream()
+            ImmutableList<String> directoriesToWatchForRoot = ImmutableList.copyOf(SnapshotWatchedDirectoryFinder.getDirectoriesToWatch(snapshot).stream()
                 .map(Path::toString).collect(Collectors.toList()));
             watchedRootsForSnapshot.put(snapshot.getAbsolutePath(), directoriesToWatchForRoot);
             directoriesToWatchForRoot.forEach(path -> increment(path, changedWatchedDirectories));
@@ -71,7 +71,11 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void updateProjectRootDirectories(Collection<File> updatedProjectRootDirectories) {
+    public void buildFinished() {
+    }
+
+    @Override
+    public void updateRootProjectDirectories(Collection<File> updatedRootProjectDirectories) {
     }
 
     private void updateWatchedDirectories(Map<String, Integer> changedWatchDirectories) {

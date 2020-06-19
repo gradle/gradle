@@ -1,35 +1,26 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.integtests.fixtures.ToBeFixedForFileSystemWatching
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
-
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
-
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.TestPrecondition
-
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
-
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Before
 import org.junit.Test
 
 
-@ToBeFixedForVfsRetention(
+@ToBeFixedForFileSystemWatching(
     because = "https://github.com/gradle/gradle/issues/12184",
     failsOnlyIf = TestPrecondition.WINDOWS
 )
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class KotlinDslPluginTest : AbstractPluginTest() {
-
-    @Before
-    fun setupPluginTest() =
-        requireGradleDistributionOnEmbeddedExecuter()
 
     @Test
     @ToBeFixedForInstantExecution
@@ -132,6 +123,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     @Test
     @ToBeFixedForInstantExecution
     fun `gradle kotlin dsl api is available in test-kit injected plugin classpath`() {
+        assumeNonEmbeddedGradleExecuter() // requires a full distribution to run tests with test kit
 
         withBuildScript("""
 
@@ -203,6 +195,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                     // and:
                     val runner = GradleRunner.create()
                         .withGradleInstallation(File("${distribution.gradleHomeDir.normalisedPath}"))
+                        .withTestKitDir(File("${executer.gradleUserHomeDir.normalisedPath}"))
                         .withProjectDir(projectRoot)
                         .withPluginClasspath()
                         .forwardOutput()

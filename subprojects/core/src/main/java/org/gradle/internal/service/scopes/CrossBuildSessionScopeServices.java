@@ -40,7 +40,6 @@ import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
 import org.gradle.internal.operations.DelegatingBuildOperationExecutor;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
-import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -113,8 +112,8 @@ public class CrossBuildSessionScopeServices implements Closeable {
         return services.get(UserCodeApplicationContext.class);
     }
 
-    BuildOperationNotificationListenerRegistrar createBuildOperationNotificationListenerRegistrar() {
-        return buildOperationNotificationBridge.getRegistrar();
+    BuildOperationNotificationBridge createBuildOperationNotificationBridge() {
+        return buildOperationNotificationBridge;
     }
 
     BuildOperationNotificationValve createBuildOperationNotificationValve() {

@@ -53,12 +53,12 @@ import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.resource.TextUriResourceLoader;
-import org.gradle.internal.scan.config.BuildScanConfigInit;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -70,6 +70,7 @@ import java.io.File;
 import java.util.Collection;
 
 public abstract class DefaultGradle extends AbstractPluginAware implements GradleInternal {
+
     private SettingsInternal settings;
     private ProjectInternal rootProject;
     private ProjectInternal defaultProject;
@@ -84,7 +85,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private boolean projectsLoaded;
     private Path identityPath;
     private ClassLoaderScope classLoaderScope;
-    private BuildType buildType = BuildType.NONE;
     private ClassLoaderScope baseProjectClassLoaderScope;
 
     public DefaultGradle(GradleInternal parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
@@ -106,7 +106,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         });
 
         if (parent == null) {
-            services.get(BuildScanConfigInit.class).init();
+            services.get(GradleEnterprisePluginManager.class).registerMissingPluginWarning(this);
         }
     }
 
@@ -552,13 +552,4 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public BuildType getBuildType() {
-        return buildType;
-    }
-
-    @Override
-    public void setBuildType(BuildType buildType) {
-        this.buildType = buildType;
-    }
 }

@@ -17,7 +17,7 @@ import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -51,13 +51,13 @@ dependencies {
     implementation(library("commons_lang"))
     implementation(library("inject"))
 
-    // This dependency makes the services provided by `:compositeBuilds` available at runtime for all integration tests in all subprojects
-    // Making this better would likely involve a separate `:gradleRuntime` module that brings in `:core`, `:dependencyManagement` and other key subprojects
-    runtimeOnly(project(":compositeBuilds"))
-
     testImplementation(project(":messaging"))
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
+    testImplementation(library("gson")) {
+        because("for unknown reason (bug in the Groovy/Spock compiler?) requires it to be present to use the Gradle Module Metadata test fixtures")
+    }
+    testImplementation(testLibrary("jsoup"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependencyManagement")))
     testImplementation(testFixtures(project(":resourcesHttp")))
@@ -66,8 +66,6 @@ dependencies {
     testImplementation(testFixtures(project(":languageJava")))
     testImplementation(testFixtures(project(":languageGroovy")))
     testImplementation(testFixtures(project(":diagnostics")))
-
-    testRuntimeOnly(project(":runtimeApiInfo"))
 
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":baseServicesGroovy"))
@@ -78,14 +76,10 @@ dependencies {
     testFixturesImplementation(project(":resources"))
     testFixturesImplementation(library("guava"))
 
-    testImplementation(testLibrary("jsoup"))
-
-    integTestRuntimeOnly(project(":maven"))
-
-    testImplementation(library("gson")) {
-        because("for unknown reason (bug in the Groovy/Spock compiler?) requires it to be present to use the Gradle Module Metadata test fixtures")
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
+    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
 }
 
 strictCompile {
@@ -95,16 +89,6 @@ strictCompile {
 
 classycle {
     excludePatterns.set(listOf("org/gradle/**"))
-}
-
-val wrapperJarDir = file("$buildDir/generated-resources/wrapper-jar")
-evaluationDependsOn(":wrapper")
-val wrapperJar by tasks.registering(Copy::class) {
-    from(project(":wrapper").tasks.named("executableJar"))
-    into(wrapperJarDir)
-}
-sourceSets.main {
-    output.dir(wrapperJarDir, "builtBy" to wrapperJar)
 }
 
 testFilesCleanup {

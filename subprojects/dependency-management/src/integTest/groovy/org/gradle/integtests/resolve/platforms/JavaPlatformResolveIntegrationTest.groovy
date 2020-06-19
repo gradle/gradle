@@ -717,6 +717,132 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         }
     }
 
+    def 'platform deselection does not cause orphan edges'() {
+        given:
+        def platform = mavenHttpRepo.module('org.test', 'platform', '1.0').withModuleMetadata().withoutDefaultVariants()
+            .withVariant('apiElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('org.test', 'depA', '1.1')
+                constraint('org.test', 'depB', '1.0')
+            }
+            .withVariant('runtimeElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('org.test', 'depA', '1.1')
+                constraint('org.test', 'depB', '1.0')
+            }.publish()
+        def depA = mavenHttpRepo.module('org.test', 'depA', '1.0').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('org.test', 'platform', '1.0', null, [(Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM])
+                dependsOn('org.test', 'depB', '1.0')
+            }.publish()
+        def depA11 = mavenHttpRepo.module('org.test', 'depA', '1.1').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('org.test', 'platform', '1.0', null, [(Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM])
+                dependsOn('org.test', 'depB', '1.0')
+            }.publish()
+        def depB = mavenHttpRepo.module('org.test', 'depB', '1.0').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('org.test', 'platform', '1.0', null, [(Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM])
+            }.publish()
+
+        def otherPlatform10 = mavenHttpRepo.module('org.test', 'otherPlatform', '1.0').withModuleMetadata().withoutDefaultVariants()
+            .withVariant('apiElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('org.test', 'depD', '1.0')
+                constraint('org.test', 'test', '1.9')
+            }
+            .withVariant('runtimeElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('org.test', 'depD', '1.0')
+                constraint('org.test', 'test', '1.9')
+            }.publish()
+        def otherPlatform11 = mavenHttpRepo.module('org.test', 'otherPlatform', '1.1').withModuleMetadata().withoutDefaultVariants()
+            .withVariant('apiElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('org.test', 'depD', '1.0')
+                constraint('org.test', 'test', '1.9')
+            }
+            .withVariant('runtimeElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('org.test', 'depD', '1.0')
+                constraint('org.test', 'test', '1.9')
+            }.publish()
+        def depE = mavenHttpRepo.module('org.test', 'depE', '1.0').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('org.test', 'otherPlatform', '1.1', null, [(Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM])
+            }.publish()
+        def depD = mavenHttpRepo.module('org.test', 'depD', '1.0').dependsOn(depE).publish()
+        def depC = mavenHttpRepo.module('org.test', 'depC', '1.0').dependsOn(depD).publish()
+
+        depA.allowAll()
+        depA11.allowAll()
+        depB.allowAll()
+        depC.allowAll()
+        depD.allowAll()
+        depE.allowAll()
+        platform.allowAll()
+        otherPlatform10.allowAll()
+        otherPlatform11.allowAll()
+
+        buildFile << """
+            configurations {
+                conf.dependencies.clear()
+            }
+
+            dependencies {
+                conf 'org.test:depA:1.0'
+                conf platform('org.test:otherPlatform:1.0')
+                conf 'org.test:depC:1.0'
+            }
+"""
+        checkConfiguration("conf")
+        resolve.expectDefaultConfiguration("runtime")
+
+        when:
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", "org.test:test:1.9") {
+                edge('org.test:depA:1.0', 'org.test:depA:1.1') {
+                    module('org.test:platform:1.0') {
+                        noArtifacts()
+                        constraint('org.test:depA:1.1')
+                        constraint('org.test:depB:1.0')
+                    }
+                    module('org.test:depB:1.0') {
+                        module('org.test:platform:1.0')
+                    }
+                }
+                edge("org.test:otherPlatform:1.0", "org.test:otherPlatform:1.1") {
+                    noArtifacts()
+                    constraint('org.test:depD:1.0')
+                }
+                module("org.test:depC:1.0") {
+                    module('org.test:depD:1.0') {
+                        module('org.test:depE:1.0') {
+                            module('org.test:otherPlatform:1.1') {
+                                noArtifacts()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
     private void checkConfiguration(String configuration) {
         resolve = new ResolveTestFixture(buildFile, configuration)

@@ -135,8 +135,8 @@ class CollectingVisitor : FileCollectionStructureVisitor {
         if (source is ConsumerProvidedVariantFiles) {
             // Some transforms are scheduled, so visit the source rather than the files
             return FileCollectionStructureVisitor.VisitType.NoContents
-        } else if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet && source.isBuildable) {
-            // Some transforms have task outputs as inputs, so visit the source rather than the files
+        } else if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet) {
+            // Can have task outputs and other changing files as inputs, so visit the source rather than the files
             return FileCollectionStructureVisitor.VisitType.NoContents
         }
         return FileCollectionStructureVisitor.VisitType.Visit

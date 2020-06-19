@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 dependencies {
@@ -36,11 +36,15 @@ dependencies {
 
     testImplementation(project(":fileCollections"))
     testImplementation(testFixtures(project(":core")))
-    testRuntimeOnly(project(":runtimeApiInfo"))
 
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":baseServices"))
+
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsFull"))
 }
 
 classycle {

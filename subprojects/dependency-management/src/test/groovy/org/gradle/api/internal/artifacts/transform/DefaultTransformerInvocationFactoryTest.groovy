@@ -17,15 +17,16 @@
 package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
-import org.gradle.api.artifacts.component.BuildIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.FileNormalizer
@@ -83,8 +84,10 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         getServices() >> projectServiceRegistry
     }
 
-    def projectFinder = Stub(ProjectFinder) {
-        findProject(_ as BuildIdentifier, _ as String) >> childProject
+    def projectStateRegistry = Stub(ProjectStateRegistry) {
+        stateFor(_ as ProjectComponentIdentifier) >> Stub(ProjectState) {
+            getMutableModel()>> childProject
+        }
     }
 
     def dependencies = Stub(ArtifactTransformDependencies) {
@@ -105,7 +108,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         transformationWorkspaceProvider,
         fileCollectionFactory,
         fileCollectionSnapshotter,
-        projectFinder,
+        projectStateRegistry,
         buildOperationExecutor
     )
 

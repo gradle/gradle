@@ -17,12 +17,12 @@
 package org.gradle.plugin.devel.impldeps
 
 import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
+import spock.lang.IgnoreIf
 
+@IgnoreIf({ GradleContextualExecuter.embedded }) // Gradle API and TestKit JARs are not generated when running embedded
 class GradleImplDepsLoggingIntegrationTest extends BaseGradleImplDepsIntegrationTest {
-    def setup() {
-        requireOwnGradleUserHomeDir()
-    }
 
     def "Generating Gradle API jar is logged with rich console"() {
         given:

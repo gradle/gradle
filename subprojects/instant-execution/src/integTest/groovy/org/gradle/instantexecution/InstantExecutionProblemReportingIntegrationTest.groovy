@@ -20,10 +20,13 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.invocation.Gradle
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.invocation.DefaultGradle
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 
+@IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
 class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     def "state serialization errors always halt the build and invalidate the cache"() {
@@ -52,6 +55,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         and:
         instant.assertStateStoreFailed()
+        outputContains("Configuration cache entry discarded.")
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
@@ -68,6 +72,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         and:
         instant.assertStateStoreFailed()
+        outputContains("Configuration cache entry discarded.")
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
@@ -108,6 +113,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         and:
         instant.assertStateStoreFailed()
+        outputContains("Configuration cache entry discarded with 2 problems.")
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
@@ -127,6 +133,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         and:
         instant.assertStateStoreFailed()
+        outputContains("Configuration cache entry discarded with 2 problems.")
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
@@ -169,6 +176,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':problems', ':moreProblems', ':ok', ':all')
         instantExecution.assertStateStored() // does not fail
+        outputContains("Configuration cache entry stored with 4 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("field 'anotherProp' from type 'BrokenTaskType': cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
             withProblem("field 'prop' from type 'BrokenTaskType': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
@@ -191,6 +199,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
             withProblem("input property 'otherBrokenProperty' of ':problems': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             problemsWithStackTraceCount = 0
         }
+        postBuildOutputContains("Configuration cache entry reused with 4 problems.")
 
         when:
         instantFails 'all'
@@ -205,6 +214,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
             withProblem("input property 'otherBrokenProperty' of ':problems': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             problemsWithStackTraceCount = 0
         }
+        outputContains("Configuration cache entry reused with 4 problems.")
     }
 
     def "configuration time problems are reported and fail the build by default only when configuration is executed and do not invalidate the cache"() {
@@ -224,6 +234,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':all')
         instantExecution.assertStateStored() // does not fail
+        outputContains("Configuration cache entry stored with 2 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
             withTotalProblemsCount(2)
@@ -236,6 +247,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':all')
         instantExecution.assertStateLoaded()
+        postBuildOutputContains("Configuration cache entry reused.")
         problems.assertResultHasProblems(result) {
             // TODO - should give some indication to the user that the build may not work correctly
         }
@@ -246,6 +258,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':all')
         instantExecution.assertStateLoaded()
+        postBuildOutputContains("Configuration cache entry reused.")
         problems.assertResultHasProblems(result) {
             // TODO - should fail and give some indication to the user why
         }
@@ -278,6 +291,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':all')
         instantExecution.assertStateStored() // does not fail
+        outputContains("Configuration cache entry stored with 2 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
             withTotalProblemsCount(2)
@@ -290,6 +304,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':all')
         instantExecution.assertStateLoaded()
+        postBuildOutputContains("Configuration cache entry reused with 2 problems.")
         problems.assertResultHasProblems(result) {
             // TODO - retain the location information
             withProblem("task `:anotherBroken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
@@ -302,6 +317,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':all')
         instantExecution.assertStateLoaded()
+        outputContains("Configuration cache entry reused with 2 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("task `:anotherBroken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("task `:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
@@ -330,6 +346,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         then:
         instantExecution.assertStateStored() // does not fail
+        outputContains("Configuration cache entry stored with 1 problem.")
         problems.assertFailureHasProblems(failure) {
             withProblem("build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
         }
@@ -342,6 +359,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         then:
         instantExecution.assertStateLoaded()
+        outputContains("Configuration cache entry reused with 1 problem.")
         problems.assertResultHasProblems(result) {
             withProblem("task `:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
         }
@@ -354,6 +372,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         then:
         instantExecution.assertStateLoaded()
+        outputContains("Configuration cache entry reused with 1 problem.")
         problems.assertFailureHasProblems(failure) {
             withProblem("task `:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
         }
@@ -396,6 +415,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':problems', ':moreProblems', ':all')
         instantExecution.assertStateStored() // does not fail
+        outputContains("Configuration cache entry stored with 4 problems.")
         problems.assertFailureHasTooManyProblems(failure) {
             withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("field 'broken' from type 'BrokenTask': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
@@ -410,6 +430,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':problems', ':moreProblems', ':all')
         instantExecution.assertStateLoaded()
+        outputContains("Configuration cache entry reused with 4 problems.")
         problems.assertFailureHasTooManyProblems(failure) {
             withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("field 'broken' from type 'BrokenTask': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
@@ -425,6 +446,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':problems', ':moreProblems', ':all')
         instantExecution.assertStateLoaded()
+        postBuildOutputContains("Configuration cache entry reused with 4 problems.")
         problems.assertResultHasProblems(result) {
             withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("field 'broken' from type 'BrokenTask': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
@@ -463,6 +485,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':problems', ':moreProblems', ':all')
         instantExecution.assertStateStored() // does not fail
+        outputContains("Configuration cache entry stored with 4 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("field 'broken' from type 'BrokenTask': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
@@ -477,6 +500,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':problems', ':moreProblems', ':all')
         instantExecution.assertStateLoaded()
+        outputContains("Configuration cache entry reused with 4 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("field 'broken' from type 'BrokenTask': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
@@ -492,6 +516,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':problems', ':moreProblems', ':all')
         instantExecution.assertStateLoaded()
+        outputContains("Configuration cache entry reused with 4 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("field 'broken' from type 'BrokenTask': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
@@ -518,6 +543,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         instantFails("broken")
 
         then:
+        outputContains("Configuration cache entry stored with 2 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("build file 'build.gradle': registration of listener on 'Gradle.addListener' is unsupported")
             withProblem("input property 'p' of ':broken': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
@@ -529,6 +555,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         instantRunLenient("broken")
 
         then:
+        postBuildOutputContains("Configuration cache entry reused with 1 problem.")
         problems.assertResultHasProblems(result) {
             withProblem("input property 'p' of ':broken': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             problemsWithStackTraceCount = 0
@@ -573,6 +600,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         then:
         instantExecution.assertStateStored()
+        outputContains("Configuration cache entry stored with 5 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("build file 'build.gradle': invocation of '$invocation' at execution time is unsupported.")
             withProblem("task `:a` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
@@ -586,6 +614,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         then:
         instantExecution.assertStateLoaded()
+        postBuildOutputContains("Configuration cache entry reused with 5 problems.")
 
         and:
         problems.assertResultHasProblems(result) {
@@ -615,6 +644,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         instantFails 'help'
 
         then:
+        outputContains("Configuration cache entry stored with 1 problem.")
         problems.assertFailureHasProblems(failure) {
             withUniqueProblems("build file 'build.gradle': registration of listener on '$registrationPoint' is unsupported")
         }
@@ -646,6 +676,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         expect:
         instantRun 'help'
+        postBuildOutputContains("Configuration cache entry stored.")
 
         where:
         registrationPoint                     | code
@@ -696,6 +727,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         instantRunLenient "c"
 
         then:
+        postBuildOutputContains("Configuration cache entry stored with 6 problems.")
         problems.assertResultHasProblems(result) {
             withTotalProblemsCount(6)
             withUniqueProblems(
@@ -725,6 +757,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         run ENABLE_CLI_OPT, WARN_PROBLEMS_CLI_OPT, "foo"
 
         then:
+        postBuildOutputContains("Configuration cache entry stored with 1 problem.")
         problems.assertResultHasProblems(result) {
             withUniqueProblems(
                 "field 'p1' from type 'Bean': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with the configuration cache."
@@ -734,7 +767,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
     }
 
     def "reports problems from container all { } block"() {
-        def script = file("script.gradle") << """
+        file("script.gradle") << """
             tasks.all {
                 System.getProperty("PROP")
                 gradle.buildFinished { }
@@ -749,13 +782,14 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         instantFails("ok", "-DPROP=12")
 
         then:
+        outputContains("Configuration cache entry stored with 26 problems.")
         // TODO - use fixture. Need to be able to accept a range of expected problem counts
         failure.assertThatDescription(containsNormalizedString("script 'script.gradle': read system property 'PROP'"))
         failure.assertThatDescription(containsNormalizedString("script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported"))
     }
 
     def "reports problems from deferred task configuration action block"() {
-        def script = file("script.gradle") << """
+        file("script.gradle") << """
             tasks.configureEach {
                 System.getProperty("PROP")
                 gradle.buildFinished { }
@@ -770,6 +804,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         instantFails("ok", "-DPROP=12")
 
         then:
+        outputContains("Configuration cache entry stored with 2 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("script 'script.gradle': read system property 'PROP'")
             withProblem("script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
@@ -777,7 +812,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
     }
 
     def "reports problems from afterEvaluate { } block"() {
-        def script = file("script.gradle") << """
+        file("script.gradle") << """
             afterEvaluate {
                 System.getProperty("PROP")
                 gradle.buildFinished { }
@@ -792,6 +827,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         instantFails("ok", "-DPROP=12")
 
         then:
+        outputContains("Configuration cache entry stored with 2 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("script 'script.gradle': read system property 'PROP'")
             withProblem("script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
@@ -815,6 +851,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         instantFails("broken")
 
         then:
+        outputContains("Configuration cache entry stored with 2 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("build file '${relativePath('a/build.gradle')}': registration of listener on 'Gradle.buildFinished' is unsupported")
             withProblem("build file '${relativePath('a/build.gradle')}': invocation of 'Task.project' at execution time is unsupported.")
@@ -838,6 +875,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         instantFails("broken")
 
         then:
+        outputContains("Configuration cache entry stored with 2 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("build file '${relativePath('a/build.gradle.kts')}': registration of listener on 'Gradle.buildFinished' is unsupported")
             withProblem("task `:a:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
@@ -869,6 +907,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         instantFails("broken")
 
         then:
+        outputContains("Configuration cache entry stored with 2 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("plugin 'sneaky': registration of listener on 'Gradle.buildFinished' is unsupported")
             withProblem("task `:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
@@ -892,6 +931,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         instantFails("all")
 
         then:
+        outputContains("Configuration cache entry stored with 530 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("task `:broken100` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("task `:broken101` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")

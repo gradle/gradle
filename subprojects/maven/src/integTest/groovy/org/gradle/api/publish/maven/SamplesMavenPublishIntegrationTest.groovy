@@ -18,8 +18,8 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.util.TextUtil
@@ -27,11 +27,11 @@ import org.junit.Rule
 import spock.lang.Unroll
 
 class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
-    @Rule public final Sample sampleProject = new Sample(temporaryFolder)
+    @Rule
+    public final Sample sampleProject = new Sample(temporaryFolder)
 
     @Unroll
     @UsesSample("maven-publish/quickstart")
-    @ToBeFixedForInstantExecution
     def "quickstart publish with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -55,7 +55,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/quickstart")
-    @ToBeFixedForInstantExecution
     def "quickstart publish local with #dsl dsl"() {
         using m2
 
@@ -84,7 +83,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/javaProject")
-    @ToBeFixedForInstantExecution
     def "publish java project with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -113,7 +111,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/multiple-publications")
-    @ToBeFixedForInstantExecution
     def "multiple publications with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -146,7 +143,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(
+        iterationMatchers = ".* kotlin dsl"
+    )
     def "conditional publishing with #dsl dsl"() {
         using m2
 
@@ -184,7 +183,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(
+        iterationMatchers = ".* kotlin dsl"
+    )
     def "shorthand publish to external repository with #dsl dsl"() {
         given:
         inDirectory(sampleProject.dir.file(dsl))
@@ -203,7 +204,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(
+        iterationMatchers = ".* kotlin dsl"
+    )
     def "shorthand publish for development with #dsl dsl"() {
         given:
         inDirectory(sampleProject.dir.file(dsl))
@@ -224,7 +227,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/publish-artifact")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(
+        iterationMatchers = ".* kotlin dsl"
+    )
     def "publishes rpm artifact with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -249,7 +254,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("maven-publish/pomGeneration")
-    @ToBeFixedForInstantExecution
     def pomGeneration() {
         given:
         inDirectory(sampleProject.dir.file('groovy'))
@@ -265,11 +269,10 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/distribution")
-    @ToBeFixedForInstantExecution
     def "publishes distribution archives with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
-        executer.inDirectory(sampleDir).requireGradleDistribution()
+        executer.inDirectory(sampleDir)
 
         and:
         def repo = maven(sampleDir.file("build/repo"))

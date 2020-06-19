@@ -6,7 +6,7 @@
  */
 
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 gradlebuildJava.usedInWorkers()
@@ -25,9 +25,8 @@ dependencies {
 
     testFixturesImplementation(library("guava"))
     testImplementation(testFixtures(project(":core")))
-    testRuntimeOnly(library("xerces"))
 
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestDistributionRuntimeOnly(project(":distributionsCore"))
 
     jmh("org.bouncycastle:bcprov-jdk15on:1.61")
     jmh("com.google.guava:guava:27.1-android")
@@ -37,10 +36,10 @@ jmh {
     include = listOf("HashingAlgorithmsBenchmark")
 }
 
-val buildReceiptPackage = "/org/gradle/"
+val buildReceiptPackage = "org/gradle/"
 val buildReceiptResource = tasks.register<Copy>("buildReceiptResource") {
     from(Callable { tasks.getByPath(":createBuildReceipt").outputs.files })
-    destinationDir = file("${gradlebuildJava.generatedResourcesDir}/$buildReceiptPackage")
+    destinationDir = gradlebuildJava.generatedResourcesDir.dir(buildReceiptPackage).get().asFile
 }
 
 sourceSets.main {

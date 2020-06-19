@@ -21,6 +21,7 @@ import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -66,8 +67,8 @@ public class BuildOperationBackedScriptCompilationHandler implements ScriptCompi
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, File scriptCacheDir, File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass) {
-        return delegate.loadFromDir(source, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, transformer, scriptBaseClass);
+    public <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, ClassPath scriptClassPath, File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass) {
+        return delegate.loadFromDir(source, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, transformer, scriptBaseClass);
     }
 
     private static class Details implements CompileScriptBuildOperationType.Details {

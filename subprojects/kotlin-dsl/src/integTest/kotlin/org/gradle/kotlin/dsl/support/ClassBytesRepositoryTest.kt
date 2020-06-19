@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.support
 
+import org.gradle.api.internal.classpath.EffectiveClassPath
 import org.gradle.api.tasks.javadoc.Groovydoc
 import org.gradle.api.tasks.wrapper.Wrapper
 
@@ -31,8 +32,6 @@ import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Test
-
-import java.io.FileFilter
 
 
 class ClassBytesRepositoryTest : AbstractKotlinIntegrationTest() {
@@ -129,11 +128,7 @@ class ClassBytesRepositoryTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `ignores package-info and compiler generated classes`() {
-
-        val jars = distribution.gradleHomeDir
-            .resolve("lib")
-            .listFiles(FileFilter { it.name.startsWith("gradle-core-api-") })
-            .toList()
+        val jars = EffectiveClassPath(javaClass.classLoader).asFiles.filter { it.name.startsWith("gradle-core-api-") }
 
         classPathBytesRepositoryFor(jars).use { repository ->
             repository.allSourceNames.apply {

@@ -169,8 +169,6 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `accepts lambda as SAM argument to Kotlin function`() {
 
-        requireGradleDistributionOnEmbeddedExecuter()
-
         withKotlinBuildSrc()
 
         withFile("buildSrc/src/main/kotlin/my.kt", """

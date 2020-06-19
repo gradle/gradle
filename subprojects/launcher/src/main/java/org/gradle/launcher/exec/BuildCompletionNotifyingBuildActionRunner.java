@@ -16,10 +16,10 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
-import org.gradle.internal.scan.eob.DefaultBuildScanEndOfBuildNotifier;
 
 /**
  * An {@link BuildActionRunner} that wraps all work in a build operation.
@@ -33,14 +33,17 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
 
     @Override
     public Result run(final BuildAction action, final BuildController buildController) {
-        DefaultBuildScanEndOfBuildNotifier endOfBuildNotifier = buildController.getGradle().getServices().get(DefaultBuildScanEndOfBuildNotifier.class);
+        GradleEnterprisePluginManager gradleEnterprisePluginManager = buildController.getGradle().getServices()
+            .get(GradleEnterprisePluginManager.class);
+
         Result result;
         try {
             result = delegate.run(action, buildController);
         } catch (RuntimeException e) {
             result = Result.failed(e);
         }
-        endOfBuildNotifier.fireBuildComplete(result.getBuildFailure());
+
+        gradleEnterprisePluginManager.buildFinished(result.getBuildFailure());
         return result;
     }
 }

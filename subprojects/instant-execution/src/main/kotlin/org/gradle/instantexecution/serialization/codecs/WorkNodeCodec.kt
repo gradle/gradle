@@ -47,23 +47,24 @@ class WorkNodeCodec(
 
     private
     suspend fun WriteContext.writeNodes(nodes: List<Node>) {
-        val scheduledNodeIds = HashMap<Node, Int>(nodes.size)
-        writeSmallInt(nodes.size)
+        val nodeCount = nodes.size
+        writeSmallInt(nodeCount)
+        val scheduledNodeIds = HashMap<Node, Int>(nodeCount)
         nodes.forEachIndexed { nodeId, node ->
-            scheduledNodeIds[node] = nodeId
             writeNode(node, scheduledNodeIds)
+            scheduledNodeIds[node] = nodeId
         }
     }
 
     private
     suspend fun ReadContext.readNodes(): List<Node> {
-        val count = readSmallInt()
-        val nodesById = HashMap<Int, Node>(count)
-        val nodes = ArrayList<Node>(count)
-        for (nodeId in 0 until count) {
+        val nodeCount = readSmallInt()
+        val nodes = ArrayList<Node>(nodeCount)
+        val nodesById = HashMap<Int, Node>(nodeCount)
+        for (nodeId in 0 until nodeCount) {
             val node = readNode(nodesById)
-            nodes.add(node)
             nodesById[nodeId] = node
+            nodes.add(node)
         }
         return nodes
     }
@@ -142,6 +143,7 @@ class WorkNodeCodec(
         scheduledNodeIds: Map<Node, Int>
     ) {
         for (successor in successors) {
+            // Discard should/must run after relationships to nodes that are not scheduled to run
             scheduledNodeIds[successor]?.let { successorId ->
                 writeSmallInt(successorId)
             }

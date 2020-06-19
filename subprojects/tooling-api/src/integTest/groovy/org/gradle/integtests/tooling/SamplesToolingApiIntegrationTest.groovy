@@ -17,7 +17,6 @@ package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.integtests.fixtures.IntegrationTestHint
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -25,8 +24,10 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.TextUtil
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
 @LeaksFileHandles
+@IgnoreIf({ GradleContextualExecuter.embedded }) // These test run independent applications that connect to a Gradle distribution through the Tooling API
 class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(temporaryFolder)
@@ -106,7 +107,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         assert index >= 0
         buildScript = buildScript.substring(0, index) + """
 repositories {
-    maven { url "${buildContext.libsRepo.toURI()}" }
+    maven { url "${buildContext.localRepository.toURI()}" }
 }
 run {
     args = ["${TextUtil.escapeString(buildContext.gradleHomeDir.absolutePath)}", "${TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath)}"]
@@ -114,6 +115,8 @@ run {
     systemProperty 'org.gradle.daemon.registry.base', "${TextUtil.escapeString(projectDir.file("daemon").absolutePath)}"
 }
 """ + buildScript.substring(index)
+
+        buildScript = buildScript.replace("def toolingApiVersion = gradle.gradleVersion", "def toolingApiVersion = ${distribution.version.baseVersion.version}")
 
         buildFile.text = buildScript
     }
@@ -126,7 +129,7 @@ run {
         assert index >= 0
         buildScript = buildScript.substring(0, index) + """
 repositories {
-    maven { url "${buildContext.libsRepo.toURI()}" }
+    maven { url "${buildContext.localRepository.toURI()}" }
 }
 """ + buildScript.substring(index)
 
@@ -134,15 +137,9 @@ repositories {
     }
 
     private ExecutionResult run(String task = 'run', File dir = sample.dir) {
-        try {
-            result = new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
-                    .requireGradleDistribution()
-                    .inDirectory(dir)
-                    .withTasks(task)
-                    .run()
-            return result
-        } catch (Exception e) {
-            throw new IntegrationTestHint(e);
-        }
+        result = new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
+                .inDirectory(dir)
+                .withTasks(task)
+                .run()
     }
 }

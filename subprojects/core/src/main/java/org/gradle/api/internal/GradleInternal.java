@@ -75,8 +75,8 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     /**
      * The settings for this build.
      *
-     * @throws IllegalStateException when the build is not loaded yet, see {@link #setSettings(SettingsInternal)}
      * @return the settings for this build
+     * @throws IllegalStateException when the build is not loaded yet, see {@link #setSettings(SettingsInternal)}
      */
     SettingsInternal getSettings() throws IllegalStateException;
 
@@ -128,16 +128,6 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     String contextualize(String description);
 
     PublicBuildPath getPublicBuildPath();
-
-    enum BuildType {
-        NONE,
-        TASKS,
-        MODEL
-    }
-
-    void setBuildType(BuildType buildType);
-
-    BuildType getBuildType();
 
     /**
      * The basis for project build scripts.

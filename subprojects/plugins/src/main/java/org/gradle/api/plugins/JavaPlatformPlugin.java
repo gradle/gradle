@@ -86,9 +86,9 @@ public class JavaPlatformPlugin implements Plugin<Project> {
         }
     };
     private static final String DISALLOW_DEPENDENCIES = "Adding dependencies to platforms is not allowed by default.\n" +
-            "Most likely you want to add constraints instead.\n" +
-            "If you did this intentionally, you need to configure the platform extension to allow dependencies:\n    javaPlatform.allowDependencies()\n" +
-            "Found dependencies in the '%s' configuration.";
+        "Most likely you want to add constraints instead.\n" +
+        "If you did this intentionally, you need to configure the platform extension to allow dependencies:\n    javaPlatform.allowDependencies()\n" +
+        "Found dependencies in the '%s' configuration.";
 
     private final SoftwareComponentFactory softwareComponentFactory;
 
@@ -101,8 +101,10 @@ public class JavaPlatformPlugin implements Plugin<Project> {
     public void apply(Project project) {
         if (project.getPluginManager().hasPlugin("java")) {
             // This already throws when creating `apiElements` so be eager to have a clear error message
-            throw new IllegalStateException("The \"java-platform\" plugin cannot be applied together with the \"java\" (or \"java-library\") plugin. " +
-                "A project is either a platform or a library but cannot be both at the same time.");
+            throw new IllegalStateException(
+                "The \"java-platform\" plugin cannot be applied together with the \"java\" (or \"java-library\") plugin. " +
+                    "A project is either a platform or a library but cannot be both at the same time."
+            );
         }
         project.getPluginManager().apply(BasePlugin.class);
         createConfigurations(project);

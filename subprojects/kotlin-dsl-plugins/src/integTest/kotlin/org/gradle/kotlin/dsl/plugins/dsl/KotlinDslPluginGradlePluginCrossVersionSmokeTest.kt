@@ -17,8 +17,8 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.ToBeFixedForFileSystemWatching
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -32,7 +32,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 
-@ToBeFixedForVfsRetention(
+@ToBeFixedForFileSystemWatching(
     because = "https://github.com/gradle/gradle/issues/12184",
     failsOnlyIf = TestPrecondition.WINDOWS
 )
@@ -64,7 +64,8 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
     )
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin `() {
 
-        requireGradleDistributionOnEmbeddedExecuter()
+        assumeNonEmbeddedGradleExecuter()
+
         executer.noDeprecationChecks()
         // Ignore stacktraces when the Kotlin daemon fails
         // See https://github.com/gradle/gradle-private/issues/2936

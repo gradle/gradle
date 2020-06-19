@@ -31,7 +31,6 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
     def setup() {
         using m2
-        requireGradleDistribution()
     }
 
     @Unroll

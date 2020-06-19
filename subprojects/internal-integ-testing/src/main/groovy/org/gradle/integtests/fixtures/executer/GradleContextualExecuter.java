@@ -18,6 +18,9 @@ package org.gradle.integtests.fixtures.executer;
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeoutInterceptor;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
+import java.nio.charset.Charset;
+import java.util.Locale;
+
 import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFAULT_TIMEOUT_SECONDS;
 
 /**
@@ -37,7 +40,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         noDaemon(true),
         parallel(true, true),
         instant(true),
-        vfsRetention(true);
+        watchFs(true);
 
         final public boolean forks;
         final public boolean executeParallel;
@@ -64,8 +67,8 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         return getSystemPropertyExecuter() == Executer.noDaemon;
     }
 
-    public static boolean isVfsRetention() {
-        return getSystemPropertyExecuter() == Executer.vfsRetention;
+    public static boolean isWatchFs() {
+        return getSystemPropertyExecuter() == Executer.watchFs;
     }
 
     public static boolean isDaemon() {
@@ -110,6 +113,9 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         try {
             gradleExecuter.assertCanExecute();
         } catch (AssertionError assertionError) {
+            if (gradleExecuter instanceof InProcessGradleExecuter) {
+                throw new RuntimeException("Running tests with a Gradle distribution in embedded mode is no longer supported.", assertionError);
+            }
             gradleExecuter = new NoDaemonGradleExecuter(getDistribution(), getTestDirectoryProvider());
             configureExecuter(gradleExecuter);
         }
@@ -133,9 +139,9 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
                 return new DaemonGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case instant:
                 return new InstantExecutionGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
-            case vfsRetention:
+            case watchFs:
                 requireIsolatedDaemons();
-                return new VfsRetentionGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+                return new FileSystemWatchingGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             default:
                 throw new RuntimeException("Not a supported executer type: " + executerType);
         }
@@ -158,5 +164,26 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
             gradleExecuter.reset();
         }
         return super.reset();
+    }
+
+    // The following overrides are here instead of in 'InProcessGradleExecuter' due to the way executors are layered+inherited
+    // This should be improved as part of https://github.com/gradle/gradle-private/issues/1009
+
+    @Override
+    public GradleExecuter withDefaultCharacterEncoding(String defaultCharacterEncoding) {
+        if (executerType == Executer.embedded && !Charset.forName(defaultCharacterEncoding).equals(Charset.defaultCharset())) {
+            // need to fork to apply the new default character encoding
+            requireDaemon().requireIsolatedDaemons();
+        }
+        return super.withDefaultCharacterEncoding(defaultCharacterEncoding);
+    }
+
+    @Override
+    public GradleExecuter withDefaultLocale(Locale defaultLocale) {
+        if (executerType == Executer.embedded && !defaultLocale.equals(Locale.getDefault())) {
+            // need to fork to apply the new default locale
+            requireDaemon().requireIsolatedDaemons();
+        }
+        return super.withDefaultLocale(defaultLocale);
     }
 }

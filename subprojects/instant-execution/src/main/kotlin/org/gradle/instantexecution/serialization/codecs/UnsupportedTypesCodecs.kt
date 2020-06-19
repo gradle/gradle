@@ -53,6 +53,7 @@ import org.gradle.api.publish.Publication
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.instantexecution.serialization.unsupported
 import org.gradle.kotlin.dsl.*
 import java.io.FileDescriptor
@@ -89,6 +90,7 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<Settings>())
     bind(unsupported<Project>())
     bind(unsupported<TaskContainer>())
+    bind(unsupported<TaskDependency>())
     bind(unsupported<SourceSetContainer>())
     bind(unsupported<SourceSet>())
 

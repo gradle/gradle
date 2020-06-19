@@ -64,8 +64,8 @@ class BuildOperationNotificationBridgeTest extends Specification {
         when:
         def bridge = bridge()
         bridge.valve.start()
-        bridge.registrar.register(listener)
-        bridge.registrar.register(listener)
+        bridge.register(listener)
+        bridge.register(listener)
 
         then:
         thrown IllegalStateException
@@ -75,10 +75,10 @@ class BuildOperationNotificationBridgeTest extends Specification {
         when:
         def bridge = bridge()
         bridge.valve.start()
-        bridge.registrar.register(listener)
+        bridge.register(listener)
         bridge.valve.stop()
         bridge.valve.start()
-        bridge.registrar.register(listener)
+        bridge.register(listener)
 
         then:
         noExceptionThrown()
@@ -102,7 +102,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         broadcast.finished(d1, new OperationFinishEvent(0, 1, null, ""))
 
         and:
-        bridge.registrar.register(listener)
+        bridge.register(listener)
 
         then:
         1 * listener.started(_)
@@ -358,7 +358,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
     }
 
     void register(BuildOperationNotificationListener listener) {
-        bridge().registrar.register(listener)
+        bridge().register(listener)
     }
 
     BuildOperationNotificationBridge bridge() {

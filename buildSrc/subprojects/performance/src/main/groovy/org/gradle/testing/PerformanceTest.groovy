@@ -54,6 +54,11 @@ abstract class PerformanceTest extends DistributionTest {
 
     private final Map<String, String> databaseParameters = new HashMap<>();
 
+    @Override
+    String getPrefix() {
+        "performance"
+    }
+
     @OutputDirectory
     File debugArtifactsDirectory = new File(getProject().getBuildDir(), getName())
 

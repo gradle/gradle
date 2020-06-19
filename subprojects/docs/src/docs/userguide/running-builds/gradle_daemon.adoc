@@ -236,7 +236,7 @@ This enables watching the file-system for all builds, unless explicitly disabled
 Limitations::
 We are working on removing the following limitations to make file-system watching production ready.
 - If you have symlinks in your build, you won’t get the performance benefits for those locations (we plan to change this in the future).
-- Default excludes (ignoring files and directories like “CVS/”, “.DS_Store” etc.) cannot be configured when VFS retention is enabled.
+- Default excludes (ignoring files and directories like “CVS/”, “.DS_Store” etc.) cannot be configured when file-system watching is enabled.
 - When multiple daemons are running, the idle ones can pick up the changes produced by the others and create large log files with lots of debug info about the changes.
 - On Windows, we don’t support SUBST and network drives (they might work, but we don’t test them yet).
 

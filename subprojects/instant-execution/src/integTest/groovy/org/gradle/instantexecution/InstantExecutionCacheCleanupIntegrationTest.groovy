@@ -19,12 +19,14 @@ package org.gradle.instantexecution
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 
 
 class InstantExecutionCacheCleanupIntegrationTest
     extends AbstractInstantExecutionIntegrationTest
     implements FileAccessTimeJournalFixture {
 
+    @Ignore('https://github.com/gradle/gradle-private/issues/3121')
     def "cleanup deletes old entries"() {
         given:
         executer.requireIsolatedDaemons()

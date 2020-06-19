@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`core-api-kotlin`
+    gradlebuild.distribution.`api-kotlin`
 }
 
 description = "Kotlin DSL Tooling Models for IDEs"

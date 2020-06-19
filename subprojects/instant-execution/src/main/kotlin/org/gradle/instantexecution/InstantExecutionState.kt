@@ -38,6 +38,8 @@ import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeFile
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.tooling.events.OperationCompletionListener
@@ -47,7 +49,8 @@ import java.util.ArrayList
 internal
 class InstantExecutionState(
     private val codecs: Codecs,
-    private val host: DefaultInstantExecution.Host
+    private val host: DefaultInstantExecution.Host,
+    private val relevantProjectsRegistry: RelevantProjectsRegistry
 ) {
 
     suspend fun DefaultWriteContext.writeState() {
@@ -70,7 +73,7 @@ class InstantExecutionState(
         writeGradleState(build.gradle)
 
         val scheduledNodes = build.scheduledWork
-        writeRelevantProjectsFor(scheduledNodes)
+        writeRelevantProjectsFor(scheduledNodes, relevantProjectsRegistry)
 
         WorkNodeCodec(build.gradle, codecs.internalTypesCodec).run {
             writeWork(scheduledNodes)
@@ -104,6 +107,7 @@ class InstantExecutionState(
             writeBuildCacheConfiguration(gradle)
             writeBuildEventListenerSubscriptions()
             writeBuildOutputCleanupRegistrations()
+            writeGradleEnterprisePluginManager()
         }
     }
 
@@ -114,6 +118,7 @@ class InstantExecutionState(
             readBuildCacheConfiguration(gradle)
             readBuildEventListenerSubscriptions()
             readBuildOutputCleanupRegistrations()
+            readGradleEnterprisePluginManager()
         }
     }
 
@@ -187,26 +192,42 @@ class InstantExecutionState(
     }
 
     private
-    fun Encoder.writeRelevantProjectsFor(nodes: List<Node>) {
-        writeCollection(fillTheGapsOf(relevantProjectsFor(nodes))) { project ->
-            writeString(project.path)
-            writeFile(project.projectDir)
+    suspend fun DefaultWriteContext.writeGradleEnterprisePluginManager() {
+        val manager = service<GradleEnterprisePluginManager>()
+        val adapter = manager.adapter
+        val writtenAdapter = if (adapter == null) null else {
+            if (adapter.isConfigurationCacheCompatible) adapter else null
+        }
+        write(writtenAdapter)
+    }
+
+    private
+    suspend fun DefaultReadContext.readGradleEnterprisePluginManager() {
+        val adapter = read() as GradleEnterprisePluginAdapter?
+        if (adapter != null) {
+            val manager = service<GradleEnterprisePluginManager>()
+            manager.registerAdapter(adapter)
+            adapter.onLoadFromConfigurationCache()
         }
     }
 
     private
-    fun relevantProjectsFor(nodes: List<Node>): List<Project> =
-        nodes.mapNotNullTo(mutableListOf()) { node ->
-            node.owningProject
-                ?.takeIf { it.parent != null }
+    fun Encoder.writeRelevantProjectsFor(nodes: List<Node>, relevantProjectsRegistry: RelevantProjectsRegistry) {
+        val relevantProjects = fillTheGapsOf(relevantProjectsRegistry.relevantProjects(nodes))
+        writeCollection(relevantProjects) { project ->
+            writeString(project.path)
+            writeFile(project.projectDir)
+            writeFile(project.buildDir)
         }
+    }
 
     private
     fun Decoder.readRelevantProjects(build: InstantExecutionBuild) {
         readCollection {
             val projectPath = readString()
             val projectDir = readFile()
-            build.createProject(projectPath, projectDir)
+            val buildDir = readFile()
+            build.createProject(projectPath, projectDir, buildDir)
         }
     }
 

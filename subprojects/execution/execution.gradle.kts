@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    gradlebuild.distribution.`api-java`
 }
 
 description = "Execution engine that takes a unit of work and makes it happen"
@@ -53,4 +53,6 @@ dependencies {
     testFixturesImplementation(project(":buildCache"))
     testFixturesImplementation(project(":snapshots"))
     testFixturesImplementation(project(":modelCore"))
+
+    integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }
