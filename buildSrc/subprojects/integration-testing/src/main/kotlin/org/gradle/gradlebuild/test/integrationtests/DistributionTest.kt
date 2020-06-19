@@ -129,7 +129,7 @@ abstract class DistributionTest : Test() {
 class LocalRepositoryEnvironmentProvider(project: Project) : CommandLineArgumentProvider, Named {
 
     @Internal
-    val localRepo = project.files()
+    val localRepo = project.objects.fileCollection()
 
     @get:Classpath
     val jars: SortedSet<File>
@@ -160,7 +160,7 @@ class LocalRepositoryEnvironmentProvider(project: Project) : CommandLineArgument
 class GradleInstallationForTestEnvironmentProvider(project: Project, private val testTask: DistributionTest) : CommandLineArgumentProvider, Named {
 
     @Internal
-    val gradleHomeDir = project.files()
+    val gradleHomeDir = project.objects.fileCollection()
 
     @Internal
     val gradleUserHomeDir = project.objects.directoryProperty()
@@ -205,7 +205,7 @@ class GradleInstallationForTestEnvironmentProvider(project: Project, private val
 class DistributionZipEnvironmentProvider(project: Project, private val distributionType: String) : CommandLineArgumentProvider, Named {
 
     @Classpath
-    val distributionZip = project.files()
+    val distributionZip = project.objects.fileCollection()
 
     override fun asArguments() =
         if (distributionZip.isEmpty) {

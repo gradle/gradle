@@ -137,9 +137,8 @@ fun Project.publishNormalizedToLocalRepository() {
         isCanBeResolved = false
         isCanBeConsumed = true
         isVisible = false
-        outgoing.artifact(mapOf(
-            "file" to localRepository.get().asFile, // This is not lazy
-            "builtBy" to localPublish
-        ))
+        outgoing.artifact(localRepository) {
+            builtBy(localPublish)
+        }
     }
 }
