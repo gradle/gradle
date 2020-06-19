@@ -136,7 +136,6 @@ public interface JavaPluginExtension {
      * building higher level components like cross-project publications.
      *
      * @param action the action to execute
-     * @return the result of the model operation
      *
      * @since 6.6
      */
@@ -145,6 +144,8 @@ public interface JavaPluginExtension {
 
     /**
      * Returns the modeling services.
+     *
+     * @since 6.6
      */
     @Incubating
     JvmModelingServices getModeling();

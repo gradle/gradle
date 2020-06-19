@@ -38,10 +38,9 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
-import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.JvmEcosystemUtilities;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
@@ -62,8 +61,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Set;
 import java.util.concurrent.Callable;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
