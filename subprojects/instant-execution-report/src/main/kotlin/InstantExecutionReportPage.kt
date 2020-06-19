@@ -88,7 +88,10 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         val taskTree: ProblemTreeModel,
         val displayFilter: DisplayFilter = DisplayFilter.All,
         val tab: Tab = Tab.ByMessage
-    )
+    ) {
+        val messageProblemsCount = messageTree.tree.children.size
+        val taskProblemsCount = taskTree.tree.children.size
+    }
 
     enum class DisplayFilter {
         All, Errors, Warnings
@@ -156,8 +159,8 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         ),
         div(
             attributes { className("groups") },
-            displayTabButton(Tab.ByMessage, model.tab),
-            displayTabButton(Tab.ByTask, model.tab)
+            displayTabButton(Tab.ByMessage, model.tab, model.messageProblemsCount),
+            displayTabButton(Tab.ByTask, model.tab, model.taskProblemsCount)
         ),
         div(
             attributes { className("content") },
@@ -169,7 +172,7 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
     )
 
     private
-    fun displayTabButton(tab: Tab, activeTab: Tab): View<Intent> = div(
+    fun displayTabButton(tab: Tab, activeTab: Tab, problemsCount: Int): View<Intent> = div(
         attributes {
             className("group-selector")
             if (tab == activeTab) {
@@ -180,7 +183,7 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         },
         span(
             tab.text,
-            span(attributes { className("group-selector__count") },"100")
+            span(attributes { className("group-selector__count") }, "$problemsCount")
         )
     )
 
