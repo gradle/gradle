@@ -17,6 +17,7 @@
 package org.gradle.internal.vfs;
 
 import com.google.common.collect.Iterables;
+import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
@@ -27,18 +28,18 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class RoutingVirtualFileSystem implements VirtualFileSystem {
-    private final AdditiveCacheLocations additiveCacheLocations;
+    private final GlobalCacheLocations globalCacheLocations;
     private final VirtualFileSystem gradleUserHomeVirtualFileSystem;
     private final VirtualFileSystem buildScopedVirtualFileSystem;
     private final BooleanSupplier vfsRetained;
 
     public RoutingVirtualFileSystem(
-        AdditiveCacheLocations additiveCacheLocations,
+        GlobalCacheLocations globalCacheLocations,
         VirtualFileSystem gradleUserHomeVirtualFileSystem,
         VirtualFileSystem buildScopedVirtualFileSystem,
         BooleanSupplier vfsRetained
     ) {
-        this.additiveCacheLocations = additiveCacheLocations;
+        this.globalCacheLocations = globalCacheLocations;
         this.gradleUserHomeVirtualFileSystem = gradleUserHomeVirtualFileSystem;
         this.buildScopedVirtualFileSystem = buildScopedVirtualFileSystem;
         this.vfsRetained = vfsRetained;
@@ -67,14 +68,14 @@ public class RoutingVirtualFileSystem implements VirtualFileSystem {
         if (vfsRetained.getAsBoolean()) {
             gradleUserHomeVirtualFileSystem.update(locations, action);
         } else {
-            Iterable<String> immutableLocations = Iterables.filter(locations, additiveCacheLocations::isInsideAdditiveCache);
+            Iterable<String> immutableLocations = Iterables.filter(locations, globalCacheLocations::isInsideGlobalCache);
             int immutableLocationsSize = Iterables.size(immutableLocations);
             if (immutableLocationsSize == 0) {
                 buildScopedVirtualFileSystem.update(locations, action);
             } else if (immutableLocationsSize == Iterables.size(locations)) {
                 gradleUserHomeVirtualFileSystem.update(locations, action);
             } else {
-                Iterable<String> mutableLocations = Iterables.filter(locations, location -> !additiveCacheLocations.isInsideAdditiveCache(location));
+                Iterable<String> mutableLocations = Iterables.filter(locations, location -> !globalCacheLocations.isInsideGlobalCache(location));
                 gradleUserHomeVirtualFileSystem.update(immutableLocations, action);
                 buildScopedVirtualFileSystem.update(mutableLocations, action);
             }
@@ -98,7 +99,7 @@ public class RoutingVirtualFileSystem implements VirtualFileSystem {
     private VirtualFileSystem getVirtualFileSystemFor(String location) {
         return vfsRetained.getAsBoolean()
             ? gradleUserHomeVirtualFileSystem
-            : additiveCacheLocations.isInsideAdditiveCache(location)
+            : globalCacheLocations.isInsideGlobalCache(location)
                 ? gradleUserHomeVirtualFileSystem
                 : buildScopedVirtualFileSystem;
     }

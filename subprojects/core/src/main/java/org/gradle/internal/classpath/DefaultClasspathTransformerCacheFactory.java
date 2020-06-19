@@ -34,8 +34,6 @@ import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.List;
 
 import static org.gradle.cache.internal.CacheVersionMapping.introducedIn;
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
@@ -78,10 +76,5 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
     @Override
     public FileAccessTracker createFileAccessTracker(FileAccessTimeJournal fileAccessTimeJournal) {
         return new SingleDepthFileAccessTracker(fileAccessTimeJournal, cacheDir, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
-    }
-
-    @Override
-    public List<File> getAdditiveCacheRoots() {
-        return Collections.singletonList(cacheDir);
     }
 }
