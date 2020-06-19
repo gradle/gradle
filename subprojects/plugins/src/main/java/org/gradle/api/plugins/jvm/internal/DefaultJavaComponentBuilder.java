@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.internal.support;
+package org.gradle.api.plugins.jvm.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Task;
@@ -28,8 +28,8 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.plugins.JvmEcosystemUtilities;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
+import org.gradle.api.plugins.jvm.JavaComponentBuilder;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -51,7 +51,7 @@ import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureJavaDocT
 public class DefaultJavaComponentBuilder implements JavaComponentBuilderInternal {
     private final String name;
     private final JavaPluginExtension javaPluginExtension;
-    private final JvmEcosystemUtilities jvmEcosystemUtilities;
+    private final JvmPluginServices jvmPluginServices;
     private final SourceSetContainer sourceSets;
     private final ConfigurationContainer configurations;
     private final TaskContainer tasks;
@@ -71,7 +71,7 @@ public class DefaultJavaComponentBuilder implements JavaComponentBuilderInternal
     public DefaultJavaComponentBuilder(String name,
                                        Capability defaultCapability,
                                        JavaPluginExtension javaPluginExtension,
-                                       JvmEcosystemUtilities jvmEcosystemUtilities,
+                                       JvmPluginServices jvmPluginServices,
                                        SourceSetContainer sourceSets,
                                        ConfigurationContainer configurations,
                                        TaskContainer tasks,
@@ -85,7 +85,7 @@ public class DefaultJavaComponentBuilder implements JavaComponentBuilderInternal
                                        ProjectInternal project) {
         this.name = name;
         this.javaPluginExtension = javaPluginExtension;
-        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
+        this.jvmPluginServices = jvmPluginServices;
         this.sourceSets = sourceSets;
         this.configurations = configurations;
         this.tasks = tasks;
@@ -95,43 +95,43 @@ public class DefaultJavaComponentBuilder implements JavaComponentBuilderInternal
     }
 
     @Override
-    public JvmEcosystemUtilities.JavaComponentBuilder withDisplayName(String displayName) {
+    public JavaComponentBuilder withDisplayName(String displayName) {
         this.displayName = displayName;
         return this;
     }
 
     @Override
-    public JvmEcosystemUtilities.JavaComponentBuilder exposesApi() {
+    public JavaComponentBuilder exposesApi() {
         exposeApi = true;
         return this;
     }
 
     @Override
-    public JvmEcosystemUtilities.JavaComponentBuilder withJar() {
+    public JavaComponentBuilder withJar() {
         jar = true;
         return this;
     }
 
     @Override
-    public JvmEcosystemUtilities.JavaComponentBuilder withJavadocJar() {
+    public JavaComponentBuilder withJavadocJar() {
         javadocJar = true;
         return this;
     }
 
     @Override
-    public JvmEcosystemUtilities.JavaComponentBuilder withSourcesJar() {
+    public JavaComponentBuilder withSourcesJar() {
         sourcesJar = true;
         return this;
     }
 
     @Override
-    public JvmEcosystemUtilities.JavaComponentBuilder usingSourceSet(SourceSet sourceSet) {
+    public JavaComponentBuilder usingSourceSet(SourceSet sourceSet) {
         this.sourceSet = sourceSet;
         return this;
     }
 
     @Override
-    public JvmEcosystemUtilities.JavaComponentBuilder capability(Capability capability) {
+    public JavaComponentBuilder capability(Capability capability) {
         if (overrideDefaultCapability) {
             capabilities.clear();
             overrideDefaultCapability = false;
@@ -141,17 +141,17 @@ public class DefaultJavaComponentBuilder implements JavaComponentBuilderInternal
     }
 
     @Override
-    public JvmEcosystemUtilities.JavaComponentBuilder capability(String group, String name, @Nullable String version) {
+    public JavaComponentBuilder capability(String group, String name, @Nullable String version) {
         return capability(new ImmutableCapability(group, name, version));
     }
 
     @Override
-    public JvmEcosystemUtilities.JavaComponentBuilder secondaryComponent() {
+    public JavaComponentBuilder secondaryComponent() {
         return capability(new ProjectDerivedCapability(project, name));
     }
 
     @Override
-    public JvmEcosystemUtilities.JavaComponentBuilder published() {
+    public JavaComponentBuilder published() {
         jar = true;
         published = true;
         return this;
@@ -193,7 +193,7 @@ public class DefaultJavaComponentBuilder implements JavaComponentBuilderInternal
 
         TaskProvider<Task> jarTask = jar ? registerOrGetJarTask(sourceSet, displayName) : null;
         Configuration api = exposeApi ? bucket("API", apiConfigurationName, displayName) : null;
-        Configuration apiElements = exposeApi ? jvmEcosystemUtilities.createOutgoingElements(apiElementsConfigurationName, builder -> {
+        Configuration apiElements = exposeApi ? jvmPluginServices.createOutgoingElements(apiElementsConfigurationName, builder -> {
             builder.fromSourceSet(sourceSet)
                 .providesApi()
                 .withDescription("API elements for " + displayName)
@@ -208,7 +208,7 @@ public class DefaultJavaComponentBuilder implements JavaComponentBuilderInternal
             implementation.extendsFrom(api);
         }
 
-        Configuration runtimeElements = jvmEcosystemUtilities.createOutgoingElements(runtimeElementsConfigurationName, builder -> {
+        Configuration runtimeElements = jvmPluginServices.createOutgoingElements(runtimeElementsConfigurationName, builder -> {
             builder.fromSourceSet(sourceSet)
                 .providesRuntime()
                 .withDescription("Runtime elements for " + displayName)
@@ -271,7 +271,7 @@ public class DefaultJavaComponentBuilder implements JavaComponentBuilderInternal
         variant.setDescription(docsType + " elements for " + (displayName == null ? "main" : displayName) + ".");
         variant.setCanBeResolved(false);
         variant.setCanBeConsumed(true);
-        jvmEcosystemUtilities.configureAttributes(variant, attributes -> attributes.documentation(docsType)
+        jvmPluginServices.configureAttributes(variant, attributes -> attributes.documentation(docsType)
             .runtimeUsage()
             .withExternalDependencies());
         capabilities.forEach(variant.getOutgoing()::capability);

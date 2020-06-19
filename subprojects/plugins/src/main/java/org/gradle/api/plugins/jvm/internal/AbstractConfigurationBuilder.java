@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.internal.support;
+package org.gradle.api.plugins.jvm.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.plugins.JvmEcosystemUtilities;
-import org.gradle.api.plugins.internal.JvmEcosystemUtilitiesInternal;
+import org.gradle.api.plugins.jvm.JvmEcosystemAttributesDetails;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
@@ -30,14 +29,14 @@ import java.util.List;
 
 abstract class AbstractConfigurationBuilder<T extends AbstractConfigurationBuilder<T>> {
     final String name;
-    final JvmEcosystemUtilitiesInternal jvmEcosystemUtilities;
+    final JvmPluginServices jvmEcosystemUtilities;
     final ConfigurationContainer configurations;
     String description;
     List<Object> extendsFrom;
-    Action<? super JvmEcosystemUtilities.JvmEcosystemAttributesDetails> attributesRefiner;
+    Action<? super JvmEcosystemAttributesDetails> attributesRefiner;
 
     public AbstractConfigurationBuilder(String name,
-                                        JvmEcosystemUtilitiesInternal jvmEcosystemUtilities,
+                                        JvmPluginServices jvmEcosystemUtilities,
                                         ConfigurationContainer configurations) {
         this.name = name;
         this.jvmEcosystemUtilities = jvmEcosystemUtilities;
@@ -87,7 +86,7 @@ abstract class AbstractConfigurationBuilder<T extends AbstractConfigurationBuild
         return Cast.uncheckedCast(this);
     }
 
-    public T attributes(Action<? super JvmEcosystemUtilities.JvmEcosystemAttributesDetails> refiner) {
+    public T attributes(Action<? super JvmEcosystemAttributesDetails> refiner) {
         this.attributesRefiner = refiner;
         return Cast.uncheckedCast(this);
     }

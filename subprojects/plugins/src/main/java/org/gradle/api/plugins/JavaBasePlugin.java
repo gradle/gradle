@@ -38,8 +38,10 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
-import org.gradle.api.plugins.internal.JvmEcosystemUtilitiesInternal;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.jvm.JvmEcosystemUtilities;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
@@ -100,14 +102,16 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     private final ObjectFactory objectFactory;
     private final JavaInstallationRegistry javaInstallationRegistry;
     private final boolean javaClasspathPackaging;
-    private final JvmEcosystemUtilitiesInternal jvmEcosystemUtilities;
+    private final JvmPluginServices jvmPluginServices;
 
     @Inject
-    public JavaBasePlugin(ObjectFactory objectFactory, JavaInstallationRegistry javaInstallationRegistry, JvmEcosystemUtilities jvmEcosystemUtilities) {
+    public JavaBasePlugin(ObjectFactory objectFactory,
+                          JavaInstallationRegistry javaInstallationRegistry,
+                          JvmEcosystemUtilities jvmPluginServices) {
         this.objectFactory = objectFactory;
         this.javaInstallationRegistry = javaInstallationRegistry;
         this.javaClasspathPackaging = Boolean.getBoolean(COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY);
-        this.jvmEcosystemUtilities = (JvmEcosystemUtilitiesInternal) jvmEcosystemUtilities;
+        this.jvmPluginServices = (JvmPluginServices) jvmPluginServices;
     }
 
     @Override
@@ -138,9 +142,9 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, objectFactory);
         project.getConvention().getPlugins().put("java", javaConvention);
         project.getExtensions().add(SourceSetContainer.class, "sourceSets", javaConvention.getSourceSets());
-        JavaPluginExtension extension = project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project, jvmEcosystemUtilities);
+        JavaPluginExtension extension = project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project, jvmPluginServices);
         project.getExtensions().add(JavaInstallationRegistry.class, "javaInstalls", javaInstallationRegistry);
-        jvmEcosystemUtilities.inject(javaConvention, extension, project);
+        jvmPluginServices.inject(javaConvention, extension, project);
         return javaConvention;
     }
 
@@ -185,8 +189,8 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureTargetPlatform(SourceSet sourceSet, ConfigurationContainer configurations) {
-        jvmEcosystemUtilities.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()), sourceSet);
-        jvmEcosystemUtilities.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()), sourceSet);
+        jvmPluginServices.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()), sourceSet);
+        jvmPluginServices.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()), sourceSet);
     }
 
     private TaskProvider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
@@ -272,7 +276,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         compileClasspathConfiguration.setCanBeConsumed(false);
 
-        jvmEcosystemUtilities.configureAsCompileClasspath(compileClasspathConfiguration);
+        jvmPluginServices.configureAsCompileClasspath(compileClasspathConfiguration);
 
         ConfigurationInternal annotationProcessorConfiguration = (ConfigurationInternal) configurations.maybeCreate(annotationProcessorConfigurationName);
         annotationProcessorConfiguration.setVisible(false);
@@ -280,7 +284,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         annotationProcessorConfiguration.setCanBeConsumed(false);
         annotationProcessorConfiguration.setCanBeResolved(true);
 
-        jvmEcosystemUtilities.configureAsRuntimeClasspath(annotationProcessorConfiguration);
+        jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);
 
         Configuration runtimeOnlyConfiguration = configurations.maybeCreate(runtimeOnlyConfigurationName);
         runtimeOnlyConfiguration.setVisible(false);
@@ -294,7 +298,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         runtimeClasspathConfiguration.setCanBeResolved(true);
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, runtimeConfiguration, implementationConfiguration);
-        jvmEcosystemUtilities.configureAsRuntimeClasspath(runtimeClasspathConfiguration);
+        jvmPluginServices.configureAsRuntimeClasspath(runtimeClasspathConfiguration);
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));

@@ -29,7 +29,9 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.plugins.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.JvmModelingServices;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
@@ -48,25 +50,21 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final static Pattern VALID_FEATURE_NAME = Pattern.compile("[a-zA-Z0-9]+");
 
     private final JavaPluginConvention convention;
-    private final ConfigurationContainer configurations;
     private final ObjectFactory objectFactory;
     private final SoftwareComponentContainer components;
-    private final TaskContainer tasks;
     private final Project project;
     private final ModularitySpec modularity;
-    private final JvmEcosystemUtilities jvmEcosystemUtilities;
+    private final JvmPluginServices jvmPluginServices;
 
     public DefaultJavaPluginExtension(JavaPluginConvention convention,
                                       Project project,
-                                      JvmEcosystemUtilities jvmEcosystemUtilities) {
+                                      JvmPluginServices jvmPluginServices) {
         this.convention = convention;
-        this.configurations = project.getConfigurations();
         this.objectFactory = project.getObjects();
         this.components = project.getComponents();
-        this.tasks = project.getTasks();
         this.project = project;
         this.modularity = project.getObjects().newInstance(DefaultModularitySpec.class);
-        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
+        this.jvmPluginServices = jvmPluginServices;
     }
 
     @Override
@@ -95,8 +93,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         DefaultJavaFeatureSpec spec = new DefaultJavaFeatureSpec(
             validateFeatureName(name),
             defaultCapability,
-            configurations,
-            jvmEcosystemUtilities);
+            jvmPluginServices);
         configureAction.execute(spec);
         spec.create();
     }
@@ -129,7 +126,17 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
 
     @Override
     public void configure(Action<? super JvmEcosystemUtilities> action) {
-        action.execute(jvmEcosystemUtilities);
+        action.execute(jvmPluginServices);
+    }
+
+    @Override
+    public void modeling(Action<? super JvmModelingServices> action) {
+        action.execute(jvmPluginServices);
+    }
+
+    @Override
+    public JvmModelingServices getModeling() {
+        return jvmPluginServices;
     }
 
     private static String validateFeatureName(String name) {

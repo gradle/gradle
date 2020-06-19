@@ -17,10 +17,9 @@ package org.gradle.api.plugins.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.plugins.JvmEcosystemUtilities;
-import org.gradle.api.plugins.internal.support.JavaComponentBuilderInternal;
+import org.gradle.api.plugins.jvm.JvmModelingServices;
+import org.gradle.api.plugins.jvm.internal.JavaComponentBuilderInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 
@@ -28,9 +27,8 @@ import java.util.List;
 
 public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     private final String name;
-    private final ConfigurationContainer configurationContainer;
     private final List<Capability> capabilities = Lists.newArrayListWithExpectedSize(2);
-    private final JvmEcosystemUtilities jvmEcosystemUtilities;
+    private final JvmModelingServices jvmEcosystemUtilities;
 
     private boolean overrideDefaultCapability = true;
     private SourceSet sourceSet;
@@ -40,11 +38,9 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
 
     public DefaultJavaFeatureSpec(String name,
                                   Capability defaultCapability,
-                                  ConfigurationContainer configurationContainer,
-                                  JvmEcosystemUtilities jvmEcosystemUtilities) {
+                                  JvmModelingServices jvmModelingServices) {
         this.name = name;
-        this.configurationContainer = configurationContainer;
-        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
+        this.jvmEcosystemUtilities = jvmModelingServices;
         this.capabilities.add(defaultCapability);
     }
 

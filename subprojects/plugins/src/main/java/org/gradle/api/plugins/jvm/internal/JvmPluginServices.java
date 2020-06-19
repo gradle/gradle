@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.plugins.jvm.internal;
 
-/**
- * This package contains a number of utilities used to facilitate the
- * integration of Java plugins. It provides the implementation of the
- * {@link org.gradle.api.plugins.JvmEcosystemUtilities} service.
- */
-@NonNullApi
-package org.gradle.api.plugins.internal.support;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.plugins.jvm.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.JvmModelingServices;
 
-import org.gradle.api.NonNullApi;
+public interface JvmPluginServices extends JvmEcosystemUtilities, JvmModelingServices {
+    void inject(JavaPluginConvention javaConvention, JavaPluginExtension javaPluginExtension, ProjectInternal project);
+}

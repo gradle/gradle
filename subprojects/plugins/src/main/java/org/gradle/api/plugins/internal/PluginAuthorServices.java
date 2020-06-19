@@ -19,8 +19,8 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.JvmEcosystemUtilities;
-import org.gradle.api.plugins.internal.support.DefaultJvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.internal.DefaultJvmPluginServices;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Describables;
 import org.gradle.internal.instantiation.InstanceGenerator;
@@ -50,14 +50,14 @@ public class PluginAuthorServices extends AbstractPluginServiceRegistry {
     }
 
     private static class ProjectScopeServices {
-        JvmEcosystemUtilities createJvmEcosystemUtilities(ConfigurationContainer configurations,
-                                                          ObjectFactory objectFactory,
-                                                          TaskContainer tasks,
-                                                          SoftwareComponentContainer components,
-                                                          InstantiatorFactory instantiatorFactory) {
+        JvmPluginServices createJvmPluginServices(ConfigurationContainer configurations,
+                                                  ObjectFactory objectFactory,
+                                                  TaskContainer tasks,
+                                                  SoftwareComponentContainer components,
+                                                  InstantiatorFactory instantiatorFactory) {
             InstanceGenerator instantiator = instantiatorFactory.decorateScheme().instantiator();
-            return instantiator.newInstanceWithDisplayName(DefaultJvmEcosystemUtilities.class,
-                Describables.of("JVM Plugin Utilities"),
+            return instantiator.newInstanceWithDisplayName(DefaultJvmPluginServices.class,
+                Describables.of("JVM Plugin Services"),
                 configurations,
                 objectFactory,
                 tasks,
