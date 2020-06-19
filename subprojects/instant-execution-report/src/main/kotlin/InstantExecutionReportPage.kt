@@ -185,7 +185,10 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         },
         span(
             tab.text,
-            span(attributes { className("group-selector__count") }, "$problemsCount")
+            span(
+                attributes { className("group-selector__count") },
+                "$problemsCount"
+            )
         )
     )
 
@@ -327,7 +330,10 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
     )
 
     private
-    val errorIcon = span<Intent>(attributes { className("failure-icon") }, " ⨉")
+    val errorIcon = span<Intent>(
+        attributes { className("error-icon") },
+        " ⨉"
+    )
 
     private
     val warningIcon = span<Intent>(" ⚠️")
