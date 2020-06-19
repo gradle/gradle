@@ -1,5 +1,6 @@
 import javax.inject.Inject
 
+// tag::fixed[]
 abstract class MyCopyTask : DefaultTask() { // <1>
 
     @get:InputDirectory abstract val source: DirectoryProperty
@@ -24,3 +25,4 @@ tasks.register<MyCopyTask>("someTask") {
         providers.systemProperty("someDestination").forUseAtConfigurationTime().get() // <2>
     ))
 }
+// end::fixed[]

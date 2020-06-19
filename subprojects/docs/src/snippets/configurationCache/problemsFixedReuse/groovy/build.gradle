@@ -17,6 +17,7 @@ abstract class MyCopyTask extends DefaultTask {
     }
 }
 
+// tag::fixed-reuse[]
 tasks.register('someTask', MyCopyTask) {
     def projectDir = layout.projectDirectory
     source = projectDir.dir('source')
@@ -24,3 +25,4 @@ tasks.register('someTask', MyCopyTask) {
         projectDir.dir(path)
     }
 }
+// end::fixed-reuse[]

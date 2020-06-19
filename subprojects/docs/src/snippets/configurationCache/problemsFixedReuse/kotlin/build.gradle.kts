@@ -17,6 +17,7 @@ abstract class MyCopyTask : DefaultTask() {
     }
 }
 
+// tag::fixed-reuse[]
 tasks.register<MyCopyTask>("someTask") {
     val projectDir = layout.projectDirectory
     source.set(projectDir.dir("source"))
@@ -24,3 +25,4 @@ tasks.register<MyCopyTask>("someTask") {
         projectDir.dir(path)
     })
 }
+// end::fixed-reuse[]

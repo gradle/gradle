@@ -339,7 +339,7 @@ Running that task fails and print the following in the console:
 ----
 ❯ gradle --configuration-cache someTask -DsomeMessage=hello
 ...
-include::{snippetsPath}/configurationCache/problemsKotlin/tests/store.out[]
+include::{snippetsPath}/configurationCache/problemsGroovy/tests/store.out[]
 Configuration cache entry stored.
 ----
 
@@ -364,7 +364,7 @@ Let's ignore the problems reported when storing the configuration cache, and run
 ----
 ❯ gradle --configuration-cache someTask -DsomeDestination=dest
 ...
-include::{snippetsPath}/configurationCache/problemsKotlin/tests/load.out[]
+include::{snippetsPath}/configurationCache/problemsGroovy/tests/load.out[]
 Configuration cache entry reused.
 ----
 
@@ -376,8 +376,8 @@ With the help of the links present in the console problem summary and in the HTM
 Here's a fixed version of the build script:
 
 ====
-include::sample[dir="snippets/configurationCache/problemsFixed/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/configurationCache/problemsFixed/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/configurationCache/problemsFixed/groovy",files="build.gradle[tags=fixed]"]
+include::sample[dir="snippets/configurationCache/problemsFixed/kotlin",files="build.gradle.kts[tags=fixed]"]
 ====
 <1> we turned our ad-hoc task into a proper task class
 <2> this allows the injection of the `FileSystemOperations` service, a supported replacement for `project.copy {}`
@@ -407,8 +407,8 @@ This is because we read the system property at configuration time, hence requiri
 Fixing that is as simple as wiring the system property directly, without reading it at configuration time.
 
 ====
-include::sample[dir="snippets/configurationCache/problemsFixedReuse/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/configurationCache/problemsFixedReuse/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/configurationCache/problemsFixedReuse/groovy",files="build.gradle[tags=fixed-reuse]"]
+include::sample[dir="snippets/configurationCache/problemsFixedReuse/kotlin",files="build.gradle.kts[tags=fixed-reuse]"]
 ====
 <1> wire the declared system property directly, without reading it at configuration time
 
