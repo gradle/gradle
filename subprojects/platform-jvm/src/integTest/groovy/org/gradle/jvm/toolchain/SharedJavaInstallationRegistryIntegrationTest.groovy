@@ -76,8 +76,8 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
             .withTasks("show")
             .run()
         then:
-        outputContains("Directory '/unknown/path' used for java installations does not exist")
-        outputContains("Directory '/unknown/env' used for java installations does not exist")
+        outputContains("Directory '${File.separator}unknown${File.separator}path' used for java installations does not exist")
+        outputContains("Directory '${File.separator}unknown${File.separator}env' used for java installations does not exist")
         outputContains(firstJavaHome)
         outputContains(secondJavaHome)
 
@@ -89,8 +89,8 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
             .withTasks("show")
             .run()
         then:
-        outputContains("Directory '/other/path' used for java installations does not exist")
-        outputContains("Directory '/unknown/env' used for java installations does not exist")
+        outputContains("Directory '${File.separator}other${File.separator}path' used for java installations does not exist")
+        outputContains("Directory '${File.separator}unknown${File.separator}env' used for java installations does not exist")
         outputContains(firstJavaHome)
         outputContains(secondJavaHome)
     }
