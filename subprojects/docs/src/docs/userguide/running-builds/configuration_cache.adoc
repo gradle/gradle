@@ -471,6 +471,17 @@ Consider adding tests for your build logic.
 See the below section on <<configuration_cache#testkit, testing your build logic>> for the configuration cache.
 This will help you while iterating on the required changes and prevent future regressions.
 
+Report problems with community plugins::
+When you stumble upon a problem in a community Gradle plugin, see if it is already listed at link:{gradle-issues}13490[gradle/gradle#13490].
++
+If not, please consider reporting the issue to the plugin's issue tracker.
+A good way to report such problems to community plugin authors is by providing:
++
+* a link to this very documentation,
+* steps to reproduce, e.g. plugin version, configuration and which of the plugin's tasks you ran,
+* a copy of the console problem report, or ideally a ZIP of the HTML problem report you got, so the plugin author can easily reason about the problems,
+* ideally a reproducer build, so the plugin author can easily reproduce the problems.
+
 [[testkit]]
 == Testing your build logic
 
