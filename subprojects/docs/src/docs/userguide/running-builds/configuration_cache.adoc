@@ -200,17 +200,18 @@ Note that syncing a build from an IDE doesn't benefit from the configuration cac
 
 In IntelliJ IDEA or Android Studio this can be done in two ways, either globally or per run configuration.
 
-To enable it globally, go to `Help > Edit Custom VM Options...`.
-This will open the IntelliJ IDEA or Android Studio custom VM options file.
-You can use the properties described above as system properties.
-For example to enable the configuration cache, turning problems into warnings, add the following to this file:
+To enable it for the whole build, go to `Run > Edit configurations...`.
+This will open the IntelliJ IDEA or Android Studio dialog to configure Run/Debug configurations.
+Select `Templates > Gradle` and add the necessary system properties to the `VM options` field.
+
+For example to enable the configuration cache, turning problems into warnings, add the following:
 
 ----
--Dorg.gradle.unsafe.configuration-cache=true
--Dorg.gradle.unsafe.configuration-cache-problems=warn
+-Dorg.gradle.unsafe.configuration-cache=true -Dorg.gradle.unsafe.configuration-cache-problems=warn
 ----
 
-To enable it for a given run configuration, simply add the same system properties to the `VM options` field.
+You can also choose to only enable it for a given run configuration.
+In this case, leave the `Templates > Gradle` configuration untouched and edit each run configuration as you see fit.
 
 Combining these two ways you can enable globally and disable for certain run configurations, or the opposite.
 
