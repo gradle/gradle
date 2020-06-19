@@ -103,10 +103,11 @@ public class Ear extends Jar {
                 //  on each run.
                 //  See https://github.com/gradle/instant-execution/issues/168
                 Cached<byte[]> cachedDescriptor = cachedContentsOf(descriptor);
+                final OutputChangeListener outputChangeListener = outputChangeListener();
                 return fileCollectionFactory().generated(
                     getTemporaryDirFactory(),
                     descriptorFileName,
-                    file -> outputChangeListener().beforeOutputChange(singleton(file.getAbsolutePath())),
+                    file -> outputChangeListener.beforeOutputChange(singleton(file.getAbsolutePath())),
                     outputStream -> {
                         try {
                             outputStream.write(cachedDescriptor.get());
