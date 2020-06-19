@@ -119,6 +119,10 @@ class ImplementationDependencyRelocator extends Remapper {
         return null;
     }
 
+    public boolean includeClass(String className) {
+        return false;
+    }
+
     public static class ClassLiteralRemapping {
         private final String literal;
         private final String literalReplacement;

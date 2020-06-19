@@ -39,9 +39,19 @@ import java.util.Comparator;
 @ServiceScope(Scopes.UserHome.class)
 public class ClasspathWalker {
     private final Stat stat;
+    private final Comparator<File> fileComparator;
 
     public ClasspathWalker(Stat stat) {
+        this(stat, Comparator.comparing(File::getName));
+    }
+
+    private ClasspathWalker(Stat stat, Comparator<File> comparator) {
         this.stat = stat;
+        this.fileComparator = comparator;
+    }
+
+    public ClasspathWalker withFileOrder(Comparator<File> comparator) {
+        return new ClasspathWalker(stat, comparator);
     }
 
     /**
@@ -66,7 +76,7 @@ public class ClasspathWalker {
         File[] files = dir.listFiles();
 
         // Apply a consistent order, regardless of file system ordering
-        Arrays.sort(files, Comparator.comparing(File::getName));
+        Arrays.sort(files, fileComparator);
 
         for (File file : files) {
             FileMetadata fileMetadata = stat.stat(file);

@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
+import org.gradle.api.InternalApi;
 import org.gradle.api.artifacts.DependencyArtifactSelector;
 
 import javax.annotation.Nullable;
 
+@InternalApi
 public class DefaultDependencyArtifactSelector implements DependencyArtifactSelector {
     private final String type;
     private final String extension;

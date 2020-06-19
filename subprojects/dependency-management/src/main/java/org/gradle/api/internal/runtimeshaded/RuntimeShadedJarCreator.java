@@ -16,11 +16,14 @@
 
 package org.gradle.api.internal.runtimeshaded;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
+import org.gradle.api.InternalApi;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
@@ -29,12 +32,13 @@ import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.progress.PercentageProgressFormatter;
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -67,7 +72,7 @@ class RuntimeShadedJarCreator {
     public RuntimeShadedJarCreator(ProgressLoggerFactory progressLoggerFactory, ImplementationDependencyRelocator remapper, ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.remapper = remapper;
-        this.classpathWalker = classpathWalker;
+        this.classpathWalker = classpathWalker.withFileOrder(PackageInfoFirst.INSTANCE);
         this.classpathBuilder = classpathBuilder;
     }
 
@@ -92,9 +97,10 @@ class RuntimeShadedJarCreator {
         Map<String, List<String>> services = new LinkedHashMap<>();
 
         PercentageProgressFormatter progressFormatter = new PercentageProgressFormatter("Generating", Iterables.size(files) + ADDITIONAL_PROGRESS_STEPS);
+        Set<String> excludedPackages = Sets.newHashSet();
         for (File file : files) {
             progressLogger.progress(progressFormatter.getProgress());
-            classpathWalker.visit(file, entry -> processEntry(builder, entry, seenPaths, services));
+            classpathWalker.visit(file, entry -> processEntry(builder, entry, seenPaths, services, excludedPackages));
             progressFormatter.increment();
         }
 
@@ -116,7 +122,7 @@ class RuntimeShadedJarCreator {
         builder.put(GradleRuntimeShadedJarDetector.MARKER_FILENAME, new byte[0]);
     }
 
-    private void processEntry(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry, final Set<String> seenPaths, Map<String, List<String>> services) throws IOException {
+    private void processEntry(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry, final Set<String> seenPaths, Map<String, List<String>> services, Set<String> excludedPackages) throws IOException {
         String name = entry.getName();
         if (name.equals("META-INF/MANIFEST.MF")) {
             return;
@@ -128,9 +134,8 @@ class RuntimeShadedJarCreator {
         if (!name.startsWith(SERVICES_DIR_PREFIX) && !seenPaths.add(name)) {
             return;
         }
-
         if (name.endsWith(".class")) {
-            processClassFile(builder, entry);
+            processClassFile(excludedPackages, builder, entry);
         } else if (name.startsWith(SERVICES_DIR_PREFIX)) {
             processServiceDescriptor(entry, services);
         } else {
@@ -203,7 +208,7 @@ class RuntimeShadedJarCreator {
         }
     }
 
-    private void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry) throws IOException {
+    private void processClassFile(Set<String> excludedPackages, ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry) throws IOException {
         String name = entry.getName();
         String className = name.substring(0, name.length() - ".class".length());
         if (isModuleInfoClass(className)) {
@@ -211,18 +216,46 @@ class RuntimeShadedJarCreator {
             return;
         }
         byte[] bytes = entry.getContent();
-        byte[] remappedClass = remapClass(className, bytes);
+        RemappingResult remappingResult = remapClass(className, bytes);
+        String pkgPart = parentPackage(className);
+        if (remappingResult.isExcluded || isExcluded(pkgPart, excludedPackages)) {
+            if (className.endsWith("/package-info")) {
+                excludedPackages.add(pkgPart);
+            }
+        } else {
+            String remappedClassName = remapper.maybeRelocateResource(className);
+            String newFileName = (remappedClassName == null ? className : remappedClassName).concat(".class");
 
-        String remappedClassName = remapper.maybeRelocateResource(className);
-        String newFileName = (remappedClassName == null ? className : remappedClassName).concat(".class");
-
-        builder.put(newFileName, remappedClass);
+            builder.put(newFileName, remappingResult.rewritten);
+        }
     }
 
-    private byte[] remapClass(String className, byte[] bytes) {
+    private boolean isExcluded(String pkgPart, Set<String> excludedPackages) {
+        if (excludedPackages.isEmpty()) {
+            return false;
+        }
+        if (excludedPackages.contains(pkgPart)) {
+            return true;
+        }
+        if (pkgPart.isEmpty()) {
+            return false;
+        }
+        return isExcluded(parentPackage(pkgPart), excludedPackages);
+    }
+
+    private String parentPackage(String className) {
+        int endIndex = className.lastIndexOf("/");
+        if (endIndex < 0) {
+            return "";
+        }
+        return className.substring(0, endIndex);
+    }
+
+    @VisibleForTesting
+    RemappingResult remapClass(String className, byte[] bytes) {
         ClassReader classReader = new ClassReader(bytes);
         ClassWriter classWriter = new ClassWriter(0);
-        ClassVisitor remappingVisitor = new ShadingClassRemapper(classWriter, remapper);
+        ShadingClassRemapper remappingVisitor = new ShadingClassRemapper(classWriter, remapper);
 
         try {
             classReader.accept(remappingVisitor, ClassReader.EXPAND_FRAMES);
@@ -230,17 +263,47 @@ class RuntimeShadedJarCreator {
             throw new GradleException("Error in ASM processing class: " + className, e);
         }
 
-        return classWriter.toByteArray();
+        return new RemappingResult(classWriter.toByteArray(), remappingVisitor.excluded);
+    }
+
+    @VisibleForTesting
+    static class RemappingResult {
+        private final byte[] rewritten;
+        private final boolean isExcluded;
+
+        private RemappingResult(byte[] rewritten, boolean isExcluded) {
+            this.rewritten = rewritten;
+            this.isExcluded = isExcluded;
+        }
+
+        public byte[] getRewritten() {
+            return rewritten;
+        }
+
+        public boolean isExcluded() {
+            return isExcluded;
+        }
     }
 
     private static class ShadingClassRemapper extends ClassRemapper {
+        private static final String INTERNAL_API = Type.getDescriptor(InternalApi.class);
+
         final Map<String, String> remappedClassLiterals;
         private final ImplementationDependencyRelocator remapper;
+        private boolean excluded;
 
         public ShadingClassRemapper(ClassWriter classWriter, ImplementationDependencyRelocator remapper) {
             super(classWriter, remapper);
             this.remapper = remapper;
             remappedClassLiterals = new HashMap<>();
+        }
+
+        @Override
+        public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+            if (INTERNAL_API.equals(descriptor)) {
+                excluded = true;
+            }
+            return super.visitAnnotation(descriptor, visible);
         }
 
         @Override
@@ -304,5 +367,22 @@ class RuntimeShadedJarCreator {
 
     private String[] separateLines(String entry) {
         return entry.split("\\n");
+    }
+
+    private static class PackageInfoFirst implements Comparator<File> {
+        private static final PackageInfoFirst INSTANCE = new PackageInfoFirst();
+        private static final Comparator<File> FILE_COMPARATOR = Comparator.comparing(File::getName);
+        private static final String PACKAGE_INFO_CLASS = "package-info.class";
+
+        @Override
+        public int compare(File o1, File o2) {
+            if (o1.getName().endsWith(PACKAGE_INFO_CLASS)) {
+                return -1;
+            }
+            if (o2.getName().endsWith(PACKAGE_INFO_CLASS)) {
+                return 1;
+            }
+            return FILE_COMPARATOR.compare(o1, o2);
+        }
     }
 }

@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.gradle.api.InternalApi;
 import org.gradle.api.artifacts.DependencyArtifactSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -26,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@InternalApi
 public class DefaultArtifactSelectionDetails implements ArtifactSelectionDetailsInternal {
 
     private final DefaultDependencySubstitution owner;

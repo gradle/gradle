@@ -21,6 +21,7 @@ import groovy.transform.stc.SimpleType
 import org.apache.ivy.core.settings.IvySettings
 import org.cyberneko.html.xercesbridge.XercesBridge
 import org.gradle.api.Action
+import org.gradle.api.InternalApi
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.IoActions
 import org.gradle.internal.classpath.ClasspathBuilder
@@ -35,6 +36,8 @@ import org.junit.Rule
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
+import org.objectweb.asm.tree.AnnotationNode
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.util.TraceClassVisitor
 import spock.lang.Issue
@@ -50,9 +53,9 @@ class RuntimeShadedJarCreatorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    def progressLoggerFactory = Stub(ProgressLoggerFactory)
-    def relocatedJarCreator
-    def outputJar = tmpDir.testDirectory.file('gradle-api.jar')
+    ProgressLoggerFactory progressLoggerFactory = Stub()
+    RuntimeShadedJarCreator relocatedJarCreator
+    TestFile outputJar = tmpDir.testDirectory.file('gradle-api.jar')
 
     def setup() {
         relocatedJarCreator = new RuntimeShadedJarCreator(
@@ -123,6 +126,7 @@ org.gradle.api.internal.tasks.CompileServices
         writeClass(inputDirectory, "org/gradle/MyFirstClass")
         writeClass(inputDirectory, "org/gradle/MyAClass")
         writeClass(inputDirectory, "org/gradle/MyBClass")
+        writeClass(inputDirectory, "org/gradle/internal/InternalClass", true)
 
         when:
         relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, jarFile3, jarFile4, jarFile5, jarFile6, inputDirectory])
@@ -295,7 +299,7 @@ org.gradle.api.internal.tasks.CompileServices"""
 
         when:
         def remapped = relocatedJarCreator.remapClass(clazz.name, classData)
-        def cr = new ClassReader(remapped)
+        def cr = new ClassReader(remapped.rewritten)
         def writer = new StringWriter()
         def tcv = new TraceClassVisitor(new PrintWriter(writer))
         cr.accept(tcv, 0)
@@ -315,7 +319,7 @@ org.gradle.api.internal.tasks.CompileServices"""
 
         when:
         def remapped = relocatedJarCreator.remapClass(clazz.name, classData)
-        def cr = new ClassReader(remapped)
+        def cr = new ClassReader(remapped.rewritten)
         def writer = new StringWriter()
         def tcv = new TraceClassVisitor(new PrintWriter(writer))
         cr.accept(tcv, 0)
@@ -333,7 +337,7 @@ org.gradle.api.internal.tasks.CompileServices"""
 
         when:
         def remapped = relocatedJarCreator.remapClass(clazz.name, classData)
-        def cr = new ClassReader(remapped)
+        def cr = new ClassReader(remapped.rewritten)
         def writer = new StringWriter()
         def tcv = new TraceClassVisitor(new PrintWriter(writer))
         cr.accept(tcv, 0)
@@ -449,19 +453,57 @@ org.gradle.api.internal.tasks.CompileServices"""
         contents.zipTo(jar)
     }
 
-    private static void writeClass(TestFile outputDir, String className) {
+    private static void writeClass(TestFile outputDir, String className, boolean internal = false) {
         TestFile classFile = outputDir.createFile("${className}.class")
         ClassNode classNode = new ClassNode()
         classNode.version = className == 'module-info' ? Opcodes.V9 : Opcodes.V1_6
         classNode.access = Opcodes.ACC_PUBLIC
         classNode.name = className
         classNode.superName = 'java/lang/Object'
+        if (internal) {
+            classNode.visibleAnnotations = [new AnnotationNode(Type.getDescriptor(InternalApi))]
+        }
 
         ClassWriter cw = new ClassWriter(0)
         classNode.accept(cw)
 
         classFile.withOutputStream {
             it.write(cw.toByteArray())
+        }
+    }
+
+    def "doesn't integrate classes in a package annotated with @InternalApi"() {
+        given:
+        def inputFilesDir = tmpDir.createDir('inputFiles')
+        writeClass(inputFilesDir, "org/gradle/MyClass")
+        writeClass(inputFilesDir, "org/gradle/internal/MyClassImpl")
+        writeClass(inputFilesDir, "org/gradle/internal/MyClassImpl2")
+        writeClass(inputFilesDir, "org/gradle/internal/package-info", true)
+        writeClass(inputFilesDir, "org/gradle/internal/MyClassImpl3")
+        writeClass(inputFilesDir, "org/gradle/internal/other/MyClassImpl4")
+        writeClass(inputFilesDir, "org/gradle/pub/Public")
+
+        when:
+        relocatedJarCreator.create(outputJar, [inputFilesDir])
+
+        then:
+        TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
+        contents.length == 1
+        contents[0] == outputJar
+
+        and:
+        handleAsJarFile(outputJar) {
+            Set<String> files = it.entries()*.name
+            Set<String> expected = [
+                'org/',
+                'org/gradle/',
+                'org/gradle/pub/',
+                'org/gradle/MyClass.class',
+                'org/gradle/pub/Public.class',
+                'META-INF/',
+                'META-INF/.gradle-runtime-shaded',
+            ]
+            assert files == expected
         }
     }
 

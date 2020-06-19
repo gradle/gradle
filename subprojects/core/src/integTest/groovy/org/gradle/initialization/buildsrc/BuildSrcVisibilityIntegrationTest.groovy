@@ -17,25 +17,28 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 class BuildSrcVisibilityIntegrationTest extends AbstractIntegrationSpec {
 
     def "buildSrc classes are not visible in settings"() {
         file('buildSrc/build.gradle') << """
             apply plugin: 'groovy'
-            
+
             repositories {
                 ${mavenCentralRepository()}
             }
 
-            dependencies {  
-                implementation 'org.apache.commons:commons-math3:3.6.1'                
+            dependencies {
+                implementation 'org.apache.commons:commons-math3:3.6.1'
             }
         """
 
         file('buildSrc/src/main/java/org/acme/build/SomeBuildSrcClass.java') << """
         package org.acme.build;
-        
+
         public class SomeBuildSrcClass {
             public static void foo(String foo){
                 System.out.println(foo);
@@ -44,7 +47,7 @@ class BuildSrcVisibilityIntegrationTest extends AbstractIntegrationSpec {
         """
         file('buildSrc/src/main/java/org/acme/build/SomeOtherBuildSrcClass.java') << """
         package org.acme.build;
-        
+
         public class SomeOtherBuildSrcClass {
             public static void foo(String foo){
                 System.out.println(foo);
@@ -56,22 +59,22 @@ class BuildSrcVisibilityIntegrationTest extends AbstractIntegrationSpec {
         def dependencyClassName = "org.apache.commons.math3.util.FastMath"
 
         settingsFile << """
-            
+
             gradle.ext.tryClass = { String from, String name, ClassLoader classLoader ->
                 try {
                     classLoader.loadClass(name)
-                    println "FOUND [\$from] \$name" 
+                    println "FOUND [\$from] \$name"
                 } catch (ClassNotFoundException e) {
-                    println "NOT FOUND [\$from] \$name" 
-                }              
+                    println "NOT FOUND [\$from] \$name"
+                }
             }
 
-            gradle.tryClass("settings", "$localClassName", getClass().classLoader)            
+            gradle.tryClass("settings", "$localClassName", getClass().classLoader)
             gradle.tryClass("settings", "$dependencyClassName", getClass().classLoader)
         """
 
         buildFile << """
-            gradle.tryClass("project", "$localClassName", project.buildscript.classLoader)            
+            gradle.tryClass("project", "$localClassName", project.buildscript.classLoader)
             gradle.tryClass("project", "$dependencyClassName", project.buildscript.classLoader)
         """
 
@@ -85,4 +88,40 @@ class BuildSrcVisibilityIntegrationTest extends AbstractIntegrationSpec {
         outputContains("FOUND [project] $dependencyClassName")
     }
 
+    @Unroll
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // requires to build the api jar
+    def "internal API is not visible in buildSrc using language #lang"() {
+        executer.requireOwnGradleUserHomeDir()
+        file('buildSrc/build.gradle') << """
+            apply plugin: '$lang'
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            dependencies {
+                implementation gradleApi()
+            }
+        """
+
+        file("buildSrc/src/main/${lang}/SomeClass.${lang}") << """
+        // this will fail compilation because this class is internal API and not visible
+        import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencyArtifactSelector;
+
+        public class SomeClass {
+            public static void main(String... args) {
+                System.out.println(args);
+            }
+        }
+        """
+
+        when:
+        fails 'help'
+
+        then:
+        failure.assertHasCause("Compilation failed; see the compiler error output for details.")
+
+        where:
+        lang << ['java', 'groovy']
+    }
 }
