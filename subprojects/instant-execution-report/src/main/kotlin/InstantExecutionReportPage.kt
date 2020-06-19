@@ -291,7 +291,6 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         listOf(
             treeButtonFor(child, treeIntent),
             decoration,
-            span(" "),
             viewNode(label)
         ) + if (docLink == null) {
             emptyList()
