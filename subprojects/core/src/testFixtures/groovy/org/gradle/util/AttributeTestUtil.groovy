@@ -35,4 +35,8 @@ class AttributeTestUtil {
         }
         return attrs
     }
+
+    static <T> T named(Class<T> clazz, String value) {
+        TestUtil.objectInstantiator().named(clazz, value)
+    }
 }

@@ -31,12 +31,10 @@ public interface GradleEnterprisePluginCheckInService {
      *
      * @param pluginMetadata any information provided by the plugin to Gradle
      * @param serviceFactory a factory for a per-build-invocation service for the plugin
-     * @param resultHandler a handler for the check in result
      */
-    void checkIn(
+    GradleEnterprisePluginCheckInResult checkIn(
         GradleEnterprisePluginMetadata pluginMetadata,
-        GradleEnterprisePluginServiceFactory serviceFactory,
-        GradleEnterprisePluginCheckInResultHandler resultHandler
+        GradleEnterprisePluginServiceFactory serviceFactory
     );
 
 }

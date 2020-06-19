@@ -135,20 +135,15 @@ class GradleEnterprisePluginCheckInFixture {
 
                     } as $GradleEnterprisePluginServiceFactory.name
 
-                    def resultHandler = new $GradleEnterprisePluginCheckInResultHandler.name() {
-                        void unsupported(String reasonMessage) {
-                            println "gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = \$reasonMessage"
-                        }
-
-                        void supported($GradleEnterprisePluginServiceRef.name pluginServiceRef) {
-                            println "gradleEnterprisePlugin.checkIn.supported"
-                            settings.gradle.extensions.add("serviceRef", pluginServiceRef)
-                        }
-                    }
-
                     def checkInService = settings.gradle.services.get($GradleEnterprisePluginCheckInService.name)
 
-                    checkInService.checkIn(pluginMetadata, serviceFactory, resultHandler)
+                    def result = checkInService.checkIn(pluginMetadata, serviceFactory)
+                    if (result.unsupportedMessage == null) {
+                        println "gradleEnterprisePlugin.checkIn.supported"
+                        settings.gradle.extensions.add("serviceRef", result.pluginServiceRef)
+                    } else {
+                        println "gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = \$result.unsupportedMessage"
+                    }
                 }
             }
         """)

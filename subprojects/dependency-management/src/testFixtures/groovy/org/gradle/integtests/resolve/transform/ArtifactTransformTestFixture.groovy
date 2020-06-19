@@ -97,22 +97,26 @@ class JarProducer extends DefaultTask {
     @OutputFile
     final RegularFileProperty output = project.objects.fileProperty()
     @Input
-    String content = "content"
+    final Property<String> content = project.objects.property(String).convention("content")
     @Input
-    long timestamp = 123L
+    final Property<Long> timestamp = project.objects.property(Long).convention(123L)
     @Input
-    String entryName = "thing.class"
+    final Property<String> entryName = project.objects.property(String).convention("thing.class")
 
     @TaskAction
     def go() {
         def file = output.get().asFile
         file.withOutputStream {
+            println "write \${entryName.get()} with timestamp \${timestamp.get()} and content \${content.get()}"
             def jarFile = new JarOutputStream(it)
-            def entry = new ZipEntry(entryName)
-            entry.time = timestamp
-            jarFile.putNextEntry(entry)
-            jarFile << content
-            jarFile.close()
+            try {
+                def entry = new ZipEntry(entryName.get())
+                entry.time = timestamp.get()
+                jarFile.putNextEntry(entry)
+                jarFile << content.get()
+            } finally {
+                jarFile.close()
+            }
         }
     }
 }
@@ -430,9 +434,12 @@ allprojects { p ->
          */
         void produceJars() {
             producerTaskClassName = "JarProducer"
+            // TODO - should not require forUseAtConfigurationTime()
             producerConfig = """
-                output = layout.buildDir.file("\${project.name}.jar")
-                content = project.name
+                output.convention(layout.buildDirectory.file(providers.gradleProperty("\${project.name}FileName").forUseAtConfigurationTime().orElse("\${project.name}.jar")))
+                content.convention(providers.gradleProperty("\${project.name}Content").orElse(project.name))
+                timestamp.convention(providers.gradleProperty("\${project.name}Timestamp").map { Long.parseLong(it) }.orElse(123L))
+                entryName.convention(providers.gradleProperty("\${project.name}EntryName").orElse("thing.class"))
             """.stripIndent()
             // TODO - should not require forUseAtConfigurationTime()
             producerConfigOverrides = """
@@ -440,17 +447,6 @@ allprojects { p ->
                 tasks.withType(JarProducer) {
                     if (project.hasProperty("\${project.name}ProduceNothing")) {
                         content = ""
-                    } else if (project.hasProperty("\${project.name}Content")) {
-                        content = project.property("\${project.name}Content")
-                    }
-                    if (project.hasProperty("\${project.name}FileName")) {
-                        output = layout.buildDir.file(project.property("\${project.name}FileName"))
-                    }
-                    if (project.hasProperty("\${project.name}Timestamp")) {
-                        timestamp = Long.parseLong(project.property("\${project.name}Timestamp"))
-                    }
-                    if (project.hasProperty("\${project.name}EntryName")) {
-                        entryName = project.property("\${project.name}EntryName")
                     }
                 }
             """.stripIndent()

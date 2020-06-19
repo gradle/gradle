@@ -24,6 +24,7 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshottingException;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 
@@ -34,11 +35,12 @@ public class SerializedValueSnapshot implements ValueSnapshot {
     private final HashCode implementationHash;
     private final byte[] serializedValue;
 
-    public SerializedValueSnapshot(HashCode implementationHash, byte[] serializedValue) {
+    public SerializedValueSnapshot(@Nullable HashCode implementationHash, byte[] serializedValue) {
         this.implementationHash = implementationHash;
         this.serializedValue = serializedValue;
     }
 
+    @Nullable
     public HashCode getImplementationHash() {
         return implementationHash;
     }
