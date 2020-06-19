@@ -55,14 +55,14 @@ The execution phase then runs as normal.
 This means you will not see any build performance improvement the first time you run a particular set of tasks.
 
 When you subsequently run Gradle with this same set of tasks, for example by running `gradlew check` again, Gradle will load the tasks and their configuration directly from the configuration cache and skip the configuration phase entirely.
-Before using a configuration cache entry, Gradle checks that none of the "build inputs", such as build scripts, for the entry have changed.
-If a build input has changed, Gradle will not use the entry and will run the configuration phase again as above, saving the result for later reuse.
+Before using a configuration cache entry, Gradle checks that none of the "build configuration inputs", such as build scripts, for the entry have changed.
+If a build configuration inputs has changed, Gradle will not use the entry and will run the configuration phase again as above, saving the result for later reuse.
 
-Build inputs include:
+Build configuration inputs include:
 
 - Init scripts, settings scripts, build scripts.
 - System properties, Gradle properties and configuration files used during the configuration phase, accessed using value suppliers such as providers for properties, environment variables etc...
-- Build inputs and source files for `buildSrc` projects.
+- Build configuration inputs and source files for `buildSrc` projects.
 
 === Performance improvements
 
@@ -382,7 +382,7 @@ include::sample[dir="snippets/configurationCache/problemsFixed/kotlin",files="bu
 ====
 <1> we turned our ad-hoc task into a proper task class
 <2> this allows the injection of the `FileSystemOperations` service, a supported replacement for `project.copy {}`
-<3> finally, we declare the system property as a build logic input, used at configuration time and wire it to our task input
+<3> finally, we declare the system property as a build configuration input, used at configuration time and wire it to our task input
 
 Running the task twice now succeeds without reporting any problem and reusing the configuration cache on the second run:
 
@@ -734,7 +734,7 @@ These should be replaced by <<build_services#build_services,build services>>, re
 === Undeclared reading of Gradle properties
 
 Plugins and build scripts should not read Gradle properties directly at configuration time.
-Instead, these Gradle properties must be declared as a potential build input by using the value supplier APIs.
+Instead, these Gradle properties must be declared as a potential build configuration input by using the value supplier APIs.
 
 This problem is caused by build logic similar to this:
 
@@ -757,7 +757,7 @@ Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradl
 === Undeclared reading of system properties
 
 Plugins and build scripts should not read system properties directly using the Java APIs at configuration time.
-Instead, these system properties must be declared as a potential build input by using the value supplier APIs.
+Instead, these system properties must be declared as a potential build configuration input by using the value supplier APIs.
 
 This problem is caused by build logic similar to this:
 
@@ -780,7 +780,7 @@ Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradl
 === Undeclared reading of environment variables
 
 Plugins and build scripts should not read environment variables directly using the Java APIs at configuration time.
-Instead, declare environment variables as potential build inputs using the value supplier APIs.
+Instead, declare environment variables as potential build configuration inputs using the value supplier APIs.
 
 This problem is caused by build logic similar to this:
 
@@ -803,7 +803,7 @@ Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradl
 === Undeclared reading of files
 
 Plugins and build scripts should not read files directly using the Java, Groovy or Kotlin APIs at configuration time.
-Instead, declare files as potential build inputs using the value supplier APIs.
+Instead, declare files as potential build configuration inputs using the value supplier APIs.
 
 This problem is caused by build logic similar to this:
 
