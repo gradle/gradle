@@ -511,7 +511,10 @@ These types fall into some categories as follows:
 * Gradle model types
 * Dependency management types
 
+In all cases the reason these types are disallowed is that their state cannot easily be stored or recreated by the configuration cache.
+
 Live JVM state types (e.g. `ClassLoader`, `Thread`, `OutputStream`, `Socket` etc...) are simply disallowed.
+These types almost never represent a task input or output.
 
 Gradle model types (e.g. `Gradle`, `Settings`, `Project`, `SourceSet`, `Configuration` etc...) are usually used to carry some task input that should be explicitly and precisely declared instead.
 
@@ -521,12 +524,15 @@ You should instead declare these as a `FileCollection` input and reference just 
 
 The same requirement applies to dependency management types with some nuances.
 
-Referencing heavyweight model objects such as `Configuration`, `Dependency`, `Publication` or `ArtifactResolutionQuery` is disallowed, more precise types must be used instead.
+Some types, such as `Configuration`, don't make good task input parameters, as they hold a lot of irrelevant state, and it is better to model these inputs as something more precise. We don't intend to make these types serializable at all.
 For example, if you reference a `Configuration` to later get the resolved files, you should instead declare a `FileCollection` as an input to your task.
 
 Referencing dependency resolution results is also disallowed (e.g. `ArtifactResolutionQuery`, `ResolvedArtifact`, `ArtifactResult` etc...).
 For example, if you reference some `ResolvedArtifactResult` instances, you should instead declare some `ArtifactCollection` as an input to your task.
 The rule of thumb is that tasks must not reference _resolved_ results, but lazy specifications instead, in order to do the dependency resolution at execution time.
+Some APIs are missing and cannot yet be used as task inputs, for example it is currently not possible for task actions to reason about the dependency _graph_, see link:{gradle-issues}12871[gradle/gradle#12871].
+
+Some types, such as `Publication` or `Dependency` are not serializable, but could be. We may, if necessary, allow these to be used as task inputs directly.
 
 Here's an example of a problematic task type referencing a `SourceSet`:
 
