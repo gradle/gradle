@@ -34,6 +34,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.progress.PercentageProgressFormatter;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -46,7 +47,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -58,6 +58,8 @@ import java.util.Set;
 import static java.util.Arrays.asList;
 
 class RuntimeShadedJarCreator {
+    private static final String INTERNAL_API = Type.getDescriptor(InternalApi.class);
+
     private static final int ADDITIONAL_PROGRESS_STEPS = 2;
     private static final String SERVICES_DIR_PREFIX = "META-INF/services/";
     private static final String CLASS_DESC = "Ljava/lang/Class;";
@@ -72,7 +74,7 @@ class RuntimeShadedJarCreator {
     public RuntimeShadedJarCreator(ProgressLoggerFactory progressLoggerFactory, ImplementationDependencyRelocator remapper, ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.remapper = remapper;
-        this.classpathWalker = classpathWalker.withFileOrder(PackageInfoFirst.INSTANCE);
+        this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
     }
 
@@ -97,9 +99,14 @@ class RuntimeShadedJarCreator {
         Map<String, List<String>> services = new LinkedHashMap<>();
 
         PercentageProgressFormatter progressFormatter = new PercentageProgressFormatter("Generating", Iterables.size(files) + ADDITIONAL_PROGRESS_STEPS);
-        Set<String> excludedPackages = Sets.newHashSet();
         for (File file : files) {
             progressLogger.progress(progressFormatter.getProgress());
+            // perform an initial visit to collect excluded packages
+            // we must do this in two phases because or ordering issues: some classes may be
+            // visited _before_ their package-info which excludes things
+            Set<String> excludedPackages = Sets.newHashSet();
+            classpathWalker.visit(file, entry -> collectExcludedPackages(entry, excludedPackages));
+            // then perform the transformation on included classes
             classpathWalker.visit(file, entry -> processEntry(builder, entry, seenPaths, services, excludedPackages));
             progressFormatter.increment();
         }
@@ -120,6 +127,13 @@ class RuntimeShadedJarCreator {
 
     private void writeIdentifyingMarkerFile(ClasspathBuilder.EntryBuilder builder) throws IOException {
         builder.put(GradleRuntimeShadedJarDetector.MARKER_FILENAME, new byte[0]);
+    }
+
+    private void collectExcludedPackages(ClasspathEntryVisitor.Entry entry, Set<String> excludedPackages) throws IOException {
+        String name = entry.getName();
+        if (name.endsWith("package-info.class")) {
+            processPackageInfo(excludedPackages, entry);
+        }
     }
 
     private void processEntry(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry, final Set<String> seenPaths, Map<String, List<String>> services, Set<String> excludedPackages) throws IOException {
@@ -215,18 +229,28 @@ class RuntimeShadedJarCreator {
             // do not include module-info files, as they would represent a bundled dependency module, instead of Gradle itself
             return;
         }
-        byte[] bytes = entry.getContent();
-        RemappingResult remappingResult = remapClass(className, bytes);
         String pkgPart = parentPackage(className);
-        if (remappingResult.isExcluded || isExcluded(pkgPart, excludedPackages)) {
-            if (className.endsWith("/package-info")) {
-                excludedPackages.add(pkgPart);
-            }
-        } else {
-            String remappedClassName = remapper.maybeRelocateResource(className);
-            String newFileName = (remappedClassName == null ? className : remappedClassName).concat(".class");
+        if (!isExcluded(pkgPart, excludedPackages)) {
+            byte[] bytes = entry.getContent();
+            RemappingResult remappingResult = remapClass(className, bytes);
+            if (!remappingResult.isExcluded) {
+                String remappedClassName = remapper.maybeRelocateResource(className);
+                String newFileName = (remappedClassName == null ? className : remappedClassName).concat(".class");
 
-            builder.put(newFileName, remappingResult.rewritten);
+                builder.put(newFileName, remappingResult.rewritten);
+            }
+        }
+    }
+
+    private void processPackageInfo(Set<String> excludedPackages, ClasspathEntryVisitor.Entry entry) throws IOException {
+        byte[] bytes = entry.getContent();
+        PackageInfoVisitor visitor = new PackageInfoVisitor();
+        ClassReader reader = new ClassReader(bytes);
+        reader.accept(visitor, 0);
+        String name = entry.getName();
+        String className = name.substring(0, name.length() - ".class".length());
+        if (visitor.excluded) {
+            excludedPackages.add(parentPackage(className));
         }
     }
 
@@ -285,9 +309,24 @@ class RuntimeShadedJarCreator {
         }
     }
 
-    private static class ShadingClassRemapper extends ClassRemapper {
-        private static final String INTERNAL_API = Type.getDescriptor(InternalApi.class);
+    private static class PackageInfoVisitor extends ClassVisitor {
 
+        private boolean excluded;
+
+        public PackageInfoVisitor() {
+            super(Opcodes.ASM7);
+        }
+
+        @Override
+        public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+            if (INTERNAL_API.equals(descriptor)) {
+                excluded = true;
+            }
+            return super.visitAnnotation(descriptor, visible);
+        }
+    }
+
+    private static class ShadingClassRemapper extends ClassRemapper {
         final Map<String, String> remappedClassLiterals;
         private final ImplementationDependencyRelocator remapper;
         private boolean excluded;
@@ -369,20 +408,4 @@ class RuntimeShadedJarCreator {
         return entry.split("\\n");
     }
 
-    private static class PackageInfoFirst implements Comparator<File> {
-        private static final PackageInfoFirst INSTANCE = new PackageInfoFirst();
-        private static final Comparator<File> FILE_COMPARATOR = Comparator.comparing(File::getName);
-        private static final String PACKAGE_INFO_CLASS = "package-info.class";
-
-        @Override
-        public int compare(File o1, File o2) {
-            if (o1.getName().endsWith(PACKAGE_INFO_CLASS)) {
-                return -1;
-            }
-            if (o2.getName().endsWith(PACKAGE_INFO_CLASS)) {
-                return 1;
-            }
-            return FILE_COMPARATOR.compare(o1, o2);
-        }
-    }
 }

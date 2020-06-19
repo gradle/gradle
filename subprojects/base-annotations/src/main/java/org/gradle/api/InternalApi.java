@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * If a package is annotated with {@link InternalApi}, then
  * all subpackages are automatically internal.
  *
- * @since 6.6
+ * @since 7.0
  */
 @Target({ElementType.TYPE, ElementType.PACKAGE})
 @Documented

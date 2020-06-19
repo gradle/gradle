@@ -59,6 +59,7 @@ import org.codehaus.groovy.control.ResolveVisitor;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.Types;
 import org.codehaus.groovy.transform.trait.Traits;
+import org.gradle.api.InternalApi;
 import org.objectweb.asm.Opcodes;
 
 import javax.inject.Inject;
@@ -83,6 +84,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
     // note: BigInteger and BigDecimal are also imported by default
     private static final String[] DEFAULT_IMPORTS = {"java.lang.", "java.io.", "java.net.", "java.util.", "groovy.lang.", "groovy.util.", "java.time."};
     private static final String SCRIPTS_PACKAGE = "org.gradle.groovy.scripts";
+    public static final ClassNode INTERNAL_API = ClassHelper.make(InternalApi.class);
 
     private ClassNode currentClass;
     private final Map<String, List<String>> simpleNameToFQN;
@@ -100,6 +102,23 @@ public class GradleResolveVisitor extends ResolveVisitor {
     private ImportNode currImportNode;
     private MethodNode currentMethod;
     private ClassNodeResolver classNodeResolver;
+
+    private final Map<String, Boolean> internalPackages = new HashMap<>();
+
+    private boolean isInternalApi(String pkg) {
+        ClassNode pkgInfo = ClassHelper.make(pkg + ".package-info");
+        boolean pkgResolved = doResolveInternal(pkgInfo, true, false, false);
+        if (pkgResolved) {
+            if (!pkgInfo.getAnnotations(INTERNAL_API).isEmpty()) {
+                return true;
+            }
+            int i = pkg.lastIndexOf(".");
+            if (i > 0) {
+                return isInternalApi(pkg.substring(0, i));
+            }
+        }
+        return false;
+    }
 
     /**
      * A ConstructedNestedClass consists of an outer class and a name part, denoting a nested class with an unknown number of levels down. This allows resolve tests to skip this node for further inner
@@ -352,6 +371,24 @@ public class GradleResolveVisitor extends ResolveVisitor {
     }
 
     private boolean resolve(ClassNode type, boolean testModuleImports, boolean testDefaultImports, boolean testStaticInnerClasses) {
+        boolean resolved = doResolveInternal(type, testModuleImports, testDefaultImports, testStaticInnerClasses);
+        if (resolved) {
+            if (!type.getAnnotations(INTERNAL_API).isEmpty()) {
+                addError("Use of an Gradle internal API is not allowed", type);
+            } else {
+                String packageName = type.getPackageName();
+                if (packageName != null && packageName.startsWith("org.gradle.")) {
+                    boolean internal = internalPackages.computeIfAbsent(packageName, this::isInternalApi);
+                    if (internal) {
+                        addError("Use of an Gradle internal API is not allowed", type);
+                    }
+                }
+            }
+        }
+        return resolved;
+    }
+
+    private boolean doResolveInternal(ClassNode type, boolean testModuleImports, boolean testDefaultImports, boolean testStaticInnerClasses) {
         resolveGenericsTypes(type.getGenericsTypes());
         if (type.isResolved() || type.isPrimaryClassNode()) {
             return true;
