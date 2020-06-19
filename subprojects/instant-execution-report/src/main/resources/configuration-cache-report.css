@@ -2,20 +2,19 @@
 
 /* configuration cache styles */
 
-.report {
+.report-wrapper {
     margin: 0 auto;
     width: 1200px;
-    display: flex;
-}
-
-.report-wrapper {
-    width: 100%;
 }
 
 .header {
     padding-top: 24px;
-    padding-bottom: 16px;
     display: flex;
+    flex-wrap: wrap;
+    position: fixed;
+    width: 1200px;
+    background-color: white;
+    z-index: 1;
 }
 
 .learn-more {
@@ -28,7 +27,8 @@
 .title {
     display: flex;
     align-items: center;
-    margin-bottom: 24px;
+    padding: 18px 0 24px 0;
+    flex: 1 0 100%;
 }
 
 .filters {
@@ -38,7 +38,7 @@
 
 .content {
     font-size: 0.875rem;
-    padding-top: 8px;
+    padding: 192px 0 48px;
 }
 
 .content ol:first-of-type {
@@ -114,6 +114,7 @@
 .groups {
     display: flex;
     border-bottom: 1px solid #EDEEEF;
+    flex: 1 0 100%;
 }
 
 .group-selector {
@@ -266,7 +267,7 @@ code, pre {
     font-weight: normal;
     font-stretch: normal;
     color: #686868;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     line-height: 1.8;
 }
 

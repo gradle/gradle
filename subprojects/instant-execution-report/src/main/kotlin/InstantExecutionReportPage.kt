@@ -139,28 +139,28 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         div(
             attributes { className("header") },
             img(attributes { src("configuration-cache-report-logo.png") }),
-            learnMore(model.documentationLink)
-        ),
-        div(
-            attributes { className("title") },
-            h1("${model.totalProblems} problems were found ${model.cacheAction} the configuration cache"),
+            learnMore(model.documentationLink),
             div(
-                attributes { className("filters") },
+                attributes { className("title") },
+                h1("${model.totalProblems} problems were found ${model.cacheAction} the configuration cache"),
                 div(
-                    span("View"),
+                    attributes { className("filters") },
                     div(
-                        attributes { className("filters-group") },
-                        displayFilterButton(DisplayFilter.All, model.displayFilter),
-                        displayFilterButton(DisplayFilter.Errors, model.displayFilter),
-                        displayFilterButton(DisplayFilter.Warnings, model.displayFilter)
+                        span("View"),
+                        div(
+                            attributes { className("filters-group") },
+                            displayFilterButton(DisplayFilter.All, model.displayFilter),
+                            displayFilterButton(DisplayFilter.Errors, model.displayFilter),
+                            displayFilterButton(DisplayFilter.Warnings, model.displayFilter)
+                        )
                     )
                 )
+            ),
+            div(
+                attributes { className("groups") },
+                displayTabButton(Tab.ByMessage, model.tab, model.messageProblemsCount),
+                displayTabButton(Tab.ByTask, model.tab, model.taskProblemsCount)
             )
-        ),
-        div(
-            attributes { className("groups") },
-            displayTabButton(Tab.ByMessage, model.tab, model.messageProblemsCount),
-            displayTabButton(Tab.ByTask, model.tab, model.taskProblemsCount)
         ),
         div(
             attributes { className("content") },
