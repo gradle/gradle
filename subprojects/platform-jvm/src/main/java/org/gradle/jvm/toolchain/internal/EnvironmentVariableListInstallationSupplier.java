@@ -25,8 +25,8 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class EnvironmentVariableListInstallationSupplier implements InstallationSupplier {
@@ -54,27 +54,35 @@ public class EnvironmentVariableListInstallationSupplier implements Installation
         if (property.isPresent()) {
             final String listOfEnvironmentVariables = property.get();
             return Arrays.stream(listOfEnvironmentVariables.split(","))
-                .map(getEnvironmentVariable())
-                .map(File::new)
-                .filter(this::pathMayBeValid)
+                .map(this::resolveEnvironmentVariable)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(Collectors.toSet());
         }
         return Collections.emptySet();
     }
 
-    private Function<String, String> getEnvironmentVariable() {
-        return env -> factory.environmentVariable(env).forUseAtConfigurationTime().get();
+
+    private Optional<File> resolveEnvironmentVariable(String environmentVariable) {
+        final String value = factory.environmentVariable(environmentVariable).forUseAtConfigurationTime().get();
+        final File file = new File(value);
+        if (pathMayBeValid(file, environmentVariable)) {
+            return Optional.of(file);
+        }
+        return Optional.empty();
     }
 
-    boolean pathMayBeValid(File file) {
+    boolean pathMayBeValid(File file, String envVariableName) {
         if (!file.exists()) {
             logger.warn("Directory '" + file.getAbsolutePath() +
-                "' used for java installations does not exist");
+                "' (from environment variable '" + envVariableName +
+                "') used for java installations does not exist");
             return false;
         }
         if (!file.isDirectory()) {
             logger.warn("Path for java installation '" + file.getAbsolutePath() +
-                "' points to a file, not a directory");
+                "' (from environment variable '" + envVariableName +
+                "') points to a file, not a directory");
             return false;
         }
         return true;

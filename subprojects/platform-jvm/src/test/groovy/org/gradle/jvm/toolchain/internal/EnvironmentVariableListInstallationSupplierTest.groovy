@@ -79,7 +79,7 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
         file.absolutePath >> path
 
         when:
-        def pathIsValid = supplier.pathMayBeValid(file)
+        def pathIsValid = supplier.pathMayBeValid(file, "ENVX")
 
         then:
         pathIsValid == valid
@@ -88,8 +88,8 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
         where:
         path        | exists | directory | valid | logOutput
         '/foo/bar'  | true   | true      | true  | ''
-        '/unknown'  | false  | null      | false | 'Directory \'/unknown\' used for java installations does not exist\n'
-        '/foo/file' | true   | false     | false | 'Path for java installation \'/foo/file\' points to a file, not a directory\n'
+        '/unknown'  | false  | null      | false | 'Directory \'/unknown\' (from environment variable \'ENVX\') used for java installations does not exist\n'
+        '/foo/file' | true   | false     | false | 'Path for java installation \'/foo/file\' (from environment variable \'ENVX\') points to a file, not a directory\n'
     }
 
     private ProviderFactory createProviderFactory(String propertyValue) {
@@ -111,7 +111,7 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
     private EnvironmentVariableListInstallationSupplier createSupplier(String propertyValue) {
         new EnvironmentVariableListInstallationSupplier(createProviderFactory(propertyValue)) {
             @Override
-            boolean pathMayBeValid(File file) {
+            boolean pathMayBeValid(File file, String envVariableName) {
                 return file == new File("/path/jdk8") || file == new File("/path/jdk9")
             }
         }
