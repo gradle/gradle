@@ -39,6 +39,8 @@
 .content {
     font-size: 0.875rem;
     padding: 192px 0 48px;
+    overflow-x: auto;
+    white-space: nowrap;
 }
 
 .content ol:first-of-type {
@@ -237,6 +239,7 @@ ul .tree-btn {
     overflow-x: auto;
     padding: 0.5rem;
     margin-bottom: 0;
+    min-width: 1000px;
 }
 
 /* Lato (bold, regular) */
