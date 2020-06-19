@@ -74,15 +74,15 @@ public class Jar extends Zip {
     }
 
     private ManifestInternal computeManifest() {
-        Manifest manifest1 = getManifest();
-        if (manifest1 == null) {
-            manifest1 = new DefaultManifest(null);
+        Manifest manifest = getManifest();
+        if (manifest == null) {
+            manifest = new DefaultManifest(null);
         }
         ManifestInternal manifestInternal;
-        if (manifest1 instanceof ManifestInternal) {
-            manifestInternal = (ManifestInternal) manifest1;
+        if (manifest instanceof ManifestInternal) {
+            manifestInternal = (ManifestInternal) manifest;
         } else {
-            manifestInternal = new CustomManifestInternalWrapper(manifest1);
+            manifestInternal = new CustomManifestInternalWrapper(manifest);
         }
         manifestInternal.setContentCharset(manifestContentCharset);
         return manifestInternal;
