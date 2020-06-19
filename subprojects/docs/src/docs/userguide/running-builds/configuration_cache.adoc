@@ -362,7 +362,7 @@ At this stage, you can decide to either <<configuration_cache#ignore_problems, t
 Let's ignore the problems reported when storing the configuration cache, and run the same build again to see what happens when reusing the problematic cached configuration:
 
 ----
-❯ gradle --configuration-cache someTask -DsomeMessage=hello
+❯ gradle --configuration-cache someTask -DsomeDestination=dest
 ...
 include::{snippetsPath}/configurationCache/problemsKotlin/tests/load.out[]
 Configuration cache entry reused.
@@ -386,10 +386,10 @@ include::sample[dir="snippets/configurationCache/problemsFixed/kotlin",files="bu
 Running the task twice now succeeds without reporting any problem and reusing the configuration cache on the second run:
 
 ----
-❯ gradle --configuration-cache someTask -DsomeMessage=hello
+❯ gradle --configuration-cache someTask -DsomeDestination=dest
 include::{snippetsPath}/configurationCache/problemsFixed/tests/store.out[]
 Configuration cache entry stored.
-❯ gradle --configuration-cache someTask -DsomeMessage=hello
+❯ gradle --configuration-cache someTask -DsomeDestination=dest
 include::{snippetsPath}/configurationCache/problemsFixed/tests/load.out[]
 Configuration cache entry reused.
 ----
@@ -397,30 +397,29 @@ Configuration cache entry reused.
 But, what if we change the value of the system property?
 
 ----
-❯ gradle --configuration-cache someTask -DsomeMessage=bye
-include::{snippetsPath}/configurationCache/problemsFixed/tests/store-bye.out[]
+❯ gradle --configuration-cache someTask -DsomeDestination=another
+include::{snippetsPath}/configurationCache/problemsFixed/tests/store-another.out[]
 Configuration cache entry stored.
 ----
 
-The previous configuration cache entry could not be reused and the task graph had to be calculated again.
+The previous configuration cache entry could not be reused, and the task graph had to be calculated again.
 This is because we read the system property at configuration time, hence requiring to run the configuration phase again when the value of that property changes.
-Fixing that is as simple as using a `Property<String>` as the task input and wiring the system property directly, without reading it at configuration time.
+Fixing that is as simple as wiring the system property directly, without reading it at configuration time.
 
 ====
 include::sample[dir="snippets/configurationCache/problemsFixedReuse/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/configurationCache/problemsFixedReuse/kotlin",files="build.gradle.kts[]"]
 ====
-<1> we turned our task property into a proper `Property<String>`
-<2> this allows to wire the declared system property directly, without reading it at configuration time
+<1> wire the declared system property directly, without reading it at configuration time
 
 With those changes in place we can run the task twice, changing the system property value:
 
 ----
-❯ gradle --configuration-cache someTask -DsomeMessage=hello
+❯ gradle --configuration-cache someTask -DsomeDestination=dest
 include::{snippetsPath}/configurationCache/problemsFixedReuse/tests/store.out[]
 Configuration cache entry stored.
-❯ gradle --configuration-cache someTask -DsomeMessage=bye
-include::{snippetsPath}/configurationCache/problemsFixedReuse/tests/load-bye.out[]
+❯ gradle --configuration-cache someTask -DsomeDestination=another
+include::{snippetsPath}/configurationCache/problemsFixedReuse/tests/load-another.out[]
 Configuration cache entry reused.
 ----
 

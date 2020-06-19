@@ -1,9 +1,11 @@
 tasks.register("someTask") {
-    val message = System.getProperty("someMessage") // <1>
-    inputs.property("message", message)
+    val destination = System.getProperty("someDestination") // <1>
+    inputs.dir("source")
+    outputs.dir(destination)
     doLast {
-        project.exec {                              // <2>
-            commandLine = listOf("echo", message)
+        project.copy {                              // <2>
+            from("source")
+            into(destination)
         }
     }
 }

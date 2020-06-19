@@ -1,22 +1,26 @@
 import javax.inject.Inject
 
-abstract class MyExecTask : DefaultTask() {
+abstract class MyCopyTask : DefaultTask() {
 
-    @get:Input
-    abstract val message: Property<String> // <1>
+    @get:InputDirectory abstract val source: DirectoryProperty
 
-    @get:Inject
-    abstract val execOperations: ExecOperations
+    @get:OutputDirectory abstract val destination: DirectoryProperty // <1>
+
+    @get:Inject abstract val fs: FileSystemOperations
 
     @TaskAction
     fun action() {
-        execOperations.exec {
-            executable("echo")
-            args(message.get())
+        fs.copy {
+            from(source)
+            into(destination)
         }
     }
 }
 
-tasks.register<MyExecTask>("someTask") {
-    message.set(providers.systemProperty("someMessage")) // <2>
+tasks.register<MyCopyTask>("someTask") {
+    val projectDir = layout.projectDirectory
+    source.set(projectDir.dir("source"))
+    destination.set(providers.systemProperty("someDestination").map { path -> // <2>
+        projectDir.dir(path)
+    })
 }

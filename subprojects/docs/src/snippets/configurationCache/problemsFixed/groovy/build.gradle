@@ -1,22 +1,26 @@
 import javax.inject.Inject
 
-abstract class MyExecTask extends DefaultTask { // <1>
+abstract class MyCopyTask extends DefaultTask { // <1>
 
-    @Input
-    String message
+    @InputDirectory abstract DirectoryProperty getSource()
 
-    @Inject
-    abstract ExecOperations getExecOperations() // <2>
+    @OutputDirectory abstract DirectoryProperty getDestination()
+
+    @Inject abstract FileSystemOperations getFs() // <2>
 
     @TaskAction
     void action() {
-        execOperations.exec {
-            executable 'echo'
-            args message
+        fs.copy {
+            from source
+            into destination
         }
     }
 }
 
-tasks.register('someTask', MyExecTask) {
-    message = providers.systemProperty('someMessage').forUseAtConfigurationTime().get() // <3>
+tasks.register('someTask', MyCopyTask) {
+    def projectDir = layout.projectDirectory
+    source = projectDir.dir('source')
+    destination = projectDir.dir(
+        providers.systemProperty('someDestination').forUseAtConfigurationTime().get() // <2>
+    )
 }
