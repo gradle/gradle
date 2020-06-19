@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.cache;
 
+/**
+ * Identifies if a path is underneath one of Gradle's global caches.
+ *
+ * We expect only Gradle itself to change things in the global caches directories.
+ *
+ * The quasi-immutability of global caches allows for some optimizations by retaining file system state in-memory.
+ */
+public interface GlobalCacheLocations {
 
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
-
-@ServiceScope(Scopes.BuildTree)
-public interface BuildLogicTransformStrategy {
     /**
-     * Calculates the transform to apply to build logic.
+     * Checks if a given path is inside one of Gradle's global caches.
      */
-    CachedClasspathTransformer.StandardTransform transformToApplyToBuildLogic();
+    boolean isInsideGlobalCache(String path);
 }

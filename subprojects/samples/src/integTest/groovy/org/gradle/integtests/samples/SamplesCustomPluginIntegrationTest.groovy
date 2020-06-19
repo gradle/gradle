@@ -42,7 +42,9 @@ class SamplesCustomPluginIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(
+        iterationMatchers = ".* for javaGradlePlugin producer .*"
+    )
     @Unroll
     @UsesSample("plugins/customPlugin")
     def "can publish and use plugin and test implementations for #producerName producer and #dsl dsl"() {

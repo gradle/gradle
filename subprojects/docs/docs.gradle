@@ -626,7 +626,7 @@ class GradleInstallationForTestEnvironmentProvider implements CommandLineArgumen
     }
 
     @Internal
-    final ConfigurableFileCollection gradleHomeDir = project.files()
+    final ConfigurableFileCollection gradleHomeDir = project.objects.fileCollection()
 
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory

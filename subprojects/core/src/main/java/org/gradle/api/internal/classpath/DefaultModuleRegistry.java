@@ -18,10 +18,10 @@ package org.gradle.api.internal.classpath;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
+import org.gradle.cache.GlobalCache;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.installation.GradleInstallation;
-import org.gradle.internal.vfs.AdditiveCache;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -45,7 +45,7 @@ import java.util.zip.ZipFile;
 /**
  * Determines the classpath for a module by looking for a '${module}-classpath.properties' resource with 'name' set to the name of the module.
  */
-public class DefaultModuleRegistry implements ModuleRegistry, AdditiveCache {
+public class DefaultModuleRegistry implements ModuleRegistry, GlobalCache {
     private static final Spec<File> SATISFY_ALL = element -> true;
 
     @Nullable
@@ -75,7 +75,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, AdditiveCache {
     }
 
     @Override
-    public List<File> getAdditiveCacheRoots() {
+    public List<File> getGlobalCacheRoots() {
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         if (gradleInstallation != null) {
             builder.addAll(gradleInstallation.getLibDirs());

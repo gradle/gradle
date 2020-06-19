@@ -95,9 +95,8 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.getExcludedPackages().convention(excludedPackages);
         });
         SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
-        sourceSets.getByName("main", main -> {
-            main.getOutput().dir(Collections.singletonMap("builtBy", Arrays.asList(apiMapping, defaultImports)), generatedDirectory);
-        });
+        sourceSets.getByName("main", main ->
+            main.getOutput().dir(Collections.singletonMap("builtBy", Arrays.asList(apiMapping, defaultImports)), generatedDirectory));
 
         extension.getUserManual().getResources().from(apiMapping);
         extension.getUserManual().getResources().from(defaultImports);

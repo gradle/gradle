@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
     gradlebuild.distribution.`api-java`
@@ -43,6 +43,7 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":core"))
     implementation(project(":wrapper"))
+    implementation(project(":persistentCache"))
 
     implementation(library("guava"))
 

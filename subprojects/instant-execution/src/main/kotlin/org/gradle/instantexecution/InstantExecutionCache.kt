@@ -123,7 +123,7 @@ class InstantExecutionCache(
 
     fun useForStore(cacheKey: String, action: (Layout) -> Unit) {
         withBaseCacheDirFor(cacheKey) { cacheDir ->
-            // TODO AdditiveCache require(!cacheDir.isDirectory)
+            // TODO GlobalCache require(!cacheDir.isDirectory)
             cacheDir.mkdirs()
             fileAccessTracker.markAccessed(cacheDir)
             action(Layout(cacheDir.fingerprintFile, cacheDir.stateFile))

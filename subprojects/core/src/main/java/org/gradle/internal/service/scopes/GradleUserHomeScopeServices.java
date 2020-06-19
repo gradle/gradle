@@ -29,11 +29,14 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.GlobalCache;
+import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
+import org.gradle.cache.internal.DefaultGlobalCacheLocations;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.cache.internal.GradleUserHomeCleanupServices;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -68,9 +71,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.vfs.AdditiveCache;
-import org.gradle.internal.vfs.AdditiveCacheLocations;
-import org.gradle.internal.vfs.DefaultAdditiveCacheLocations;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.JavaExecHandleFactory;
@@ -146,8 +146,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         );
     }
 
-    AdditiveCacheLocations createAdditiveCacheLocations(List<AdditiveCache> additiveCaches) {
-        return new DefaultAdditiveCacheLocations(additiveCaches);
+    GlobalCacheLocations createGlobalCacheLocations(List<GlobalCache> globalCaches) {
+        return new DefaultGlobalCacheLocations(globalCaches);
     }
 
     CachedClasspathTransformer createCachedClasspathTransformer(
@@ -158,7 +158,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         ClasspathWalker classpathWalker,
         ClasspathBuilder classpathBuilder,
         ExecutorFactory executorFactory,
-        List<AdditiveCache> additiveCaches
+        GlobalCacheLocations globalCacheLocations
     ) {
         return new DefaultCachedClasspathTransformer(
             cacheRepository,
@@ -168,7 +168,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
             classpathBuilder,
             virtualFileSystem,
             executorFactory,
-            additiveCaches);
+            globalCacheLocations);
     }
 
     ExecFactory createExecFactory(ExecFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {

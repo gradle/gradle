@@ -134,13 +134,11 @@ class DefaultMavenPublicationTest extends Specification {
         }
         notationParser.parseNotation("artifact") >> mavenArtifact
         mavenArtifact.extension >> "ext"
-        mavenArtifact.file >> artifactFile
         def attachedMavenArtifact = Mock(MavenTestArtifact) {
             shouldBePublished() >> true
         }
         notationParser.parseNotation("attached") >> attachedMavenArtifact
         attachedMavenArtifact.extension >> "jar"
-        attachedMavenArtifact.file >> artifactFile
 
         and:
         def publication = createPublication()
@@ -160,7 +158,6 @@ class DefaultMavenPublicationTest extends Specification {
         }
         notationParser.parseNotation("artifact") >> mavenArtifact
         mavenArtifact.extension >> "ext"
-        mavenArtifact.file >> artifactFile
 
         and:
         def publication = createPublication()

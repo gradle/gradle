@@ -17,6 +17,7 @@
 package org.gradle.internal.file;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 
 import java.io.File;
@@ -66,6 +67,11 @@ public class DefaultFileHierarchySet {
         public FileHierarchySet plus(File rootDir) {
             return new PrefixFileSet(rootDir);
         }
+
+        @Override
+        public String toString() {
+            return "EMPTY";
+        }
     }
 
     private static class PrefixFileSet implements FileHierarchySet {
@@ -82,8 +88,18 @@ public class DefaultFileHierarchySet {
 
         @VisibleForTesting
         List<String> flatten() {
-            List<String> prefixes = new ArrayList<String>();
-            rootNode.collect(0, prefixes);
+            final List<String> prefixes = new ArrayList<String>();
+            rootNode.visitHierarchy(0, new HierarchyVisitor() {
+                @Override
+                public void visitPrefix(int depth, String prefix) {
+                    if (depth == 0) {
+                        prefixes.add(prefix);
+                    } else {
+                        prefixes.add(depth + ":" + prefix.replace(File.separatorChar, '/'));
+                    }
+
+                }
+            });
             return prefixes;
         }
 
@@ -111,6 +127,26 @@ public class DefaultFileHierarchySet {
                 absolutePath = absolutePath.substring(0, absolutePath.length() - 1);
             }
             return absolutePath;
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            rootNode.visitHierarchy(0, new HierarchyVisitor() {
+                private boolean first = true;
+
+                @Override
+                public void visitPrefix(int depth, String prefix) {
+                    if (first) {
+                        first = false;
+                    } else {
+                        builder.append("\n");
+                    }
+                    builder.append(Strings.repeat(" ", depth * 2));
+                    builder.append(prefix);
+                }
+            });
+            return builder.toString();
         }
     }
 
@@ -218,14 +254,10 @@ public class DefaultFileHierarchySet {
             return false;
         }
 
-        public void collect(int depth, List<String> prefixes) {
-            if (depth == 0) {
-                prefixes.add(prefix);
-            } else {
-                prefixes.add(depth + ":" + prefix.replace(File.separatorChar, '/'));
-            }
+        public void visitHierarchy(int depth, HierarchyVisitor visitor) {
+            visitor.visitPrefix(depth, prefix);
             for (Node child : children) {
-                child.collect(depth + 1, prefixes);
+                child.visitHierarchy(depth + 1, visitor);
             }
         }
 
@@ -233,5 +265,9 @@ public class DefaultFileHierarchySet {
         public String toString() {
             return prefix;
         }
+    }
+
+    private interface HierarchyVisitor {
+        void visitPrefix(int depth, String prefix);
     }
 }

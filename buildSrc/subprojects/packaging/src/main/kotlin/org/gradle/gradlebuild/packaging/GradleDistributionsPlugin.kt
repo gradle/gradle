@@ -217,11 +217,7 @@ open class GradleDistributionsPlugin : Plugin<Project> {
         }
 
         // A 'installation' variant providing a folder where the distribution is present in the final format for forked integration testing
-        consumableVariant("${name}Installation", "gradle-$name-installation", Bundling.EMBEDDED, emptyList(), mapOf(
-                // TODO: https://github.com/gradle/gradle/issues/13275: missing property in Sync task - assembleBinDistribution.flatMap(Sync::getDestinationDirectory())
-                "file" to installation.get().destinationDir,
-                "builtBy" to installation)
-        )
+        consumableVariant("${name}Installation", "gradle-$name-installation", Bundling.EMBEDDED, emptyList(), installation)
         // A variant providing the zipped distribution as additional input for tests that test the final distribution or require a distributin as test data
         consumableVariant("${name}DistributionZip", "gradle-$name-distribution-zip", Bundling.EMBEDDED, emptyList(), distributionZip)
     }

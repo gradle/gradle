@@ -18,6 +18,7 @@ package org.gradle.internal.watch
 
 import com.google.common.collect.ImmutableSet
 import org.apache.commons.io.FileUtils
+import org.gradle.cache.GlobalCacheLocations
 import org.gradle.initialization.StartParameterBuildOptions.WatchFileSystemOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
@@ -29,6 +30,7 @@ import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -884,6 +886,16 @@ class FileSystemWatchingIntegrationTest extends AbstractIntegrationSpec implemen
         waitForChangesToBePickedUp()
         then:
         projectDir.delete()
+    }
+
+    def "the caches dir in the Gradle user home is part of the global caches"() {
+        def globalCachesLocation = executer.gradleUserHomeDir.file('caches').absolutePath
+        buildFile << """
+            assert services.get(${GlobalCacheLocations.name}).isInsideGlobalCache('${TextUtil.escapeString(globalCachesLocation)}')
+        """
+
+        expect:
+        succeeds "help"
     }
 
     // This makes sure the next Gradle run starts with a clean BuildOutputCleanupRegistry

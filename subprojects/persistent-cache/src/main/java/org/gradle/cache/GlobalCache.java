@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs;
+package org.gradle.cache;
 
 import java.io.File;
 import java.util.List;
 
 /**
- * Represents a store of cached and immutable files.
+ * Represents a location for global Gradle caches.
  *
- * Over time more files can be added to an additive cache, but existing files
- * can never be modified. Files in additive caches can only be deleted as part
- * of cleanup.
+ * The global cache is managed by Gradle, so we Gradle needs to take care
+ * of informing all the infrastructure about changes to it.
  */
-public interface AdditiveCache {
+public interface GlobalCache {
     /**
-     * Returns the root directories of the additive cache.
+     * Returns the root directories of the global cache.
      */
-    List<File> getAdditiveCacheRoots();
+    List<File> getGlobalCacheRoots();
 }

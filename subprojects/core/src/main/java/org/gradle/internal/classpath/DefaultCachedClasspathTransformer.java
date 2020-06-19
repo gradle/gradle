@@ -18,6 +18,7 @@ package org.gradle.internal.classpath;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -28,7 +29,6 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.vfs.AdditiveCache;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.Closeable;
@@ -52,7 +52,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
     private final VirtualFileSystem virtualFileSystem;
-    private final List<AdditiveCache> otherCaches;
+    private final GlobalCacheLocations globalCacheLocations;
     private final ManagedExecutor executor;
 
     public DefaultCachedClasspathTransformer(
@@ -63,12 +63,12 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         ClasspathBuilder classpathBuilder,
         VirtualFileSystem virtualFileSystem,
         ExecutorFactory executorFactory,
-        List<AdditiveCache> otherCaches
+        GlobalCacheLocations globalCacheLocations
     ) {
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
         this.virtualFileSystem = virtualFileSystem;
-        this.otherCaches = otherCaches;
+        this.globalCacheLocations = globalCacheLocations;
         this.cache = classpathTransformerCacheFactory.createCache(cacheRepository, fileAccessTimeJournal);
         this.fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(fileAccessTimeJournal);
         this.executor = executorFactory.create("jar transforms");
@@ -136,7 +136,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             case BuildLogic:
                 return new InstrumentingClasspathFileTransformer(classpathWalker, classpathBuilder, new InstrumentingTransformer());
             case None:
-                return new CopyingClasspathFileTransformer(otherCaches);
+                return new CopyingClasspathFileTransformer(globalCacheLocations);
             default:
                 throw new IllegalArgumentException();
         }

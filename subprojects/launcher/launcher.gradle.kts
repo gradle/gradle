@@ -5,6 +5,18 @@ plugins {
     gradlebuild.distribution.`api-java`
 }
 
+val manifestClasspath by configurations.creating {
+    isCanBeResolved = true
+    isCanBeConsumed = false
+    isTransitive = false
+
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+    }
+}
+
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":cli"))
@@ -36,6 +48,12 @@ dependencies {
     runtimeOnly(library("commons_io"))
     runtimeOnly(library("commons_lang"))
     runtimeOnly(library("slf4j_api"))
+
+    manifestClasspath(project(":bootstrap"))
+    manifestClasspath(project(":baseServices"))
+    manifestClasspath(project(":coreApi"))
+    manifestClasspath(project(":core"))
+    manifestClasspath(project(":persistentCache"))
 
     testImplementation(project(":internalIntegTesting"))
     testImplementation(project(":native"))
@@ -77,9 +95,11 @@ dependencies {
     integTestRuntimeOnly(files(toolsJar))
 }
 
-tasks.jar {
-    val classpath = listOf(":bootstrap", ":baseServices", ":coreApi", ":core").joinToString(" ") {
-        project(it).tasks.jar.get().archiveFile.get().asFile.name
+tasks.jar.configure {
+    val classpath = manifestClasspath.elements.map { classpathDependency ->
+        classpathDependency.joinToString(" ") {
+            it.asFile.name
+        }
     }
     manifest.attributes("Class-Path" to classpath)
     manifest.attributes("Main-Class" to "org.gradle.launcher.GradleMain")

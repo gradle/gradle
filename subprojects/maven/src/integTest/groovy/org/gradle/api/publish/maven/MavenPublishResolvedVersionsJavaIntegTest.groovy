@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.api.attributes.Category
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenJavaModule
 import spock.lang.Unroll
@@ -26,7 +25,6 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
     MavenJavaModule javaLibrary = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
 
     @Unroll("can publish java-library with dependencies (#apiMapping, #runtimeMapping)")
-    @ToBeFixedForInstantExecution
     def "can publish java-library with dependencies (runtime last)"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -107,13 +105,12 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         where:
         [apiMapping, runtimeMapping] << ([
-                [apiUsingUsage(), apiUsingUsage("fromResolutionOf('compileClasspath')"), apiUsingUsage("fromResolutionOf(project.configurations.compileClasspath)")],
-                [runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')"), runtimeUsingUsage("fromResolutionOf(project.configurations.runtimeClasspath)")],
+            [apiUsingUsage(), apiUsingUsage("fromResolutionOf('compileClasspath')"), apiUsingUsage("fromResolutionOf(project.configurations.compileClasspath)")],
+            [runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')"), runtimeUsingUsage("fromResolutionOf(project.configurations.runtimeClasspath)")],
         ].combinations() + [[allVariants(), noop()]])
     }
 
     @Unroll("can publish java-library with dependencies (#runtimeMapping, #apiMapping)")
-    @ToBeFixedForInstantExecution
     def "can publish java-library with dependencies (runtime first)"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -195,8 +192,8 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         where:
         [apiMapping, runtimeMapping] << ([
-                [apiUsingUsage(), apiUsingUsage("fromResolutionOf('compileClasspath')"), apiUsingUsage("fromResolutionOf(project.configurations.compileClasspath)")],
-                [runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')"), runtimeUsingUsage("fromResolutionOf(project.configurations.runtimeClasspath)")],
+            [apiUsingUsage(), apiUsingUsage("fromResolutionOf('compileClasspath')"), apiUsingUsage("fromResolutionOf(project.configurations.compileClasspath)")],
+            [runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')"), runtimeUsingUsage("fromResolutionOf(project.configurations.runtimeClasspath)")],
         ].combinations() + [[allVariants(), noop()]])
     }
 
@@ -207,7 +204,6 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
      * or when the component is not a Java library and we don't have a default.
      */
     @Unroll("can publish resolved versions from a different configuration (#config)")
-    @ToBeFixedForInstantExecution
     def "can publish resolved versions from a different configuration"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -278,13 +274,12 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         where:
         config << [
-                "fromResolutionOf('extra')",
-                "fromResolutionOf(project.configurations.extra)"
+            "fromResolutionOf('extra')",
+            "fromResolutionOf(project.configurations.extra)"
         ]
     }
 
     @Unroll("can publish resolved versions from dependency constraints (#apiMapping, #runtimeMapping)")
-    @ToBeFixedForInstantExecution
     def "can publish resolved versions from dependency constraints"() {
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
@@ -368,12 +363,11 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         where:
         [apiMapping, runtimeMapping] << ([
-                [apiUsingUsage(), apiUsingUsage("fromResolutionOf('compileClasspath')")],
-                [runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')")]
+            [apiUsingUsage(), apiUsingUsage("fromResolutionOf('compileClasspath')")],
+            [runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')")]
         ].combinations() + [[allVariants(), noop()]])
     }
 
-    @ToBeFixedForInstantExecution
     def "dependency constraints which are unresolved are published as is"() {
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
@@ -450,7 +444,6 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
     }
 
     // This test documents the existing behavior, not necessarily the best one
-    @ToBeFixedForInstantExecution
     def "import scope makes use of runtime classpath"() {
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata()
@@ -529,7 +522,6 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
     // substitution rule (via a plugin for example) that you are not aware of.
     // Ideally we should warn when such things happen (linting).
     @Unroll
-    @ToBeFixedForInstantExecution
     def "substituted dependencies are also substituted in the generated POM file"() {
         javaLibrary(mavenRepo.module("org", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org", "bar", "1.0"))
@@ -546,7 +538,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
             }
 
             $substitution
-            
+
             publishing {
                 publications {
                     maven(MavenPublication) {
@@ -556,7 +548,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
                             ${runtimeUsingUsage()}
                         }
                     }
-            
+
                 }
             }
         """)
@@ -581,7 +573,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         where:
         substitution << [
-                """
+            """
             dependencies {
                 modules {
                     module("org:foo") {
@@ -598,7 +590,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
                 }
             }
             """,
-                """
+            """
             configurations.all {
                 resolutionStrategy.dependencySubstitution {
                     substitute(module('org:foo')).with(module('org:baz:1.0'))
@@ -608,7 +600,6 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         ]
     }
 
-    @ToBeFixedForInstantExecution
     def "can substitute with a project dependency"() {
         given:
         settingsFile << """
@@ -624,7 +615,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
                     substitute(module('org:foo')) with(project(':lib'))
                 }
             }
-            
+
             publishing {
                 publications {
                     maven(MavenPublication) {
@@ -634,14 +625,14 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
                             ${runtimeUsingUsage()}
                         }
                     }
-            
+
                 }
             }
         """)
 
         file("lib/build.gradle") << """
             apply plugin: 'java-library'
-            
+
             group = 'com.acme'
             version = '1.45'
         """
@@ -690,7 +681,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
                 // use for resolving
                 maven { url "${mavenRepo.uri}" }
             }
-            
+
             publishing {
                 repositories {
                     // used for publishing

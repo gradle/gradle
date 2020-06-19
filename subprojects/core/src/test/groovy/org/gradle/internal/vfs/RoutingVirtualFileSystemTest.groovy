@@ -16,6 +16,8 @@
 
 package org.gradle.internal.vfs
 
+import org.gradle.cache.GlobalCache
+import org.gradle.cache.internal.DefaultGlobalCacheLocations
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
@@ -43,10 +45,10 @@ class RoutingVirtualFileSystemTest extends Specification {
 
     def setup() {
         cacheDir = tmpDir.createDir("cache")
-        def fileStore = Stub(AdditiveCache)
-        fileStore.additiveCacheRoots >> [cacheDir]
+        def fileStore = Stub(GlobalCache)
+        fileStore.globalCacheRoots >> [cacheDir]
         routingVirtualFileSystem = new RoutingVirtualFileSystem(
-            new DefaultAdditiveCacheLocations([fileStore]),
+            new DefaultGlobalCacheLocations([fileStore]),
             gradleUserHomeVirtualFileSystem,
             buildSessionScopedVirtualFileSystem,
             { vfsRetained }

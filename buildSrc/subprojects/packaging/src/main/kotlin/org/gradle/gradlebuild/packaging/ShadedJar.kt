@@ -39,16 +39,16 @@ import java.util.jar.JarOutputStream
 open class ShadedJar : DefaultTask() {
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    val relocatedClassesConfiguration = project.files()
+    val relocatedClassesConfiguration = project.objects.fileCollection()
     @PathSensitive(PathSensitivity.NONE)
     @InputFiles
-    val classTreesConfiguration = project.files()
+    val classTreesConfiguration = project.objects.fileCollection()
     @PathSensitive(PathSensitivity.NONE)
     @InputFiles
-    val entryPointsConfiguration = project.files()
+    val entryPointsConfiguration = project.objects.fileCollection()
     @PathSensitive(PathSensitivity.NONE)
     @InputFiles
-    val manifests = project.files()
+    val manifests = project.objects.fileCollection()
 
     /**
      * The build receipt properties file.

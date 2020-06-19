@@ -29,6 +29,7 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.IncubationLogger;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.util.List;
@@ -54,7 +55,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
         String roCache = System.getenv(READONLY_CACHE_ENV_VAR);
         if (StringUtils.isNotEmpty(roCache)) {
             IncubationLogger.incubatingFeatureUsed("Shared read-only dependency cache");
-            File baseDir = validateReadOnlyCache(documentationRegistry, new File(roCache));
+            File baseDir = validateReadOnlyCache(documentationRegistry, new File(roCache).getAbsoluteFile());
             if (baseDir != null) {
                 readOnlyCacheMetadata = new DefaultArtifactCacheMetadata(cacheScopeMapping, baseDir);
                 readOnlyArtifactCacheLockingManager = new ReadOnlyArtifactCacheLockingManager(cacheRepository, readOnlyCacheMetadata);
@@ -68,6 +69,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
         }
     }
 
+    @Nullable
     private static File validateReadOnlyCache(DocumentationRegistry documentationRegistry, File cacheDir) {
         if (!cacheDir.exists()) {
             LOGGER.warn("The read-only dependency cache is disabled because of a configuration problem:");
@@ -106,15 +108,10 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
     }
 
     @Override
-    public List<File> getAdditiveCacheRoots() {
-        ImmutableList.Builder<File> builder = ImmutableList.builderWithExpectedSize(4);
-        builder.add(writableCacheMetadata.getFileStoreDirectory());
-        builder.add(writableCacheMetadata.getTransformsStoreDirectory());
-        if (readOnlyCacheMetadata != null) {
-            builder.add(readOnlyCacheMetadata.getFileStoreDirectory());
-            builder.add(readOnlyCacheMetadata.getTransformsStoreDirectory());
-        }
-        return builder.build();
+    public List<File> getGlobalCacheRoots() {
+        return readOnlyCacheMetadata == null
+            ? ImmutableList.of()
+            : readOnlyCacheMetadata.getGlobalCacheRoots();
     }
 
     @Override

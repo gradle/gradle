@@ -18,7 +18,6 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
@@ -73,7 +72,6 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5510")
-    @ToBeFixedForInstantExecution
     def "task with nested property defined by Java lambda is never up-to-date"() {
         setupTaskClassWithActionProperty()
         def originalClassName = "LambdaActionOriginal"
@@ -82,7 +80,9 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
         file("buildSrc/src/main/java/${changedClassName}.java") << classWithLambda(changedClassName, lambdaWritingFile("ACTION", "changed"))
         buildFile << """
             task myTask(type: TaskWithActionProperty) {
-                action = project.hasProperty("changed") ? ${changedClassName}.ACTION : ${originalClassName}.ACTION
+                action = providers.gradleProperty("changed").forUseAtConfigurationTime().isPresent()
+                    ? ${changedClassName}.ACTION
+                    : ${originalClassName}.ACTION
             }
         """
 
@@ -177,7 +177,6 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5510")
-    @ToBeFixedForInstantExecution
     def "task with Java lambda actions is never up-to-date"() {
         file("buildSrc/src/main/java/LambdaActionOriginal.java") << classWithLambda("LambdaActionOriginal", lambdaPrintingString("ACTION", "From Lambda: original"))
         file("buildSrc/src/main/java/LambdaActionChanged.java") << classWithLambda("LambdaActionChanged", lambdaPrintingString("ACTION", "From Lambda: changed"))
@@ -190,7 +189,11 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
 
         buildFile << script <<
             """
-            myTask.doLast(project.hasProperty("changed") ? LambdaActionChanged.ACTION : LambdaActionOriginal.ACTION)
+            myTask.doLast(
+                providers.gradleProperty("changed").forUseAtConfigurationTime().isPresent()
+                    ? LambdaActionChanged.ACTION
+                    : LambdaActionOriginal.ACTION
+            )
         """
         def outOfDateMessage = { String enclosingClass ->
             "Additional action for task ':myTask': was implemented by the Java lambda '${enclosingClass}\$\$Lambda\$<non-deterministic>'. Using Java lambdas is not supported, use an (anonymous) inner class instead."
