@@ -177,6 +177,14 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.InternalApi",
+            "member": "Class org.gradle.api.InternalApi",
+            "acceptation": "This interface will not be incubating",
+            "changes": [
+                "Interface has been added"
+            ]
         }
     ]
 }
