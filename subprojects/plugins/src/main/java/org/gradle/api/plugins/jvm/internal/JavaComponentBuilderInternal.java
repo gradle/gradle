@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.internal;
+package org.gradle.api.plugins.jvm.internal;
 
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.plugins.JvmEcosystemUtilities;
+import org.gradle.api.capabilities.Capability;
+import org.gradle.api.plugins.jvm.JavaComponentBuilder;
 
-public interface JvmEcosystemUtilitiesInternal extends JvmEcosystemUtilities {
-    void inject(JavaPluginConvention javaConvention, JavaPluginExtension javaPluginExtension, ProjectInternal project);
+public interface JavaComponentBuilderInternal extends JavaComponentBuilder {
+    /**
+     * Explicitly declares a capability provided by this component
+     * @param capability the capability this component provides
+     */
+    JavaComponentBuilder capability(Capability capability);
 }

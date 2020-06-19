@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.internal.support;
 
-import org.gradle.api.capabilities.Capability;
-import org.gradle.api.plugins.JvmEcosystemUtilities;
+/**
+ * This package contains a number of utilities used to facilitate the
+ * integration of Java plugins. It provides the implementation of the
+ * {@link org.gradle.api.plugins.jvm.JvmEcosystemUtilities} service.
+ */
+@NonNullApi
+package org.gradle.api.plugins.jvm.internal;
 
-public interface JavaComponentBuilderInternal extends JvmEcosystemUtilities.JavaComponentBuilder {
-    /**
-     * Explicitly declares a capability provided by this component
-     * @param capability the capability this component provides
-     */
-    JvmEcosystemUtilities.JavaComponentBuilder capability(Capability capability);
-}
+import org.gradle.api.NonNullApi;

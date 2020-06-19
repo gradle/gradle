@@ -42,6 +42,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -271,13 +272,15 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
     private final ObjectFactory objectFactory;
     private final SoftwareComponentFactory softwareComponentFactory;
-    private final JvmEcosystemUtilities jvmEcosystemUtilities;
+    private final JvmPluginServices jvmServices;
 
     @Inject
-    public JavaPlugin(ObjectFactory objectFactory, SoftwareComponentFactory softwareComponentFactory, JvmEcosystemUtilities jvmEcosystemUtilities) {
+    public JavaPlugin(ObjectFactory objectFactory,
+                      SoftwareComponentFactory softwareComponentFactory,
+                      JvmPluginServices jvmServices) {
         this.objectFactory = objectFactory;
         this.softwareComponentFactory = softwareComponentFactory;
-        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
+        this.jvmServices = jvmServices;
     }
 
     @Override
@@ -382,7 +385,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.JAR_TYPE);
 
         // Define some additional variants
-        jvmEcosystemUtilities.configureClassesDirectoryVariant(sourceSet.getRuntimeElementsConfigurationName(), sourceSet);
+        jvmServices.configureClassesDirectoryVariant(sourceSet.getRuntimeElementsConfigurationName(), sourceSet);
         NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();
         ConfigurationVariant resourcesVariant = runtimeVariants.create("resources");
         resourcesVariant.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
@@ -436,13 +439,13 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         SourceSet main = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
 
-        final DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) jvmEcosystemUtilities.createOutgoingElements(API_ELEMENTS_CONFIGURATION_NAME,
+        final DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(API_ELEMENTS_CONFIGURATION_NAME,
             builder -> builder.fromSourceSet(main)
                 .providesApi()
                 .withDescription("API elements for main.")
                 .extendsFrom(runtimeConfiguration));
 
-        final DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) jvmEcosystemUtilities.createOutgoingElements(RUNTIME_ELEMENTS_CONFIGURATION_NAME,
+        final DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(RUNTIME_ELEMENTS_CONFIGURATION_NAME,
             builder -> builder.fromSourceSet(main)
                 .providesRuntime()
                 .withDescription("Elements of runtime for main.")

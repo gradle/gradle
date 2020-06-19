@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.internal.support;
+package org.gradle.api.plugins.jvm.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -40,8 +40,11 @@ import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.plugins.internal.JvmEcosystemUtilitiesInternal;
+import org.gradle.api.plugins.jvm.JavaComponentBuilder;
+import org.gradle.api.plugins.jvm.JvmEcosystemAttributesDetails;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.jvm.OutgoingElementsBuilder;
+import org.gradle.api.plugins.jvm.ResolvableGraphBuilder;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -59,7 +62,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesInternal {
+public class DefaultJvmPluginServices implements JvmPluginServices {
     private final ConfigurationContainer configurations;
     private final ObjectFactory objectFactory;
     private final TaskContainer tasks;
@@ -72,11 +75,11 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
     private ProjectInternal project; // would be great to avoid this but for lazy capabilities it's hard to avoid!
 
     @Inject
-    public DefaultJvmEcosystemUtilities(ConfigurationContainer configurations,
-                                        ObjectFactory objectFactory,
-                                        TaskContainer tasks,
-                                        SoftwareComponentContainer components,
-                                        InstanceGenerator instanceGenerator) {
+    public DefaultJvmPluginServices(ConfigurationContainer configurations,
+                                    ObjectFactory objectFactory,
+                                    TaskContainer tasks,
+                                    SoftwareComponentContainer components,
+                                    InstanceGenerator instanceGenerator) {
         this.configurations = configurations;
         this.objectFactory = objectFactory;
         this.tasks = tasks;
@@ -90,27 +93,6 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
         this.javaPluginExtension = javaPluginExtension;
         this.project = project;
         this.sourceSets = javaConvention.getSourceSets();
-    }
-
-    @Override
-    public Configuration addApiToSourceSet(SourceSet sourceSet) {
-        Configuration apiConfiguration = configurations.maybeCreate(sourceSet.getApiConfigurationName());
-        apiConfiguration.setVisible(false);
-        apiConfiguration.setDescription("API dependencies for " + sourceSet + ".");
-        apiConfiguration.setCanBeResolved(false);
-        apiConfiguration.setCanBeConsumed(false);
-
-        Configuration apiElementsConfiguration = configurations.getByName(sourceSet.getApiElementsConfigurationName());
-        apiElementsConfiguration.extendsFrom(apiConfiguration);
-
-        Configuration implementationConfiguration = configurations.getByName(sourceSet.getImplementationConfigurationName());
-        implementationConfiguration.extendsFrom(apiConfiguration);
-
-        @SuppressWarnings("deprecation")
-        Configuration compileConfiguration = configurations.getByName(sourceSet.getCompileConfigurationName());
-        apiConfiguration.extendsFrom(compileConfiguration);
-
-        return apiConfiguration;
     }
 
     @Override
@@ -259,7 +241,7 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
         private boolean published;
 
         @Inject
-        public DefaultElementsConfigurationBuilder(String name, JvmEcosystemUtilitiesInternal jvmEcosystemUtilities, ConfigurationContainer configurations, SoftwareComponentContainer components) {
+        public DefaultElementsConfigurationBuilder(String name, JvmPluginServices jvmEcosystemUtilities, ConfigurationContainer configurations, SoftwareComponentContainer components) {
             super(name, jvmEcosystemUtilities, configurations);
             this.components = components;
         }
@@ -385,7 +367,7 @@ public class DefaultJvmEcosystemUtilities implements JvmEcosystemUtilitiesIntern
 
         @Inject
         public DefaultResolvableGraphBuilder(String name,
-                                             JvmEcosystemUtilitiesInternal jvmEcosystemUtilities,
+                                             JvmPluginServices jvmEcosystemUtilities,
                                              ConfigurationContainer configurations) {
             super(name, jvmEcosystemUtilities, configurations);
         }

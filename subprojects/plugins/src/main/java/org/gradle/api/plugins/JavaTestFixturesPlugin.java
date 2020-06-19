@@ -21,6 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.plugins.jvm.JvmModelingServices;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 
@@ -28,7 +29,8 @@ import javax.inject.Inject;
 
 import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME;
-import static org.gradle.internal.component.external.model.TestFixturesSupport.*;
+import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_API;
+import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_FEATURE_NAME;
 
 /**
  * Adds support for producing test fixtures. This plugin will automatically
@@ -44,11 +46,11 @@ import static org.gradle.internal.component.external.model.TestFixturesSupport.*
 @Incubating
 public class JavaTestFixturesPlugin implements Plugin<Project> {
 
-    private final JvmEcosystemUtilities jvmEcosystemUtilities;
+    private final JvmModelingServices jvmEcosystemUtilities;
 
     @Inject
-    public JavaTestFixturesPlugin(JvmEcosystemUtilities jvmEcosystemUtilities) {
-        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
+    public JavaTestFixturesPlugin(JvmModelingServices jvmModelingServices) {
+        this.jvmEcosystemUtilities = jvmModelingServices;
     }
 
     @Override
@@ -80,10 +82,6 @@ public class JavaTestFixturesPlugin implements Plugin<Project> {
 
     private SourceSet findTestSourceSet(JavaPluginConvention convention) {
         return convention.getSourceSets().getByName("test");
-    }
-
-    private JavaPluginExtension findJavaPluginExtension(Project project) {
-        return project.getExtensions().getByType(JavaPluginExtension.class);
     }
 
     private JavaPluginConvention findJavaConvention(Project project) {

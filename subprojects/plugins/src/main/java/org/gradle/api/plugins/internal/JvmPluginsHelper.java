@@ -69,6 +69,32 @@ import java.util.concurrent.Callable;
  */
 public class JvmPluginsHelper {
 
+    /**
+     * Adds an API configuration to a source set, so that API dependencies
+     * can be declared.
+     * @param sourceSet the source set to add an API for
+     * @return the created API configuration
+     */
+    public static Configuration addApiToSourceSet(SourceSet sourceSet, ConfigurationContainer configurations) {
+        Configuration apiConfiguration = configurations.maybeCreate(sourceSet.getApiConfigurationName());
+        apiConfiguration.setVisible(false);
+        apiConfiguration.setDescription("API dependencies for " + sourceSet + ".");
+        apiConfiguration.setCanBeResolved(false);
+        apiConfiguration.setCanBeConsumed(false);
+
+        Configuration apiElementsConfiguration = configurations.getByName(sourceSet.getApiElementsConfigurationName());
+        apiElementsConfiguration.extendsFrom(apiConfiguration);
+
+        Configuration implementationConfiguration = configurations.getByName(sourceSet.getImplementationConfigurationName());
+        implementationConfiguration.extendsFrom(apiConfiguration);
+
+        @SuppressWarnings("deprecation")
+        Configuration compileConfiguration = configurations.getByName(sourceSet.getCompileConfigurationName());
+        apiConfiguration.extendsFrom(compileConfiguration);
+
+        return apiConfiguration;
+    }
+
     public static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, CompileOptions options, final Project target) {
         configureForSourceSet(sourceSet, sourceDirectorySet, compile, target);
         configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, options, target);
