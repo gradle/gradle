@@ -233,8 +233,8 @@ Combining these two ways you can enable globally and disable for certain run con
 == Supported plugins
 
 The configuration cache is brand new and introduces new requirements for plugin implementations.
-As a result, both core Gradle plugins, and third party plugins need to be adjusted.
-This section provides information about the current support in <<configuration_cache#core_plugins, core Gradle plugins>> and <<configuration_cache#third_party_plugins, third party plugins>>.
+As a result, both core Gradle plugins, and community plugins need to be adjusted.
+This section provides information about the current support in <<configuration_cache#core_plugins, core Gradle plugins>> and <<configuration_cache#community_plugins, community plugins>>.
 
 [[core_plugins]]
 === Core Gradle plugins
@@ -311,10 +311,10 @@ link:{gradle-issues}13473[[.red]#✖#]:: <<project_report_plugin.adoc#project_re
 [.red]#✖#:: Unsupported plugin
 [.gray]#✖#:: Won't fix
 
-[[third_party_plugins]]
-=== Third party plugins
+[[community_plugins]]
+=== Community plugins
 
-Please refer to issue link:{gradle-issues}13490[gradle/gradle#13490] to learn about the status of third party plugins.
+Please refer to issue link:{gradle-issues}13490[gradle/gradle#13490] to learn about the status of community plugins.
 
 [[troubleshooting]]
 == Troubleshooting
