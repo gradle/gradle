@@ -176,13 +176,6 @@ open class ShadedJarPlugin : Plugin<Project> {
 
     private
     fun Project.addShadedJarVariant(shadedJarTask: TaskProvider<ShadedJar>) {
-        val shadedJarArtifact = mapOf(
-            "file" to shadedJarTask.get().jarFile.get().asFile,
-            "name" to base.archivesBaseName,
-            "type" to "jar",
-            "builtBy" to shadedJarTask
-        )
-
         val implementation by configurations
         val shadedImplementation by configurations.creating {
             isCanBeResolved = false
@@ -201,7 +194,10 @@ open class ShadedJarPlugin : Plugin<Project> {
                 attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
             }
             extendsFrom(shadedImplementation)
-            outgoing.artifact(shadedJarArtifact)
+            outgoing.artifact(shadedJarTask) {
+                name = base.archivesBaseName
+                type ="jar"
+            }
         }
 
         // publish only the shaded variant

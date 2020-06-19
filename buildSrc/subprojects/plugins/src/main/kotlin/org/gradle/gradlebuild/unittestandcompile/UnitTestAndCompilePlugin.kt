@@ -143,7 +143,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             this.externalDependencies.from(runtimeClasspath.fileCollection { it is ExternalDependency })
             this.manifestFile.set(gradlebuildJava.generatedResourcesDir.file("${base.archivesBaseName}-classpath.properties"))
         }
-        java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
+        java.sourceSets["main"].output.dir(gradlebuildJava.generatedResourcesDir, "builtBy" to classpathManifest)
     }
 
     private
