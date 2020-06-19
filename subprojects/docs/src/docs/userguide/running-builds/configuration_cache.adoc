@@ -231,7 +231,7 @@ Combining these two ways you can enable globally and disable for certain run con
 [[plugin_support]]
 == Supported plugins
 
-The configuration cache is brand new and has strong requirements.
+The configuration cache is brand new and introduces new requirements for plugin implementations.
 As a result, both core Gradle plugins, and third party plugins need to be adjusted.
 This section provides information about the current support in <<configuration_cache#core_plugins, core Gradle plugins>> and <<configuration_cache#third_party_plugins, third party plugins>>.
 
@@ -323,7 +323,7 @@ This applies to both your build logic and to your Gradle plugins.
 
 Upon failure to serialize the state required to run the tasks, an HTML report of detected problems is generated.
 The Gradle failure output includes a clickable link to the report.
-This report is useful and allows to drill down into problems, understand what is causing them.
+This report is useful and allows you to drill down into problems, understand what is causing them.
 
 Let's look at a simple example build script that contains a couple problems:
 
@@ -346,9 +346,9 @@ Configuration cache entry stored.
 Details can be found in the linked HTML report.
 The report displays the set of problems twice.
 First grouped by problem message, then grouped by task.
-The former allows to quickly see what classes of problems your build is facing.
-The latter allows to quickly see which tasks are problematic.
-In both cases you can expand the tree in order to discover where in the object graph is the culprit.
+The former allows you to quickly see what classes of problems your build is facing.
+The latter allows you to quickly see which tasks are problematic.
+In both cases you can expand the tree in order to discover where the culprit is in the object graph.
 
 [TIP]
 ====
@@ -403,7 +403,7 @@ Configuration cache entry stored.
 ----
 
 The previous configuration cache entry could not be reused, and the task graph had to be calculated again.
-This is because we read the system property at configuration time, hence requiring to run the configuration phase again when the value of that property changes.
+This is because we read the system property at configuration time, hence requiring Gradle to run the configuration phase again when the value of that property changes.
 Fixing that is as simple as wiring the system property directly, without reading it at configuration time.
 
 ====
@@ -511,7 +511,7 @@ These types fall into some categories as follows:
 * Gradle model types
 * Dependency management types
 
-Live JVM state types (e.g. `ClassLoader`, `Thread`, `OutputStream`, `Socket` etc...) are simply forbidden.
+Live JVM state types (e.g. `ClassLoader`, `Thread`, `OutputStream`, `Socket` etc...) are simply disallowed.
 
 Gradle model types (e.g. `Gradle`, `Settings`, `Project`, `SourceSet`, `Configuration` etc...) are usually used to carry some task input that should be explicitly and precisely declared instead.
 
@@ -521,12 +521,12 @@ You should instead declare these as a `FileCollection` input and reference just 
 
 The same requirement applies to dependency management types with some nuances.
 
-Referencing heavyweight model objects such as `Configuration`, `Dependency`, `Publication` or `ArtifactResolutionQuery` is forbidden, more precise types must be used instead.
+Referencing heavyweight model objects such as `Configuration`, `Dependency`, `Publication` or `ArtifactResolutionQuery` is disallowed, more precise types must be used instead.
 For example, if you reference a `Configuration` to later get the resolved files, you should instead declare a `FileCollection` as an input to your task.
 
-Referencing dependency resolution results is also forbidden (e.g. `ArtifactResolutionQuery`, `ResolvedArtifact`, `ArtifactResult` etc...).
+Referencing dependency resolution results is also disallowed (e.g. `ArtifactResolutionQuery`, `ResolvedArtifact`, `ArtifactResult` etc...).
 For example, if you reference some `ResolvedArtifactResult` instances, you should instead declare some `ArtifactCollection` as an input to your task.
-The rule of thumb here is that tasks must not reference _resolved_ results, but lazy specifications instead, in order to do the dependency resolution at execution time.
+The rule of thumb is that tasks must not reference _resolved_ results, but lazy specifications instead, in order to do the dependency resolution at execution time.
 
 Here's an example of a problematic task type referencing a `SourceSet`:
 
@@ -561,7 +561,7 @@ include::sample[dir="snippets/configurationCache/disallowedTypesFixed/kotlin",fi
 ====
 <1> no more problems reported, the `doLast {}` closure now only captures `classpath` which is of the supported `FileCollection` type
 
-Note that sometime the disallowed type is indirectly referenced.
+Note that sometimes the disallowed type is indirectly referenced.
 For example, you could have a task reference some type from a plugin that is allowed.
 That type could reference another allowed type that in turn references a disallowed type.
 The hierarchical view of the object graph provided in the HTML reports for problems should help you pinpoint the offender.
