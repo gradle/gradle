@@ -51,6 +51,7 @@ import org.gradle.instantexecution.serialization.ownerServiceCodec
 import org.gradle.instantexecution.serialization.reentrant
 import org.gradle.internal.Factory
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
@@ -180,6 +181,7 @@ class Codecs(
         bind(ownerServiceCodec<BuildRequestMetaData>())
         bind(ownerServiceCodec<ListenerManager>())
         bind(ownerServiceCodec<TemporaryFileProvider>())
+        bind(ownerServiceCodec<OutputChangeListener>())
         bind(ServicesCodec())
 
         bind(ProxyCodec)
