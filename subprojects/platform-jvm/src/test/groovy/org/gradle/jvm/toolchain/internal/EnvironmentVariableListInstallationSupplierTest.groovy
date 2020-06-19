@@ -54,7 +54,7 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
         def directories = supplier.get()
 
         then:
-        directories == [new File("/path/jdk8")] as Set
+        directories*.location.absolutePath == [new File("/path/jdk8")]
     }
 
     def "supplies multiple installations for multiple paths"() {
@@ -65,7 +65,7 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
         def directories = supplier.get()
 
         then:
-        directories == [new File("/path/jdk8"), new File("/path/jdk9")] as Set
+        directories.sort()*.location.absolutePath == ["/path/jdk8", "/path/jdk9"]
     }
 
     @Unroll

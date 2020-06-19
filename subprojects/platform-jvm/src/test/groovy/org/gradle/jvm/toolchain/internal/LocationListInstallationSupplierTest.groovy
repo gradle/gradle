@@ -66,7 +66,7 @@ class LocationListInstallationSupplierTest extends Specification {
         def directories = supplier.get()
 
         then:
-        directories == [new File("/foo/bar")] as Set
+        directories*.location == [new File("/foo/bar")]
     }
 
     def "uses org_gradle_java_installations_paths as source"() {
@@ -76,7 +76,7 @@ class LocationListInstallationSupplierTest extends Specification {
         def directories = supplier.get()
 
         then:
-        directories == [new File("/foo/bar")] as Set
+        directories*.location == [new File("/foo/bar")]
     }
 
     def "supplies multiple installations for multiple paths"() {
@@ -87,7 +87,7 @@ class LocationListInstallationSupplierTest extends Specification {
         def directories = supplier.get()
 
         then:
-        directories == [new File("/foo/bar"), new File("/foo/123")] as Set
+        directories*.location.sort() == [new File("/foo/123"), new File("/foo/bar")]
     }
 
     @Unroll

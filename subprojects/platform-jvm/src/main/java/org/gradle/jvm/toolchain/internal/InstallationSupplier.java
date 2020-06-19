@@ -16,9 +16,9 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import java.io.File;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public interface InstallationSupplier extends Supplier<Set<File>> {
+public interface InstallationSupplier extends Supplier<Set<InstallationLocation>> {
+
 }

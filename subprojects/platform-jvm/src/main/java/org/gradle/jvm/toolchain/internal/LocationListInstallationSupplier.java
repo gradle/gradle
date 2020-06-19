@@ -48,11 +48,12 @@ public class LocationListInstallationSupplier implements InstallationSupplier {
     }
 
     @Override
-    public Set<File> get() {
-        final Provider<String> property = factory.gradleProperty("org.gradle.java.installations.paths").forUseAtConfigurationTime();
+    public Set<InstallationLocation> get() {
+        final String propertyName = "org.gradle.java.installations.paths";
+        final Provider<String> property = factory.gradleProperty(propertyName).forUseAtConfigurationTime();
         if (property.isPresent()) {
             final String listOfDirectories = property.get();
-            return Arrays.stream(listOfDirectories.split(",")).map(File::new).filter(this::pathMayBeValid).collect(Collectors.toSet());
+            return Arrays.stream(listOfDirectories.split(",")).map(File::new).filter(this::pathMayBeValid).map(file -> new InstallationLocation(file, "system property '" + propertyName + "'")).collect(Collectors.toSet());
         }
         return Collections.emptySet();
     }

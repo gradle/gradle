@@ -49,7 +49,7 @@ public class EnvironmentVariableListInstallationSupplier implements Installation
     }
 
     @Override
-    public Set<File> get() {
+    public Set<InstallationLocation> get() {
         final Provider<String> property = factory.gradleProperty("org.gradle.java.installations.fromEnv").forUseAtConfigurationTime();
         if (property.isPresent()) {
             final String listOfEnvironmentVariables = property.get();
@@ -63,11 +63,11 @@ public class EnvironmentVariableListInstallationSupplier implements Installation
     }
 
 
-    private Optional<File> resolveEnvironmentVariable(String environmentVariable) {
+    private Optional<InstallationLocation> resolveEnvironmentVariable(String environmentVariable) {
         final String value = factory.environmentVariable(environmentVariable).forUseAtConfigurationTime().get();
         final File file = new File(value);
         if (pathMayBeValid(file, environmentVariable)) {
-            return Optional.of(file);
+            return Optional.of(new InstallationLocation(file, "environment variable '" + environmentVariable + "'"));
         }
         return Optional.empty();
     }
