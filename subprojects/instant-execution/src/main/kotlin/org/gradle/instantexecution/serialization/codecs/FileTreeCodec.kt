@@ -42,7 +42,6 @@ import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
 import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import java.io.File
-import java.nio.file.Files
 
 
 private
@@ -66,29 +65,7 @@ class TarTreeSpec(val file: File) : FileTreeSpec()
 
 
 private
-class GeneratedTreeSpec(val file: File) : FileTreeSpec()
-
-
-private
-class DummyGeneratedFileTree(file: File, fileSystem: FileSystem) : GeneratedSingletonFileTree(
-    { file.parentFile },
-    file.name,
-    {},
-    { outStr ->
-        if (!file.exists()) {
-            // Generate some dummy content if the file does not exist
-            // TODO - rework this so that content is generated into some fixed workspace location and reused from there
-            file.parentFile.mkdirs()
-            file.writeText("")
-        }
-        Files.copy(file.toPath(), outStr)
-    },
-    fileSystem
-) {
-    override fun getDisplayName(): String {
-        return "generated ${file.name}"
-    }
-}
+class GeneratedTreeSpec(val spec: GeneratedSingletonFileTree.Spec) : FileTreeSpec()
 
 
 internal
@@ -112,7 +89,9 @@ class FileTreeCodec(
                 when (it) {
                     is WrappedFileCollectionTreeSpec -> it.collection.asFileTree as FileTreeInternal
                     is DirectoryTreeSpec -> fileCollectionFactory.treeOf(directoryFileTreeFactory.create(it.file, it.patterns))
-                    is GeneratedTreeSpec -> fileCollectionFactory.treeOf(DummyGeneratedFileTree(it.file, fileSystem))
+                    is GeneratedTreeSpec -> it.spec.run {
+                        fileCollectionFactory.generated(tmpDir, fileName, fileGenerationListener, contentGenerator)
+                    }
                     is ZipTreeSpec -> fileOperations.zipTree(it.file) as FileTreeInternal
                     is TarTreeSpec -> fileOperations.tarTree(it.file) as FileTreeInternal
                 }
@@ -169,9 +148,7 @@ class FileTreeCodec(
             if (fileTree is FileTreeAdapter) {
                 val sourceTree = fileTree.tree
                 if (sourceTree is GeneratedSingletonFileTree) {
-                    // TODO - should generate the file into some persistent cache dir (eg the instant execution cache dir) and/or persist enough of the generator to recreate the file
-                    // For example, for the Jar task persist the effective manifest (not all the stuff that produces it) and an action bean to generate the file from this
-                    roots.add(GeneratedTreeSpec(sourceTree.file))
+                    roots.add(GeneratedTreeSpec(sourceTree.toSpec()))
                     return
                 }
             }
