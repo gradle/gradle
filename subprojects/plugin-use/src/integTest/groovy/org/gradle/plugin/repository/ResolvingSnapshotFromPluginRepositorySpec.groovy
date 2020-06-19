@@ -17,14 +17,12 @@
 package org.gradle.plugin.repository
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 @LeaksFileHandles
 class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolutionTest {
-
 
     private publishTestPlugin() {
         publishTestPlugin(mavenRepo)
@@ -53,7 +51,6 @@ class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolu
         """
     }
 
-    @ToBeFixedForInstantExecution
     def 'Can specify snapshot version'() {
         given:
         publishTestPlugin()
@@ -76,7 +73,6 @@ class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolu
         output.contains("I'm here")
     }
 
-    @ToBeFixedForInstantExecution
     def 'setting different snapshot version in resolutionStrategy will affect plugin choice'() {
         given:
         publishTestPlugin()
@@ -105,7 +101,6 @@ class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolu
         output.contains("I'm here")
     }
 
-    @ToBeFixedForInstantExecution
     def 'can specify a snapshot artifact to use'() {
         given:
         publishTestPlugin()
