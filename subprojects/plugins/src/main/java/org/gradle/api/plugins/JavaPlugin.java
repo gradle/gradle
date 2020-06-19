@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
@@ -62,7 +61,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.concurrent.Callable;
 
 import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE;
 import static org.gradle.api.attributes.Bundling.EXTERNAL;
@@ -303,7 +301,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
 
         configureSourceSets(javaConvention, buildOutputCleanupRegistry);
-        configureConfigurations(project, javaPluginExtension, javaConvention);
+        configureConfigurations(project, javaConvention);
 
         configureTest(project, javaPluginExtension, javaConvention);
         configureJavadocTask(project, javaPluginExtension, javaConvention);
@@ -404,58 +402,33 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureBuild(Project project) {
-        project.getTasks().named(JavaBasePlugin.BUILD_NEEDED_TASK_NAME, new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                addDependsOnTaskInOtherProjects(task, true,
-                        JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
-            }
+        project.getTasks().named(JavaBasePlugin.BUILD_NEEDED_TASK_NAME, task -> {
+            addDependsOnTaskInOtherProjects(task, true,
+                JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
         });
-        project.getTasks().named(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                addDependsOnTaskInOtherProjects(task, false,
-                        JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
-            }
+        project.getTasks().named(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, task -> {
+            addDependsOnTaskInOtherProjects(task, false,
+                JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
         });
     }
 
     private void configureTest(Project project, JavaPluginExtension javaPluginExtension, JavaPluginConvention pluginConvention) {
-        project.getTasks().withType(Test.class).configureEach(new Action<Test>() {
-            @Override
-            public void execute(final Test test) {
-                test.getConventionMapping().map("testClassesDirs", new Callable<Object>() {
-                    @Override
-                    public Object call() throws Exception {
-                        return sourceSetOf(pluginConvention, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs();
-                    }
-                });
-                test.getConventionMapping().map("classpath", new Callable<Object>() {
-                    @Override
-                    public Object call() throws Exception {
-                        return sourceSetOf(pluginConvention, SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath();
-                    }
-                });
-                test.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
-            }
+        project.getTasks().withType(Test.class).configureEach(test -> {
+            test.getConventionMapping().map("testClassesDirs", () -> sourceSetOf(pluginConvention, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
+            test.getConventionMapping().map("classpath", () -> sourceSetOf(pluginConvention, SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath());
+            test.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
         });
 
-        final Provider<Test> test = project.getTasks().register(TEST_TASK_NAME, Test.class, new Action<Test>() {
-            @Override
-            public void execute(Test test) {
-                test.setDescription("Runs the unit tests.");
-                test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
-            }
+        final Provider<Test> test = project.getTasks().register(TEST_TASK_NAME, Test.class, testTask -> {
+            testTask.setDescription("Runs the unit tests.");
+            testTask.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
         });
-        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                task.dependsOn(test);
-            }
+        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> {
+            task.dependsOn(test);
         });
     }
 
-    private void configureConfigurations(Project project, JavaPluginExtension extension, JavaPluginConvention convention) {
+    private void configureConfigurations(Project project, JavaPluginConvention convention) {
         ConfigurationContainer configurations = project.getConfigurations();
 
         Configuration defaultConfiguration = configurations.getByName(Dependency.DEFAULT_CONFIGURATION);
