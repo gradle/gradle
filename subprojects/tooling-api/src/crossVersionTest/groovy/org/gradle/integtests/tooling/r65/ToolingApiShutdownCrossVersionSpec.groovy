@@ -201,6 +201,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         build.forTasks('hang').withCancellationToken(cancellation.token()).run(resultHandler)
         sync.waitForAllPendingCalls(resultHandler)
         cancellation.cancel()
+        Thread.sleep(200) // The daemon seems to drop messages arriving the same time
         connector.disconnect()
         resultHandler.finished()
 
@@ -230,6 +231,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         build.forTasks('hang').withCancellationToken(cancellation.token()).run(resultHandler)
         sync.waitForAllPendingCalls(resultHandler)
         connector.disconnect()
+        Thread.sleep(200) // The daemon seems to drop messages arriving the same time
         cancellation.cancel()
         resultHandler.finished()
 
