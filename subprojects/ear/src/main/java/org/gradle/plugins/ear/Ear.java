@@ -74,12 +74,11 @@ public class Ear extends Jar {
             (Callable<String>) () -> GUtil.elvis(getLibDirName(), DEFAULT_LIB_DIR_NAME)
         );
         getMainSpec().appendCachingSafeCopyAction(details -> {
-                if (generateDeploymentDescriptor.get()) {
-                    checkIfShouldGenerateDeploymentDescriptor(details);
-                    recordTopLevelModules(details);
-                }
+            if (generateDeploymentDescriptor.get()) {
+                checkIfShouldGenerateDeploymentDescriptor(details);
+                recordTopLevelModules(details);
             }
-        );
+        });
 
         // create our own metaInf which runs after mainSpec's files
         // this allows us to generate the deployment descriptor after recording all modules it contains
