@@ -13,10 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package gradlebuild.internal
 
-plugins {
-    id("kotlin2js")
-    id("gradlebuild.repositories")
-    id("gradlebuild.unittest-and-compile")
+import spock.lang.Specification
+
+import java.io.File
+
+
+class StagedDevelopmentReportTest extends Specification {
+
+    def "development report is staged"() {
+        given:
+        def stageDir = new File("build/stageDevReport")
+
+        expect:
+        stageDir.isDirectory()
+        new File(stageDir, "configuration-cache-report.html").isFile()
+        new File(stageDir, "configuration-cache-report-data.js").isFile()
+    }
 }

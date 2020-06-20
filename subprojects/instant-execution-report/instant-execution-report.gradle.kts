@@ -65,11 +65,14 @@ tasks {
         dependsOn(assembleReport)
     }
 
-    // See README
-    register<Sync>("stageDevReport") {
+    val stageDevReport by registering(Sync::class) {
         from(assembleReport)
         from(processTestResources)
         into("$buildDir/$name")
+    }
+
+    test {
+        inputs.dir(stageDevReport.map { it.destinationDir })
     }
 }
 
