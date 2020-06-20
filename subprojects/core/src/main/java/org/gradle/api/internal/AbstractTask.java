@@ -75,6 +75,7 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.SharedResource;
 import org.gradle.internal.scripts.ScriptOrigin;
+import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.util.ConfigureUtil;
@@ -94,6 +95,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.factory;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 /**
@@ -607,12 +609,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     // note: this method is on TaskInternal
     @Override
     public Factory<File> getTemporaryDirFactory() {
-        return new Factory<File>() {
-            @Override
-            public File create() {
-                return getTemporaryDir();
-            }
-        };
+        // Cached during serialization so it can be isolated from this task
+        final Cached<File> temporaryDir = Cached.of(this::getTemporaryDir);
+        return factory(temporaryDir::get);
     }
 
     private InputChangesAwareTaskAction convertClosureToAction(Closure actionClosure, String actionName) {

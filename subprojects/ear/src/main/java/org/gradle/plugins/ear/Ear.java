@@ -32,7 +32,9 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.serialization.Cached;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.EarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
@@ -43,11 +45,13 @@ import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.Collections;
 import java.util.concurrent.Callable;
 
+import static java.util.Collections.singleton;
 import static org.gradle.plugins.ear.EarPlugin.DEFAULT_LIB_DIR_NAME;
 
 /**
@@ -70,19 +74,16 @@ public class Ear extends Jar {
             (Callable<String>) () -> GUtil.elvis(getLibDirName(), DEFAULT_LIB_DIR_NAME)
         );
         getMainSpec().appendCachingSafeCopyAction(details -> {
-                if(generateDeploymentDescriptor.get()) {
-                    checkIfShouldGenerateDeploymentDescriptor(details);
-                    recordTopLevelModules(details);
-                }
+            if (generateDeploymentDescriptor.get()) {
+                checkIfShouldGenerateDeploymentDescriptor(details);
+                recordTopLevelModules(details);
             }
-        );
+        });
 
         // create our own metaInf which runs after mainSpec's files
         // this allows us to generate the deployment descriptor after recording all modules it contains
         CopySpecInternal metaInf = (CopySpecInternal) getMainSpec().addChild().into("META-INF");
         CopySpecInternal descriptorChild = metaInf.addChild();
-        OutputChangeListener outputChangeListener = getServices().get(OutputChangeListener.class);
-        FileCollectionFactory fileCollectionFactory = getServices().get(FileCollectionFactory.class);
         descriptorChild.from((Callable<FileTree>) () -> {
             final DeploymentDescriptor descriptor = getDeploymentDescriptor();
 
@@ -95,16 +96,45 @@ public class Ear extends Jar {
                 if (descriptorFileName.contains("/") || descriptorFileName.contains(File.separator)) {
                     throw new InvalidUserDataException("Deployment descriptor file name must be a simple name but was " + descriptorFileName);
                 }
-                return fileCollectionFactory.generated(
+
+                // TODO: Consider capturing the `descriptor` as a spec
+                //  so any captured manifest attribute providers are re-evaluated
+                //  on each run.
+                //  See https://github.com/gradle/instant-execution/issues/168
+                Cached<byte[]> cachedDescriptor = cachedContentsOf(descriptor);
+                final OutputChangeListener outputChangeListener = outputChangeListener();
+                return fileCollectionFactory().generated(
                     getTemporaryDirFactory(),
                     descriptorFileName,
-                    file -> outputChangeListener.beforeOutputChange(Collections.singleton(file.getAbsolutePath())),
-                    outputStream -> descriptor.writeTo(new OutputStreamWriter(outputStream))
+                    file -> outputChangeListener.beforeOutputChange(singleton(file.getAbsolutePath())),
+                    outputStream -> {
+                        try {
+                            outputStream.write(cachedDescriptor.get());
+                        } catch (IOException e) {
+                            throw UncheckedException.throwAsUncheckedException(e);
+                        }
+                    }
                 );
             }
 
             return null;
         });
+    }
+
+    private Cached<byte[]> cachedContentsOf(DeploymentDescriptor descriptor) {
+        return Cached.of(() -> {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            descriptor.writeTo(new OutputStreamWriter(bytes));
+            return bytes.toByteArray();
+        });
+    }
+
+    private FileCollectionFactory fileCollectionFactory() {
+        return getServices().get(FileCollectionFactory.class);
+    }
+
+    private OutputChangeListener outputChangeListener() {
+        return getServices().get(OutputChangeListener.class);
     }
 
     private void recordTopLevelModules(FileCopyDetails details) {

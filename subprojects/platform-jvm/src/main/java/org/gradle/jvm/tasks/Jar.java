@@ -23,6 +23,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
@@ -33,9 +34,12 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.serialization.Cached;
 import org.gradle.util.ConfigureUtil;
 
 import java.nio.charset.Charset;
+
+import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
 /**
  * Assembles a JAR archive.
@@ -54,27 +58,42 @@ public class Jar extends Zip {
         manifest = new DefaultManifest(getFileResolver());
         // Add these as separate specs, so they are not affected by the changes to the main spec
         metaInf = (CopySpecInternal) getRootSpec().addFirst().into("META-INF");
-        OutputChangeListener outputChangeListener = getServices().get(OutputChangeListener.class);
-        FileCollectionFactory fileCollectionFactory = getServices().get(FileCollectionFactory.class);
-        metaInf.addChild().from(fileCollectionFactory.generated(
+        metaInf.addChild().from(manifestFileTree());
+        getMainSpec().appendCachingSafeCopyAction(new ExcludeManifestAction());
+    }
+
+    private FileTreeInternal manifestFileTree() {
+        final Cached<ManifestInternal> manifest = Cached.of(this::computeManifest);
+        final OutputChangeListener outputChangeListener = outputChangeListener();
+        return fileCollectionFactory().generated(
             getTemporaryDirFactory(),
             "MANIFEST.MF",
-            file -> outputChangeListener.beforeOutputChange(ImmutableList.of(file.getAbsolutePath())),
-            outputStream -> {
-                Manifest manifest1 = getManifest();
-                if (manifest1 == null) {
-                    manifest1 = new DefaultManifest(null);
-                }
-                ManifestInternal manifestInternal;
-                if (manifest1 instanceof ManifestInternal) {
-                    manifestInternal = (ManifestInternal) manifest1;
-                } else {
-                    manifestInternal = new CustomManifestInternalWrapper(manifest1);
-                }
-                manifestInternal.setContentCharset(manifestContentCharset);
-                manifestInternal.writeTo(outputStream);
-            }));
-        getMainSpec().appendCachingSafeCopyAction(new ExcludeManifestAction());
+            action(file -> outputChangeListener.beforeOutputChange(ImmutableList.of(file.getAbsolutePath()))),
+            action(outputStream -> manifest.get().writeTo(outputStream))
+        );
+    }
+
+    private ManifestInternal computeManifest() {
+        Manifest manifest = getManifest();
+        if (manifest == null) {
+            manifest = new DefaultManifest(null);
+        }
+        ManifestInternal manifestInternal;
+        if (manifest instanceof ManifestInternal) {
+            manifestInternal = (ManifestInternal) manifest;
+        } else {
+            manifestInternal = new CustomManifestInternalWrapper(manifest);
+        }
+        manifestInternal.setContentCharset(manifestContentCharset);
+        return manifestInternal;
+    }
+
+    private FileCollectionFactory fileCollectionFactory() {
+        return getServices().get(FileCollectionFactory.class);
+    }
+
+    private OutputChangeListener outputChangeListener() {
+        return getServices().get(OutputChangeListener.class);
     }
 
     /**

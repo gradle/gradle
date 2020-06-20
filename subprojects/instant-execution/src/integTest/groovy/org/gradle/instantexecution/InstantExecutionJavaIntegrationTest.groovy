@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.instantexecution.InstantExecutionBuildOper
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Test
 
+import static org.hamcrest.CoreMatchers.containsString
+
 class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     protected InstantExecutionBuildOperationsFixture instantExecution
@@ -502,6 +504,50 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         result.assertTasksNotSkipped(":compileJava", ":classes", ":jar", ":startScripts", ":distTar", ":distZip", ":assemble", ":build")
         classFile.isFile()
         jarFile.isFile()
+    }
+
+    def "jar manifest honours build logic inputs"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            jar {
+                manifest {
+                    attributes('Created-By': providers.systemProperty("creator"))
+                }
+            }
+        """
+        def manifestFile = file("build/tmp/jar/MANIFEST.MF")
+        def assertCreatedBy = { creator ->
+            manifestFile.assertContents(
+                containsString("Created-By: $creator")
+            )
+        }
+        def instant = newInstantExecutionFixture()
+
+        when:
+        instantRun ":jar", "-Dcreator=creator1"
+
+        then:
+        assertCreatedBy 'creator1'
+        instant.assertStateStored()
+
+        when:
+        instantRun ":jar", "-Dcreator=creator2"
+
+        then:
+        assertCreatedBy 'creator2'
+        instant.assertStateLoaded()
+
+        when:
+        manifestFile.delete()
+        instantRun ":jar", "-Dcreator=creator3"
+
+        then:
+        assertCreatedBy 'creator3'
+        instant.assertStateLoaded()
     }
 
     def buildWithSingleSourceFile() {
