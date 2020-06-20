@@ -36,6 +36,7 @@ import javax.annotation.Nullable
 import java.nio.file.Paths
 import java.util.regex.Pattern
 
+import static org.apache.commons.lang3.StringUtils.substringBetween
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.not
@@ -305,21 +306,8 @@ final class InstantExecutionProblemsFixture {
     }
 
     private static Map<String, Object> readJsModelFrom(File reportFile) {
-        // InstantExecutionReport ensures the pure json model can be read
-        // by looking for begin-report-data and end-report-data
-        def jsonText = ""
-        def beginFound = false
-        def endFound = false
-        reportFile.eachLine { line ->
-            if (line.contains("begin-report-data")) {
-                beginFound = true
-            } else if (line.contains("end-report-data")) {
-                endFound = true
-            } else if (beginFound && !endFound) {
-                jsonText += "$line\n"
-            }
-        }
-        assert beginFound && endFound: "malformed report file"
+        String jsonText = substringBetween(reportFile.text, "// begin-report-data", "// end-report-data")
+        assert jsonText: "malformed report file"
         new JsonSlurper().parseText(jsonText) as Map<String, Object>
     }
 
