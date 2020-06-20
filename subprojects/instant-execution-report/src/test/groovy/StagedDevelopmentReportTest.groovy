@@ -16,8 +16,6 @@
 
 import spock.lang.Specification
 
-import java.io.File
-
 
 class StagedDevelopmentReportTest extends Specification {
 
