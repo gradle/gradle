@@ -91,8 +91,10 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
         }
         child4.dependencies {
             implementation child1.dependencies.project(path: ":child1")
-            implementation "unresolved:dependency:10.0"
+            implementation "inexistent:dependency:10.0"
             implementation "fakegroup:test:1.0"
+            implementation "notreal:depen dency:s p a c e s"
+
         }
     }
 
@@ -120,8 +122,8 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
         then:
         DefaultEclipseProject eclipseChild4 = eclipseModel.children.find { it.name == 'child4' }
         def unresolvedRefs = eclipseChild4.classpath.findAll { it.isUnresolved() }
-        unresolvedRefs.size == 1
-        unresolvedRefs[0].file.name.contains("unresolved dependency")
+        unresolvedRefs.size == 2
+        unresolvedRefs.stream().allMatch {ur -> (ur.file.name.contains("unresolved dependency")) }
     }
 
     def "project dependencies are mapped to eclipse model with supplied runtime"() {
