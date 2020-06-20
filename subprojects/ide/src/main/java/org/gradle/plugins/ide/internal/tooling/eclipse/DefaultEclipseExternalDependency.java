@@ -28,19 +28,32 @@ public class DefaultEclipseExternalDependency extends DefaultEclipseDependency i
     private final File javadoc;
     private final File source;
 
-    private boolean isUnresolved;
+    private final boolean isUnresolved;
+    private final String attemptedSelector;
 
     private final ModuleVersionIdentifier identifier;
     private final GradleModuleVersion moduleVersion;
 
-    public DefaultEclipseExternalDependency(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, boolean unresolved, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
+    public DefaultEclipseExternalDependency(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
         super(exported, attributes, accessRules);
         this.file = file;
         this.javadoc = javadoc;
         this.source = source;
         this.identifier = identifier;
-        this.isUnresolved = unresolved;
         this.moduleVersion = (identifier == null)? null : new DefaultGradleModuleVersion(identifier);
+        this.isUnresolved = false;
+        this.attemptedSelector = null;
+    }
+
+    public DefaultEclipseExternalDependency(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, boolean unresolved, String attemptedSelector, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
+        super(exported, attributes, accessRules);
+        this.file = file;
+        this.javadoc = javadoc;
+        this.source = source;
+        this.identifier = identifier;
+        this.moduleVersion = (identifier == null)? null : new DefaultGradleModuleVersion(identifier);
+        this.isUnresolved = unresolved;
+        this.attemptedSelector = attemptedSelector;
     }
 
     public File getFile() {
@@ -65,4 +78,7 @@ public class DefaultEclipseExternalDependency extends DefaultEclipseDependency i
         return moduleVersion;
     }
 
+    public String getAttemptedSelector() {
+        return attemptedSelector;
+    }
 }

@@ -20,7 +20,21 @@ package org.gradle.plugins.ide.eclipse.model;
  * A library that turned out to be unresolved.
  */
 public class UnresolvedLibrary extends Library {
+
+    /**
+     * The attempted selector reported by the related UnresolvedDependencyResult
+     */
+    private String attemptedSelector;
+
     public UnresolvedLibrary(FileReference library) {
         super(library);
+    }
+
+    public String getAttemptedSelector() {
+        return attemptedSelector;
+    }
+
+    public void setAttemptedSelector(String attemptedSelector) {
+        this.attemptedSelector = attemptedSelector;
     }
 }
