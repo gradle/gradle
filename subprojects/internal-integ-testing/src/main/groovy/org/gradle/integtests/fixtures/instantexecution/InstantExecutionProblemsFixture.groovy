@@ -287,10 +287,8 @@ final class InstantExecutionProblemsFixture {
             assertThat("HTML report URI not found", reportDir, notNullValue())
             assertTrue("HTML report directory not found '$reportDir'", reportDir.isDirectory())
             def htmlFile = reportDir.file(PROBLEMS_REPORT_HTML_FILE_NAME)
-            def jsFile = reportDir.file('configuration-cache-report-data.js')
             assertTrue("HTML report HTML file not found in '$reportDir'", htmlFile.isFile())
-            assertTrue("HTML report JS model not found in '$reportDir'", jsFile.isFile())
-            Map<String, Object> jsModel = readJsModelFrom(jsFile)
+            Map<String, Object> jsModel = readJsModelFrom(htmlFile)
             assertThat(
                 "HTML report JS model has wrong number of total problem(s)",
                 numberOfProblemsIn(jsModel),
@@ -306,10 +304,22 @@ final class InstantExecutionProblemsFixture {
         }
     }
 
-    private static Map<String, Object> readJsModelFrom(File reportDataFile) {
+    private static Map<String, Object> readJsModelFrom(File reportFile) {
         // InstantExecutionReport ensures the pure json model can be read
-        // by skipping the 1st and last line of the report data file
-        def jsonText = reportDataFile.readLines().with { subList(1, size() - 1) }.join('\n')
+        // by looking for begin-report-data and end-report-data
+        def jsonText = ""
+        def beginFound = false
+        def endFound = false
+        reportFile.eachLine { line ->
+            if (line.contains("begin-report-data")) {
+                beginFound = true
+            } else if (line.contains("end-report-data")) {
+                endFound = true
+            } else if (beginFound && !endFound) {
+                jsonText += "$line\n"
+            }
+        }
+        assert beginFound && endFound: "malformed report file"
         new JsonSlurper().parseText(jsonText) as Map<String, Object>
     }
 
