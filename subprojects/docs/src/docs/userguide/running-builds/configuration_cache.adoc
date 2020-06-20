@@ -479,7 +479,7 @@ A good way to report such problems to community plugin authors is by providing:
 +
 * a link to this very documentation,
 * steps to reproduce, e.g. plugin version, configuration and which of the plugin's tasks you ran,
-* a copy of the console problem report, or ideally a ZIP of the HTML problem report you got, so the plugin author can easily reason about the problems,
+* a copy of the console problem report, or ideally the HTML problem report you got, so the plugin author can easily reason about the problems,
 * ideally a reproducer build, so the plugin author can easily reproduce the problems.
 
 [[testkit]]
