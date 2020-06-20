@@ -20,7 +20,6 @@ import elmish.a
 import elmish.attributes
 import elmish.code
 import elmish.div
-import elmish.img
 import elmish.empty
 import elmish.h1
 import elmish.ol
@@ -140,7 +139,7 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         attributes { className("report-wrapper") },
         div(
             attributes { className("header") },
-            img(attributes { src("configuration-cache-report-logo.png") }),
+            div(attributes { className("gradle-logo") }),
             learnMore(model.documentationLink),
             div(
                 attributes { className("title") },

@@ -35,9 +35,6 @@ val h2 = ViewFactory("h2")
 val div = ViewFactory("div")
 
 
-val img = ViewFactory("img")
-
-
 val pre = ViewFactory("pre")
 
 

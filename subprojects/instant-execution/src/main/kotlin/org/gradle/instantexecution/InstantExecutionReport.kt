@@ -89,18 +89,10 @@ class InstantExecutionReport(
 
     private
     fun copyReportResources(outputDirectory: File) {
-        listOf(
-            reportHtmlFileName,
-            "configuration-cache-report.js",
-            "configuration-cache-report.css",
-            "configuration-cache-report-logo.png",
-            "kotlin.js"
-        ).forEach { resourceName ->
-            copyURLToFile(
-                javaClass.requireResource(resourceName),
-                outputDirectory.resolve(resourceName)
-            )
-        }
+        copyURLToFile(
+            javaClass.requireResource(reportHtmlFileName),
+            outputDirectory.resolve(reportHtmlFileName)
+        )
     }
 
     /**
