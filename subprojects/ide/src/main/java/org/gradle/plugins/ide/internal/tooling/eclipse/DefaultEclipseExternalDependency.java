@@ -68,7 +68,9 @@ public class DefaultEclipseExternalDependency extends DefaultEclipseDependency i
         return source;
     }
 
-    public boolean isUnresolved() { return isUnresolved; }
+    public boolean isUnresolved() {
+        return isUnresolved;
+    }
 
     public ModuleVersionIdentifier getModuleVersionIdentifier() {
         return identifier;

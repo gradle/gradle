@@ -265,8 +265,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
                 if(entry instanceof UnresolvedLibrary) {
                     UnresolvedLibrary unresolvedLibrary = (UnresolvedLibrary)entry;
                     dependency = new DefaultEclipseExternalDependency(file, javadoc, source, library.getModuleVersion(), library.isExported(), true, unresolvedLibrary.getAttemptedSelector(), createAttributes(library), createAccessRules(library));
-                }
-                else{
+                } else {
                     dependency = new DefaultEclipseExternalDependency(file, javadoc, source, library.getModuleVersion(), library.isExported(), createAttributes(library), createAccessRules(library));
                 }
                 classpathElements.getExternalDependencies().add(dependency);
