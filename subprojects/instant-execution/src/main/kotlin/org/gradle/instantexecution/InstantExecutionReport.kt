@@ -121,13 +121,15 @@ class InstantExecutionReport(
      * Writes the report data function.
      *
      * The text is laid out in such a way as to allow extracting the pure JSON model
-     * by looking for `begin-report-data` and `end-report-data`.
+     * by looking for `// begin-report-data` and `// end-report-data`.
      */
     private
     fun BufferedWriter.writeJsReportData(cacheAction: String, problems: List<PropertyProblem>) {
-        appendln("function configurationCacheProblems() { return ( // begin-report-data")
+        appendln("function configurationCacheProblems() { return (")
+        appendln("// begin-report-data")
         writeJsonModelFor(cacheAction, problems)
-        appendln(");} // end-report-data")
+        appendln("// end-report-data")
+        appendln(");}")
     }
 
     private

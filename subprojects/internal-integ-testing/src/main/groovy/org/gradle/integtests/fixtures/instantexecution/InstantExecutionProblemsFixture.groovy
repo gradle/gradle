@@ -306,21 +306,21 @@ final class InstantExecutionProblemsFixture {
 
     private static Map<String, Object> readJsModelFrom(File reportFile) {
         // InstantExecutionReport ensures the pure json model can be read
-        // by looking for begin-report-data and end-report-data
-        def jsonText = ""
-        def beginFound = false
-        def endFound = false
-        reportFile.eachLine { line ->
-            if (line.contains("begin-report-data")) {
-                beginFound = true
-            } else if (line.contains("end-report-data")) {
-                endFound = true
-            } else if (beginFound && !endFound) {
-                jsonText += "$line\n"
-            }
-        }
-        assert beginFound && endFound: "malformed report file"
+        // by looking for `// begin-report-data` and `// end-report-data`
+        def jsonText = linesBetween(reportFile, '// begin-report-data', '// end-report-data')
+        assert jsonText: "malformed report file"
         new JsonSlurper().parseText(jsonText) as Map<String, Object>
+    }
+
+    private static String linesBetween(File file, String beginLine, String endLine) {
+        return file.withReader('utf-8') { reader ->
+            reader.lines().iterator()
+                .dropWhile { it != beginLine }
+                .drop(1)
+                .takeWhile { it != endLine }
+                .collect()
+                .join('\n')
+        }
     }
 
     @Nullable
