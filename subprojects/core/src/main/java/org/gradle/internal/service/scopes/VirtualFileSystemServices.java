@@ -183,6 +183,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 DirectoryScanner.getDefaultExcludes()
             );
             WatchingAwareVirtualFileSystem watchingAwareVirtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current())
+                .filter(FileWatcherRegistryFactory::isAvailable)
                 .<WatchingAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
                     delegate,

@@ -21,4 +21,11 @@ public interface FileWatcherRegistryFactory {
      * Create the file watcher registry.
      */
     FileWatcherRegistry createFileWatcherRegistry(FileWatcherRegistry.ChangeHandler handler);
+
+    /**
+     * Whether file-system watching is available for the current operating system.
+     *
+     * E.g. some older Linux variants are not supported.
+     */
+    boolean isAvailable();
 }
