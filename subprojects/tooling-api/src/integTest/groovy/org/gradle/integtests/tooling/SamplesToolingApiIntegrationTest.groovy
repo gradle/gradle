@@ -33,7 +33,6 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
     @UsesSample('toolingApi/eclipse/groovy')
-    @ToBeFixedForInstantExecution
     def "can use tooling API to build Eclipse model"() {
         tweakProject()
 
@@ -46,7 +45,6 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @UsesSample('toolingApi/runBuild/groovy')
-    @ToBeFixedForInstantExecution
     def "can use tooling API to run tasks"() {
         tweakProject()
 
@@ -58,7 +56,6 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @UsesSample('toolingApi/idea/groovy')
-    @ToBeFixedForInstantExecution
     def "can use tooling API to build IDEA model"() {
         tweakProject()
 
@@ -70,7 +67,6 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @UsesSample('toolingApi/model/groovy')
-    @ToBeFixedForInstantExecution
     def "can use tooling API to build general model"() {
         tweakProject()
 
