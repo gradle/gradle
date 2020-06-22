@@ -7,6 +7,13 @@
     width: 1200px;
 }
 
+.gradle-logo {
+    width: 32px;
+    height: 24px;
+    background-image: url("configuration-cache-report-logo.png");
+    background-size: contain;
+}
+
 .header {
     padding-top: 24px;
     display: flex;

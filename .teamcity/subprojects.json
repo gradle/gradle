@@ -324,7 +324,7 @@
   {
     "dirName": "instant-execution-report",
     "name": "instantExecutionReport",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

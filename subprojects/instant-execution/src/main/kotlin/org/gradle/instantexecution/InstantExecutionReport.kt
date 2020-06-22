@@ -29,8 +29,7 @@ import org.gradle.instantexecution.problems.buildConsoleSummary
 import org.gradle.instantexecution.problems.firstTypeFrom
 import org.gradle.instantexecution.problems.taskPathFrom
 
-import org.gradle.util.GFileUtils.copyURLToFile
-
+import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
 import java.io.PrintWriter
@@ -83,41 +82,54 @@ class InstantExecutionReport(
         require(outputDirectory.mkdirs()) {
             "Could not create configuration cache report directory '$outputDirectory'"
         }
-        copyReportResources(outputDirectory)
-        writeJsReportData(cacheAction, problems, outputDirectory)
-    }
-
-    private
-    fun copyReportResources(outputDirectory: File) {
-        listOf(
-            reportHtmlFileName,
-            "configuration-cache-report.js",
-            "configuration-cache-report.css",
-            "configuration-cache-report-logo.png",
-            "kotlin.js"
-        ).forEach { resourceName ->
-            copyURLToFile(
-                javaClass.requireResource(resourceName),
-                outputDirectory.resolve(resourceName)
-            )
-        }
+        writeReportFile(cacheAction, problems, outputDirectory)
     }
 
     /**
-     * Writes the `configuration-cache-report-data.js` file to [outputDirectory].
+     * Writes the report file to [outputDirectory].
      *
-     * The file is laid out in such a way as to allow extracting the pure JSON model
-     * from it by skipping the first and last lines of the file.
+     * The file is laid out in such a way as to allow extracting the pure JSON model,
+     * see [writeJsReportData].
      */
     private
-    fun writeJsReportData(cacheAction: String, problems: List<PropertyProblem>, outputDirectory: File) {
-        outputDirectory.resolve("configuration-cache-report-data.js").bufferedWriter().use { writer ->
-            writer.run {
-                appendln("function configurationCacheProblems() { return (")
-                writeJsonModelFor(cacheAction, problems)
-                appendln(");}")
+    fun writeReportFile(cacheAction: String, problems: List<PropertyProblem>, outputDirectory: File) {
+        val html = javaClass.requireResource(reportHtmlFileName)
+        outputDirectory.resolve(reportHtmlFileName).bufferedWriter().use { writer ->
+            html.openStream().bufferedReader().use { reader ->
+                writer.writeReportFileText(reader, cacheAction, problems)
             }
         }
+    }
+
+    private
+    fun BufferedWriter.writeReportFileText(htmlReader: BufferedReader, cacheAction: String, problems: List<PropertyProblem>) {
+        var dataWritten = false
+        htmlReader.forEachLine { line ->
+            if (!dataWritten && line.contains("configuration-cache-report-data.js")) {
+                appendln("""<script type="text/javascript">""")
+                writeJsReportData(cacheAction, problems)
+                appendln("</script>")
+                dataWritten = true
+            } else {
+                appendln(line)
+            }
+        }
+        require(dataWritten) { "Didn't write report data, placeholder not found!" }
+    }
+
+    /**
+     * Writes the report data function.
+     *
+     * The text is laid out in such a way as to allow extracting the pure JSON model
+     * by looking for `// begin-report-data` and `// end-report-data`.
+     */
+    private
+    fun BufferedWriter.writeJsReportData(cacheAction: String, problems: List<PropertyProblem>) {
+        appendln("function configurationCacheProblems() { return (")
+        appendln("// begin-report-data")
+        writeJsonModelFor(cacheAction, problems)
+        appendln("// end-report-data")
+        appendln(");}")
     }
 
     private

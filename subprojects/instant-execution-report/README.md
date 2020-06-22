@@ -26,10 +26,10 @@ architecture](https://guide.elm-lang.org/architecture/).
 
 Start a continuous build on one shell:
 
-    $ ./gradlew :iER:assemble -t
+    $ ./gradlew :iER:stageDevReport -t
 
 Start `browser-sync` on another:
 
-    $ browser-sync start -s subprojects/instant-execution-report/build/report --startPath configuration-cache-report.html -w
+    $ browser-sync start -s subprojects/instant-execution-report/build/stageDevReport --startPath configuration-cache-report.html -w
 
 Hack away!

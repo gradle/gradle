@@ -15,7 +15,35 @@
  */
 package gradlebuild.internal
 
+import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
+import org.jlleitschuh.gradle.ktlint.KtlintCheckTask
+import org.jlleitschuh.gradle.ktlint.KtlintFormatTask
+
 plugins {
     id("kotlin2js")
     id("gradlebuild.repositories")
+    id("gradlebuild.unittest-and-compile")
+    id("org.gradle.kotlin-dsl.ktlint-convention")
+}
+
+apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
+
+tasks {
+    withType<Kotlin2JsCompile>().configureEach {
+        kotlinOptions.allWarningsAsErrors = true
+    }
+
+    withType<KtlintFormatTask>().configureEach {
+        enabled = false
+    }
+
+    val ktlintCheckTasks = withType<KtlintCheckTask>()
+
+    withType<Test>().configureEach {
+        shouldRunAfter(ktlintCheckTasks)
+    }
+
+    named("codeQuality") {
+        dependsOn(ktlintCheckTasks)
+    }
 }

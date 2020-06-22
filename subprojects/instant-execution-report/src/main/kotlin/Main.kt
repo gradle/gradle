@@ -170,6 +170,7 @@ fun toPrettyText(message: Array<JsMessageFragment>) = PrettyText(
     }
 )
 
+
 private
 fun toProblemNode(trace: JsTrace): ProblemNode = when (trace.kind) {
     "Task" -> trace.unsafeCast<JsTraceTask>().run {
