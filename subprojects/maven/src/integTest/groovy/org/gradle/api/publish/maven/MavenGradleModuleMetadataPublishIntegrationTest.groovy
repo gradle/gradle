@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Unroll
 
@@ -140,7 +139,6 @@ class TestCapability implements Capability {
   - Variants 'api' and 'impl' have the same attributes and capabilities. Please make sure either attributes or capabilities are different."""
     }
 
-    @ToBeFixedForInstantExecution
     def "generates Gradle metadata if 2 variants have the same attributes but different capabilities"() {
         given:
         settingsFile.text = """
@@ -378,7 +376,6 @@ class TestCapability implements Capability {
         true    | true
     }
 
-    @ToBeFixedForInstantExecution
     def "maps project dependencies"() {
         given:
         settingsFile << """rootProject.name = 'root'
@@ -454,7 +451,6 @@ class TestCapability implements Capability {
         api.dependencies[1].coords == 'group.b:utils:0.01'
     }
 
-    @ToBeFixedForInstantExecution
     def "publishes component with strict and prefer dependencies"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -528,7 +524,6 @@ class TestCapability implements Capability {
         variant.dependencies[2].rejectsVersion == []
     }
 
-    @ToBeFixedForInstantExecution
     def "publishes component with dependency constraints"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -580,7 +575,6 @@ class TestCapability implements Capability {
         variant.dependencyConstraints[0].rejectsVersion == []
     }
 
-    @ToBeFixedForInstantExecution
     def "publishes component with version rejects"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -639,7 +633,6 @@ class TestCapability implements Capability {
         variant.dependencies[1].rejectsVersion == []
     }
 
-    @ToBeFixedForInstantExecution
     def "publishes dependency reasons"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -696,7 +689,6 @@ class TestCapability implements Capability {
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "publishes capabilities"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -737,7 +729,6 @@ class TestCapability implements Capability {
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "publishes dependency/constraint attributes"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -801,7 +792,6 @@ class TestCapability implements Capability {
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "publishes component with strict version constraints"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -883,7 +873,6 @@ class TestCapability implements Capability {
         variant.dependencyConstraints[0].rejectsVersion == []
     }
 
-    @ToBeFixedForInstantExecution
     def 'can skip the build identifier'() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """

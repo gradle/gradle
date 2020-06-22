@@ -96,7 +96,6 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "can publish simple component"() {
         given:
         using m2

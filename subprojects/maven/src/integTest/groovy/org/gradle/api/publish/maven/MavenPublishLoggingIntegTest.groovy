@@ -49,7 +49,6 @@ class MavenPublishLoggingIntegTest extends AbstractMavenPublishIntegTest {
         """
     }
 
-    @ToBeFixedForInstantExecution
     def "logging is associated to task"() {
         when:
         succeeds 'publish', "-i"
