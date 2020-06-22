@@ -105,7 +105,7 @@ class InstantExecutionReport(
     fun BufferedWriter.writeReportFileText(htmlReader: BufferedReader, cacheAction: String, problems: List<PropertyProblem>) {
         var dataWritten = false
         htmlReader.forEachLine { line ->
-            if (line.contains("configuration-cache-report-data.js")) {
+            if (!dataWritten && line.contains("configuration-cache-report-data.js")) {
                 appendln("""<script type="text/javascript">""")
                 writeJsReportData(cacheAction, problems)
                 appendln("</script>")
