@@ -206,8 +206,9 @@ public class JavaProcessStackTracesMonitor {
             ByteArrayOutputStream stdout = connectStream(process.getInputStream(), latch);
             ByteArrayOutputStream stderr = connectStream(process.getErrorStream(), latch);
 
+            int code = process.waitFor();
             latch.await();
-            return new ExecResult(args, process.waitFor(), stdout.toString(), stderr.toString());
+            return new ExecResult(args, code, stdout.toString(), stderr.toString());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
