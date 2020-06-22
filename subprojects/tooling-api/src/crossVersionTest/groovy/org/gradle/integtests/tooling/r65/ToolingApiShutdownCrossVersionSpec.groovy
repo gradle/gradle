@@ -68,6 +68,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     }
 
     @TargetGradleVersion(">=6.5")
+    @Ignore('https://github.com/gradle/gradle-private/issues/3107')
     def "disconnect during tooling model query stops daemon"() {
         setup:
         buildFile << """
