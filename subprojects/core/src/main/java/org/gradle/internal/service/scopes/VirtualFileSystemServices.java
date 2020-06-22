@@ -17,6 +17,7 @@
 package org.gradle.internal.service.scopes;
 
 import com.google.common.annotations.VisibleForTesting;
+import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
@@ -84,6 +85,8 @@ import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.impl.DelegatingDiffCapturingUpdateFunctionDecorator;
 import org.gradle.internal.watch.vfs.impl.NonWatchingVirtualFileSystem;
 import org.gradle.internal.watch.vfs.impl.WatchingVirtualFileSystem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -96,6 +99,9 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
 public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(VirtualFileSystemServices.class);
+
     /**
      * Boolean system property to enable partial invalidation.
      */
@@ -183,7 +189,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 DirectoryScanner.getDefaultExcludes()
             );
             WatchingAwareVirtualFileSystem watchingAwareVirtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current())
-                .filter(FileWatcherRegistryFactory::isAvailable)
                 .<WatchingAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
                     delegate,
@@ -201,12 +206,16 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(OperatingSystem operatingSystem) {
-            if (operatingSystem.isMacOsX()) {
-                return Optional.of(new DarwinFileWatcherRegistryFactory());
-            } else if (operatingSystem.isWindows()) {
-                return Optional.of(new WindowsFileWatcherRegistryFactory());
-            } else if (operatingSystem.isLinux()) {
-                return Optional.of(new LinuxFileWatcherRegistryFactory());
+            try {
+                if (operatingSystem.isMacOsX()) {
+                    return Optional.of(new DarwinFileWatcherRegistryFactory());
+                } else if (operatingSystem.isWindows()) {
+                    return Optional.of(new WindowsFileWatcherRegistryFactory());
+                } else if (operatingSystem.isLinux()) {
+                    return Optional.of(new LinuxFileWatcherRegistryFactory());
+                }
+            } catch (NativeIntegrationUnavailableException e) {
+                LOGGER.info("Native file-system watching is not available for the current operating system", e);
             }
             return Optional.empty();
         }

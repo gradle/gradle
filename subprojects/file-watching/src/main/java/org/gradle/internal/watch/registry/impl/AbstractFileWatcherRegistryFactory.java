@@ -16,21 +16,24 @@
 
 package org.gradle.internal.watch.registry.impl;
 
-import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.file.FileWatcher;
+import net.rubygrapefruit.platform.internal.jni.AbstractFileEventFunctions;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-public abstract class AbstractFileWatcherRegistryFactory implements FileWatcherRegistryFactory {
+public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractFileEventFunctions> implements FileWatcherRegistryFactory {
     private static final int FILE_EVENT_QUEUE_SIZE = 4096;
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFileWatcherRegistryFactory.class);
+
+    protected final T fileEventFunctions;
+
+    public AbstractFileWatcherRegistryFactory(T fileEventFunctions) {
+        this.fileEventFunctions = fileEventFunctions;
+    }
 
     @Override
     public FileWatcherRegistry createFileWatcherRegistry(FileWatcherRegistry.ChangeHandler handler) {
@@ -50,25 +53,7 @@ public abstract class AbstractFileWatcherRegistryFactory implements FileWatcherR
         }
     }
 
-    @Override
-    public boolean isAvailable() {
-        try {
-            init();
-            return true;
-        } catch (NativeIntegrationUnavailableException e) {
-            LOGGER.info("Native file-system watching is not available for the current operating system", e);
-            return false;
-        }
-    }
-
     protected abstract FileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException;
 
     protected abstract FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher);
-
-    /**
-     * Initializes the native parts of file-system watching.
-     *
-     * @throws NativeIntegrationUnavailableException if the native parts of file-system watching are not availabe on the current operating system. E.g. some older Linux variants are not supported.
-     */
-    protected abstract void init() throws NativeIntegrationUnavailableException;
 }

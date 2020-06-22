@@ -25,13 +25,16 @@ import org.gradle.internal.watch.registry.FileWatcherUpdater;
 
 import java.util.concurrent.BlockingQueue;
 
-public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory {
+public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<WindowsFileEventFunctions> {
     private static final int BUFFER_SIZE = 128 * 1024;
+
+    public WindowsFileWatcherRegistryFactory() throws NativeIntegrationUnavailableException {
+        super(Native.get(WindowsFileEventFunctions.class));
+    }
 
     @Override
     protected FileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException {
-        return Native.get(WindowsFileEventFunctions.class)
-            .newWatcher(fileEvents)
+        return fileEventFunctions.newWatcher(fileEvents)
             .withBufferSize(BUFFER_SIZE)
             .start();
     }
@@ -39,10 +42,5 @@ public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegist
     @Override
     protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher) {
         return new HierarchicalFileWatcherUpdater(watcher);
-    }
-
-    @Override
-    public void init() throws NativeIntegrationUnavailableException {
-        Native.get(WindowsFileEventFunctions.class);
     }
 }

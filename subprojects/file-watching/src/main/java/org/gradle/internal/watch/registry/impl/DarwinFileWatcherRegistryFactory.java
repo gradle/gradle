@@ -26,11 +26,15 @@ import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory {
+public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<OsxFileEventFunctions> {
+
+    public DarwinFileWatcherRegistryFactory() throws NativeIntegrationUnavailableException {
+        super(Native.get(OsxFileEventFunctions.class));
+    }
+
     @Override
     protected FileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException {
-        return Native.get(OsxFileEventFunctions.class)
-            .newWatcher(fileEvents)
+        return fileEventFunctions.newWatcher(fileEvents)
             // TODO Figure out a good value for this
             .withLatency(20, TimeUnit.MICROSECONDS)
             .start();
@@ -39,10 +43,5 @@ public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistr
     @Override
     protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher) {
         return new HierarchicalFileWatcherUpdater(watcher);
-    }
-
-    @Override
-    public void init() throws NativeIntegrationUnavailableException {
-        Native.get(OsxFileEventFunctions.class);
     }
 }

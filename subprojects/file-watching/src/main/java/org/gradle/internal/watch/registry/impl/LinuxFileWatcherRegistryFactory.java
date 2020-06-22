@@ -25,21 +25,20 @@ import org.gradle.internal.watch.registry.FileWatcherUpdater;
 
 import java.util.concurrent.BlockingQueue;
 
-public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory {
+public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<LinuxFileEventFunctions> {
+
+    public LinuxFileWatcherRegistryFactory() throws NativeIntegrationUnavailableException {
+        super(Native.get(LinuxFileEventFunctions.class));
+    }
+
     @Override
     protected FileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException {
-        return Native.get(LinuxFileEventFunctions.class)
-            .newWatcher(fileEvents)
+        return fileEventFunctions.newWatcher(fileEvents)
             .start();
     }
 
     @Override
     protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher) {
         return new NonHierarchicalFileWatcherUpdater(watcher);
-    }
-
-    @Override
-    public void init() throws NativeIntegrationUnavailableException {
-        Native.get(LinuxFileEventFunctions.class);
     }
 }
