@@ -26,12 +26,15 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
+import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.Requires
+import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
+import org.junit.Rule
 
 @Requires(TestPrecondition.NOT_WINDOWS)
 class UndeclaredBuildInputsTestKitInjectedJavaPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements JavaPluginImplementation {
@@ -42,6 +45,11 @@ class UndeclaredBuildInputsTestKitInjectedJavaPluginIntegrationTest extends Abst
     String getLocation() {
         return "plugin 'sneaky'"
     }
+
+    @Rule
+    SetSystemProperties setSystemProperties = new SetSystemProperties(
+        (NativeServices.NATIVE_DIR_OVERRIDE): buildContext.nativeServicesDir.absolutePath
+    )
 
     @Override
     GradleExecuter createExecuter() {
