@@ -16,14 +16,16 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
-import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFiles
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.transform.Transformation
 import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.api.internal.artifacts.transform.TransformationSubject
+import org.gradle.api.internal.artifacts.transform.TransformedExternalArtifactSet
+import org.gradle.api.internal.artifacts.transform.TransformedProjectArtifactSet
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
@@ -38,6 +40,8 @@ import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.codecs.transform.FixedDependenciesResolver
+import org.gradle.instantexecution.serialization.codecs.transform.TransformationSpec
+import org.gradle.instantexecution.serialization.codecs.transform.unpackTransformation
 import org.gradle.instantexecution.serialization.decodePreservingIdentity
 import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
 import org.gradle.instantexecution.serialization.logPropertyProblem
@@ -49,6 +53,9 @@ internal
 class FileCollectionCodec(
     private val fileCollectionFactory: FileCollectionFactory
 ) : Codec<FileCollectionInternal> {
+
+    private
+    val noDependencies = FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty()))
 
     override suspend fun WriteContext.encode(value: FileCollectionInternal) {
         encodePreservingIdentityOf(value) {
@@ -83,8 +90,12 @@ class FileCollectionCodec(
                         is SubtractingFileCollectionSpec -> element.left.minus(element.right)
                         is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
                         is FileTree -> element
+                        is TransformedExternalFileSpec -> Callable {
+                            val initialSubject = TransformationSubject.initial(element.artifactIdentifier, element.origin)
+                            element.transformation.files(initialSubject)
+                        }
                         is TransformedLocalFileSpec -> Callable {
-                            element.transformation.createInvocation(TransformationSubject.initial(element.origin), FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty())), null).invoke().get().files
+                            element.transformation.createInvocation(TransformationSubject.initial(element.origin), noDependencies, null).invoke().get().files
                         }
                         else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
                     }
@@ -115,6 +126,11 @@ TransformedLocalFileSpec(val origin: File, val transformation: Transformation)
 
 
 private
+class
+TransformedExternalFileSpec(val artifactIdentifier: ComponentArtifactIdentifier, val origin: File, val transformation: TransformationSpec)
+
+
+private
 class CollectingVisitor : FileCollectionStructureVisitor {
     val elements: MutableSet<Any> = mutableSetOf()
     override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean {
@@ -132,21 +148,27 @@ class CollectingVisitor : FileCollectionStructureVisitor {
     }
 
     override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType {
-        if (source is ConsumerProvidedVariantFiles) {
-            // Some transforms are scheduled, so visit the source rather than the files
-            return FileCollectionStructureVisitor.VisitType.NoContents
-        } else if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet) {
-            // Can have task outputs and other changing files as inputs, so visit the source rather than the files
-            return FileCollectionStructureVisitor.VisitType.NoContents
+        return if (source is TransformedProjectArtifactSet || source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet || source is TransformedExternalArtifactSet) {
+            // Represents artifact transform outputs. Visit the source rather than the files
+            // Transforms may have inputs or parameters that are task outputs or other changing files
+            // When this is not the case, we should run the transform now and write the result.
+            // However, currently it is not easy to determine whether or not this is the case so assume that all transforms
+            // have changing inputs
+            FileCollectionStructureVisitor.VisitType.NoContents
+        } else {
+            FileCollectionStructureVisitor.VisitType.Visit
         }
-        return FileCollectionStructureVisitor.VisitType.Visit
     }
 
     override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) {
-        if (source is ConsumerProvidedVariantFiles) {
+        if (source is TransformedProjectArtifactSet) {
             elements.addAll(source.scheduledNodes)
         } else if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet) {
             elements.add(TransformedLocalFileSpec(source.file, source.transformation))
+        } else if (source is TransformedExternalArtifactSet) {
+            source.visitArtifacts { artifact ->
+                elements.add(TransformedExternalFileSpec(artifact.id, artifact.file, unpackTransformation(source.transformation, source.dependenciesResolver)))
+            }
         } else {
             elements.addAll(contents)
         }

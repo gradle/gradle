@@ -847,7 +847,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
     }
 
-    @ToBeFixedForInstantExecution(because = "changes to files in local file repositories are ignored for transforms")
     def "can attach @PathSensitive(NONE) to input artifact property for external artifact"() {
         setupBuildWithColorTransformAction()
         def lib1 = mavenRepo.module("group1", "lib", "1.0").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()

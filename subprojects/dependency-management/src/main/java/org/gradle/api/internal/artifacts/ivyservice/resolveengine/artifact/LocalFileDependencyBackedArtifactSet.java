@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact;
@@ -114,8 +115,12 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
-    public void visitLocalArtifacts(LocalArtifactVisitor listener) {
+    public void visitLocalArtifacts(LocalArtifactVisitor visitor) {
         // Artifacts are not known until the file collection is queried
+    }
+
+    @Override
+    public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
     }
 
     @Override
@@ -183,7 +188,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
-        public void visitLocalArtifacts(LocalArtifactVisitor listener) {
+        public void visitLocalArtifacts(LocalArtifactVisitor visitor) {
+        }
+
+        @Override
+        public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
         }
 
         @Override
@@ -214,11 +223,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             super(delegate.getComponentId(), delegate, attributes, transformation, dependenciesResolver, transformationNodeRegistry);
             this.delegate = delegate;
             this.transformation = transformation;
-        }
-
-        @Override
-        protected FileCollectionInternal.Source getVisitSource() {
-            return this;
         }
 
         public ComponentIdentifier getOwnerId() {

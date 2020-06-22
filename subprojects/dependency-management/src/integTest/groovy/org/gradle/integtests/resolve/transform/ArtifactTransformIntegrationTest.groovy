@@ -1958,10 +1958,6 @@ Found the following transforms:
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(
-        because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary",
-        iterationMatchers = ".*immediate transform"
-    )
     def "provides useful error message when parameter value cannot be isolated for #type transform"() {
         mavenRepo.module("test", "a", "1.3").publish()
         settingsFile << "include 'lib'"

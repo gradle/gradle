@@ -1015,6 +1015,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         failingTransform << (1..4)
     }
 
+    @ToBeFixedForInstantExecution(because = "resolves external dependency when writing cache entry, rather than when running consuming task, so exception chain is different")
     @Unroll
     def "failure in resolution propagates to chain (scheduled: #scheduled)"() {
         given:

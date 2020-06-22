@@ -17,8 +17,10 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -31,7 +33,7 @@ import java.util.Map;
 /**
  * Transformed artifact set that performs the transformation itself when visited.
  */
-public abstract class AbstractTransformedArtifactSet implements ResolvedArtifactSet {
+public abstract class AbstractTransformedArtifactSet implements ResolvedArtifactSet, FileCollectionInternal.Source {
     private final ResolvedArtifactSet delegate;
     private final ImmutableAttributes targetVariantAttributes;
     private final Transformation transformation;
@@ -53,21 +55,23 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
         this.dependenciesResolver = dependenciesResolverFactory.create(componentIdentifier);
     }
 
-    public ImmutableAttributes getVariantAttributes() {
+    public ImmutableAttributes getTargetVariantAttributes() {
         return targetVariantAttributes;
     }
 
-    protected abstract FileCollectionInternal.Source getVisitSource();
+    public Transformation getTransformation() {
+        return transformation;
+    }
 
-    protected ExecutionGraphDependenciesResolver getDependenciesResolver() {
+    public ExecutionGraphDependenciesResolver getDependenciesResolver() {
         return dependenciesResolver;
     }
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        FileCollectionStructureVisitor.VisitType visitType = listener.prepareForVisit(getVisitSource());
+        FileCollectionStructureVisitor.VisitType visitType = listener.prepareForVisit(this);
         if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
-            return visitor -> visitor.endVisitCollection(getVisitSource());
+            return visitor -> visitor.endVisitCollection(this);
         }
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
         Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, actions, artifactResults, dependenciesResolver, transformationNodeRegistry));
@@ -75,7 +79,13 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
     }
 
     @Override
-    public void visitLocalArtifacts(LocalArtifactVisitor listener) {
+    public void visitLocalArtifacts(LocalArtifactVisitor visitor) {
+        // Should never be called
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
         // Should never be called
         throw new IllegalStateException();
     }
