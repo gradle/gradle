@@ -381,7 +381,7 @@ abstract class DistributedPerformanceTest extends PerformanceTest {
             JUnitTestSuite testSuite = fetchTestResult(response)
             finishedBuilds.put(jobId, new ScenarioResult(name: scheduledBuilds.get(jobId).id, testClassFullName: scheduledBuilds.get(jobId).className, testSuite: testSuite, buildResponse: response))
             fireTestListener(testSuite, response)
-        } catch (e) {
+        } catch (Throwable e) {
             e.printStackTrace(System.err)
             finishedBuilds.put(jobId, new ScenarioResult(name: scheduledBuilds.get(jobId).id, testClassFullName: scheduledBuilds.get(jobId).className, buildResponse: response))
         }
