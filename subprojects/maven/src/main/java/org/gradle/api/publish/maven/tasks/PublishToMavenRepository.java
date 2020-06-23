@@ -18,14 +18,18 @@ package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.internal.service.ServiceRegistry;
@@ -33,6 +37,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import java.net.URI;
 
 import static org.gradle.internal.serialization.Transient.varOf;
+
 
 /**
  * Publishes a {@link org.gradle.api.publish.maven.MavenPublication} to a {@link MavenArtifactRepository}.
@@ -43,14 +48,25 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
     private final Transient.Var<MavenArtifactRepository> repository = varOf();
     private final Cached<PublishSpec> spec = Cached.of(this::computeSpec);
 
+    private static final Credentials NO_CREDENTIALS = new Credentials() {
+    };
+
+    private final Property<Credentials> credentials = getProject().getObjects().property(Credentials.class).convention(NO_CREDENTIALS);
+
     /**
      * The repository to publish to.
      *
      * @return The repository to publish to
      */
     @Internal
+
     public MavenArtifactRepository getRepository() {
         return repository.get();
+    }
+
+    @Input
+    Property<Credentials> getCredentials() {
+        return credentials;
     }
 
     /**
@@ -60,6 +76,7 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
      */
     public void setRepository(MavenArtifactRepository repository) {
         this.repository.set(repository);
+        this.credentials.set(((AuthenticationSupportedInternal) repository).getConfiguredCredentials().orElse(NO_CREDENTIALS));
     }
 
     @TaskAction
@@ -82,8 +99,8 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
         getDuplicatePublicationTracker().checkCanPublish(publicationInternal, repository.getUrl(), repository.getName());
         MavenNormalizedPublication normalizedPublication = publicationInternal.asNormalisedPublication();
         return new PublishSpec(
-            RepositorySpec.of(repository),
-            normalizedPublication
+                RepositorySpec.of(repository),
+                normalizedPublication
         );
     }
 
@@ -98,7 +115,7 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
 
     private MavenPublisher validatingMavenPublisher() {
         return new ValidatingMavenPublisher(
-            getMavenPublishers().getRemotePublisher(getTemporaryDirFactory())
+                getMavenPublishers().getRemotePublisher(getTemporaryDirFactory())
         );
     }
 
@@ -108,8 +125,8 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
         private final MavenNormalizedPublication publication;
 
         public PublishSpec(
-            RepositorySpec repository,
-            MavenNormalizedPublication publication
+                RepositorySpec repository,
+                MavenNormalizedPublication publication
         ) {
             this.repository = repository;
             this.publication = publication;

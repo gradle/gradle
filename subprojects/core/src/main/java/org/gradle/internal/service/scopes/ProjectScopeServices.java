@@ -335,5 +335,4 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
             new org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory(filePropertyFactory)
         );
     }
-
 }

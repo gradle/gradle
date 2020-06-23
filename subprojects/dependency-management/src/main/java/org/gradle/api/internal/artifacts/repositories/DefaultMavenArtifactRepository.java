@@ -51,6 +51,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.credentials.CredentialsProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.action.InstantiatingAction;
@@ -112,10 +113,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           IsolatableFactory isolatableFactory,
                                           ObjectFactory objectFactory,
                                           DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
-                                          ChecksumService checksumService) {
+                                          ChecksumService checksumService,
+                                          CredentialsProviderFactory credentialsProviderFactory) {
         this(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory,
             artifactFileStore, pomParser, metadataParser, authenticationContainer,
-            resourcesFileStore, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService);
+            resourcesFileStore, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, credentialsProviderFactory);
     }
 
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
@@ -132,8 +134,9 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           IsolatableFactory isolatableFactory,
                                           ObjectFactory objectFactory,
                                           DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
-                                          ChecksumService checksumService) {
-        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory);
+                                          ChecksumService checksumService,
+                                          CredentialsProviderFactory credentialsProviderFactory) {
+        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory, credentialsProviderFactory);
         this.describer = describer;
         this.fileResolver = fileResolver;
         this.urlArtifactRepository = urlArtifactRepositoryFactory.create("Maven", this::getDisplayName);
@@ -225,7 +228,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     protected RepositoryDescriptor createDescriptor() {
         URI rootUri = validateUrl();
         return new MavenRepositoryDescriptor.Builder(getName(), rootUri)
-            .setAuthenticated(getConfiguredCredentials() != null)
+            .setAuthenticated(usesCredentials())
             .setAuthenticationSchemes(getAuthenticationSchemes())
             .setMetadataSources(metadataSources.asList())
             .setArtifactUrls(Sets.newHashSet(getArtifactUrls()))

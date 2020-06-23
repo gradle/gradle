@@ -58,6 +58,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResol
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.credentials.CredentialsProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -117,8 +118,9 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                                         IsolatableFactory isolatableFactory,
                                         ObjectFactory objectFactory,
                                         DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
-                                        ChecksumService checksumService) {
-        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory);
+                                        ChecksumService checksumService,
+                                        CredentialsProviderFactory credentialsProviderFactory) {
+        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory, credentialsProviderFactory);
         this.fileResolver = fileResolver;
         this.urlArtifactRepository = urlArtifactRepositoryFactory.create("Ivy", this::getDisplayName);
         this.transportFactory = transportFactory;
@@ -184,7 +186,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         }
 
         return new IvyRepositoryDescriptor.Builder(getName(), urlArtifactRepository.getUrl())
-            .setAuthenticated(getConfiguredCredentials() != null)
+            .setAuthenticated(usesCredentials())
             .setAuthenticationSchemes(getAuthenticationSchemes())
             .setMetadataSources(metadataSources.asList())
             .setLayoutType(layoutType)
