@@ -17,7 +17,6 @@ package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
@@ -177,7 +176,6 @@ allprojects {
     }
 
     @Issue("GRADLE-2419")
-    @ToBeFixedForInstantExecution
     def "tooling API does not hold JVM open"() {
         given:
         def buildFile = projectDir.file("build.gradle")
