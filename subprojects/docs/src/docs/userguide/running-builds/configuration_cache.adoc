@@ -16,6 +16,7 @@ The configuration cache is an <<feature_lifecycle.adoc#feature_lifecycle,incubat
 // TODO java serialization support
 // TODO value suppliers reference documentation
 
+[[config_cache:intro]]
 == Introduction
 
 The configuration cache is a feature that significantly improves build performance by caching the result of the <<build_lifecycle#build_lifecycle,configuration phase>> and reusing this for subsequent builds.
@@ -32,8 +33,8 @@ In other words, the configuration cache caches the output of the configuration p
 This feature is currently *experimental* and not enabled by default.
 
 Not all <<configuration_cache#core_plugins, core Gradle plugins>> are supported.
-Your build and the plugins you depend on might require changes to fulfil the <<configuration_cache#requirements, requirements>>.
-Some Gradle features are <<configuration_cache#not_yet_implemented, not yet implemented>>.
+Your build and the plugins you depend on might require changes to fulfil the <<configuration_cache#config_cache:requirements, requirements>>.
+Some Gradle features are <<configuration_cache#config_cache:not_yet_implemented, not yet implemented>>.
 Importing and syncing Gradle builds in IDEs is not improved by configuration caching yet.
 ====
 
@@ -72,6 +73,7 @@ Apart from skipping the configuration phase, the configuration cache provides so
 - All tasks run in parallel by default.
 - Dependency resolution is cached.
 
+[[config_cache:usage]]
 == Using the configuration cache
 
 It is recommended to get started with the simplest task invocation possible.
@@ -105,7 +107,7 @@ You should target your development loop.
 A good example is running tests after making incremental changes.
 
 If any problem is found caching or reusing the configuration, an HTML report is generated to help you diagnose and fix the issues.
-See the <<configuration_cache#troubleshooting>> section below for more information.
+See the <<configuration_cache#config_cache:troubleshooting>> section below for more information.
 
 Keep reading to learn how to tweak the configuration cache, manually invalidate the state if something goes wrong and use the configuration cache from an IDE.
 
@@ -175,7 +177,7 @@ org.gradle.unsafe.configuration-cache.max-problems=5
 The configuration cache is automatically invalidated when inputs to the configuration phase change.
 But, you may have to manually invalidate the configuration cache when untracked inputs to the configuration phase change.
 This can happen if you <<configuration_cache#ignore_problems,ignored problems>>, or when your build uses <<dynamic_versions#sec:dynamic_versions_and_changing_modules, dynamic dependency versions>> and remote dependencies changed for example.
-See the <<configuration_cache#requirements>> and <<configuration_cache#not_yet_implemented>> sections below for more information.
+See the <<configuration_cache#config_cache:requirements>> and <<configuration_cache#config_cache:not_yet_implemented>> sections below for more information.
 
 The configuration cache state is stored on disk in a directory named `.gradle/configuration-cache` in the root directory of the Gradle build in use.
 If you need to invalidate the cache, simply delete that directory:
@@ -187,6 +189,7 @@ If you need to invalidate the cache, simply delete that directory:
 Configuration cache entries are checked periodically (at most every 24 hours) for whether they are still in use.
 They are deleted if they haven't been used for 7 days.
 
+[[config_cache:ide]]
 == IDE support
 
 If you enable and configure the configuration cache from your `gradle.properties` file, then the configuration cache will be enabled when your IDE delegates to Gradle.
@@ -231,7 +234,7 @@ To enable it for a given run configuration, go to `Run configurations...`, find 
 
 Combining these two ways you can enable globally and disable for certain run configurations, or the opposite.
 
-[[plugin_support]]
+[[config_cache:plugins]]
 == Supported plugins
 
 The configuration cache is brand new and introduces new requirements for plugin implementations.
@@ -318,7 +321,7 @@ link:{gradle-issues}13473[[.red]#✖#]:: <<project_report_plugin.adoc#project_re
 
 Please refer to issue link:{gradle-issues}13490[gradle/gradle#13490] to learn about the status of community plugins.
 
-[[troubleshooting]]
+[[config_cache:troubleshooting]]
 == Troubleshooting
 
 The following sections will go through some general guidelines on dealing with problems with the configuration cache.
@@ -355,9 +358,9 @@ In both cases you can expand the tree in order to discover where the culprit is 
 
 [TIP]
 ====
-Problems displayed in the report have links to the corresponding <<configuration_cache#requirements,requirement>> where you can find guidance on how to fix the problem or to the corresponding <<configuration_cache#not_yet_implemented,not yet implemented>> feature.
+Problems displayed in the report have links to the corresponding <<configuration_cache#config_cache:requirements,requirement>> where you can find guidance on how to fix the problem or to the corresponding <<configuration_cache#config_cache:not_yet_implemented,not yet implemented>> feature.
 
-When changing your build or plugin to fix the problems you should consider <<configuration_cache#testkit, testing your build logic with TestKit>>.
+When changing your build or plugin to fix the problems you should consider <<configuration_cache#config_cache:testing, testing your build logic with TestKit>>.
 ====
 
 At this stage, you can decide to either <<configuration_cache#ignore_problems, turn the problems into warnings>> and continue exploring how your build reacts to the configuration cache, or fix the problems at hand.
@@ -430,13 +433,13 @@ We're now done with fixing the problems with this simple task.
 
 Keep reading to learn how to adopt the configuration cache for your build or your plugins.
 
-[[adoption]]
+[[config_cache:adoption]]
 == Adoption steps
 
 An important prerequisite is to keep your Gradle and plugins versions up to date.
 The following explores the recommended steps for a successful adoption.
 It applies both to builds and plugins.
-While going through these steps, keep in mind the HTML report and the solutions explained in the <<configuration_cache#requirements, requirements>> chapter below.
+While going through these steps, keep in mind the HTML report and the solutions explained in the <<configuration_cache#config_cache:requirements, requirements>> chapter below.
 
 Start with `:help`::
 Always start by trying your build or plugin with the simplest task `:help`.
@@ -453,7 +456,7 @@ When working on a plugin, progressively target the contributed or configured tas
 
 Explore by turning problems into warnings::
 Don't stop at the first build failure and <<configuration_cache#ignore_problems, turn problems into warnings>> to discover how your build or plugin behave.
-Use the HTML report to reason about the reported problems, read about them in the <<configuration_cache#requirements, requirements>> and <<configuration_cache#not_yet_implemented, not yet implemented>> sections below.
+Use the HTML report to reason about the reported problems, read about them in the <<configuration_cache#config_cache:requirements, requirements>> and <<configuration_cache#config_cache:not_yet_implemented, not yet implemented>> sections below.
 Continue running more tasks.
 +
 This will give you a good overview of what problems your build or plugin is facing.
@@ -468,7 +471,7 @@ Once fixed, you can rely on a valid cached configuration phase and move on to fi
 
 Test, test, test::
 Consider adding tests for your build logic.
-See the below section on <<configuration_cache#testkit, testing your build logic>> for the configuration cache.
+See the below section on <<configuration_cache#config_cache:testing, testing your build logic>> for the configuration cache.
 This will help you while iterating on the required changes and prevent future regressions.
 
 Report problems with community plugins::
@@ -482,7 +485,7 @@ A good way to report such problems to community plugin authors is by providing:
 * a copy of the console problem report, or ideally the HTML problem report you got, so the plugin author can easily reason about the problems,
 * ideally a reproducer build, so the plugin author can easily reproduce the problems.
 
-[[testkit]]
+[[config_cache:testing]]
 == Testing your build logic
 
 The Gradle TestKit (a.k.a. just TestKit) is a library that aids in testing Gradle plugins and build logic generally.
@@ -505,7 +508,7 @@ include::sample[dir="snippets/configurationCache/testKit/kotlin",files="src/test
 
 If problems with the configuration cache are found then Gradle will fail the build reporting the problems, and the test will fail.
 
-[[requirements]]
+[[config_cache:requirements]]
 == Requirements
 
 In order to capture the state of the task graph to the configuration cache and reload it again in a later build, Gradle applies certain requirements to tasks and other build logic.
@@ -835,7 +838,7 @@ include::sample[dir="snippets/valueProviders/fileContentsDo/kotlin",files="build
 In general, you should avoid reading files at configuration time, to avoid invalidating configuration cache entries when the file content changes.
 Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#fileContents-org.gradle.api.file.RegularFile-[providers.fileContents()] to task properties.
 
-[[not_yet_implemented]]
+[[config_cache:not_yet_implemented]]
 == Not yet implemented
 
 Support for using configuration caching with certain Gradle features is not yet implemented.
