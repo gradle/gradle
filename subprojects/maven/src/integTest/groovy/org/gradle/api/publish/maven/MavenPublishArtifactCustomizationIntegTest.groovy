@@ -332,7 +332,6 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "can configure custom artifacts post creation"() {
         given:
         createBuildScripts("""
@@ -360,7 +359,6 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-docs.html", "projectText-1.0-customjar.jar")
     }
 
-    @ToBeFixedForInstantExecution
     def "can attach artifact with no extension"() {
         given:
         createBuildScripts("""
@@ -404,7 +402,6 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         failure.assertHasCause("Invalid publication 'mavenCustom': artifact file is a directory")
     }
 
-    @ToBeFixedForInstantExecution
     def "artifact coordinates are evaluated lazily"() {
         given:
         createBuildScripts("""

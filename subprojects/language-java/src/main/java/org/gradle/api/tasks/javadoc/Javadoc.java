@@ -49,7 +49,6 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -59,6 +58,8 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import static org.gradle.util.GUtil.isTrue;
 
 /**
  * <p>Generates HTML API documentation for Java classes.</p>
@@ -135,17 +136,15 @@ public class Javadoc extends SourceTask {
             options.destinationDirectory(destinationDir);
         }
 
+        boolean isModule = isModule();
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
-        List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getSource());
-        boolean isModule = JavaModuleDetector.isModuleSource(modularity.getInferModulePath().get(), sourcesRoots);
-
         options.classpath(new ArrayList<>(javaModuleDetector.inferClasspath(isModule, getClasspath()).getFiles()));
         options.modulePath(new ArrayList<>(javaModuleDetector.inferModulePath(isModule, getClasspath()).getFiles()));
 
-        if (!GUtil.isTrue(options.getWindowTitle()) && GUtil.isTrue(getTitle())) {
+        if (!isTrue(options.getWindowTitle()) && isTrue(getTitle())) {
             options.windowTitle(getTitle());
         }
-        if (!GUtil.isTrue(options.getDocTitle()) && GUtil.isTrue(getTitle())) {
+        if (!isTrue(options.getDocTitle()) && isTrue(getTitle())) {
             options.setDocTitle(getTitle());
         }
 
@@ -165,13 +164,22 @@ public class Javadoc extends SourceTask {
             }
         }
 
-        List<String> sourceNames = new ArrayList<String>();
+        options.setSourceNames(sourceNames());
+
+        executeExternalJavadoc(options);
+    }
+
+    private boolean isModule() {
+        List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getSource());
+        return JavaModuleDetector.isModuleSource(modularity.getInferModulePath().get(), sourcesRoots);
+    }
+
+    private List<String> sourceNames() {
+        List<String> sourceNames = new ArrayList<>();
         for (File sourceFile : getSource()) {
             sourceNames.add(sourceFile.getAbsolutePath());
         }
-        options.setSourceNames(sourceNames);
-
-        executeExternalJavadoc(options);
+        return sourceNames;
     }
 
     private void executeExternalJavadoc(StandardJavadocDocletOptions options) {
@@ -385,7 +393,9 @@ public class Javadoc extends SourceTask {
      *
      * @return The executable. May be null.
      */
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getExecutable() {
         return executable;
     }

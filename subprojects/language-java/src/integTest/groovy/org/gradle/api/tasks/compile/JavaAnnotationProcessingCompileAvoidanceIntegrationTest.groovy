@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
@@ -64,7 +63,6 @@ class JavaAnnotationProcessingCompileAvoidanceIntegrationTest extends AbstractIn
         '''
     }
 
-    @ToBeFixedForInstantExecution(because = "incremental build bug")
     def "does not rebuild project when upstream project has not changed, only rebuilt"() {
         given:
         succeeds(":a:assemble")
