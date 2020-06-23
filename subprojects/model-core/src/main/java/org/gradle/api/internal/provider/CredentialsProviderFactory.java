@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.credentials;
+package org.gradle.api.internal.provider;
 
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.credentials.AwsCredentials;
@@ -22,8 +22,6 @@ import org.gradle.api.credentials.Credentials;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
-import org.gradle.api.internal.provider.DefaultProvider;
-import org.gradle.api.internal.provider.MissingValueException;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
@@ -38,10 +36,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class GradlePropertiesCredentialsProviderFactory implements CredentialsProviderFactory, TaskExecutionGraphListener {
+public class CredentialsProviderFactory implements TaskExecutionGraphListener {
 
     private final ProviderFactory providerFactory;
 
@@ -50,13 +47,12 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
 
     private final Set<String> missingProviderErrors = new HashSet<>();
 
-    public GradlePropertiesCredentialsProviderFactory(ProviderFactory providerFactory) {
+    public CredentialsProviderFactory(ProviderFactory providerFactory) {
         this.providerFactory = providerFactory;
     }
 
     @SuppressWarnings("unchecked")
-    @Override
-    public <T extends Credentials> Provider<T> provideCredentials(Class<T> credentialsType, String identity) {
+    public <T extends Credentials> Provider<T> provide(Class<T> credentialsType, String identity) {
         validateIdentity(identity);
 
         if (PasswordCredentials.class.isAssignableFrom(credentialsType)) {
@@ -69,9 +65,8 @@ public class GradlePropertiesCredentialsProviderFactory implements CredentialsPr
         throw new IllegalArgumentException(String.format("Unsupported credentials type: %s", credentialsType));
     }
 
-    @Override
-    public <T extends Credentials> Provider<T> provideCredentials(Class<T> credentialsType, Supplier<String> identity) {
-        return evaluateAtConfigurationTime(() -> provideCredentials(credentialsType, identity.get()).get());
+    public <T extends Credentials> Provider<T> provide(Class<T> credentialsType, Provider<String> identity) {
+        return evaluateAtConfigurationTime(() -> provide(credentialsType, identity.get()).get());
     }
 
     @Override

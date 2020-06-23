@@ -19,9 +19,9 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.Credentials;
-import org.gradle.api.internal.credentials.CredentialsProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
@@ -36,10 +36,12 @@ import java.util.List;
 
 public abstract class AbstractAuthenticationSupportedRepository extends AbstractResolutionAwareArtifactRepository implements AuthenticationSupportedInternal {
     private final AuthenticationSupporter delegate;
+    private final ProviderFactory providerFactory;
 
-    AbstractAuthenticationSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer, ObjectFactory objectFactory, CredentialsProviderFactory credentialsProviderFactory) {
+    AbstractAuthenticationSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer, ObjectFactory objectFactory, ProviderFactory providerFactory) {
         super(objectFactory);
-        this.delegate = new AuthenticationSupporter(instantiator, objectFactory, authenticationContainer, credentialsProviderFactory);
+        this.delegate = new AuthenticationSupporter(instantiator, objectFactory, authenticationContainer, providerFactory);
+        this.providerFactory = providerFactory;
     }
 
     @Override
@@ -80,7 +82,7 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     @Override
     public void credentials(Class<? extends Credentials> credentialsType) {
         invalidateDescriptor();
-        delegate.credentials(credentialsType, this::getName);
+        delegate.credentials(credentialsType, providerFactory.provider(this::getName));
     }
 
     @Override

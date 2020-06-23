@@ -100,7 +100,6 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
-import org.gradle.api.internal.credentials.CredentialsProviderFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FilePropertyFactory;
@@ -111,6 +110,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.InternalBuildFinishedListener;
@@ -457,7 +457,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 NamedObjectInstantiator instantiator,
                 DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                 ChecksumService checksumService,
-                CredentialsProviderFactory credentialsProviderFactory
+                ProviderFactory providerFactory
         ) {
             return new DefaultBaseRepositoryFactory(
                     localMavenRepositoryLocator,
@@ -481,7 +481,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     callbackDecorator,
                     urlArtifactRepositoryFactory,
                     checksumService,
-                    credentialsProviderFactory);
+                    providerFactory);
         }
 
         RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory, CollectionCallbackActionDecorator callbackDecorator) {

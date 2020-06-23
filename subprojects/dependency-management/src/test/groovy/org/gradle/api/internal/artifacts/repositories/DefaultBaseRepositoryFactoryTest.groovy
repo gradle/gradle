@@ -31,7 +31,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore
-import org.gradle.api.internal.credentials.CredentialsProviderFactory
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry
 import org.gradle.internal.isolation.IsolatableFactory
@@ -58,7 +58,7 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final MavenMutableModuleMetadataFactory mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
     final IvyMutableModuleMetadataFactory ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
     final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver);
-    final CredentialsProviderFactory credentialsProviderFactory = Mock()
+    final ProviderFactory providerFactory = Mock()
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
             localMavenRepoLocator, fileResolver, fileCollectionFactory, transportFactory, locallyAvailableResourceFinder,
@@ -67,7 +67,7 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
             CollectionCallbackActionDecorator.NOOP,
             urlArtifactRepositoryFactory,
             TestUtil.checksumService,
-            credentialsProviderFactory
+            providerFactory
     )
 
     def testCreateFlatDirResolver() {

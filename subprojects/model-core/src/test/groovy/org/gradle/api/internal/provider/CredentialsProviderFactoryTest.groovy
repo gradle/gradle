@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.credentials
+package org.gradle.api.internal.provider
 
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.credentials.PasswordCredentials
-import org.gradle.api.internal.provider.DefaultProvider
-import org.gradle.api.internal.provider.MissingValueException
-import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import spock.lang.Specification
 
-class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
+class CredentialsProviderFactoryTest extends Specification {
 
     def providerFactory = Mock(ProviderFactory)
-    def factory = new GradlePropertiesCredentialsProviderFactory(providerFactory)
+    def factory = new CredentialsProviderFactory(providerFactory)
 
     def "does not allow non-letters and non-digits for identity"() {
         when:
-        factory.provideCredentials(PasswordCredentials, (String) identity)
+        factory.provide(PasswordCredentials, (String) identity)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -47,7 +44,7 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
         providerFactory.gradleProperty('myServiceUsername') >> Providers.notDefined()
         providerFactory.gradleProperty('myServicePassword') >> Providers.notDefined()
 
-        def provider = factory.provideCredentials(PasswordCredentials, 'myService')
+        def provider = factory.provide(PasswordCredentials, 'myService')
 
         when:
         provider.get()
@@ -63,7 +60,7 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
         given:
         providerFactory.gradleProperty('myServiceUsername') >> Providers.notDefined()
         providerFactory.gradleProperty('myServicePassword') >> Providers.notDefined()
-        def provider = factory.provideCredentials(PasswordCredentials, 'myService')
+        def provider = factory.provide(PasswordCredentials, 'myService')
 
         when:
         def isPresent = provider.isPresent()
@@ -77,7 +74,7 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
         given:
         providerFactory.gradleProperty('myServiceUsername') >> Providers.notDefined()
         providerFactory.gradleProperty('myServicePassword') >> new DefaultProvider<>({ 'secret' })
-        def provider = factory.provideCredentials(PasswordCredentials, 'myService')
+        def provider = factory.provide(PasswordCredentials, 'myService')
 
         when:
         provider.get()
@@ -93,7 +90,7 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
         given:
         providerFactory.gradleProperty('myServiceUsername') >> new DefaultProvider<>({ 'admin' })
         providerFactory.gradleProperty('myServicePassword') >> new DefaultProvider<>({ 'secret' })
-        def provider = factory.provideCredentials(PasswordCredentials, 'myService')
+        def provider = factory.provide(PasswordCredentials, 'myService')
 
         when:
         def credentials = provider.get()
@@ -106,17 +103,17 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
 
     def "reuses a provider with same identity"() {
         expect:
-        factory.provideCredentials(PasswordCredentials, 'id') == factory.provideCredentials(PasswordCredentials, 'id')
+        factory.provide(PasswordCredentials, 'id') == factory.provide(PasswordCredentials, 'id')
     }
 
     def "creates distinct providers for different identities"() {
         expect:
-        factory.provideCredentials(PasswordCredentials, 'id') != factory.provideCredentials(PasswordCredentials, 'id2')
+        factory.provide(PasswordCredentials, 'id') != factory.provide(PasswordCredentials, 'id2')
     }
 
     def "allows same identity for different credential types"() {
         expect:
-        factory.provideCredentials(PasswordCredentials, 'id') != factory.provideCredentials(AwsCredentials, 'id')
+        factory.provide(PasswordCredentials, 'id') != factory.provide(AwsCredentials, 'id')
     }
 
     def "does not require sessionToken for aws provider"() {
@@ -124,7 +121,7 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
         providerFactory.gradleProperty('idAccessKey') >> new DefaultProvider<>({ 'access' })
         providerFactory.gradleProperty('idSecretKey') >> new DefaultProvider<>({ 'secret' })
         providerFactory.gradleProperty('idSessionToken') >> Providers.notDefined()
-        def provider = factory.provideCredentials(AwsCredentials, "id")
+        def provider = factory.provide(AwsCredentials, "id")
 
         when:
         def credentials = provider.get()
@@ -140,7 +137,7 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
         providerFactory.gradleProperty('idAccessKey') >> new DefaultProvider<>({ 'access' })
         providerFactory.gradleProperty('idSecretKey') >> new DefaultProvider<>({ 'secret' })
         providerFactory.gradleProperty('idSessionToken') >> new DefaultProvider<>({ 'token' })
-        def provider = factory.provideCredentials(AwsCredentials, "id")
+        def provider = factory.provide(AwsCredentials, "id")
 
         when:
         def credentials = provider.get()
@@ -158,8 +155,8 @@ class GradlePropertiesCredentialsProviderFactoryTest extends Specification {
         providerFactory.gradleProperty('cloudServiceSessionToken') >> Providers.notDefined()
         providerFactory.gradleProperty('myServiceUsername') >> Providers.notDefined()
         providerFactory.gradleProperty('myServicePassword') >> Providers.notDefined()
-        def awsProvider = factory.provideCredentials(AwsCredentials, "cloudService")
-        def passwordProvider = factory.provideCredentials(PasswordCredentials, "myService")
+        def awsProvider = factory.provide(AwsCredentials, "cloudService")
+        def passwordProvider = factory.provide(PasswordCredentials, "myService")
 
         when:
         awsProvider.isPresent()
