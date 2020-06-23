@@ -695,6 +695,75 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         outputContains("result = [a.jar.green, b.jar.green, c.jar.green]")
     }
 
+    def "task input file collection can include output of artifact transform of external dependencies when transform takes upstream artifacts"() {
+        def fixture = newInstantExecutionFixture()
+
+        setupBuildWithArtifactTransformsOfExternalDependenciesThatTakeUpstreamDependencies()
+
+        when:
+        instantRun(":resolve")
+
+        then:
+        output.count("processing") == 3
+        outputContains("processing thing1-1.2.jar using []")
+        outputContains("processing thing2-1.2.jar using []")
+        outputContains("processing thing3-1.2.jar using [thing1-1.2.jar, thing2-1.2.jar]")
+        outputContains("result = [thing3-1.2.jar.green, thing1-1.2.jar.green, thing2-1.2.jar.green]")
+
+        when:
+        instantRun(":resolve")
+
+        then: // everything is up-to-date
+        fixture.assertStateLoaded()
+        output.count("processing") == 0
+        outputContains("result = [thing3-1.2.jar.green, thing1-1.2.jar.green, thing2-1.2.jar.green]")
+    }
+
+    def "task input artifact collection can include output of artifact transform of external dependencies when transform takes upstream artifacts"() {
+        def fixture = newInstantExecutionFixture()
+
+        setupBuildWithArtifactTransformsOfExternalDependenciesThatTakeUpstreamDependencies()
+
+        when:
+        instantRun(":resolveArtifacts")
+
+        then:
+        output.count("processing") == 3
+        outputContains("processing thing1-1.2.jar using []")
+        outputContains("processing thing2-1.2.jar using []")
+        outputContains("processing thing3-1.2.jar using [thing1-1.2.jar, thing2-1.2.jar]")
+        outputContains("files = [thing3-1.2.jar.green, thing1-1.2.jar.green, thing2-1.2.jar.green]")
+        outputContains("artifacts = [thing3-1.2.jar.green (group:thing3:1.2), thing1-1.2.jar.green (group:thing1:1.2), thing2-1.2.jar.green (group:thing2:1.2)]")
+        outputContains("variants = [{artifactType=jar, color=green, org.gradle.status=release}, {artifactType=jar, color=green, org.gradle.status=release}, {artifactType=jar, color=green, org.gradle.status=release}]")
+
+        when:
+        instantRun(":resolveArtifacts")
+
+        then: // everything is up-to-date
+        fixture.assertStateLoaded()
+        output.count("processing") == 0
+        outputContains("files = [thing3-1.2.jar.green, thing1-1.2.jar.green, thing2-1.2.jar.green]")
+        outputContains("artifacts = [thing3-1.2.jar.green (group:thing3:1.2), thing1-1.2.jar.green (group:thing1:1.2), thing2-1.2.jar.green (group:thing2:1.2)]")
+        outputContains("variants = [{artifactType=jar, color=green, org.gradle.status=release}, {artifactType=jar, color=green, org.gradle.status=release}, {artifactType=jar, color=green, org.gradle.status=release}]")
+    }
+
+    private void setupBuildWithArtifactTransformsOfExternalDependenciesThatTakeUpstreamDependencies() {
+        def dep1 = withColorVariants(mavenRepo.module("group", "thing1", "1.2")).publish()
+        def dep2 = withColorVariants(mavenRepo.module("group", "thing2", "1.2")).publish()
+        withColorVariants(mavenRepo.module("group", "thing3", "1.2")).dependsOn(dep1).dependsOn(dep2).publish()
+
+        setupBuildWithColorTransformThatTakesUpstreamArtifacts()
+        buildFile << """
+            dependencies {
+                implementation 'group:thing3:1.2'
+            }
+
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
+            }
+        """
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/13245")
     def "task input file collection can include output of artifact transform of project dependencies when transform takes transformed upstream artifacts"() {
         def fixture = newInstantExecutionFixture()
@@ -761,6 +830,47 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         outputContains("result = [a.jar.red.green, b.jar.red.green, c.jar.red.green]")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/13245")
+    def "task input file collection can include output of artifact transform of external dependencies when transform takes transformed upstream artifacts"() {
+        def fixture = newInstantExecutionFixture()
+
+        def dep1 = withColorVariants(mavenRepo.module("group", "thing1", "1.2")).publish()
+        def dep2 = withColorVariants(mavenRepo.module("group", "thing2", "1.2")).publish()
+        withColorVariants(mavenRepo.module("group", "thing3", "1.2")).dependsOn(dep1).dependsOn(dep2).publish()
+
+        setupBuildWithChainedColorTransformThatTakesUpstreamArtifacts()
+
+        buildFile << """
+            dependencies {
+                implementation 'group:thing3:1.2'
+            }
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
+            }
+        """
+
+        when:
+        instantRun(":resolve")
+
+        then:
+        output.count("processing") == 6
+        outputContains("processing thing1-1.2.jar")
+        outputContains("processing thing2-1.2.jar")
+        outputContains("processing thing2-1.2.jar")
+        outputContains("processing thing1-1.2.jar.red using []")
+        outputContains("processing thing2-1.2.jar.red using []")
+        outputContains("processing thing3-1.2.jar.red using [thing1-1.2.jar.red, thing2-1.2.jar.red]")
+        outputContains("result = [thing3-1.2.jar.red.green, thing1-1.2.jar.red.green, thing2-1.2.jar.red.green]")
+
+        when:
+        instantRun(":resolve")
+
+        then: // everything is up-to-date
+        fixture.assertStateLoaded()
+        output.count("processing") == 0
+        outputContains("result = [thing3-1.2.jar.red.green, thing1-1.2.jar.red.green, thing2-1.2.jar.red.green]")
+    }
+
     def "reports failure to transform prebuilt file dependency"() {
         settingsFile << """
             include 'a'
@@ -802,6 +912,10 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
 
         then:
         fixture.assertStateStored() // transform spec is stored
+        output.count("processing") == 3
+        outputContains("processing root.blue")
+        outputContains("processing a.jar")
+        outputContains("processing a.blue")
         failure.assertHasFailure("Execution failed for task ':resolve'.") {
             it.assertHasCause("Failed to transform root.blue to match attributes {artifactType=blue, color=green}.")
             it.assertHasCause("Failed to transform a.jar (project :a) to match attributes {artifactType=jar, color=green}.")
@@ -814,13 +928,18 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
 
         then:
         fixture.assertStateLoaded()
+        output.count("processing") == 2
+        outputContains("processing root.blue")
+        outputContains("processing a.jar")
         failure.assertHasDescription("Execution failed for task ':resolve'.")
-        // TODO - is missing context exception
+        // TODO - is missing context exception explaining which configuration could not be resolved
+        // TODO - currently runs transforms for file and external dependencies sequentially and stops on first failure. Should instead run all transforms in parallel
+        // TODO - stops on first failure, should collect all failures
     }
 
-    def "reports failure transforming project dependency"() {
+    def "reports failure to transform project dependency"() {
         settingsFile << """
-            include 'a'
+            include 'a', 'b'
         """
         setupBuildWithColorTransformAction()
         buildFile << """
@@ -837,6 +956,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
 
             dependencies {
                 implementation project(':a')
+                implementation project(':b')
             }
         """
 
@@ -847,8 +967,12 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
 
         then:
         fixture.assertStateStored()
+        output.count("processing") == 2
+        outputContains("processing a.jar")
+        outputContains("processing b.jar")
         failure.assertHasFailure("Execution failed for task ':resolve'.") {
             it.assertHasCause("Failed to transform a.jar (project :a) to match attributes {artifactType=jar, color=green}.")
+            it.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         }
 
         when:
@@ -856,8 +980,68 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
 
         then:
         fixture.assertStateLoaded()
+        output.count("processing") == 2
+        outputContains("processing a.jar")
+        outputContains("processing b.jar")
         failure.assertHasDescription("Execution failed for task ':resolve'.")
-        // TODO - is missing context exception
+        // TODO - is missing context exception explaining which configuration could not be resolved
+        // TODO - stops on first failure, should collect all failures
+    }
+
+    def "reports failure to transform external dependency"() {
+        withColorVariants(mavenRepo.module("group", "thing1", "1.2")).publish()
+        withColorVariants(mavenRepo.module("group", "thing2", "1.2")).publish()
+
+        setupBuildWithColorTransformAction()
+
+        buildFile << """
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing \${input.name}"
+                    throw new RuntimeException("broken: \${input.name}")
+                }
+            }
+
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
+            }
+
+            dependencies {
+                implementation 'group:thing1:1.2'
+                implementation 'group:thing2:1.2'
+            }
+        """
+
+        def fixture = newInstantExecutionFixture()
+
+        when:
+        instantFails(":resolve")
+
+        then:
+        fixture.assertStateStored()
+        output.count("processing") == 2
+        outputContains("processing thing1-1.2.jar")
+        outputContains("processing thing2-1.2.jar")
+        failure.assertHasFailure("Execution failed for task ':resolve'.") {
+            it.assertHasCause("Failed to transform thing1-1.2.jar (group:thing1:1.2) to match attributes {artifactType=jar, color=green, org.gradle.status=release}.")
+            it.assertHasCause("Failed to transform thing2-1.2.jar (group:thing2:1.2) to match attributes {artifactType=jar, color=green, org.gradle.status=release}.")
+        }
+
+        when:
+        instantFails(":resolve")
+
+        then:
+        fixture.assertStateLoaded()
+        output.count("processing") == 1
+        outputContains("processing thing1-1.2.jar")
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        // TODO - is missing context exception explaining which configuration could not be resolved
+        // TODO - currently runs transforms for file and external dependencies sequentially and stops on first failure. Should instead run all transforms in parallel
+        // TODO - stops on first failure, should collect all failures
     }
 
     @Ignore("wip")
