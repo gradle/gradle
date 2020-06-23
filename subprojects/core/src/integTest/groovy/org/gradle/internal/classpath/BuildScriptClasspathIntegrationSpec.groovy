@@ -93,7 +93,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         loopNumber << (1..6).toList()
     }
 
-    @ToBeFixedForInstantExecution(because = "classpath locations are different when caching enabled or disabled")
     def "build script classloader copies jar files to cache"() {
         given:
         createBuildFileThatPrintsClasspathURLs("""
