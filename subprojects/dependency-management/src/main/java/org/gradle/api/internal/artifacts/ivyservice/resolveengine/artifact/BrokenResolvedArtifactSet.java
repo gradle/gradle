@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -39,7 +40,12 @@ public class BrokenResolvedArtifactSet implements ResolvedArtifactSet, ResolvedA
     }
 
     @Override
-    public void visitLocalArtifacts(LocalArtifactVisitor listener) {
+    public void visitLocalArtifacts(LocalArtifactVisitor visitor) {
+        throw UncheckedException.throwAsUncheckedException(failure);
+    }
+
+    @Override
+    public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
         throw UncheckedException.throwAsUncheckedException(failure);
     }
 

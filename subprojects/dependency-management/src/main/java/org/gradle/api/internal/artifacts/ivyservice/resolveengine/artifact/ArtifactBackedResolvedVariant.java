@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
@@ -120,9 +121,16 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         }
 
         @Override
-        public void visitLocalArtifacts(LocalArtifactVisitor listener) {
+        public void visitLocalArtifacts(LocalArtifactVisitor visitor) {
             if (artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier) {
-                listener.visitArtifact(new SingleLocalArtifactSet(artifact));
+                visitor.visitArtifact(new SingleLocalArtifactSet(artifact));
+            }
+        }
+
+        @Override
+        public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
+            if (!(artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier)) {
+                visitor.execute(artifact);
             }
         }
 

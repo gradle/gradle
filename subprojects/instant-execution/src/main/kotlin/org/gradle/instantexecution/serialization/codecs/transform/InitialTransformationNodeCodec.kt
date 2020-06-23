@@ -38,8 +38,8 @@ class InitialTransformationNodeCodec(
     override suspend fun WriteContext.doEncode(value: TransformationNode.InitialTransformationNode) {
         withCodec(userTypesCodec) {
             write(value.transformationStep)
+            write(transformDependencies(value))
         }
-        writeDependenciesResolver(value)
         write((value.inputArtifacts as ArtifactBackedResolvedVariant.SingleLocalArtifactSet).artifact)
     }
 
@@ -47,7 +47,9 @@ class InitialTransformationNodeCodec(
         val transformationStep = withCodec(userTypesCodec) {
             readNonNull<TransformationStep>()
         }
-        val resolver = readDependenciesResolver()
+        val resolver = withCodec(userTypesCodec) {
+            (read() as TransformDependencies).recreate()
+        }
         val artifacts = ArtifactBackedResolvedVariant.SingleLocalArtifactSet(readNonNull())
         return TransformationNode.initial(transformationStep, artifacts, resolver, buildOperationExecutor, transformListener)
     }

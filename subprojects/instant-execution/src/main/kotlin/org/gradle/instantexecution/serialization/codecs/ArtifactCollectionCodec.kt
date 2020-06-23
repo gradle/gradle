@@ -27,11 +27,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult
-import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFiles
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
+import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesResolver
 import org.gradle.api.internal.artifacts.transform.Transformation
 import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.api.internal.artifacts.transform.TransformationSubject
+import org.gradle.api.internal.artifacts.transform.TransformedExternalArtifactSet
+import org.gradle.api.internal.artifacts.transform.TransformedProjectArtifactSet
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
@@ -41,8 +43,11 @@ import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.codecs.transform.FixedDependenciesResolver
+import org.gradle.instantexecution.serialization.codecs.transform.TransformationSpec
+import org.gradle.instantexecution.serialization.codecs.transform.unpackTransformation
 import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.writeCollection
+import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import java.io.File
@@ -51,6 +56,9 @@ import java.util.concurrent.Callable
 
 internal
 class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionFactory) : Codec<ArtifactCollectionInternal> {
+
+    private
+    val noDependencies = FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty()))
 
     override suspend fun WriteContext.encode(value: ArtifactCollectionInternal) {
         val visitor = CollectingArtifactVisitor()
@@ -63,20 +71,25 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
         val elements = readList().uncheckedCast<List<Any>>()
 
         @Suppress("implicit_cast_to_any")
-        val files = fileCollectionFactory.resolving(elements.map {
-            when (it) {
-                is FixedFileArtifactSpec -> it.file
-                is TransformedProjectArtifactSpec -> Callable {
-                    it.node.transformedSubject.get().files
+        val files = fileCollectionFactory.resolving(elements.map { element ->
+            when (element) {
+                is FixedFileArtifactSpec -> element.file
+                is TransformedProjectVariantSpec -> Callable {
+                    element.nodes.flatMap { it.transformedSubject.get().files }
                 }
                 is TransformedLocalArtifactSpec -> Callable {
-                    it.transformation.createInvocation(TransformationSubject.initial(it.origin), FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty())), null).invoke().get().files
+                    element.transformation.createInvocation(TransformationSubject.initial(element.origin), FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty())), null).invoke().get().files
                 }
-                else -> throw IllegalArgumentException("Unexpected element $it in artifact collection")
+                is TransformedExternalVariantSpec -> Callable {
+                    element.files.flatMap {
+                        element.transformation.files(TransformationSubject.initial(it))
+                    }
+                }
+                else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
             }
         })
         val failures = readList().uncheckedCast<List<Throwable>>()
-        return FixedArtifactCollection(files, elements, failures, fileCollectionFactory)
+        return FixedArtifactCollection(files, elements, failures, noDependencies)
     }
 }
 
@@ -91,10 +104,19 @@ class FixedFileArtifactSpec(
 
 
 private
-class TransformedProjectArtifactSpec(
-    val node: TransformationNode,
-    val variantDisplayName: DisplayName,
-    val variantAttributes: ImmutableAttributes
+class TransformedProjectVariantSpec(
+    val ownerId: ComponentIdentifier,
+    val variantAttributes: ImmutableAttributes,
+    val nodes: Collection<TransformationNode>
+)
+
+
+private
+class TransformedExternalVariantSpec(
+    val ownerId: ComponentIdentifier,
+    val variantAttributes: ImmutableAttributes,
+    val files: List<File>,
+    val transformation: TransformationSpec
 )
 
 
@@ -103,7 +125,6 @@ class TransformedLocalArtifactSpec(
     val ownerId: ComponentIdentifier,
     val origin: File,
     val transformation: Transformation,
-    val variantDisplayName: DisplayName,
     val variantAttributes: ImmutableAttributes
 )
 
@@ -114,9 +135,12 @@ class CollectingArtifactVisitor : ArtifactVisitor {
     val failures = mutableListOf<Throwable>()
 
     override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType {
-        return if (source is ConsumerProvidedVariantFiles) {
-            FileCollectionStructureVisitor.VisitType.NoContents
-        } else if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet) {
+        return if (source is TransformedProjectArtifactSet || source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet || source is TransformedExternalArtifactSet) {
+            // Represents artifact transform outputs. Visit the source rather than the files
+            // Transforms may have inputs or parameters that are task outputs or other changing files
+            // When this is not the case, we should run the transform now and write the result.
+            // However, currently it is not easy to determine whether or not this is the case so assume that all transforms
+            // have changing inputs
             FileCollectionStructureVisitor.VisitType.NoContents
         } else {
             FileCollectionStructureVisitor.VisitType.Visit
@@ -136,18 +160,16 @@ class CollectingArtifactVisitor : ArtifactVisitor {
     }
 
     override fun endVisitCollection(source: FileCollectionInternal.Source) {
-        if (source is ConsumerProvidedVariantFiles) {
-            for (node in source.scheduledNodes) {
-                elements.add(
-                    TransformedProjectArtifactSpec(
-                        node,
-                        source.targetVariantName,
-                        source.targetVariantAttributes
-                    )
-                )
-            }
+        if (source is TransformedProjectArtifactSet) {
+            elements.add(TransformedProjectVariantSpec(source.ownerId, source.targetVariantAttributes, source.scheduledNodes))
         } else if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet) {
-            elements.add(TransformedLocalArtifactSpec(source.ownerId, source.file, source.transformation, source.targetVariantName, source.variantAttributes))
+            elements.add(TransformedLocalArtifactSpec(source.ownerId, source.file, source.transformation, source.targetVariantAttributes))
+        } else if (source is TransformedExternalArtifactSet) {
+            val files = mutableListOf<File>()
+            source.visitArtifacts { artifact ->
+                files.add(artifact.file)
+            }
+            elements.add(TransformedExternalVariantSpec(source.ownerId, source.targetVariantAttributes, files, unpackTransformation(source.transformation, source.dependenciesResolver)))
         }
     }
 }
@@ -158,7 +180,7 @@ class FixedArtifactCollection(
     private val artifactFiles: FileCollection,
     private val elements: List<Any>,
     private val failures: List<Throwable>,
-    private val fileCollectionFactory: FileCollectionFactory
+    private val noDependencies: ExecutionGraphDependenciesResolver
 ) : ArtifactCollectionInternal {
 
     override fun getFailures() = failures
@@ -173,16 +195,31 @@ class FixedArtifactCollection(
         for (element in elements) {
             when (element) {
                 is FixedFileArtifactSpec -> result.add(DefaultResolvedArtifactResult(element.id, element.variantAttributes, element.variantDisplayName, Artifact::class.java, element.file))
-                is TransformedProjectArtifactSpec -> {
-                    for (output in element.node.transformedSubject.get().files) {
-                        val resolvedArtifact: ResolvableArtifact = element.node.inputArtifacts.transformedTo(output)
-                        result.add(DefaultResolvedArtifactResult(resolvedArtifact.id, element.variantDisplayName, element.variantAttributes, Artifact::class.java, output))
+                is TransformedProjectVariantSpec -> {
+                    val displayName = Describables.of(element.ownerId, element.variantAttributes)
+                    for (node in element.nodes) {
+                        for (output in node.transformedSubject.get().files) {
+                            val resolvedArtifact: ResolvableArtifact = node.inputArtifacts.transformedTo(output)
+                            result.add(DefaultResolvedArtifactResult(resolvedArtifact.id, displayName, element.variantAttributes, Artifact::class.java, output))
+                        }
+                    }
+                }
+                is TransformedExternalVariantSpec -> {
+                    val displayName = Describables.of(element.ownerId, element.variantAttributes)
+                    for (file in element.files) {
+                        // TODO - preserve artifact id, for error reporting
+                        val initialSubject = TransformationSubject.initial(file)
+                        for (output in element.transformation.files(initialSubject)) {
+                            val artifactId = ComponentFileArtifactIdentifier(element.ownerId, output.name)
+                            result.add(DefaultResolvedArtifactResult(artifactId, displayName, element.variantAttributes, Artifact::class.java, output))
+                        }
                     }
                 }
                 is TransformedLocalArtifactSpec -> {
-                    for (output in element.transformation.createInvocation(TransformationSubject.initial(element.origin), FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty())), null).invoke().get().files) {
+                    val displayName = Describables.of(element.ownerId, element.variantAttributes)
+                    for (output in element.transformation.createInvocation(TransformationSubject.initial(element.origin), noDependencies, null).invoke().get().files) {
                         val artifactId = ComponentFileArtifactIdentifier(element.ownerId, output.name)
-                        result.add(DefaultResolvedArtifactResult(artifactId, element.variantDisplayName, element.variantAttributes, Artifact::class.java, output))
+                        result.add(DefaultResolvedArtifactResult(artifactId, displayName, element.variantAttributes, Artifact::class.java, output))
                     }
                 }
                 else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")

@@ -45,6 +45,7 @@ import org.gradle.instantexecution.serialization.codecs.transform.ChainedTransfo
 import org.gradle.instantexecution.serialization.codecs.transform.DefaultTransformerCodec
 import org.gradle.instantexecution.serialization.codecs.transform.InitialTransformationNodeCodec
 import org.gradle.instantexecution.serialization.codecs.transform.LegacyTransformerCodec
+import org.gradle.instantexecution.serialization.codecs.transform.TransformDependenciesCodec
 import org.gradle.instantexecution.serialization.codecs.transform.TransformationNodeReferenceCodec
 import org.gradle.instantexecution.serialization.codecs.transform.TransformationStepCodec
 import org.gradle.instantexecution.serialization.ownerServiceCodec
@@ -140,6 +141,7 @@ class Codecs(
         bind(DefaultTransformerCodec(buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, parameterScheme, actionScheme))
         bind(LegacyTransformerCodec(actionScheme))
         bind(ResolvableArtifactCodec)
+        bind(TransformDependenciesCodec)
         bind(PublishArtifactLocalArtifactMetadataCodec)
 
         bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, instantiator))
@@ -207,6 +209,7 @@ class Codecs(
         bind(ActionNodeCodec)
 
         bind(ResolvableArtifactCodec)
+        bind(TransformDependenciesCodec)
 
         bind(NotImplementedCodec)
     }

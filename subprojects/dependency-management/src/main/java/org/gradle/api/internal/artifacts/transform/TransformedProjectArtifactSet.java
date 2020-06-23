@@ -20,17 +20,14 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
 
 import java.util.Collection;
 
 /**
  * An artifact set containing transformed project artifacts.
  */
-public class TransformedProjectArtifactSet extends AbstractTransformedArtifactSet implements ConsumerProvidedVariantFiles {
+public class TransformedProjectArtifactSet extends AbstractTransformedArtifactSet {
     private final ComponentIdentifier componentIdentifier;
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
@@ -53,29 +50,8 @@ public class TransformedProjectArtifactSet extends AbstractTransformedArtifactSe
         this.transformationNodeRegistry = transformationNodeRegistry;
     }
 
-    @Override
-    public ImmutableAttributes getTargetVariantAttributes() {
-        return attributes.asImmutable();
-    }
-
-    @Override
-    public DisplayName getTargetVariantName() {
-        return Describables.of(componentIdentifier, attributes);
-    }
-
-    @Override
-    public String toString() {
-        return getTargetVariantName().getCapitalizedDisplayName();
-    }
-
-    @Override
-    public Transformation getTransformation() {
-        return transformation;
-    }
-
-    @Override
-    public Object getSource() {
-        return delegate;
+    public ComponentIdentifier getOwnerId() {
+        return componentIdentifier;
     }
 
     @Override
@@ -86,13 +62,7 @@ public class TransformedProjectArtifactSet extends AbstractTransformedArtifactSe
         }
     }
 
-    @Override
     public Collection<TransformationNode> getScheduledNodes() {
         return transformationNodeRegistry.getOrCreate(delegate, transformation, getDependenciesResolver());
-    }
-
-    @Override
-    protected FileCollectionInternal.Source getVisitSource() {
-        return this;
     }
 }
