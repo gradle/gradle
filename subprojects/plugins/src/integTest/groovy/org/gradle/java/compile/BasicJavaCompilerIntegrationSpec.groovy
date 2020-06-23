@@ -178,7 +178,7 @@ compileJava {
         buildFile << """
 java.targetCompatibility = JavaVersion.VERSION_1_7 // ignored
 compileJava.targetCompatibility = '10' // ignored
-compileJava.release.set(8)
+compileJava.options.release.set(8)
 compileJava {
     doFirst {
         assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
@@ -200,7 +200,7 @@ compileJava {
         goodCode()
         buildFile << """
 compileJava.options.compilerArgs.addAll(['--release', '12'])
-compileJava.release.set(8)
+compileJava.options.release.set(8)
 """
 
         expect:
@@ -215,7 +215,7 @@ compileJava.release.set(8)
         buildFile << """
 java.targetCompatibility = JavaVersion.VERSION_1_7 // ignored
 compileJava.targetCompatibility = '10' // ignored
-compileJava.release.set(8)
+compileJava.options.release.set(8)
 java.disableAutoTargetJvm()
 compileJava {
     doFirst {
@@ -321,7 +321,7 @@ public class FailsOnJava8<T> {
 '''
 
         buildFile << """
-compileJava.release.set(8)
+compileJava.options.release.set(8)
 """
 
         expect:

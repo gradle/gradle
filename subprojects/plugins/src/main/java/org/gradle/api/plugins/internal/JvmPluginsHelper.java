@@ -263,8 +263,8 @@ public class JvmPluginsHelper {
             if (alwaysEnabled || !convention.getAutoTargetJvmDisabled()) {
                 JavaCompile javaCompile = compileTaskProvider.get();
                 int majorVersion;
-                if (javaCompile.getRelease().isPresent()) {
-                    majorVersion = javaCompile.getRelease().get();
+                if (javaCompile.getOptions().getRelease().isPresent()) {
+                    majorVersion = javaCompile.getOptions().getRelease().get();
                 } else {
                     int releaseFlag = getReleaseOption(javaCompile.getOptions().getCompilerArgs());
                     if (releaseFlag != 0) {

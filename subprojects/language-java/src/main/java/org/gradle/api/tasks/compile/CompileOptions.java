@@ -90,6 +90,7 @@ public class CompileOptions extends AbstractOptions {
 
     private final Property<String> javaModuleVersion;
     private final Property<String> javaModuleMainClass;
+    private final Property<Integer> release;
 
     private final DirectoryProperty generatedSourceOutputDirectory;
 
@@ -101,6 +102,7 @@ public class CompileOptions extends AbstractOptions {
         this.javaModuleMainClass = objectFactory.property(String.class);
         this.generatedSourceOutputDirectory = objectFactory.directoryProperty();
         this.headerOutputDirectory = objectFactory.directoryProperty();
+        this.release = objectFactory.property(Integer.class);
     }
 
     /**
@@ -476,6 +478,22 @@ public class CompileOptions extends AbstractOptions {
     public void setAnnotationProcessorPath(@Nullable FileCollection annotationProcessorPath) {
         this.annotationProcessorPath = annotationProcessorPath;
     }
+
+    /**
+     * Configure the minimal Java release version for this compile task (--release compiler flag)
+     *
+     * If set, it will take precedences over the {@link AbstractCompile#getSourceCompatibility()} and {@link AbstractCompile#getTargetCompatibility()} settings,
+     * which will have no effect in that case.
+     *
+     * @since 6.6
+     */
+    @Incubating
+    @Input
+    @Optional
+    public Property<Integer> getRelease() {
+        return release;
+    }
+
 
     /**
      * Set the version of the Java module - defaults to {@link org.gradle.api.Project#getVersion()}.
