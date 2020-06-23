@@ -60,6 +60,7 @@ dependencies {
     implementation(library("jackson_databind"))
     implementation(library("ivy"))
     implementation(library("ant"))
+    implementation(library("jgit"))
     testLibraries("sshd").forEach {
         // we depend on both the platform and the library
         implementation(it)

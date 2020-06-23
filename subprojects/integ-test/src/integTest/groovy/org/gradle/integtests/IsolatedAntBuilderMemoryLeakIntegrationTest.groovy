@@ -115,6 +115,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
     @ToBeFixedForInstantExecution
     void "does not fail with a PermGen space error or a missing method exception"() {
         given:
+        initGitDir()
         buildFile << """
 buildscript {
   repositories {
