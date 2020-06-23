@@ -111,12 +111,12 @@ class SharedJavaInstallationRegistryTest extends Specification {
 
         then:
         installations.isEmpty()
-        1 * logger.warn(logOutput, path, "testSource")
+        1 * logger.warn(logOutput, "'" + path + "' (testSource)")
 
         where:
         path        | exists | directory | valid | logOutput
-        '/unknown'  | false  | null      | false | 'Directory \'{}\' ({}) used for java installations does not exist'
-        '/foo/file' | true   | false     | false | 'Path for java installation \'{}\' ({}) points to a file, not a directory'
+        '/unknown'  | false  | null      | false | 'Directory {} used for java installations does not exist'
+        '/foo/file' | true   | false     | false | 'Path for java installation {} points to a file, not a directory'
     }
 
     InstallationSupplier forDirectory(File directory) {

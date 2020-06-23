@@ -81,13 +81,12 @@ public class SharedJavaInstallationRegistry {
 
     private boolean installationExists(InstallationLocation installationLocation) {
         File file = installationLocation.getLocation();
-        final String source = installationLocation.getSource();
         if (!file.exists()) {
-            logger.warn("Directory '{}' ({}) used for java installations does not exist", file.getAbsolutePath(), source);
+            logger.warn("Directory {} used for java installations does not exist", installationLocation.getDisplayName());
             return false;
         }
         if (!file.isDirectory()) {
-            logger.warn("Path for java installation '{}' ({}) points to a file, not a directory", file.getAbsolutePath(), source);
+            logger.warn("Path for java installation {} points to a file, not a directory", installationLocation.getDisplayName());
             return false;
         }
         return true;
