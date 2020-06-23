@@ -18,12 +18,16 @@ package org.gradle.instantexecution.serialization.codecs
 
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Project
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.problems.PropertyKind
 import org.gradle.instantexecution.problems.PropertyTrace
+import org.gradle.kotlin.dsl.support.useToRun
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
@@ -90,7 +94,7 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
     }
 
     @Test
-    fun `can handle Serializable writeReplace readResolve`() {
+    fun `can handle writeReplace readResolve`() {
         assertThat(
             roundtrip(SerializableWriteReplaceBean()).value,
             equalTo<Any>("42")
@@ -98,7 +102,7 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
     }
 
     @Test
-    fun `can handle Serializable with only writeObject`() {
+    fun `can handle writeObject without readObject`() {
         assertThat(
             roundtrip(SerializableWriteObjectOnlyBean()).value,
             equalTo<Any>("42")
@@ -146,6 +150,93 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
         )
     }
 
+    @Test
+    fun `can handle readResolve without writeReplace`() {
+        // ensure we got the java serialization behaviour right
+        verifyReadResolveBehaviourOf(::javaSerializationRoundtrip)
+        verifyReadResolveBehaviourOf(::roundtrip)
+    }
+
+    private
+    fun verifyReadResolveBehaviourOf(roundtrip: (Any) -> Any) {
+        val (first, second) = roundtrip(pairOf(SerializableReadResolveBean()))
+            .uncheckedCast<Pair<SerializableReadResolveBean, SerializableReadResolveBean>>()
+        assertThat(
+            "it preserves identity",
+            first,
+            sameInstance(second)
+        )
+        assertThat(
+            "it returns readResolve result",
+            first.value,
+            equalTo<Any>("42")
+        )
+    }
+
+    @Test
+    fun `can handle recursive writeReplace`() {
+        // ensure we got the java serialization behaviour right
+        verifyRecursiveWriteReplaceBehaviourOf(::javaSerializationRoundtrip)
+        verifyRecursiveWriteReplaceBehaviourOf(::roundtrip)
+    }
+
+    private
+    fun verifyRecursiveWriteReplaceBehaviourOf(roundtrip: (Any) -> Any) {
+        val (first, second) = roundtrip(pairOf(SerializableRecursiveWriteReplaceBean()))
+            .uncheckedCast<Pair<SerializableRecursiveWriteReplaceBean, SerializableRecursiveWriteReplaceBean>>()
+        assertThat(
+            "it preserves identity",
+            first,
+            sameInstance(second)
+        )
+        assertThat(
+            "it allows writeReplace to initialize the object",
+            first.value,
+            equalTo<Any>("42")
+        )
+    }
+
+    private
+    fun <T> pairOf(bean: T) = bean.let { it to it }
+
+    private
+    fun <T : Any> javaSerializationRoundtrip(bean: T): T =
+        javaDeserialize(javaSerialize(bean)).uncheckedCast()
+
+    private
+    fun <T : Any> javaSerialize(bean: T): ByteArray =
+        ByteArrayOutputStream().let { bytes ->
+            ObjectOutputStream(bytes).useToRun {
+                writeObject(bean)
+            }
+            bytes.toByteArray()
+        }
+
+    private
+    fun javaDeserialize(bytes: ByteArray) =
+        ObjectInputStream(ByteArrayInputStream(bytes)).readObject()
+
+    class SerializableRecursiveWriteReplaceBean(var value: Any? = null) : Serializable {
+
+        @Suppress("unused")
+        private
+        fun writeReplace(): Any? {
+            value = "42"
+            return this
+        }
+    }
+
+    class SerializableReadResolveBean(val value: Any? = null) : Serializable {
+
+        companion object {
+            val SINGLETON = SerializableReadResolveBean("42")
+        }
+
+        @Suppress("unused")
+        private
+        fun readResolve(): Any? = SINGLETON
+    }
+
     class SerializableWriteReplaceBean(val value: Any? = null) : Serializable {
 
         @Suppress("unused")
@@ -155,7 +246,8 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
         private
         class Memento {
             @Suppress("unused")
-            fun readResolve() = SerializableWriteReplaceBean("42")
+            private
+            fun readResolve(): Any? = SerializableWriteReplaceBean("42")
         }
     }
 

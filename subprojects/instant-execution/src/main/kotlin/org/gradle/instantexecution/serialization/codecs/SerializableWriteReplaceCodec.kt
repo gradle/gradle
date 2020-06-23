@@ -21,7 +21,10 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.decodePreservingIdentity
 import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
+import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.readNonNull
+import org.gradle.instantexecution.serialization.withBeanTrace
+import org.gradle.instantexecution.serialization.writeEnum
 
 import java.io.Serializable
 
@@ -39,8 +42,15 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
         parameterCount == 0 && name == "readResolve"
     }
 
+    private
+    val readResolveEncoding = ReadResolveEncoding()
+
     override fun encodingForType(type: Class<*>): Encoding? =
-        writeReplaceMethodOf(type)?.let(::WriteReplaceEncoding)
+        type.takeIf { Serializable::class.java.isAssignableFrom(type) }
+            ?.let { serializableType ->
+                writeReplaceMethodOf(serializableType)?.let(::WriteReplaceEncoding)
+                    ?: readResolveMethodOf(serializableType)?.let { readResolveEncoding }
+            }
 
     /**
      * Reads a bean resulting from a `writeReplace` method invocation
@@ -48,16 +58,66 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
      */
     override suspend fun ReadContext.decode(): Any? =
         decodePreservingIdentity { id ->
-            readResolve(readNonNull()).also { bean ->
+            readResolve(
+                when (readEnum<Format>()) {
+                    Format.Replaced -> readNonNull()
+                    Format.Bean -> decodeBean()
+                }
+            ).also { bean ->
                 isolate.identities.putInstance(id, bean)
             }
         }
 
     private
-    class WriteReplaceEncoding(private val writeReplace: Method) : EncodingProvider<Any> {
+    enum class Format {
+        Bean,
+        Replaced
+    }
+
+    private
+    inner class WriteReplaceEncoding(private val writeReplace: Method) : EncodingProvider<Any> {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
-                write(writeReplace.invoke(value))
+                val replacement = writeReplace.invoke(value)
+                if (replacement === value) {
+                    writeEnum(Format.Bean)
+                    encodeBean(value)
+                } else {
+                    writeEnum(Format.Replaced)
+                    write(replacement)
+                }
+            }
+        }
+    }
+
+    private
+    inner class ReadResolveEncoding : Encoding {
+        override suspend fun WriteContext.encode(value: Any) {
+            encodePreservingIdentityOf(value) {
+                writeEnum(Format.Bean)
+                encodeBean(value)
+            }
+        }
+    }
+
+    private
+    suspend fun WriteContext.encodeBean(value: Any) {
+        val beanType = value.javaClass
+        withBeanTrace(beanType) {
+            writeClass(beanType)
+            beanStateWriterFor(beanType).run {
+                writeStateOf(value)
+            }
+        }
+    }
+
+    private
+    suspend fun ReadContext.decodeBean(): Any {
+        val beanType = readClass()
+        val beanReader = beanStateReaderFor(beanType)
+        return beanReader.run {
+            newBean(false).also {
+                readStateOf(it)
             }
         }
     }
@@ -71,8 +131,11 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
 
     private
     fun writeReplaceMethodOf(type: Class<*>) = type
-        .takeIf { Serializable::class.java.isAssignableFrom(type) }
-        ?.firstMatchingMethodOrNull {
+        .firstMatchingMethodOrNull {
             parameterCount == 0 && name == "writeReplace"
         }
+
+    private
+    fun readResolveMethodOf(serializableType: Class<*>) =
+        readResolveMethod.forClass(serializableType)
 }
