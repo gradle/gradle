@@ -513,7 +513,7 @@ Sets a system property of the JVM, for example `-Dmyprop=myvalue`. See <<build_e
 Specifies an initialization script. See <<init_scripts.adoc#init_scripts,Init Scripts>>.
 
 `-P`, `--project-prop`::
-Sets a project property of the root project, for example `-Pmyprop=myvalue`. See <<build_environment.adoc#sec:project_properties,System Properties>>.
+Sets a project property of the root project, for example `-Pmyprop=myvalue`. See <<build_environment.adoc#sec:project_properties,Project Properties>>.
 
 `-Dorg.gradle.jvmargs`::
 Set JVM arguments.
