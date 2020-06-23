@@ -218,11 +218,11 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        args '-PtestCredentialsUsername=user', '-PtestCredentialsPassword=secret', '--configuration-cache=on'
+        args '-PtestCredentialsUsername=user', '-PtestCredentialsPassword=secret', '--configuration-cache'
         succeeds 'finalTask'
 
         then:
-        args '--configuration-cache=on'
+        args '--configuration-cache'
         fails 'finalTask'
         failure.assertHasDescription("Credentials required for this build could not be resolved.")
     }
