@@ -76,8 +76,8 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
             .withTasks("show")
             .run()
         then:
-        outputContains("'${File.separator}unknown${File.separator}path' used for java installations does not exist")
-        outputContains("'${File.separator}unknown${File.separator}env' (from environment variable 'JDK1') used for java installations does not exist")
+        outputContains("'${File.separator}unknown${File.separator}path' (system property 'org.gradle.java.installations.paths') used for java installations does not exist")
+        outputContains("'${File.separator}unknown${File.separator}env' (environment variable 'JDK1') used for java installations does not exist")
         outputContains(firstJavaHome)
         outputContains(secondJavaHome)
 
@@ -89,8 +89,8 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
             .withTasks("show")
             .run()
         then:
-        outputContains("'${File.separator}other${File.separator}path' used for java installations does not exist")
-        outputContains("'${File.separator}unknown${File.separator}env' (from environment variable 'JDK1') used for java installations does not exist")
+        outputContains("'${File.separator}other${File.separator}path' (system property 'org.gradle.java.installations.paths') used for java installations does not exist")
+        outputContains("'${File.separator}unknown${File.separator}env' (environment variable 'JDK1') used for java installations does not exist")
         outputContains(firstJavaHome)
         outputContains(secondJavaHome)
     }
