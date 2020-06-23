@@ -3,8 +3,8 @@
 /* configuration cache styles */
 
 .report-wrapper {
-    margin: 0 auto;
-    width: 1200px;
+    margin: 0;
+    padding: 0 24px;
 }
 
 .gradle-logo {
@@ -15,11 +15,13 @@
 }
 
 .header {
-    padding-top: 24px;
     display: flex;
     flex-wrap: wrap;
     position: fixed;
-    width: 1200px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 24px 24px 0 24px;
     background-color: white;
     z-index: 1;
 }
