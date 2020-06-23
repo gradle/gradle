@@ -42,7 +42,7 @@ fun IsolateContext.logUnsupported(
     action: String,
     baseType: KClass<*>,
     actualType: Class<*>,
-    documentationSection: String = "disallowed_types"
+    documentationSection: String = "config_cache:requirements:disallowed_types"
 ) {
     logPropertyProblem(action, PropertyProblem(trace,
         build {
@@ -60,7 +60,7 @@ fun IsolateContext.logUnsupported(
 fun IsolateContext.logUnsupported(
     action: String,
     baseType: KClass<*>,
-    documentationSection: String = "disallowed_types"
+    documentationSection: String = "config_cache:requirements:disallowed_types"
 ) {
     logPropertyProblem(action, PropertyProblem(trace,
         build {

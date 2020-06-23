@@ -89,6 +89,13 @@ class SystemPropertyAccessListener(
         }
         val location = userCodeContext.location(consumer)
         val exception = InvalidUserCodeException(message.toString().capitalize())
-        problems.onProblem(PropertyProblem(location, message, exception, "undeclared_sys_prop_read"))
+        problems.onProblem(
+            PropertyProblem(
+                location,
+                message,
+                exception,
+                documentationSection = "config_cache:requirements:undeclared_sys_prop_read"
+            )
+        )
     }
 }
