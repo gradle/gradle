@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolutionTest {
     def "artifacts in a Maven repo have standard attributes defined"() {
@@ -183,21 +182,20 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
         outputContains("test {artifactType=}")
     }
 
-    @ToBeFixedForInstantExecution
     def "artifacts from a Gradle project have standard attributes defined based on their type when none defined for the outgoing variant"() {
         settingsFile << 'include "a", "b", "c"'
 
         buildFile << """
             project(':a') {
                 configurations { create 'default' }
-                artifacts { 
-                    'default' file('a.custom') 
+                artifacts {
+                    'default' file('a.custom')
                 }
             }
             project(':b') {
                 configurations { create 'default' }
-                artifacts { 
-                    'default' file('b.jar') 
+                artifacts {
+                    'default' file('b.jar')
                 }
             }
             project(':c') {
@@ -391,21 +389,20 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
         outputContains("test.thing {artifactType=widget, usage=unknown}")
     }
 
-    @ToBeFixedForInstantExecution
     def "can attach attributes to an artifact provided by a Gradle project"() {
         settingsFile << 'include "a", "b", "c"'
 
         buildFile << """
             project(':a') {
                 configurations { create 'default' }
-                artifacts { 
-                    'default' file('a.jar') 
+                artifacts {
+                    'default' file('a.jar')
                 }
             }
             project(':b') {
                 configurations { create 'default' }
-                artifacts { 
-                    'default' file('b.aar') 
+                artifacts {
+                    'default' file('b.aar')
                 }
             }
             project(':c') {
@@ -457,7 +454,6 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
         outputContains("c.thing {artifactType=widget, usage=unknown}")
     }
 
-    @ToBeFixedForInstantExecution
     def "each project can define different artifact types"() {
         mavenRepo.module("test", "test-jar", "1.2").publish()
         mavenRepo.module("test", "test-aar", "1.2")
