@@ -149,11 +149,11 @@ class GTEST_API_ FilePath {
   // exist. Not named "CreateDirectory" because that's a macro on Windows.
   bool CreateFolder() const;
 
-  // Returns true if FilePath describes something in the file-system,
+  // Returns true if FilePath describes something in the file system,
   // either a file, directory, or whatever, and that something exists.
   bool FileOrDirectoryExists() const;
 
-  // Returns true if pathname describes a directory in the file-system
+  // Returns true if pathname describes a directory in the file system
   // that exists.
   bool DirectoryExists() const;
 
