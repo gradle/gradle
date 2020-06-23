@@ -12,9 +12,7 @@
 The configuration cache is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, and the details described here may change.
 ====
 
-// TODO prefix anchors sec:, problem:,
 // TODO java serialization support
-// TODO value suppliers reference documentation
 
 [[config_cache:intro]]
 == Introduction
