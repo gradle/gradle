@@ -16,9 +16,11 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.Describable;
+
 import java.io.File;
 
-public class InstallationLocation {
+public class InstallationLocation implements Describable {
 
     private File location;
 
@@ -33,7 +35,9 @@ public class InstallationLocation {
         return location;
     }
 
-    public String getSource() {
-        return source;
+    @Override
+    public String getDisplayName() {
+        return "'" + location.getAbsolutePath() + "' (" + source + ")";
     }
+
 }
