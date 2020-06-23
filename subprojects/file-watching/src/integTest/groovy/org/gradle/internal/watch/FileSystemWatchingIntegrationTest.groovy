@@ -50,7 +50,6 @@ class FileSystemWatchingIntegrationTest extends AbstractIntegrationSpec implemen
         executer.requireIsolatedDaemons()
     }
 
-    @ToBeFixedForInstantExecution(because = "The `run` task is not yet supported for instant execution. The next test can be deleted when this test works with instant execution")
     def "source file changes are recognized"() {
         buildFile << """
             apply plugin: "application"
@@ -182,7 +181,6 @@ class FileSystemWatchingIntegrationTest extends AbstractIntegrationSpec implemen
         outputContains "Hello from modified settings!"
     }
 
-    @ToBeFixedForInstantExecution(because = "The `run` task is not yet supported for instant execution.")
     def "source file changes are recognized when retention has just been enabled"() {
         buildFile << """
             apply plugin: "application"
@@ -207,7 +205,6 @@ class FileSystemWatchingIntegrationTest extends AbstractIntegrationSpec implemen
         executedAndNotSkipped ":compileJava", ":classes", ":run"
     }
 
-    @ToBeFixedForInstantExecution(because = "The `run` task is not yet supported for instant execution.")
     def "source file changes are recognized when retention has just been disabled"() {
         buildFile << """
             apply plugin: "application"
@@ -637,7 +634,6 @@ class FileSystemWatchingIntegrationTest extends AbstractIntegrationSpec implemen
         file("build/output1").assertExists()
     }
 
-    @ToBeFixedForInstantExecution(because = "https://github.com/gradle/instant-execution/issues/168")
     def "detects changes to manifest"() {
         buildFile << """
             plugins {

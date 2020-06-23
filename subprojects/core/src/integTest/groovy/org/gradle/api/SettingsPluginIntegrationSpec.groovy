@@ -66,7 +66,6 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
         succeeds(':moduleA:dependencies')
     }
 
-    @ToBeFixedForInstantExecution
     def "can use plugins block"() {
         given:
         def pluginBuilder = new PluginBuilder(file("plugin"))
@@ -77,9 +76,9 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
         when:
         settingsFile.text = """
             plugins {
-                id "test-settings-plugin" version "1.0"   
+                id "test-settings-plugin" version "1.0"
             }
-            
+
             $settingsFile.text
         """
 
@@ -90,7 +89,6 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
         outputContains(message)
     }
 
-    @ToBeFixedForInstantExecution
     def "can use plugins block with plugin management block"() {
         given:
         def pluginBuilder = new PluginBuilder(file("plugin"))
@@ -104,11 +102,11 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
                 repositories {
                     maven { url "$mavenHttpRepo.uri" }
                 }
-            }   
-            plugins {
-                id "test-settings-plugin" version "1.0"   
             }
-            
+            plugins {
+                id "test-settings-plugin" version "1.0"
+            }
+
             $settingsFile.text
         """
 
