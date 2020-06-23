@@ -131,7 +131,10 @@ class InstantExecutionState(
     private
     suspend fun DefaultWriteContext.writeIncludedBuilds(gradle: GradleInternal) {
         if (gradle.includedBuilds.isNotEmpty()) {
-            logNotImplemented("included builds", "composite_builds")
+            logNotImplemented(
+                feature = "included builds",
+                documentationSection = "config_cache:not_yet_implemented:composite_builds"
+            )
             writeBoolean(true)
         } else {
             writeBoolean(false)
@@ -141,7 +144,10 @@ class InstantExecutionState(
     private
     suspend fun DefaultReadContext.readIncludedBuilds() {
         if (readBoolean()) {
-            logNotImplemented("included builds", "composite_builds")
+            logNotImplemented(
+                feature = "included builds",
+                documentationSection = "config_cache:not_yet_implemented:composite_builds"
+            )
         }
     }
 

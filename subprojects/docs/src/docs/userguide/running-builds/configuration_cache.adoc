@@ -861,7 +861,7 @@ But it can't be shared between developers or CI machines.
 
 See link:{gradle-issues}13510[gradle/gradle#13510].
 
-[[composite_builds]]
+[[config_cache:not_yet_implemented:composite_builds]]
 === Composite builds
 
 When using the configuration cache on a <<composite_builds#composite_builds,composite build>> a problem will be reported.

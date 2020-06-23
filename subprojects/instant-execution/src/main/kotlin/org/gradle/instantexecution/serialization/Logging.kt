@@ -82,7 +82,7 @@ fun IsolateContext.logNotImplemented(baseType: Class<*>) {
 }
 
 
-fun IsolateContext.logNotImplemented(feature: String, documentationSection: String = "not_yet_implemented") {
+fun IsolateContext.logNotImplemented(feature: String, documentationSection: String = "config_cache:not_yet_implemented") {
     onProblem(PropertyProblem(trace, build {
         text("support for $feature is not yet implemented with the configuration cache.")
     }, null, documentationSection))
