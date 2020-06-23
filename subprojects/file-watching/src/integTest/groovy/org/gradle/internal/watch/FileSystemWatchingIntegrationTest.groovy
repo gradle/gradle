@@ -78,32 +78,6 @@ class FileSystemWatchingIntegrationTest extends AbstractIntegrationSpec implemen
         assertWatchedRootDirectories([ImmutableSet.of(testDirectory)])
     }
 
-    // TODO: Delete this test when the `run` task is supported by instant execution, since the coverage is already handled by the test above.
-    def "source file changes are recognized (for instant execution)"() {
-        buildFile << """
-            apply plugin: "application"
-
-            application.mainClassName = "Main"
-        """
-
-        def mainSourceFile = file("src/main/java/Main.java")
-        mainSourceFile.text = sourceFileWithGreeting("Hello World!")
-
-        when:
-        withWatchFs().run "classes", "--info"
-        then:
-        executedAndNotSkipped ":compileJava", ":classes"
-        assertWatchedRootDirectories([ImmutableSet.of(testDirectory)])
-
-        when:
-        mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
-        waitForChangesToBePickedUp()
-        withWatchFs().run "classes", "--info"
-        then:
-        executedAndNotSkipped ":compileJava", ":classes"
-        assertWatchedRootDirectories([ImmutableSet.of(testDirectory)])
-    }
-
     def "buildSrc changes are recognized"() {
         def taskSourceFile = file("buildSrc/src/main/java/PrinterTask.java")
         taskSourceFile.text = taskWithGreeting("Hello from original task!")
