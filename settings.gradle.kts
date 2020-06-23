@@ -138,7 +138,7 @@ include("enterprise")
 // Plugin portal projects
 include("kotlinDslPlugins")
 
-// Internal utility and verifcation projects
+// Internal utility and verification projects
 include("docs")
 include("samples")
 include("architectureTest")
