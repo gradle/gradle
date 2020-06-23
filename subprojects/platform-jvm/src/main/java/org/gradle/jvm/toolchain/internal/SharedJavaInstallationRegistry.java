@@ -47,7 +47,7 @@ public class SharedJavaInstallationRegistry {
     }
 
     private SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers, Logger logger) {
-        suppliers.addAll(suppliers);
+        this.suppliers.addAll(suppliers);
         this.logger = logger;
     }
 
