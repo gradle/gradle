@@ -20,16 +20,10 @@ import org.gradle.api.logging.Logger
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static InstallationSuppliers.forDirectory
-
 class SharedJavaInstallationRegistryTest extends Specification {
 
     def registry = new SharedJavaInstallationRegistry(Collections.emptyList())
-    def tempFolder = File.createTempDir()
-
-    void setup() {
-        tempFolder.deleteOnExit()
-    }
+    def tempFolder = createTempDir();
 
     def "registry keeps track of newly added installations"() {
         when:
@@ -46,6 +40,19 @@ class SharedJavaInstallationRegistryTest extends Specification {
 
         then:
         registry.listInstallations() == [tempFolder] as Set
+    }
+
+    def "can be initialized with suppliers"() {
+        given:
+        def tmpDir2 = createTempDir()
+        def tmpDir3 = createTempDir()
+
+        when:
+        def registry = new SharedJavaInstallationRegistry([forDirectory(tmpDir2), forDirectory(tmpDir3)]);
+        registry.add(forDirectory(tempFolder))
+
+        then:
+        registry.listInstallations().containsAll(tempFolder, tmpDir2, tmpDir2)
     }
 
     def "registry cannot be mutated after finalizing"() {
@@ -97,19 +104,14 @@ class SharedJavaInstallationRegistryTest extends Specification {
         file.absolutePath >> path
         def logger = Mock(Logger)
         def registry = SharedJavaInstallationRegistry.withLogger(logger)
-        registry.add(new InstallationSupplier() {
-            @Override
-            Set<InstallationLocation> get() {
-                return [new InstallationLocation(file, "someSource")] as Set
-            }
-        })
+        registry.add(forDirectory(file))
 
         when:
         def installations = registry.listInstallations()
 
         then:
         installations.isEmpty()
-        1 * logger.warn(logOutput, path, "someSource")
+        1 * logger.warn(logOutput, path, "testSource")
 
         where:
         path        | exists | directory | valid | logOutput
@@ -117,5 +119,15 @@ class SharedJavaInstallationRegistryTest extends Specification {
         '/foo/file' | true   | false     | false | 'Path for java installation \'{}\' ({}) points to a file, not a directory'
     }
 
+    InstallationSupplier forDirectory(File directory) {
+        {
+            it -> Collections.singleton(new InstallationLocation(directory, "testSource"))
+        }
+    }
 
+    def File createTempDir() {
+        def file = File.createTempDir()
+        file.deleteOnExit()
+        file
+    }
 }
