@@ -10,7 +10,8 @@ We would like to thank the following community contributors to this release of G
 [Frieder Bluemle](https://github.com/friederbluemle),
 [Brick Tamland](https://github.com/mleveill),
 [Stefan Oehme](https://github.com/oehme),
-and [Yurii Serhiichuk](https://github.com/xSAVIKx).
+[Yurii Serhiichuk](https://github.com/xSAVIKx),
+and [JunHyung Lim](https://github.com/EntryPointKR).
 
 <!--
 Include only their name, impactful features should be called out separately below.
