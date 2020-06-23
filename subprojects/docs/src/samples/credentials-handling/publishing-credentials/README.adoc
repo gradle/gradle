@@ -11,37 +11,36 @@ include::sample[dir="groovy",files="maven-repository-stub/src/main/java/com/exam
 In a real project, your build would point to a private repository for your organization.
 
 The published project has some sample Java code to be compiled and distributed as a Java library.
-Gradle build file registers a publication to a Maven repository:
+Gradle build file registers a publication to a Maven repository using provided credentials:
 ====
 include::sample[dir="groovy",files="build.gradle[tags=publication]"]
 include::sample[dir="kotlin",files="build.gradle.kts[tags=publication]"]
 ====
 
-Authentication credentials are only configured and validated if the publication task is going to be invoked in the current build:
-====
-include::sample[dir="groovy",files="build.gradle[tags=credentials]"]
-include::sample[dir="kotlin",files="build.gradle.kts[tags=credentials]"]
-====
+Credentials will be required by the build only if the task requiring them is to be executed - in this case the task publishing to the secure repository.
+This allows to build the project without worrying about the credentials.
+Try running `./gradlew jar` and it will succeed. Run `./gradlew publish` and it will tell you what is missing right away, without executing the build.
+Credentials can and should be kept externally from the project sources and be known only by those having to publish artifacts, perhaps injected by a CI server.
 
-Credential values are declared to be Gradle properties and can be passed to the publish task in multiple ways:
+Credential values are provided using Gradle properties and can be passed to the publish task in multiple ways:
 
 * via command-line properties:
 =====
 ----
-$ ./gradlew publish -PmavenUser=secret-user -PmavenPassword=secret-password
+$ ./gradlew publish -PmySecureRepositoryUsername=secret-user -PmySecureRepositoryPassword=secret-password
 ----
 =====
 * via environment variables:
 =====
 ----
-$ ORG_GRADLE_PROJECT_mavenUser=secret-user ORG_GRADLE_PROJECT_mavenPassword=secret-password ./gradlew publish
+$ ORG_GRADLE_PROJECT_mySecureRepositoryUsername=secret-user ORG_GRADLE_PROJECT_mySecureRepositoryPassword=secret-password ./gradlew publish
 ----
 =====
 * by setting the properties in `gradle.properties` file:
 =====
 ----
-mavenUser=secret-user
-mavenPassword=secret-password
+mySecureRepositoryUsername=secret-user
+mySecureRepositoryPassword=secret-password
 ----
 =====
 and running

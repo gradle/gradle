@@ -27,7 +27,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
-import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
@@ -39,7 +38,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.function.Supplier;
 
-public class AuthenticationSupporter implements AuthenticationSupportedInternal {
+public class AuthenticationSupporter {
     private final Instantiator instantiator;
     private final AuthenticationContainer authenticationContainer;
     private final CredentialsProviderFactory credentialsProviderFactory;
@@ -54,7 +53,6 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
         this.credentialsProviderFactory = credentialsProviderFactory;
     }
 
-    @Override
     public PasswordCredentials getCredentials() {
         if (!usesCredentials()) {
             return setCredentials(PasswordCredentials.class);
@@ -65,7 +63,6 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
         }
     }
 
-    @Override
     public <T extends Credentials> T getCredentials(Class<T> credentialsType) {
         if (!usesCredentials()) {
             return setCredentials(credentialsType);
@@ -76,7 +73,6 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
         }
     }
 
-    @Override
     public void credentials(Action<? super PasswordCredentials> action) {
         if (usesCredentials() && !(credentials.get() instanceof PasswordCredentials)) {
             throw new IllegalStateException("Can not use credentials(Action) method when not using PasswordCredentials; please use credentials(Class, Action)");
@@ -84,7 +80,6 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
         credentials(PasswordCredentials.class, action);
     }
 
-    @Override
     public <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action) throws IllegalStateException {
         action.execute(getCredentials(credentialsType));
     }
@@ -94,7 +89,6 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
         this.credentials.set(credentialsProviderFactory.provideCredentials(credentialsType, identity));
     }
 
-    @Override
     public void setConfiguredCredentials(Credentials credentials) {
         this.usesCredentials = true;
         this.credentials.set(credentials);
@@ -111,22 +105,18 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
         return instantiator.newInstance(getCredentialsImplType(clazz));
     }
 
-    @Override
     public Property<Credentials> getConfiguredCredentials() {
         return credentials;
     }
 
-    @Override
     public void authentication(Action<? super AuthenticationContainer> action) {
         action.execute(getAuthentication());
     }
 
-    @Override
     public AuthenticationContainer getAuthentication() {
         return authenticationContainer;
     }
 
-    @Override
     public Collection<Authentication> getConfiguredAuthentication() {
         populateAuthenticationCredentials();
         if (usesCredentials() && authenticationContainer.size() == 0) {

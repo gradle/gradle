@@ -18,30 +18,11 @@ publishing {
     }
     repositories {
         maven {
-            name = 'mySecure'
+            name = 'mySecureRepository'
+            credentials(PasswordCredentials)
             // url = uri(<<some repository url>>)
         }
     }
 }
 // end::publication[]
-
-// tag::credentials[]
-gradle.taskGraph.whenReady { taskGraph ->
-    if (taskGraph.allTasks.any { it.name == 'publishLibraryPublicationToMySecureRepository' }) {
-        def MAVEN_USERNAME_PROPERTY = 'mavenUser'
-        def MAVEN_PASSWORD_PROPERTY = 'mavenPassword'
-        def mavenUser = providers.gradleProperty(MAVEN_USERNAME_PROPERTY)
-        def mavenPassword = providers.gradleProperty(MAVEN_PASSWORD_PROPERTY)
-        if (!mavenUser.present || !mavenPassword.present) {
-            throw new GradleException("Publishing requires '$MAVEN_USERNAME_PROPERTY' and '$MAVEN_PASSWORD_PROPERTY' properties")
-        }
-        publishing.repositories.named('mySecure') {
-            credentials {
-                username = mavenUser.get()
-                password = mavenPassword.get()
-            }
-        }
-    }
-}
-// end::credentials[]
 
