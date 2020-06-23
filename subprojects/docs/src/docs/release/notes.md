@@ -9,9 +9,10 @@ We would like to thank the following community contributors to this release of G
 [Sebastian Schuberth](https://github.com/sschuberth),
 [Frieder Bluemle](https://github.com/friederbluemle),
 [Brick Tamland](https://github.com/mleveill),
-and [Stefan Oehme](https://github.com/oehme).
+[Stefan Oehme](https://github.com/oehme),
+and [Yurii Serhiichuk](https://github.com/xSAVIKx).
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
@@ -22,13 +23,13 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
+See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
+<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
-<!-- 
+<!--
 Add release features here!
 ## 1
 
@@ -42,9 +43,9 @@ details of 2
 -->
 
 ## Improved handling of ZIP archives on runtime classpaths
-Runtime classpath analysis can now inspect manifest and `META-INF` properties files, ignore changes to comments, and selectively ignore attributes or properties that don't impact the 
+Runtime classpath analysis can now inspect manifest and `META-INF` properties files, ignore changes to comments, and selectively ignore attributes or properties that don't impact the
 runtime classpath.
-   
+
 ```groovy
 normalization {
     runtimeClasspath {
@@ -57,8 +58,8 @@ normalization {
 ```
 
 This improves the likelihood of [build cache hits](userguide/build_cache.html) when jar and property files on the classpath are regenerated and only differ by unimportant values or comments.
- 
-See the [userguide](userguide/more_about_tasks.html#sec:meta_inf_normalization) for further information.  Note that this API is incubating and will likely change in future releases as support 
+
+See the [userguide](userguide/more_about_tasks.html#sec:meta_inf_normalization) for further information.  Note that this API is incubating and will likely change in future releases as support
 is expanded for normalizing properties files outside of `META-INF`.
 
 ## Gradle module metadata can be made reproducible
@@ -96,7 +97,7 @@ However, a `Project` object is not always available.
 
 The new `ArchiveOperations` service has [zipTree()](javadoc/org/gradle/api/file/ArchiveOperations.html#zipTree-java.lang.Object-) and [tarTree()](javadoc/org/gradle/api/file/ArchiveOperations.html#tarTree-java.lang.Object-) methods for creating read-only `FileTree` instances respectively for ZIP and TAR archives.
 
-See the [user manual](userguide/custom_gradle_types.html#service_injection) for how to inject services and the [`ArchiveOperations`](javadoc/org/gradle/api/file/ArchiveOperations.html) api documentation for more details and examples. 
+See the [user manual](userguide/custom_gradle_types.html#service_injection) for how to inject services and the [`ArchiveOperations`](javadoc/org/gradle/api/file/ArchiveOperations.html) api documentation for more details and examples.
 
 
 ## Promoted features
@@ -121,7 +122,7 @@ We love getting contributions from the Gradle community. For information on cont
 
 ## Reporting Problems
 
-If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines. 
+If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines.
 If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
 
 We hope you will build happiness with Gradle, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).
