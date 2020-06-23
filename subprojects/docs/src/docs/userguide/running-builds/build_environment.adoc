@@ -80,8 +80,8 @@ When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute
 Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Default is `normal`. See also <<command_line_interface.adoc#sec:command_line_performance, performance command-line options>>.
 
 `org.gradle.unsafe.watch-fs=(true,false)`::
-Toggles <<gradle_daemon.adoc#sec:daemon_watch_fs,watching the file-system>>.
-Allows Gradle to re-use information about the file-system in the next build.
+Toggles <<gradle_daemon.adoc#sec:daemon_watch_fs,watching the file system>>.
+Allows Gradle to re-use information about the file system in the next build.
 _Default is off_.
 
 `org.gradle.warning.mode=(all,fail,summary,none)`::
