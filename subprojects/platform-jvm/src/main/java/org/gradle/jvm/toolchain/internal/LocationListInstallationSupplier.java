@@ -16,8 +16,6 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 
@@ -30,46 +28,26 @@ import java.util.stream.Collectors;
 
 public class LocationListInstallationSupplier implements InstallationSupplier {
 
-    private final Logger logger;
+    private static final String PROPERTY_NAME = "org.gradle.java.installations.paths";
+
     private final ProviderFactory factory;
 
     @Inject
     public LocationListInstallationSupplier(ProviderFactory factory) {
-        this(factory, Logging.getLogger(LocationListInstallationSupplier.class));
-    }
-
-    private LocationListInstallationSupplier(ProviderFactory factory, Logger logger) {
         this.factory = factory;
-        this.logger = logger;
-    }
-
-    public static LocationListInstallationSupplier withLogger(ProviderFactory factory, Logger logger) {
-        return new LocationListInstallationSupplier(factory, logger);
     }
 
     @Override
     public Set<InstallationLocation> get() {
-        final String propertyName = "org.gradle.java.installations.paths";
-        final Provider<String> property = factory.gradleProperty(propertyName).forUseAtConfigurationTime();
-        if (property.isPresent()) {
-            final String listOfDirectories = property.get();
-            return Arrays.stream(listOfDirectories.split(",")).map(File::new).filter(this::pathMayBeValid).map(file -> new InstallationLocation(file, "system property '" + propertyName + "'")).collect(Collectors.toSet());
-        }
-        return Collections.emptySet();
+        final Provider<String> property = factory.gradleProperty(PROPERTY_NAME).forUseAtConfigurationTime();
+        return property.map(paths -> asInstallations(paths)).orElse(Collections.emptySet()).get();
     }
 
-    boolean pathMayBeValid(File file) {
-        if (!file.exists()) {
-            logger.warn("Directory '" + file.getAbsolutePath() +
-                "' used for java installations does not exist");
-            return false;
-        }
-        if (!file.isDirectory()) {
-            logger.warn("Path for java installation '" + file.getAbsolutePath() +
-                "' points to a file, not a directory");
-            return false;
-        }
-        return true;
+    private Set<InstallationLocation> asInstallations(String listOfDirectories) {
+        return Arrays.stream(listOfDirectories.split(","))
+            .filter(path -> !path.trim().isEmpty())
+            .map(path -> new InstallationLocation(new File(path), "system property '" + PROPERTY_NAME + "'"))
+            .collect(Collectors.toSet());
     }
 
 }

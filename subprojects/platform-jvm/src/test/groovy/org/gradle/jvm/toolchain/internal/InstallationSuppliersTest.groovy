@@ -30,6 +30,6 @@ class InstallationSuppliersTest extends Specification {
         def directories = provider.get()
 
         then:
-        directories == [directory] as Set
+        directories*.location.absolutePath == [directory.absolutePath]
     }
 }

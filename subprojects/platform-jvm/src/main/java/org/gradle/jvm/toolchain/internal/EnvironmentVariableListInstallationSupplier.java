@@ -16,8 +16,6 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 
@@ -31,21 +29,11 @@ import java.util.stream.Collectors;
 
 public class EnvironmentVariableListInstallationSupplier implements InstallationSupplier {
 
-    private final Logger logger;
     private final ProviderFactory factory;
 
     @Inject
     public EnvironmentVariableListInstallationSupplier(ProviderFactory factory) {
-        this(factory, Logging.getLogger(EnvironmentVariableListInstallationSupplier.class));
-    }
-
-    private EnvironmentVariableListInstallationSupplier(ProviderFactory factory, Logger logger) {
         this.factory = factory;
-        this.logger = logger;
-    }
-
-    public static EnvironmentVariableListInstallationSupplier withLogger(ProviderFactory factory, Logger logger) {
-        return new EnvironmentVariableListInstallationSupplier(factory, logger);
     }
 
     @Override
@@ -62,30 +50,20 @@ public class EnvironmentVariableListInstallationSupplier implements Installation
         return Collections.emptySet();
     }
 
-
     private Optional<InstallationLocation> resolveEnvironmentVariable(String environmentVariable) {
-        final String value = factory.environmentVariable(environmentVariable).forUseAtConfigurationTime().get();
-        final File file = new File(value);
-        if (pathMayBeValid(file, environmentVariable)) {
-            return Optional.of(new InstallationLocation(file, "environment variable '" + environmentVariable + "'"));
+        final Provider<String> value = environmentVariableValue(environmentVariable);
+        if (value.isPresent()) {
+            final String path = value.get().trim();
+            if (!path.isEmpty()) {
+                return Optional.of(new InstallationLocation(new File(path), "environment variable '" + environmentVariable + "'"));
+            }
         }
         return Optional.empty();
     }
 
-    boolean pathMayBeValid(File file, String envVariableName) {
-        if (!file.exists()) {
-            logger.warn("Directory '" + file.getAbsolutePath() +
-                "' (from environment variable '" + envVariableName +
-                "') used for java installations does not exist");
-            return false;
-        }
-        if (!file.isDirectory()) {
-            logger.warn("Path for java installation '" + file.getAbsolutePath() +
-                "' (from environment variable '" + envVariableName +
-                "') points to a file, not a directory");
-            return false;
-        }
-        return true;
+    private Provider<String> environmentVariableValue(String environmentVariable) {
+        return factory.environmentVariable(environmentVariable.trim()).forUseAtConfigurationTime();
     }
+
 
 }
