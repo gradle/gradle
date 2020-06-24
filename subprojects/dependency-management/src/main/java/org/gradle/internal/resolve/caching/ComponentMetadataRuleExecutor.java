@@ -39,7 +39,7 @@ public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor
 
     private static Transformer<Object, ModuleComponentResolveMetadata> getKeyToSnapshotableTransformer() {
         return moduleMetadata -> moduleMetadata.getSources().withSource(ModuleDescriptorHashModuleSource.class, source -> {
-            return source.map(metadataFileSource -> metadataFileSource.getDescriptorHash().toString())
+            return source.map(metadataFileSource -> metadataFileSource.getDescriptorHash().toString() + moduleMetadata.getVariantDerivationStrategy().getClass().getName())
                 .orElseThrow(() -> new RuntimeException("Cannot find original content hash"));
         });
     }
