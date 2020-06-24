@@ -53,6 +53,8 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
     @Shared
     def runtimeError = new RuntimeException('Something went wrong')
     @Shared
+    def socketError = new SocketException()
+    @Shared
     def connectTimeout = new SocketTimeoutException()
     @Shared
     def cannotConnect = new HttpHostConnectException(null, null)
@@ -279,6 +281,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
             retries << [ret, cannotConnect, ret]
             retries << [ret, tooManyRequests, ret]
             retries << [ret, clientTimeout, ret]
+            retries << [ret, socketError, ret]
             // retries on server errors
             if (ret < 3) {
                 // testing 1 and 2 is good enough coverage
