@@ -114,10 +114,11 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
     private
     suspend fun ReadContext.decodeBean(): Any {
         val beanType = readClass()
-        val beanReader = beanStateReaderFor(beanType)
-        return beanReader.run {
-            newBean(false).also {
-                readStateOf(it)
+        return withBeanTrace(beanType) {
+            beanStateReaderFor(beanType).run {
+                newBean(false).also {
+                    readStateOf(it)
+                }
             }
         }
     }
