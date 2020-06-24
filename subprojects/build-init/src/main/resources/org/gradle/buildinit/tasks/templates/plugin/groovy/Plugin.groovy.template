@@ -8,8 +8,8 @@ import org.gradle.api.Plugin
 /**
  * A simple 'hello world' plugin.
  */
-public class ${className.javaIdentifier} implements Plugin<Project> {
-    public void apply(Project project) {
+class ${className.javaIdentifier} implements Plugin<Project> {
+    void apply(Project project) {
         // Register a task
         project.tasks.register("greeting") {
             doLast {

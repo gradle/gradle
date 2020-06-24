@@ -8,7 +8,7 @@ import org.gradle.testkit.runner.GradleRunner
 /**
  * A simple functional test for the '${pluginId.value}' plugin.
  */
-public class ${className.javaIdentifier} extends Specification {
+class ${className.javaIdentifier} extends Specification {
     def "can run task"() {
         given:
         def projectDir = new File("build/functionalTest")

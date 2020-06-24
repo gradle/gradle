@@ -9,7 +9,7 @@ import spock.lang.Specification
 /**
  * A simple unit test for the '${pluginId.value}' plugin.
  */
-public class ${className.javaIdentifier} extends Specification {
+class ${className.javaIdentifier} extends Specification {
     def "plugin registers task"() {
         given:
         def project = ProjectBuilder.builder().build()
