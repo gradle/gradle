@@ -60,6 +60,9 @@ dependencies {
     implementation(library("jackson_databind"))
     implementation(library("ivy"))
     implementation(library("ant"))
+    implementation(library("jgit")) {
+        because("Some tests require a git reportitory - see AbstractIntegrationSpec.initGitDir(")
+    }
     testLibraries("sshd").forEach {
         // we depend on both the platform and the library
         implementation(it)

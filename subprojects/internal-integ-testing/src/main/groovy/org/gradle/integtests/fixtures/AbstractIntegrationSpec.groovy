@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.eclipse.jgit.api.Git
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
@@ -109,6 +110,18 @@ class AbstractIntegrationSpec extends Specification {
 
     GradleExecuter createExecuter() {
         new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
+    }
+
+    /**
+     * Some integration tests need to run git commands in test directory,
+     * but distributed-test-remote-executor has no .git directory so we init a "dummy .git dir".
+     */
+    void initGitDir() {
+        Git.init().setDirectory(testDirectory).call().withCloseable { Git git ->
+            testDirectory.file('initial-commit').createNewFile()
+            git.add().addFilepattern("initial-commit").call()
+            git.commit().setMessage("Initial commit").call()
+        }
     }
 
     TestFile getBuildFile() {
