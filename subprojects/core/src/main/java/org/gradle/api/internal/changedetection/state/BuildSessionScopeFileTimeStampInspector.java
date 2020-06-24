@@ -23,6 +23,11 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
+/**
+ * Used for the project cache file hash cache.
+ *
+ * There is no additional logic apart from what is also in {@link FileTimeStampInspector}.
+ */
 @ServiceScope(Scopes.BuildSession)
 public class BuildSessionScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
     public BuildSessionScopeFileTimeStampInspector(File workDir) {

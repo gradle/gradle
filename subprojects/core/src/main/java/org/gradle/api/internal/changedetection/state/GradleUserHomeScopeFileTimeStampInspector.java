@@ -27,7 +27,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Used for the global file hash cache
+ * Used for the Gradle user home file hash cache.
+ *
+ * Uses the same strategy for detection of file changes as {@link FileTimeStampInspector}.
+ *
+ * Discards hashes for all files from the {@link CachingFileHasher} which have been queried on this daemon
+ * during the last build and which have a timestamp equal to the end of build timestamp.
  */
 @ServiceScope(Scopes.UserHome)
 public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
