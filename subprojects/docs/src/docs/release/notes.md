@@ -11,7 +11,8 @@ We would like to thank the following community contributors to this release of G
 [Brick Tamland](https://github.com/mleveill),
 [Stefan Oehme](https://github.com/oehme),
 [Yurii Serhiichuk](https://github.com/xSAVIKx),
-and [JunHyung Lim](https://github.com/EntryPointKR).
+[JunHyung Lim](https://github.com/EntryPointKR),
+and [Igor Dvorzhak](https://github.com/medb).
 
 <!--
 Include only their name, impactful features should be called out separately below.
