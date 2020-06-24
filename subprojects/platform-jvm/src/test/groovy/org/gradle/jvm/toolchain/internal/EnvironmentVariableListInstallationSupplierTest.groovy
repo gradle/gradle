@@ -85,8 +85,8 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
     }
 
     private stablePaths(List<String> expectedPaths) {
-        expectedPaths.replaceAll({ s ->
-            s.replaceAll('/', File.separator)
+        expectedPaths.replaceAll({ String s ->
+            s.replace(File.separator, '/').replace('C:\\', '/')
         })
         expectedPaths
     }
