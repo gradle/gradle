@@ -20,6 +20,8 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -27,11 +29,12 @@ import java.util.Set;
 /**
  * Used for the global file hash cache
  */
+@ServiceScope(Scopes.UserHome)
 public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
     private CachingFileHasher fileHasher;
     private final Object lock = new Object();
     private long currentTimestamp;
-    private final Set<String> filesWithCurrentTimestamp = new HashSet<String>();
+    private final Set<String> filesWithCurrentTimestamp = new HashSet<>();
 
     public GlobalScopeFileTimeStampInspector(CacheScopeMapping cacheScopeMapping) {
         super(cacheScopeMapping.getBaseDirectory(null, "file-changes", VersionStrategy.CachePerVersion));
