@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstra
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyMetadataImpl;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -66,19 +67,24 @@ class WrappingComponentMetadataContext implements ComponentMetadataContext {
         createMutableMetadataIfNeeded();
         if (details == null) {
             details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, mutableMetadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierParser, platformSupport);
-
         }
         return details;
     }
 
-    MutableModuleComponentResolveMetadata getMutableMetadata() {
-        createMutableMetadataIfNeeded();
-        return mutableMetadata;
+    VariantDerivationStrategy getVariantDerivationStrategy() {
+        return metadata.getVariantDerivationStrategy();
     }
 
-    private void createMutableMetadataIfNeeded() {
+    ModuleComponentResolveMetadata getImmutableMetadataWithDerivationStrategy(VariantDerivationStrategy variantDerivationStrategy) {
+        // We need to create a copy or the rules will be added to the wrong container
+        return createMutableMetadataIfNeeded().asImmutable()
+            .withDerivationStrategy(variantDerivationStrategy);
+    }
+
+    private MutableModuleComponentResolveMetadata createMutableMetadataIfNeeded() {
         if (mutableMetadata == null) {
             mutableMetadata = metadata.asMutable();
         }
+        return mutableMetadata;
     }
 }
