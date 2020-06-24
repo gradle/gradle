@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ArtifactAtRepositoryKey;
@@ -86,12 +87,16 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final CachePolicy cachePolicy;
     private final BuildCommencedTimeProvider timeProvider;
     private final ComponentMetadataProcessor metadataProcessor;
+    private final DynamicVersionResolutionListener listener;
     private final LocateInCacheRepositoryAccess locateInCacheRepositoryAccess = new LocateInCacheRepositoryAccess();
     private final ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
 
-    public CachingModuleComponentRepository(ModuleComponentRepository delegate, ModuleRepositoryCaches caches,
-                                            CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider,
-                                            ComponentMetadataProcessor metadataProcessor) {
+    public CachingModuleComponentRepository(ModuleComponentRepository delegate,
+                                            ModuleRepositoryCaches caches,
+                                            CachePolicy cachePolicy,
+                                            BuildCommencedTimeProvider timeProvider,
+                                            ComponentMetadataProcessor metadataProcessor,
+                                            DynamicVersionResolutionListener listener) {
         this.delegate = delegate;
         this.moduleMetadataCache = caches.moduleMetadataCache;
         this.moduleVersionsCache = caches.moduleVersionsCache;
@@ -100,6 +105,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         this.cachePolicy = cachePolicy;
         this.timeProvider = timeProvider;
         this.metadataProcessor = metadataProcessor;
+        this.listener = listener;
     }
 
     @Override
@@ -137,10 +143,6 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         return delegate.getComponentMetadataSupplier();
     }
 
-    private ModuleIdentifier getCacheKey(ModuleComponentSelector requested) {
-        return requested.getModuleIdentifier();
-    }
-
     private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
         @Override
         public String toString() {
@@ -160,7 +162,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         private void listModuleVersionsFromCache(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
             ModuleComponentSelector requested = dependency.getSelector();
-            final ModuleIdentifier moduleId = getCacheKey(requested);
+            final ModuleIdentifier moduleId = requested.getModuleIdentifier();
             ModuleVersionsCache.CachedModuleVersionList cachedModuleVersionList = moduleVersionsCache.getCachedModuleResolution(delegate, moduleId);
             if (cachedModuleVersionList != null) {
                 Set<String> versionList = cachedModuleVersionList.getModuleVersions();
@@ -168,12 +170,14 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     .stream()
                     .map(original -> DefaultModuleVersionIdentifier.newId(moduleId, original))
                     .collect(Collectors.toSet());
-                if (cachePolicy.mustRefreshVersionList(moduleId, versions, cachedModuleVersionList.getAgeMillis())) {
+                Expiry expiry = cachePolicy.versionListExpiry(moduleId, versions, cachedModuleVersionList.getAge());
+                if (expiry.isMustCheck()) {
                     LOGGER.debug("Version listing in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", requested, delegate.getName());
                 } else {
+                    listener.onDynamicVersionResolve(requested, expiry);
                     result.listed(versionList);
                     // When age == 0, verified since the start of this build, assume listing hasn't changed
-                    result.setAuthoritative(cachedModuleVersionList.getAgeMillis() == 0);
+                    result.setAuthoritative(cachedModuleVersionList.getAge().toMillis() == 0);
                 }
             }
         }
@@ -362,9 +366,14 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             delegate.getRemoteAccess().listModuleVersions(dependency, result);
             switch (result.getState()) {
                 case Listed:
-                    ModuleIdentifier moduleId = getCacheKey(dependency.getSelector());
+                    ModuleIdentifier moduleId = dependency.getSelector().getModuleIdentifier();
                     Set<String> versionList = result.getVersions();
-                    moduleVersionsCache.cacheModuleVersionList(delegate, moduleId, versionList);
+                    Set<ModuleVersionIdentifier> versions = versionList
+                        .stream()
+                        .map(original -> DefaultModuleVersionIdentifier.newId(moduleId, original))
+                        .collect(Collectors.toSet());
+                    ModuleVersionsCache.CachedModuleVersionList cacheEntry = moduleVersionsCache.cacheModuleVersionList(delegate, moduleId, versionList);
+                    listener.onDynamicVersionResolve(dependency.getSelector(), cachePolicy.versionListExpiry(moduleId, versions, cacheEntry.getAge()));
                     break;
                 case Failed:
                     break;

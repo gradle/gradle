@@ -32,11 +32,12 @@ public abstract class AbstractModuleVersionsCache implements ModuleVersionsCache
     }
 
     @Override
-    public void cacheModuleVersionList(ModuleComponentRepository repository, ModuleIdentifier moduleId, Set<String> listedVersions) {
+    public CachedModuleVersionList cacheModuleVersionList(ModuleComponentRepository repository, ModuleIdentifier moduleId, Set<String> listedVersions) {
         LOGGER.debug("Caching version list in module versions cache: Using '{}' for '{}'", listedVersions, moduleId);
         ModuleAtRepositoryKey key = createKey(repository, moduleId);
         ModuleVersionsCacheEntry entry = createEntry(listedVersions);
         store(key, entry);
+        return new DefaultCachedModuleVersionList(entry, timeProvider);
     }
 
     @Override

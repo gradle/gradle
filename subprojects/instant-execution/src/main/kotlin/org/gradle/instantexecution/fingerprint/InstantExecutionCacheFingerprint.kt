@@ -48,6 +48,11 @@ sealed class InstantExecutionCacheFingerprint {
     data class UndeclaredSystemProperty(
         val key: String
     ) : InstantExecutionCacheFingerprint()
+
+    data class DynamicDependencyVersion(
+        val displayName: String,
+        val expireAt: Long
+    ) : InstantExecutionCacheFingerprint()
 }
 
 

@@ -45,7 +45,6 @@ public interface BuildableComponentIdResolveResult extends ComponentIdResolveRes
      */
     void failed(ModuleVersionResolveException failure);
 
-
     /**
      * Registers the list of versions that were attempted for this module, but didn't match
      * the selector. This method is used for dynamic modules, when there's often more than one

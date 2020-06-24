@@ -17,8 +17,11 @@
 package org.gradle.instantexecution.fingerprint
 
 import com.google.common.collect.Sets.newConcurrentHashSet
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DynamicVersionResolutionListener
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.FileContentValueSource
@@ -40,11 +43,13 @@ internal
 class InstantExecutionCacheFingerprintWriter(
     private val host: Host,
     private val writeContext: DefaultWriteContext
-) : ValueSourceProviderFactory.Listener, TaskInputsListener, ScriptExecutionListener, UndeclaredBuildInputListener {
+) : ValueSourceProviderFactory.Listener, TaskInputsListener, ScriptExecutionListener, UndeclaredBuildInputListener, DynamicVersionResolutionListener {
 
     interface Host {
 
         val allInitScripts: List<File>
+
+        val buildStartTime: Long
 
         fun hashCodeOf(file: File): HashCode?
 
@@ -55,7 +60,16 @@ class InstantExecutionCacheFingerprintWriter(
     }
 
     private
+    var ignoreValueSources = false
+
+    private
     val capturedFiles: MutableSet<File>
+
+    private
+    val undeclaredSystemProperties = mutableSetOf<String>()
+
+    private
+    var soonestDynamicVersionExpiry: InstantExecutionCacheFingerprint.DynamicDependencyVersion? = null
 
     init {
         val initScripts = host.allInitScripts
@@ -73,17 +87,38 @@ class InstantExecutionCacheFingerprintWriter(
      * **MUST ALWAYS BE CALLED**
      */
     fun close() {
+        if (soonestDynamicVersionExpiry != null) {
+            write(soonestDynamicVersionExpiry)
+        }
         write(null)
         writeContext.close()
     }
 
+    fun stopCollectingValueSources() {
+        // TODO - this is a temporary step, see the comment in DefaultInstantExecution
+        ignoreValueSources = true
+    }
+
+    override fun onDynamicVersionResolve(requested: ModuleComponentSelector, expiry: Expiry) {
+        val expireAt = host.buildStartTime + expiry.keepFor.toMillis()
+        if (soonestDynamicVersionExpiry == null || soonestDynamicVersionExpiry!!.expireAt > expireAt) {
+            soonestDynamicVersionExpiry = InstantExecutionCacheFingerprint.DynamicDependencyVersion(requested.displayName, expireAt)
+        }
+    }
+
     override fun systemPropertyRead(key: String) {
+        if (!undeclaredSystemProperties.add(key)) {
+            return
+        }
         write(InstantExecutionCacheFingerprint.UndeclaredSystemProperty(key))
     }
 
     override fun <T : Any, P : ValueSourceParameters> valueObtained(
         obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>
     ) {
+        if (ignoreValueSources) {
+            return
+        }
         when (val parameters = obtainedValue.valueSourceParameters) {
             is FileContentValueSource.Parameters -> {
                 parameters.file.orNull?.asFile?.let { file ->
