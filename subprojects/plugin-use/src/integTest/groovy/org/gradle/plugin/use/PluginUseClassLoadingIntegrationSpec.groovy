@@ -50,7 +50,6 @@ class PluginUseClassLoadingIntegrationSpec extends AbstractPluginSpec {
     }
 
     @Issue("GRADLE-3503")
-    @ToBeFixedForInstantExecution
     def "Context classloader contains plugin classpath during application"() {
         publishPlugin("""
             def className = getClass().getName()
