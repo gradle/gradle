@@ -16,11 +16,14 @@
 
 package org.gradle.jvm.toolchain.internal
 
+
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import spock.lang.Specification
+
+import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 
 class EnvironmentVariableListInstallationSupplierTest extends Specification {
 
@@ -85,9 +88,7 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
     }
 
     private stablePaths(List<String> expectedPaths) {
-        expectedPaths.replaceAll({ String s ->
-            s.replace(File.separator, '/').replace('C:\\', '/')
-        })
+        expectedPaths.replaceAll({ String s -> systemSpecificAbsolutePath(s) })
         expectedPaths
     }
 
