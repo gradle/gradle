@@ -36,6 +36,7 @@ Some Gradle features are <<configuration_cache#config_cache:not_yet_implemented,
 Importing and syncing Gradle builds in IDEs is not improved by configuration caching yet.
 ====
 
+[[config_cache:intro:how_does_it_work]]
 === How does it work?
 
 When the configuration cache is enabled and you run Gradle for a particular set of tasks, for example by running `gradlew check`, Gradle checks whether a configuration cache entry is available for the requested set of tasks.
@@ -64,6 +65,7 @@ Build configuration inputs include:
 - System properties, Gradle properties and configuration files used during the configuration phase, accessed using value suppliers such as providers for properties, environment variables etc...
 - Build configuration inputs and source files for `buildSrc` projects.
 
+[[config_cache:intro:performance_improvements]]
 === Performance improvements
 
 Apart from skipping the configuration phase, the configuration cache provides some additional performance improvements:
@@ -198,6 +200,7 @@ If you don't want to enable the configuration cache for your whole team yet you 
 
 Note that syncing a build from an IDE doesn't benefit from the configuration cache, only running tasks does.
 
+[[config_cache:ide:intellij]]
 === IntelliJ based IDEs
 
 In IntelliJ IDEA or Android Studio this can be done in two ways, either globally or per run configuration.
@@ -217,6 +220,7 @@ In this case, leave the `Templates > Gradle` configuration untouched and edit ea
 
 Combining these two ways you can enable globally and disable for certain run configurations, or the opposite.
 
+[[config_cache:ide:eclipse]]
 === Eclipse IDEs
 
 In Eclipse IDEs you can enable and configure the configuration cache through Buildship in two ways, either globally or per run configuration.
@@ -842,6 +846,7 @@ Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradl
 Support for using configuration caching with certain Gradle features is not yet implemented.
 Support for these features will be added in later Gradle releases.
 
+[[config_cache:not_yet_implemented:build_scan]]
 === Build scan support
 
 When it comes to link:https://gradle.com/build-scans/[build scans], only the `--scan` command line option is supported for now.
@@ -851,6 +856,7 @@ This means that scans will be published to the public `scans.gradle.com` instanc
 
 See link:{gradle-issues}13511[gradle/gradle#13511].
 
+[[config_cache:not_yet_implemented:sharing]]
 === Sharing the configuration cache
 
 The configuration cache is currently stored locally only.
@@ -867,6 +873,7 @@ If you <<configuration_cache#config_cache:usage:ignore_problems,ignore problems>
 
 See link:{gradle-issues}13503[gradle/gradle#13503].
 
+[[config_cache:not_yet_implemented:source_dependencies]]
 === Source dependencies
 
 Support for link:https://blog.gradle.org/introducing-source-dependencies[source dependencies] is not yet implemented.
@@ -874,6 +881,7 @@ With the configuration cache enabled, no problem will be reported and the build 
 
 See link:{gradle-issues}13506[gradle/gradle#13506].
 
+[[config_cache:not_yet_implemented:dependency_locking]]
 === Dependency locking
 
 <<dependency_locking#dependency-locking, Locking dependency versions>> isn't supported yet.
@@ -881,6 +889,7 @@ With the configuration cache enabled, no problem will be reported and dependency
 
 See link:{gradle-issues}13507[gradle/gradle#13507].
 
+[[config_cache:not_yet_implemented:dynamic_dependencies]]
 === Dynamic or changing dependencies
 
 <<dynamic_versions#sec:dynamic_versions_and_changing_modules,Dependencies with versions which change over time>> aren't supported yet.
@@ -890,7 +899,8 @@ You can force refresh dynamic dependencies using `--refresh-dependencies`.
 
 See link:{gradle-issues}13508[gradle/gradle#13508].
 
-=== Filesystem repositories
+[[config_cache:not_yet_implemented:file_system_repositories]]
+=== File system repositories
 
 Repositories on local file systems are not supported yet.
 With the configuration cache enabled, no problem will be reported and changes to the filesystem in the repositories won't be detected.
