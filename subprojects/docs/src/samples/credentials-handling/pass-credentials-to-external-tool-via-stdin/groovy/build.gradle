@@ -1,17 +1,12 @@
 def login = tasks.register('login', Exec) {
-    def USERNAME_PROPERTY = 'username'
-    def PASSWORD_PROPERTY = 'password'
-    def username = providers.gradleProperty(USERNAME_PROPERTY).forUseAtConfigurationTime()
-    def password = providers.gradleProperty(PASSWORD_PROPERTY).forUseAtConfigurationTime()
+    def loginProvider = providers.credentials(PasswordCredentials, 'login')
+    inputs.property('credentials', loginProvider)
 
-    doFirst {
-        if (!username.present || !password.present) {
-            throw new GradleException("login task requires '$USERNAME_PROPERTY' and '$PASSWORD_PROPERTY' properties")
-        }
-    }
-
-    standardInput = new ByteArrayInputStream("$username.orNull\n$password.orNull".getBytes())
     commandLine = ['sh', 'login.sh']
+    doFirst {
+        def loginCredentials = loginProvider.get()
+        standardInput = new ByteArrayInputStream("$loginCredentials.username\n$loginCredentials.password".getBytes())
+    }
 }
 
 tasks.register('doAuthenticated') {

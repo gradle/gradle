@@ -62,7 +62,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
                                                ObjectFactory objectFactory,
                                                DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                                                ChecksumService checksumService) {
-        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService);
+        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, null);
         this.checksumService = checksumService;
     }
 

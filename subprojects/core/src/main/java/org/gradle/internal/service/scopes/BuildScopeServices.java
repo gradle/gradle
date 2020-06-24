@@ -333,9 +333,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ProviderFactory createProviderFactory(
         Instantiator instantiator,
-        ValueSourceProviderFactory valueSourceProviderFactory
+        ValueSourceProviderFactory valueSourceProviderFactory,
+        ListenerManager listenerManager
     ) {
-        return instantiator.newInstance(DefaultProviderFactory.class, valueSourceProviderFactory);
+        return instantiator.newInstance(DefaultProviderFactory.class, valueSourceProviderFactory, listenerManager);
     }
 
     protected ActorFactory createActorFactory() {
@@ -615,4 +616,5 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             instantiatorFactory.inject()
         );
     }
+
 }

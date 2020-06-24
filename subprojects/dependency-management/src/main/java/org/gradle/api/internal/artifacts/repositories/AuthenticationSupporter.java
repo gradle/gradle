@@ -22,9 +22,12 @@ import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.credentials.HttpHeaderCredentials;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
-import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
@@ -32,64 +35,69 @@ import org.gradle.internal.credentials.DefaultHttpHeaderCredentials;
 import org.gradle.internal.credentials.DefaultPasswordCredentials;
 import org.gradle.internal.reflect.Instantiator;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 
-public class AuthenticationSupporter implements AuthenticationSupportedInternal {
+public class AuthenticationSupporter {
     private final Instantiator instantiator;
     private final AuthenticationContainer authenticationContainer;
+    private final ProviderFactory providerFactory;
 
-    private Credentials credentials;
+    private final Property<Credentials> credentials;
+    private boolean usesCredentials = false;
 
-    public AuthenticationSupporter(Instantiator instantiator, AuthenticationContainer authenticationContainer) {
+    public AuthenticationSupporter(Instantiator instantiator, ObjectFactory objectFactory, AuthenticationContainer authenticationContainer, ProviderFactory providerFactory) {
         this.instantiator = instantiator;
         this.authenticationContainer = authenticationContainer;
+        this.credentials = objectFactory.property(Credentials.class);
+        this.providerFactory = providerFactory;
     }
 
-    @Override
     public PasswordCredentials getCredentials() {
-        if (credentials == null) {
+        if (!usesCredentials()) {
             return setCredentials(PasswordCredentials.class);
-        } else if (credentials instanceof PasswordCredentials) {
-            return Cast.uncheckedCast(credentials);
+        } else if (credentials.get() instanceof PasswordCredentials) {
+            return Cast.uncheckedCast(credentials.get());
         } else {
             throw new IllegalStateException("Can not use getCredentials() method when not using PasswordCredentials; please use getCredentials(Class)");
         }
     }
 
-    @Override
     public <T extends Credentials> T getCredentials(Class<T> credentialsType) {
-        if (credentials == null) {
+        if (!usesCredentials()) {
             return setCredentials(credentialsType);
-        } else if (credentialsType.isInstance(credentials)) {
-            return Cast.uncheckedCast(credentials);
+        } else if (credentialsType.isInstance(credentials.get())) {
+            return Cast.uncheckedCast(credentials.get());
         } else {
-            throw new IllegalArgumentException(String.format("Given credentials type '%s' does not match actual type '%s'", credentialsType.getName(), getCredentialsPublicType(credentials.getClass()).getName()));
+            throw new IllegalArgumentException(String.format("Given credentials type '%s' does not match actual type '%s'", credentialsType.getName(), getCredentialsPublicType(credentials.get().getClass()).getName()));
         }
     }
 
-    @Override
     public void credentials(Action<? super PasswordCredentials> action) {
-        if (credentials != null && !(credentials instanceof PasswordCredentials)) {
+        if (usesCredentials() && !(credentials.get() instanceof PasswordCredentials)) {
             throw new IllegalStateException("Can not use credentials(Action) method when not using PasswordCredentials; please use credentials(Class, Action)");
         }
         credentials(PasswordCredentials.class, action);
     }
 
-    @Override
     public <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action) throws IllegalStateException {
         action.execute(getCredentials(credentialsType));
     }
 
-    @Override
+    public void credentials(Class<? extends Credentials> credentialsType, Provider<String> identity) {
+        this.usesCredentials = true;
+        this.credentials.set(providerFactory.credentials(credentialsType, identity));
+    }
+
     public void setConfiguredCredentials(Credentials credentials) {
-        this.credentials = credentials;
+        this.usesCredentials = true;
+        this.credentials.set(credentials);
     }
 
     private <T extends Credentials> T setCredentials(Class<T> clazz) {
+        this.usesCredentials = true;
         T t = newCredentials(clazz);
-        credentials = t;
+        credentials.set(t);
         return t;
     }
 
@@ -97,36 +105,35 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
         return instantiator.newInstance(getCredentialsImplType(clazz));
     }
 
-    @Override
-    @Nullable
-    public Credentials getConfiguredCredentials() {
+    public Property<Credentials> getConfiguredCredentials() {
         return credentials;
     }
 
-    @Override
     public void authentication(Action<? super AuthenticationContainer> action) {
         action.execute(getAuthentication());
     }
 
-    @Override
     public AuthenticationContainer getAuthentication() {
         return authenticationContainer;
     }
 
-    @Override
     public Collection<Authentication> getConfiguredAuthentication() {
         populateAuthenticationCredentials();
-        if (getConfiguredCredentials() != null & authenticationContainer.size() == 0) {
-            return Collections.singleton(new AllSchemesAuthentication(getConfiguredCredentials()));
+        if (usesCredentials() && authenticationContainer.size() == 0) {
+            return Collections.singleton(new AllSchemesAuthentication(credentials.get()));
         } else {
             return getAuthentication();
         }
     }
 
+    boolean usesCredentials() {
+        return usesCredentials;
+    }
+
     private void populateAuthenticationCredentials() {
         // TODO: This will have to be changed when we support setting credentials directly on the authentication
         for (Authentication authentication : authenticationContainer) {
-            ((AuthenticationInternal)authentication).setCredentials(getConfiguredCredentials());
+            ((AuthenticationInternal) authentication).setCredentials(credentials.getOrNull());
         }
     }
 
@@ -156,4 +163,5 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
             throw new IllegalArgumentException(String.format("Unknown credentials implementation type: '%s' (supported types: %s, %s and %s).", implType.getName(), DefaultPasswordCredentials.class.getName(), DefaultAwsCredentials.class.getName(), DefaultHttpHeaderCredentials.class.getName()));
         }
     }
+
 }
