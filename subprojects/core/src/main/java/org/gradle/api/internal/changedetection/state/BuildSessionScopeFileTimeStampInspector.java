@@ -24,8 +24,8 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import java.io.File;
 
 @ServiceScope(Scopes.BuildSession)
-public class BuildScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
-    public BuildScopeFileTimeStampInspector(File workDir) {
+public class BuildSessionScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
+    public BuildSessionScopeFileTimeStampInspector(File workDir) {
         super(workDir);
     }
 

@@ -30,13 +30,13 @@ import java.util.Set;
  * Used for the global file hash cache
  */
 @ServiceScope(Scopes.UserHome)
-public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
+public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
     private CachingFileHasher fileHasher;
     private final Object lock = new Object();
     private long currentTimestamp;
     private final Set<String> filesWithCurrentTimestamp = new HashSet<>();
 
-    public GlobalScopeFileTimeStampInspector(CacheScopeMapping cacheScopeMapping) {
+    public GradleUserHomeScopeFileTimeStampInspector(CacheScopeMapping cacheScopeMapping) {
         super(cacheScopeMapping.getBaseDirectory(null, "file-changes", VersionStrategy.CachePerVersion));
     }
 
