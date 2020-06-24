@@ -16,7 +16,6 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
@@ -43,10 +42,9 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
                     id '$PLUGIN_ID' version '1.0'
                 }
             }
-"""
+        """
     }
 
-    @ToBeFixedForInstantExecution
     def "can define plugin version in settings script"() {
         when:
         buildScript "plugins { id '$PLUGIN_ID' }"
@@ -55,7 +53,6 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
         verifyPluginApplied('1.0')
     }
 
-    @ToBeFixedForInstantExecution
     def "can define plugin version in kotlin settings script"() {
         when:
         settingsFile.delete()
@@ -65,22 +62,22 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
                     id("$PLUGIN_ID") version "2.0"
                 }
             }
-"""
+        """
         buildKotlinFile << """
             plugins { id("$PLUGIN_ID") }
             tasks.register("verify") {
+                val pluginVersion: String by project
+                val pluginVersionValue = pluginVersion
                 doLast {
-                    val pluginVersion: String by project
-                    assert(pluginVersion == "2.0")
+                    assert(pluginVersionValue == "2.0")
                 }
             }
-"""
+        """
 
         then:
         succeeds("verify")
     }
 
-    @ToBeFixedForInstantExecution
     def "can define plugin version with apply false in settings script"() {
         when:
         withSettings """
@@ -89,14 +86,13 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
                     id '$PLUGIN_ID' version '1.0' apply false
                 }
             }
-"""
+        """
         buildScript "plugins { id '$PLUGIN_ID' }"
 
         then:
         verifyPluginApplied('1.0')
     }
 
-    @ToBeFixedForInstantExecution
     def "can define plugin version in settings script using gradle properties"() {
         when:
         file("gradle.properties") << "myPluginVersion=2.0"
@@ -106,14 +102,13 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
                     id '$PLUGIN_ID' version "\${myPluginVersion}"
                 }
             }
-"""
+        """
         buildScript "plugins { id '$PLUGIN_ID' }"
 
         then:
         verifyPluginApplied('2.0')
     }
 
-    @ToBeFixedForInstantExecution
     def "can override plugin version in settings script"() {
         when:
         buildScript "plugins { id '$PLUGIN_ID' version '2.0' }"
@@ -122,7 +117,6 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
         verifyPluginApplied('2.0')
     }
 
-    @ToBeFixedForInstantExecution
     def "can use plugin version from settings script in one of sibling projects"() {
         when:
         settingsFile << "include 'p1', 'p2'"
@@ -132,19 +126,18 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
                 id '$PLUGIN_ID'
             }
             ${verifyPluginTask('1.0')}
-"""
+        """
         file("p2/build.gradle") << """
             plugins {
                 id '$PLUGIN_ID' version '2.0'
             }
             ${verifyPluginTask('2.0')}
-"""
+        """
 
         then:
         succeeds "verify"
     }
 
-    @ToBeFixedForInstantExecution
     def "ignores plugin version from settings script when plugin loaded in parent project"() {
         when:
         settingsFile << "include 'p1'"
@@ -154,19 +147,18 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
                 id '$PLUGIN_ID' version '2.0'
             }
             ${verifyPluginTask('2.0')}
-"""
+        """
         file("p1/build.gradle") << """
             plugins {
                 id '$PLUGIN_ID'
             }
             ${verifyPluginTask('2.0')}
-"""
+        """
 
         then:
         succeeds "verify"
     }
 
-    @ToBeFixedForInstantExecution
     def "ignores plugin version from settings script when plugin added as buildscript dependency"() {
         when:
         buildFile << """
@@ -178,13 +170,12 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
             plugins {
                 id '$PLUGIN_ID'
             }
-"""
+        """
 
         then:
         verifyPluginApplied('2.0')
     }
 
-    @ToBeFixedForInstantExecution
     def "ignores plugin version from settings script when plugin added as buildSrc"() {
         when:
         file('buildSrc/build.gradle') << """
@@ -194,18 +185,17 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
             dependencies {
                 implementation "my:plugin:2.0"
             }
-"""
+        """
         buildFile << """
             plugins {
                 id '$PLUGIN_ID'
             }
-"""
+        """
 
         then:
         verifyPluginApplied('2.0')
     }
 
-    @ToBeFixedForInstantExecution
     def "cannot request that plugin be applied in settings script"() {
         when:
         withSettings """
@@ -214,14 +204,13 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
                     id '$PLUGIN_ID' version '1.0' apply true
                 }
             }
-"""
+        """
 
         then:
         fails "help"
         failure.assertHasCause "Cannot apply a plugin from within a pluginManagement block."
     }
 
-    @ToBeFixedForInstantExecution
     def "cannot specify plugin version twice in settings script"() {
         when:
         withSettings """
@@ -231,7 +220,7 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
                     id '$PLUGIN_ID' version '2.0'
                 }
             }
-"""
+        """
 
         then:
         fails "help"
@@ -243,7 +232,7 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
                     id('$PLUGIN_ID').version('1.0').version('2.0')
                 }
             }
-"""
+        """
 
         then:
         fails "help"
@@ -263,11 +252,12 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
     def verifyPluginTask(String version) {
         """
             task verify {
+                String pluginVersion = project.pluginVersion
                 doLast {
-                    assert project.pluginVersion == "$version"
+                    assert pluginVersion == "$version"
                 }
             }
-"""
+        """
     }
 
     void publishPlugin(String version) {
