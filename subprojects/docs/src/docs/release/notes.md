@@ -90,6 +90,10 @@ Gradle's dependency substitution API has been enriched to cover those cases.
 
 See the documentation on [variant-aware substitution](userguide/file:///home/cchampeau/DEV/PROJECTS/GITHUB/gradle/subprojects/docs/build/working/usermanual/render-multi/resolution_rules.html#sec:variant_aware_substitutions) for details.
 
+## Credentials API
+
+TBD 
+
 ## Improvements for plugin authors
 
 ### Injectable `ArchiveOperations` service
