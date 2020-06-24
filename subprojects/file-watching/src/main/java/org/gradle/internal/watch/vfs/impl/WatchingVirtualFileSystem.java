@@ -18,6 +18,7 @@ package org.gradle.internal.watch.vfs.impl;
 
 import com.google.common.collect.EnumMultiset;
 import com.google.common.collect.Multiset;
+import net.rubygrapefruit.platform.internal.jni.InsufficientResourcesForWatchingException;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata.AccessType;
@@ -31,6 +32,8 @@ import org.gradle.internal.vfs.impl.SnapshotCollectingDiffListener;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
+import org.gradle.internal.watch.registry.impl.InsufficientResourcesForWatchingDocumentationIndex;
+import org.gradle.internal.watch.registry.impl.InsufficientResourcesForWatchingDocumentationIndex.IncreaseLimitsDocumentation;
 import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +43,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -56,6 +60,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     private final DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator;
     private final AtomicReference<FileHierarchySet> producedByCurrentBuild = new AtomicReference<>(DefaultFileHierarchySet.of());
     private final Predicate<String> watchFilter;
+    private final InsufficientResourcesForWatchingDocumentationIndex insufficientResourcesForWatchingDocumentationIndex;
     private final Set<File> rootProjectDirectoriesForWatching = new HashSet<>();
 
     private FileWatcherRegistry watchRegistry;
@@ -72,12 +77,14 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         FileWatcherRegistryFactory watcherRegistryFactory,
         AbstractVirtualFileSystem delegate,
         DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator,
-        Predicate<String> watchFilter
+        Predicate<String> watchFilter,
+        InsufficientResourcesForWatchingDocumentationIndex insufficientResourcesForWatchingDocumentationIndex
     ) {
         super(delegate);
         this.watcherRegistryFactory = watcherRegistryFactory;
         this.delegatingUpdateFunctionDecorator = delegatingUpdateFunctionDecorator;
         this.watchFilter = watchFilter;
+        this.insufficientResourcesForWatchingDocumentationIndex = insufficientResourcesForWatchingDocumentationIndex;
     }
 
     @Override
@@ -197,6 +204,10 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
             LOGGER.warn("Spent {} ms registering watches for file system events", endTime);
             // TODO: Move start watching early enough so that the root is always empty
             return currentRoot.empty();
+        } catch (InsufficientResourcesForWatchingException ex) {
+            logInsufficientResourcesException(ex);
+            closeUnderLock();
+            return currentRoot.empty();
         } catch (Exception ex) {
             LOGGER.error("Couldn't create watch service, not tracking changes between builds", ex);
             closeUnderLock();
@@ -212,9 +223,24 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
             // No stacktrace here, since this is a known shortcoming of our implementation
             LOGGER.warn("Watching not supported, not tracking changes between builds: {}", ex.getMessage());
             return stopWatchingAndInvalidateHierarchy(currentRoot);
+        } catch (InsufficientResourcesForWatchingException ex) {
+            logInsufficientResourcesException(ex);
+            return stopWatchingAndInvalidateHierarchy(currentRoot);
         } catch (Exception ex) {
             LOGGER.error("Couldn't update watches, not watching anymore", ex);
             return stopWatchingAndInvalidateHierarchy(currentRoot);
+        }
+    }
+
+    private void logInsufficientResourcesException(InsufficientResourcesForWatchingException ex) {
+        Optional<IncreaseLimitsDocumentation> documentation = insufficientResourcesForWatchingDocumentationIndex.getDocumentationFor(ex);
+        documentation.ifPresent(doc -> LOGGER.warn(
+            "Unable to watch the file system for changes, {}. See {} for more details.",
+            doc.getProblem(),
+            doc.getDocumentationLink()
+        ));
+        if (!documentation.isPresent()) {
+            LOGGER.warn("Unable to watch the file system for changes", ex);
         }
     }
 
