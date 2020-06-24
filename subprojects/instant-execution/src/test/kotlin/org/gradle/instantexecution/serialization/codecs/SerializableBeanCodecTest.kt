@@ -55,42 +55,54 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
 
         val (decodedSerializable, decodedBean) = decodedGraph
 
-        assertThat(
-            "defaultWriteObject / defaultReadObject handles non-transient fields",
-            decodedSerializable.value,
-            equalTo(serializable.value)
-        )
+        decodedSerializable.apply {
+            assertThat(
+                "defaultWriteObject / defaultReadObject handles non-transient fields",
+                value,
+                equalTo(serializable.value)
+            )
 
-        assertThat(
-            decodedSerializable.transientShort,
-            equalTo(SerializableWriteObjectBean.EXPECTED_SHORT)
-        )
+            assertThat(
+                transientByte,
+                equalTo(SerializableWriteObjectBean.EXPECTED_BYTE)
+            )
 
-        assertThat(
-            decodedSerializable.transientInt,
-            equalTo(SerializableWriteObjectBean.EXPECTED_INT)
-        )
+            assertThat(
+                transientShort,
+                equalTo(SerializableWriteObjectBean.EXPECTED_SHORT)
+            )
 
-        assertThat(
-            decodedSerializable.transientString,
-            equalTo(SerializableWriteObjectBean.EXPECTED_STRING)
-        )
+            assertThat(
+                transientInt,
+                equalTo(SerializableWriteObjectBean.EXPECTED_INT)
+            )
 
-        assertThat(
-            decodedSerializable.transientFloat,
-            equalTo(SerializableWriteObjectBean.EXPECTED_FLOAT)
-        )
+            assertThat(
+                transientLong,
+                equalTo(SerializableWriteObjectBean.EXPECTED_LONG)
+            )
 
-        assertThat(
-            decodedSerializable.transientDouble,
-            equalTo(SerializableWriteObjectBean.EXPECTED_DOUBLE)
-        )
+            assertThat(
+                transientString,
+                equalTo(SerializableWriteObjectBean.EXPECTED_STRING)
+            )
 
-        assertThat(
-            "preserves identities across protocols",
-            decodedSerializable.value,
-            sameInstance(decodedBean)
-        )
+            assertThat(
+                transientFloat,
+                equalTo(SerializableWriteObjectBean.EXPECTED_FLOAT)
+            )
+
+            assertThat(
+                transientDouble,
+                equalTo(SerializableWriteObjectBean.EXPECTED_DOUBLE)
+            )
+
+            assertThat(
+                "preserves identities across protocols",
+                value,
+                sameInstance(decodedBean)
+            )
+        }
     }
 
     @Test
@@ -266,7 +278,11 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
 
             const val EXPECTED_SHORT: Short = Short.MAX_VALUE
 
+            const val EXPECTED_BYTE: Byte = 42
+
             const val EXPECTED_INT: Int = 42
+
+            const val EXPECTED_LONG: Long = 42L
 
             const val EXPECTED_STRING: String = "42"
 
@@ -276,10 +292,16 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
         }
 
         @Transient
+        var transientByte: Byte? = null
+
+        @Transient
         var transientShort: Short? = null
 
         @Transient
         var transientInt: Int? = null
+
+        @Transient
+        var transientLong: Long? = null
 
         @Transient
         var transientString: String? = null
@@ -294,8 +316,10 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
         fun writeObject(objectOutputStream: ObjectOutputStream) {
             objectOutputStream.run {
                 defaultWriteObject()
+                writeByte(EXPECTED_BYTE.toInt())
                 writeShort(EXPECTED_SHORT.toInt())
                 writeInt(EXPECTED_INT)
+                writeLong(EXPECTED_LONG)
                 writeUTF(EXPECTED_STRING)
                 writeFloat(EXPECTED_FLOAT)
                 writeDouble(EXPECTED_DOUBLE)
@@ -305,8 +329,10 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
         private
         fun readObject(objectInputStream: ObjectInputStream) {
             objectInputStream.defaultReadObject()
+            transientByte = objectInputStream.readByte()
             transientShort = objectInputStream.readShort()
             transientInt = objectInputStream.readInt()
+            transientLong = objectInputStream.readLong()
             transientString = objectInputStream.readUTF()
             transientFloat = objectInputStream.readFloat()
             transientDouble = objectInputStream.readDouble()

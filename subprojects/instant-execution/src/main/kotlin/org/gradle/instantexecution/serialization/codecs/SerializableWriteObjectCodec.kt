@@ -204,17 +204,17 @@ class RecordingObjectOutputStream(
 
     override fun close() = Unit
 
-    override fun reset() = TODO("reset")
+    override fun reset() = unsupported("ObjectOutputStream.reset")
 
-    override fun writeFields() = TODO("writeFields")
+    override fun writeFields() = unsupported("ObjectOutputStream.writeFields")
 
-    override fun putFields(): PutField = TODO("putFields")
+    override fun putFields(): PutField = unsupported("ObjectOutputStream.putFields")
 
-    override fun writeChars(str: String) = TODO("writeChars")
+    override fun writeChars(str: String) = unsupported("ObjectOutputStream.writeChars")
 
-    override fun writeUnshared(obj: Any?) = TODO("writeUnshared")
+    override fun writeBytes(str: String) = unsupported("ObjectOutputStream.writeBytes")
 
-    override fun writeBytes(str: String) = TODO("writeBytes")
+    override fun writeUnshared(obj: Any?) = unsupported("ObjectOutputStream.writeUnshared")
 }
 
 
@@ -252,9 +252,23 @@ class ObjectInputStreamAdapter(
 
     override fun mark(readlimit: Int) = inputStream.mark(readlimit)
 
+    override fun reset() = inputStream.reset()
+
     override fun read(): Int = inputStream.read()
 
     override fun readChar(): Char = readContext.readInt().toChar()
+
+    override fun readUnsignedByte(): Int = readByte().let {
+        require(it >= 0)
+        it.toInt()
+    }
+
+    override fun readByte(): Byte = readContext.readByte()
+
+    override fun readUnsignedShort(): Int = readShort().let {
+        require(it >= 0)
+        it.toInt()
+    }
 
     override fun readShort(): Short = readContext.readShort()
 
@@ -281,31 +295,28 @@ class ObjectInputStreamAdapter(
 
     override fun skipBytes(len: Int): Int = inputStream.skip(len.toLong()).toInt()
 
-    override fun read(buf: ByteArray, off: Int, len: Int): Int = TODO("read")
+    override fun read(buf: ByteArray, off: Int, len: Int): Int = inputStream.read(buf, off, len)
 
-    override fun readLine(): String = TODO("readLine")
+    override fun readLine(): String = unsupported("ObjectInputStream.readLine")
 
-    override fun readByte(): Byte = TODO("readByte")
+    override fun readFully(buf: ByteArray) = unsupported("ObjectInputStream.readFully")
 
-    override fun readFully(buf: ByteArray) = TODO("readFully")
+    override fun readFully(buf: ByteArray, off: Int, len: Int) = unsupported("ObjectInputStream.readFully")
 
-    override fun readFully(buf: ByteArray, off: Int, len: Int) = TODO("readFully")
+    override fun readUnshared(): Any = unsupported("ObjectInputStream.readUnshared")
 
-    override fun readUnshared(): Any = TODO("readUnshared")
+    override fun readFields(): GetField = unsupported("ObjectInputStream.readFields")
 
-    override fun readUnsignedShort(): Int = TODO("readUnsignedShort")
+    override fun transferTo(out: OutputStream): Long = unsupported("ObjectInputStream.transferTo")
 
-    override fun readUnsignedByte(): Int = TODO("readUnsignedByte")
-
-    override fun readFields(): GetField = TODO("readFields")
-
-    override fun transferTo(out: OutputStream): Long = TODO("transferTo")
-
-    override fun readAllBytes(): ByteArray = TODO("readAllBytes")
-
-    override fun reset() = TODO("reset")
+    override fun readAllBytes(): ByteArray = unsupported("ObjectInputStream.readAllBytes")
 
     private
     val inputStream: InputStream
         get() = readContext.inputStream
 }
+
+
+private
+fun unsupported(feature: String): Nothing =
+    throw UnsupportedOperationException("'$feature' is not supported by the Gradle configuration cache.")
