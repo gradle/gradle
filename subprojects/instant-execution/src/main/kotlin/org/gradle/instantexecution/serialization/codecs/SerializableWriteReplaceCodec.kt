@@ -60,8 +60,8 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
         decodePreservingIdentity { id ->
             readResolve(
                 when (readEnum<Format>()) {
+                    Format.Inline -> decodeBean()
                     Format.Replaced -> readNonNull()
-                    Format.Bean -> decodeBean()
                 }
             ).also { bean ->
                 isolate.identities.putInstance(id, bean)
@@ -70,7 +70,7 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
 
     private
     enum class Format {
-        Bean,
+        Inline,
         Replaced
     }
 
@@ -80,7 +80,7 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
             encodePreservingIdentityOf(value) {
                 val replacement = writeReplace.invoke(value)
                 if (replacement === value) {
-                    writeEnum(Format.Bean)
+                    writeEnum(Format.Inline)
                     encodeBean(value)
                 } else {
                     writeEnum(Format.Replaced)
@@ -94,7 +94,7 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
     inner class ReadResolveEncoding : Encoding {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
-                writeEnum(Format.Bean)
+                writeEnum(Format.Inline)
                 encodeBean(value)
             }
         }
