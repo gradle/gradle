@@ -60,7 +60,7 @@ fun BuildFeatures.triggeredOnPullRequests() {
         vcsRootExtId = "Gradle_Branches_GradlePersonalBranches"
         provider = github {
             authType = token {
-                token = "credentialsJSON:5306bfc7-041e-46e8-8d61-1d49424e7b04"
+                token = "%github.bot-gradle.token%"
             }
             filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER
             filterTargetBranch = allBranchesFilter
@@ -74,7 +74,7 @@ fun BuildFeatures.publishBuildStatusToGithub() {
         publisher = github {
             githubUrl = "https://api.github.com"
             authType = personalToken {
-                token = "credentialsJSON:5306bfc7-041e-46e8-8d61-1d49424e7b04"
+                token = "%github.bot-gradle.token%"
             }
         }
     }
