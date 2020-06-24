@@ -38,6 +38,7 @@ import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
+import org.gradle.internal.component.external.model.VariantDerivationStrategy
 import org.gradle.internal.component.model.MutableModuleSources
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -129,6 +130,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
 
         then:
         1 * key.getSources() >> moduleSources
+        1 * key.getVariantDerivationStrategy() >> Stub(VariantDerivationStrategy)
         1 * valueSnapshotter.snapshot(_) >> inputsSnapshot
         1 * store.get(keyHash) >> cachedEntry
         if (expired) {

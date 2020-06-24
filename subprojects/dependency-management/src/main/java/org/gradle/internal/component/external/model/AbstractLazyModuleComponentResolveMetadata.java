@@ -61,8 +61,8 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
     /**
      * Creates a copy of the given metadata
      */
-    protected AbstractLazyModuleComponentResolveMetadata(AbstractLazyModuleComponentResolveMetadata metadata, ModuleSources sources) {
-        super(metadata, sources);
+    protected AbstractLazyModuleComponentResolveMetadata(AbstractLazyModuleComponentResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy variantDerivationStrategy) {
+        super(metadata, sources, variantDerivationStrategy);
         this.configurationDefinitions = metadata.configurationDefinitions;
         variantMetadataRules = metadata.variantMetadataRules;
     }
@@ -71,10 +71,12 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
      * Clear any cached state, for the case where the inputs are invalidated.
      * This only happens when constructing a copy
      */
-    protected void copyCachedState(AbstractLazyModuleComponentResolveMetadata metadata) {
+    protected void copyCachedState(AbstractLazyModuleComponentResolveMetadata metadata, boolean copyGraphVariants) {
         // Copy built-on-demand state
         metadata.copyCachedConfigurations(this.configurations);
-        this.graphVariants = metadata.graphVariants;
+        if (copyGraphVariants) {
+            this.graphVariants = metadata.graphVariants;
+        }
     }
 
     private synchronized void copyCachedConfigurations(Map<String, ConfigurationMetadata> target) {

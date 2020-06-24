@@ -55,8 +55,8 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
         this.configurations = metadata.configurations;
     }
 
-    public AbstractRealisedModuleComponentResolveMetadata(AbstractRealisedModuleComponentResolveMetadata metadata, ModuleSources sources) {
-        super(metadata, sources);
+    public AbstractRealisedModuleComponentResolveMetadata(AbstractRealisedModuleComponentResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
+        super(metadata, sources, derivationStrategy);
         this.configurations = metadata.configurations;
     }
 
