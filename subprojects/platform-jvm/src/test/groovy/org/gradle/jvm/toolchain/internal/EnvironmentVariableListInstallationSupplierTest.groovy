@@ -54,7 +54,7 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
         def directories = supplier.get()
 
         then:
-        directories*.location.absolutePath == ["/path/jdk8"]
+        directoriesAsStablePaths(directories) == stablePaths(["/path/jdk8"])
         directories*.source == ["environment variable 'JDK8'"]
     }
 
@@ -66,7 +66,7 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
         def directories = supplier.get()
 
         then:
-        directories*.location.absolutePath.sort() == ["/path/jdk8", "/path/jdk9"]
+        directoriesAsStablePaths(directories) == stablePaths(["/path/jdk8", "/path/jdk9"])
     }
 
     def "supplies installations with malformed variables"() {
@@ -77,7 +77,18 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
         def directories = supplier.get()
 
         then:
-        directories.sort()*.location.absolutePath == ["/path/jdk9"]
+        directoriesAsStablePaths(directories) == stablePaths(["/path/jdk9"])
+    }
+
+    private directoriesAsStablePaths(Set<InstallationLocation> actualDirectories) {
+        actualDirectories*.location.absolutePath.sort()
+    }
+
+    private stablePaths(List<String> expectedPaths) {
+        expectedPaths.replaceAll({ s ->
+            s.replaceAll('/', File.separator)
+        })
+        expectedPaths
     }
 
     private EnvironmentVariableListInstallationSupplier createSupplier(String propertyValue) {
