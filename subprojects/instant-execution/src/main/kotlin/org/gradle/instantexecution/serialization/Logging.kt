@@ -42,7 +42,7 @@ fun IsolateContext.logUnsupported(
     action: String,
     baseType: KClass<*>,
     actualType: Class<*>,
-    documentationSection: String = "disallowed_types"
+    documentationSection: String = "config_cache:requirements:disallowed_types"
 ) {
     logPropertyProblem(action, PropertyProblem(trace,
         build {
@@ -60,7 +60,7 @@ fun IsolateContext.logUnsupported(
 fun IsolateContext.logUnsupported(
     action: String,
     baseType: KClass<*>,
-    documentationSection: String = "disallowed_types"
+    documentationSection: String = "config_cache:requirements:disallowed_types"
 ) {
     logPropertyProblem(action, PropertyProblem(trace,
         build {
@@ -82,7 +82,7 @@ fun IsolateContext.logNotImplemented(baseType: Class<*>) {
 }
 
 
-fun IsolateContext.logNotImplemented(feature: String, documentationSection: String = "not_yet_implemented") {
+fun IsolateContext.logNotImplemented(feature: String, documentationSection: String = "config_cache:not_yet_implemented") {
     onProblem(PropertyProblem(trace, build {
         text("support for $feature is not yet implemented with the configuration cache.")
     }, null, documentationSection))

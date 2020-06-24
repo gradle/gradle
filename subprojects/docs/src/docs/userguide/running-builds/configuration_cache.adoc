@@ -12,10 +12,9 @@
 The configuration cache is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, and the details described here may change.
 ====
 
-// TODO prefix anchors sec:, problem:,
 // TODO java serialization support
-// TODO value suppliers reference documentation
 
+[[config_cache:intro]]
 == Introduction
 
 The configuration cache is a feature that significantly improves build performance by caching the result of the <<build_lifecycle#build_lifecycle,configuration phase>> and reusing this for subsequent builds.
@@ -31,9 +30,9 @@ In other words, the configuration cache caches the output of the configuration p
 ====
 This feature is currently *experimental* and not enabled by default.
 
-Not all <<configuration_cache#core_plugins, core Gradle plugins>> are supported.
-Your build and the plugins you depend on might require changes to fulfil the <<configuration_cache#requirements, requirements>>.
-Some Gradle features are <<configuration_cache#not_yet_implemented, not yet implemented>>.
+Not all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> are supported.
+Your build and the plugins you depend on might require changes to fulfil the <<configuration_cache#config_cache:requirements, requirements>>.
+Some Gradle features are <<configuration_cache#config_cache:not_yet_implemented, not yet implemented>>.
 Importing and syncing Gradle builds in IDEs is not improved by configuration caching yet.
 ====
 
@@ -72,6 +71,7 @@ Apart from skipping the configuration phase, the configuration cache provides so
 - All tasks run in parallel by default.
 - Dependency resolution is cached.
 
+[[config_cache:usage]]
 == Using the configuration cache
 
 It is recommended to get started with the simplest task invocation possible.
@@ -105,11 +105,11 @@ You should target your development loop.
 A good example is running tests after making incremental changes.
 
 If any problem is found caching or reusing the configuration, an HTML report is generated to help you diagnose and fix the issues.
-See the <<configuration_cache#troubleshooting>> section below for more information.
+See the <<configuration_cache#config_cache:troubleshooting>> section below for more information.
 
 Keep reading to learn how to tweak the configuration cache, manually invalidate the state if something goes wrong and use the configuration cache from an IDE.
 
-[[enable]]
+[[config_cache:usage:enable]]
 === Enabling the configuration cache
 
 By default, the configuration cache is not enabled.
@@ -132,7 +132,7 @@ If it is enabled in a `gradle.properties` file, it can be disabled on the comman
 ❯ gradle --no-configuration-cache
 ----
 
-[[ignore_problems]]
+[[config_cache:usage:ignore_problems]]
 === Ignoring problems
 
 By default, Gradle will fail the build if any configuration cache problems are encountered.
@@ -151,7 +151,7 @@ or in a `gradle.properties` file:
 org.gradle.unsafe.configuration-cache-problems=warn
 ----
 
-[[max_problems]]
+[[config_cache:usage:max_problems]]
 === Allowing a maximum number of problems
 
 When configuration cache problems are turned into warnings, Gradle will fail the build if `512` problems are found by default.
@@ -169,13 +169,13 @@ or in a `gradle.properties` file:
 org.gradle.unsafe.configuration-cache.max-problems=5
 ----
 
-[[invalidating_the_cache]]
+[[config_cache:usage:invalidate]]
 === Invalidating the cache
 
 The configuration cache is automatically invalidated when inputs to the configuration phase change.
 But, you may have to manually invalidate the configuration cache when untracked inputs to the configuration phase change.
-This can happen if you <<configuration_cache#ignore_problems,ignored problems>>, or when your build uses <<dynamic_versions#sec:dynamic_versions_and_changing_modules, dynamic dependency versions>> and remote dependencies changed for example.
-See the <<configuration_cache#requirements>> and <<configuration_cache#not_yet_implemented>> sections below for more information.
+This can happen if you <<configuration_cache#config_cache:usage:ignore_problems,ignored problems>>, or when your build uses <<dynamic_versions#sec:dynamic_versions_and_changing_modules, dynamic dependency versions>> and remote dependencies changed for example.
+See the <<configuration_cache#config_cache:requirements>> and <<configuration_cache#config_cache:not_yet_implemented>> sections below for more information.
 
 The configuration cache state is stored on disk in a directory named `.gradle/configuration-cache` in the root directory of the Gradle build in use.
 If you need to invalidate the cache, simply delete that directory:
@@ -187,6 +187,7 @@ If you need to invalidate the cache, simply delete that directory:
 Configuration cache entries are checked periodically (at most every 24 hours) for whether they are still in use.
 They are deleted if they haven't been used for 7 days.
 
+[[config_cache:ide]]
 == IDE support
 
 If you enable and configure the configuration cache from your `gradle.properties` file, then the configuration cache will be enabled when your IDE delegates to Gradle.
@@ -231,14 +232,14 @@ To enable it for a given run configuration, go to `Run configurations...`, find 
 
 Combining these two ways you can enable globally and disable for certain run configurations, or the opposite.
 
-[[plugin_support]]
+[[config_cache:plugins]]
 == Supported plugins
 
 The configuration cache is brand new and introduces new requirements for plugin implementations.
 As a result, both core Gradle plugins, and community plugins need to be adjusted.
-This section provides information about the current support in <<configuration_cache#core_plugins, core Gradle plugins>> and <<configuration_cache#community_plugins, community plugins>>.
+This section provides information about the current support in <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:plugins:community, community plugins>>.
 
-[[core_plugins]]
+[[config_cache:plugins:core]]
 === Core Gradle plugins
 
 Not all <<plugin_reference#plugin_reference, core Gradle plugins>> support configuration caching yet.
@@ -313,12 +314,12 @@ link:{gradle-issues}13473[[.red]#✖#]:: <<project_report_plugin.adoc#project_re
 [.red]#✖#:: Unsupported plugin
 [.gray]#✖#:: Won't fix
 
-[[community_plugins]]
+[[config_cache:plugins:community]]
 === Community plugins
 
 Please refer to issue link:{gradle-issues}13490[gradle/gradle#13490] to learn about the status of community plugins.
 
-[[troubleshooting]]
+[[config_cache:troubleshooting]]
 == Troubleshooting
 
 The following sections will go through some general guidelines on dealing with problems with the configuration cache.
@@ -334,8 +335,8 @@ Let's look at a simple example build script that contains a couple problems:
 include::sample[dir="snippets/configurationCache/problemsGroovy/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/configurationCache/problemsKotlin/kotlin",files="build.gradle.kts[]"]
 ====
-<1> <<configuration_cache#undeclared_sys_prop_read, Undeclared system property read at configuration time>>
-<2> <<configuration_cache#use_project_during_execution, Using the `Project` object at execution time>>
+<1> <<configuration_cache#config_cache:requirements:undeclared_sys_prop_read, Undeclared system property read at configuration time>>
+<2> <<configuration_cache#config_cache:requirements:use_project_during_execution, Using the `Project` object at execution time>>
 
 Running that task fails and print the following in the console:
 
@@ -355,12 +356,12 @@ In both cases you can expand the tree in order to discover where the culprit is 
 
 [TIP]
 ====
-Problems displayed in the report have links to the corresponding <<configuration_cache#requirements,requirement>> where you can find guidance on how to fix the problem or to the corresponding <<configuration_cache#not_yet_implemented,not yet implemented>> feature.
+Problems displayed in the report have links to the corresponding <<configuration_cache#config_cache:requirements,requirement>> where you can find guidance on how to fix the problem or to the corresponding <<configuration_cache#config_cache:not_yet_implemented,not yet implemented>> feature.
 
-When changing your build or plugin to fix the problems you should consider <<configuration_cache#testkit, testing your build logic with TestKit>>.
+When changing your build or plugin to fix the problems you should consider <<configuration_cache#config_cache:testing, testing your build logic with TestKit>>.
 ====
 
-At this stage, you can decide to either <<configuration_cache#ignore_problems, turn the problems into warnings>> and continue exploring how your build reacts to the configuration cache, or fix the problems at hand.
+At this stage, you can decide to either <<configuration_cache#config_cache:usage:ignore_problems, turn the problems into warnings>> and continue exploring how your build reacts to the configuration cache, or fix the problems at hand.
 
 Let's ignore the problems reported when storing the configuration cache, and run the same build again to see what happens when reusing the problematic cached configuration:
 
@@ -430,13 +431,13 @@ We're now done with fixing the problems with this simple task.
 
 Keep reading to learn how to adopt the configuration cache for your build or your plugins.
 
-[[adoption]]
+[[config_cache:adoption]]
 == Adoption steps
 
 An important prerequisite is to keep your Gradle and plugins versions up to date.
 The following explores the recommended steps for a successful adoption.
 It applies both to builds and plugins.
-While going through these steps, keep in mind the HTML report and the solutions explained in the <<configuration_cache#requirements, requirements>> chapter below.
+While going through these steps, keep in mind the HTML report and the solutions explained in the <<configuration_cache#config_cache:requirements, requirements>> chapter below.
 
 Start with `:help`::
 Always start by trying your build or plugin with the simplest task `:help`.
@@ -452,12 +453,12 @@ For example, running tests after making some changes to the source code.
 When working on a plugin, progressively target the contributed or configured tasks.
 
 Explore by turning problems into warnings::
-Don't stop at the first build failure and <<configuration_cache#ignore_problems, turn problems into warnings>> to discover how your build or plugin behave.
-Use the HTML report to reason about the reported problems, read about them in the <<configuration_cache#requirements, requirements>> and <<configuration_cache#not_yet_implemented, not yet implemented>> sections below.
+Don't stop at the first build failure and <<configuration_cache#config_cache:usage:ignore_problems, turn problems into warnings>> to discover how your build or plugin behave.
+Use the HTML report to reason about the reported problems, read about them in the <<configuration_cache#config_cache:requirements, requirements>> and <<configuration_cache#config_cache:not_yet_implemented, not yet implemented>> sections below.
 Continue running more tasks.
 +
 This will give you a good overview of what problems your build or plugin is facing.
-Remember that when turning problems into warnings you might need to <<configuration_cache#invalidating_the_cache, manually invalidating the cache>> in case of troubles.
+Remember that when turning problems into warnings you might need to <<configuration_cache#config_cache:usage:invalidate, manually invalidating the cache>> in case of troubles.
 
 Step back and fix problems iteratively::
 When you feel you know enough about what needs to be fixed, take a step back and start iteratively fixing the most important problems.
@@ -468,7 +469,7 @@ Once fixed, you can rely on a valid cached configuration phase and move on to fi
 
 Test, test, test::
 Consider adding tests for your build logic.
-See the below section on <<configuration_cache#testkit, testing your build logic>> for the configuration cache.
+See the below section on <<configuration_cache#config_cache:testing, testing your build logic>> for the configuration cache.
 This will help you while iterating on the required changes and prevent future regressions.
 
 Report problems with community plugins::
@@ -482,13 +483,13 @@ A good way to report such problems to community plugin authors is by providing:
 * a copy of the console problem report, or ideally the HTML problem report you got, so the plugin author can easily reason about the problems,
 * ideally a reproducer build, so the plugin author can easily reproduce the problems.
 
-[[testkit]]
+[[config_cache:testing]]
 == Testing your build logic
 
 The Gradle TestKit (a.k.a. just TestKit) is a library that aids in testing Gradle plugins and build logic generally.
 For general guidance on how to use TestKit, see the <<test_kit.adoc#test_kit,dedicated chapter>>.
 
-To enable configuration caching in your tests, you can pass the `--configuration-cache` argument to link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner] or use one of the other methods described in <<configuration_cache.adoc#enable,Enabling the configuration cache>>.
+To enable configuration caching in your tests, you can pass the `--configuration-cache` argument to link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner] or use one of the other methods described in <<configuration_cache.adoc#config_cache:usage:enable,Enabling the configuration cache>>.
 
 You need to run your tasks twice.
 Once to prime the configuration cache.
@@ -505,7 +506,7 @@ include::sample[dir="snippets/configurationCache/testKit/kotlin",files="src/test
 
 If problems with the configuration cache are found then Gradle will fail the build reporting the problems, and the test will fail.
 
-[[requirements]]
+[[config_cache:requirements]]
 == Requirements
 
 In order to capture the state of the task graph to the configuration cache and reload it again in a later build, Gradle applies certain requirements to tasks and other build logic.
@@ -513,7 +514,7 @@ Each of these requirements is treated as a configuration cache "problem" and fai
 
 The following sections describe each of the requirements and how to change your build to fix the problems.
 
-[[disallowed_types]]
+[[config_cache:requirements:disallowed_types]]
 === Certain types must not be referenced by tasks
 
 There are a number of types that task instances must not reference from their fields.
@@ -586,7 +587,7 @@ For example, you could have a task reference some type from a plugin that is all
 That type could reference another allowed type that in turn references a disallowed type.
 The hierarchical view of the object graph provided in the HTML reports for problems should help you pinpoint the offender.
 
-[[use_project_during_execution]]
+[[config_cache:requirements:use_project_during_execution]]
 === Using the `Project` object
 
 A task must not use any `Project` objects at execution time.
@@ -644,28 +645,28 @@ The following table shows what APIs or injected service should be used as a repl
 | Use:
 
 | `project.rootDir`
-| A task input property or script variable to capture the root directory.
+| A task input or output property or a script variable to capture the result of using `project.rootDir` to calculate the actual parameter.
 
 | `project.projectDir`
-| A task input property or script variable to capture the project directory.
+| A task input or output property or a script variable to capture the result of using `project.projectDir` to calculate the actual parameter.
 
 | `project.buildDir`
-| A task input property or script variable to capture the project build directory.
+| A task input or output property or a script variable to capture the result of using `project.buildDir` to calculate the actual parameter.
 
 | `project.name`
-| A task input property or script variable to capture the project name.
+| A task input or output property or a script variable to capture the result of using `project.name` to calculate the actual parameter.
 
 | `project.description`
-| A task input property or script variable to capture the project description.
+| A task input or output property or a script variable to capture the result of using `project.description` to calculate the actual parameter.
 
 | `project.group`
-| A task input property or script variable to capture the project group.
+| A task input or output property or a script variable to capture the result of using `project.group` to calculate the actual parameter.
 
 | `project.version`
-| A task input property or script variable to capture the project version.
+| A task input or output property or a script variable to capture the result of using `project.version` to calculate the actual parameter.
 
 | `project.properties`, `project.property(name)`, `project.hasProperty(name)`, `project.getProperty(name)` or `project.findProperty(name)`
-| <<configuration_cache#undeclared_gradle_prop_read, Value providers for Gradle properties>>
+| <<configuration_cache#config_cache:requirements:undeclared_gradle_prop_read, Value providers for Gradle properties>>
 
 | `project.logger`
 | link:{javadocPath}/org/gradle/api/Task.html#getLogger--[Task.logger]
@@ -674,10 +675,10 @@ The following table shows what APIs or injected service should be used as a repl
 | link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#provider-java.util.concurrent.Callable-[ProviderFactory.provider {}]
 
 | `project.file(path)`
-| A task input or output property or a script variable to capture the file.
+| A task input or output property or a script variable to capture the result of using `project.file(file)` to calculate the actual parameter.
 
 | `project.uri(path)`
-| A task input or output property or a script variable to capture the URI if it represents a parameter of the task action. Otherwise, `File.toURI()` or some other JVM API can be used.
+| A task input or output property or a script variable to capture the result of using `project.uri(path)` to calculate the actual parameter. Otherwise, `File.toURI()` or some other JVM API can be used.
 
 | `project.relativePath(path)`
 | link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getProjectDirectory--[ProjectLayout.projectDirectory].link:{javadocPath}/org/gradle/api/file/Directory.html#file-java.lang.String-[file(path)]
@@ -695,10 +696,10 @@ The following table shows what APIs or injected service should be used as a repl
 | link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html#tarTree-java.lang.Object-[ArchiveOperations.tarTree(path)]
 
 | `project.resources`
-| [.red]#✖# Not supported yet
+| A task input or output property or a script variable to capture the result of using `project.resource` to calculate the actual parameter.
 
 | `project.copySpec {}`
-| A task input property or a script variable to capture the copy spec.
+| A task input or output property or a script variable to capture the result of using `project.copySpec {}` to calculate the actual parameter.
 
 | `project.copy {}`
 | link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#copy-org.gradle.api.Action-[FileSystemOperations.copy {}]
@@ -726,7 +727,7 @@ The following table shows what APIs or injected service should be used as a repl
 
 |===
 
-[[task_access]]
+[[config_cache:requirements:task_access]]
 === Accessing a task instance from another instance
 
 Tasks should not directly access the state of another task instance.
@@ -734,7 +735,7 @@ Instead, tasks should be connected using <<lazy_configuration#working_with_task_
 
 Note that this requirement makes it unsupported to write tasks that configure other tasks at execution time.
 
-[[build_listeners]]
+[[config_cache:requirements:build_listeners]]
 === Using build listeners
 
 Plugins and build scripts must not register any build listeners.
@@ -743,7 +744,7 @@ For example a `BuildListener` or a `TaskExecutionListener`.
 
 These should be replaced by <<build_services#build_services,build services>>, registered to receive information about <<build_services#operation_listener, task execution>> if needed.
 
-[[undeclared_gradle_prop_read]]
+[[config_cache:requirements:undeclared_gradle_prop_read]]
 === Undeclared reading of Gradle properties
 
 Plugins and build scripts should not read Gradle properties directly at configuration time.
@@ -766,7 +767,7 @@ include::sample[dir="snippets/valueProviders/gradlePropsDo/kotlin",files="build.
 In general, you should avoid reading the value of Gradle properties at configuration time, to avoid invalidating configuration cache entries when the Gradle property value changes.
 Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#gradleProperty-java.lang.String-[providers.gradleProperty()] to task properties.
 
-[[undeclared_sys_prop_read]]
+[[config_cache:requirements:undeclared_sys_prop_read]]
 === Undeclared reading of system properties
 
 Plugins and build scripts should not read system properties directly using the Java APIs at configuration time.
@@ -789,7 +790,7 @@ include::sample[dir="snippets/valueProviders/sysPropsDo/kotlin",files="build.gra
 In general, you should avoid reading the value of system properties at configuration time, to avoid invalidating configuration cache entries when the system property value changes.
 Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#systemProperty-java.lang.String-[providers.systemProperty()] to task properties.
 
-[[undeclared_env_var_read]]
+[[config_cache:requirements:undeclared_env_var_read]]
 === Undeclared reading of environment variables
 
 Plugins and build scripts should not read environment variables directly using the Java APIs at configuration time.
@@ -812,7 +813,7 @@ include::sample[dir="snippets/valueProviders/envVarsDo/kotlin",files="build.grad
 In general, you should avoid reading the value of environment variables at configuration time, to avoid invalidating configuration cache entries when the environment variable value changes.
 Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#environmentVariable-java.lang.String-[providers.environmentVariable()] to task properties.
 
-[[undeclared_file_read]]
+[[config_cache:requirements:undeclared_file_read]]
 === Undeclared reading of files
 
 Plugins and build scripts should not read files directly using the Java, Groovy or Kotlin APIs at configuration time.
@@ -835,7 +836,7 @@ include::sample[dir="snippets/valueProviders/fileContentsDo/kotlin",files="build
 In general, you should avoid reading files at configuration time, to avoid invalidating configuration cache entries when the file content changes.
 Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#fileContents-org.gradle.api.file.RegularFile-[providers.fileContents()] to task properties.
 
-[[not_yet_implemented]]
+[[config_cache:not_yet_implemented]]
 == Not yet implemented
 
 Support for using configuration caching with certain Gradle features is not yet implemented.
@@ -858,11 +859,11 @@ But it can't be shared between developers or CI machines.
 
 See link:{gradle-issues}13510[gradle/gradle#13510].
 
-[[composite_builds]]
+[[config_cache:not_yet_implemented:composite_builds]]
 === Composite builds
 
 When using the configuration cache on a <<composite_builds#composite_builds,composite build>> a problem will be reported.
-If you <<configuration_cache#ignore_problems,ignore problems>> then the included builds will be skipped when reusing the configuration cache.
+If you <<configuration_cache#config_cache:usage:ignore_problems,ignore problems>> then the included builds will be skipped when reusing the configuration cache.
 
 See link:{gradle-issues}13503[gradle/gradle#13503].
 
