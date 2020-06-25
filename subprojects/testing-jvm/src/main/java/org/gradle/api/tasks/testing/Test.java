@@ -992,7 +992,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 3.5
      */
     public void useTestNG(Action<? super TestNGOptions> testFrameworkConfigure) {
-        useTestFramework(new TestNGTestFramework(this, (DefaultTestFilter) getFilter(), getInstantiator()), testFrameworkConfigure);
+        useTestFramework(new TestNGTestFramework(this, (DefaultTestFilter) getFilter(), getObjectFactory()), testFrameworkConfigure);
     }
 
     /**

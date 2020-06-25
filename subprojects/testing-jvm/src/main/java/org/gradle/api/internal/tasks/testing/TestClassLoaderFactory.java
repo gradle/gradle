@@ -22,12 +22,15 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.DefaultClassPath;
 
+import javax.inject.Inject;
+
 public class TestClassLoaderFactory implements Factory<ClassLoader> {
 
     private final ClassLoaderCache classLoaderCache;
     private final String testTaskPath;
     private final FileCollection testTaskClasspath;
 
+    @Inject
     public TestClassLoaderFactory(
         ClassLoaderCache classLoaderCache,
         String testTaskPath,
