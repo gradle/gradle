@@ -62,6 +62,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
@@ -174,9 +175,14 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         throw new UnsupportedOperationException();
     }
 
-    @Inject
+    @Internal
+    @Deprecated
     protected ClassLoaderCache getClassLoaderCache() {
-        throw new UnsupportedOperationException();
+        DeprecationLogger.deprecateMethod(Test.class, "getClassLoaderCache()")
+            .willBeRemovedInGradle7()
+            .undocumented()
+            .nagUser();
+        return getServices().get(ClassLoaderCache.class);
     }
 
     @Inject
