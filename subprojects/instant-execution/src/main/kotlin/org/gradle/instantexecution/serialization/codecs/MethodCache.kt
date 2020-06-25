@@ -35,9 +35,15 @@ class MethodCache(
         forClass(value.javaClass)
 
     fun forClass(type: Class<*>) = methodCache.computeIfAbsent(type) {
-        it.firstMatchingMethodOrNull(predicate)
+        it.firstAccessibleMatchingMethodOrNull(predicate)
     }
 }
+
+
+internal
+fun Class<*>.firstAccessibleMatchingMethodOrNull(predicate: Method.() -> Boolean): Method? =
+    firstMatchingMethodOrNull(predicate)
+        ?.apply { isAccessible = true }
 
 
 internal
@@ -45,4 +51,3 @@ fun Class<*>.firstMatchingMethodOrNull(predicate: Method.() -> Boolean): Method?
     ClassInspector.inspect(this)
         .allMethods
         .find(predicate)
-        ?.apply { isAccessible = true }

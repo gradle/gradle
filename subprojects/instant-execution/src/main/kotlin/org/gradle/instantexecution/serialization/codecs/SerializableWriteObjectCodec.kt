@@ -93,8 +93,8 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
 
     private
     fun writeObjectMethodOf(type: Class<*>) = type
-        .takeIf { Serializable::class.java.isAssignableFrom(type) }
-        ?.firstMatchingMethodOrNull {
+        .takeIf { type.isSerializable() }
+        ?.firstAccessibleMatchingMethodOrNull {
             parameterCount == 1
                 && name == "writeObject"
                 && parameterTypes[0].isAssignableFrom(ObjectOutputStream::class.java)
@@ -315,6 +315,11 @@ class ObjectInputStreamAdapter(
     val inputStream: InputStream
         get() = readContext.inputStream
 }
+
+
+internal
+fun Class<*>.isSerializable() =
+    Serializable::class.java.isAssignableFrom(this)
 
 
 private
