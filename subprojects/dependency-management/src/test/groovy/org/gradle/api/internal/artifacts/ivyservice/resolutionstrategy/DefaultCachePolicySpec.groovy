@@ -29,6 +29,7 @@ import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 
+import java.time.Duration
 import java.util.concurrent.TimeUnit
 
 import static java.util.Collections.emptySet
@@ -59,7 +60,17 @@ class DefaultCachePolicySpec extends Specification {
         def versions = emptySet()
 
         then:
-        !cachePolicy.mustRefreshVersionList(moduleIdentifier, versions, WEEK)
+        def expired = cachePolicy.versionListExpiry(moduleIdentifier, versions, Duration.ofMillis(WEEK))
+        !expired.mustCheck
+        expired.keepFor == Duration.ZERO
+
+        def notExpired = cachePolicy.versionListExpiry(moduleIdentifier, versions, Duration.ofMillis(2 * SECOND))
+        !notExpired.mustCheck
+        notExpired.keepFor == Duration.ofMillis(DAY - 2 * SECOND)
+
+        def thisBuild = cachePolicy.versionListExpiry(moduleIdentifier, versions, Duration.ZERO)
+        !thisBuild.mustCheck
+        thisBuild.keepFor == Duration.ofMillis(DAY)
     }
 
     def 'never expires missing module for non changing module'() {
@@ -103,7 +114,9 @@ class DefaultCachePolicySpec extends Specification {
         })
 
         then:
-        cachePolicy.mustRefreshVersionList(null, null, 2 * SECOND)
+        def notExpired = cachePolicy.versionListExpiry(null, null, Duration.ofMillis(2 * SECOND))
+        notExpired.mustCheck
+        notExpired.keepFor == Duration.ZERO
     }
 
     def "applies useCachedResult for dynamic versions"() {
@@ -115,7 +128,17 @@ class DefaultCachePolicySpec extends Specification {
         })
 
         then:
-        !cachePolicy.mustRefreshVersionList(null, null, 2 * SECOND)
+        def notExpired = cachePolicy.versionListExpiry(null, null, Duration.ofMillis(2 * SECOND))
+        !notExpired.mustCheck
+        notExpired.keepFor == Duration.ofMillis(DAY - 2 * SECOND)
+
+        def expired = cachePolicy.versionListExpiry(null, null, Duration.ofMillis(WEEK))
+        !expired.mustCheck
+        expired.keepFor == Duration.ZERO
+
+        def thisBuild = cachePolicy.versionListExpiry(null, null, Duration.ZERO)
+        !thisBuild.mustCheck
+        thisBuild.keepFor == Duration.ofMillis(DAY)
     }
 
     def "applies cacheFor rules for dynamic versions"() {
@@ -140,7 +163,68 @@ class DefaultCachePolicySpec extends Specification {
                 t.refresh()
             }
         })
-        cachePolicy.mustRefreshVersionList(moduleIdentifier('g', 'n', 'v').module, [moduleIdentifier('group', 'name', 'version')] as Set, 0)
+
+        def expiry = cachePolicy.versionListExpiry(moduleIdentifier('g', 'n', 'v').module, [moduleIdentifier('group', 'name', 'version')] as Set, Duration.ofMillis(5))
+        expiry.mustCheck
+        expiry.keepFor == Duration.ZERO
+    }
+
+    def "uses cached version list when offline"() {
+        def moduleIdentifier = DefaultModuleIdentifier.newId('org', 'foo')
+
+        when:
+        cachePolicy.setOffline()
+
+        then:
+        def notExpired = cachePolicy.versionListExpiry(null, null, Duration.ofMillis(2 * SECOND))
+        !notExpired.mustCheck
+        notExpired.keepFor == Duration.ofMillis(DAY - 2 * SECOND)
+
+        def expired = cachePolicy.versionListExpiry(null, null, Duration.ofMillis(WEEK))
+        !expired.mustCheck
+        expired.keepFor == Duration.ZERO
+
+        when:
+        cachePolicy.cacheDynamicVersionsFor(5, TimeUnit.SECONDS)
+
+        then:
+        def expiry2 = cachePolicy.versionListExpiry(moduleIdentifier, emptySet(), Duration.ofMillis(2 * SECOND))
+        !expiry2.mustCheck
+        expiry2.keepFor == Duration.ofMillis(3 * SECOND)
+    }
+
+    def "does not use cached version list when refresh dependencies"() {
+        when:
+        cachePolicy.setRefreshDependencies()
+
+        then:
+        def expired = cachePolicy.versionListExpiry(null, null, Duration.ofMillis(WEEK))
+        expired.mustCheck
+        expired.keepFor == Duration.ZERO
+
+        def notExpired = cachePolicy.versionListExpiry(null, null, Duration.ofMillis(2 * SECOND))
+        notExpired.mustCheck
+        notExpired.keepFor == Duration.ZERO
+    }
+
+    def "uses cached version list when refresh dependencies and version was cached in this build"() {
+        def moduleIdentifier = DefaultModuleIdentifier.newId('org', 'foo')
+
+        when:
+        cachePolicy.setRefreshDependencies()
+
+        then:
+        def expiry1 = cachePolicy.versionListExpiry(moduleIdentifier, null, Duration.ZERO)
+        !expiry1.mustCheck
+        expiry1.keepFor == Duration.ofMillis(DAY)
+
+        when:
+        cachePolicy.cacheDynamicVersionsFor(1, TimeUnit.SECONDS)
+
+        then:
+        def expiry2 = cachePolicy.versionListExpiry(moduleIdentifier, emptySet(), Duration.ZERO)
+        !expiry2.mustCheck
+        expiry2.keepFor == Duration.ofMillis(SECOND)
     }
 
     def "provides details of cached module"() {
@@ -153,7 +237,7 @@ class DefaultCachePolicySpec extends Specification {
                 t.refresh()
             }
         })
-        cachePolicy.mustRefreshModule(moduleComponent('g', 'n', 'v'), moduleVersion('group', 'name', 'version'), 0)
+        cachePolicy.mustRefreshModule(moduleComponent('g', 'n', 'v'), moduleVersion('group', 'name', 'version'), 5)
     }
 
     def "provides details of cached changing module"() {
@@ -166,7 +250,7 @@ class DefaultCachePolicySpec extends Specification {
                 t.refresh()
             }
         })
-        cachePolicy.mustRefreshChangingModule(moduleComponent('g', 'n', 'v'), moduleVersion('group', 'name', 'version'), 0)
+        cachePolicy.mustRefreshChangingModule(moduleComponent('g', 'n', 'v'), moduleVersion('group', 'name', 'version'), 5)
     }
 
     def "provides details of cached artifact"() {
@@ -183,7 +267,7 @@ class DefaultCachePolicySpec extends Specification {
             }
         })
         def artifactIdentifier = new DefaultArtifactIdentifier(moduleIdentifier('group', 'name', 'version'), 'artifact', 'type', 'ext', 'classifier')
-        cachePolicy.mustRefreshArtifact(artifactIdentifier, null, 0, true, true)
+        cachePolicy.mustRefreshArtifact(artifactIdentifier, null, 5, true, true)
     }
 
     def "can use cacheFor to control missing module and artifact timeout"() {
@@ -237,20 +321,30 @@ class DefaultCachePolicySpec extends Specification {
         given:
         cachePolicy.setMutationValidator(validator)
 
-        when: cachePolicy.cacheChangingModulesFor(0, TimeUnit.HOURS)
-        then: (1.._) * validator.validateMutation(STRATEGY)
+        when:
+        cachePolicy.cacheChangingModulesFor(0, TimeUnit.HOURS)
+        then:
+        (1.._) * validator.validateMutation(STRATEGY)
 
-        when: cachePolicy.cacheDynamicVersionsFor(0, TimeUnit.HOURS)
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        cachePolicy.cacheDynamicVersionsFor(0, TimeUnit.HOURS)
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: cachePolicy.eachArtifact(Actions.doNothing())
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        cachePolicy.eachArtifact(Actions.doNothing())
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: cachePolicy.eachDependency(Actions.doNothing())
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        cachePolicy.eachDependency(Actions.doNothing())
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: cachePolicy.eachModule(Actions.doNothing())
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        cachePolicy.eachModule(Actions.doNothing())
+        then:
+        1 * validator.validateMutation(STRATEGY)
     }
 
     def "mutation is not checked for copy"() {
@@ -259,29 +353,50 @@ class DefaultCachePolicySpec extends Specification {
         cachePolicy.setMutationValidator(validator)
         def copy = cachePolicy.copy()
 
-        when: copy.cacheChangingModulesFor(0, TimeUnit.HOURS)
-        then: 0 * validator.validateMutation(_)
+        when:
+        copy.cacheChangingModulesFor(0, TimeUnit.HOURS)
+        then:
+        0 * validator.validateMutation(_)
 
-        when: copy.cacheDynamicVersionsFor(0, TimeUnit.HOURS)
-        then: 0 * validator.validateMutation(_)
+        when:
+        copy.cacheDynamicVersionsFor(0, TimeUnit.HOURS)
+        then:
+        0 * validator.validateMutation(_)
 
-        when: copy.eachArtifact(Actions.doNothing())
-        then: 0 * validator.validateMutation(_)
+        when:
+        copy.eachArtifact(Actions.doNothing())
+        then:
+        0 * validator.validateMutation(_)
 
-        when: copy.eachDependency(Actions.doNothing())
-        then: 0 * validator.validateMutation(_)
+        when:
+        copy.eachDependency(Actions.doNothing())
+        then:
+        0 * validator.validateMutation(_)
 
-        when: copy.eachModule(Actions.doNothing())
-        then: 0 * validator.validateMutation(_)
+        when:
+        copy.eachModule(Actions.doNothing())
+        then:
+        0 * validator.validateMutation(_)
     }
 
-    private def hasDynamicVersionTimeout(int timeout) {
+    private void hasDynamicVersionTimeout(int timeout) {
         def moduleId = moduleIdentifier('group', 'name', 'version')
-        assert !cachePolicy.mustRefreshVersionList(null, [moduleId] as Set, 100)
-        assert !cachePolicy.mustRefreshVersionList(null, [moduleId] as Set, timeout);
-        assert !cachePolicy.mustRefreshVersionList(null, [moduleId] as Set, timeout - 1)
-        assert cachePolicy.mustRefreshVersionList(null, [moduleId] as Set, timeout + 1)
-        true
+
+        def notExpired = cachePolicy.versionListExpiry(null, [moduleId] as Set, Duration.ofMillis(100))
+        assert !notExpired.mustCheck
+        assert notExpired.keepFor == Duration.ofMillis(timeout - 100)
+
+        def onTimeout = cachePolicy.versionListExpiry(null, [moduleId] as Set, Duration.ofMillis(timeout))
+        assert !onTimeout.mustCheck
+        assert onTimeout.keepFor == Duration.ZERO
+
+        def almostExpired = cachePolicy.versionListExpiry(null, [moduleId] as Set, Duration.ofMillis(timeout - 1))
+        assert !almostExpired.mustCheck
+        assert almostExpired.keepFor == Duration.ofMillis(1)
+
+        def expired = cachePolicy.versionListExpiry(null, [moduleId] as Set, Duration.ofMillis(timeout + 1))
+        assert expired.mustCheck
+        assert expired.keepFor == Duration.ZERO
     }
 
     private def hasChangingModuleTimeout(int timeout) {

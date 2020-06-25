@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryBlacklister;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DynamicVersionResolutionListener;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashCodec;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryBlacklister;
@@ -482,14 +483,16 @@ class DependencyManagementBuildScopeServices {
         return override;
     }
 
-    ResolveIvyFactory createResolveIvyFactory(StartParameterResolutionOverride startParameterResolutionOverride, ModuleRepositoryCacheProvider moduleRepositoryCacheProvider,
+    ResolveIvyFactory createResolveIvyFactory(StartParameterResolutionOverride startParameterResolutionOverride,
+                                              ModuleRepositoryCacheProvider moduleRepositoryCacheProvider,
                                               DependencyVerificationOverride dependencyVerificationOverride,
                                               BuildCommencedTimeProvider buildCommencedTimeProvider,
                                               VersionComparator versionComparator,
                                               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                               RepositoryBlacklister repositoryBlacklister,
                                               VersionParser versionParser,
-                                              InstantiatorFactory instantiatorFactory) {
+                                              InstantiatorFactory instantiatorFactory,
+                                              ListenerManager listenerManager) {
         return new ResolveIvyFactory(
             moduleRepositoryCacheProvider,
             startParameterResolutionOverride,
@@ -499,7 +502,8 @@ class DependencyManagementBuildScopeServices {
             moduleIdentifierFactory,
             repositoryBlacklister,
             versionParser,
-            instantiatorFactory
+            instantiatorFactory,
+            listenerManager.getBroadcaster(DynamicVersionResolutionListener.class)
         );
     }
 

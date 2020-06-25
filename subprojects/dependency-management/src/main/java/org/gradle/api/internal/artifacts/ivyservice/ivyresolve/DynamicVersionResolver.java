@@ -85,7 +85,9 @@ public class DynamicVersionResolver {
     private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
     private final CachePolicy cachePolicy;
 
-    public DynamicVersionResolver(VersionedComponentChooser versionedComponentChooser, VersionParser versionParser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory, ImmutableAttributesFactory attributesFactory, ComponentMetadataProcessorFactory componentMetadataProcessor, ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor, CachePolicy cachePolicy) {
+    public DynamicVersionResolver(VersionedComponentChooser versionedComponentChooser, VersionParser versionParser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory,
+                                  ImmutableAttributesFactory attributesFactory, ComponentMetadataProcessorFactory componentMetadataProcessor,
+                                  ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor, CachePolicy cachePolicy) {
         this.versionedComponentChooser = versionedComponentChooser;
         this.versionParser = versionParser;
         this.metaDataFactory = metaDataFactory;
@@ -100,7 +102,7 @@ public class DynamicVersionResolver {
         repositoryNames.add(repository.getName());
     }
 
-    public void resolve(ModuleDependencyMetadata dependency, VersionSelector versionSelector, VersionSelector rejectedVersionSelector, AttributeContainer consumerAttributes, BuildableComponentIdResolveResult result) {
+    public void resolve(ModuleDependencyMetadata dependency, VersionSelector versionSelector, @Nullable VersionSelector rejectedVersionSelector, AttributeContainer consumerAttributes, BuildableComponentIdResolveResult result) {
         ModuleComponentSelector requested = dependency.getSelector();
         LOGGER.debug("Attempting to resolve version for {} using repositories {}", requested, repositoryNames);
         List<Throwable> errors = new ArrayList<>();

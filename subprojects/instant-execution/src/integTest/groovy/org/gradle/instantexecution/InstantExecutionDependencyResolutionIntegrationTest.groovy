@@ -66,13 +66,10 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         def fixture = newInstantExecutionFixture()
 
         setupBuildWithEachDependencyType()
+        taskTypeLogsInputFileCollectionContent()
         buildFile << """
-            task resolve {
-                def view = configurations.implementation
-                inputs.files view
-                doLast {
-                    println "result = \${view.files.name}"
-                }
+            task resolve(type: ShowFilesTask) {
+                inFiles.from(configurations.implementation)
             }
         """
 

@@ -76,6 +76,7 @@ class ResolveIvyFactoryTest extends Specification {
     VersionParser versionParser
     InstantiatorFactory instantiatorFactory
     BuildOperationExecutor buildOperationExecutor
+    DynamicVersionResolutionListener listener
 
     def setup() {
         moduleVersionsCache = Mock(AbstractModuleVersionsCache)
@@ -95,8 +96,9 @@ class ResolveIvyFactoryTest extends Specification {
         versionParser = new VersionParser()
         instantiatorFactory = Mock()
         buildOperationExecutor = Mock()
+        listener = Mock()
 
-        resolveIvyFactory = new ResolveIvyFactory(cacheProvider, startParameterResolutionOverride, startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, TestUtil.checksumService, Mock(SignatureVerificationServiceFactory), new DocumentationRegistry(), buildCommencedTimeProvider, (Factory<GradleProperties>) Mock(Factory)), buildCommencedTimeProvider, versionComparator, moduleIdentifierFactory, repositoryBlacklister, versionParser, instantiatorFactory)
+        resolveIvyFactory = new ResolveIvyFactory(cacheProvider, startParameterResolutionOverride, startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, TestUtil.checksumService, Mock(SignatureVerificationServiceFactory), new DocumentationRegistry(), buildCommencedTimeProvider, (Factory<GradleProperties>) Mock(Factory)), buildCommencedTimeProvider, versionComparator, moduleIdentifierFactory, repositoryBlacklister, versionParser, instantiatorFactory, listener)
     }
 
     def "returns an empty resolver when no repositories are configured" () {

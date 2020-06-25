@@ -62,9 +62,10 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def artifactAtRepositoryCache = Mock(ModuleArtifactCache)
     def cachePolicy = Stub(CachePolicy)
     def metadataProcessor = Stub(ComponentMetadataProcessor)
+    def listener = Stub(DynamicVersionResolutionListener)
     def caches = new ModuleRepositoryCaches(moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache)
     def repo = new CachingModuleComponentRepository(realRepo, caches,
-        cachePolicy, new BuildCommencedTimeProvider(), metadataProcessor)
+        cachePolicy, new BuildCommencedTimeProvider(), metadataProcessor, listener)
 
     @Unroll
     def "artifact last modified date is cached - lastModified = #lastModified"() {

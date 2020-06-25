@@ -22,10 +22,11 @@ import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Set;
 
 public interface CachePolicy {
-    boolean mustRefreshVersionList(ModuleIdentifier selector, Set<ModuleVersionIdentifier> moduleVersions, long ageMillis);
+    Expiry versionListExpiry(ModuleIdentifier selector, Set<ModuleVersionIdentifier> moduleVersions, Duration age);
 
     boolean mustRefreshMissingModule(ModuleComponentIdentifier component, long ageMillis);
 

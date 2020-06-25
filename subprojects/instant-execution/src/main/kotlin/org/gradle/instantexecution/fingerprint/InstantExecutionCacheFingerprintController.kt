@@ -31,6 +31,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.vfs.VirtualFileSystem
+import org.gradle.util.BuildCommencedTimeProvider
 import org.gradle.util.GFileUtils
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -47,6 +48,7 @@ class InstantExecutionCacheFingerprintController internal constructor(
     private val valueSourceProviderFactory: ValueSourceProviderFactory,
     private val virtualFileSystem: VirtualFileSystem,
     private val fileCollectionFingerprinter: AbsolutePathFileCollectionFingerprinter,
+    private val buildCommencedTimeProvider: BuildCommencedTimeProvider,
     private val listenerManager: ListenerManager,
     private val buildTreeListenerManager: BuildTreeListenerManager
 ) {
@@ -88,17 +90,20 @@ class InstantExecutionCacheFingerprintController internal constructor(
         private val outputStream: ByteArrayOutputStream
     ) : WritingState() {
         override fun stop(): WritingState {
-            removeListener(fingerprintWriter)
-            fingerprintWriter.close()
-            return Written(outputStream)
+            // TODO - this is a temporary step, see the comment in DefaultInstantExecution
+            fingerprintWriter.stopCollectingValueSources()
+            return Written(fingerprintWriter, outputStream)
         }
     }
 
     private
     inner class Written(
+        private val fingerprintWriter: InstantExecutionCacheFingerprintWriter,
         private val outputStream: ByteArrayOutputStream
     ) : WritingState() {
         override fun commit(fingerprintFile: File): WritingState {
+            removeListener(fingerprintWriter)
+            fingerprintWriter.close()
             fingerprintFile
                 .outputStream()
                 .use(outputStream::writeTo)
@@ -146,6 +151,9 @@ class InstantExecutionCacheFingerprintController internal constructor(
 
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts
+
+        override val buildStartTime: Long
+            get() = buildCommencedTimeProvider.currentTime
 
         override fun hashCodeOf(file: File) =
             virtualFileSystem.hashCodeOf(file)

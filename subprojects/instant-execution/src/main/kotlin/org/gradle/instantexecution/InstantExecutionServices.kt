@@ -29,6 +29,8 @@ import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
+import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.ServiceScope
 
 
 class InstantExecutionServices : AbstractPluginServiceRegistry() {
@@ -54,6 +56,7 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
             add(InstantExecutionBuildScopeListenerManagerAction::class.java)
             add(SystemPropertyAccessListener::class.java)
             add(RelevantProjectsRegistry::class.java)
+            add(InstantExecutionCacheFingerprintController::class.java)
             addProvider(BuildServicesProvider())
         }
     }
@@ -61,7 +64,6 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
     override fun registerGradleServices(registration: ServiceRegistration) {
         registration.run {
             add(InstantExecutionCache::class.java)
-            add(InstantExecutionCacheFingerprintController::class.java)
             add(InstantExecutionHost::class.java)
             add(DefaultInstantExecution::class.java)
         }
@@ -85,6 +87,7 @@ class BuildServicesProvider {
 }
 
 
+@ServiceScope(Scopes.BuildTree)
 class BuildTreeListenerManager(
     val service: ListenerManager
 )

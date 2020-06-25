@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions
 
 import org.gradle.util.BuildCommencedTimeProvider;
 
+import java.time.Duration;
 import java.util.Set;
 
 class DefaultCachedModuleVersionList implements ModuleVersionsCache.CachedModuleVersionList {
@@ -34,7 +35,7 @@ class DefaultCachedModuleVersionList implements ModuleVersionsCache.CachedModule
     }
 
     @Override
-    public long getAgeMillis() {
-        return ageMillis;
+    public Duration getAge() {
+        return Duration.ofMillis(ageMillis);
     }
 }
