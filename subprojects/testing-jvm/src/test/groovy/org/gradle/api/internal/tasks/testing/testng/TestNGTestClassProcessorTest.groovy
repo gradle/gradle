@@ -45,9 +45,11 @@ class TestNGTestClassProcessorTest extends Specification {
 
     def processor = Mock(TestResultProcessor)
 
-    def options = Spy(TestNGSpec, constructorArgs:[new TestNGOptions(dir.testDirectory), new DefaultTestFilter()])
+    def testProjectDir = dir.testDirectory.file('projectDir')
 
-    @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
+    def options = Spy(TestNGSpec, constructorArgs:[new TestNGOptions(testProjectDir, dir.testDirectory.file('testSuitesDir')), new DefaultTestFilter()])
+
+    @Subject classProcessor = new TestNGTestClassProcessor(testProjectDir, options, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 
     void process(Class ... clazz) {
         classProcessor.startProcessing(processor)

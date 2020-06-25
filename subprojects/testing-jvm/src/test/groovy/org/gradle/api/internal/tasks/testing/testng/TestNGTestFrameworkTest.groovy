@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.testng
 
 
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.testng.TestNGOptions
@@ -46,7 +45,7 @@ public class TestNGTestFrameworkTest extends Specification {
 
         then:
         processor instanceof TestNGTestClassProcessor
-        framework.testTask == testTask
+        framework.testTaskPath == testTask.path
         framework.detector
     }
 
@@ -61,6 +60,6 @@ public class TestNGTestFrameworkTest extends Specification {
     }
 
     TestNGTestFramework createFramework() {
-        new TestNGTestFramework(testTask, new DefaultTestFilter(), instantiator, Stub(ClassLoaderCache))
+        new TestNGTestFramework(testTask, new DefaultTestFilter(), instantiator)
     }
 }

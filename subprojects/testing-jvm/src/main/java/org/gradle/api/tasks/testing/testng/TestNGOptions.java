@@ -79,9 +79,11 @@ public class TestNGOptions extends TestFrameworkOptions {
     private transient MarkupBuilder suiteXmlBuilder;
 
     private final File projectDir;
+    private final File testSuitesDir;
 
-    public TestNGOptions(File projectDir) {
+    public TestNGOptions(File projectDir, File testSuitesDir) {
         this.projectDir = projectDir;
+        this.testSuitesDir = testSuitesDir;
     }
 
     public MarkupBuilder suiteXmlBuilder() {
@@ -111,7 +113,8 @@ public class TestNGOptions extends TestFrameworkOptions {
         suiteXmlFiles.addAll(Arrays.asList(suiteFiles));
     }
 
-    public List<File> getSuites(File testSuitesDir) {
+    @Internal
+    public List<File> getSuites() {
         List<File> suites = new ArrayList<File>();
 
         suites.addAll(suiteXmlFiles);
