@@ -79,11 +79,9 @@ public class TestNGOptions extends TestFrameworkOptions {
     private transient MarkupBuilder suiteXmlBuilder;
 
     private final File projectDir;
-    private final File testSuitesDir;
 
-    public TestNGOptions(File projectDir, File testSuitesDir) {
+    public TestNGOptions(File projectDir) {
         this.projectDir = projectDir;
-        this.testSuitesDir = testSuitesDir;
     }
 
     public MarkupBuilder suiteXmlBuilder() {
@@ -113,8 +111,7 @@ public class TestNGOptions extends TestFrameworkOptions {
         suiteXmlFiles.addAll(Arrays.asList(suiteFiles));
     }
 
-    @Internal
-    public List<File> getSuites() {
+    public List<File> getSuites(File testSuitesDir) {
         List<File> suites = new ArrayList<File>();
 
         suites.addAll(suiteXmlFiles);
@@ -176,7 +173,7 @@ public class TestNGOptions extends TestFrameworkOptions {
             return suiteXmlBuilder.getMetaClass().invokeMethod(suiteXmlBuilder, name, args);
         }
 
-        throw new MissingMethodException(name, getClass(), (Object[])args);
+        throw new MissingMethodException(name, getClass(), (Object[]) args);
     }
 
     /**

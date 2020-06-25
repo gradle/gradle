@@ -30,6 +30,7 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
+import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.Instantiator;
@@ -47,17 +48,19 @@ public class TestNGTestFramework implements TestFramework {
     private final TestNGOptions options;
     private final TestNGDetector detector;
     private final DefaultTestFilter filter;
-    private final Instantiator instanciator;
+    private final Instantiator instantiator;
     private final String testTaskPath;
     private final FileCollection testTaskClasspath;
+    private final Factory<File> testTaskTemporaryDir;
     private transient ClassLoader testClassLoader;
 
     public TestNGTestFramework(final Test testTask, DefaultTestFilter filter, Instantiator instantiator) {
         this.filter = filter;
-        this.instanciator = instantiator;
+        this.instantiator = instantiator;
         this.testTaskPath = testTask.getPath();
         this.testTaskClasspath = testTask.getClasspath();
-        options = instantiator.newInstance(TestNGOptions.class, testTask.getProject().getProjectDir(), testTask.getTemporaryDir());
+        this.testTaskTemporaryDir = testTask.getTemporaryDirFactory();
+        options = instantiator.newInstance(TestNGOptions.class, testTask.getProject().getProjectDir());
         conventionMapOutputDirectory(options, testTask.getReports().getHtml());
         detector = new TestNGDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
     }
@@ -76,7 +79,7 @@ public class TestNGTestFramework implements TestFramework {
         verifyConfigFailurePolicy();
         verifyPreserveOrder();
         verifyGroupByInstances();
-        List<File> suiteFiles = options.getSuites();
+        List<File> suiteFiles = options.getSuites(testTaskTemporaryDir.create());
         TestNGSpec spec = new TestNGSpec(options, filter);
         return new TestClassProcessorFactoryImpl(this.options.getOutputDirectory(), spec, suiteFiles);
     }
@@ -110,7 +113,7 @@ public class TestNGTestFramework implements TestFramework {
 
     private Class<?> createTestNg() {
         if (testClassLoader == null) {
-            TestClassLoaderFactory factory = instanciator.newInstance(
+            TestClassLoaderFactory factory = instantiator.newInstance(
                 TestClassLoaderFactory.class,
                 testTaskPath,
                 testTaskClasspath

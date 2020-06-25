@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 class TestNGOptionsTest extends Specification {
 
-    TestNGOptions testngOptions  = new TestNGOptions(new File("projectDir"), new File("testSuitesDir"))
+    TestNGOptions testngOptions  = new TestNGOptions(new File("projectDir"))
 
     String[] groups = ['fast', 'unit']
 
