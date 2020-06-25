@@ -21,15 +21,11 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.AuthScheme
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsText
 
-// Remove when https://bugs.openjdk.java.net/browse/JDK-8219658 is fixed in JDK 12
-@Requires(TestPrecondition.JDK11_OR_EARLIER)
 abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule TestResources resources = new TestResources(temporaryFolder)
     TestKeyStore keyStore
