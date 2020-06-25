@@ -20,21 +20,30 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.internal.file.Stat;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Used for the global file hash cache
+ * Used for the Gradle user home file hash cache.
+ *
+ * Uses the same strategy for detection of file changes as {@link FileTimeStampInspector}.
+ *
+ * Discards hashes for all files from the {@link CachingFileHasher} which have been queried on this daemon
+ * during the last build and which have a timestamp equal to the end of build timestamp.
  */
-public class GlobalScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
+@ServiceScope(Scopes.UserHome)
+public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
     private CachingFileHasher fileHasher;
     private final Object lock = new Object();
     private long currentTimestamp;
-    private final Set<String> filesWithCurrentTimestamp = new HashSet<String>();
+    private final Set<String> filesWithCurrentTimestamp = new HashSet<>();
 
-    public GlobalScopeFileTimeStampInspector(CacheScopeMapping cacheScopeMapping) {
-        super(cacheScopeMapping.getBaseDirectory(null, "file-changes", VersionStrategy.CachePerVersion));
+    public GradleUserHomeScopeFileTimeStampInspector(CacheScopeMapping cacheScopeMapping, Stat stat) {
+        super(cacheScopeMapping.getBaseDirectory(null, "file-changes", VersionStrategy.CachePerVersion), stat);
     }
 
     public void attach(CachingFileHasher fileHasher) {

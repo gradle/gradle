@@ -20,7 +20,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal;
-import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
+import org.gradle.api.internal.changedetection.state.GradleUserHomeScopeFileTimeStampInspector;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -61,6 +61,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -108,8 +109,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         return parent.createChild(Scopes.UserHome);
     }
 
-    GlobalScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {
-        GlobalScopeFileTimeStampInspector timeStampInspector = new GlobalScopeFileTimeStampInspector(cacheScopeMapping);
+    GradleUserHomeScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager, Stat stat) {
+        GradleUserHomeScopeFileTimeStampInspector timeStampInspector = new GradleUserHomeScopeFileTimeStampInspector(cacheScopeMapping, stat);
         listenerManager.addListener(timeStampInspector);
         return timeStampInspector;
     }

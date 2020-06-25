@@ -18,12 +18,21 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.internal.file.Stat;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
-public class BuildScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
-    public BuildScopeFileTimeStampInspector(File workDir) {
-        super(workDir);
+/**
+ * Used for the project cache file hash cache.
+ *
+ * There is no additional logic apart from what is also in {@link FileTimeStampInspector}.
+ */
+@ServiceScope(Scopes.BuildSession)
+public class BuildSessionScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
+    public BuildSessionScopeFileTimeStampInspector(File workDir, Stat stat) {
+        super(workDir, stat);
     }
 
     @Override

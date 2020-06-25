@@ -20,7 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.BuildScopeFileTimeStampInspector;
+import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -54,6 +54,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.Stat;
 import org.gradle.internal.filewatch.PendingChangesManager;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.DefaultChecksumService;
@@ -137,9 +138,9 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new ProjectCacheDir(cacheDir, progressLoggerFactory, deleter);
     }
 
-    BuildScopeFileTimeStampInspector createFileTimeStampInspector(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {
+    BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager, Stat stat) {
         File workDir = cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "fileChanges", VersionStrategy.CachePerVersion);
-        BuildScopeFileTimeStampInspector timeStampInspector = new BuildScopeFileTimeStampInspector(workDir);
+        BuildSessionScopeFileTimeStampInspector timeStampInspector = new BuildSessionScopeFileTimeStampInspector(workDir, stat);
         listenerManager.addListener(timeStampInspector);
         return timeStampInspector;
     }
@@ -199,7 +200,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new CrossBuildFileHashCacheWrapper(crossBuildCache);
     }
 
-    ChecksumService createChecksumService(StringInterner stringInterner, FileSystem fileSystem, CrossBuildFileHashCacheWrapper crossBuildCache, BuildScopeFileTimeStampInspector inspector) {
+    ChecksumService createChecksumService(StringInterner stringInterner, FileSystem fileSystem, CrossBuildFileHashCacheWrapper crossBuildCache, BuildSessionScopeFileTimeStampInspector inspector) {
         return new DefaultChecksumService(stringInterner, crossBuildCache.delegate, fileSystem, inspector);
     }
 

@@ -23,11 +23,11 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.BuildScopeFileTimeStampInspector;
+import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.DefaultResourceSnapshotterCacheService;
-import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
+import org.gradle.api.internal.changedetection.state.GradleUserHomeScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
@@ -162,7 +162,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new CrossBuildFileHashCache(null, cacheRepository, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.FILE_HASHES);
         }
 
-        FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, GlobalScopeFileTimeStampInspector fileTimeStampInspector, StreamHasher streamHasher) {
+        FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, GradleUserHomeScopeFileTimeStampInspector fileTimeStampInspector, StreamHasher streamHasher) {
             CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), fileStore, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
             fileTimeStampInspector.attach(fileHasher);
             return fileHasher;
@@ -254,7 +254,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
         FileHasher createFileHasher(
             GlobalCacheLocations globalCacheLocations,
-            BuildScopeFileTimeStampInspector fileTimeStampInspector,
+            BuildSessionScopeFileTimeStampInspector fileTimeStampInspector,
             CrossBuildFileHashCache cacheAccess,
             FileHasher globalHasher,
             FileSystem fileSystem,
