@@ -16,15 +16,6 @@
 
 package org.gradle.internal.watch.registry.impl;
 
-import net.rubygrapefruit.platform.internal.jni.InsufficientResourcesForWatchingException;
-
-import java.util.Optional;
-
-public interface InsufficientResourcesForWatchingDocumentationIndex {
-    Optional<IncreaseLimitsDocumentation> getDocumentationFor(InsufficientResourcesForWatchingException e);
-
-    interface IncreaseLimitsDocumentation {
-        String getProblem();
-        String getDocumentationLink();
-    }
+public interface DaemonDocumentationIndex {
+    String getLinkToSection(String sectionId);
 }

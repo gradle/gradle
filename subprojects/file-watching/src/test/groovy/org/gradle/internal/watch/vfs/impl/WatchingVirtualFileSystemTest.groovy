@@ -25,7 +25,7 @@ import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherRegistry
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory
 import org.gradle.internal.watch.registry.FileWatcherUpdater
-import org.gradle.internal.watch.registry.impl.InsufficientResourcesForWatchingDocumentationIndex
+import org.gradle.internal.watch.registry.impl.DaemonDocumentationIndex
 import spock.lang.Specification
 
 class WatchingVirtualFileSystemTest extends Specification {
@@ -36,13 +36,13 @@ class WatchingVirtualFileSystemTest extends Specification {
     def capturingUpdateFunctionDecorator = Mock(DelegatingDiffCapturingUpdateFunctionDecorator)
     def rootHierarchy = Mock(SnapshotHierarchy)
     def rootReference = new AtomicSnapshotHierarchyReference(rootHierarchy)
-    def insufficientResourcesForWatchingDocumentationIndex = Mock(InsufficientResourcesForWatchingDocumentationIndex)
+    def daemonDocumentationIndex = Mock(DaemonDocumentationIndex)
     def watchingVirtualFileSystem = new WatchingVirtualFileSystem(
         watcherRegistryFactory,
         delegate,
         capturingUpdateFunctionDecorator,
         { -> true },
-        insufficientResourcesForWatchingDocumentationIndex
+        daemonDocumentationIndex
     )
     def snapshotHierarchy = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
 

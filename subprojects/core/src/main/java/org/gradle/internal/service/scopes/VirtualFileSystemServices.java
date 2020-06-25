@@ -18,8 +18,6 @@ package org.gradle.internal.service.scopes;
 
 import com.google.common.annotations.VisibleForTesting;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
-import net.rubygrapefruit.platform.internal.jni.InotifyInstanceLimitTooLowException;
-import net.rubygrapefruit.platform.internal.jni.InotifyWatchesLimitTooLowException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -82,7 +80,6 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.DarwinFileWatcherRegistryFactory;
-import org.gradle.internal.watch.registry.impl.InsufficientResourcesForWatchingDocumentationIndex;
 import org.gradle.internal.watch.registry.impl.LinuxFileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.WindowsFileWatcherRegistryFactory;
 import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem;
@@ -172,18 +169,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return fileHasher;
         }
 
-        InsufficientResourcesForWatchingDocumentationIndex createInsufficientResourcesForWatchingDocumentationIndex(DocumentationRegistry documentationRegistry) {
-            return ex -> {
-                if (ex instanceof InotifyInstanceLimitTooLowException) {
-                    return Optional.of(new IncreaseLimitsDocumentation("the inotify instance limit has been reached", "sec:inotify_instances_limit", documentationRegistry));
-                }
-                if (ex instanceof InotifyWatchesLimitTooLowException) {
-                    return Optional.of(new IncreaseLimitsDocumentation("the inotify watches limit is too low", "sec:inotify_watches_limit", documentationRegistry));
-                }
-                return Optional.empty();
-            };
-        }
-
         WatchingAwareVirtualFileSystem createVirtualFileSystem(
             GlobalCacheLocations globalCacheLocations,
             FileHasher hasher,
@@ -191,7 +176,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             Stat stat,
             StringInterner stringInterner,
             ListenerManager listenerManager,
-            InsufficientResourcesForWatchingDocumentationIndex insufficientResourcesForWatchingDocumentationIndex
+            DocumentationRegistry documentationRegistry
         ) {
             // All the changes in global caches should be done by Gradle itself, so in order
             // to minimize the number of watches we don't watch anything within the global caches.
@@ -211,7 +196,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     delegate,
                     updateFunctionDecorator,
                     watchFilter,
-                    insufficientResourcesForWatchingDocumentationIndex
+                    sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId)
                 ))
                 .orElse(new NonWatchingVirtualFileSystem(delegate));
             listenerManager.addListener(new VirtualFileSystemBuildLifecycleListener(
@@ -260,28 +245,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
         ClasspathHasher createClasspathHasher(ClasspathFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {
             return new DefaultClasspathHasher(fingerprinter, fileCollectionFactory);
-        }
-
-        private static class IncreaseLimitsDocumentation implements InsufficientResourcesForWatchingDocumentationIndex.IncreaseLimitsDocumentation {
-            private final String problem;
-            private final String section;
-            private final DocumentationRegistry documentationRegistry;
-
-            public IncreaseLimitsDocumentation(String problem, String section, DocumentationRegistry documentationRegistry) {
-                this.problem = problem;
-                this.section = section;
-                this.documentationRegistry = documentationRegistry;
-            }
-
-            @Override
-            public String getProblem() {
-                return problem;
-            }
-
-            @Override
-            public String getDocumentationLink() {
-                return documentationRegistry.getDocumentationFor("gradle_daemon", section);
-            }
         }
     }
 
