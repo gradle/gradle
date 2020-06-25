@@ -18,10 +18,7 @@ package org.gradle.integtests.resolve.http
 
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.keystore.TestKeyStore
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
-
 
 class HttpsToHttpsRedirectResolveIntegrationTest extends AbstractRedirectResolveIntegrationTest {
 
