@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import accessors.java
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
@@ -119,10 +118,11 @@ testFilesCleanup {
 }
 
 tasks.clean {
+    val testFiles = layout.buildDirectory.dir("tmp/test files")
     doFirst {
         // On daemon crash, read-only cache tests can leave read-only files around.
         // clean now takes care of those files as well
-        fileTree("$buildDir/tmp/test files").matching {
+        testFiles.get().asFileTree.matching {
             include("**/read-only-cache/**")
         }.visit { this.file.setWritable(true) }
     }
@@ -132,7 +132,7 @@ afterEvaluate {
     // This is a workaround for the validate plugins task trying to inspect classes which
     // have changed but are NOT tasks
     tasks.withType<ValidatePlugins>().configureEach {
-        val main by project.java.sourceSets
+        val main = sourceSets.main.get()
         classes.setFrom(main.output.classesDirs.asFileTree.filter { !it.isInternal(main) })
     }
 }
