@@ -12,7 +12,8 @@ We would like to thank the following community contributors to this release of G
 [Stefan Oehme](https://github.com/oehme),
 [Yurii Serhiichuk](https://github.com/xSAVIKx),
 [JunHyung Lim](https://github.com/EntryPointKR),
-and [Igor Dvorzhak](https://github.com/medb).
+[Igor Dvorzhak](https://github.com/medb),
+and [Leonid Gaiazov](https://github.com/gaiazov).
 
 <!--
 Include only their name, impactful features should be called out separately below.
