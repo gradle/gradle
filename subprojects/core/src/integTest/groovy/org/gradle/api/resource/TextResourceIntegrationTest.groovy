@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GUtil
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 @TestReproducibleArchives
@@ -142,8 +140,6 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksSkipped(":uriText")
     }
 
-    // Remove when https://bugs.openjdk.java.net/browse/JDK-8219658 is fixed in JDK 12
-    @Requires(TestPrecondition.JDK11_OR_EARLIER)
     def "uri backed text resource over https"() {
         given:
         def uuid = UUID.randomUUID()

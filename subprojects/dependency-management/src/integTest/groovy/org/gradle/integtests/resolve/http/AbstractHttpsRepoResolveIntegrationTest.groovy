@@ -28,8 +28,7 @@ import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsText
 
-// Remove when https://bugs.openjdk.java.net/browse/JDK-8219658 is fixed in JDK 12
-@Requires(TestPrecondition.JDK11_OR_EARLIER)
+
 abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule TestResources resources = new TestResources(temporaryFolder)
     TestKeyStore keyStore

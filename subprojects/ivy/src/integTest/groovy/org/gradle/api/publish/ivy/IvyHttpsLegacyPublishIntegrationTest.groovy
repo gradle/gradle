@@ -24,8 +24,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-// Remove when https://bugs.openjdk.java.net/browse/JDK-8219658 is fixed in JDK 12
-@Requires(TestPrecondition.JDK11_OR_EARLIER)
+
 class IvyHttpsLegacyPublishIntegrationTest extends AbstractIvyRemoteLegacyPublishIntegrationTest {
     TestKeyStore keyStore
     @Rule RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
