@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.RootBuildLifecycleListener;
-import org.gradle.internal.file.Stat;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -31,8 +30,8 @@ import java.io.File;
  */
 @ServiceScope(Scopes.BuildSession)
 public class BuildSessionScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
-    public BuildSessionScopeFileTimeStampInspector(File workDir, Stat stat) {
-        super(workDir, stat);
+    public BuildSessionScopeFileTimeStampInspector(File workDir) {
+        super(workDir);
     }
 
     @Override
