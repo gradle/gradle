@@ -22,10 +22,7 @@ import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
-
 
 class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
     TestKeyStore keyStore

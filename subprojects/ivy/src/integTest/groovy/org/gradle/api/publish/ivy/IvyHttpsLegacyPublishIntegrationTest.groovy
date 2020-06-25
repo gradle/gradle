@@ -20,10 +20,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
-
 
 class IvyHttpsLegacyPublishIntegrationTest extends AbstractIvyRemoteLegacyPublishIntegrationTest {
     TestKeyStore keyStore
