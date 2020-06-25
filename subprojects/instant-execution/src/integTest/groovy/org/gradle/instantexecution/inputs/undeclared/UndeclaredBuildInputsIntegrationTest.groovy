@@ -46,6 +46,41 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         mechanism << SystemPropertyInjection.all("CI", "false")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/13569")
+    def "reports build logic reading system properties using GString parameters"() {
+        buildFile << """
+            def ci = "ci"
+            def value = "value"
+            println "CI1 = " + System.getProperty("\${ci.toUpperCase()}1")
+            println "CI2 = " + System.getProperty("CI2", "\${value.toUpperCase()}")
+            println "CI3 = " + System.getProperty("\${ci.toUpperCase()}3", "value")
+        """
+
+        when:
+        instantRun()
+
+        then:
+        outputContains("CI1 = ")
+        outputContains("CI2 = VALUE")
+        outputContains("CI3 = value")
+
+        when:
+        instantFails("-DCI1=true", "-DCI2=", "-DCI3=Value")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblem("build file 'build.gradle': read system property 'CI1'")
+            withProblem("build file 'build.gradle': read system property 'CI2'")
+            withProblem("build file 'build.gradle': read system property 'CI3'")
+        }
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertHasLineNumber(4)
+        failure.assertThatCause(containsNormalizedString("Read system property 'CI1'"))
+        outputContains("CI1 = true")
+        outputContains("CI2 = ")
+        outputContains("CI3 = Value")
+    }
+
     @Unroll
     def "reports buildSrc build logic and tasks reading a system property set #mechanism.description via the Java API"() {
         def buildSrcBuildFile = file("buildSrc/build.gradle")
