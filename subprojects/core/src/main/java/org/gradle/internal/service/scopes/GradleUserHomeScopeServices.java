@@ -61,7 +61,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.file.FileAccessTimeJournal;
-import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -109,8 +108,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         return parent.createChild(Scopes.UserHome);
     }
 
-    GradleUserHomeScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager, Stat stat) {
-        GradleUserHomeScopeFileTimeStampInspector timeStampInspector = new GradleUserHomeScopeFileTimeStampInspector(cacheScopeMapping, stat);
+    GradleUserHomeScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {
+        GradleUserHomeScopeFileTimeStampInspector timeStampInspector = new GradleUserHomeScopeFileTimeStampInspector(cacheScopeMapping);
         listenerManager.addListener(timeStampInspector);
         return timeStampInspector;
     }

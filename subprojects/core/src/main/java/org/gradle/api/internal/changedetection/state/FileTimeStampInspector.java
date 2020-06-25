@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.file.Stat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -34,17 +33,16 @@ import java.io.IOException;
  * This strategy could be improved in several ways:
  *  - Don't use the timestamp for files that we've already hashed during this build.
  *  - Potentially only apply the end-of-build timestamp for input files only, as often some or all of the output files of a build will have the end-of-build timestamp.
+ *  - Use finer grained timestamps, where available. Currently we still use the `File.lastModified()` timestamp on some platforms.
  */
 public abstract class FileTimeStampInspector {
     private final File workDir;
     private final File markerFile;
-    private final Stat stat;
     private long lastBuildTimestamp;
 
-    protected FileTimeStampInspector(File workDir, Stat stat) {
+    protected FileTimeStampInspector(File workDir) {
         this.workDir = workDir;
-        this.markerFile = new File(workDir, "last-build.bin");
-        this.stat = stat;
+        markerFile = new File(workDir, "last-build.bin");
     }
 
     public long getLastBuildTimestamp() {
@@ -55,7 +53,7 @@ public abstract class FileTimeStampInspector {
         workDir.mkdirs();
 
         if (markerFile.exists()) {
-            lastBuildTimestamp = getLastModified(markerFile);
+            lastBuildTimestamp = markerFile.lastModified();
         } else {
             lastBuildTimestamp = 0;
         }
@@ -71,14 +69,14 @@ public abstract class FileTimeStampInspector {
             throw new UncheckedIOException("Could not update " + markerFile, e);
         }
 
-        lastBuildTimestamp = getLastModified(markerFile);
+        lastBuildTimestamp = markerFile.lastModified();
     }
 
     protected long currentTimestamp() {
         try {
             File file = File.createTempFile("this-build", "bin", workDir);
             try {
-                return getLastModified(file);
+                return file.lastModified();
             } finally {
                 file.delete();
             }
@@ -93,9 +91,5 @@ public abstract class FileTimeStampInspector {
     public boolean timestampCanBeUsedToDetectFileChange(String file, long timestamp) {
         // Do not use a timestamp that is the same as the end of the last build or the start of this build
         return timestamp != lastBuildTimestamp;
-    }
-
-    private long getLastModified(File markerFile) {
-        return stat.stat(markerFile).getLastModified();
     }
 }

@@ -54,7 +54,6 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.file.Stat;
 import org.gradle.internal.filewatch.PendingChangesManager;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.DefaultChecksumService;
@@ -138,9 +137,9 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new ProjectCacheDir(cacheDir, progressLoggerFactory, deleter);
     }
 
-    BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager, Stat stat) {
+    BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {
         File workDir = cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "fileChanges", VersionStrategy.CachePerVersion);
-        BuildSessionScopeFileTimeStampInspector timeStampInspector = new BuildSessionScopeFileTimeStampInspector(workDir, stat);
+        BuildSessionScopeFileTimeStampInspector timeStampInspector = new BuildSessionScopeFileTimeStampInspector(workDir);
         listenerManager.addListener(timeStampInspector);
         return timeStampInspector;
     }
