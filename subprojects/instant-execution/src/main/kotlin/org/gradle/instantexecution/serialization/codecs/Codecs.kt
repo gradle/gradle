@@ -50,6 +50,7 @@ import org.gradle.instantexecution.serialization.codecs.transform.Transformation
 import org.gradle.instantexecution.serialization.codecs.transform.TransformationStepCodec
 import org.gradle.instantexecution.serialization.ownerServiceCodec
 import org.gradle.instantexecution.serialization.reentrant
+import org.gradle.instantexecution.serialization.unsupported
 import org.gradle.internal.Factory
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.OutputChangeListener
@@ -80,6 +81,7 @@ import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
+import java.io.Externalizable
 
 
 class Codecs(
@@ -188,6 +190,8 @@ class Codecs(
 
         bind(ProxyCodec)
 
+        // Java serialization integration
+        bind(unsupported<Externalizable>())
         bind(SerializableWriteObjectCodec())
         bind(SerializableWriteReplaceCodec())
 
