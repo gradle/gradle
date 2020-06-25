@@ -86,7 +86,7 @@ class TestTest extends AbstractConventionTaskTest {
         expect:
         test.getTestFramework() instanceof JUnitTestFramework
         test.getTestClassesDirs() == null
-        test.getClasspath() == null
+        test.getClasspath().files.isEmpty()
         test.getReports().getJunitXml().getDestination() == null
         test.getReports().getHtml().getDestination() == null
         test.getIncludes().isEmpty()
