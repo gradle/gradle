@@ -25,9 +25,6 @@ import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withBeanTrace
 import org.gradle.instantexecution.serialization.writeEnum
-
-import java.io.Serializable
-
 import java.lang.reflect.Method
 
 
@@ -38,19 +35,16 @@ import java.lang.reflect.Method
 class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
 
     private
-    val readResolveMethod = MethodCache {
-        parameterCount == 0 && name == "readResolve"
-    }
+    val readResolveMethod = MethodCache { isReadResolve() }
 
     private
     val readResolveEncoding = ReadResolveEncoding()
 
     override fun encodingForType(type: Class<*>): Encoding? =
-        type.takeIf { Serializable::class.java.isAssignableFrom(type) }
-            ?.let { serializableType ->
-                writeReplaceMethodOf(serializableType)?.let(::WriteReplaceEncoding)
-                    ?: readResolveMethodOf(serializableType)?.let { readResolveEncoding }
-            }
+        type.takeIf { it.isSerializable() }?.let { serializableType ->
+            writeReplaceMethodOf(serializableType)?.let(::WriteReplaceEncoding)
+                ?: readResolveMethodOf(serializableType)?.let { readResolveEncoding }
+        }
 
     /**
      * Reads a bean resulting from a `writeReplace` method invocation
@@ -132,11 +126,17 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
 
     private
     fun writeReplaceMethodOf(type: Class<*>) = type
-        .firstMatchingMethodOrNull {
+        .firstAccessibleMatchingMethodOrNull {
             parameterCount == 0 && name == "writeReplace"
         }
 
     private
-    fun readResolveMethodOf(serializableType: Class<*>) =
-        readResolveMethod.forClass(serializableType)
+    fun readResolveMethodOf(type: Class<*>) = type
+        .firstMatchingMethodOrNull {
+            isReadResolve()
+        }
+
+    private
+    fun Method.isReadResolve() =
+        parameterCount == 0 && name == "readResolve"
 }
