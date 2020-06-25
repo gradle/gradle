@@ -17,7 +17,6 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TestNGExecutionResult
 import org.gradle.integtests.fixtures.UsesSample
@@ -36,7 +35,6 @@ class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @UsesSample('testing/testng-suitexmlbuilder')
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
      void suiteXmlBuilder() {
         def testDir = sample.dir.file('groovy')
         executer.inDirectory(testDir).withTasks('clean', 'test').run()
@@ -49,7 +47,6 @@ class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @UsesSample('testing/testng-java-passing')
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     void javaPassing() {
         def testDir = sample.dir.file('groovy')
         executer.inDirectory(testDir).withTasks('clean', 'test').run()
