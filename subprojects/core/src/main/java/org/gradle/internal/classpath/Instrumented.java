@@ -49,18 +49,25 @@ public class Instrumented {
     }
 
     // Called by generated code
+    @SuppressWarnings("unused")
     public static void groovyCallSites(CallSiteArray array) {
         for (CallSite callSite : array.array) {
-            if (callSite.getName().equals("getProperty")) {
-                array.array[callSite.getIndex()] = new SystemPropertyCallSite(callSite);
-            } else if (callSite.getName().equals("properties")) {
-                array.array[callSite.getIndex()] = new SystemPropertiesCallSite(callSite);
-            } else if (callSite.getName().equals("getInteger")) {
-                array.array[callSite.getIndex()] = new IntegerSystemPropertyCallSite(callSite);
-            } else if (callSite.getName().equals("getLong")) {
-                array.array[callSite.getIndex()] = new LongSystemPropertyCallSite(callSite);
-            } else if (callSite.getName().equals("getBoolean")) {
-                array.array[callSite.getIndex()] = new BooleanSystemPropertyCallSite(callSite);
+            switch (callSite.getName()) {
+                case "getProperty":
+                    array.array[callSite.getIndex()] = new SystemPropertyCallSite(callSite);
+                    break;
+                case "properties":
+                    array.array[callSite.getIndex()] = new SystemPropertiesCallSite(callSite);
+                    break;
+                case "getInteger":
+                    array.array[callSite.getIndex()] = new IntegerSystemPropertyCallSite(callSite);
+                    break;
+                case "getLong":
+                    array.array[callSite.getIndex()] = new LongSystemPropertyCallSite(callSite);
+                    break;
+                case "getBoolean":
+                    array.array[callSite.getIndex()] = new BooleanSystemPropertyCallSite(callSite);
+                    break;
             }
         }
     }
@@ -353,7 +360,7 @@ public class Instrumented {
         @Override
         public Object call(Object receiver, Object arg) throws Throwable {
             if (receiver.equals(Integer.class)) {
-                return getInteger((String) arg, array.owner.getName());
+                return getInteger(arg.toString(), array.owner.getName());
             } else {
                 return super.call(receiver, arg);
             }
@@ -362,7 +369,7 @@ public class Instrumented {
         @Override
         public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
             if (receiver.equals(Integer.class)) {
-                return getInteger((String) arg1, (Integer) unwrap(arg2), array.owner.getName());
+                return getInteger(arg1.toString(), (Integer) unwrap(arg2), array.owner.getName());
             } else {
                 return super.call(receiver, arg1, arg2);
             }
@@ -377,7 +384,7 @@ public class Instrumented {
         @Override
         public Object call(Object receiver, Object arg) throws Throwable {
             if (receiver.equals(Long.class)) {
-                return getLong((String) arg, array.owner.getName());
+                return getLong(arg.toString(), array.owner.getName());
             } else {
                 return super.call(receiver, arg);
             }
@@ -386,7 +393,7 @@ public class Instrumented {
         @Override
         public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
             if (receiver.equals(Long.class)) {
-                return getLong((String) arg1, (Long) unwrap(arg2), array.owner.getName());
+                return getLong(arg1.toString(), (Long) unwrap(arg2), array.owner.getName());
             } else {
                 return super.call(receiver, arg1, arg2);
             }
@@ -401,7 +408,7 @@ public class Instrumented {
         @Override
         public Object call(Object receiver, Object arg) throws Throwable {
             if (receiver.equals(Boolean.class)) {
-                return getBoolean((String) arg, array.owner.getName());
+                return getBoolean(arg.toString(), array.owner.getName());
             } else {
                 return super.call(receiver, arg);
             }
@@ -416,7 +423,7 @@ public class Instrumented {
         @Override
         public Object call(Object receiver, Object arg) throws Throwable {
             if (receiver.equals(System.class)) {
-                return systemProperty((String) arg, array.owner.getName());
+                return systemProperty(arg.toString(), array.owner.getName());
             } else {
                 return super.call(receiver, arg);
             }
@@ -425,7 +432,7 @@ public class Instrumented {
         @Override
         public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
             if (receiver.equals(System.class)) {
-                return systemProperty((String) arg1, (String) arg2, array.owner.getName());
+                return systemProperty(arg1.toString(), arg2.toString(), array.owner.getName());
             } else {
                 return super.call(receiver, arg1, arg2);
             }
