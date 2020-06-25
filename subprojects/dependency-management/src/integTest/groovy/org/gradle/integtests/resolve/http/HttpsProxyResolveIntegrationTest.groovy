@@ -21,7 +21,6 @@ import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
 
-
 class HttpsProxyResolveIntegrationTest extends AbstractProxyResolveIntegrationTest {
     @Override
     MavenHttpRepository getRepo() {

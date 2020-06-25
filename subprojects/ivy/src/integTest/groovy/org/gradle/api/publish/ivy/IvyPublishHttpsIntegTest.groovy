@@ -25,7 +25,6 @@ import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.junit.Rule
 
-
 class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
     TestKeyStore keyStore
 
