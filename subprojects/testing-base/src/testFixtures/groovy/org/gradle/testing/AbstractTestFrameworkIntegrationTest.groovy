@@ -141,7 +141,10 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.testClass('SomeTest').assertStderr(CoreMatchers.containsString("some error output"))
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
+    @ToBeFixedForInstantExecution(
+        bottomSpecs = "XCTestTestFrameworkIntegrationTest",
+        skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS
+    )
     def "failing tests cause report url to be printed"() {
         given:
         createPassingFailingTest()
@@ -251,7 +254,10 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
+    @ToBeFixedForInstantExecution(
+        bottomSpecs = "XCTestTestFrameworkIntegrationTest",
+        skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS
+    )
     def "can select multiple tests from command line #scenario"() {
         given:
         createPassingFailingTest()
@@ -285,7 +291,10 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
+    @ToBeFixedForInstantExecution(
+        bottomSpecs = "XCTestTestFrameworkIntegrationTest",
+        skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS
+    )
     def "can deduplicate test filters when #scenario"() {
         given:
         createPassingFailingTest()
