@@ -15,5 +15,13 @@ open class BaseGradleBuildType(model: CIBuildModel, val stage: Stage? = null, us
 
     init {
         this.init()
+        cleanup {
+            baseRule {
+                history(days = 7)
+            }
+            baseRule {
+                artifacts(days = 7)
+            }
+        }
     }
 }
