@@ -60,7 +60,7 @@ abstract class AbstractUserTypeCodecTest {
         }
 
     protected
-    fun <T : Any> roundtrip(graph: T, codec: Codec<Any?> = userTypesCodec()): T =
+    fun <T : Any> configurationCacheRoundtripOf(graph: T, codec: Codec<Any?> = userTypesCodec()): T =
         writeToByteArray(graph, codec)
             .let { readFromByteArray(it, codec)!! }
             .uncheckedCast()
@@ -74,7 +74,11 @@ abstract class AbstractUserTypeCodecTest {
     private
     fun writeToByteArray(graph: Any, codec: Codec<Any?>): ByteArray {
         val outputStream = ByteArrayOutputStream()
-        writeTo(outputStream, graph, codec)
+        writeTo(outputStream, graph, codec, object : ProblemsListener {
+            override fun onProblem(problem: PropertyProblem) {
+                println(problem)
+            }
+        })
         return outputStream.toByteArray()
     }
 

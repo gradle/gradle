@@ -127,7 +127,7 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
     private
     fun writeReplaceMethodOf(type: Class<*>) = type
         .firstAccessibleMatchingMethodOrNull {
-            parameterCount == 0 && name == "writeReplace"
+            parameterCount == 0 && name == "writeReplace" && returnType == java.lang.Object::class.java
         }
 
     private
@@ -138,5 +138,5 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
 
     private
     fun Method.isReadResolve() =
-        parameterCount == 0 && name == "readResolve"
+        parameterCount == 0 && name == "readResolve" && returnType == java.lang.Object::class.java
 }

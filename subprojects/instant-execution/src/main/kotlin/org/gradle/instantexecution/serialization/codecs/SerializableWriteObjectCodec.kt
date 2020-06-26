@@ -40,6 +40,7 @@ import java.io.OutputStream
 import java.io.Serializable
 
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 
 
 /**
@@ -49,7 +50,11 @@ import java.lang.reflect.Method
 class SerializableWriteObjectCodec : EncodingProducer, Decoding {
 
     override fun encodingForType(type: Class<*>): Encoding? =
-        writeObjectMethodOf(type)?.let(::WriteObjectEncoding)
+        type.takeIf { it.isSerializable() }?.let { serializableType ->
+            writeObjectMethodHierarchyOf(serializableType)
+                .takeIf { it.isNotEmpty() }
+                ?.let(::WriteObjectEncoding)
+        }
 
     override suspend fun ReadContext.decode(): Any? =
         decodePreservingIdentity { id ->
@@ -63,9 +68,9 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
                             beanStateReader,
                             this@decode
                         )
-                        val readObject = readObjectMethodOf(beanType)
+                        val readObject = readObjectMethodHierarchyOf(beanType)
                         when {
-                            readObject != null -> readObject.invoke(bean, objectInputStream)
+                            readObject.isNotEmpty() -> readObject.forEach { it.invoke(bean, objectInputStream) }
                             else -> objectInputStream.defaultReadObject()
                         }
                     }
@@ -74,14 +79,16 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
         }
 
     private
-    class WriteObjectEncoding(private val writeObject: Method) : EncodingProvider<Any> {
+    class WriteObjectEncoding(private val writeObject: List<Method>) : EncodingProvider<Any> {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
 
                 val beanType = value.javaClass
 
                 val recordingObjectOutputStream = RecordingObjectOutputStream(beanType, value)
-                writeObject.invoke(value, recordingObjectOutputStream)
+                writeObject.forEach {
+                    it.invoke(value, recordingObjectOutputStream)
+                }
 
                 writeClass(beanType)
                 recordingObjectOutputStream.run {
@@ -92,24 +99,28 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
     }
 
     private
-    fun writeObjectMethodOf(type: Class<*>) = type
-        .takeIf { type.isSerializable() }
-        ?.firstAccessibleMatchingMethodOrNull {
-            parameterCount == 1
-                && name == "writeObject"
-                && parameterTypes[0].isAssignableFrom(ObjectOutputStream::class.java)
-        }
-
-    private
-    fun readObjectMethodOf(type: Class<*>) = readObjectCache.forClass(type)
+    fun writeObjectMethodHierarchyOf(type: Class<*>) = type
+        .serializationMethodHierarchy("writeObject", ObjectOutputStream::class.java)
 
     // TODO:instant-execution readObjectNoData
     private
-    val readObjectCache = MethodCache {
-        parameterCount == 1
-            && name == "readObject"
-            && parameterTypes[0].isAssignableFrom(ObjectInputStream::class.java)
-    }
+    fun readObjectMethodHierarchyOf(type: Class<*>): List<Method> = type
+        .serializationMethodHierarchy("readObject", ObjectInputStream::class.java)
+
+    private
+    fun Class<*>.serializationMethodHierarchy(methodName: String, parameterType: Class<*>): List<Method> =
+        allMethods()
+            .filter { method ->
+                method.run {
+                    Modifier.isPrivate(modifiers)
+                        && parameterCount == 1
+                        && returnType == Void.TYPE
+                        && name == methodName
+                        && parameterTypes[0].isAssignableFrom(parameterType)
+                }
+            }.onEach { serializationMethod ->
+                serializationMethod.isAccessible = true
+            }.reversed()
 }
 
 

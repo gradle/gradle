@@ -48,6 +48,9 @@ fun Class<*>.firstAccessibleMatchingMethodOrNull(predicate: Method.() -> Boolean
 
 internal
 fun Class<*>.firstMatchingMethodOrNull(predicate: Method.() -> Boolean): Method? =
-    ClassInspector.inspect(this)
-        .allMethods
-        .find(predicate)
+    allMethods().find(predicate)
+
+
+internal
+fun Class<*>.allMethods() =
+    ClassInspector.inspect(this).allMethods
