@@ -56,7 +56,7 @@ class GradleMetadataValidationResolveIntegrationTest extends AbstractModuleDepen
         GradleFileModuleAdapter.printComponentGAV = true
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "fails with proper error if a mandatory attribute is not defined"() {
         buildFile << """
             dependencies {
