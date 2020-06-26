@@ -236,10 +236,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                 daemonDocumentationIndex.getLinkToSection("sec:inotify_instances_limit")
             );
         } else if (exception instanceof InotifyWatchesLimitTooLowException) {
-            LOGGER.warn("{}. The inotify watches limit is too low. See {} for more details.",
-                fileWatchingErrorMessage,
-                daemonDocumentationIndex.getLinkToSection("sec:inotify_watches_limit")
-            );
+            LOGGER.warn("{}. The inotify watches limit is too low.", fileWatchingErrorMessage);
         } else if (exception instanceof WatchingNotSupportedException) {
             // No stacktrace here, since this is a known shortcoming of our implementation
             LOGGER.warn("{}. {}.", fileWatchingErrorMessage, exception.getMessage());
