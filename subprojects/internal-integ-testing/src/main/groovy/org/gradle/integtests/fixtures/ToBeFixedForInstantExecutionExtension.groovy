@@ -65,7 +65,9 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
-            ignoreCleanupAssertionsOf(invocation)
+            def instance = invocation.instance
+            assert instance instanceof AbstractIntegrationSpec: "'skip = ${FAILS_CLEANUP_ASSERTIONS.name()}' can only be used in AbstractIntegrationSpec subtypes"
+            instance.ignoreCleanupAssertions()
             invocation.proceed()
         }
     }
@@ -130,8 +132,8 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
                         invocation.proceed()
                     } catch (Throwable ex) {
                         expectedFailure(ex)
-                        pass.set(true)
                         ignoreCleanupAssertionsOf(invocation)
+                        pass.set(true)
                     }
                 } else {
                     invocation.proceed()
@@ -141,7 +143,10 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
     }
 
     private static ignoreCleanupAssertionsOf(IMethodInvocation invocation) {
-        (invocation.instance as AbstractIntegrationSpec).ignoreCleanupAssertions()
+        def instance = invocation.instance
+        if (instance instanceof AbstractIntegrationSpec) {
+            instance.ignoreCleanupAssertions()
+        }
     }
 
     private static void expectedFailure(Throwable ex) {
