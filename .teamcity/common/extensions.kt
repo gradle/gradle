@@ -91,7 +91,33 @@ fun BuildType.applyDefaultSettings(os: Os = Os.linux, timeout: Int = 30, vcsRoot
             param("env.LC_ALL", "en_US.UTF-8")
         }
     }
+
+    publishConventionsPlugin(os)
+
 }
+
+
+private fun BuildType.publishConventionsPlugin(os: Os) {
+    steps {
+        script {
+            name = "PUBLISH_HELPER_PLUGIN"
+            executionMode = BuildStep.ExecutionMode.RUN_ON_SUCCESS
+
+            // workaround for "Project $rootProject.projectDir appears to be part of a Gradle integration test" error
+            scriptContent = if (os == Os.windows)
+
+                """
+                 RMDIR /S /Q intTestHomeDir
+                ./gradlew publishPluginMavenPublicationToMavenLocal --project-dir gradle-enterprise-conventions-plugin
+            """.trimIndent()
+            else """
+                rm -rf intTestHomeDir
+                ./gradlew publishPluginMavenPublicationToMavenLocal --project-dir gradle-enterprise-conventions-plugin
+          """
+        }
+    }
+}
+
 
 fun BuildSteps.checkCleanM2(os: Os = Os.linux) {
     script {
