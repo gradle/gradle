@@ -21,7 +21,7 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class ArtifactLookupResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "does not try to fetch the jar whenever the metadata artifact is not found"() {
         buildFile << """
             dependencies {
