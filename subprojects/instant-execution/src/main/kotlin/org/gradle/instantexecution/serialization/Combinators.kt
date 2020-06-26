@@ -340,39 +340,39 @@ inline fun <T : Any?> ReadContext.readArray(readElement: () -> T): Array<T> {
 }
 
 
-fun <E : Enum<E>> WriteContext.writeEnum(value: E) {
+fun <E : Enum<E>> Encoder.writeEnum(value: E) {
     writeSmallInt(value.ordinal)
 }
 
 
-inline fun <reified E : Enum<E>> ReadContext.readEnum(): E =
+inline fun <reified E : Enum<E>> Decoder.readEnum(): E =
     readSmallInt().let { ordinal -> enumValues<E>()[ordinal] }
 
 
-fun WriteContext.writeShort(value: Short) {
+fun Encoder.writeShort(value: Short) {
     BaseSerializerFactory.SHORT_SERIALIZER.write(this, value)
 }
 
 
-fun ReadContext.readShort(): Short =
+fun Decoder.readShort(): Short =
     BaseSerializerFactory.SHORT_SERIALIZER.read(this)
 
 
-fun WriteContext.writeFloat(value: Float) {
+fun Encoder.writeFloat(value: Float) {
     BaseSerializerFactory.FLOAT_SERIALIZER.write(this, value)
 }
 
 
-fun ReadContext.readFloat(): Float =
+fun Decoder.readFloat(): Float =
     BaseSerializerFactory.FLOAT_SERIALIZER.read(this)
 
 
-fun WriteContext.writeDouble(value: Double) {
+fun Encoder.writeDouble(value: Double) {
     BaseSerializerFactory.DOUBLE_SERIALIZER.write(this, value)
 }
 
 
-fun ReadContext.readDouble(): Double =
+fun Decoder.readDouble(): Double =
     BaseSerializerFactory.DOUBLE_SERIALIZER.read(this)
 
 
