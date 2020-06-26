@@ -265,7 +265,7 @@ If you receive this error on macOS, you need to raise your open files limit, see
 
 File system watching uses http://en.wikipedia.org/wiki/Inotify[Inotify] on Linux.
 Depending on the size of your build, it may be necessary to increase Inotify limits.
-If you are using an IDE, then you probably already did increase the limits.
+If you are using an IDE, then you probably already had to increase the limits in the past.
 
 [[sec:inotify_watches_limit]]
 Inotify watches limit::
