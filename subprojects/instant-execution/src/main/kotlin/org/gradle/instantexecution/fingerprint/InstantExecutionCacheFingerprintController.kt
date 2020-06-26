@@ -54,7 +54,7 @@ class InstantExecutionCacheFingerprintController internal constructor(
 ) {
 
     private
-    open class WritingState {
+    abstract class WritingState {
 
         open fun start(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState =
             illegalStateFor("start")
@@ -64,6 +64,8 @@ class InstantExecutionCacheFingerprintController internal constructor(
 
         open fun commit(fingerprintFile: File): WritingState =
             illegalStateFor("commit")
+
+        abstract fun cancel(): WritingState
 
         private
         fun illegalStateFor(operation: String): Nothing = throw IllegalStateException(
@@ -82,6 +84,8 @@ class InstantExecutionCacheFingerprintController internal constructor(
             addListener(fingerprintWriter)
             return Writing(fingerprintWriter, outputStream)
         }
+
+        override fun cancel() = this
     }
 
     private
@@ -93,6 +97,13 @@ class InstantExecutionCacheFingerprintController internal constructor(
             // TODO - this is a temporary step, see the comment in DefaultInstantExecution
             fingerprintWriter.stopCollectingValueSources()
             return Written(fingerprintWriter, outputStream)
+        }
+
+        override fun cancel(): WritingState {
+            fingerprintWriter.stopCollectingValueSources()
+            removeListener(fingerprintWriter)
+            fingerprintWriter.close()
+            return Idle()
         }
     }
 
@@ -107,6 +118,12 @@ class InstantExecutionCacheFingerprintController internal constructor(
             fingerprintFile
                 .outputStream()
                 .use(outputStream::writeTo)
+            return Idle()
+        }
+
+        override fun cancel(): WritingState {
+            removeListener(fingerprintWriter)
+            fingerprintWriter.close()
             return Idle()
         }
     }
@@ -124,6 +141,10 @@ class InstantExecutionCacheFingerprintController internal constructor(
 
     fun commitFingerprintTo(fingerprintFile: File) {
         writingState = writingState.commit(fingerprintFile)
+    }
+
+    fun cancelCollectingFingerprint() {
+        writingState = writingState.cancel()
     }
 
     suspend fun ReadContext.checkFingerprint(): InvalidationReason? =

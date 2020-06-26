@@ -19,6 +19,7 @@ package org.gradle.instantexecution
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.InstantExecutionCache.CheckedFingerprint
@@ -59,7 +60,8 @@ class DefaultInstantExecution internal constructor(
     private val cacheFingerprintController: InstantExecutionCacheFingerprintController,
     private val beanConstructors: BeanConstructors,
     private val gradlePropertiesController: GradlePropertiesController,
-    private val relevantProjectsRegistry: RelevantProjectsRegistry
+    private val relevantProjectsRegistry: RelevantProjectsRegistry,
+    private val buildCancellationToken: BuildCancellationToken
 ) : InstantExecution {
 
     interface Host {
@@ -116,9 +118,17 @@ class DefaultInstantExecution internal constructor(
         }
     }
 
+    private
+    val buildLogicCancellation = {
+        Instrumented.discardListener()
+        cacheFingerprintController.cancelCollectingFingerprint()
+    }
+
     override fun prepareForBuildLogicExecution() {
 
         if (!isInstantExecutionEnabled) return
+
+        if (buildCancellationToken.addCallback(buildLogicCancellation)) return
 
         startCollectingCacheFingerprint()
         Instrumented.setListener(systemPropertyListener)
@@ -140,6 +150,7 @@ class DefaultInstantExecution internal constructor(
         // can cause the provider value to incorrectly be treated as a task graph input
         Instrumented.discardListener()
         stopCollectingCacheFingerprint()
+        buildCancellationToken.removeCallback(buildLogicCancellation)
 
         buildOperationExecutor.withStoreOperation {
             cache.useForStore(cacheKey.string) { layout ->
