@@ -54,7 +54,8 @@ import java.util.function.Predicate;
  */
 public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSystem implements WatchingAwareVirtualFileSystem, Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchingVirtualFileSystem.class);
-    private static final String FILE_WATCHING_ERROR_MESSAGE = "Unable to watch the file system for changes";
+    private static final String FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD = "Unable to watch the file system for changes";
+    private static final String FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD = "Gradle was unable to watch the file system for changes";
 
     private final FileWatcherRegistryFactory watcherRegistryFactory;
     private final DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator;
@@ -135,7 +136,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         if (watchingEnabled) {
             if (reasonForNotWatchingFiles != null) {
                 // Log exception again so it doesn't get lost.
-                logWatchingError(reasonForNotWatchingFiles);
+                logWatchingError(reasonForNotWatchingFiles, FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD);
                 reasonForNotWatchingFiles = null;
             }
             getRoot().update(currentRoot -> {
@@ -212,7 +213,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
             // TODO: Move start watching early enough so that the root is always empty
             return currentRoot.empty();
         } catch (Exception ex) {
-            logWatchingError(ex);
+            logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD);
             closeUnderLock();
             return currentRoot.empty();
         }
@@ -223,27 +224,27 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
             runnable.run();
             return currentRoot;
         } catch (Exception ex) {
-            logWatchingError(ex);
+            logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD);
             return stopWatchingAndInvalidateHierarchy(currentRoot);
         }
     }
 
-    private void logWatchingError(Exception exception) {
+    private void logWatchingError(Exception exception, String fileWatchingErrorMessage) {
         if (exception instanceof InotifyInstanceLimitTooLowException) {
-            LOGGER.warn("{}. The inotify instance limit has been reached. See {} for more details.",
-                FILE_WATCHING_ERROR_MESSAGE,
+            LOGGER.warn("{}. The inotify instance limit is too low. See {} for more details.",
+                fileWatchingErrorMessage,
                 daemonDocumentationIndex.getLinkToSection("sec:inotify_instances_limit")
             );
         } else if (exception instanceof InotifyWatchesLimitTooLowException) {
             LOGGER.warn("{}. The inotify watches limit is too low. See {} for more details.",
-                FILE_WATCHING_ERROR_MESSAGE,
+                fileWatchingErrorMessage,
                 daemonDocumentationIndex.getLinkToSection("sec:inotify_watches_limit")
             );
         } else if (exception instanceof WatchingNotSupportedException) {
             // No stacktrace here, since this is a known shortcoming of our implementation
-            LOGGER.warn("{}. {}.", FILE_WATCHING_ERROR_MESSAGE, exception.getMessage());
+            LOGGER.warn("{}. {}.", fileWatchingErrorMessage, exception.getMessage());
         } else {
-            LOGGER.warn(FILE_WATCHING_ERROR_MESSAGE, exception);
+            LOGGER.warn(fileWatchingErrorMessage, exception);
         }
         reasonForNotWatchingFiles = exception;
     }
