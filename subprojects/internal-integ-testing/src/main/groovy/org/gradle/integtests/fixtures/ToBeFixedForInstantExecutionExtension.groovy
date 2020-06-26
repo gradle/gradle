@@ -26,6 +26,9 @@ import org.spockframework.runtime.model.FeatureInfo
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Predicate
 
+import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS
+import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecution.Skip.FLAKY
+
 class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExtension<ToBeFixedForInstantExecution> {
 
     @Override
@@ -39,19 +42,35 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
             return
         }
 
-        if (annotation.skip() == ToBeFixedForInstantExecution.Skip.FLAKY) {
+        if (annotation.skip() == FLAKY) {
             feature.skipped = true
             return
         }
 
+        if (annotation.skip() == FAILS_CLEANUP_ASSERTIONS) {
+            def interceptor = new DisableCleanupAssertions()
+            feature.addInterceptor(interceptor)
+            feature.addIterationInterceptor(interceptor)
+            return
+        }
+
         if (feature.isParameterized()) {
-            feature.getInterceptors().add(0, new ToBeFixedIterationInterceptor(annotation.iterationMatchers()))
+            feature.addInterceptor(new ToBeFixedIterationInterceptor(annotation.iterationMatchers()))
         } else {
             feature.getFeatureMethod().addInterceptor(new ToBeFixedInterceptor())
         }
     }
 
-    private boolean isEnabledSpec(ToBeFixedForInstantExecution annotation, FeatureInfo feature) {
+    private static class DisableCleanupAssertions implements IMethodInterceptor {
+
+        @Override
+        void intercept(IMethodInvocation invocation) throws Throwable {
+            ignoreCleanupAssertionsOf(invocation)
+            invocation.proceed()
+        }
+    }
+
+    private static boolean isEnabledSpec(ToBeFixedForInstantExecution annotation, FeatureInfo feature) {
         isEnabledBottomSpec(annotation.bottomSpecs(), { it == feature.spec.bottomSpec.name })
     }
 
@@ -63,6 +82,7 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
                 invocation.proceed()
             } catch (Throwable ex) {
                 expectedFailure(ex)
+                ignoreCleanupAssertionsOf(invocation)
                 return
             }
             throw new UnexpectedSuccessException()
@@ -115,12 +135,17 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
                     } catch (Throwable ex) {
                         expectedFailure(ex)
                         pass.set(true)
+                        ignoreCleanupAssertionsOf(invocation)
                     }
                 } else {
                     invocation.proceed()
                 }
             }
         }
+    }
+
+    private static ignoreCleanupAssertionsOf(IMethodInvocation invocation) {
+        (invocation.instance as AbstractIntegrationSpec).ignoreCleanupAssertions()
     }
 
     private static void expectedFailure(Throwable ex) {

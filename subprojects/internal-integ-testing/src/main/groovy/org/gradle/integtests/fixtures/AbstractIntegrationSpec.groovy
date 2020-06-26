@@ -63,10 +63,14 @@ class AbstractIntegrationSpec extends Specification {
 
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
     private GradleExecuter executor
+    boolean ignoreCleanupAssertions
 
     GradleExecuter getExecuter() {
         if (executor == null) {
             executor = createExecuter()
+            if (ignoreCleanupAssertions) {
+                executor.ignoreCleanupAssertions()
+            }
         }
         return executor
     }
@@ -500,5 +504,15 @@ class AbstractIntegrationSpec extends Specification {
 
     static String googleRepository() {
         RepoScriptBlockUtil.googleRepository()
+    }
+
+    /**
+     * Called by {@link ToBeFixedForInstantExecutionExtension} when a test fails as expected so no further checks are applied.
+     */
+    void ignoreCleanupAssertions() {
+        this.ignoreCleanupAssertions = true
+        if (executor != null) {
+            executor.ignoreCleanupAssertions()
+        }
     }
 }

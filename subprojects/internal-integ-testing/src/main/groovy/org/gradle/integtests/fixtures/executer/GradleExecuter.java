@@ -510,4 +510,6 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withPluginRepositoryMirror();
 
     GradleExecuter ignoreMissingSettingsFile();
+
+    GradleExecuter ignoreCleanupAssertions();
 }

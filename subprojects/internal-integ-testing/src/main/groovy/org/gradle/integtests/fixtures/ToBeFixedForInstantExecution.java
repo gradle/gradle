@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures;
 
+import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter;
 import org.spockframework.runtime.extension.ExtensionAnnotation;
 
 import java.lang.annotation.ElementType;
@@ -71,6 +72,13 @@ public @interface ToBeFixedForInstantExecution {
          * Use this reason on tests that fail <code>:verifyTestFilesCleanup</code> with instant execution.
          */
         FAILS_TO_CLEANUP,
+
+        /**
+         * Use this reason on tests that fail only during Spock cleanup, more specifically, during {@link AbstractGradleExecuter#cleanup()}.
+         *
+         * This is necessary because the combination of spock/junit5 doesn't provide a way to ignore failures at that point.
+         */
+        FAILS_CLEANUP_ASSERTIONS,
 
         /**
          * Use this reason on tests that intermittently fail with instant execution.

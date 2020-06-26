@@ -140,6 +140,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File projectDir;
     private File settingsFile;
     private boolean ignoreMissingSettingsFile;
+    private boolean ignoreCleanupAssertions;
     private PipedOutputStream stdinPipe;
     private String defaultCharacterEncoding;
     private Locale defaultLocale;
@@ -214,6 +215,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         buildScript = null;
         settingsFile = null;
         ignoreMissingSettingsFile = false;
+        // ignoreCleanupAssertions is intentionally sticky
+        // ignoreCleanupAssertions = false;
         quiet = false;
         taskList = false;
         dependencyList = false;
@@ -301,6 +304,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (ignoreMissingSettingsFile) {
             executer.ignoreMissingSettingsFile();
+        }
+        if (ignoreCleanupAssertions) {
+            executer.ignoreCleanupAssertions();
         }
         if (javaHome != null) {
             executer.withJavaHome(javaHome);
@@ -819,15 +825,19 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    @Override
+    public GradleExecuter ignoreCleanupAssertions() {
+        this.ignoreCleanupAssertions = true;
+        return this;
+    }
+
     /**
      * Performs cleanup at completion of the test.
      */
     public void cleanup() {
         stopRunningBuilds();
         cleanupIsolatedDaemons();
-        for (ExecutionResult result : results) {
-            result.assertResultVisited();
-        }
+        assertVisitedExecutionResults();
     }
 
     private void stopRunningBuilds() {
@@ -854,6 +864,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         if (checkDaemonCrash) {
             analyzers.forEach(DaemonLogsAnalyzer::assertNoCrashedDaemon);
+        }
+    }
+
+    private void assertVisitedExecutionResults() {
+        if (!ignoreCleanupAssertions) {
+            for (ExecutionResult result : results) {
+                result.assertResultVisited();
+            }
         }
     }
 
