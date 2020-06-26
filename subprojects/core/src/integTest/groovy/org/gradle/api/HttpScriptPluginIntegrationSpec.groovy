@@ -39,6 +39,16 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         executer.requireOwnGradleUserHomeDir()
     }
 
+    @Override
+    void ignoreCleanupAssertions() {
+        super.ignoreCleanupAssertions()
+        try {
+            server.resetExpectations()
+        } catch (Throwable error) {
+            error.printStackTrace()
+        }
+    }
+
     private void applyTrustStore() {
         def keyStore = TestKeyStore.init(resources.dir)
         keyStore.enableSslWithServerCert(server)
@@ -130,7 +140,6 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         then:
         succeeds()
     }
-
 
     @Issue("https://github.com/gradle/gradle/issues/2891")
     def "can apply script with URI containing a query string"() {
