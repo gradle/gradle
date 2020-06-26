@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.JavaCompile;
 
@@ -70,7 +69,7 @@ public interface JvmLanguageSourceDirectoryBuilder {
          * Returns the source directory of the compile task: this is the directory
          * registered automatically by Gradle when constructing the source directory set.
          */
-        FileCollection getSourceDirectories();
+        DirectoryProperty getSourceDirectory();
 
         /**
          * Sets the compile task for this source directory. You must also set the

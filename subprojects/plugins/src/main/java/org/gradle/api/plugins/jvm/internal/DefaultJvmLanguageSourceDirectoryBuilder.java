@@ -15,11 +15,11 @@
  */
 package org.gradle.api.plugins.jvm.internal;
 
+import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
@@ -66,7 +66,7 @@ public class DefaultJvmLanguageSourceDirectoryBuilder implements JvmLanguageSour
     public JvmLanguageSourceDirectoryBuilder compiledWithJava(Action<? super JavaCompile> compilerConfiguration) {
         return includeInAllJava().compiledBy(details -> {
             TaskProvider<JavaCompile> taskProvider = project.getTasks().register("compile" + StringUtils.capitalize(name), JavaCompile.class, compileTask -> {
-                compileTask.source(details.getSourceDirectories());
+                compileTask.source(details.getSourceDirectory());
                 compileTask.setClasspath(sourceSet.getCompileClasspath());
                 compilerConfiguration.execute(compileTask);
             });
@@ -109,22 +109,25 @@ public class DefaultJvmLanguageSourceDirectoryBuilder implements JvmLanguageSour
     }
 
     private DefaultCompileTaskDetails createTaskDetails(SourceDirectorySet langSrcDir) {
-        DefaultCompileTaskDetails details = new DefaultCompileTaskDetails(langSrcDir);
+        DefaultCompileTaskDetails details = new DefaultCompileTaskDetails(
+            project.getObjects().directoryProperty().fileProvider(
+                langSrcDir.getElements().map(fileSystemLocations -> Iterables.getOnlyElement(fileSystemLocations).getAsFile())
+            ));
         taskBuilder.execute(details);
         return details;
     }
 
     private static class DefaultCompileTaskDetails implements CompileTaskDetails {
-        private final SourceDirectorySet langSrcDir;
+        private final DirectoryProperty langSrcDir;
         private TaskProvider<? extends Task> task;
         private Function<? extends Task, DirectoryProperty> mapping;
 
-        public DefaultCompileTaskDetails(SourceDirectorySet langSrcDir) {
+        public DefaultCompileTaskDetails(DirectoryProperty langSrcDir) {
             this.langSrcDir = langSrcDir;
         }
 
         @Override
-        public FileCollection getSourceDirectories() {
+        public DirectoryProperty getSourceDirectory() {
             return langSrcDir;
         }
 

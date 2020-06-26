@@ -43,6 +43,7 @@ import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.jvm.JavaComponentBuilder;
 import org.gradle.api.plugins.jvm.JvmEcosystemAttributesDetails;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.jvm.JvmLanguageGeneratedSourceDirectoryBuilder;
 import org.gradle.api.plugins.jvm.JvmLanguageSourceDirectoryBuilder;
 import org.gradle.api.plugins.jvm.OutgoingElementsBuilder;
 import org.gradle.api.plugins.jvm.ResolvableGraphBuilder;
@@ -141,6 +142,15 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     public void registerJvmLanguageSourceDirectory(SourceSet sourceSet, String name, Action<? super JvmLanguageSourceDirectoryBuilder> configuration) {
         DefaultJvmLanguageSourceDirectoryBuilder builder = instanceGenerator.newInstance(DefaultJvmLanguageSourceDirectoryBuilder.class,
             name,
+            project,
+            sourceSet);
+        configuration.execute(builder);
+        builder.build();
+    }
+
+    @Override
+    public void registerJvmLanguageGeneratedSourceDirectory(SourceSet sourceSet, Action<? super JvmLanguageGeneratedSourceDirectoryBuilder> configuration) {
+        DefaultJvmLanguageGeneratedSourceDirectoryBuilder builder = instanceGenerator.newInstance(DefaultJvmLanguageGeneratedSourceDirectoryBuilder.class,
             project,
             sourceSet);
         configuration.execute(builder);
