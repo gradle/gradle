@@ -27,10 +27,5 @@ fun configureExtension(extension: Any) {
         } else {
             "publishAlways"()
         }
-        setProperty("server", "https://e.grdev.net")
-
-        if (!System.getProperty("slow.internet.connection", "false").toBoolean()) {
-            setProperty("captureTaskInputFiles", true)
-        }
     }
 }

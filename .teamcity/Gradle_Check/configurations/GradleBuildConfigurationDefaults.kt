@@ -35,7 +35,6 @@ val m2CleanScriptUnixLike = """
         tree ${'$'}REPO
         rm -rf ${'$'}REPO
         echo "${'$'}REPO was polluted during the build"
-        exit 1
     else
         echo "${'$'}REPO does not exist"
     fi
@@ -45,7 +44,6 @@ val m2CleanScriptWindows = """
     IF exist %teamcity.agent.jvm.user.home%\.m2\repository (
         TREE %teamcity.agent.jvm.user.home%\.m2\repository
         RMDIR /S /Q %teamcity.agent.jvm.user.home%\.m2\repository
-        EXIT 1
     )
 """.trimIndent()
 
@@ -160,6 +158,7 @@ fun BaseGradleBuildType.killProcessStepIfNecessary(stepName: String, os: Os = Os
 fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: Os = Os.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
     buildType.applyDefaultSettings(os, timeout)
 
+    buildType.publishConventionsPlugin(os)
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
     buildType.steps {
@@ -196,6 +195,8 @@ fun applyTestDefaults(
         buildType.attachFileLeakDetector()
     }
 
+    buildType.publishConventionsPlugin(os)
+
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
     if (os == Os.windows) {
@@ -209,6 +210,27 @@ fun applyTestDefaults(
     }
 
     applyDefaultDependencies(model, buildType, notQuick)
+}
+
+private fun BuildType.publishConventionsPlugin(os: Os) {
+    steps {
+        script {
+            name = "PUBLISH_HELPER_PLUGIN"
+            executionMode = BuildStep.ExecutionMode.RUN_ON_SUCCESS
+
+            // workaround for "Project $rootProject.projectDir appears to be part of a Gradle integration test" error
+            scriptContent = if (os == Os.windows)
+
+                """
+                 RMDIR /S /Q intTestHomeDir
+                ./gradlew publishPluginMavenPublicationToMavenLocal --project-dir gradle-enterprise-conventions-plugin
+            """.trimIndent()
+            else """
+                rm -rf intTestHomeDir
+                ./gradlew publishPluginMavenPublicationToMavenLocal --project-dir gradle-enterprise-conventions-plugin
+          """
+        }
+    }
 }
 
 fun buildScanTag(tag: String) = """"-Dscan.tag.$tag""""
