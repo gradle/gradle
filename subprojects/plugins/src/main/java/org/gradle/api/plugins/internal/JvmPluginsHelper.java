@@ -30,6 +30,7 @@ import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -62,6 +63,7 @@ import javax.annotation.Nullable;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 
 /**
  * Helpers for Jvm plugins. They are in a separate class so that they don't leak
@@ -72,6 +74,7 @@ public class JvmPluginsHelper {
     /**
      * Adds an API configuration to a source set, so that API dependencies
      * can be declared.
+     *
      * @param sourceSet the source set to add an API for
      * @return the created API configuration
      */
@@ -122,19 +125,24 @@ public class JvmPluginsHelper {
      */
     public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, Provider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
         TaskProvider<? extends AbstractCompile> taskProvider = Cast.uncheckedCast(compileTask);
-        configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, taskProvider, options);
+        configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, taskProvider, options, AbstractCompile::getDestinationDirectory);
     }
 
     public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, TaskProvider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
+        configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, compileTask, options, AbstractCompile::getDestinationDirectory);
+    }
+
+    public static <T extends Task> void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, TaskProvider<T> compileTask, Provider<CompileOptions> options, Function<T, DirectoryProperty> classesDirectoryExtractor) {
         final String sourceSetChildPath = "classes/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
         sourceDirectorySet.getDestinationDirectory().convention(target.getLayout().getBuildDirectory().dir(sourceSetChildPath));
 
         DefaultSourceSetOutput sourceSetOutput = Cast.cast(DefaultSourceSetOutput.class, sourceSet.getOutput());
-        sourceSetOutput.addClassesDir(() -> sourceDirectorySet.getDestinationDirectory().getAsFile().get());
-        sourceSetOutput.registerCompileTask(compileTask);
-        sourceSetOutput.getGeneratedSourcesDirs().from(options.flatMap(CompileOptions::getGeneratedSourceOutputDirectory));
-
-        sourceDirectorySet.compiledBy(compileTask, AbstractCompile::getDestinationDirectory);
+        sourceSetOutput.addClassesDir(sourceDirectorySet.getClassesDirectory());
+        sourceSetOutput.registerClassesContributor(compileTask);
+        if (options.isPresent()) {
+            sourceSetOutput.getGeneratedSourcesDirs().from(options.flatMap(CompileOptions::getGeneratedSourceOutputDirectory));
+        }
+        sourceDirectorySet.compiledBy(compileTask, classesDirectoryExtractor);
     }
 
     public static void configureJavaDocTask(@Nullable String featureName, SourceSet sourceSet, TaskContainer tasks, JavaPluginExtension javaPluginExtension) {
@@ -196,7 +204,7 @@ public class JvmPluginsHelper {
                 String libraryElements;
                 // If we are compiling a module, we require JARs of all dependencies as they may potentially include an Automatic-Module-Name
                 if (javaClasspathPackaging || JavaModuleDetector.isModuleSource(compileTaskProvider.get().getModularity().getInferModulePath().get(), CompilationSourceDirs.inferSourceRoots((FileTreeInternal) sourceSet.getJava().getAsFileTree()))) {
-                   libraryElements = LibraryElements.JAR;
+                    libraryElements = LibraryElements.JAR;
                 } else {
                     libraryElements = LibraryElements.CLASSES;
                 }
