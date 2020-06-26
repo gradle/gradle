@@ -154,13 +154,19 @@ class DefaultInstantExecution internal constructor(
 
         buildOperationExecutor.withStoreOperation {
             cache.useForStore(cacheKey.string) { layout ->
+                val cancellation = { invalidateInstantExecutionState(layout) }
+                val cancelled = buildCancellationToken.addCallback(cancellation)
                 try {
-                    writeInstantExecutionFiles(layout)
+                    if (!cancelled) {
+                        writeInstantExecutionFiles(layout)
+                    }
                 } catch (error: InstantExecutionError) {
                     // Invalidate state on problems that fail the build
                     invalidateInstantExecutionState(layout)
                     problems.failingBuildDueToSerializationError()
                     throw error
+                } finally {
+                    buildCancellationToken.removeCallback(cancellation)
                 }
             }
         }
