@@ -27,6 +27,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
+import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
@@ -59,7 +60,7 @@ import java.util.Map;
 /**
  * An abstract Scala compile task sharing common functionality for compiling scala.
  */
-public abstract class AbstractScalaCompile extends AbstractCompile {
+public abstract class AbstractScalaCompile extends AbstractCompile implements HasCompileOptions {
     protected static final Logger LOGGER = Logging.getLogger(AbstractScalaCompile.class);
     private final BaseScalaCompileOptions scalaCompileOptions;
     private final CompileOptions compileOptions;

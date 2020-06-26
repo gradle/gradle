@@ -43,6 +43,7 @@ import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.jvm.JavaComponentBuilder;
 import org.gradle.api.plugins.jvm.JvmEcosystemAttributesDetails;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.jvm.JvmLanguageSourceDirectoryBuilder;
 import org.gradle.api.plugins.jvm.OutgoingElementsBuilder;
 import org.gradle.api.plugins.jvm.ResolvableGraphBuilder;
 import org.gradle.api.tasks.SourceSet;
@@ -136,6 +137,16 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         }
     }
 
+    @Override
+    public void registerJvmLanguageSourceDirectory(SourceSet sourceSet, String name, Action<? super JvmLanguageSourceDirectoryBuilder> configuration) {
+        DefaultJvmLanguageSourceDirectoryBuilder builder = instanceGenerator.newInstance(DefaultJvmLanguageSourceDirectoryBuilder.class,
+            name,
+            project,
+            sourceSet);
+        configuration.execute(builder);
+        builder.build();
+    }
+
     private void clearArtifacts(Configuration outgoingConfiguration) {
         outgoingConfiguration.getOutgoing().getArtifacts().clear();
         for (Configuration configuration : outgoingConfiguration.getExtendsFrom()) {
@@ -154,11 +165,11 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
             public List<PublishArtifact> create() {
                 Set<File> classesDirs = sourceSet.getOutput().getClassesDirs().getFiles();
                 DefaultSourceSetOutput output = Cast.uncheckedCast(sourceSet.getOutput());
-                TaskDependency compileDependencies = output.getCompileDependencies();
+                TaskDependency classesContributors = output.getClassesContributors();
                 ImmutableList.Builder<PublishArtifact> artifacts = ImmutableList.builderWithExpectedSize(classesDirs.size());
                 for (File classesDir : classesDirs) {
                     // this is an approximation: all "compiled" sources will use the same task dependency
-                    artifacts.add(new JvmPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, compileDependencies) {
+                    artifacts.add(new JvmPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesContributors) {
                         @Override
                         public File getFile() {
                             return classesDir;
