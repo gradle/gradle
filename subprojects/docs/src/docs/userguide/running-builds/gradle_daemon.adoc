@@ -261,42 +261,35 @@ In both cases the build cannot benefit from file system watching.
 `java.io.IOException: Too many open files`::
 If you receive this error on macOS, you need to raise your open files limit, see https://superuser.com/a/443168/8117[here].
 
-===  Linux specific notes
+===  Linux-specific notes
 
-File system watching uses http://en.wikipedia.org/wiki/Inotify[Inotify] on Linux.
-Depending on the size of your build, it may be necessary to increase Inotify limits.
+File system watching uses http://en.wikipedia.org/wiki/Inotify[inotify] on Linux.
+Depending on the size of your build, it may be necessary to increase inotify limits.
 If you are using an IDE, then you probably already had to increase the limits in the past.
 
 [[sec:inotify_watches_limit]]
 Inotify watches limit::
-File system watching uses one Inotify watch per watched directory.
-You can see the current limit of Inotify watches per user by running:
+File system watching uses one inotify watch per watched directory.
+You can see the current limit of inotify watches per user by running:
 +
 [source,bash]
 ----
 cat /proc/sys/fs/inotify/max_user_watches
 ----
 +
-To increase the limit to e.g. 512K watches:
-
-1. Add the following line to either `/etc/sysctl.conf` or a new `*.conf` file under `/etc/sysctl.d/` directory:
-+
-[source,properties]
-----
-fs.inotify.max_user_watches = 524288
-----
-2. Then run this command to apply the change:
+To increase the limit to e.g. 512K watches run the following:
 +
 [source,bash]
 ----
+echo 524288 | sudo tee -a /etc/sysctl.conf
 sudo sysctl -p --system
 ----
 
 [[sec:inotify_instances_limit]]
 Inotify instances limit::
-File system watching initializes an Inotify instance per daemon.
-While the default per-user instant limit is usually high enough, you may hit that limit if you have many programs running which also use Inotify.
-You can see the current limit of Inotify instances per user by running:
+File system watching initializes one inotify instance per daemon.
+While the default per-user instant limit is usually high enough, you may hit that limit if you have many programs running which also use inotify.
+You can see the current limit of inotify instances per user by running:
 +
 [source,bash]
 ----
@@ -304,7 +297,7 @@ cat /proc/sys/fs/inotify/max_user_instances
 ----
 You can temporarily increase the limit to e.g. 256 instances by running:
 +
-[source]
+[source,bash]
 ----
-sudo sh -c "echo 256 > /proc/sys/fs/inotify/max_user_instances"
+echo 256 | sudo tee /proc/sys/fs/inotify/max_user_instances
 ----
