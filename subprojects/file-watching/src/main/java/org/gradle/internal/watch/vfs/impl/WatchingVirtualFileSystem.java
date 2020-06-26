@@ -64,7 +64,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     private final Set<File> rootProjectDirectoriesForWatching = new HashSet<>();
 
     private FileWatcherRegistry watchRegistry;
-    private Exception fileWatchingException;
+    private Exception reasonForNotWatchingFiles;
 
     private final SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener = (removedSnapshots, addedSnapshots) -> {
         if (watchRegistry != null) {
@@ -90,7 +90,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
 
     @Override
     public void afterBuildStarted(boolean watchingEnabled) {
-        fileWatchingException = null;
+        reasonForNotWatchingFiles = null;
         getRoot().update(currentRoot -> {
             if (watchingEnabled) {
                 SnapshotHierarchy newRoot = handleWatcherRegistryEvents(currentRoot, "since last build");
@@ -133,10 +133,10 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
             rootProjectDirectoriesForWatching.clear();
         }
         if (watchingEnabled) {
-            if (fileWatchingException != null) {
+            if (reasonForNotWatchingFiles != null) {
                 // Log exception again so it doesn't get lost.
-                logWatchingError(fileWatchingException);
-                fileWatchingException = null;
+                logWatchingError(reasonForNotWatchingFiles);
+                reasonForNotWatchingFiles = null;
             }
             getRoot().update(currentRoot -> {
                 buildRunning = false;
@@ -245,7 +245,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         } else {
             LOGGER.warn(FILE_WATCHING_ERROR_MESSAGE, exception);
         }
-        fileWatchingException = exception;
+        reasonForNotWatchingFiles = exception;
     }
 
     /**
