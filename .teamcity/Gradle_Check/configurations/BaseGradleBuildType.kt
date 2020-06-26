@@ -23,5 +23,8 @@ open class BaseGradleBuildType(model: CIBuildModel, val stage: Stage? = null, us
                 artifacts(days = 7)
             }
         }
+        params {
+            param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
+        }
     }
 }

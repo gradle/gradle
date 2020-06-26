@@ -20,7 +20,9 @@ interface BuildCache {
     fun gradleParameters(os: Os): List<String>
 }
 
-data class RemoteBuildCache(val url: String, val username: String = "%gradle.cache.remote.username%", val password: String = "%gradle.cache.remote.password%") : BuildCache {
+data class RemoteBuildCache(val url: String,
+                            val username: String = "%gradle.cache.remote.public.username%",
+                            val password: String = "%gradle.cache.remote.public.password%") : BuildCache {
     override fun gradleParameters(os: Os): List<String> {
         return listOf("--build-cache",
                 os.escapeKeyValuePair("-Dgradle.cache.remote.url", url),
@@ -30,7 +32,7 @@ data class RemoteBuildCache(val url: String, val username: String = "%gradle.cac
     }
 }
 
-val builtInRemoteBuildCacheNode = RemoteBuildCache("%gradle.cache.remote.url%")
+val builtInRemoteBuildCacheNode = RemoteBuildCache("%gradle.cache.remote.public.url%")
 
 object NoBuildCache : BuildCache {
     override fun gradleParameters(os: Os): List<String> {

@@ -1,5 +1,6 @@
 # Gradle
 # ------
+gradle-enterprise-conventions-plugin/build
 .gradle
 .instant-execution-state
 /build
