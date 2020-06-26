@@ -34,7 +34,7 @@ import static org.gradle.util.Matchers.containsText
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "fails when working directory is invalid"() {
         buildWithApplicationAndDependencies()
         buildFile << """
@@ -55,7 +55,7 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         testFailure.assertTestFailed(EXECUTION_FAILURE, containsText("A problem occurred starting process"))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "fails when application cannot load shared library at runtime"() {
         buildWithApplicationAndDependencies()
         buildFile << """
@@ -82,7 +82,7 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "fails when force-unwrapping an optional results in an error"() {
         buildWithApplicationAndDependencies()
         addForceUnwrappedOptionalTest()
