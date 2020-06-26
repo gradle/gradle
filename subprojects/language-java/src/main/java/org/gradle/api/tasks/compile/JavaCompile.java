@@ -46,6 +46,7 @@ import org.gradle.api.internal.tasks.compile.incremental.recomp.SourceFileClassN
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.InputFiles;
@@ -65,7 +66,9 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
+import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.jvm.toolchain.internal.DefaultJavaCompiler;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.work.Incremental;
@@ -76,6 +79,7 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.mergeIncrementalMappingsIntoOldMappings;
 import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.readSourceClassesMappingFile;
 
@@ -100,6 +104,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private final FileCollection stableSources = getProject().files((Callable<Object[]>) () -> new Object[]{getSource(), getSources()});
     private final ModularitySpec modularity;
     private File sourceClassesMappingFile;
+    private Property<JavaCompiler> javaCompiler;
 
     public JavaCompile() {
         Project project = getProject();
@@ -107,6 +112,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         compileOptions = objects.newInstance(CompileOptions.class);
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
         modularity = objects.newInstance(DefaultModularitySpec.class);
+        javaCompiler = objects.property(JavaCompiler.class);
     }
 
     /**
@@ -153,6 +159,12 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         this.toolChain = toolChain;
     }
 
+    @Incubating
+    @Nested
+    public Property<JavaCompiler> getJavaCompiler() {
+        return javaCompiler;
+    }
+
     /**
      * Compile the sources, taking into account the changes reported by inputs.
      *
@@ -160,6 +172,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
      */
     @Deprecated
     @TaskAction
+
     protected void compile(@SuppressWarnings("deprecation") org.gradle.api.tasks.incremental.IncrementalTaskInputs inputs) {
         DeprecationLogger.deprecate("Extending the JavaCompile task")
             .withAdvice("Configure the task instead.")
@@ -265,8 +278,24 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     }
 
     private CleaningJavaCompiler<JavaCompileSpec> createCompiler(JavaCompileSpec spec) {
-        Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(spec.getClass()));
+        Compiler<JavaCompileSpec> javaCompiler = createToolchainCompiler(spec);
         return new CleaningJavaCompiler<>(javaCompiler, getOutputs(), getDeleter());
+    }
+
+    private Compiler<JavaCompileSpec> createToolchainCompiler(JavaCompileSpec spec) {
+        if (javaCompiler.isPresent()) {
+            return useNewToolchainCompiler();
+        }
+        return legacyCompiler();
+    }
+
+    private Compiler<JavaCompileSpec> useNewToolchainCompiler() {
+        checkArgument(toolChain == null, "Must not use `javaCompiler` property together with (deprecated) `toolchain`");
+        return spec -> ((DefaultJavaCompiler) javaCompiler.get()).execute(spec);
+    }
+
+    private Compiler<JavaCompileSpec> legacyCompiler() {
+        return CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(JavaCompileSpec.class));
     }
 
     @Nested
