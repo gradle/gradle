@@ -70,10 +70,6 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
         }
     }
 
-    private static boolean isEnabledSpec(ToBeFixedForInstantExecution annotation, FeatureInfo feature) {
-        isEnabledBottomSpec(annotation.bottomSpecs(), { it == feature.spec.bottomSpec.name })
-    }
-
     private static class ToBeFixedInterceptor implements IMethodInterceptor {
 
         @Override
@@ -151,6 +147,10 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
     private static void expectedFailure(Throwable ex) {
         System.err.println("Failed with instant execution as expected:")
         ex.printStackTrace()
+    }
+
+    private static boolean isEnabledSpec(ToBeFixedForInstantExecution annotation, FeatureInfo feature) {
+        isEnabledBottomSpec(annotation.bottomSpecs(), { it == feature.spec.bottomSpec.name })
     }
 
     static boolean isEnabledBottomSpec(String[] bottomSpecs, Predicate<String> specNamePredicate) {

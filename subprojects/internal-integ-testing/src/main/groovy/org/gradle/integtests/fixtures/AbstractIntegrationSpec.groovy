@@ -63,7 +63,7 @@ class AbstractIntegrationSpec extends Specification {
 
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
     private GradleExecuter executor
-    boolean ignoreCleanupAssertions
+    private boolean ignoreCleanupAssertions
 
     GradleExecuter getExecuter() {
         if (executor == null) {
