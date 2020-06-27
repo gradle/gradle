@@ -29,7 +29,7 @@ import static org.hamcrest.CoreMatchers.not
 
 class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":tasks")
     def "init shows up on tasks overview "() {
         given:
         targetDir.file("settings.gradle").touch()
@@ -42,7 +42,6 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified"() {
         given:
         def dslFixture = dslFixtureFor(scriptDsl)
@@ -61,7 +60,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         outputContains("Get more help with your project: ")
 
         expect:
-        succeeds 'tasks'
+        succeeds 'help'
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
