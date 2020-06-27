@@ -57,7 +57,7 @@ This means you will not see any build performance improvement the first time you
 
 When you subsequently run Gradle with this same set of tasks, for example by running `gradlew check` again, Gradle will load the tasks and their configuration directly from the configuration cache and skip the configuration phase entirely.
 Before using a configuration cache entry, Gradle checks that none of the "build configuration inputs", such as build scripts, for the entry have changed.
-If a build configuration inputs has changed, Gradle will not use the entry and will run the configuration phase again as above, saving the result for later reuse.
+If a build configuration input has changed, Gradle will not use the entry and will run the configuration phase again as above, saving the result for later reuse.
 
 Build configuration inputs include:
 
@@ -514,7 +514,7 @@ If problems with the configuration cache are found then Gradle will fail the bui
 == Requirements
 
 In order to capture the state of the task graph to the configuration cache and reload it again in a later build, Gradle applies certain requirements to tasks and other build logic.
-Each of these requirements is treated as a configuration cache "problem" and fail the build if violations are present.
+Each of these requirements is treated as a configuration cache "problem" and fails the build if violations are present.
 
 The following sections describe each of the requirements and how to change your build to fix the problems.
 
