@@ -22,6 +22,7 @@ import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -58,8 +59,8 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
     }
 
     @Override
-    public long getAgeMillis() {
-        return ageMillis;
+    public Duration getAge() {
+        return Duration.ofMillis(ageMillis);
     }
 
     @Nullable

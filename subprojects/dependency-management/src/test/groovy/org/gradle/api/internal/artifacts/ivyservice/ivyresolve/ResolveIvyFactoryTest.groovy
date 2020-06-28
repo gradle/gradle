@@ -76,7 +76,7 @@ class ResolveIvyFactoryTest extends Specification {
     VersionParser versionParser
     InstantiatorFactory instantiatorFactory
     BuildOperationExecutor buildOperationExecutor
-    DynamicVersionResolutionListener listener
+    ChangingValueDependencyResolutionListener listener
 
     def setup() {
         moduleVersionsCache = Mock(AbstractModuleVersionsCache)

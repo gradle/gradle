@@ -34,7 +34,7 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
         executer.requireOwnGradleUserHomeDir()
     }
 
-    def "invalidates configuration cache entry when dynamic version expiry is reached"() {
+    def "does not invalidate configuration cache entry when dynamic version information has not expired"() {
         given:
         server.start()
 
@@ -44,10 +44,7 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
         taskTypeLogsInputFileCollectionContent()
         buildFile << """
             configurations {
-                implementation {
-                    def timeout = providers.gradleProperty("cache-for").forUseAtConfigurationTime().orElse(7).get().toInteger()
-                    resolutionStrategy.cacheDynamicVersionsFor(timeout, ${TimeUnit.name}.DAYS)
-                }
+                implementation
             }
 
             repositories { maven { url = '${remoteRepo.uri}' } }
@@ -83,7 +80,7 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
         fixture.assertStateLoaded()
         outputContains("result = [lib-1.3.jar]")
 
-        when: // run again with different tasks, to verify behaviour when version list is cached
+        when: // run again with different tasks, to verify behaviour when version list is already cached when configuration cache entry is written
         instantRun("resolve2")
 
         then:
@@ -96,23 +93,201 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
         then:
         fixture.assertStateLoaded()
         outputContains("result = [lib-1.3.jar]")
+    }
 
-        when: // use a shorter expiry
-        remoteRepo.getModuleMetaData("thing", "lib").expectHead()
+    def "invalidates configuration cache entry when dynamic version information has expired"() {
+        given:
+        server.start()
 
-        instantRun("resolve1", "-Pcache-for=0")
+        remoteRepo.module("thing", "lib", "1.2").publish()
+        def v3 = remoteRepo.module("thing", "lib", "1.3").publish()
+
+        taskTypeLogsInputFileCollectionContent()
+        buildFile << """
+            configurations {
+                implementation {
+                    resolutionStrategy.cacheDynamicVersionsFor(4, ${TimeUnit.name}.HOURS)
+                }
+            }
+
+            repositories { maven { url = '${remoteRepo.uri}' } }
+
+            dependencies {
+                implementation 'thing:lib:1.+'
+            }
+
+            task resolve1(type: ShowFilesTask) {
+                inFiles.from(configurations.implementation)
+            }
+            task resolve2(type: ShowFilesTask) {
+                inFiles.from(configurations.implementation)
+            }
+        """
+        def fixture = newInstantExecutionFixture()
+
+        remoteRepo.getModuleMetaData("thing", "lib").expectGet()
+        v3.pom.expectGet()
+        v3.artifact.expectGet()
+
+        when:
+        instantRun("resolve1")
+
+        then:
+        fixture.assertStateStored()
+        outputContains("result = [lib-1.3.jar]")
+
+        when: // run again with different tasks, to verify behaviour when version list is already cached when configuration cache entry is written
+        instantRun("resolve2")
 
         then:
         fixture.assertStateStored()
         outputContains("result = [lib-1.3.jar]")
 
         when:
+        def clockOffset = TimeUnit.MILLISECONDS.convert(4, TimeUnit.HOURS)
         remoteRepo.getModuleMetaData("thing", "lib").expectHead()
-        instantRun("resolve1", "-Pcache-for=0")
+        instantRun("resolve1", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
 
         then:
         fixture.assertStateStored()
         outputContains("Calculating task graph as configuration cache cannot be reused because cached version information for thing:lib:1.+ has expired.")
+        outputContains("result = [lib-1.3.jar]")
+
+        when:
+        instantRun("resolve2", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
+
+        then:
+        fixture.assertStateStored()
+        outputContains("Calculating task graph as configuration cache cannot be reused because cached version information for thing:lib:1.+ has expired.")
+        outputContains("result = [lib-1.3.jar]")
+    }
+
+    def "does not invalidate configuration cache entry when changing artifact information has not expired"() {
+        given:
+        server.start()
+
+        def v3 = remoteRepo.module("thing", "lib", "1.3").publish()
+
+        taskTypeLogsInputFileCollectionContent()
+        buildFile << """
+            configurations {
+                implementation
+            }
+
+            repositories { maven { url = '${remoteRepo.uri}' } }
+
+            dependencies {
+                implementation('thing:lib:1.3') {
+                    changing = true
+                }
+            }
+
+            task resolve1(type: ShowFilesTask) {
+                inFiles.from(configurations.implementation)
+            }
+            task resolve2(type: ShowFilesTask) {
+                inFiles.from(configurations.implementation)
+            }
+        """
+        def fixture = newInstantExecutionFixture()
+
+        v3.pom.expectGet()
+        v3.artifact.expectGet()
+
+        when:
+        instantRun("resolve1")
+
+        then:
+        fixture.assertStateStored()
+        outputContains("result = [lib-1.3.jar]")
+
+        when:
+        instantRun("resolve1")
+
+        then:
+        fixture.assertStateLoaded()
+        outputContains("result = [lib-1.3.jar]")
+
+        when: // run again with different tasks, to verify behaviour when artifact information is cached
+        instantRun("resolve2")
+
+        then:
+        fixture.assertStateStored()
+        outputContains("result = [lib-1.3.jar]")
+
+        when:
+        instantRun("resolve2")
+
+        then:
+        fixture.assertStateLoaded()
+        outputContains("result = [lib-1.3.jar]")
+    }
+
+    def "invalidates configuration cache entry when changing artifact information has expired"() {
+        given:
+        server.start()
+
+        def v3 = remoteRepo.module("thing", "lib", "1.3").publish()
+
+        taskTypeLogsInputFileCollectionContent()
+        buildFile << """
+            configurations {
+                implementation {
+                    resolutionStrategy.cacheChangingModulesFor(4, ${TimeUnit.name}.HOURS)
+                }
+            }
+
+            repositories { maven { url = '${remoteRepo.uri}' } }
+
+            dependencies {
+                implementation('thing:lib:1.3') {
+                    changing = true
+                }
+            }
+
+            task resolve1(type: ShowFilesTask) {
+                inFiles.from(configurations.implementation)
+            }
+            task resolve2(type: ShowFilesTask) {
+                inFiles.from(configurations.implementation)
+            }
+        """
+        def fixture = newInstantExecutionFixture()
+
+        v3.pom.expectGet()
+        v3.artifact.expectGet()
+
+        when:
+        instantRun("resolve1")
+
+        then:
+        fixture.assertStateStored()
+        outputContains("result = [lib-1.3.jar]")
+
+        when: // run again with different tasks, to verify behaviour when artifact information is cached
+        instantRun("resolve2")
+
+        then:
+        fixture.assertStateStored()
+        outputContains("result = [lib-1.3.jar]")
+
+        when:
+        v3.pom.expectHead()
+        v3.artifact.expectHead()
+        def clockOffset = TimeUnit.MILLISECONDS.convert(4, TimeUnit.HOURS)
+        instantRun("resolve1", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
+
+        then:
+        fixture.assertStateStored()
+        outputContains("Calculating task graph as configuration cache cannot be reused because cached artifact information for thing:lib:1.3 has expired.")
+        outputContains("result = [lib-1.3.jar]")
+
+        when:
+        instantRun("resolve2", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
+
+        then:
+        fixture.assertStateStored()
+        outputContains("Calculating task graph as configuration cache cannot be reused because cached artifact information for thing:lib:1.3 has expired.")
         outputContains("result = [lib-1.3.jar]")
     }
 }

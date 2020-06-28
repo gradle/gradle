@@ -56,9 +56,10 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     def artifactResolver = Mock(ArtifactResolver)
     def repositoryChain = Mock(ComponentResolvers)
     def componentMetaDataResolver = Mock(ComponentMetaDataResolver)
-    def ruleExecutor = new ComponentMetadataSupplierRuleExecutor(Stub(CacheRepository), Stub(DefaultInMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), new BuildCommencedTimeProvider(), Stub(Serializer))
+    def ruleExecutor = new ComponentMetadataSupplierRuleExecutor(Stub(CacheRepository), Stub(DefaultInMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), Stub(BuildCommencedTimeProvider), Stub(Serializer))
 
-    @Shared ComponentTypeRegistry testComponentTypeRegistry = createTestComponentTypeRegistry()
+    @Shared
+    ComponentTypeRegistry testComponentTypeRegistry = createTestComponentTypeRegistry()
 
     def "cannot call withArtifacts multiple times"() {
         def query = createArtifactResolutionQuery(componentTypeRegistry)
@@ -105,14 +106,14 @@ class DefaultArtifactResolutionQueryTest extends Specification {
         def componentResult = result.components.iterator().next()
         componentResult.id.displayName == componentIdentifier.displayName
         componentResult instanceof UnresolvedComponentResult
-        UnresolvedComponentResult unresolvedComponentResult = (UnresolvedComponentResult)componentResult
+        UnresolvedComponentResult unresolvedComponentResult = (UnresolvedComponentResult) componentResult
         unresolvedComponentResult.failure instanceof IllegalArgumentException
         unresolvedComponentResult.failure.message == failureMessage
 
         where:
-        givenComponentTypeRegistry | selectedComponentType | selectedArtifactType   | failureMessage
-        testComponentTypeRegistry  | UnknownComponent      | TestArtifact           | "Not a registered component type: ${UnknownComponent.name}."
-        testComponentTypeRegistry  | TestComponent         | UnknownArtifact        | "Artifact type $UnknownArtifact.name is not registered for component type ${TestComponent.name}."
+        givenComponentTypeRegistry | selectedComponentType | selectedArtifactType | failureMessage
+        testComponentTypeRegistry  | UnknownComponent      | TestArtifact         | "Not a registered component type: ${UnknownComponent.name}."
+        testComponentTypeRegistry  | TestComponent         | UnknownArtifact      | "Artifact type $UnknownArtifact.name is not registered for component type ${TestComponent.name}."
     }
 
     def "forModule is cumulative"() {

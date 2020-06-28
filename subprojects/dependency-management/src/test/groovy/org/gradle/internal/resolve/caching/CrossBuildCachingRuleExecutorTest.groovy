@@ -49,7 +49,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
     CacheRepository cacheRepository = Mock()
     DefaultInMemoryCacheDecoratorFactory cacheDecoratorFactory = Mock()
     ValueSnapshotter valueSnapshotter = Mock()
-    BuildCommencedTimeProvider timeProvider = new BuildCommencedTimeProvider()
+    BuildCommencedTimeProvider timeProvider = Stub()
     PersistentIndexedCache<ValueSnapshot, CrossBuildCachingRuleExecutor.CachedEntry<Result>> store = Mock()
     CrossBuildCachingRuleExecutor.EntryValidator<Result> validator = Mock()
     Transformer<Serializable, Id> keyTransformer = new Transformer<Serializable, Id>() {
@@ -357,7 +357,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         private final SomeService service
 
         @Inject
-        WithServiceInjected(SomeService service){
+        WithServiceInjected(SomeService service) {
             this.service = service
         }
 

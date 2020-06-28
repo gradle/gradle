@@ -75,9 +75,9 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
                         return "system property '$key' has changed"
                     }
                 }
-                is InstantExecutionCacheFingerprint.DynamicDependencyVersion -> input.run {
+                is InstantExecutionCacheFingerprint.ChangingDependencyResolutionValue -> input.run {
                     if (host.buildStartTime >= expireAt) {
-                        return "cached version information for $displayName has expired"
+                        return input.reason
                     }
                 }
                 else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")

@@ -72,7 +72,7 @@ public class ResolveIvyFactory {
     private final InstantiatorFactory instantiatorFactory;
 
     private final DependencyVerificationOverride dependencyVerificationOverride;
-    private final DynamicVersionResolutionListener listener;
+    private final ChangingValueDependencyResolutionListener listener;
 
     public ResolveIvyFactory(ModuleRepositoryCacheProvider cacheProvider,
                              StartParameterResolutionOverride startParameterResolutionOverride,
@@ -83,7 +83,7 @@ public class ResolveIvyFactory {
                              RepositoryBlacklister repositoryBlacklister,
                              VersionParser versionParser,
                              InstantiatorFactory instantiatorFactory,
-                             DynamicVersionResolutionListener listener) {
+                             ChangingValueDependencyResolutionListener listener) {
         this.cacheProvider = cacheProvider;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
         this.timeProvider = timeProvider;

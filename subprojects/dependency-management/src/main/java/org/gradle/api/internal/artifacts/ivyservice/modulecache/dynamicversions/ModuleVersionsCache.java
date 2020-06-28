@@ -23,7 +23,7 @@ import java.util.Set;
 
 public interface ModuleVersionsCache {
 
-    CachedModuleVersionList cacheModuleVersionList(ModuleComponentRepository repository, ModuleIdentifier moduleId, Set<String> listedVersions);
+    void cacheModuleVersionList(ModuleComponentRepository repository, ModuleIdentifier moduleId, Set<String> listedVersions);
 
     CachedModuleVersionList getCachedModuleResolution(ModuleComponentRepository repository, ModuleIdentifier moduleId);
 

@@ -22,6 +22,7 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.model.ModuleSources;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 
 public interface ModuleMetadataCache {
     CachedMetadata cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id);
@@ -35,7 +36,7 @@ public interface ModuleMetadataCache {
 
         ModuleComponentResolveMetadata getMetadata();
 
-        long getAgeMillis();
+        Duration getAge();
 
         boolean isMissing();
 

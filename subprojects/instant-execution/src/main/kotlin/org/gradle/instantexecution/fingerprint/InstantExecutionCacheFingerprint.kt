@@ -49,10 +49,27 @@ sealed class InstantExecutionCacheFingerprint {
         val key: String
     ) : InstantExecutionCacheFingerprint()
 
-    data class DynamicDependencyVersion(
-        val displayName: String,
+    abstract class ChangingDependencyResolutionValue(
         val expireAt: Long
-    ) : InstantExecutionCacheFingerprint()
+    ) : InstantExecutionCacheFingerprint() {
+        abstract val reason: String
+    }
+
+    class DynamicDependencyVersion(
+        val displayName: String,
+        expireAt: Long
+    ) : ChangingDependencyResolutionValue(expireAt) {
+        override val reason: String
+            get() = "cached version information for $displayName has expired"
+    }
+
+    class ChangingModule(
+        val displayName: String,
+        expireAt: Long
+    ) : ChangingDependencyResolutionValue(expireAt) {
+        override val reason: String
+            get() = "cached artifact information for $displayName has expired"
+    }
 }
 
 
