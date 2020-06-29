@@ -38,7 +38,7 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractMavenPublishIntegTest 
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.uri}")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "should fail with an authentication error"() {
         setup:
         settingsFile << "rootProject.name = '${projectName}'"
