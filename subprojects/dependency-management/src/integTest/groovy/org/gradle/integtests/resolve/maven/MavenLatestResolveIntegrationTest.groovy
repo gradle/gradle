@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    def setup(){
+    def setup() {
         buildFile << """
             repositories {
                 maven { url '${mavenRepo().uri}' }
@@ -54,7 +54,7 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
         status << ["integration", "milestone", "release"]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "latest selector with unknown status leads to failure"() {
         mavenRepo().module('group', 'projectA', '1.0').publish()
 
