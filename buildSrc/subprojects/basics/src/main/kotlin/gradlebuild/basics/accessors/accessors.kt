@@ -13,34 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package accessors
-
-import org.gradle.api.Project
+package gradlebuild.basics.accessors
 
 import org.gradle.api.file.SourceDirectorySet
-
-import org.gradle.api.plugins.BasePluginConvention
-import org.gradle.api.plugins.JavaPluginConvention
-
-import org.gradle.api.reporting.ReportingExtension
 
 import org.gradle.api.tasks.GroovySourceSet
 import org.gradle.api.tasks.SourceSet
 
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+
 import org.gradle.kotlin.dsl.*
 
 
-val Project.base
-    get() = the<BasePluginConvention>()
-
-
-val Project.java
-    get() = the<JavaPluginConvention>()
-
-
-val Project.reporting
-    get() = the<ReportingExtension>()
+// TODO these accessors should be generated - https://github.com/gradle/gradle/issues/3191
 
 
 val SourceSet.groovy: SourceDirectorySet
     get() = withConvention(GroovySourceSet::class) { groovy }
+
+
+val SourceSet.kotlin: SourceDirectorySet
+    get() = withConvention(KotlinSourceSet::class) { kotlin }

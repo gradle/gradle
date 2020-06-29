@@ -34,6 +34,7 @@ fun String.toKebabCase() =
 rootProject.name = "buildSrc"
 
 // Please preserve alphabetical order
+include("basics")
 include("binaryCompatibility")
 include("build")
 include("buildquality")

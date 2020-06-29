@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package parser
+package gradlebuild.basics.util
 
 import org.gradle.internal.jvm.Jvm
 
@@ -31,12 +31,17 @@ import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
+import org.jetbrains.kotlin.config.ApiVersion
+import org.jetbrains.kotlin.config.JvmAnalysisFlags
+import org.jetbrains.kotlin.config.JvmTarget
+import org.jetbrains.kotlin.config.LanguageVersion
+import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
+import org.jetbrains.kotlin.utils.Jsr305State
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.utils.PathUtil
 
-import java.io.File
 
-import build.configureKotlinCompilerForGradleBuild
+import java.io.File
 
 
 class KotlinSourceParser {
@@ -98,6 +103,20 @@ class KotlinSourceParser {
     private
     fun configureKotlinCompilerIoForWindowsSupport() =
         org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
+
+    private
+    fun CompilerConfiguration.configureKotlinCompilerForGradleBuild() {
+
+        put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, LanguageVersionSettingsImpl(
+            languageVersion = LanguageVersion.KOTLIN_1_3,
+            apiVersion = ApiVersion.KOTLIN_1_3,
+            analysisFlags = kotlin.collections.mapOf(JvmAnalysisFlags.jsr305 to Jsr305State.STRICT)
+        ))
+
+        put(JVMConfigurationKeys.PARAMETERS_METADATA, true)
+        put(JVMConfigurationKeys.SKIP_RUNTIME_VERSION_CHECK, true)
+        put(JVMConfigurationKeys.JVM_TARGET, JvmTarget.JVM_1_8)
+    }
 }
 
 

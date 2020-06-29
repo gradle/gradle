@@ -1,11 +1,10 @@
 // This file contains members that we should consider to pull upstream
 // and make available to all Kotlin DSL users
-package org.gradle.kotlin.dsl
+package gradlebuild.basics.kotlindsl
 
 import org.gradle.api.Project
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.util.concurrent.Callable
 
 
 /**
@@ -15,13 +14,6 @@ import java.util.concurrent.Callable
  */
 operator fun File.div(child: String): File =
     resolve(child)
-
-
-/**
- * Defers the evaluation of an expression until its value is required by the consumer.
- */
-fun <T> deferred(value: () -> T): Any =
-    Callable { value() }
 
 
 fun Project.execAndGetStdout(workingDir: File, vararg args: String): String {
