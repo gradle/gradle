@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 
 class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest {
 
-    def "can manually set toolchain java compiler"() {
+    def "can manually set java compiler via toolchain on java compile task"() {
         buildFile << """
             import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService
 
@@ -53,6 +53,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
         then:
         outputContains("Toolchain selected: 14")
+        javaClassFile("Foo.class").exists()
     }
 
 }

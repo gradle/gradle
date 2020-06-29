@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -22,5 +22,5 @@ import org.gradle.language.base.internal.compile.Compiler;
  * Creates Java compilers based on the provided compile options.
  */
 public interface JavaCompilerFactory {
-    Compiler<JavaCompileSpec> create(Class<? extends CompileSpec> type);
+    <T extends CompileSpec> Compiler<T> create(Class<T> type);
 }

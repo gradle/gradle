@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.internal.Factory;
+import org.gradle.jvm.toolchain.internal.JavaCompilerFactory;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.internal.ExecHandleFactory;
@@ -50,24 +51,26 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     }
 
     @Override
-    public Compiler<JavaCompileSpec> create(Class<? extends CompileSpec> type) {
-        Compiler<JavaCompileSpec> result = createTargetCompiler(type);
-        return new ModuleApplicationNameWritingCompiler<>(new AnnotationProcessorDiscoveringCompiler<>(new NormalizingJavaCompiler(result), processorDetector));
+    @SuppressWarnings("unchecked")
+    public <T extends CompileSpec> Compiler<T> create(Class<T> type) {
+        Compiler<T> result = createTargetCompiler(type);
+        return (Compiler<T>) new ModuleApplicationNameWritingCompiler<>(new AnnotationProcessorDiscoveringCompiler<>(new NormalizingJavaCompiler((Compiler<JavaCompileSpec>) result), processorDetector));
     }
 
-    private Compiler<JavaCompileSpec> createTargetCompiler(Class<? extends CompileSpec> type) {
+    @SuppressWarnings("unchecked")
+    private <T extends CompileSpec> Compiler<T> createTargetCompiler(Class<? extends CompileSpec> type) {
         if (!JavaCompileSpec.class.isAssignableFrom(type)) {
             throw new IllegalArgumentException(String.format("Cannot create a compiler for a spec with type %s", type.getSimpleName()));
         }
 
         if (CommandLineJavaCompileSpec.class.isAssignableFrom(type)) {
-            return new CommandLineJavaCompiler(execHandleFactory);
+            return (Compiler<T>) new CommandLineJavaCompiler(execHandleFactory);
         }
 
         if (ForkingJavaCompileSpec.class.isAssignableFrom(type)) {
-            return new DaemonJavaCompiler(workingDirProvider.getWorkingDirectory(), JdkJavaCompiler.class, new Object[]{javaHomeBasedJavaCompilerFactory}, workerDaemonFactory, forkOptionsFactory, classPathRegistry, actionExecutionSpecFactory);
+            return (Compiler<T>) new DaemonJavaCompiler(workingDirProvider.getWorkingDirectory(), JdkJavaCompiler.class, new Object[]{javaHomeBasedJavaCompilerFactory}, workerDaemonFactory, forkOptionsFactory, classPathRegistry, actionExecutionSpecFactory);
         } else {
-            return new JdkJavaCompiler(javaHomeBasedJavaCompilerFactory);
+            return (Compiler<T>) new JdkJavaCompiler(javaHomeBasedJavaCompilerFactory);
         }
     }
 }
