@@ -164,7 +164,7 @@ configurations.compile.withDependencies { deps ->
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "provides useful error message when withDependencies action fails to execute"() {
         when:
         buildFile << """
