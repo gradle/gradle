@@ -37,7 +37,7 @@ public class DefaultJavaCompiler implements JavaCompiler {
     }
 
     public <T extends CompileSpec> WorkResult execute(T spec) {
-        // TODO: replace with actual compiler
+        // TODO: replace with actual JavaCompilerFactory
         System.out.println("Toolchain selected: " + javaToolchain.getJavaMajorVersion());
         return WorkResults.didWork(true);
     }

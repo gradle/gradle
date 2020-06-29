@@ -22,15 +22,17 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaInstallationRegistry;
 
+import javax.inject.Inject;
 import java.io.File;
 
 public class JavaToolchain {
 
+    // TODO: this is going to be a JavaInstallation
     private final File javaHome;
     private final JavaInstallationRegistry installationRegistry;
     private final FileFactory factory;
 
-    // TODO: this is going to be a JavaInstallation
+    @Inject
     public JavaToolchain(File javaHome, JavaInstallationRegistry installationRegistry, FileFactory fileFactory) {
         this.javaHome = javaHome;
         this.installationRegistry = installationRegistry;
@@ -41,7 +43,7 @@ public class JavaToolchain {
         return Providers.of(new DefaultJavaCompiler(this));
     }
 
-    // TODO: fixme
+    // TODO: cache me?
     public JavaVersion getJavaMajorVersion() {
         return installationRegistry.installationForDirectory(factory.dir(javaHome)).get().getJavaVersion();
     }
