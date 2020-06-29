@@ -55,13 +55,13 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         }
     }
 
-    private void dropVirtualFileSystemIfRequested(StartParameterInternal startParameter, WatchingAwareVirtualFileSystem virtualFileSystem) {
+    private static void dropVirtualFileSystemIfRequested(StartParameterInternal startParameter, WatchingAwareVirtualFileSystem virtualFileSystem) {
         if (VirtualFileSystemServices.isDropVfs(startParameter)) {
             virtualFileSystem.invalidateAll();
         }
     }
 
-    private void logMessageForDeprecatedVfsRetentionProperty(StartParameterInternal startParameter) {
+    private static void logMessageForDeprecatedVfsRetentionProperty(StartParameterInternal startParameter) {
         if (VirtualFileSystemServices.isDeprecatedVfsRetentionPropertyPresent(startParameter)) {
             @SuppressWarnings("deprecation")
             String deprecatedVfsRetentionEnabledProperty = VirtualFileSystemServices.DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY;
