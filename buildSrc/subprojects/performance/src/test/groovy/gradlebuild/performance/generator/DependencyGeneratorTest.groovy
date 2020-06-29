@@ -16,7 +16,7 @@
 
 package gradlebuild.performance.generator
 
-import org.gradle.testing.performance.generator.DependencyGenerator
+
 import spock.lang.Specification
 import spock.lang.Unroll
 

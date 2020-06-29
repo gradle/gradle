@@ -15,7 +15,7 @@ class PerformanceTestIntegrationTest extends AbstractIntegrationTest {
             }
             apply plugin: 'gradlebuild.performance-test'
 
-            def distributedPerformanceTests = tasks.withType(org.gradle.testing.DistributedPerformanceTest)
+            def distributedPerformanceTests = tasks.withType(gradlebuild.performance.tasks.DistributedPerformanceTest)
             distributedPerformanceTests.all {
                 // resolve these tasks
             }

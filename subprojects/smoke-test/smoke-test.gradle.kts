@@ -15,9 +15,9 @@
  */
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.accessors.groovy
+import gradlebuild.performance.generator.tasks.RemoteProject
 import org.gradle.gradlebuild.test.integrationtests.addDependenciesAndConfigurations
 import org.gradle.gradlebuild.test.integrationtests.SmokeTest
-import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 plugins {
     gradlebuild.internal.java

@@ -16,7 +16,7 @@
 
 package gradlebuild.performance
 
-import org.gradle.testing.RetryFailedRerunStrategy
+import gradlebuild.performance.rerun.RetryFailedRerunStrategy
 import spock.lang.Specification
 
 class RetryFailedRerunStrategyTest extends Specification {

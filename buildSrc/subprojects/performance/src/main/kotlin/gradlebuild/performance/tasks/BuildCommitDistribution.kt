@@ -16,6 +16,7 @@
 
 package gradlebuild.performance.tasks
 
+import gradlebuild.performance.generator.tasks.RemoteProject
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
@@ -27,8 +28,6 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.caching.http.HttpBuildCache
-import org.gradle.kotlin.dsl.*
-import org.gradle.testing.performance.generator.tasks.RemoteProject
 import java.io.File
 
 

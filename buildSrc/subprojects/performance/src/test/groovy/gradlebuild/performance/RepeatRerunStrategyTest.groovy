@@ -16,7 +16,7 @@
 
 package gradlebuild.performance
 
-import org.gradle.testing.RepeatRerunStrategy
+import gradlebuild.performance.rerun.RepeatRerunStrategy
 import spock.lang.Specification
 import spock.lang.Unroll
 

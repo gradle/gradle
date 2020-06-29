@@ -21,7 +21,6 @@ import org.gradle.api.tasks.testing.TestListener
 import org.gradle.api.tasks.testing.TestOutputListener
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.event.ListenerBroadcast
-import org.gradle.testing.JUnitXmlTestEventsGenerator
 import org.openmbee.junit.JUnitMarshalling
 import org.openmbee.junit.model.JUnitTestSuite
 import spock.lang.Specification

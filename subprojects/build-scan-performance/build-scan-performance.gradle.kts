@@ -1,5 +1,5 @@
-import org.gradle.testing.PerformanceTest
-import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
+import gradlebuild.performance.tasks.PerformanceTest
+import gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask
 
 /*
  * Copyright 2016 the original author or authors.

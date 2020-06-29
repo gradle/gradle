@@ -23,7 +23,7 @@ import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
 import org.gradle.gradlebuild.docs.FindBrokenInternalLinks
 import org.gradle.gradlebuild.test.integrationtests.DistributionTest
-import org.gradle.testing.DistributedPerformanceTest
+import gradlebuild.performance.tasks.DistributedPerformanceTest
 
 /**
  * When run from a Continuous Integration environment, we only want to archive a subset of reports, mostly for

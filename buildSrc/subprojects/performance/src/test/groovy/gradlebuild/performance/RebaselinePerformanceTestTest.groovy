@@ -1,6 +1,6 @@
 package gradlebuild.performance
 
-import org.gradle.testing.RebaselinePerformanceTests
+import gradlebuild.performance.tasks.RebaselinePerformanceTests
 import spock.lang.Specification
 
 class RebaselinePerformanceTestTest extends Specification {
