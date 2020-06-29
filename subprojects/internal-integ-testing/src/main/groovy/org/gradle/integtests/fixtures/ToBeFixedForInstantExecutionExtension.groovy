@@ -17,7 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.test.fixtures.ResetableExpectations
+import org.gradle.test.fixtures.ResettableExpectations
 import org.junit.AssumptionViolatedException
 import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
 import org.spockframework.runtime.extension.IMethodInterceptor
@@ -148,8 +148,8 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
             instance.ignoreCleanupAssertions()
         }
         invocation.spec.allFields.forEach { FieldInfo specField ->
-            if (ResetableExpectations.isAssignableFrom(specField.type)) {
                 def server = specField.readValue(instance) as ResetableExpectations
+            if (ResettableExpectations.isAssignableFrom(specField.type)) {
                 try {
                     server?.resetExpectations()
                 } catch (Throwable error) {

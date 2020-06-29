@@ -16,6 +16,6 @@
 
 package org.gradle.test.fixtures;
 
-public interface ResetableExpectations {
+public interface ResettableExpectations {
     void resetExpectations();
 }

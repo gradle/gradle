@@ -18,12 +18,12 @@ package org.gradle.test.fixtures.server.http
 
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.ModuleArtifact
-import org.gradle.test.fixtures.ResetableExpectations
+import org.gradle.test.fixtures.ResettableExpectations
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.IvyFileModule
 import org.gradle.test.fixtures.ivy.RemoteIvyModule
 
-class IvyHttpModule extends DelegatingIvyModule<IvyHttpModule> implements RemoteIvyModule, HttpModule, ResetableExpectations {
+class IvyHttpModule extends DelegatingIvyModule<IvyHttpModule> implements RemoteIvyModule, HttpModule, ResettableExpectations {
     public final IvyHttpRepository repository
     private final IvyFileModule backingModule
     private final HttpServer server
