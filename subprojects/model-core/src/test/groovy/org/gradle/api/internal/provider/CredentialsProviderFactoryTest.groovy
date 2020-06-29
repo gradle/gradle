@@ -158,11 +158,5 @@ class CredentialsProviderFactoryTest extends Specification {
         def e = thrown(ProjectConfigurationException)
         e.message == 'Credentials required for this build could not be resolved.'
         e.causes.size() == 2
-        e.causes[0].message.contains("The following Gradle properties are missing for 'cloudService' credentials:")
-        e.causes[0].message.contains("- cloudServiceAccessKey")
-        e.causes[0].message.contains("- cloudServiceSecretKey")
-        e.causes[1].message.contains("The following Gradle properties are missing for 'myService' credentials:")
-        e.causes[1].message.contains("- myServiceUsername")
-        e.causes[1].message.contains("- myServicePassword")
     }
 }
