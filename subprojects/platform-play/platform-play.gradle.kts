@@ -1,4 +1,4 @@
-import org.gradle.gradlebuild.BuildEnvironment
+import gradlebuild.basics.BuildEnvironment
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 

@@ -83,7 +83,7 @@ testFilesCleanup {
 }
 
 // Needed for testing debug command line option (JDWPUtil) - 'CommandLineIntegrationSpec.can debug with org.gradle.debug=true'
-val toolsJar = buildJvms.testJvm.map { jvm -> jvm.toolsClasspath }
+val toolsJar = buildJvms.testJvm.map { jvm -> jvm.jdk.get().toolsClasspath }
 dependencies {
-    integTestRuntimeOnly(files(toolsJar))
+    integTestRuntimeOnly(toolsJar)
 }

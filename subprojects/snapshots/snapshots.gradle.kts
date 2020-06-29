@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import accessors.java
-
 plugins {
     gradlebuild.distribution.`implementation-java`
     gradlebuild.`publish-public-libraries`
@@ -54,7 +52,6 @@ afterEvaluate {
     // This is a workaround for the validate plugins task trying to inspect classes which have changed but are NOT tasks.
     // For the current project, we exclude all internal packages, since there are no tasks in there.
     tasks.withType<ValidatePlugins>().configureEach {
-        val main by project.java.sourceSets
-        classes.setFrom(main.output.classesDirs.asFileTree.matching { exclude("**/internal/**") })
+        classes.setFrom(sourceSets.main.get().output.classesDirs.asFileTree.matching { exclude("**/internal/**") })
     }
 }

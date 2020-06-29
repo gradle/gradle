@@ -1,6 +1,3 @@
-import org.gradle.util.VersionNumber
-import java.util.*
-
 /*
  * Copyright 2013 the original author or authors.
  *
@@ -16,6 +13,10 @@ import java.util.*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradlebuild.basics.util.ReproduciblePropertiesWriter
+import java.util.Properties
+import org.gradle.util.VersionNumber
+
 plugins {
     gradlebuild.distribution.`api-java`
 }
@@ -92,7 +93,7 @@ tasks {
             findLatest("kotlin", "org.jetbrains.kotlin:kotlin-gradle-plugin:(1.3,)", versionProperties)
 
             val libraryVersionFile = file("src/main/resources/org/gradle/buildinit/tasks/templates/library-versions.properties")
-            org.gradle.build.ReproduciblePropertiesWriter.store(
+            ReproduciblePropertiesWriter.store(
                 versionProperties,
                 libraryVersionFile,
                 "Generated file, please do not edit - Version values used in build-init templates"

@@ -1,4 +1,4 @@
-import org.gradle.gradlebuild.PublicApi
+import gradlebuild.basics.PublicApi
 
 plugins {
     gradlebuild.internal.java

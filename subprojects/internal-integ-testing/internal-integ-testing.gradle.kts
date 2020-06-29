@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.build.ReproduciblePropertiesWriter
+import gradlebuild.basics.util.ReproduciblePropertiesWriter
 import java.util.Properties
 
 plugins {
@@ -91,22 +91,22 @@ classycle {
     excludePatterns.set(listOf("org/gradle/**"))
 }
 
-val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
-
 val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {
-    destFile.set(generatedResourcesDir.file("all-released-versions.properties"))
-    versions = releasedVersions.allPreviousVersions
-    mostRecent = releasedVersions.mostRecentRelease
-    mostRecentSnapshot = releasedVersions.mostRecentSnapshot
+    destFile.set(layout.buildDirectory.file("generated-resources/all-released-versions/all-released-versions.properties"))
+    versions.set(moduleIdentity.releasedVersions.map {
+        it.allPreviousVersions.joinToString(" ") { it.version }
+    })
+    mostRecent.set(moduleIdentity.releasedVersions.map { it.mostRecentRelease.version })
+    mostRecentSnapshot.set(moduleIdentity.releasedVersions.map { it.mostRecentSnapshot.version })
 }
 
 val copyAgpVersionsInfo by tasks.registering(Copy::class) {
     from(rootProject.layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
-    into(temporaryDir)
+    into(layout.buildDirectory.dir("generated-resources/agp-versions"))
 }
 
 sourceSets.main {
-    output.dir(mapOf("builtBy" to prepareVersionsInfo), generatedResourcesDir)
+    output.dir(prepareVersionsInfo.map { it.destFile.get().asFile.parentFile })
     output.dir(copyAgpVersionsInfo)
 }
 
@@ -116,21 +116,21 @@ abstract class PrepareVersionsInfo : DefaultTask() {
     @get:OutputFile
     abstract val destFile: RegularFileProperty
 
-    @Input
-    lateinit var mostRecent: String
+    @get:Input
+    abstract val mostRecent: Property<String>
 
-    @Input
-    lateinit var versions: List<String>
+    @get:Input
+    abstract val versions: Property<String>
 
-    @Input
-    lateinit var mostRecentSnapshot: String
+    @get:Input
+    abstract val mostRecentSnapshot: Property<String>
 
     @TaskAction
     fun prepareVersions() {
         val properties = Properties()
-        properties["mostRecent"] = mostRecent
-        properties["mostRecentSnapshot"] = mostRecentSnapshot
-        properties["versions"] = versions.joinToString(" ")
+        properties["mostRecent"] = mostRecent.get()
+        properties["mostRecentSnapshot"] = mostRecentSnapshot.get()
+        properties["versions"] = versions.get()
         ReproduciblePropertiesWriter.store(properties, destFile.get().asFile)
     }
 }

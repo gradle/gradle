@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import accessors.java
 plugins {
     gradlebuild.internal.java
 }
@@ -71,19 +70,19 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }
 
-val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
-
 val reportResources = tasks.register<Copy>("reportResources") {
     from(reports)
-    into(generatedResourcesDir.dir("org/gradle/reporting").get().asFile)
+    into(layout.buildDirectory.file("generated-resources/report-resources/org/gradle/reporting"))
 }
 
-java.sourceSets.main { output.dir(mapOf("builtBy" to reportResources), generatedResourcesDir) }
+sourceSets.main {
+    output.dir(reportResources.map { it.destinationDir.parentFile.parentFile.parentFile })
+}
 
 tasks.jar {
     inputs.files(flamegraph)
         .withPropertyName("flamegraph")
         .withPathSensitivity(PathSensitivity.RELATIVE)
 
-    from(files(deferred{ flamegraph.map { zipTree(it) } }))
+    from(files(provider{ flamegraph.map { zipTree(it) } }))
 }
