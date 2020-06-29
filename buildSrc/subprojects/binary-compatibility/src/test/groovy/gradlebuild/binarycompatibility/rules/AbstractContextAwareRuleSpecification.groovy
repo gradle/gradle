@@ -51,10 +51,10 @@ abstract class AbstractContextAwareRuleSpecification extends Specification {
     }
 
     Map getInitializationParams() {
-        return [acceptedApiChanges: [:], publicApiPatterns: ['org[.]gradle[.]binarycompatibility[.]rules.[^.]+']]
+        return [acceptedApiChanges: [:], publicApiPatterns: ['gradlebuild[.]binarycompatibility[.]rules.[^.]+']]
     }
 
     String replaceAsInternal(String name) {
-        return name.replace('org.gradle', 'org.gradle.internal')
+        return name.replace('gradlebuild', 'gradlebuild.internal')
     }
 }

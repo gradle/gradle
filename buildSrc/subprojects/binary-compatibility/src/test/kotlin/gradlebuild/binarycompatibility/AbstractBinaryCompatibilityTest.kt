@@ -169,13 +169,16 @@ abstract class AbstractBinaryCompatibilityTest {
 
             withSettings("""include("v1", "v2", "binaryCompatibility")""")
             withBuildScript("""
+                    import gradlebuild.identity.extension.ModuleIdentityExtension
+
                     plugins {
                         base
                         kotlin("jvm") version "$embeddedKotlinVersion" apply false
                     }
                     subprojects {
+                        apply(plugin = "gradlebuild.module-identity")
                         apply(plugin = "kotlin")
-                        base.archivesBaseName = "api-module"
+                        the<ModuleIdentityExtension>().baseName.set("api-module")
                         repositories {
                             jcenter()
                         }

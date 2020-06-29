@@ -21,7 +21,7 @@ import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.visitor.GenericVisitor
 import org.gradle.util.TextUtil.normaliseFileSeparators
 import org.jetbrains.kotlin.psi.KtFile
-import parser.KotlinSourceParser
+import gradlebuild.basics.util.KotlinSourceParser
 import java.io.File
 
 
