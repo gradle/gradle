@@ -31,10 +31,6 @@ gradlePlugin {
             id = "gradlebuild.shaded-jar"
             implementationClass = "org.gradle.gradlebuild.packaging.ShadedJarPlugin"
         }
-        register("apiMetadata") {
-            id = "gradlebuild.api-metadata"
-            implementationClass = "org.gradle.gradlebuild.packaging.ApiMetadataPlugin"
-        }
         register("distributions") {
             id = "gradlebuild.distributions"
             implementationClass = "org.gradle.gradlebuild.packaging.GradleDistributionsPlugin"
