@@ -85,10 +85,11 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                 new InProcessBuildActionExecuter(
                 new RunAsBuildOperationBuildActionRunner(
                 new BuildCompletionNotifyingBuildActionRunner(
+                new FileSystemWatchingBuildActionRunner(
                 new ValidatingBuildActionRunner(
                 new BuildOutcomeReportingBuildActionRunner(styledTextOutputFactory,
                 new ChainingBuildActionRunner(buildActionRunners
-            ))))))))))))));
+            )))))))))))))));
             // @formatter:on
         }
 
