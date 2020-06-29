@@ -13,21 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.gradlebuild.ide
+package gradlebuild
 
-import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.Plugin
-import org.gradle.api.PolymorphicDomainObjectContainer
-import org.gradle.api.Project
-import org.gradle.api.plugins.ExtensionAware
-import org.gradle.kotlin.dsl.*
-import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.plugins.ide.idea.model.IdeaProject
 import org.jetbrains.gradle.ext.CopyrightConfiguration
 import org.jetbrains.gradle.ext.ProjectSettings
 import org.jetbrains.gradle.ext.Remote
 import org.jetbrains.gradle.ext.RunConfiguration
 
+plugins {
+    id("org.jetbrains.gradle.plugin.idea-ext")
+}
 
 object GradleCopyright {
     const val profileName = "ASL2"
@@ -48,62 +44,45 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 }
 
+tasks.idea.configure {
+    doFirst { throw RuntimeException("To import in IntelliJ, please follow the instructions here: https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md#intellij") }
+}
 
-open class IdePlugin : Plugin<Project> {
-
-    override fun apply(project: Project): Unit = project.run {
-        configureIdeaForRootProject()
+idea {
+    module {
+        excludeDirs = setOf(layout.projectDirectory.file("intTestHomeDir").asFile)
     }
-
-    private
-    fun Project.configureIdeaForRootProject() {
-        apply(plugin = "org.jetbrains.gradle.plugin.idea-ext")
-        tasks.named("idea") {
-            doFirst { throw RuntimeException("To import in IntelliJ, please follow the instructions here: https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md#intellij") }
-        }
-        with(the<IdeaModel>()) {
-            module {
-                excludeDirs = setOf(intTestHomeDir)
-            }
-            project {
-                settings {
-                    configureCopyright()
-                    configureRunConfigurations()
-                    doNotDetectFrameworks("android", "web")
-                }
-            }
+    project {
+        settings {
+            configureCopyright()
+            configureRunConfigurations()
+            doNotDetectFrameworks("android", "web")
         }
     }
+}
 
-    private
-    fun ProjectSettings.configureCopyright() {
-        copyright {
-            useDefault = GradleCopyright.profileName
-            profiles {
-                create(GradleCopyright.profileName) {
-                    notice = GradleCopyright.notice
-                    keyword = GradleCopyright.keyword
-                }
+fun ProjectSettings.configureCopyright() {
+    copyright {
+        useDefault = GradleCopyright.profileName
+        profiles {
+            create(GradleCopyright.profileName) {
+                notice = GradleCopyright.notice
+                keyword = GradleCopyright.keyword
             }
         }
     }
+}
 
-    private
-    fun ProjectSettings.configureRunConfigurations() {
-        runConfigurations {
-            create<Remote>("Remote debug port 5005") {
-                mode = Remote.RemoteMode.ATTACH
-                transport = Remote.RemoteTransport.SOCKET
-                sharedMemoryAddress = "javadebug"
-                host = "localhost"
-                port = 5005
-            }
+fun ProjectSettings.configureRunConfigurations() {
+    runConfigurations {
+        create<Remote>("Remote debug port 5005") {
+            mode = Remote.RemoteMode.ATTACH
+            transport = Remote.RemoteTransport.SOCKET
+            sharedMemoryAddress = "javadebug"
+            host = "localhost"
+            port = 5005
         }
     }
-
-    private
-    val Project.intTestHomeDir
-        get() = file("intTestHomeDir")
 }
 
 
