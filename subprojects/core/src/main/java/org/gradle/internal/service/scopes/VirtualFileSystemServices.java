@@ -199,9 +199,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId)
                 ))
                 .orElse(new NonWatchingVirtualFileSystem(delegate));
-            listenerManager.addListener(new VirtualFileSystemBuildLifecycleListener(
-                watchingAwareVirtualFileSystem
-            ));
             listenerManager.addListener((BuildAddedListener) buildState ->
                 watchingAwareVirtualFileSystem.buildRootDirectoryAdded(buildState.getBuildRootDir())
             );

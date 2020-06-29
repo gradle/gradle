@@ -44,10 +44,10 @@ public class SessionFailureReportingActionExecuter implements BuildActionExecute
     private final StyledTextOutputFactory styledTextOutputFactory;
     private final Clock clock;
 
-    public SessionFailureReportingActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, StyledTextOutputFactory styledTextOutputFactory, Clock clock) {
-        this.delegate = delegate;
+    public SessionFailureReportingActionExecuter(StyledTextOutputFactory styledTextOutputFactory, Clock clock, BuildActionExecuter<BuildActionParameters> delegate) {
         this.styledTextOutputFactory = styledTextOutputFactory;
         this.clock = clock;
+        this.delegate = delegate;
     }
 
     @Override
