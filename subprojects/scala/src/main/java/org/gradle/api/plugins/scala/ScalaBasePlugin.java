@@ -214,6 +214,10 @@ public class ScalaBasePlugin implements Plugin<Project> {
                     project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".analysis")
                 );
 
+                incrementalOptions.getClassfileBackupDir().set(
+                    project.getLayout().getBuildDirectory().file("tmp/scala/classfileBackup/" + scalaCompile.getName() + ".bak")
+                );
+
                 final Jar jarTask = (Jar) project.getTasks().findByName(sourceSet.getJarTaskName());
                 if (jarTask != null) {
                     incrementalOptions.getPublishedCode().set(jarTask.getArchiveFile());
