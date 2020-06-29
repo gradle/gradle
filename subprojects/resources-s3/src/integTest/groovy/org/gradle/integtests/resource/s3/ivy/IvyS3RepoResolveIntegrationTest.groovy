@@ -39,7 +39,7 @@ class IvyS3RepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegr
         result = executer.withTasks(*tasks).run()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "cannot add invalid authentication types for s3 repo"() {
         given:
         def remoteIvyRepo = server.getRemoteIvyRepo()
