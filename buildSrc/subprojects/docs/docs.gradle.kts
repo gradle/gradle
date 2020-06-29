@@ -1,7 +1,6 @@
 dependencies {
-    implementation(project(":configuration"))
-    implementation(project(":kotlinDsl"))
-    implementation(project(":versioning"))
+    implementation(project(":basics"))
+    implementation(project(":moduleIdentity"))
 
     implementation("com.vladsch.flexmark:flexmark-all:0.34.56")
     implementation("com.uwyn:jhighlight:1.0") {

@@ -16,6 +16,7 @@
 
 package org.gradle.gradlebuild.docs;
 
+import gradlebuild.identity.extension.ModuleIdentityExtension;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -23,9 +24,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.gradlebuild.versioning.BuildVersion;
-import org.gradle.internal.Cast;
-import org.jetbrains.annotations.NotNull;
+import org.gradle.util.GradleVersion;
 
 import java.nio.charset.Charset;
 
@@ -67,9 +66,10 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
             task.getReleaseNotesJavascriptFile().convention(extension.getReleaseNotes().getReleaseNotesJsFile());
             task.getJquery().from(extension.getReleaseNotes().getJquery());
 
+            ModuleIdentityExtension moduleIdentity = project.getExtensions().getByType(ModuleIdentityExtension.class);
             MapProperty<String, String> replacementTokens = task.getReplacementTokens();
-            replacementTokens.put("version", project.provider(() -> String.valueOf(project.getVersion())));
-            replacementTokens.put("baseVersion", project.provider(() -> baseVersionOf(project)));
+            replacementTokens.put("version", moduleIdentity.getVersion().map(GradleVersion::getVersion));
+            replacementTokens.put("baseVersion", moduleIdentity.getVersion().map(v -> v.getBaseVersion().getVersion()));
 
             task.getDestinationFile().convention(extension.getStagingRoot().file("release-notes/release-notes.html"));
         });
@@ -87,16 +87,5 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
             releaseNotes.getReleaseNotesJsFile().convention(extension.getSourceRoot().file("release/content/script.js"));
             releaseNotes.getJquery().from(jquery);
         });
-    }
-
-    private String baseVersionOf(Project project) {
-        return buildVersionOf(project).getBaseVersion();
-    }
-
-    @NotNull
-    private BuildVersion buildVersionOf(Project project) {
-        return Cast.uncheckedNonnullCast(
-            project.getRootProject().getExtensions().getByName("buildVersion")
-        );
     }
 }

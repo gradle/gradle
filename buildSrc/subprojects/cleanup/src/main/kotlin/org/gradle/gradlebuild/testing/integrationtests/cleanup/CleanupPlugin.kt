@@ -15,19 +15,22 @@
  */
 package org.gradle.gradlebuild.testing.integrationtests.cleanup
 
+import gradlebuild.ModuleIdentityPlugin
+import gradlebuild.basics.BuildEnvironment
+import gradlebuild.identity.extension.ModuleIdentityExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.gradlebuild.BuildEnvironment
+import org.gradle.api.plugins.BasePlugin
 import org.gradle.kotlin.dsl.*
-import org.gradle.util.GradleVersion
 
 
 class CleanupPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
+        apply<BasePlugin>()
+        apply<ModuleIdentityPlugin>() // Would be nice to avoid this in the root project, and instead apply a 'clean' Plugin to each subproject
         tasks.register<CleanUpCaches>("cleanUpCaches") {
-            dependsOn(":createBuildReceipt")
-            version.set(GradleVersion.version(project.version.toString()))
+            version.set(project.the<ModuleIdentityExtension>().version)
             homeDir.set(layout.projectDirectory.dir("intTestHomeDir"))
         }
         val tracker = gradle.sharedServices.registerIfAbsent("daemonTracker", DaemonTracker::class.java) {

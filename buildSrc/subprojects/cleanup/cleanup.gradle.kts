@@ -1,6 +1,6 @@
 dependencies {
-    implementation(project(":configuration"))
-    implementation(project(":kotlinDsl"))
+    implementation(project(":basics"))
+    implementation(project(":moduleIdentity"))
 }
 
 gradlePlugin {

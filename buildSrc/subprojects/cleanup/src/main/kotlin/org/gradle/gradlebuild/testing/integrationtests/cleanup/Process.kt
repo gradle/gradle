@@ -19,7 +19,7 @@
 
 package org.gradle.gradlebuild.testing.integrationtests.cleanup
 
-import org.gradle.gradlebuild.BuildEnvironment
+import gradlebuild.basics.BuildEnvironment
 import org.gradle.process.ExecOperations
 import org.gradle.testing.LeakingProcessKillPattern
 import org.slf4j.LoggerFactory

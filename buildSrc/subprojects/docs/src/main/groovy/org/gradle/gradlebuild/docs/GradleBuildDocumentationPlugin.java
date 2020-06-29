@@ -16,6 +16,7 @@
 
 package org.gradle.gradlebuild.docs;
 
+import gradlebuild.basics.PublicApi;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -34,7 +35,6 @@ import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.gradlebuild.PublicApi;
 
 import java.util.Collections;
 
