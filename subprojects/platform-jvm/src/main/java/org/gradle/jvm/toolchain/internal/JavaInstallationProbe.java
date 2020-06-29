@@ -121,6 +121,7 @@ public class JavaInstallationProbe {
             return error;
         }
 
+        @Deprecated
         public void configure(LocalJavaInstallation install) {
             assertOk();
             install.setJavaVersion(getJavaVersion());
