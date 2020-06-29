@@ -17,7 +17,6 @@
 package org.gradle.internal.service.scopes;
 
 import com.google.common.annotations.VisibleForTesting;
-import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -71,7 +70,6 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
@@ -79,9 +77,7 @@ import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
-import org.gradle.internal.watch.registry.impl.DarwinFileWatcherRegistryFactory;
-import org.gradle.internal.watch.registry.impl.LinuxFileWatcherRegistryFactory;
-import org.gradle.internal.watch.registry.impl.WindowsFileWatcherRegistryFactory;
+import org.gradle.internal.watch.registry.impl.UnavailableFileWatcherRegistryFactory;
 import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.impl.DelegatingDiffCapturingUpdateFunctionDecorator;
 import org.gradle.internal.watch.vfs.impl.NonWatchingVirtualFileSystem;
@@ -93,7 +89,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Predicate;
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
@@ -176,7 +171,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             Stat stat,
             StringInterner stringInterner,
             ListenerManager listenerManager,
-            DocumentationRegistry documentationRegistry
+            DocumentationRegistry documentationRegistry,
+            FileWatcherRegistryFactory fileWatcherRegistryFactory
         ) {
             // All the changes in global caches should be done by Gradle itself, so in order
             // to minimize the number of watches we don't watch anything within the global caches.
@@ -190,34 +186,19 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 updateFunctionDecorator,
                 DirectoryScanner.getDefaultExcludes()
             );
-            WatchingAwareVirtualFileSystem watchingAwareVirtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current())
-                .<WatchingAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
-                    watcherRegistryFactory,
-                    delegate,
-                    updateFunctionDecorator,
-                    watchFilter,
-                    sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId)
-                ))
-                .orElse(new NonWatchingVirtualFileSystem(delegate));
+            WatchingAwareVirtualFileSystem watchingAwareVirtualFileSystem = fileWatcherRegistryFactory instanceof UnavailableFileWatcherRegistryFactory
+                ? new NonWatchingVirtualFileSystem(delegate)
+                : new WatchingVirtualFileSystem(
+                fileWatcherRegistryFactory,
+                delegate,
+                updateFunctionDecorator,
+                watchFilter,
+                sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId)
+            );
             listenerManager.addListener((BuildAddedListener) buildState ->
                 watchingAwareVirtualFileSystem.buildRootDirectoryAdded(buildState.getBuildRootDir())
             );
             return watchingAwareVirtualFileSystem;
-        }
-
-        private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(OperatingSystem operatingSystem) {
-            try {
-                if (operatingSystem.isMacOsX()) {
-                    return Optional.of(new DarwinFileWatcherRegistryFactory());
-                } else if (operatingSystem.isWindows()) {
-                    return Optional.of(new WindowsFileWatcherRegistryFactory());
-                } else if (operatingSystem.isLinux()) {
-                    return Optional.of(new LinuxFileWatcherRegistryFactory());
-                }
-            } catch (NativeIntegrationUnavailableException e) {
-                LOGGER.info("Native file system watching is not available for this operating system.", e);
-            }
-            return Optional.empty();
         }
 
         GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {

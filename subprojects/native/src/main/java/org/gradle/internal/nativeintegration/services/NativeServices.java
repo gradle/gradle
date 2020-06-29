@@ -50,6 +50,11 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceCreationException;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
+import org.gradle.internal.watch.registry.impl.DarwinFileWatcherRegistryFactory;
+import org.gradle.internal.watch.registry.impl.LinuxFileWatcherRegistryFactory;
+import org.gradle.internal.watch.registry.impl.UnavailableFileWatcherRegistryFactory;
+import org.gradle.internal.watch.registry.impl.WindowsFileWatcherRegistryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -288,6 +293,23 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         }
 
         return new FallbackFileMetadataAccessor();
+    }
+
+    protected FileWatcherRegistryFactory createFileWatcherRegistryFactory(OperatingSystem operatingSystem) {
+        if (useNativeIntegrations) {
+            try {
+                if (operatingSystem.isMacOsX()) {
+                    return new DarwinFileWatcherRegistryFactory();
+                } else if (operatingSystem.isWindows()) {
+                    return new WindowsFileWatcherRegistryFactory();
+                } else if (operatingSystem.isLinux()) {
+                    return new LinuxFileWatcherRegistryFactory();
+                }
+            } catch (NativeIntegrationUnavailableException e) {
+                LOGGER.info("Native file system watching is not available for this operating system.", e);
+            }
+        }
+        return new UnavailableFileWatcherRegistryFactory();
     }
 
     private <T> T notAvailable(Class<T> type) {
