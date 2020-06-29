@@ -15,12 +15,11 @@
  */
 package gradlebuild
 
-import accessors.base
 import org.gradle.gradlebuild.packaging.ShadedJarPlugin
-import org.gradle.gradlebuild.versioning.buildVersion
 import java.time.Year
 
 plugins {
+    id("gradlebuild.module-identity")
     `maven-publish`
 }
 
@@ -28,14 +27,13 @@ publishing {
     publications {
         create<MavenPublication>("gradleDistribution") {
             from(components["java"])
-            artifactId = base.archivesBaseName
         }
     }
     repositories {
         maven {
             name = "remote"
-            val libsType = if (rootProject.buildVersion.isSnapshot) "snapshots" else "releases"
-            url = uri("https://repo.gradle.org/gradle/libs-$libsType-local")
+            val libsType = moduleIdentity.snapshot.map { if (it) "snapshots" else "releases" }
+            url = uri("https://repo.gradle.org/gradle/libs-${libsType.get()}-local")
             credentials {
                 username = artifactoryUserName
                 password = artifactoryUserPassword
@@ -88,8 +86,8 @@ fun Project.publishNormalizedToLocalRepository() {
         publications {
             create<MavenPublication>("local") {
                 from(project.components["java"])
-                artifactId = project.base.archivesBaseName
-                version = project.rootProject.buildVersion.baseVersion
+                artifactId = moduleIdentity.baseName.get()
+                version = moduleIdentity.version.get().baseVersion.version
             }
         }
     }
@@ -100,9 +98,9 @@ fun Project.publishNormalizedToLocalRepository() {
         enabled = false // this should not be used so we disable it to avoid confusion when using 'publish' lifecycle task
     }
     val localPublish = project.tasks.named("publishLocalPublicationToLocalRepository") {
-        val archivesBaseName = project.base.archivesBaseName
         doFirst {
-            val moduleBaseDir = localRepository.get().dir("org/gradle/$archivesBaseName").asFile
+            val baseName = moduleIdentity.baseName.get()
+            val moduleBaseDir = localRepository.get().dir("org/gradle/$baseName").asFile
             if (moduleBaseDir.exists()) {
                 // Make sure artifacts do not pile up locally
                 moduleBaseDir.deleteRecursively()
@@ -110,7 +108,8 @@ fun Project.publishNormalizedToLocalRepository() {
         }
 
         doLast {
-            localRepository.get().file("org/gradle/$archivesBaseName/maven-metadata.xml").asFile.apply {
+            val baseName = moduleIdentity.baseName.get()
+            localRepository.get().file("org/gradle/$baseName/maven-metadata.xml").asFile.apply {
                 writeText(readText().replace("\\Q<lastUpdated>\\E\\d+\\Q</lastUpdated>\\E".toRegex(), "<lastUpdated>${Year.now().value}0101000000</lastUpdated>"))
             }
             localRepository.get().asFileTree.matching { include("**/*.module") }.forEach {

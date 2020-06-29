@@ -50,6 +50,7 @@ include("moduleIdentity")
 include("uberPlugins")
 include("packaging")
 include("profiling")
+include("publishing")
 include("performance")
 include("buildPlatform")
 
