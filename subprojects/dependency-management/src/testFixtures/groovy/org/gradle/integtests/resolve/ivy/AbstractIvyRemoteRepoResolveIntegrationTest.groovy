@@ -360,7 +360,6 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
     }
 
     @ToBeFixedForInstantExecution(
-        skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP,
         because = "IvyGcsRepoResolveIntegrationTest leaks test files"
     )
     def "reuses cached details when switching ivy resolve mode"() {
