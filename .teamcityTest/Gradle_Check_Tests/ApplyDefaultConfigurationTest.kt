@@ -37,7 +37,6 @@ import java.io.File
  * limitations under the License.
  */
 
-@Disabled
 @ExtendWith(MockKExtension::class)
 class ApplyDefaultConfigurationTest {
     @MockK(relaxed = true)

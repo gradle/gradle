@@ -35,6 +35,7 @@ val m2CleanScriptUnixLike = """
         tree ${'$'}REPO
         rm -rf ${'$'}REPO
         echo "${'$'}REPO was polluted during the build"
+        exit 1
     else
         echo "${'$'}REPO does not exist"
     fi
@@ -44,6 +45,7 @@ val m2CleanScriptWindows = """
     IF exist %teamcity.agent.jvm.user.home%\.m2\repository (
         TREE %teamcity.agent.jvm.user.home%\.m2\repository
         RMDIR /S /Q %teamcity.agent.jvm.user.home%\.m2\repository
+        EXIT 1
     )
 """.trimIndent()
 

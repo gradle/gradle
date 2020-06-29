@@ -18,23 +18,15 @@ import org.gradle.api.internal.FeaturePreviews
 
 pluginManagement {
     repositories {
-        gradlePluginPortal()
         maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
-    }
-}
-
-buildscript {
-    repositories { mavenLocal() }
-    dependencies {
-        classpath("org.gradle.enterprise:gradle-enterprise-conventions-plugin:0.1-SNAPSHOT")
     }
 }
 
 plugins {
     id("com.gradle.enterprise").version("3.3.4")
+    id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.1")
 }
 
-apply(plugin = "org.gradle.enterprise.gradle-enterprise-conventions-plugin")
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 // If you include a new subproject here, you will need to execute the
