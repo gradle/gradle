@@ -25,7 +25,6 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
     def "can manually set toolchain java compiler"() {
         buildFile << """
             import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService
-            import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry
 
             apply plugin: "java"
 
@@ -33,12 +32,9 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
                 @javax.inject.Inject
                 abstract JavaToolchainQueryService getQueryService()
 
-                @javax.inject.Inject
-                abstract SharedJavaInstallationRegistry getFoo()
-
                 void apply(Project project) {
                     project.tasks.withType(JavaCompile) {
-                        javaCompiler = getQueryService().getOne().map({it.javaCompiler.get()})
+                        javaCompiler = getQueryService().findMatchingToolchain().map({it.javaCompiler.get()})
                     }
                 }
             }
