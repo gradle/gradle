@@ -21,6 +21,7 @@ import org.gradle.model.Managed;
 import java.io.File;
 
 @Managed
+@Deprecated
 public abstract class InstalledJdkInternal implements InstalledJdk {
     // We use static private methods because private/protected methods are disallowed
     // in managed types.
