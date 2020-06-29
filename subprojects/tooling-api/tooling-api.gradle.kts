@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
@@ -24,14 +23,11 @@ plugins {
     gradlebuild.`shaded-jar`
 }
 
-val buildReceipt: Provider<RegularFile> = rootProject.tasks.named<BuildReceipt>("createBuildReceipt").map { layout.file(provider { it.receiptFile }).get() }
-
 shadedJar {
     shadedConfiguration.exclude(mapOf("group" to "org.slf4j", "module" to "slf4j-api"))
     keepPackages.set(listOf("org.gradle.tooling"))
     unshadedPackages.set(listOf("org.gradle", "org.slf4j", "sun.misc"))
     ignoredPackages.set(setOf("org.gradle.tooling.provider.model"))
-    buildReceiptFile.set(buildReceipt)
 }
 
 dependencies {

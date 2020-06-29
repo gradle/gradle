@@ -18,9 +18,8 @@ package org.gradle.gradlebuild.packaging
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import gradlebuild.identity.tasks.BuildReceipt
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
@@ -56,8 +55,8 @@ open class ShadedJar : DefaultTask() {
      * The file will be included in the shaded jar under {@code /org/gradle/build-receipt.properties}.
      */
     @PathSensitive(PathSensitivity.NONE)
-    @InputFile
-    val buildReceiptFile: RegularFileProperty = project.objects.fileProperty()
+    @InputFiles
+    val buildReceiptFile = project.objects.fileCollection()
 
     /**
       * The output Jar file.
@@ -85,7 +84,7 @@ open class ShadedJar : DefaultTask() {
             if (!manifests.isEmpty) {
                 jarOutputStream.addJarEntry(JarFile.MANIFEST_NAME, manifests.first())
             }
-            jarOutputStream.addJarEntry("org/gradle/build-receipt.properties", buildReceiptFile.get().asFile)
+            jarOutputStream.addJarEntry(BuildReceipt.buildReceiptLocation, buildReceiptFile.singleFile)
             relocatedClassesConfiguration.files.forEach { classesDir ->
                 val classesDirPath = classesDir.toPath()
                 classesDir.walk().filter {

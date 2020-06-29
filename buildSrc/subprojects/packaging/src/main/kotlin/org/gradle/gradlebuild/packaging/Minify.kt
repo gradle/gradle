@@ -63,7 +63,8 @@ abstract class Minify : TransformAction<Minify.Parameters> {
         val tempDirectory = java.nio.file.Files.createTempDirectory(jarFile.name).toFile()
         val classesDir = tempDirectory.resolve("classes")
         val manifestFile = tempDirectory.resolve("MANIFEST.MF")
-        val classGraph = JarAnalyzer("", keepClasses, keepClasses, setOf()).analyze(artifact, classesDir, manifestFile)
+        val buildReceiptFile = tempDirectory.resolve("build-receipt.properties")
+        val classGraph = JarAnalyzer("", keepClasses, keepClasses, setOf()).analyze(artifact, classesDir, manifestFile, buildReceiptFile)
 
         createJar(classGraph, classesDir, manifestFile, jarFile)
 

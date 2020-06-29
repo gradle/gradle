@@ -15,6 +15,7 @@
  */
 package org.gradle.gradlebuild.packaging
 
+import gradlebuild.basics.util.ReproduciblePropertiesWriter
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.tasks.CacheableTask
@@ -23,7 +24,6 @@ import org.gradle.api.tasks.TaskAction
 
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.Classpath
-import org.gradle.build.ReproduciblePropertiesWriter
 import java.io.File
 
 import java.util.Properties

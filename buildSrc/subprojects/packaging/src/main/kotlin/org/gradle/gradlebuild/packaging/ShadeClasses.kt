@@ -17,6 +17,7 @@
 package org.gradle.gradlebuild.packaging
 
 import com.google.gson.Gson
+import gradlebuild.identity.tasks.BuildReceipt
 import org.gradle.api.artifacts.transform.CacheableTransform
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
@@ -67,8 +68,9 @@ abstract class ShadeClasses : TransformAction<ShadeClasses.Parameters> {
         val classesDir = outputDirectory.resolve(relocatedClassesDirName)
         classesDir.mkdir()
         val manifestFile = outputDirectory.resolve(manifestFileName)
+        val buildReceiptFile = outputDirectory.resolve(BuildReceipt.buildReceiptFileName)
 
-        val classGraph = JarAnalyzer(parameters.shadowPackage, parameters.keepPackages, parameters.unshadedPackages, parameters.ignoredPackages).analyze(input.get().asFile, classesDir, manifestFile)
+        val classGraph = JarAnalyzer(parameters.shadowPackage, parameters.keepPackages, parameters.unshadedPackages, parameters.ignoredPackages).analyze(input.get().asFile, classesDir, manifestFile, buildReceiptFile)
 
         outputDirectory.resolve(classTreeFileName).bufferedWriter().use {
             Gson().toJson(classGraph.getDependencies(), it)
@@ -116,6 +118,19 @@ abstract class FindManifests : TransformAction<TransformParameters.None> {
 
     override fun transform(outputs: TransformOutputs) {
         val manifest = input.get().asFile.resolve(manifestFileName)
+        if (manifest.exists()) {
+            outputs.file(manifest)
+        }
+    }
+}
+
+
+abstract class FindBuildReceipt : TransformAction<TransformParameters.None> {
+    @get:InputArtifact
+    abstract val input: Provider<FileSystemLocation>
+
+    override fun transform(outputs: TransformOutputs) {
+        val manifest = input.get().asFile.resolve(BuildReceipt.buildReceiptFileName)
         if (manifest.exists()) {
             outputs.file(manifest)
         }

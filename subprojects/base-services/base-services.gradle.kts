@@ -32,19 +32,6 @@ dependencies {
     jmh("com.google.guava:guava:27.1-android")
 }
 
-jmh {
-    include = listOf("HashingAlgorithmsBenchmark")
-}
+jmh.include = listOf("HashingAlgorithmsBenchmark")
 
-val buildReceiptPackage = "org/gradle/"
-val buildReceiptResource = tasks.register<Copy>("buildReceiptResource") {
-    from(Callable { tasks.getByPath(":createBuildReceipt").outputs.files })
-    destinationDir = gradlebuildJava.generatedResourcesDir.dir(buildReceiptPackage).get().asFile
-}
-
-sourceSets.main {
-    output.dir(
-        gradlebuildJava.generatedResourcesDir,
-        "builtBy" to buildReceiptResource
-    )
-}
+moduleIdentity.createBuildReceipt()

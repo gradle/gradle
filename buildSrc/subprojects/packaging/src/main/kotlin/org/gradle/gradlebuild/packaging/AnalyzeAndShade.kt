@@ -16,6 +16,7 @@
 
 package org.gradle.gradlebuild.packaging
 
+import gradlebuild.identity.tasks.BuildReceipt
 import org.gradle.api.attributes.Attribute
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
@@ -58,13 +59,13 @@ class JarAnalyzer(
     private val ignorePackages: Set<String>
 ) {
 
-    fun analyze(jarFile: File, classesDir: File, manifestFile: File): ClassGraph {
+    fun analyze(jarFile: File, classesDir: File, manifestFile: File, buildReceipt: File): ClassGraph {
         val classGraph = classGraph()
 
         val jarUri = URI.create("jar:${jarFile.toPath().toUri()}")
         FileSystems.newFileSystem(jarUri, emptyMap<String, Any>()).use { jarFileSystem ->
             jarFileSystem.rootDirectories.forEach {
-                visitClassDirectory(it, classGraph, classesDir, manifestFile.toPath())
+                visitClassDirectory(it, classGraph, classesDir, manifestFile.toPath(), buildReceipt.toPath())
             }
         }
         return classGraph
@@ -79,7 +80,7 @@ class JarAnalyzer(
             shadowPackage)
 
     private
-    fun visitClassDirectory(dir: Path, classes: ClassGraph, classesDir: File, manifest: Path) {
+    fun visitClassDirectory(dir: Path, classes: ClassGraph, classesDir: File, manifest: Path, buildReceipt: Path) {
         Files.walkFileTree(dir, object : FileVisitor<Path> {
 
             private
@@ -92,6 +93,9 @@ class JarAnalyzer(
                 when {
                     file.isClassFilePath() -> {
                         visitClassFile(file)
+                    }
+                    file.isBuildReceipt() -> {
+                        Files.copy(file, buildReceipt)
                     }
                     file.isUnseenManifestFilePath() -> {
                         seenManifest = true
@@ -110,6 +114,10 @@ class JarAnalyzer(
             private
             fun Path.isClassFilePath() =
                 toString().endsWith(".class")
+
+            private
+            fun Path.isBuildReceipt() =
+                toString() == "/${BuildReceipt.buildReceiptLocation}"
 
             private
             fun Path.isUnseenManifestFilePath() =

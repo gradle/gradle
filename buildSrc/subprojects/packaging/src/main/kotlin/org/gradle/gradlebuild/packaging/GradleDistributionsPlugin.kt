@@ -16,6 +16,10 @@
 
 package org.gradle.gradlebuild.packaging
 
+import gradlebuild.ModuleIdentityPlugin
+import gradlebuild.basics.PublicApi
+import gradlebuild.identity.extension.ModuleIdentityExtension
+import gradlebuild.jvm.tasks.ClasspathManifest
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -34,13 +38,11 @@ import org.gradle.api.tasks.bundling.Zip
 import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask
 import org.gradle.build.docs.dsl.source.GenerateApiMapping
 import org.gradle.build.docs.dsl.source.GenerateDefaultImports
-import org.gradle.gradlebuild.PublicApi
 import org.gradle.gradlebuild.docs.GradleUserManualPlugin
 import org.gradle.gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
 import org.gradle.gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
 import org.gradle.gradlebuild.packaging.GradleDistributionSpecs.docsDistributionSpec
 import org.gradle.gradlebuild.packaging.GradleDistributionSpecs.srcDistributionSpec
-import org.gradle.gradlebuild.versioning.buildVersion
 import org.gradle.kotlin.dsl.*
 import java.util.jar.Attributes
 
@@ -69,6 +71,9 @@ open class GradleDistributionsPlugin : Plugin<Project> {
 
     @Suppress("UNUSED_VARIABLE")
     override fun apply(project: Project): Unit = project.run {
+        apply<ModuleIdentityPlugin>()
+        val moduleIdentity = the<ModuleIdentityExtension>() // Convert GradleDistributionsPlugin into a pre-compiled script plugin to have this accessor generated
+
         // Name of the Jar a Gradle distributions project produces as part of the distribution.
         // This Jar contains metadata required by Gradle at runtime. The data may vary
         // based on which Gradle module Jars are part of the distribution.
@@ -80,7 +85,6 @@ open class GradleDistributionsPlugin : Plugin<Project> {
                 ignore("org/gradle/build-receipt.properties")
             }
         }
-
 
         // Configurations to define dependencies
         val coreRuntimeOnly by bucket()
@@ -142,11 +146,10 @@ open class GradleDistributionsPlugin : Plugin<Project> {
 
         // Jar task to package all metadata in 'gradle-runtime-api-info.jar'
         val runtimeApiInfoJar by tasks.registering(Jar::class) {
-            val baseVersion = rootProject.buildVersion.baseVersion
-            archiveVersion.set(baseVersion)
+            archiveVersion.set(moduleIdentity.version.map { it.baseVersion.version })
             manifest.attributes(mapOf(
                 Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
-                Attributes.Name.IMPLEMENTATION_VERSION.toString() to baseVersion))
+                Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version }))
             archiveBaseName.set(runtimeApiJarName)
             into("org/gradle/api/internal/runtimeshaded") {
                 from(generateRelocatedPackageList)
@@ -188,10 +191,13 @@ open class GradleDistributionsPlugin : Plugin<Project> {
 
     private
     fun Project.configureDistribution(name: String, distributionSpec: CopySpec, buildDistLifecycleTask: TaskProvider<Task>, normalized: Boolean = false) {
-        val baseVersion = rootProject.buildVersion.baseVersion
+        val moduleIdentity = the<ModuleIdentityExtension>() // Convert GradleDistributionsPlugin into a pre-compiled script plugin to have this accessor generated
         val disDir = if (normalized) "normalized-distributions" else "distributions"
-        val zipRootFolder = if (normalized) "gradle-$baseVersion" else "gradle-$version"
-
+        val zipRootFolder = if (normalized) {
+            moduleIdentity.version.map { "gradle-${it.baseVersion.version}" }
+        } else {
+            moduleIdentity.version.map { "gradle-${it.version}" }
+        }
         val installation = tasks.register<Sync>("${name}Installation") {
             group = "distribution"
             into(layout.buildDirectory.dir("$name distribution"))
@@ -201,7 +207,7 @@ open class GradleDistributionsPlugin : Plugin<Project> {
         val distributionZip = tasks.register<Zip>("${name}DistributionZip") {
             archiveBaseName.set("gradle")
             archiveClassifier.set(name)
-            archiveVersion.set(baseVersion)
+            archiveVersion.set(moduleIdentity.version.map { it.baseVersion.version })
 
             destinationDirectory.set(project.layout.buildDirectory.dir(disDir))
 

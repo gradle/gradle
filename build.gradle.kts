@@ -15,16 +15,12 @@
  */
 
 plugins {
-    base
-
     gradlebuild.lifecycle                    // CI: Add lifecycle tasks to for the CI pipeline (currently needs to be applied early as it might modify global properties)
     gradlebuild.`generate-subprojects-info`  // CI: Generate subprojects information for the CI testing pipeline fan out
     gradlebuild.cleanup                      // CI: Advanced cleanup after the build (like stopping daemons started by tests)
     gradlebuild.`ci-reporting`               // CI: Prepare reports to be uploaded to TeamCity
 
     gradlebuild.buildscan                    // Reporting: Add more data through custom tags to build scans
-
-    gradlebuild.`build-version`              // Release process: Set the version for this build
 
     gradlebuild.ide                          // Local development: Tweak IDEA import
     gradlebuild.`update-versions`            // Local development: Convenience tasks to update versions in this build: 'released-versions.json', 'agp-versions.properties', ...

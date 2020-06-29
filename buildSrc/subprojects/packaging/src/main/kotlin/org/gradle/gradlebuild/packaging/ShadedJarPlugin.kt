@@ -16,7 +16,7 @@
 
 package org.gradle.gradlebuild.packaging
 
-import accessors.base
+import gradlebuild.identity.extension.ModuleIdentityExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -33,7 +33,6 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.gradlebuild.packaging.Attributes.artifactType
 import org.gradle.gradlebuild.packaging.Attributes.minified
-import org.gradle.gradlebuild.versioning.buildVersion
 import org.gradle.kotlin.dsl.*
 import java.io.File
 
@@ -56,6 +55,10 @@ const val classTreesType = "classTrees"
 
 private
 const val manifestsType = "manifests"
+
+
+private
+const val buildReceiptType = "buildReceipt"
 
 
 /**
@@ -116,6 +119,10 @@ open class ShadedJarPlugin : Plugin<Project> {
                 from.attribute(artifactType, relocatedClassesAndAnalysisType)
                 to.attribute(artifactType, manifestsType)
             }
+            registerTransform(FindBuildReceipt::class) {
+                from.attribute(artifactType, relocatedClassesAndAnalysisType)
+                to.attribute(artifactType, buildReceiptType)
+            }
         }
     }
 
@@ -136,23 +143,20 @@ open class ShadedJarPlugin : Plugin<Project> {
 
     private
     fun Project.addShadedJarTask(shadedJarExtension: ShadedJarExtension): TaskProvider<ShadedJar> {
+        val moduleIdentity = the<ModuleIdentityExtension>() // Convert ShadedJarPlugin into a pre-compiled script plugin to have this accessor generated
         val configurationToShade = shadedJarExtension.shadedConfiguration
         val jar: TaskProvider<Jar> = tasks.withType(Jar::class).named("jar")
 
         return tasks.register("${project.name}ShadedJar", ShadedJar::class) {
             dependsOn(jar)
-            jarFile.set(layout.buildDirectory.file("shaded-jar/${base.archivesBaseName}-shaded-$baseVersion.jar"))
+            jarFile.set(layout.buildDirectory.file(provider { "shaded-jar/${moduleIdentity.baseName.get()}-shaded-${moduleIdentity.version.get().baseVersion.version}.jar" }))
             classTreesConfiguration.from(configurationToShade.artifactViewForType(classTreesType))
             entryPointsConfiguration.from(configurationToShade.artifactViewForType(entryPointsType))
             relocatedClassesConfiguration.from(configurationToShade.artifactViewForType(relocatedClassesType))
             manifests.from(configurationToShade.artifactViewForType(manifestsType))
-            buildReceiptFile.set(shadedJarExtension.buildReceiptFile)
+            buildReceiptFile.from(configurationToShade.artifactViewForType(buildReceiptType))
         }
     }
-
-    private
-    val Project.baseVersion
-        get() = rootProject.buildVersion.baseVersion
 
     private
     fun Project.addInstallShadedJarTask(shadedJarTask: TaskProvider<ShadedJar>) {
@@ -169,7 +173,7 @@ open class ShadedJarPlugin : Plugin<Project> {
         tasks.register<Copy>("install${project.name.capitalize()}ShadedJar") {
             dependsOn(shadedJarTask)
             from(shadedJarTask.map { it.jarFile })
-            into(deferred { targetFile().parentFile })
+            into(provider { targetFile().parentFile })
             rename { targetFile().name }
         }
     }
@@ -195,7 +199,7 @@ open class ShadedJarPlugin : Plugin<Project> {
             }
             extendsFrom(shadedImplementation)
             outgoing.artifact(shadedJarTask) {
-                name = base.archivesBaseName
+                name = the<ModuleIdentityExtension>().baseName.get() // TODO get rid of this config block by making ShadedJarTask an AbstractArchiveTask
                 type = "jar"
             }
         }
@@ -241,13 +245,6 @@ open class ShadedJarPlugin : Plugin<Project> {
 
 
 open class ShadedJarExtension(objects: ObjectFactory, val shadedConfiguration: Configuration) {
-
-    /**
-     * The build receipt properties file.
-     *
-     * The file will be included in the shaded jar under {@code /org/gradle/build-receipt.properties}.
-     */
-    val buildReceiptFile = objects.fileProperty()
 
     /**
      * Retain only those classes in the keep package hierarchies, plus any classes that are reachable from these classes.
