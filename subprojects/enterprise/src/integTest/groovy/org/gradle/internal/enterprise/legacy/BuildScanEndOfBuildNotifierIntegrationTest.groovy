@@ -57,9 +57,9 @@ class BuildScanEndOfBuildNotifierIntegrationTest extends AbstractIntegrationSpec
         output.contains("projects evaluated")
         output.matches("""(?s).*
 BUILD SUCCESSFUL in [ \\dms]+
-1 actionable task: 1 executed
+1 actionable task: 1 executed.*
 failure is null: true
-.*""")
+\$""")
     }
 
     def "can observe failed build after completion of user logic and build outcome is reported"() {
@@ -82,15 +82,14 @@ failure is null: true
         then:
         outputContains("projects evaluated")
         output.matches("""(?s).*
-1 actionable task: 1 executed
+1 actionable task: 1 executed.*
 failure message: Execution failed for task ':t'.
-.*""")
+\$""")
 
         errorOutput.contains("projects evaluated")
         result.error.matches("""(?s)projects evaluated
 
-FAILURE: Build failed with an exception.
-.*
+FAILURE: Build failed with an exception\\..*
 BUILD FAILED in [ \\dms]+
 notified
 \$""")
@@ -123,9 +122,9 @@ notified
 
         then:
         output.matches("""(?s).*
-1 actionable task: 1 executed
+1 actionable task: 1 executed.*
 failure message: broken
-.*""")
+\$""")
     }
 
     def "can only register one listener"() {

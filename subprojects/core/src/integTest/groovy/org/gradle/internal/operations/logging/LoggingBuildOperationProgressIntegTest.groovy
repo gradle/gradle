@@ -218,7 +218,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         }
 
         def runBuildProgress = operations.only('Run build').progress
-        def threadedConfigurationProgress = runBuildProgress.find { it.details.spans[0].text == "threaded configuration output${getPlatformLineSeparator()}" }
+        def threadedConfigurationProgress = runBuildProgress.find { it.details.containsKey('spans') && it.details.spans[0].text == "threaded configuration output${getPlatformLineSeparator()}" }
         threadedConfigurationProgress.details.category == 'system.out'
         threadedConfigurationProgress.details.spans.size == 1
         threadedConfigurationProgress.details.spans[0].styleName == 'Normal'
@@ -427,8 +427,14 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 
         then:
         def progressOutputEvents = operations.all(Pattern.compile('.*')).collect { it.progress }.flatten()
+        // Watching the file system is an incubating feature.
+        // Spent 18 ms registering watches for file system events
+        // Virtual file system retained information about 0 files, 0 directories and 0 missing files since last build
+        // Received 50 file system events for current build
+        // Virtual file system retains information about 21 files, 15 directories and 3 missing files till next build
+        def watchFsExtraEvents = GradleContextualExecuter.watchFs ? 5 : 0
         assert progressOutputEvents
-            .size() == 14 // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
+            .size() == 14 + watchFsExtraEvents // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
     }
 
     private void assertNestedTaskOutputTracked(String projectPath = ':nested') {
