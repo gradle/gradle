@@ -35,7 +35,7 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         checkStyleReportFile(testDirectory).text.contains('Dummy.java')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "fails when root project does contain config in default location"() {
         given:
         settingsFile << "include 'child'"
