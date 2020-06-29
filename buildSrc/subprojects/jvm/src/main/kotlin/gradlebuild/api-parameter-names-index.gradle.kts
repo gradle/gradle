@@ -16,15 +16,15 @@
 
 package gradlebuild
 
-import gradlebuildJava
-import accessors.base
-import accessors.sourceSets
-import build.ParameterNamesIndex
-import org.gradle.gradlebuild.PublicApi
+import gradlebuild.basics.PublicApi
+import gradlebuild.kotlin.tasks.ParameterNamesIndex
 
+plugins {
+    id("gradlebuild.module-identity")
+    java
+}
 
-val main by sourceSets
-
+val main = sourceSets.main.get()
 val parameterNamesIndex by tasks.registering(ParameterNamesIndex::class) {
     sources.from(main.allJava.matching {
         include(PublicApi.includes)
@@ -32,15 +32,19 @@ val parameterNamesIndex by tasks.registering(ParameterNamesIndex::class) {
     })
     classpath.from(main.compileClasspath)
     classpath.from(tasks.named<JavaCompile>("compileJava"))
-    if (file("src/main/groovy").isDirectory) {
-        classpath.from(tasks.named<GroovyCompile>("compileGroovy"))
-    }
     destinationFile.set(
-        gradlebuildJava.generatedResourcesDir.file("${base.archivesBaseName}-parameter-names.properties")
+        project.layout.buildDirectory.file(moduleIdentity.baseName.map { "generated-resources/$it-parameter-names/$it-parameter-names.properties" })
     )
+}
+tasks.withType<GroovyCompile>() {
+    if (name == "compileGroovy") {
+        val compileGroovy = this
+        parameterNamesIndex.configure {
+            classpath.from(compileGroovy)
+        }
+    }
 }
 
 main.output.dir(
-    gradlebuildJava.generatedResourcesDir,
-    "builtBy" to parameterNamesIndex
+    parameterNamesIndex.map { it.destinationFile.get().asFile.parentFile }
 )

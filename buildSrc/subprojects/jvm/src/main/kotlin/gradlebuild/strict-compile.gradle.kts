@@ -15,9 +15,9 @@
  */
 package gradlebuild
 
-import org.gradle.plugins.strictcompile.StrictCompileExtension
+import gradlebuild.jvm.extension.StrictCompileExtension
 
-val strictCompile = extensions.create<StrictCompileExtension>("strictCompile")
+extensions.create<StrictCompileExtension>("strictCompile")
 
 val strictCompilerArgs = listOf("-Werror", "-Xlint:all", "-Xlint:-options", "-Xlint:-serial", "-Xlint:-classfile")
 
