@@ -28,7 +28,7 @@ plugins {
 
 repositories { handler ->
     // TODO migrate this build script to Kotlin DSL to replace this is a simple googleApisJs()
-    Plugins_extensionsKt.googleApisJs(handler)
+    Build_extensionsKt.googleApisJs(handler)
 }
 
 configurations {
@@ -88,7 +88,7 @@ asciidoctorj {
 gradleDocumentation {
     javadocs {
         javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
-        groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${groovyVersion}/html/gapi")
+        groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${libs.groovyVersion}/html/gapi")
     }
 }
 

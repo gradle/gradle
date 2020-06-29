@@ -36,11 +36,10 @@ rootProject.name = "buildSrc"
 // Please preserve alphabetical order
 include("basics")
 include("binaryCompatibility")
-include("build")
 include("buildquality")
 include("buildUpdateUtils")
 include("cleanup")
-include("configuration")
+include("dependencyModules")
 include("docs")
 include("ide")
 include("integrationTesting")

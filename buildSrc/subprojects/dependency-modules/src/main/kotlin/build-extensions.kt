@@ -13,27 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.gradlebuild.java.BuildJvms
-import org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompileExtension
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.extra
 
 
-// This file contains Kotlin extensions for the gradle/gradle build
+// TODO these extensions should go with https://github.com/gradle/gradle-private/issues/3098
 
 
-fun Project.gradlebuildJava(configure: UnitTestAndCompileExtension.() -> Unit): Unit =
-    extensions.configure("gradlebuildJava", configure)
+@Suppress("unchecked_cast")
+val Project.libraries
+    get() = if (rootProject.extra.has("libraries")) rootProject.extra["libraries"] as Map<String, Map<String, String>> else mapOf()
 
 
-val Project.buildJvms
-    get() = extensions.getByType<BuildJvms>()
+@Suppress("unchecked_cast")
+val Project.testLibraries
+    get() = if (rootProject.extra.has("testLibraries")) rootProject.extra["testLibraries"] as Map<String, Any> else mapOf()
 
 
-val Project.gradlebuildJava
-    get() = extensions.getByName<UnitTestAndCompileExtension>("gradlebuildJava")
+fun Project.library(name: String): String =
+    libraries.getValue(name).getValue("coordinates")
+
+
+fun Project.libraryVersion(name: String): String =
+    libraries.getValue(name).getValue("version")
+
+
+fun Project.libraryReason(name: String): String? =
+    libraries.getValue(name)["because"]
+
+
+fun Project.testLibrary(name: String): String =
+    testLibraries.getValue(name) as String
+
+
+@Suppress("unchecked_cast")
+fun Project.testLibraries(name: String): List<String> =
+    testLibraries.getValue(name) as List<String>
 
 
 fun RepositoryHandler.googleApisJs() {

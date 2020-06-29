@@ -66,9 +66,9 @@ dependencies {
     compileOnly(library("slf4j_api"))
     compileOnly(library("inject"))
 
-    implementation(futureKotlin("stdlib-jdk8"))
-    implementation(futureKotlin("gradle-plugin"))
-    implementation(futureKotlin("sam-with-receiver"))
+    implementation(libs.futureKotlin("stdlib-jdk8"))
+    implementation(libs.futureKotlin("gradle-plugin"))
+    implementation(libs.futureKotlin("sam-with-receiver"))
 
     integTestImplementation(project(":baseServices"))
     integTestImplementation(project(":logging"))

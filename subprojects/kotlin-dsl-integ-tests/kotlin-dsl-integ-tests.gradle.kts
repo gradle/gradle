@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import plugins.futurePluginVersionsFile
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
@@ -57,7 +56,7 @@ tasks {
 
         dependsOn(futurePluginVersionsTasks)
         inputs.files(futurePluginVersionsTasks.map { it.outputFile })
-        outputs.file(processIntegTestResources.get().futurePluginVersionsFile)
+        outputs.file(layout.buildDirectory.file("generated-resources/future-plugin-versions/future-plugin-versions.properties"))
 
         doLast {
             outputs.files.singleFile.bufferedWriter().use { writer ->
@@ -67,10 +66,9 @@ tasks {
             }
         }
     }
-
-    processIntegTestResources {
-        dependsOn(writeFuturePluginVersions)
-    }
+    sourceSets.integTest.get().output.dir(
+        writeFuturePluginVersions.map { it.outputs.files.singleFile.parentFile }
+    )
 }
 
 testFilesCleanup {

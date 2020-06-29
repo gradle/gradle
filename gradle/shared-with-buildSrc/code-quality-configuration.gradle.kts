@@ -47,7 +47,7 @@ fun Project.configureCheckstyle(codeQualityConfigDir: File) {
 
 fun getIntegrationTestFixturesRule(): Class<*>? {
     try {
-        return Class.forName("org.gradle.gradlebuild.buildquality.codenarc.IntegrationTestFixturesRule", false, this.javaClass.classLoader)
+        return Class.forName("gradlebuild.codenarc.rules.IntegrationTestFixturesRule", false, this.javaClass.classLoader)
     } catch (e: Throwable) {
         return null
     }

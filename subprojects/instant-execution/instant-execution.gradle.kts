@@ -1,4 +1,3 @@
-import build.futureKotlin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -65,8 +64,8 @@ dependencies {
     implementation(library("slf4j_api"))
     implementation(library("guava"))
 
-    implementation(futureKotlin("stdlib-jdk8"))
-    implementation(futureKotlin("reflect"))
+    implementation(libs.futureKotlin("stdlib-jdk8"))
+    implementation(libs.futureKotlin("reflect"))
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testLibrary("mockito_kotlin2"))
