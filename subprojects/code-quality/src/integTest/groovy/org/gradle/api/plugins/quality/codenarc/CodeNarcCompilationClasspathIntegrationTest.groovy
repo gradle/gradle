@@ -25,7 +25,7 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
     private final static String SUPPORTED_COMPILATION_CLASSPATH_VERSION = '0.27.0'
     private final static String UNSUPPORTED_COMPILATION_CLASSPATH_VERSION = '0.26.0'
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "compilation classpath can be specified for a CodeNarc task"() {
         given:
         buildFileWithCodeNarcAndCompilationClasspath(SUPPORTED_COMPILATION_CLASSPATH_VERSION)
@@ -39,7 +39,7 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
         failure.assertHasCause('CodeNarc rule violations were found')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "an informative error is shown when a compilation classpath is specified on a CodeNarc task when using an incompatible CodeNarc version"() {
         given:
         buildFileWithCodeNarcAndCompilationClasspath(UNSUPPORTED_COMPILATION_CLASSPATH_VERSION)
@@ -62,13 +62,13 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
 
             codenarc {
                 toolVersion = '$codeNarcVersion'
-                codenarc.configFile = file('$CONFIG_FILE_PATH') 
+                codenarc.configFile = file('$CONFIG_FILE_PATH')
             }
-            
+
             dependencies {
                 implementation localGroovy()
             }
-            
+
             codenarcMain {
                 compilationClasspath = configurations.compileClasspath
             }
