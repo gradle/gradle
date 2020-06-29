@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package codegen
+package gradlebuild.kotlindsl.tasks
 
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input

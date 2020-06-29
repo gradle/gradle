@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package build
+package gradlebuild.kotlindsl.tasks
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -25,27 +26,27 @@ import org.gradle.api.tasks.TaskAction
 /**
  * Used to validate that :kotlinCompilerEmbeddable dependencies are aligned with the original dependencies.
  */
-open class CheckKotlinCompilerEmbeddableDependencies : DefaultTask() {
+abstract class CheckKotlinCompilerEmbeddableDependencies : DefaultTask() {
 
     /**
      * Current classpath to be validated.
      */
-    @Classpath
-    val current = project.objects.fileCollection()
+    @get:Classpath
+    abstract val current: ConfigurableFileCollection
 
     /**
      * Expected classpath for a `kotlin-compiler-embeddable` dependency.
      */
-    @Classpath
-    val expected = project.objects.fileCollection()
+    @get:Classpath
+    abstract val expected: ConfigurableFileCollection
 
     @OutputFile
-    val receiptFile = project.buildDir.resolve("receipts/$name/receipt.txt")
+    val receiptFile = project.layout.buildDirectory.file("receipts/$name/receipt.txt")
 
     @TaskAction
     @Suppress("unused")
     fun check() {
-        receiptFile.delete()
+        receiptFile.get().asFile.delete()
         val currentFiles = current.files.map { it.name }.sorted()
         val expectedFiles = expected.files.map { it.name }.filterNot { it.startsWith("kotlin-compiler-embeddable-") }.sorted()
         require(currentFiles == expectedFiles) {
@@ -55,7 +56,7 @@ open class CheckKotlinCompilerEmbeddableDependencies : DefaultTask() {
             message += "Please fix dependency declarations in ${project.buildFile.relativeTo(project.rootDir)}"
             message
         }
-        receiptFile.apply {
+        receiptFile.get().asFile.apply {
             parentFile.mkdirs()
             writeText("OK")
         }

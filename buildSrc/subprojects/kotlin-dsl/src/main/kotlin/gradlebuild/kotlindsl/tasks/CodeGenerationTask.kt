@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package codegen
+package gradlebuild.kotlindsl.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
