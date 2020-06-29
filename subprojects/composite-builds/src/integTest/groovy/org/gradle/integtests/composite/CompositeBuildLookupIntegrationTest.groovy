@@ -20,7 +20,10 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForInstantExecution(
+        because = "composite builds",
+        skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS
+    )
     def "can query the included builds defined by the root build"() {
         given:
         def buildB = singleProjectBuild("buildB") {
@@ -51,7 +54,10 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrat
         failure.assertHasCause("Included build 'unknown' not found in build 'buildA'.")
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForInstantExecution(
+        because = "composite builds",
+        skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS
+    )
     def "dir name is used as build name"() {
         given:
         def buildB = singleProjectBuild("buildB") {
@@ -88,7 +94,10 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrat
         failure.assertHasCause("Included build 'b' not found in build 'buildA'.")
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForInstantExecution(
+        because = "composite builds",
+        skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS
+    )
     def "build name can be specified at include time"() {
         given:
         def buildB = singleProjectBuild("buildB") {
