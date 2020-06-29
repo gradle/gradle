@@ -30,11 +30,13 @@ import javax.inject.Inject;
  */
 public class IncrementalCompileOptions {
     private final RegularFileProperty analysisFile;
+    private final RegularFileProperty classfileBackupDir;
     private final RegularFileProperty publishedCode;
 
     @Inject
     public IncrementalCompileOptions(ObjectFactory objectFactory) {
         this.analysisFile = objectFactory.fileProperty();
+        this.classfileBackupDir = objectFactory.fileProperty();
         this.publishedCode = objectFactory.fileProperty();
     }
 
@@ -44,6 +46,15 @@ public class IncrementalCompileOptions {
     @LocalState
     public RegularFileProperty getAnalysisFile() {
         return analysisFile;
+    }
+
+    /**
+     * Returns the path to the directory where previously generated class files are backed up during the next, incremental compilation.
+     * If the compilation fails, class files are restored from the backup.
+     */
+    @LocalState
+    public RegularFileProperty getClassfileBackupDir() {
+        return classfileBackupDir;
     }
 
     /**
