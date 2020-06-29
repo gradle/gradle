@@ -63,7 +63,7 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         output.contains "$testDependency"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "fails properly using older version of PMD without incremental analysis support"() {
         given:
         buildFile << """

@@ -59,7 +59,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/test.xml").exists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "analyze bad code"() {
         badCode()
 
@@ -103,7 +103,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         output.contains("2 PMD rule violations were found. See the report at:")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     void "does not ignore more than max failures"() {
         badCode()
         buildFile << """
@@ -120,7 +120,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     void "can configure priority level threshold"() {
         badCode()
         buildFile << """
@@ -180,7 +180,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("htmlReport.html").exists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "use custom rule set files"() {
         assumeTrue(fileLockingIssuesSolved())
 
@@ -202,7 +202,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "add custom rule set files"() {
         assumeTrue(fileLockingIssuesSolved())
 
@@ -225,7 +225,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "use custom rule set"() {
         customCode()
 
@@ -245,7 +245,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "can enable console output"() {
         buildFile << """
             pmd {
