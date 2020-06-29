@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.server
 
+import org.gradle.test.fixtures.ResetableExpectations
 import org.junit.rules.ExternalResource
 import org.slf4j.Logger
 
@@ -26,7 +27,7 @@ import org.slf4j.Logger
  * - but handlers, as well as failures, need to be thread-safe
  *
  */
-abstract class ServerWithExpectations extends ExternalResource {
+abstract class ServerWithExpectations extends ExternalResource implements ResetableExpectations {
 
     protected Throwable failure
 

@@ -39,16 +39,6 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         executer.requireOwnGradleUserHomeDir()
     }
 
-    @Override
-    void ignoreCleanupAssertions() {
-        super.ignoreCleanupAssertions()
-        try {
-            server.resetExpectations()
-        } catch (Throwable error) {
-            error.printStackTrace()
-        }
-    }
-
     private void applyTrustStore() {
         def keyStore = TestKeyStore.init(resources.dir)
         keyStore.enableSslWithServerCert(server)

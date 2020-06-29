@@ -17,11 +17,13 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.ResetableExpectations
 import org.junit.AssumptionViolatedException
 import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
 import org.spockframework.runtime.extension.IMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.FeatureInfo
+import org.spockframework.runtime.model.FieldInfo
 
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Predicate
@@ -49,8 +51,8 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
 
         if (annotation.skip() == FAILS_CLEANUP_ASSERTIONS) {
             def interceptor = new DisableCleanupAssertions()
-            feature.addInterceptor(interceptor)
-            feature.addIterationInterceptor(interceptor)
+            feature.interceptors.add(0, interceptor)
+            feature.iterationInterceptors.add(0, interceptor)
             return
         }
 
@@ -65,9 +67,7 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
-            def instance = invocation.instance
-            assert instance instanceof AbstractIntegrationSpec: "'skip = ${FAILS_CLEANUP_ASSERTIONS.name()}' can only be used in AbstractIntegrationSpec subtypes"
-            instance.ignoreCleanupAssertions()
+            ignoreCleanupAssertionsOf(invocation)
             invocation.proceed()
         }
     }
@@ -146,6 +146,16 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
         def instance = invocation.instance
         if (instance instanceof AbstractIntegrationSpec) {
             instance.ignoreCleanupAssertions()
+        }
+        invocation.spec.allFields.forEach { FieldInfo specField ->
+            if (ResetableExpectations.isAssignableFrom(specField.type)) {
+                def server = specField.readValue(instance) as ResetableExpectations
+                try {
+                    server?.resetExpectations()
+                } catch (Throwable error) {
+                    error.printStackTrace()
+                }
+            }
         }
     }
 
