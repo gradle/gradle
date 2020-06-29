@@ -1,6 +1,5 @@
 dependencies {
-    implementation(project(":configuration"))
-    implementation(project(":kotlinDsl"))
+    implementation(project(":basics"))
 
     implementation("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.7")
 }
