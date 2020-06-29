@@ -62,4 +62,3 @@ if (BuildEnvironment.isCiServer) {
         }
     }
 }
-
