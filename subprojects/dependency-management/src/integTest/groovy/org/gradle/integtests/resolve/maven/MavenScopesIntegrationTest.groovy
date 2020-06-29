@@ -366,7 +366,7 @@ dependencies {
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "fails when referencing a scope that does not exist"() {
         mavenRepo.module('test', 'target', '1.0')
             .publish()
