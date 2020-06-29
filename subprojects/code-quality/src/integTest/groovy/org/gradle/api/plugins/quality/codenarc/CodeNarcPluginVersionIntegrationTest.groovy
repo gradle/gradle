@@ -110,7 +110,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "analyze bad code"() {
         badCode()
 
