@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.gradlebuild.testing.integrationtests.cleanup
+package gradlebuild.cleanup.tasks
 
+import gradlebuild.cleanup.services.DaemonTracker
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
 
-abstract class KillLeakingJavaProcesses : DefaultTask() {
+abstract class CleanUpDaemons : DefaultTask() {
     @get:Internal
     abstract val tracker: Property<DaemonTracker>
 
     @TaskAction
-    fun killLeakingJavaProcesses() {
-        tracker.get().killProcessesFromPreviousRun()
+    fun cleanUpDaemons() {
+        tracker.get().cleanUpDaemons()
     }
 }

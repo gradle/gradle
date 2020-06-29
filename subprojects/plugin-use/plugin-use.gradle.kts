@@ -1,4 +1,4 @@
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
 
 /*
  * Copyright 2014 the original author or authors.

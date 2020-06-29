@@ -1,4 +1,4 @@
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
 
 plugins {
     gradlebuild.internal.java

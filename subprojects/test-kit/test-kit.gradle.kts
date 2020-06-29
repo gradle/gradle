@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import org.gradle.gradlebuild.test.integrationtests.getIncludeCategories
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
 import org.gradle.api.internal.runtimeshaded.PackageListGenerator
 
 plugins {

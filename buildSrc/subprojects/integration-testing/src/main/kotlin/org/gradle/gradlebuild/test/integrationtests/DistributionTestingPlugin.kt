@@ -16,11 +16,11 @@
 
 package org.gradle.gradlebuild.test.integrationtests
 
+import gradlebuild.cleanup.extension.CleanupExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.ProjectLayout
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanupExtension
 import org.gradle.kotlin.dsl.*
 import kotlin.collections.set
 

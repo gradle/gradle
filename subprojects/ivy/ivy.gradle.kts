@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 
 plugins {

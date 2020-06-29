@@ -17,7 +17,7 @@
 // To make it easier to access these functions from Groovy
 @file:JvmName("Cleanup")
 
-package org.gradle.gradlebuild.testing.integrationtests.cleanup
+package gradlebuild.cleanup
 
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileSystemOperations

@@ -16,6 +16,7 @@
 
 package org.gradle.gradlebuild.test.integrationtests
 
+import gradlebuild.cleanup.services.DaemonTracker
 import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
@@ -30,7 +31,6 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.testing.Test
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.DaemonTracker
 import org.gradle.kotlin.dsl.*
 import org.gradle.process.CommandLineArgumentProvider
 import java.io.File

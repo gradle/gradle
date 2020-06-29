@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.gradlebuild.testing.integrationtests.cleanup
+package gradlebuild.cleanup.services
 
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.services.BuildService

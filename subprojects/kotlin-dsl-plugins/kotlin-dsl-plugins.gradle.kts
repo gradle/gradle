@@ -16,7 +16,7 @@
 
 import gradlebuild.basics.accessors.kotlin
 import gradlebuild.kotlindsl.tasks.GenerateKotlinDslPluginsExtensions
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
 
 plugins {
     gradlebuild.portalplugin.kotlin

@@ -17,12 +17,12 @@ package gradlebuild
 
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.classycle.tasks.Classycle
+import gradlebuild.cleanup.extension.TestFileCleanUpExtension
+import gradlebuild.cleanup.WhenNotEmpty
 import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
 import org.gradle.gradlebuild.docs.FindBrokenInternalLinks
 import org.gradle.gradlebuild.test.integrationtests.DistributionTest
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.TestFileCleanUpExtension
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.testing.DistributedPerformanceTest
 
 /**
@@ -34,8 +34,8 @@ import org.gradle.testing.DistributedPerformanceTest
  * Team City.
  */
 subprojects.forEach {
-    // Configure the testFilesCleanup policy in each subproject's build script (This should
-    it.extensions.create<TestFileCleanUpExtension>("testFilesCleanup", objects)
+    // Configure the testFilesCleanup policy in each subproject's build script (This should be done directly in each subproject)
+    it.extensions.create<TestFileCleanUpExtension>("testFilesCleanup")
 }
 
 if (BuildEnvironment.isCiServer) {

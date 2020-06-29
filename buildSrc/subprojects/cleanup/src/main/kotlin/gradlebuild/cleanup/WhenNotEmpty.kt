@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.gradlebuild.testing.integrationtests.cleanup
+package gradlebuild.cleanup
 
 
 enum class WhenNotEmpty {

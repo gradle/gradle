@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.gradlebuild.testing.integrationtests.cleanup
+package gradlebuild.cleanup.extension
 
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.Property
-import org.gradle.kotlin.dsl.*
+import gradlebuild.cleanup.services.DaemonTracker
+import org.gradle.api.provider.Provider
 
 
-open class TestFileCleanUpExtension(objects: ObjectFactory) {
-    val policy: Property<WhenNotEmpty> = objects.property()
-}
+abstract class CleanupExtension(val tracker: Provider<DaemonTracker>)
