@@ -57,6 +57,10 @@ public class DefaultProvider<T> extends AbstractMinimalProvider<T> {
                 }
             }
         }
+        Object genericSuperclass = value.getClass().getGenericSuperclass();
+        if (genericSuperclass instanceof ParameterizedType) {
+            return Cast.uncheckedCast(((ParameterizedType) genericSuperclass).getActualTypeArguments()[0]);
+        }
         return null;
     }
 

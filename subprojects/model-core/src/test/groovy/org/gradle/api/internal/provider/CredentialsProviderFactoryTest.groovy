@@ -39,23 +39,6 @@ class CredentialsProviderFactoryTest extends Specification {
         identity << ['%$#$#^!@', '', ' ', 'a ', 'a b', '$a', '_b', 'c!', '-42', null]
     }
 
-    def "describes missing properties"() {
-        given:
-        providerFactory.gradleProperty('myServiceUsername') >> Providers.notDefined()
-        providerFactory.gradleProperty('myServicePassword') >> Providers.notDefined()
-
-        def provider = factory.provide(PasswordCredentials, 'myService')
-
-        when:
-        provider.get()
-
-        then:
-        def e = thrown(MissingValueException)
-        e.message.contains("The following Gradle properties are missing for 'myService' credentials:")
-        e.message.contains("- myServiceUsername")
-        e.message.contains("- myServicePassword")
-    }
-
     def "does not throw on presence check when credentials are missing"() {
         given:
         providerFactory.gradleProperty('myServiceUsername') >> Providers.notDefined()
@@ -68,22 +51,6 @@ class CredentialsProviderFactoryTest extends Specification {
         then:
         noExceptionThrown()
         !isPresent
-    }
-
-    def "describes single missing property"() {
-        given:
-        providerFactory.gradleProperty('myServiceUsername') >> Providers.notDefined()
-        providerFactory.gradleProperty('myServicePassword') >> new DefaultProvider<>({ 'secret' })
-        def provider = factory.provide(PasswordCredentials, 'myService')
-
-        when:
-        provider.get()
-
-        then:
-        def e = thrown(MissingValueException)
-        e.message.contains("The following Gradle properties are missing for 'myService' credentials:")
-        e.message.contains("- myServiceUsername")
-        !e.message.contains("- myServicePassword")
     }
 
     def "evaluates username and password credentials provider"() {
@@ -148,6 +115,27 @@ class CredentialsProviderFactoryTest extends Specification {
         credentials.sessionToken == 'token'
     }
 
+    def "reports single missing property when credentials presence is checked"() {
+        given:
+        providerFactory.gradleProperty('myServiceUsername') >> Providers.notDefined()
+        providerFactory.gradleProperty('myServicePassword') >> Providers.of("foobar")
+        def passwordProvider = factory.provide(PasswordCredentials, "myService")
+
+        when:
+        passwordProvider.isPresent()
+
+        and:
+        factory.graphPopulated(null)
+
+        then:
+        def e = thrown(ProjectConfigurationException)
+        e.message == 'Credentials required for this build could not be resolved.'
+        e.causes.size() == 1
+        e.causes[0].message.contains("The following Gradle properties are missing for 'myService' credentials:")
+        e.causes[0].message.contains("- myServiceUsername")
+        !e.causes[0].message.contains("- myServicePassword")
+    }
+
     def "collects multiple missing credentials failures when presence is checked"() {
         given:
         providerFactory.gradleProperty('cloudServiceAccessKey') >> Providers.notDefined()
@@ -170,5 +158,11 @@ class CredentialsProviderFactoryTest extends Specification {
         def e = thrown(ProjectConfigurationException)
         e.message == 'Credentials required for this build could not be resolved.'
         e.causes.size() == 2
+        e.causes[0].message.contains("The following Gradle properties are missing for 'cloudService' credentials:")
+        e.causes[0].message.contains("- cloudServiceAccessKey")
+        e.causes[0].message.contains("- cloudServiceSecretKey")
+        e.causes[1].message.contains("The following Gradle properties are missing for 'myService' credentials:")
+        e.causes[1].message.contains("- myServiceUsername")
+        e.causes[1].message.contains("- myServicePassword")
     }
 }

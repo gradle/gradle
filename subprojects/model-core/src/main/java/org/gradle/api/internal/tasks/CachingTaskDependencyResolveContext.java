@@ -21,6 +21,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
+import org.gradle.api.credentials.Credentials;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 
@@ -107,6 +109,8 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
         @Override
         public void getNodeValues(Object node, final Collection<? super T> values, Collection<? super Object> connectedNodes) {
             if (node instanceof TaskDependencyContainer) {
+                evaluateCredentialsProvider(node);
+
                 TaskDependencyContainer taskDependency = (TaskDependencyContainer) node;
                 queue.clear();
                 taskDependency.visitDependencies(CachingTaskDependencyResolveContext.this);
@@ -136,6 +140,16 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
             throw new IllegalArgumentException(
                 String.format("Cannot resolve object of unknown type %s to a Task.",
                     node.getClass().getSimpleName()));
+        }
+
+        private void evaluateCredentialsProvider(Object node) {
+            if (node instanceof ProviderInternal) {
+                ProviderInternal<?> provider = (ProviderInternal<?>) node;
+                Class<?> providedType = provider.getType();
+                if (providedType != null && Credentials.class.isAssignableFrom(providedType)) {
+                    provider.isPresent();
+                }
+            }
         }
     }
 }

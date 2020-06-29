@@ -57,7 +57,6 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
      * @return The repository to publish to
      */
     @Internal
-
     public MavenArtifactRepository getRepository() {
         return repository.get();
     }

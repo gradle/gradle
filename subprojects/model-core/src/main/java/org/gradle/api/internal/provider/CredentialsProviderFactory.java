@@ -66,7 +66,7 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
     }
 
     public <T extends Credentials> Provider<T> provide(Class<T> credentialsType, Provider<String> identity) {
-        return evaluateAtConfigurationTime(() -> provide(credentialsType, identity.get()).get());
+        return evaluateAtConfigurationTime(() -> provide(credentialsType, identity.get()).getOrNull());
     }
 
     @Override
@@ -172,19 +172,6 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
     }
 
     private <T extends Credentials> Provider<T> evaluateAtConfigurationTime(Callable<T> provider) {
-        return new InterceptingProvider<>(provider);
-    }
-
-    private static class InterceptingProvider<T> extends DefaultProvider<T> {
-
-        public InterceptingProvider(Callable<? extends T> value) {
-            super(value);
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            calculatePresence(ValueConsumer.IgnoreUnsafeRead);
-            return super.getProducer();
-        }
+        return new DefaultProvider<>(provider);
     }
 }
