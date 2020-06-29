@@ -110,7 +110,10 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
         bundling << [Bundling.EMBEDDED, Bundling.SHADOWED]
     }
 
-    @ToBeFixedForInstantExecution(iterationMatchers = [".*selected=null.*"])
+    @ToBeFixedForInstantExecution(
+        iterationMatchers = [".*selected=null.*"],
+        skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS
+    )
     @Unroll
     def "selects the appropriate variant (producer=#bundling, requested=#requested, selected=#selected)"() {
         given:
