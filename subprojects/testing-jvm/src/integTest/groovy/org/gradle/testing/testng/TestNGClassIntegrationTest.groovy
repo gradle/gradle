@@ -90,10 +90,10 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
 
         file("src/test/java/org/company/SystemOutTest.java") << """
             package org.company;
-    
+
             import org.testng.Assert;
             import org.testng.annotations.Test;
-    
+
             public class SystemOutTest {
                 @Test
                 public void testOut() {
@@ -137,15 +137,18 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
         containsEvent(FINISHED, DefaultTestSuiteDescriptor, 'TestSuite > FullTest')
     }
 
-    @ToBeFixedForInstantExecution(because = "build failed with multiple exceptions")
+    @ToBeFixedForInstantExecution(
+        because = "build failed with multiple exceptions",
+        skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS
+    )
     def "synthesized events for broken configuration methods reference test class descriptors"() {
         given:
         file("src/test/java/org/company/TestWithBrokenSetupMethod.java") << """
             package org.company;
-    
+
             import org.testng.Assert;
             import org.testng.annotations.*;
-    
+
             public class TestWithBrokenSetupMethod {
                 @BeforeMethod
                 public void broken() {
