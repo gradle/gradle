@@ -170,12 +170,12 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         resolve.expectGraph {
             root(':', ':testproject:') {
                 module("group:bom:1.0") {
-                    variant("platform-runtime", ['org.gradle.category':'platform', 'org.gradle.status':'release', 'org.gradle.usage':'java-runtime'])
+                    variant("platform-runtime", ['org.gradle.category': 'platform', 'org.gradle.status': 'release', 'org.gradle.usage': 'java-runtime'])
                     constraint("group:moduleA:2.0")
                     noArtifacts()
                 }
                 module("group:bom:1.0") {
-                    variant("runtime", ['org.gradle.category':'library', 'org.gradle.status':'release', 'org.gradle.usage':'java-runtime', 'org.gradle.libraryelements': 'jar'])
+                    variant("runtime", ['org.gradle.category': 'library', 'org.gradle.status': 'release', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar'])
                     module("group:moduleC:1.0")
                     noArtifacts()
                 }
@@ -184,7 +184,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "a parent pom is not a bom"() {
         mavenHttpRepo.module('group', 'main', '5.0').allowAll().parent(bom.group, bom.artifactId, bom.version).publish()
         bomDependency('moduleA')
@@ -255,7 +255,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "fails late for dependency entries that fail to provide a missing version"() {
         given:
         bomDependency('moduleA')
