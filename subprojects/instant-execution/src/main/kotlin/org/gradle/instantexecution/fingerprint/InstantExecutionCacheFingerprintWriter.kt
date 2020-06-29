@@ -17,11 +17,12 @@
 package org.gradle.instantexecution.fingerprint
 
 import com.google.common.collect.Sets.newConcurrentHashSet
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DynamicVersionResolutionListener
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.FileContentValueSource
@@ -43,7 +44,7 @@ internal
 class InstantExecutionCacheFingerprintWriter(
     private val host: Host,
     private val writeContext: DefaultWriteContext
-) : ValueSourceProviderFactory.Listener, TaskInputsListener, ScriptExecutionListener, UndeclaredBuildInputListener, DynamicVersionResolutionListener {
+) : ValueSourceProviderFactory.Listener, TaskInputsListener, ScriptExecutionListener, UndeclaredBuildInputListener, ChangingValueDependencyResolutionListener {
 
     interface Host {
 
@@ -69,7 +70,7 @@ class InstantExecutionCacheFingerprintWriter(
     val undeclaredSystemProperties = mutableSetOf<String>()
 
     private
-    var soonestDynamicVersionExpiry: InstantExecutionCacheFingerprint.DynamicDependencyVersion? = null
+    var closestChangingValue: InstantExecutionCacheFingerprint.ChangingDependencyResolutionValue? = null
 
     init {
         val initScripts = host.allInitScripts
@@ -87,8 +88,8 @@ class InstantExecutionCacheFingerprintWriter(
      * **MUST ALWAYS BE CALLED**
      */
     fun close() {
-        if (soonestDynamicVersionExpiry != null) {
-            write(soonestDynamicVersionExpiry)
+        if (closestChangingValue != null) {
+            write(closestChangingValue)
         }
         write(null)
         writeContext.close()
@@ -99,10 +100,20 @@ class InstantExecutionCacheFingerprintWriter(
         ignoreValueSources = true
     }
 
-    override fun onDynamicVersionResolve(requested: ModuleComponentSelector, expiry: Expiry) {
+    override fun onDynamicVersionSelection(requested: ModuleComponentSelector, expiry: Expiry) {
         val expireAt = host.buildStartTime + expiry.keepFor.toMillis()
-        if (soonestDynamicVersionExpiry == null || soonestDynamicVersionExpiry!!.expireAt > expireAt) {
-            soonestDynamicVersionExpiry = InstantExecutionCacheFingerprint.DynamicDependencyVersion(requested.displayName, expireAt)
+        onChangingValue(InstantExecutionCacheFingerprint.DynamicDependencyVersion(requested.displayName, expireAt))
+    }
+
+    override fun onChangingModuleResolve(moduleId: ModuleComponentIdentifier, expiry: Expiry) {
+        val expireAt = host.buildStartTime + expiry.keepFor.toMillis()
+        onChangingValue(InstantExecutionCacheFingerprint.ChangingModule(moduleId.displayName, expireAt))
+    }
+
+    private
+    fun onChangingValue(changingValue: InstantExecutionCacheFingerprint.ChangingDependencyResolutionValue) {
+        if (closestChangingValue == null || closestChangingValue!!.expireAt > changingValue.expireAt) {
+            closestChangingValue = changingValue
         }
     }
 

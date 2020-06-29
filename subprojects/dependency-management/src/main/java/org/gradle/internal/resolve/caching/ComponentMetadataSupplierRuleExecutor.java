@@ -26,6 +26,8 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.util.BuildCommencedTimeProvider;
 
+import java.time.Duration;
+
 public class ComponentMetadataSupplierRuleExecutor extends CrossBuildCachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> {
     private final static Transformer<String, ModuleVersionIdentifier> KEY_TO_SNAPSHOTTABLE = Object::toString;
 
@@ -39,10 +41,9 @@ public class ComponentMetadataSupplierRuleExecutor extends CrossBuildCachingRule
 
     public static EntryValidator<ComponentMetadata> createValidator(final BuildCommencedTimeProvider timeProvider) {
         return (policy, entry) -> {
-            long age = timeProvider.getCurrentTime() - entry.getTimestamp();
+            Duration age = Duration.ofMillis(timeProvider.getCurrentTime() - entry.getTimestamp());
             final ComponentMetadata result = entry.getResult();
-            boolean mustRefreshModule = policy.mustRefreshModule(new SimpleResolvedModuleVersion(result), age, result.isChanging());
-            return !mustRefreshModule;
+            return !policy.moduleExpiry(new SimpleResolvedModuleVersion(result), age, result.isChanging()).isMustCheck();
         };
     }
 

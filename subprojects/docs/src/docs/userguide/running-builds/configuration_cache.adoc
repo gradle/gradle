@@ -176,7 +176,7 @@ org.gradle.unsafe.configuration-cache.max-problems=5
 
 The configuration cache is automatically invalidated when inputs to the configuration phase change.
 However, certain inputs are not tracked yet, so you may have to manually invalidate the configuration cache when untracked inputs to the configuration phase change.
-This can happen if you <<configuration_cache#config_cache:usage:ignore_problems,ignored problems>>, or when your build uses <<dynamic_versions#sec:dynamic_versions_and_changing_modules,changing dependency versions>> and remote dependencies have changed for example.
+This can happen if you <<configuration_cache#config_cache:usage:ignore_problems,ignored problems>>, or when your build uses a <<config_cache:not_yet_implemented:file_system_repositories,file system repository>> and dependencies in this repository have changed for example.
 See the <<configuration_cache#config_cache:requirements>> and <<configuration_cache#config_cache:not_yet_implemented>> sections below for more information.
 
 The configuration cache state is stored on disk in a directory named `.gradle/configuration-cache` in the root directory of the Gradle build in use.
@@ -888,16 +888,6 @@ See link:{gradle-issues}13506[gradle/gradle#13506].
 With the configuration cache enabled, no problem will be reported and dependency locks will be ignored.
 
 See link:{gradle-issues}13507[gradle/gradle#13507].
-
-[[config_cache:not_yet_implemented:changing_dependencies]]
-=== Changing dependencies
-
-<<dynamic_versions#sec:dynamic_versions_and_changing_modules,Dependencies with files that change over time>> aren't supported yet.
-With the configuration cache enabled, no problem will be reported and changes to these dependencies won't be detected.
-
-You can force refresh changing dependencies using `--refresh-dependencies`.
-
-See link:{gradle-issues}13508[gradle/gradle#13508].
 
 [[config_cache:not_yet_implemented:file_system_repositories]]
 === File system repositories

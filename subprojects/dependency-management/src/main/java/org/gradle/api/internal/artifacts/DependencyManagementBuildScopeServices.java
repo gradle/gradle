@@ -34,7 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryBlacklister;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DynamicVersionResolutionListener;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashCodec;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryBlacklister;
@@ -230,10 +230,6 @@ class DependencyManagementBuildScopeServices {
 
     RuntimeShadedJarFactory createRuntimeShadedJarFactory(GeneratedGradleJarCache jarCache, ProgressLoggerFactory progressLoggerFactory, ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder, BuildOperationExecutor executor) {
         return new RuntimeShadedJarFactory(jarCache, progressLoggerFactory, classpathWalker, classpathBuilder, executor);
-    }
-
-    BuildCommencedTimeProvider createBuildTimeProvider() {
-        return new BuildCommencedTimeProvider();
     }
 
     ModuleExclusions createModuleExclusions() {
@@ -503,7 +499,7 @@ class DependencyManagementBuildScopeServices {
             repositoryBlacklister,
             versionParser,
             instantiatorFactory,
-            listenerManager.getBroadcaster(DynamicVersionResolutionListener.class)
+            listenerManager.getBroadcaster(ChangingValueDependencyResolutionListener.class)
         );
     }
 
