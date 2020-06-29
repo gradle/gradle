@@ -17,6 +17,7 @@ package gradlebuild.distribution
 
 plugins {
     `java-base`
+    id("gradlebuild.dependencies-metadata-rules")
     id("gradlebuild.repositories")
     id("gradlebuild.minify")
     id("gradlebuild.reproducible-archives")

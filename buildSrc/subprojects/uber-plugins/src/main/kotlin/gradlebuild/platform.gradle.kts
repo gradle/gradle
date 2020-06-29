@@ -17,4 +17,5 @@ package gradlebuild
 
 plugins {
     id("java-platform")
+    id("gradlebuild.dependency-modules")
 }

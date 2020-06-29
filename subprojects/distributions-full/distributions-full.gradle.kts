@@ -1,11 +1,11 @@
-import org.gradle.plugins.install.Install
+import org.gradle.gradlebuild.packaging.Install
 import org.gradle.gradlebuild.packaging.RunEmbeddedGradle
 import org.gradle.gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
 import org.gradle.gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
 
 plugins {
     gradlebuild.distribution.packaging
-    gradlebuild.`add-verify-production-environment-task`
+    gradlebuild.`verify-build-environment`
     gradlebuild.install
 }
 
