@@ -1,4 +1,4 @@
-package org.gradle.gradlebuild.buildquality.incubation
+package gradlebuild.incubation.tasks
 
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ast.CompilationUnit
@@ -15,6 +15,8 @@ import com.github.javaparser.symbolsolver.JavaSymbolSolver
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver
+
+import gradlebuild.basics.util.KotlinSourceParser
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
@@ -35,8 +37,6 @@ import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
-
-import parser.KotlinSourceParser
 
 import java.io.File
 import javax.inject.Inject

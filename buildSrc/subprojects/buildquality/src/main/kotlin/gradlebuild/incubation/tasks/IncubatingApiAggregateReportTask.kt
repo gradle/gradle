@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.gradlebuild.buildquality.incubation
+package gradlebuild.incubation.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.CacheableTask

@@ -1,4 +1,4 @@
-package org.gradle.gradlebuild.buildquality.codenarc
+package gradlebuild.codenarc.rules
 
 import org.codehaus.groovy.ast.ClassNode
 import org.codehaus.groovy.ast.MethodNode

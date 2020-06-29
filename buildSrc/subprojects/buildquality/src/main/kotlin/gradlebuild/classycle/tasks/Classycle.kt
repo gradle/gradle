@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.gradlebuild.buildquality.classycle
+package gradlebuild.classycle.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
@@ -40,7 +40,7 @@ import javax.inject.Inject
 
 
 @CacheableTask
-open class Classycle @Inject constructor(
+abstract class Classycle @Inject constructor(
     @get:Internal val classesDirs: FileCollection,
     @get:Input val excludePatterns: Provider<List<String>>,
     @get:Input val reportName: String,
@@ -64,13 +64,12 @@ open class Classycle @Inject constructor(
 
     @get:Inject
     protected
-    open val antBuilder: IsolatedAntBuilder
-        get() = throw UnsupportedOperationException()
+    abstract val antBuilder: IsolatedAntBuilder
 
     @TaskAction
     fun generate() = project.run {
         val classesDirs = existingClassesDir
-        val classpath = configurations[classycleBaseName].files
+        val classpath = configurations["classycle"].files
         reportFile.parentFile.mkdirs()
         antBuilder.withClasspath(classpath).execute(closureOf<AntBuilderDelegate> {
             ant.withGroovyBuilder {

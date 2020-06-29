@@ -13,24 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.gradlebuild.buildquality.classycle
+package gradlebuild.classycle.extension
 
-import org.gradle.api.Project
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
 
-import org.gradle.kotlin.dsl.*
 
+abstract class ClassycleExtension {
 
-open class ClassycleExtension(project: Project) {
+    abstract val excludePatterns: ListProperty<String>
 
-    val excludePatterns: ListProperty<String> = project.objects.listProperty()
-
-    val reportResourcesZip: RegularFileProperty = project.objects.fileProperty().also {
-        it.set(project.rootProject.file("config/classycle_report_resources.zip"))
-    }
-
-    init {
-        excludePatterns.set(listOf())
-    }
+    abstract val reportResourcesZip: RegularFileProperty
 }

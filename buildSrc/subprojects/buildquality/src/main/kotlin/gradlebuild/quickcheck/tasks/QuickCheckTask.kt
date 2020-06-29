@@ -14,27 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.gradlebuild.buildquality.quick
+package gradlebuild.quickcheck.tasks
 
+import gradlebuild.basics.kotlindsl.execAndGetStdout
 import org.gradle.api.DefaultTask
-import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 import org.gradle.cache.internal.GeneratedGradleJarCache
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.experiments.plugins.GradleKotlinDslKtlintConventionPlugin
 import org.gradle.kotlin.dsl.support.serviceOf
-import java.util.concurrent.Callable
-
-
-class QuickCheckPlugin : Plugin<Project> {
-    override fun apply(project: Project) {
-        project.tasks.register<QuickCheckTask>("quickCheck")
-    }
-}
 
 
 abstract class QuickCheckTask : DefaultTask() {
+
     @TaskAction
     fun execute() {
         if (System.getenv("IGNORE_QUICK_CHECK") != null) {
@@ -107,7 +100,7 @@ enum class Check(private val extension: String) {
         }
 
         override fun addDependencies(project: Project) {
-            val ruleClass = Class.forName("org.gradle.gradlebuild.buildquality.codenarc.IntegrationTestFixturesRule", false, this.javaClass.classLoader)
+            val ruleClass = Class.forName("gradlebuild.codenarc.rules.IntegrationTestFixturesRule", false, this.javaClass.classLoader)
             project.dependencies.add("quickCheck", project.dependencies.localGroovy())
             project.dependencies.add("quickCheck", project.dependencies.embeddedKotlin("stdlib"))
             project.dependencies.add("quickCheck", "org.slf4j:slf4j-api:1.7.28")
@@ -148,7 +141,7 @@ enum class Check(private val extension: String) {
         }
 
         private
-        fun Project.gradleKotlinDslKtlintRulesetJar() = Callable {
+        fun Project.gradleKotlinDslKtlintRulesetJar() = provider {
             serviceOf<GeneratedGradleJarCache>().get("ktlint-convention-ruleset-$rulesetChecksum") {
                 outputStream().use { it.write(rulesetJar.readBytes()) }
             }
