@@ -39,7 +39,7 @@ public class SubscribableBuildActionExecuter implements BuildActionExecuter<Buil
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final ListenerManager listenerManager;
     private final BuildOperationListenerManager buildOperationListenerManager;
-    private final List<Object> listeners = new ArrayList<Object>();
+    private final List<Object> listeners = new ArrayList<>();
     private final List<? extends BuildEventListenerFactory> registrations;
 
     public SubscribableBuildActionExecuter(ListenerManager listenerManager, BuildOperationListenerManager buildOperationListenerManager, List<? extends BuildEventListenerFactory> registrations, BuildActionExecuter<BuildActionParameters> delegate) {
