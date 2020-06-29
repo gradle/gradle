@@ -17,25 +17,28 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.internal.file.FileFactory;
+import org.gradle.jvm.toolchain.JavaInstallation;
 import org.gradle.jvm.toolchain.JavaInstallationRegistry;
 
 import javax.inject.Inject;
 import java.io.File;
 
-// TODO: can this be replaced by Instantiator, ObjectFactory, .. ?
 public class JavaToolchainFactory {
 
     private FileFactory fileFactory;
     private JavaInstallationRegistry installationRegistry;
+    private JavaCompilerFactory compilerFactory;
 
     @Inject
-    public JavaToolchainFactory(FileFactory fileFactory, JavaInstallationRegistry installationRegistry) {
+    public JavaToolchainFactory(FileFactory fileFactory, JavaInstallationRegistry installationRegistry, JavaCompilerFactory compilerFactory) {
         this.fileFactory = fileFactory;
         this.installationRegistry = installationRegistry;
+        this.compilerFactory = compilerFactory;
     }
 
     public JavaToolchain newInstance(File javaHome) {
-        return new JavaToolchain(javaHome, installationRegistry, fileFactory);
+        final JavaInstallation installation = installationRegistry.installationForDirectory(fileFactory.dir(javaHome)).get();
+        return new JavaToolchain(installation, compilerFactory);
     }
 
 }

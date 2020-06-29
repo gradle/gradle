@@ -17,35 +17,29 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
-import org.gradle.jvm.toolchain.JavaInstallationRegistry;
+import org.gradle.jvm.toolchain.JavaInstallation;
 
 import javax.inject.Inject;
-import java.io.File;
 
 public class JavaToolchain {
 
-    // TODO: this is going to be a JavaInstallation
-    private final File javaHome;
-    private final JavaInstallationRegistry installationRegistry;
-    private final FileFactory factory;
+    private final JavaInstallation installation;
+    private JavaCompilerFactory compilerFactory;
 
     @Inject
-    public JavaToolchain(File javaHome, JavaInstallationRegistry installationRegistry, FileFactory fileFactory) {
-        this.javaHome = javaHome;
-        this.installationRegistry = installationRegistry;
-        this.factory = fileFactory;
+    public JavaToolchain(JavaInstallation installation, JavaCompilerFactory compilerFactory) {
+        this.installation = installation;
+        this.compilerFactory = compilerFactory;
     }
 
     public Provider<DefaultJavaCompiler> getJavaCompiler() {
-        return Providers.of(new DefaultJavaCompiler(this));
+        return Providers.of(new DefaultJavaCompiler(this, compilerFactory));
     }
 
-    // TODO: cache me?
     public JavaVersion getJavaMajorVersion() {
-        return installationRegistry.installationForDirectory(factory.dir(javaHome)).get().getJavaVersion();
+        return installation.getJavaVersion();
     }
 
 }

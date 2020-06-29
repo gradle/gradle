@@ -19,16 +19,17 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.WorkResults;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.language.base.internal.compile.CompileSpec;
 
 public class DefaultJavaCompiler implements JavaCompiler {
 
     private final JavaToolchain javaToolchain;
+    private final JavaCompilerFactory compilerFactory;
 
-    public DefaultJavaCompiler(JavaToolchain javaToolchain) {
+    public DefaultJavaCompiler(JavaToolchain javaToolchain, JavaCompilerFactory compilerFactory) {
         this.javaToolchain = javaToolchain;
+        this.compilerFactory = compilerFactory;
     }
 
     @Input
@@ -36,10 +37,11 @@ public class DefaultJavaCompiler implements JavaCompiler {
         return javaToolchain.getJavaMajorVersion();
     }
 
+    @SuppressWarnings("unchecked")
     public <T extends CompileSpec> WorkResult execute(T spec) {
-        // TODO: replace with actual JavaCompilerFactory
         System.out.println("Toolchain selected: " + javaToolchain.getJavaMajorVersion());
-        return WorkResults.didWork(true);
+        final Class<T> specType = (Class<T>) spec.getClass();
+        return compilerFactory.create(specType).execute(spec);
     }
 
 }

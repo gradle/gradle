@@ -23,6 +23,7 @@ import org.gradle.api.provider.Provider;
 import javax.inject.Inject;
 import java.io.File;
 
+// TODO: this is currently project-scoped to access the compiler factory; wonder if we should cache this differently
 public class JavaToolchainQueryService {
 
     private final SharedJavaInstallationRegistry registry;

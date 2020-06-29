@@ -68,8 +68,12 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         registration.add(SharedJavaInstallationRegistry.class);
         registration.add(LocationListInstallationSupplier.class);
         registration.add(EnvironmentVariableListInstallationSupplier.class);
-        registration.add(JavaToolchainQueryService.class);
+    }
+
+    @Override
+    public void registerProjectServices(ServiceRegistration registration) {
         registration.add(JavaToolchainFactory.class);
+        registration.add(JavaToolchainQueryService.class);
     }
 
     private static class BuildScopeServices {

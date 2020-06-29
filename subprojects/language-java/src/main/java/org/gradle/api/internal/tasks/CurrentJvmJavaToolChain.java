@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
+import org.gradle.jvm.toolchain.internal.JavaCompilerFactory;
 import org.gradle.process.internal.ExecActionFactory;
 
 /**
