@@ -3,18 +3,17 @@ dependencies {
         // TODO turn this around: move corresponding code to this project and let docs depend on it
         because("API metadata generation is part of the DSL guide")
     }
-    implementation(project(":build"))
-    implementation(project(":configuration"))
-    implementation(project(":kotlinDsl"))
-    implementation(project(":versioning"))
+    implementation(project(":basics"))
+    implementation(project(":moduleIdentity"))
+    implementation(project(":jvm"))
 
     implementation("com.google.guava:guava")
-    implementation("org.ow2.asm:asm:7.1")
-    implementation("org.ow2.asm:asm-commons:7.1")
-    implementation("com.google.code.gson:gson:2.7")
+    implementation("org.ow2.asm:asm")
+    implementation("org.ow2.asm:asm-commons")
+    implementation("com.google.code.gson:gson")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
 tasks.test {
@@ -34,6 +33,10 @@ gradlePlugin {
         register("distributions") {
             id = "gradlebuild.distributions"
             implementationClass = "org.gradle.gradlebuild.packaging.GradleDistributionsPlugin"
+        }
+        register("install") {
+            id = "gradlebuild.install"
+            implementationClass = "org.gradle.gradlebuild.packaging.InstallPlugin"
         }
     }
 }
