@@ -258,9 +258,32 @@ This message means that either
 --
 In both cases the build cannot benefit from file system watching.
 
-`Caught exception: Couldn't add watch, error = 28`::
-If you receive this error on Linux then you ran out of inotify handles.
-To raise the limit see https://confluence.jetbrains.com/display/IDEADEV/Inotify+Watches+Limit[here].
-
 `java.io.IOException: Too many open files`::
 If you receive this error on macOS, you need to raise your open files limit, see https://superuser.com/a/443168/8117[here].
+
+[[sec:inotify_watches_limit]]
+===  Linux-specific notes
+
+File system watching uses http://en.wikipedia.org/wiki/Inotify[inotify] on Linux.
+Depending on the size of your build, it may be necessary to increase inotify limits.
+If you are using an IDE, then you probably already had to increase the limits in the past.
+
+File system watching uses one inotify watch per watched directory.
+You can see the current limit of inotify watches per user by running:
+
+[source,bash]
+----
+cat /proc/sys/fs/inotify/max_user_watches
+----
+
+To increase the limit to e.g. 512K watches run the following:
+
+[source,bash]
+----
+echo 524288 | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p --system
+----
+
+Each used inotify watch takes up to 1KB of memory.
+Assuming inotify uses all the 512K watches then around 500MB will be used for watching the file system.
+If your environment is memory constraint, you may want to disable file system watching.

@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.StartParameter;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
@@ -174,7 +175,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             FileSystem fileSystem,
             Stat stat,
             StringInterner stringInterner,
-            ListenerManager listenerManager
+            ListenerManager listenerManager,
+            DocumentationRegistry documentationRegistry
         ) {
             // All the changes in global caches should be done by Gradle itself, so in order
             // to minimize the number of watches we don't watch anything within the global caches.
@@ -193,7 +195,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     watcherRegistryFactory,
                     delegate,
                     updateFunctionDecorator,
-                    watchFilter
+                    watchFilter,
+                    sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId)
                 ))
                 .orElse(new NonWatchingVirtualFileSystem(delegate));
             listenerManager.addListener(new VirtualFileSystemBuildLifecycleListener(
