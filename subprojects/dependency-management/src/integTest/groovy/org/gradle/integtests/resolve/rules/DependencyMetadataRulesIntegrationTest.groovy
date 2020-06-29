@@ -801,7 +801,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "can make #thing strict"() {
         given:
         repository {
@@ -866,7 +866,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "can add rejections to #thing"() {
         given:
         repository {
