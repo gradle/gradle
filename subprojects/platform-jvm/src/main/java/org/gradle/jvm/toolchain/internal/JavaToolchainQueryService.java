@@ -17,10 +17,8 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Provider;
-import org.gradle.jvm.toolchain.JavaInstallationRegistry;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -28,18 +26,16 @@ import java.io.File;
 public class JavaToolchainQueryService {
 
     private final SharedJavaInstallationRegistry registry;
-    private final JavaInstallationRegistry installationRegistry;
-    private final FileFactory fileFactory;
+    private final JavaToolchainFactory toolchainFactory;
 
     @Inject
-    public JavaToolchainQueryService(SharedJavaInstallationRegistry registry, JavaInstallationRegistry installationRegistry, FileFactory fileFactory) {
+    public JavaToolchainQueryService(SharedJavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory) {
         this.registry = registry;
-        this.installationRegistry = installationRegistry;
-        this.fileFactory = fileFactory;
+        this.toolchainFactory = toolchainFactory;
     }
 
     // TODO: accept toolchain spec
-    public Provider<JavaToolchain> findMatchingService() {
+    public Provider<JavaToolchain> findMatchingToolchain() {
         return new DefaultProvider<>(() -> query());
     }
 
@@ -48,7 +44,7 @@ public class JavaToolchainQueryService {
     }
 
     private JavaToolchain asToolchain(File javaHome) {
-        return new JavaToolchain(javaHome, installationRegistry, fileFactory);
+        return toolchainFactory.newInstance(javaHome);
     }
 
 }

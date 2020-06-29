@@ -39,6 +39,7 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.internal.DefaultJavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
+import org.gradle.jvm.toolchain.internal.JavaToolchainFactory;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
@@ -68,6 +69,7 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         registration.add(LocationListInstallationSupplier.class);
         registration.add(EnvironmentVariableListInstallationSupplier.class);
         registration.add(JavaToolchainQueryService.class);
+        registration.add(JavaToolchainFactory.class);
     }
 
     private static class BuildScopeServices {
