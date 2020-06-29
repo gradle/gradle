@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -439,7 +439,7 @@ public class NodeState implements DependencyGraphNode {
 
     private void registerActivatingConstraint(DependencyState dependencyState) {
         if (potentiallyActivatedConstraints == null) {
-            potentiallyActivatedConstraints = ArrayListMultimap.create();
+            potentiallyActivatedConstraints = LinkedHashMultimap.create();
         }
         potentiallyActivatedConstraints.put(dependencyState.getModuleIdentifier(), dependencyState);
     }
@@ -1170,7 +1170,6 @@ public class NodeState implements DependencyGraphNode {
     void makePending(EdgeState edgeState) {
         outgoingEdges.remove(edgeState);
         edgeState.getSelector().release();
-        registerActivatingConstraint(edgeState.getDependencyState());
     }
 
     ImmutableAttributes desugar(ImmutableAttributes attributes) {
