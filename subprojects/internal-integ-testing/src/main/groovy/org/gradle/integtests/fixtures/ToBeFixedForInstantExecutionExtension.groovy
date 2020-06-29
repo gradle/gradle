@@ -17,14 +17,15 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.reflect.ClassInspector
 import org.gradle.test.fixtures.ResettableExpectations
 import org.junit.AssumptionViolatedException
 import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
 import org.spockframework.runtime.extension.IMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.FeatureInfo
-import org.spockframework.runtime.model.FieldInfo
 
+import java.lang.reflect.Field
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Predicate
 
@@ -147,9 +148,9 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
         if (instance instanceof AbstractIntegrationSpec) {
             instance.ignoreCleanupAssertions()
         }
-        invocation.spec.allFields.forEach { FieldInfo specField ->
-                def server = specField.readValue(instance) as ResetableExpectations
+        allInstanceFieldsOf(instance).forEach { Field specField ->
             if (ResettableExpectations.isAssignableFrom(specField.type)) {
+                def server = specField.tap { it.accessible = true }.get(instance) as ResettableExpectations
                 try {
                     server?.resetExpectations()
                 } catch (Throwable error) {
@@ -157,6 +158,10 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
                 }
             }
         }
+    }
+
+    private static Collection<Field> allInstanceFieldsOf(instance) {
+        ClassInspector.inspect(instance.getClass()).instanceFields
     }
 
     private static void expectedFailure(Throwable ex) {
