@@ -1,11 +1,10 @@
 dependencies {
     api(kotlin("stdlib"))
-    implementation(project(":build"))
+    implementation(project(":basics"))
     implementation(project(":cleanup"))
-    implementation(project(":configuration"))
-    implementation(project(":kotlinDsl"))
+    implementation(project(":dependencyModules"))
     implementation(project(":packaging"))
-    implementation(project(":versioning"))
+    implementation(project(":moduleIdentity"))
     testImplementation("junit:junit:4.13")
 }
 
@@ -22,10 +21,6 @@ gradlePlugin {
         register("integrationTests") {
             id = "gradlebuild.integration-tests"
             implementationClass = "org.gradle.gradlebuild.test.integrationtests.IntegrationTestsPlugin"
-        }
-        register("testFixtures") {
-            id = "gradlebuild.test-fixtures"
-            implementationClass = "org.gradle.gradlebuild.test.fixtures.TestFixturesPlugin"
         }
     }
 }

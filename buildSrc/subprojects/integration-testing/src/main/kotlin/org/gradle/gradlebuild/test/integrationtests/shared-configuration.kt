@@ -1,8 +1,9 @@
 package org.gradle.gradlebuild.test.integrationtests
 
-import accessors.groovy
-import accessors.java
 import library
+
+import gradlebuild.basics.accessors.groovy
+
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -11,6 +12,7 @@ import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.junit.JUnitOptions
@@ -59,8 +61,9 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
 internal
 fun Project.addSourceSet(testType: TestType): SourceSet {
     val prefix = testType.prefix
-    val main by java.sourceSets.getting
-    return java.sourceSets.create("${prefix}Test") {
+    val sourceSets = the<SourceSetContainer>()
+    val main by sourceSets.getting
+    return sourceSets.create("${prefix}Test") {
         compileClasspath += main.output
         runtimeClasspath += main.output
     }
@@ -141,7 +144,7 @@ fun IntegrationTest.addDebugProperties() {
 internal
 fun Project.configureIde(testType: TestType) {
     val prefix = testType.prefix
-    val sourceSet = java.sourceSets.getByName("${prefix}Test")
+    val sourceSet = the<SourceSetContainer>().getByName("${prefix}Test")
 
     // We apply lazy as we don't want to depend on the order
     plugins.withType<IdeaPlugin> {

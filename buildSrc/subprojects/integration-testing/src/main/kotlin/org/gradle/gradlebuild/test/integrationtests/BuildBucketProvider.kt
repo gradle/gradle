@@ -16,6 +16,8 @@
 
 package org.gradle.gradlebuild.test.integrationtests
 
+import gradlebuild.basics.kotlindsl.stringPropertyOrEmpty
+
 import org.gradle.api.Project
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.testing.Test
