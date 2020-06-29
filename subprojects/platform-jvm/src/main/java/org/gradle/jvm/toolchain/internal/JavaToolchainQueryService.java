@@ -38,16 +38,17 @@ public class JavaToolchainQueryService {
         this.fileFactory = fileFactory;
     }
 
-    // TODO: replace with actual query methods
-    public Provider<JavaToolchain> getOne() {
-        return new DefaultProvider<>(() -> queryOne());
+    // TODO: accept toolchain spec
+    public Provider<JavaToolchain> findMatchingService() {
+        return new DefaultProvider<>(() -> query());
     }
 
-    private JavaToolchain queryOne() {
+    private JavaToolchain query() {
         return registry.listInstallations().stream().findFirst().map(this::asToolchain).orElseThrow(() -> new InvalidUserDataException("No java installations defined"));
     }
 
     private JavaToolchain asToolchain(File javaHome) {
         return new JavaToolchain(javaHome, installationRegistry, fileFactory);
     }
+
 }
