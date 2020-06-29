@@ -84,7 +84,7 @@ class GradleMetadataValidationResolveIntegrationTest extends AbstractModuleDepen
     }
 
     @Issue("gradle/gradle#7888")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
     def "fails with reasonable error message if Gradle Module Metadata doesn't declare any variant"() {
         buildFile << """
             dependencies {
