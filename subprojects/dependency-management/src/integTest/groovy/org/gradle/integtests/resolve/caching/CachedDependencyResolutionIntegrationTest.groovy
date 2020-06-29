@@ -132,7 +132,6 @@ task retrieve(type: Sync) {
         module.publishWithChangedContent()
     }
 
-    @ToBeFixedForInstantExecution
     def "etags are used to determine changed"() {
         given:
         server.etags = HttpServer.EtagStrategy.RAW_SHA1_HEX
@@ -151,7 +150,6 @@ task retrieve(type: Sync) {
         changedResolve()
     }
 
-    @ToBeFixedForInstantExecution
     def "last modified and content length are used to determine changed"() {
         given:
         server.etags = null
@@ -169,7 +167,6 @@ task retrieve(type: Sync) {
         changedResolve()
     }
 
-    @ToBeFixedForInstantExecution
     def "checksum is used when last modified and content length can't be used"() {
         given:
         server.etags = null
@@ -188,7 +185,6 @@ task retrieve(type: Sync) {
         changedResolve()
     }
 
-    @ToBeFixedForInstantExecution
     def "no need for sha1 request if we get it in the metadata"() {
         given:
         server.sendSha1Header = true
@@ -206,7 +202,6 @@ task retrieve(type: Sync) {
         changedResolve()
     }
 
-    @ToBeFixedForInstantExecution
     def "no need for sha1 request if we know the etag is sha1"() {
         given:
         server.etags = HttpServer.EtagStrategy.NEXUS_ENCODED_SHA1
