@@ -102,18 +102,21 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
             return providerFactory.gradleProperty(identityProperty).forUseAtConfigurationTime().getOrNull();
         }
 
-        void assertRequiredValuesPresent() {
-            if (!missingProperties.isEmpty()) {
-                TreeFormatter errorBuilder = new TreeFormatter();
-                errorBuilder.node("The following Gradle properties are missing for '").append(identity).append("' credentials");
-                errorBuilder.startChildren();
-                for (String missingProperty : missingProperties) {
-                    errorBuilder.node(missingProperty);
-                }
-                errorBuilder.endChildren();
-                missingProperties.clear();
-                throw new MissingValueException(errorBuilder.toString());
+        boolean hasMissingValues() {
+            if (missingProperties.isEmpty()) {
+                return false;
             }
+            TreeFormatter errorBuilder = new TreeFormatter();
+            errorBuilder.node("The following Gradle properties are missing for '").append(identity).append("' credentials");
+            errorBuilder.startChildren();
+            for (String missingProperty : missingProperties) {
+                errorBuilder.node(missingProperty);
+            }
+            errorBuilder.endChildren();
+            missingProperties.clear();
+
+            missingProviderErrors.add(errorBuilder.toString());
+            return true;
         }
 
         private String identityProperty(String property) {
@@ -127,12 +130,14 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
             super(identity);
         }
 
+        @Nullable
         @Override
         public PasswordCredentials call() {
             String username = getRequiredProperty("Username");
             String password = getRequiredProperty("Password");
-            assertRequiredValuesPresent();
-
+            if (hasMissingValues()) {
+                return null;
+            }
             return new DefaultPasswordCredentials(username, password);
         }
     }
@@ -143,11 +148,14 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
             super(identity);
         }
 
+        @Nullable
         @Override
         public AwsCredentials call() {
             String accessKey = getRequiredProperty("AccessKey");
             String secretKey = getRequiredProperty("SecretKey");
-            assertRequiredValuesPresent();
+            if (hasMissingValues()) {
+                return null;
+            }
 
             AwsCredentials credentials = new DefaultAwsCredentials();
             credentials.setAccessKey(accessKey);
@@ -167,7 +175,7 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
         return new InterceptingProvider<>(provider);
     }
 
-    private class InterceptingProvider<T> extends DefaultProvider<T> {
+    private static class InterceptingProvider<T> extends DefaultProvider<T> {
 
         public InterceptingProvider(Callable<? extends T> value) {
             super(value);
@@ -177,19 +185,6 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
         public ValueProducer getProducer() {
             calculatePresence(ValueConsumer.IgnoreUnsafeRead);
             return super.getProducer();
-        }
-
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            try {
-                return super.calculatePresence(consumer);
-            } catch (MissingValueException e) {
-                missingProviderErrors.add(e.getMessage());
-                if (consumer == ValueConsumer.IgnoreUnsafeRead) {
-                    return false;
-                }
-                throw e;
-            }
         }
     }
 }
