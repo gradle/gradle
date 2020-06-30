@@ -22,7 +22,7 @@ import gradlebuild.cleanup.WhenNotEmpty
 import gradlebuild.integrationtests.tasks.DistributionTest
 import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
-import org.gradle.gradlebuild.docs.FindBrokenInternalLinks
+import gradlebuild.docs.FindBrokenInternalLinks
 import gradlebuild.performance.tasks.DistributedPerformanceTest
 
 /**

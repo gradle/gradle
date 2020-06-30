@@ -35,10 +35,10 @@ import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask
-import org.gradle.build.docs.dsl.source.GenerateApiMapping
-import org.gradle.build.docs.dsl.source.GenerateDefaultImports
-import org.gradle.gradlebuild.docs.GradleUserManualPlugin
+import gradlebuild.docs.dsl.source.ExtractDslMetaDataTask
+import gradlebuild.docs.dsl.source.GenerateApiMapping
+import gradlebuild.docs.dsl.source.GenerateDefaultImports
+import gradlebuild.docs.GradleUserManualPlugin
 import org.gradle.gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
 import org.gradle.gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
 import org.gradle.gradlebuild.packaging.GradleDistributionSpecs.docsDistributionSpec

@@ -21,7 +21,7 @@ gradlePlugin {
     plugins {
         register("gradleDocumentation") {
             id = "gradlebuild.documentation"
-            implementationClass = "org.gradle.gradlebuild.docs.GradleBuildDocumentationPlugin"
+            implementationClass = "gradlebuild.docs.GradleBuildDocumentationPlugin"
         }
     }
 }
