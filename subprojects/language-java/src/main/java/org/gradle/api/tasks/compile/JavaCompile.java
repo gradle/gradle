@@ -296,6 +296,8 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
 
     private Compiler<JavaCompileSpec> useNewToolchainCompiler() {
         checkState(toolChain == null, "Must not use `javaCompiler` property together with (deprecated) `toolchain`");
+        checkState(getOptions().getForkOptions().getJavaHome() == null, "Must not use `javaHome` property on `ForkOptions` together with `javaCompiler` property");
+        checkState(getOptions().getForkOptions().getExecutable() == null, "Must not use `exectuable` property on `ForkOptions` together with `javaCompiler` property");
         return spec -> ((DefaultJavaCompiler) javaCompiler.get()).execute(spec);
     }
 
