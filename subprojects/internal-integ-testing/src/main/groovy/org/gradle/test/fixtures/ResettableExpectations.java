@@ -16,6 +16,14 @@
 
 package org.gradle.test.fixtures;
 
+/**
+ * Allows {@link org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension} to verify
+ * test expectations before cleanup so they can be silenced if necessary.
+ */
 public interface ResettableExpectations {
+    /**
+     * Resets all pending expectations after verifying them.
+     * Must throw when a verification fails.
+     */
     void resetExpectations();
 }
