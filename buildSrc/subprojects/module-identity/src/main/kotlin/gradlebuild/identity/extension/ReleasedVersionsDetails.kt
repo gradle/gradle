@@ -36,7 +36,9 @@ class ReleasedVersionsDetails(currentBaseVersion: GradleVersion, releasedVersion
         val lowestInterestingVersion = GradleVersion.version("0.8")
         val lowestTestedVersion = GradleVersion.version("1.0")
 
-        val releasedVersions = Gson().fromJson(releasedVersionsFile.asFile.reader(), ReleasedVersions::class.java)
+        val releasedVersions = releasedVersionsFile.asFile.reader().use {
+            Gson().fromJson(it, ReleasedVersions::class.java)
+        }
 
         val latestFinalRelease = releasedVersions.finalReleases.first()
         val latestRelease = listOf(releasedVersions.latestReleaseSnapshot, releasedVersions.latestRc).filter { it.gradleVersion() > latestFinalRelease.gradleVersion() }.maxBy { it.buildTimeStamp() } ?: latestFinalRelease
