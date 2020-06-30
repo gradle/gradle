@@ -17,10 +17,11 @@
 package org.gradle.api.internal.tasks.testing.testng
 
 
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.testng.TestNGOptions
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
@@ -29,7 +30,7 @@ import spock.lang.Specification
 
 public class TestNGTestFrameworkTest extends Specification {
 
-    @Shared ObjectFactory objects = TestUtil.objectFactory()
+    @Shared Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
     private project = ProjectBuilder.builder().build()
     Test testTask = TestUtil.createTask(Test, project)
@@ -45,7 +46,7 @@ public class TestNGTestFrameworkTest extends Specification {
 
         then:
         processor instanceof TestNGTestClassProcessor
-        framework.testTaskPath == testTask.path
+        framework.testTask == testTask
         framework.detector
     }
 
@@ -60,6 +61,6 @@ public class TestNGTestFrameworkTest extends Specification {
     }
 
     TestNGTestFramework createFramework() {
-        new TestNGTestFramework(testTask, new DefaultTestFilter(), objects)
+        new TestNGTestFramework(testTask, new DefaultTestFilter(), instantiator, Stub(ClassLoaderCache))
     }
 }

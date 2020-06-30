@@ -18,6 +18,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
@@ -56,6 +57,7 @@ class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
         outputContains 'Property from task again: test'
     }
 
+    @ToBeFixedForInstantExecution
     def "methodMissing propagates failures"() {
         buildFile << """
     apply plugin: 'java'
@@ -86,6 +88,7 @@ class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue("GRADLE-3020")
+    @ToBeFixedForInstantExecution
     def "can specify test suite by string"() {
         buildFile << """
             apply plugin: 'java'
