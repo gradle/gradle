@@ -26,7 +26,7 @@ import spock.lang.Unroll
 class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     @Unroll
     def "reasonable error message when a user rule throws an exception (#rule)"() {
         given:

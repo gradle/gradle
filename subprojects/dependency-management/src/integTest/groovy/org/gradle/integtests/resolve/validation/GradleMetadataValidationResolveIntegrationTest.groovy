@@ -56,7 +56,7 @@ class GradleMetadataValidationResolveIntegrationTest extends AbstractModuleDepen
         GradleFileModuleAdapter.printComponentGAV = true
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "fails with proper error if a mandatory attribute is not defined"() {
         buildFile << """
             dependencies {
@@ -84,7 +84,7 @@ class GradleMetadataValidationResolveIntegrationTest extends AbstractModuleDepen
     }
 
     @Issue("gradle/gradle#7888")
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "fails with reasonable error message if Gradle Module Metadata doesn't declare any variant"() {
         buildFile << """
             dependencies {

@@ -148,7 +148,7 @@ class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyReso
         }
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "will only search for defined metadata sources"() {
         def metadataSource = isGradleMetadataPublished() ? "gradleMetadata" : useIvy() ? "ivyDescriptor" : "mavenPom"
         def metadataType = isGradleMetadataPublished() ? HttpRepository.MetadataType.ONLY_GRADLE : HttpRepository.MetadataType.ONLY_ORIGINAL

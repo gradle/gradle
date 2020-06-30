@@ -557,7 +557,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         succeeds 'checkDeps'
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "handles failure to create custom metadata provider"() {
         given:
         buildFile << """

@@ -54,7 +54,7 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
         status << ["integration", "milestone", "release"]
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "latest selector with unknown status leads to failure"() {
         mavenRepo().module('group', 'projectA', '1.0').publish()
 

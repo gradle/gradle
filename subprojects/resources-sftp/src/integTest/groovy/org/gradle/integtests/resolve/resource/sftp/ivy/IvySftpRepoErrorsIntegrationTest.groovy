@@ -21,7 +21,7 @@ import org.gradle.integtests.resolve.resource.sftp.AbstractSftpDependencyResolut
 
 class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionTest {
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     void "resolve missing dependencies from a SFTP Ivy repository"() {
         given:
         buildFile << """
@@ -59,7 +59,7 @@ Required by:
 """)
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     void "resolve missing dynamic dependencies from a SFTP Ivy repository"() {
         given:
         buildFile << """
@@ -94,7 +94,7 @@ Required by:
 """)
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     void "resolve dependencies from a SFTP Ivy repository with invalid credentials"() {
         given:
         buildFile << """
@@ -125,7 +125,7 @@ Required by:
             .assertHasCause("Password authentication not supported or invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     void "resolve dependencies from a SFTP Ivy repository with unsupported password authentication"() {
         given:
         server.withPasswordAuthenticationDisabled()
@@ -158,7 +158,7 @@ Required by:
             .assertHasCause("Password authentication not supported or invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     void "resolve dependencies from an unreachable SFTP Ivy repository"() {
         given:
         buildFile << """
@@ -192,7 +192,7 @@ Required by:
             .assertHasCause("Could not connect to SFTP server at ${ivySftpRepo.serverUri}")
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     void 'resolve dependencies from a SFTP Ivy that returns a failure'() {
         given:
         buildFile << """
@@ -228,7 +228,7 @@ Required by:
             .assertHasCause("Could not get resource '${projectA.ivy.uri}'")
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "cannot add invalid authentication types for sftp repo"() {
         given:
         def remoteIvyRepo = getIvySftpRepo()

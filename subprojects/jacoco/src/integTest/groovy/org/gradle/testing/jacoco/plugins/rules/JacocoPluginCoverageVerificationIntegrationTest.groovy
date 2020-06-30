@@ -71,7 +71,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "Ant task reports error for unknown field value"() {
         given:
         buildFile << """
@@ -92,7 +92,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         failure.assertHasCause("'UNKNOWN' is not a permitted value for org.jacoco.core.analysis.ICoverageNode\$ElementType")
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "can define includes for single rule"() {
         given:
         buildFile << """
@@ -165,7 +165,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "can define rule with insufficient coverage for #description"() {
         given:
         buildFile << """
@@ -220,7 +220,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "can define multiple, different rules"() {
         given:
         buildFile << """
@@ -292,7 +292,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "can define same rules for multiple report tasks #tasksPaths"() {
         given:
         javaProjectUnderTest.writeIntegrationTestSourceFiles()
@@ -319,7 +319,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "can define different rules for multiple report tasks #tasksPaths"() {
         given:
         javaProjectUnderTest.writeIntegrationTestSourceFiles()

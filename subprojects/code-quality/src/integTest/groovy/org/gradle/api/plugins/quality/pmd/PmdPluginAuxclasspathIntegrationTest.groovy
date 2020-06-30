@@ -70,7 +70,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
         file("rule-using/src/main/java/org/gradle/ruleusing/Class1.java") << analyzedCode()
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "auxclasspath configured for rule-using project"() {
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 
@@ -82,7 +82,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
             assertContents(containsText("auxclasspath configured"))
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "auxclasspath not configured properly for rule-using project"() {
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 

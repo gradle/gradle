@@ -47,7 +47,7 @@ task retrieve(type: Sync) {
 """
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "should fail with an AWS S3 authentication error"() {
         setup:
         buildFile << mavenAwsRepoDsl()
@@ -63,7 +63,7 @@ task retrieve(type: Sync) {
                 .assertHasCause("The AWS Access Key Id you provided does not exist in our records.")
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "fails when providing PasswordCredentials with decent error"() {
         setup:
         buildFile << """
@@ -87,7 +87,7 @@ repositories {
                 .assertHasCause("Credentials must be an instance of '${AwsCredentials.class.getName()}'.")
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "fails when no credentials provided"() {
         setup:
         buildFile << """
@@ -107,7 +107,7 @@ repositories {
 
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "should include resource uri when file not found"() {
         setup:
         buildFile << mavenAwsRepoDsl()
@@ -128,7 +128,7 @@ Required by:
 """)
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "cannot add invalid authentication types for s3 repo"() {
         given:
         module.publish()

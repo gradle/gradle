@@ -184,7 +184,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         }
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "a parent pom is not a bom"() {
         mavenHttpRepo.module('group', 'main', '5.0').allowAll().parent(bom.group, bom.artifactId, bom.version).publish()
         bomDependency('moduleA')
@@ -255,7 +255,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         }
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "fails late for dependency entries that fail to provide a missing version"() {
         given:
         bomDependency('moduleA')

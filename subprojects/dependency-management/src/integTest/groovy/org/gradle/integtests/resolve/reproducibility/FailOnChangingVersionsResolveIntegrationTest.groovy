@@ -36,7 +36,7 @@ class FailOnChangingVersionsResolveIntegrationTest extends AbstractModuleDepende
         """
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "fails to resolve a direct changing dependency"() {
         buildFile << """
             dependencies {
@@ -62,7 +62,7 @@ class FailOnChangingVersionsResolveIntegrationTest extends AbstractModuleDepende
         failure.assertHasCause("Could not resolve org:test:1.0: Resolution strategy disallows usage of changing versions")
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "fails to resolve a transitive changing dependency"() {
         buildFile << """
             dependencies {
@@ -98,7 +98,7 @@ class FailOnChangingVersionsResolveIntegrationTest extends AbstractModuleDepende
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     @Unroll
     def "can deny a direct snapshot dependency (unique = #unique)"() {
         buildFile << """
@@ -133,7 +133,7 @@ class FailOnChangingVersionsResolveIntegrationTest extends AbstractModuleDepende
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     @Unroll
     def "can deny a transitive snapshot dependency (unique = #unique)"() {
         buildFile << """

@@ -220,7 +220,7 @@ task retrieve(type: Sync) {
     }
 
     @Issue("GRADLE-2781")
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "no leading zeros in sha1 checksums supported"() {
         given:
         def sha1 = new File("${module.jarFile.absolutePath}.sha1")

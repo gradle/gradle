@@ -104,7 +104,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         // file("build/reports/checkstyle/main.html").assertContents(containsLine(containsString("bad.properties")))
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "analyze bad code"() {
         defaultLanguage('en')
         badCode()
@@ -206,7 +206,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "can fail on maximum number of warnings"() {
         given:
         writeConfigFileWithWarnings()
@@ -361,7 +361,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         skipped(":checkstyleMain")
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "behaves if config_loc is already defined"() {
         given:
         goodCode()

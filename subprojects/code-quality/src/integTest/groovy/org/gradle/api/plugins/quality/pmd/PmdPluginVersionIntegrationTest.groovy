@@ -36,7 +36,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
             pmd {
                 toolVersion = '$version'
-                ${supportIncrementalAnalysis()? "" : "incrementalAnalysis = false"}
+                ${supportIncrementalAnalysis() ? "" : "incrementalAnalysis = false"}
             }
 
             ${fileLockingIssuesSolved() ? "" : """
@@ -59,7 +59,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/test.xml").exists()
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "analyze bad code"() {
         badCode()
 
@@ -103,7 +103,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         output.contains("2 PMD rule violations were found. See the report at:")
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     void "does not ignore more than max failures"() {
         badCode()
         buildFile << """
@@ -120,7 +120,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     void "can configure priority level threshold"() {
         badCode()
         buildFile << """
@@ -180,7 +180,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("htmlReport.html").exists()
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "use custom rule set files"() {
         assumeTrue(fileLockingIssuesSolved())
 
@@ -202,7 +202,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "add custom rule set files"() {
         assumeTrue(fileLockingIssuesSolved())
 
@@ -225,7 +225,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "use custom rule set"() {
         customCode()
 
@@ -245,7 +245,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "can enable console output"() {
         buildFile << """
             pmd {
@@ -328,8 +328,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         String pathToRuleset = "category/java/codestyle.xml/IfStmtsMustUseBraces"
         if (versionNumber < VersionNumber.version(5)) {
             pathToRuleset = "rulesets/braces.xml"
-        }
-        else if (versionNumber < VersionNumber.version(6)) {
+        } else if (versionNumber < VersionNumber.version(6)) {
             pathToRuleset = "rulesets/java/braces.xml"
         }
         """

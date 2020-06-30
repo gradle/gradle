@@ -137,10 +137,7 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
         containsEvent(FINISHED, DefaultTestSuiteDescriptor, 'TestSuite > FullTest')
     }
 
-    @ToBeFixedForInstantExecution(
-        because = "build failed with multiple exceptions",
-        skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS
-    )
+    @ToBeFixedForInstantExecution(because = "build failed with multiple exceptions")
     def "synthesized events for broken configuration methods reference test class descriptors"() {
         given:
         file("src/test/java/org/company/TestWithBrokenSetupMethod.java") << """

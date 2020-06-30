@@ -33,10 +33,7 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         return server
     }
 
-    @ToBeFixedForInstantExecution(
-        skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS,
-        because = "broken file collection"
-    )
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     void "fails when configured with AwsCredentials"() {
         given:
         def remoteIvyRepo = server.remoteIvyRepo

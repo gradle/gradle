@@ -82,7 +82,7 @@ class FeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest
         }
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "reasonable error message when no variant provides required capability"() {
         given:
         repository {
