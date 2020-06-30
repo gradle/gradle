@@ -62,7 +62,7 @@ fun configureCompile() {
 }
 
 fun configureSourcesVariant() {
-    java.apply {
+    java {
         withSourcesJar()
     }
     val implementation by configurations
