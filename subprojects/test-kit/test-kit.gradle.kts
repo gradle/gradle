@@ -18,7 +18,7 @@ import gradlebuild.integrationtests.getIncludeCategories
 import org.gradle.api.internal.runtimeshaded.PackageListGenerator
 
 plugins {
-    gradlebuild.distribution.`implementation-java`
+    id("gradlebuild.distribution.implementation-java")
 }
 
 dependencies {

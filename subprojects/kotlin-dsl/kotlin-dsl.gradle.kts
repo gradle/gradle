@@ -20,7 +20,7 @@ import gradlebuild.cleanup.WhenNotEmpty
 import gradlebuild.kotlindsl.tasks.GenerateKotlinDependencyExtensions
 
 plugins {
-    gradlebuild.distribution.`api-kotlin`
+    id("gradlebuild.distribution.api-kotlin")
 }
 
 description = "Kotlin DSL Provider"

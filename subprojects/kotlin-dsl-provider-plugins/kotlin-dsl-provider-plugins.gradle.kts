@@ -15,7 +15,7 @@
  */
 
 plugins {
-    gradlebuild.distribution.`implementation-kotlin`
+    id("gradlebuild.distribution.implementation-kotlin")
 }
 
 description = "Kotlin DSL Provider Plugins"

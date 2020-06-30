@@ -15,7 +15,7 @@
  */
 
 plugins {
-    gradlebuild.internal.kotlin
+    id("gradlebuild.internal.kotlin")
 }
 
 description = "Kotlin DSL Test Fixtures"

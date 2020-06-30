@@ -2,7 +2,7 @@ import gradlebuild.cleanup.WhenNotEmpty
 import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.internal.java
+    id("gradlebuild.internal.java")
 }
 
 dependencies {

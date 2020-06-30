@@ -1,5 +1,5 @@
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 val implementationResources: Configuration by configurations.creating

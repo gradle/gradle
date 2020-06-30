@@ -6,8 +6,8 @@
  */
 
 plugins {
-    gradlebuild.distribution.`api-java`
-    gradlebuild.jmh
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.jmh")
 }
 
 gradlebuildJava.usedInWorkers()

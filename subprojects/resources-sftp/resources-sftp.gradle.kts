@@ -17,7 +17,7 @@
 import gradlebuild.cleanup.WhenNotEmpty
 
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {

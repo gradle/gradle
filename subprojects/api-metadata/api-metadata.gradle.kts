@@ -1,4 +1,4 @@
 plugins {
-    gradlebuild.distribution.`implementation-java`
-    gradlebuild.`api-metadata`
+    id("gradlebuild.distribution.implementation-java")
+    id("gradlebuild.api-metadata")
 }

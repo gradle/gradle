@@ -17,8 +17,8 @@ import gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask
  * limitations under the License.
  */
 plugins {
-    gradlebuild.internal.java
-    gradlebuild.`performance-test`
+    id("gradlebuild.internal.java")
+    id("gradlebuild.performance-test")
 }
 
 dependencies {

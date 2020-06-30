@@ -17,7 +17,7 @@ import gradlebuild.integrationtests.integrationTestUsesSampleDir
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {

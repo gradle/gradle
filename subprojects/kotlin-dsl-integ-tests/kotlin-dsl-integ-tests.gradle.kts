@@ -17,7 +17,7 @@
 import gradlebuild.cleanup.WhenNotEmpty
 
 plugins {
-    gradlebuild.internal.kotlin
+    id("gradlebuild.internal.kotlin")
 }
 
 description = "Kotlin DSL Integration Tests"

@@ -18,7 +18,7 @@ import gradlebuild.cleanup.WhenNotEmpty
 
 
 plugins {
-    gradlebuild.distribution.`implementation-kotlin`
+    id("gradlebuild.distribution.implementation-kotlin")
 }
 
 description = "Kotlin DSL Tooling Builders for IDEs"

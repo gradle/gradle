@@ -20,7 +20,7 @@ import gradlebuild.integrationtests.tasks.SmokeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
 
 plugins {
-    gradlebuild.internal.java
+    id("gradlebuild.internal.java")
 }
 
 val smokeTest: SourceSet by sourceSets.creating {

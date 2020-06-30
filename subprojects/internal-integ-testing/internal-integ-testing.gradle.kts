@@ -17,7 +17,7 @@ import gradlebuild.basics.util.ReproduciblePropertiesWriter
 import java.util.Properties
 
 plugins {
-    gradlebuild.internal.java
+    id("gradlebuild.internal.java")
 }
 
 dependencies {

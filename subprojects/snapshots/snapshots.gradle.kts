@@ -15,8 +15,8 @@
  */
 
 plugins {
-    gradlebuild.distribution.`implementation-java`
-    gradlebuild.`publish-public-libraries`
+    id("gradlebuild.distribution.implementation-java")
+    id("gradlebuild.publish-public-libraries")
 }
 
 description = "Tools to take immutable, comparable snapshots of files and other things"

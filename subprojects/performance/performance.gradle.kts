@@ -1,7 +1,7 @@
 plugins {
-    gradlebuild.internal.java
-    gradlebuild.`performance-test`
-    gradlebuild.`performance-templates`
+    id("gradlebuild.internal.java")
+    id("gradlebuild.performance-test")
+    id("gradlebuild.performance-templates")
 }
 
 dependencies {

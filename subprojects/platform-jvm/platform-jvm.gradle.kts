@@ -1,8 +1,8 @@
 import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.distribution.`api-java`
-    gradlebuild.jmh
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.jmh")
 }
 
 dependencies {

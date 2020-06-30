@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    gradlebuild.distribution.`implementation-kotlin`
+    id("gradlebuild.distribution.implementation-kotlin")
 }
 
 tasks {

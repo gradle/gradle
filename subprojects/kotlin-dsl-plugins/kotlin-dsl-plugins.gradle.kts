@@ -19,7 +19,7 @@ import gradlebuild.kotlindsl.tasks.GenerateKotlinDslPluginsExtensions
 import gradlebuild.cleanup.WhenNotEmpty
 
 plugins {
-    gradlebuild.portalplugin.kotlin
+    id("gradlebuild.portalplugin.kotlin")
 }
 
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"

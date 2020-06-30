@@ -3,7 +3,7 @@ import gradlebuild.kotlindsl.tasks.CheckKotlinCompilerEmbeddableDependencies
 import gradlebuild.kotlindsl.tasks.PatchKotlinCompilerEmbeddable
 
 plugins {
-    gradlebuild.distribution.`implementation-kotlin`
+    id("gradlebuild.distribution.implementation-kotlin")
 }
 
 description = "Kotlin Compiler Embeddable - patched for Gradle"

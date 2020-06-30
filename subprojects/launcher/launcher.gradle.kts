@@ -1,8 +1,8 @@
 import gradlebuild.cleanup.WhenNotEmpty
 
 plugins {
-    gradlebuild.distribution.`api-java`
-    gradlebuild.`launchable-jar`
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.launchable-jar")
 }
 
 dependencies {

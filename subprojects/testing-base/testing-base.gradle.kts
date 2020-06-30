@@ -16,7 +16,7 @@
 import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 gradlebuildJava.usedInWorkers()

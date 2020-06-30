@@ -1,9 +1,9 @@
 import gradlebuild.run.tasks.RunEmbeddedGradle
 
 plugins {
-    gradlebuild.distribution.packaging
-    gradlebuild.`verify-build-environment`
-    gradlebuild.install
+    id("gradlebuild.distribution.packaging")
+    id("gradlebuild.verify-build-environment")
+    id("gradlebuild.install")
 }
 
 dependencies {

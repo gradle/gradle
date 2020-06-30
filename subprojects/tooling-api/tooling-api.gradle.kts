@@ -17,9 +17,9 @@ import gradlebuild.cleanup.WhenNotEmpty
 import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.distribution.`api-java`
-    gradlebuild.`publish-public-libraries`
-    gradlebuild.`shaded-jar`
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.publish-public-libraries")
+    id("gradlebuild.shaded-jar")
 }
 
 shadedJar {
