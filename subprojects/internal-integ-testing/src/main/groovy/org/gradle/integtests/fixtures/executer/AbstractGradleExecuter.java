@@ -50,6 +50,7 @@ import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.process.internal.streams.SafeStreams;
+import org.gradle.test.fixtures.ResettableExpectations;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
@@ -85,7 +86,7 @@ import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServi
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
 
-public abstract class AbstractGradleExecuter implements GradleExecuter {
+public abstract class AbstractGradleExecuter implements GradleExecuter, ResettableExpectations {
 
     protected static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
         .displayName("Global services")
@@ -829,6 +830,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public GradleExecuter ignoreCleanupAssertions() {
         this.ignoreCleanupAssertions = true;
         return this;
+    }
+
+    @Override
+    public void resetExpectations() {
+        cleanup();
     }
 
     /**

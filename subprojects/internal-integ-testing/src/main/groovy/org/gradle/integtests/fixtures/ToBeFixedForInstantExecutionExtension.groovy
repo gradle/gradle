@@ -77,11 +77,7 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
-            try {
-                invocation.proceed()
-            } catch (Throwable ex) {
-                expectedFailure(ex)
-                ignoreCleanupAssertionsOf(invocation)
+            if (failsAsExpected(invocation)) {
                 return
             }
             throw new UnexpectedSuccessException()
@@ -129,11 +125,7 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
             @Override
             void intercept(IMethodInvocation invocation) throws Throwable {
                 if (iterationMatches(iterationMatchers, invocation.iteration.name)) {
-                    try {
-                        invocation.proceed()
-                    } catch (Throwable ex) {
-                        expectedFailure(ex)
-                        ignoreCleanupAssertionsOf(invocation)
+                    if (failsAsExpected(invocation)) {
                         pass.set(true)
                     }
                 } else {
@@ -143,19 +135,48 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
         }
     }
 
+    private static boolean failsAsExpected(IMethodInvocation invocation) {
+        try {
+            invocation.proceed()
+        } catch (Throwable ex) {
+            expectedFailure(ex)
+            ignoreCleanupAssertionsOf(invocation)
+            return true
+        }
+        // Trigger validation failures early so they can still fail the test the usual way
+        try {
+            allResettableExpectationsOf(invocation.instance).forEach { expectations ->
+                expectations.resetExpectations()
+            }
+        } catch (Throwable ex) {
+            expectedFailure(ex)
+            ignoreCleanupAssertionsOf(invocation)
+            return true
+        }
+        return false
+    }
+
     private static ignoreCleanupAssertionsOf(IMethodInvocation invocation) {
         def instance = invocation.instance
         if (instance instanceof AbstractIntegrationSpec) {
             instance.ignoreCleanupAssertions()
         }
-        allInstanceFieldsOf(instance).forEach { Field specField ->
-            if (ResettableExpectations.isAssignableFrom(specField.type)) {
-                def server = specField.tap { it.accessible = true }.get(instance) as ResettableExpectations
-                try {
-                    server?.resetExpectations()
-                } catch (Throwable error) {
-                    error.printStackTrace()
-                }
+        allResettableExpectationsOf(instance).forEach { expectations ->
+            try {
+                expectations.resetExpectations()
+            } catch (Throwable error) {
+                error.printStackTrace()
+            }
+        }
+    }
+
+    private static List<ResettableExpectations> allResettableExpectationsOf(instance) {
+        allInstanceFieldsOf(instance).findResults { field ->
+            try {
+                def fieldValue = field.tap { accessible = true }.get(instance)
+                fieldValue instanceof ResettableExpectations ? fieldValue : null
+            } catch (Exception ignored) {
+                null
             }
         }
     }
