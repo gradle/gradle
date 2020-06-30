@@ -23,6 +23,9 @@ import gradlebuild.basics.kotlindsl.stringPropertyOrNull
 import gradlebuild.identity.extension.ModuleIdentityExtension
 import gradlebuild.performance.tasks.BuildCommitDistribution
 import gradlebuild.performance.tasks.DetermineBaselines
+import gradlebuild.integrationtests.addDependenciesAndConfigurations
+import gradlebuild.integrationtests.includeCategories
+import gradlebuild.integrationtests.excludeCategories
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -49,13 +52,10 @@ import gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.ProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.RemoteProject
 import gradlebuild.performance.generator.tasks.TemplateProjectGeneratorTask
-import org.gradle.gradlebuild.test.integrationtests.addDependenciesAndConfigurations
 import org.w3c.dom.Document
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.reflect.KClass
-import org.gradle.gradlebuild.test.integrationtests.includeCategories
-import org.gradle.gradlebuild.test.integrationtests.excludeCategories
 
 
 object PropertyNames {

@@ -1,5 +1,5 @@
 import gradlebuild.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 /*
  * Copyright 2010 the original author or authors.

@@ -16,11 +16,8 @@
 
 import gradlebuild.basics.accessors.kotlin
 import gradlebuild.basics.util.ReproduciblePropertiesWriter
-import gradlebuild.kotlindsl.tasks.GenerateKotlinDependencyExtensions
 import gradlebuild.cleanup.WhenNotEmpty
-import org.gradle.internal.util.PropertiesUtils
-import java.util.Properties
-
+import gradlebuild.kotlindsl.tasks.GenerateKotlinDependencyExtensions
 
 plugins {
     gradlebuild.distribution.`api-kotlin`

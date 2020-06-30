@@ -14,15 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradlebuild.integrationtests.model.GradleDistribution
 import org.gradle.docs.samples.internal.tasks.InstallSample
-import org.gradle.gradlebuild.test.integrationtests.GradleDistribution
 
 plugins {
     id 'gradlebuild.internal.java'
     // TODO: Apply asciidoctor in documentation plugin instead.
     id 'org.asciidoctor.convert'
     id 'gradlebuild.documentation'
-    id 'gradlebuild.unittest-and-compile'
     id 'org.gradle.samples' version "0.16.8"
 }
 

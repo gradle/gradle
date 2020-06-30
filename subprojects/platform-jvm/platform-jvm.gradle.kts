@@ -1,5 +1,4 @@
-import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
-
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
     gradlebuild.distribution.`api-java`

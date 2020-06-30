@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.gradlebuild.test.integrationtests
+package gradlebuild.integrationtests
 
 import gradlebuild.basics.kotlindsl.stringPropertyOrEmpty
 

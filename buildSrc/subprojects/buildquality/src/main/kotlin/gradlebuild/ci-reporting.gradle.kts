@@ -19,10 +19,10 @@ import gradlebuild.basics.BuildEnvironment
 import gradlebuild.classycle.tasks.Classycle
 import gradlebuild.cleanup.extension.TestFileCleanUpExtension
 import gradlebuild.cleanup.WhenNotEmpty
+import gradlebuild.integrationtests.tasks.DistributionTest
 import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
 import org.gradle.gradlebuild.docs.FindBrokenInternalLinks
-import org.gradle.gradlebuild.test.integrationtests.DistributionTest
 import gradlebuild.performance.tasks.DistributedPerformanceTest
 
 /**

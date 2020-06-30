@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package org.gradle.gradlebuild.test.integrationtests
+package gradlebuild.integrationtests.model
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Classpath

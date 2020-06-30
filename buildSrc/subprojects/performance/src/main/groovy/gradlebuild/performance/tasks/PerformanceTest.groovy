@@ -17,6 +17,9 @@
 package gradlebuild.performance.tasks
 
 import com.google.common.collect.Sets
+import gradlebuild.integrationtests.tasks.DistributionTest
+import gradlebuild.performance.reporter.PerformanceReporter
+import gradlebuild.performance.ScenarioBuildResultData
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import org.apache.commons.io.FileUtils
@@ -29,10 +32,7 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
-import org.gradle.gradlebuild.test.integrationtests.DistributionTest
 import org.gradle.process.CommandLineArgumentProvider
-import gradlebuild.performance.reporter.PerformanceReporter
-import gradlebuild.performance.ScenarioBuildResultData
 import org.openmbee.junit.JUnitMarshalling
 import org.openmbee.junit.model.JUnitFailure
 import org.openmbee.junit.model.JUnitTestCase
