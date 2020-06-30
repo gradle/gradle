@@ -392,7 +392,7 @@ apply plugin: 'swift-library'
         test.assertTestCasesRan(testExecutionResult)
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "build still fails when tests have unicode characters"() {
         given:
         def test = new XCTestSourceElement("app") {
@@ -538,7 +538,7 @@ apply plugin: 'swift-library'
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS)
+    @ToBeFixedForInstantExecution
     def "can use broken test filter [#testFilter]"() {
         given:
         def lib = new SwiftLibWithXCTest()
