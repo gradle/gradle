@@ -235,6 +235,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             // TODO: This breaks if version is changed later
             attributes.put("groovyDslPath", "https://docs.gradle.org/" + project.getVersion() + "/dsl");
             attributes.put("javadocPath", "https://docs.gradle.org/" + project.getVersion() + "/javadoc");
+            attributes.put("samplesPath", "https://docs.gradle.org/" + project.getVersion() + "/samples");
             attributes.put("kotlinDslPath", "https://gradle.github.io/kotlin-dsl-docs/api");
             // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
             // TODO: This breaks the provider
@@ -269,6 +270,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("toc-title", "Contents");
             attributes.put("groovyDslPath", "../dsl");
             attributes.put("javadocPath", "../javadoc");
+            attributes.put("samplesPath", "../samples");
             attributes.put("kotlinDslPath", "https://gradle.github.io/kotlin-dsl-docs/api");
             // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
             // TODO: This breaks the provider

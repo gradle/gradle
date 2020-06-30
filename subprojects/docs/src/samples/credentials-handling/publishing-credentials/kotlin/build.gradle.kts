@@ -16,6 +16,7 @@ publishing {
             from(components.getByName("java"))
         }
     }
+// tag::repositories[]
     repositories {
         maven {
             name = "mySecureRepository"
@@ -23,5 +24,6 @@ publishing {
             // url = uri(<<some repository url>>)
         }
     }
+// end::repositories[]
 }
 // end::publication[]

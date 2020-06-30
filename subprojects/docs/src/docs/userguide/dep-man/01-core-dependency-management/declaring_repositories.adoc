@@ -537,7 +537,7 @@ For details on HTTP related authentication, see the section <<#sec:authenticatio
 
 When using an AWS S3 backed repository you need to authenticate using link:{groovyDslPath}/org.gradle.api.credentials.AwsCredentials.html[AwsCredentials], providing access-key and a private-key. The following example shows how to declare a S3 backed repository and providing AWS credentials:
 
-.Declaring a S3 backed Maven and Ivy repository
+.Declaring an S3 backed Maven and Ivy repository
 ====
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-s3-repository]"]
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-s3-repository]"]
@@ -545,7 +545,7 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 
 You can also delegate all credentials to the AWS sdk by using the AwsImAuthentication. The following example shows how:
 
-.Declaring a S3 backed Maven and Ivy repository using IAM
+.Declaring an S3 backed Maven and Ivy repository using IAM
 ====
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-s3-repository-with-iam]"]
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-s3-repository-with-iam]"]
@@ -722,3 +722,35 @@ e.g. `gcs://myBucket/maven/release`
 
 * `myBucket` is the Google Cloud Storage bucket name.
 * `/maven/release` is the Google Cloud Storage key (unique identifier for an object within a bucket)
+
+[[sec:handling_credentials]]
+== Handling credentials
+
+In the real world scenario you should not specify repository credentials in your build script but rather keep them externalized.
+Gradle provides link:{javadocPath}/org/gradle/api/artifacts/repositories/AuthenticationSupported.html#credentials-java.lang.Class-[an API in artifact repositories]
+that allows you to declare only the type of required credentials. Credential values are looked up from the <<build_environment.adoc#sec:gradle_configuration_properties,Gradle Properties>>
+during the build that requires them.
+
+For example, given repository configuration:
+
+.Externalized repository credentials
+====
+include::sample[dir="samples/credentials-handling/publishing-credentials/groovy",files="build.gradle[tags=repositories]"]
+include::sample[dir="samples/credentials-handling/publishing-credentials/kotlin",files="build.gradle.kts[tags=repositories]"]
+====
+
+The username and password will be looked up from `mySecureRepositoryUsername` and `mySecureRepositoryPassword` properties.
+
+Note that the configuration property prefix - the identity - is determined from the repository name.
+Credentials can then be provided in any of supported ways for Gradle Properties -
+`gradle.properties` file, command line arguments, environment variables or a combination of those options.
+
+Also note that credentials will only be required if the invoked build requires them. If for example a project is configured
+to publish artifacts to a secured repository, but the build does not invoke publishing task, Gradle will not require
+publishing credentials to be present. On the other hand, if the build needs to execute a task that requires credentials
+at some point, Gradle will check for credential presence first thing and will not start running any of the tasks
+if it knows that the build will fail down the line because of missing credentials.
+
+Here is a link:{samplesPath}/sample_publishing_credentials.html[downloadable sample] that demonstrates the concept in more detail.
+
+Same rules apply for supplyng link:{javadocPath}/org/gradle/api/credentials/AwsCredentials.html[AwsCredentials].
