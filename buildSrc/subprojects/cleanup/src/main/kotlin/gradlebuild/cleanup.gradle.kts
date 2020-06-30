@@ -31,17 +31,17 @@ tasks.register<CleanUpCaches>("cleanUpCaches") {
     version.set(moduleIdentity.version)
     homeDir.set(layout.projectDirectory.dir("intTestHomeDir"))
 }
-val tracker = gradle.sharedServices.registerIfAbsent("daemonTracker", DaemonTracker::class) {
+val trackerService = gradle.sharedServices.registerIfAbsent("daemonTracker", DaemonTracker::class) {
     parameters.gradleHomeDir.fileValue(gradle.gradleHomeDir)
-    parameters.rootProjectDir.fileValue(rootProject.projectDir)
+    parameters.rootProjectDir.set(rootProject.layout.projectDirectory)
 }
-extensions.create<CleanupExtension>("cleanup", tracker)
+extensions.create<CleanupExtension>("cleanup", trackerService)
 tasks.register<CleanUpDaemons>("cleanUpDaemons") {
-    this.tracker.set(tracker)
+    this.tracker.set(trackerService)
 }
 
-val killExistingProcessesStartedByGradle = tasks.register<KillLeakingJavaProcesses>("killExistingProcessesStartedByGradle") {
-    this.tracker.set(tracker)
+val killExistingProcessesStartedByGradle by tasks.registering(KillLeakingJavaProcesses::class) {
+    tracker.set(trackerService)
 }
 
 // TODO find another solution here to avoid reaching into another project. Maybe the CI job should do 'killExistingProcessesStartedByGradle' first directly.
@@ -55,7 +55,7 @@ if (BuildEnvironment.isCiServer) {
                 mustRunAfter(killExistingProcessesStartedByGradle)
 
                 // Workaround for https://github.com/gradle/gradle/issues/2488
-                if (this != cleanTask) {
+                if (name != "clean") {
                     mustRunAfter(cleanTask)
                 }
             }
