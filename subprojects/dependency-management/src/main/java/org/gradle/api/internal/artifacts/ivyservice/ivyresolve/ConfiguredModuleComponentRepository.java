@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.internal.reflect.Instantiator;
+
 /**
  * A ModuleComponentRepository providing some user-configuration values.
  */
@@ -31,4 +33,8 @@ public interface ConfiguredModuleComponentRepository extends ModuleComponentRepo
      * True for a repository that only accesses the local filesystem, and does not require any remote/network access.
      */
     boolean isLocal();
+
+    void setComponentResolvers(ComponentResolvers resolver);
+
+    Instantiator getComponentMetadataInstantiator();
 }
