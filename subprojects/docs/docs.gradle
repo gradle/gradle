@@ -613,6 +613,9 @@ configurations {
 tasks.named('platformTest') {
     dependsOn(tasks.named('checkSamples'))
 }
+tasks.named("check") {
+    dependsOn(tasks.named('checkstyleApi'))
+}
 
 // TODO there is some duplication with DistributionTest.kt here - https://github.com/gradle/gradle-private/issues/3126
 class GradleInstallationForTestEnvironmentProvider implements CommandLineArgumentProvider {

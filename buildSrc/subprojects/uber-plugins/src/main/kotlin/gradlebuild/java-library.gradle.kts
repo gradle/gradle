@@ -39,6 +39,5 @@ plugins {
 apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
 
 tasks.named("check").configure {
-    dependsOn(":docs:checkstyleApi")
     dependsOn("codeQuality")
 }
