@@ -75,6 +75,7 @@ val Project.artifactoryUserPassword
 
 fun Project.publishNormalizedToLocalRepository() {
     val localRepository = layout.buildDirectory.dir("repo")
+    val baseName = moduleIdentity.baseName
 
     publishing {
         repositories {
@@ -86,7 +87,7 @@ fun Project.publishNormalizedToLocalRepository() {
         publications {
             create<MavenPublication>("local") {
                 from(project.components["java"])
-                artifactId = moduleIdentity.baseName.get()
+                artifactId = baseName.get()
                 version = moduleIdentity.version.get().baseVersion.version
             }
         }
@@ -99,8 +100,7 @@ fun Project.publishNormalizedToLocalRepository() {
     }
     val localPublish = project.tasks.named("publishLocalPublicationToLocalRepository") {
         doFirst {
-            val baseName = moduleIdentity.baseName.get()
-            val moduleBaseDir = localRepository.get().dir("org/gradle/$baseName").asFile
+            val moduleBaseDir = localRepository.get().dir("org/gradle/${baseName.get()}").asFile
             if (moduleBaseDir.exists()) {
                 // Make sure artifacts do not pile up locally
                 moduleBaseDir.deleteRecursively()
@@ -108,8 +108,7 @@ fun Project.publishNormalizedToLocalRepository() {
         }
 
         doLast {
-            val baseName = moduleIdentity.baseName.get()
-            localRepository.get().file("org/gradle/$baseName/maven-metadata.xml").asFile.apply {
+            localRepository.get().file("org/gradle/${baseName.get()}/maven-metadata.xml").asFile.apply {
                 writeText(readText().replace("\\Q<lastUpdated>\\E\\d+\\Q</lastUpdated>\\E".toRegex(), "<lastUpdated>${Year.now().value}0101000000</lastUpdated>"))
             }
             localRepository.get().asFileTree.matching { include("**/*.module") }.forEach {

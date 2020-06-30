@@ -20,8 +20,8 @@ import library
 import testLibrary
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.BuildEnvironment
-import gradlebuild.basics.BuildEnvironment.agentNum
 import gradlebuild.basics.extension.vendorAndMajorVersion
+import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
 import gradlebuild.jvm.tasks.ClasspathManifest
 import org.gradle.internal.os.OperatingSystem
@@ -165,7 +165,7 @@ fun configureJarTasks() {
 fun Test.configureJvmForTest() {
     val jvmForTest = project.buildJvms.testJvm.get()
 
-    jvmArgumentProviders.add(createCiEnvironmentProvider(this))
+    jvmArgumentProviders.add(CiEnvironmentProvider(this))
     executable = jvmForTest.javaExecutable.asFile.absolutePath
     environment["JAVA_HOME"] = jvmForTest.installationDirectory.asFile.absolutePath
     if (jvmForTest.javaVersion.isJava7) {
@@ -219,40 +219,5 @@ fun configureTests() {
     }
 }
 
-fun createCiEnvironmentProvider(test: Test): CommandLineArgumentProvider {
-    return object : CommandLineArgumentProvider, Named {
-        @Internal
-        override fun getName() = "ciEnvironment"
-
-        override fun asArguments(): Iterable<String> {
-            return if (BuildEnvironment.isCiServer) {
-                getRepoMirrorSystemProperties() + mapOf(
-                    "org.gradle.test.maxParallelForks" to test.maxParallelForks,
-                    "org.gradle.ci.agentCount" to 2,
-                    "org.gradle.ci.agentNum" to agentNum
-                ).map {
-                    "-D${it.key}=${it.value}"
-                }
-            } else {
-                listOf()
-            }
-        }
-    }
-}
-
-fun getRepoMirrorSystemProperties(): List<String> = collectMirrorUrls().map {
-    "-Dorg.gradle.integtest.mirrors.${it.key}=${it.value}"
-}
-
-fun collectMirrorUrls(): Map<String, String> =
-    // expected env var format: repo1_id:repo1_url,repo2_id:repo2_url,...
-    System.getenv("REPO_MIRROR_URLS")?.ifBlank { null }?.split(',')?.associate { nameToUrl ->
-        val (name, url) = nameToUrl.split(':', limit = 2)
-        name to url
-    } ?: emptyMap()
-
-
 val Project.maxParallelForks: Int
-    get() {
-        return findProperty("maxParallelForks")?.toString()?.toInt() ?: 4
-    }
+    get() = findProperty("maxParallelForks")?.toString()?.toInt() ?: 4
