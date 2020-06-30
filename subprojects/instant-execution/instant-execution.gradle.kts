@@ -46,6 +46,7 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":messaging"))
     implementation(project(":modelCore"))
+    implementation(project(":native"))
     implementation(project(":persistentCache"))
     implementation(project(":plugins"))
     implementation(project(":publish"))
