@@ -29,7 +29,6 @@ import java.lang.reflect.Field
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Predicate
 
-import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecution.Skip.FAILS_CLEANUP_ASSERTIONS
 import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecution.Skip.FLAKY
 
 class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExtension<ToBeFixedForInstantExecution> {
@@ -50,26 +49,10 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
             return
         }
 
-        if (annotation.skip() == FAILS_CLEANUP_ASSERTIONS) {
-            def interceptor = new DisableCleanupAssertions()
-            feature.interceptors.add(0, interceptor)
-            feature.iterationInterceptors.add(0, interceptor)
-            return
-        }
-
         if (feature.isParameterized()) {
             feature.addInterceptor(new ToBeFixedIterationInterceptor(annotation.iterationMatchers()))
         } else {
             feature.getFeatureMethod().addInterceptor(new ToBeFixedInterceptor())
-        }
-    }
-
-    private static class DisableCleanupAssertions implements IMethodInterceptor {
-
-        @Override
-        void intercept(IMethodInvocation invocation) throws Throwable {
-            ignoreCleanupAssertionsOf(invocation)
-            invocation.proceed()
         }
     }
 
