@@ -34,6 +34,17 @@ class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
     }
 
     @Override
+    public ExecutionTimeValue<? extends R> calculateExecutionTimeValue() {
+        return isChangingValue(left) || isChangingValue(right)
+            ? ExecutionTimeValue.changingValue(this)
+            : super.calculateExecutionTimeValue();
+    }
+
+    private boolean isChangingValue(ProviderInternal<?> provider) {
+        return provider.calculateExecutionTimeValue().isChangingValue();
+    }
+
+    @Override
     protected Value<? extends R> calculateOwnValue(ValueConsumer consumer) {
         Value<? extends A> lv = assertHasValue(left.calculateValue(consumer), left);
         Value<? extends B> rv = assertHasValue(right.calculateValue(consumer), right);

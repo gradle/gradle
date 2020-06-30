@@ -282,6 +282,45 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         instant.assertStateLoaded()
     }
 
+    def "zipped properties used as task input"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        buildKotlinFile """
+
+            val prefix = providers.gradleProperty("messagePrefix")
+            val suffix = providers.gradleProperty("messageSuffix")
+            val zipped = prefix.zip(suffix) { p, s -> p + " " + s + "!" }
+
+            abstract class PrintLn : DefaultTask() {
+
+                @get:Input
+                abstract val message: Property<String>
+
+                @TaskAction
+                fun act() { println(message.get()) }
+            }
+
+            tasks.register<PrintLn>("ok") {
+                message.set(zipped)
+            }
+        """
+
+        when:
+        instantRun("ok", "-PmessagePrefix=fizz", "-PmessageSuffix=buzz")
+
+        then:
+        output.count("fizz buzz!") == 1
+        instant.assertStateStored()
+
+        when:
+        instantRun("ok", "-PmessagePrefix=foo", "-PmessageSuffix=bar")
+
+        then:
+        output.count("foo bar!") == 1
+        instant.assertStateLoaded()
+    }
+
     @Unroll
     def "system property #usage used as build logic input"() {
 
