@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec
+import org.gradle.jvm.toolchain.JavaCompiler
 import org.gradle.jvm.toolchain.JavaToolChain
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Issue
@@ -30,5 +32,18 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         javaCompile.setToolChain(toolChain)
         then:
         javaCompile.toolChain == toolChain
+    }
+
+    def "disallow using legacy toolchain api once compiler is present"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+
+        when:
+        javaCompile.javaCompiler.set(Mock(JavaCompiler))
+        javaCompile.toolChain = Mock(JavaToolChain)
+        javaCompile.createCompiler(Mock(DefaultJavaCompileSpec))
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Must not use `javaCompiler` property together with (deprecated) `toolchain`"
     }
 }
