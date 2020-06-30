@@ -137,11 +137,13 @@ jar.dependsOn postCompile
 
         when:
         buildFile << """
+            def changeTriggerFile = file('change-triggered')
+            def inputFile = file('$changingInput/input.txt')
             def taskAction = { Task task ->
-                if(task.path == ':$changingInput' && !file('change-triggered').exists()) {
+                if (task.path == ':$changingInput' && !changeTriggerFile.exists()) {
                    sleep(500) // attempt to workaround JDK-8145981
-                   file('$changingInput/input.txt').text = 'New input file'
-                   file('change-triggered').text = 'done'
+                   inputFile.text = 'New input file'
+                   changeTriggerFile.text = 'done'
                 }
             }
 
