@@ -16,6 +16,7 @@
 
 package org.gradle.testing.testng
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
@@ -23,6 +24,7 @@ import org.gradle.testing.fixture.TestNGCoverage
 @TargetCoverage({TestNGCoverage.GROUP_BY_INSTANCES})
 public class TestNGGroupByInstancesIntegrationTest extends MultiVersionIntegrationSpec {
 
+    @ToBeFixedForInstantExecution
     def "run tests using groupByInstances"() {
         buildFile << """
             apply plugin: 'java'
