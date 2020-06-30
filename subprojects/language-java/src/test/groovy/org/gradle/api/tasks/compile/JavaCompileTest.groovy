@@ -46,4 +46,31 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def e = thrown(IllegalStateException)
         e.message == "Must not use `javaCompiler` property together with (deprecated) `toolchain`"
     }
+
+    def "disallow using custom java_home with compiler present"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+
+        when:
+        javaCompile.javaCompiler.set(Mock(JavaCompiler))
+        javaCompile.options.forkOptions.javaHome = Mock(File)
+        javaCompile.createCompiler(Mock(DefaultJavaCompileSpec))
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Must not use `javaHome` property on `ForkOptions` together with `javaCompiler` property"
+    }
+
+    def "disallow using custom exectuable with compiler present"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+
+        when:
+        javaCompile.javaCompiler.set(Mock(JavaCompiler))
+        javaCompile.options.forkOptions.executable = "somejavac"
+        javaCompile.createCompiler(Mock(DefaultJavaCompileSpec))
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Must not use `exectuable` property on `ForkOptions` together with `javaCompiler` property"
+    }
+    
 }
