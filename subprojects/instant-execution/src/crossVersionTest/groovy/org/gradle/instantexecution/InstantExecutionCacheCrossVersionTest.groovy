@@ -43,7 +43,7 @@ class InstantExecutionCacheCrossVersionTest extends CrossVersionIntegrationSpec 
     }
 
     private static String argFor(GradleVersion version) {
-        version.baseVersion == GradleVersion.version("6.5")
+        version.baseVersion < GradleVersion.version("6.6")
             ? "--${LONG_OPTION}=on"
             : "--$LONG_OPTION"
     }
