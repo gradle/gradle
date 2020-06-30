@@ -171,7 +171,7 @@ fun Project.buildTimestampFromBuildReceipt(): Provider<String> =
                     .presence()
             )
             buildReceiptFileContents.set(
-                layout.projectDirectory
+                rootProject.layout.projectDirectory
                     .dir("incoming-distributions")
                     .file(BuildReceipt.buildReceiptFileName)
                     .let(providers::fileContents)
