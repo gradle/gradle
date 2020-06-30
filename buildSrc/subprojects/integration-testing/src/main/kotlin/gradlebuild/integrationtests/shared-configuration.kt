@@ -66,10 +66,12 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
         resolver("${prefix}TestSrcDistributionPath", "gradle-src-distribution-zip", srcDistribution)
     }
 
-    dependencies {
-        "${prefix}TestRuntimeOnly"(library("junit5_vintage"))
-        "${prefix}TestImplementation"(project(":internalIntegTesting"))
-        "${prefix}TestFullDistributionRuntimeClasspath"(project(":distributionsFull"))
+    if (name != "test") {
+        dependencies {
+            "${prefix}TestRuntimeOnly"(library("junit5_vintage"))
+            "${prefix}TestImplementation"(project(":internalIntegTesting"))
+            "${prefix}TestFullDistributionRuntimeClasspath"(project(":distributionsFull"))
+        }
     }
 }
 

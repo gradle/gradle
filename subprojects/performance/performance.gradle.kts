@@ -1,5 +1,6 @@
 plugins {
     gradlebuild.internal.java
+    gradlebuild.`performance-test`
     gradlebuild.`performance-templates`
 }
 

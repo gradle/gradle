@@ -15,7 +15,6 @@
  */
 package gradlebuild
 
-import gradlebuild.identity.extension.ModuleIdentityExtension
 import gradlebuild.integrationtests.TestType
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.addSourceSet
@@ -25,6 +24,7 @@ import gradlebuild.integrationtests.createTestTask
 
 plugins {
     java
+    id("gradlebuild.module-identity")
 }
 
 val sourceSet = addSourceSet(TestType.CROSSVERSION)
@@ -35,8 +35,10 @@ configureIde(TestType.CROSSVERSION)
 configureTestFixturesForCrossVersionTests()
 
 fun configureTestFixturesForCrossVersionTests() {
-    dependencies {
-        "crossVersionTestImplementation"(testFixtures(project(":toolingApi")))
+    if (name != "test") {
+        dependencies {
+            "crossVersionTestImplementation"(testFixtures(project(":toolingApi")))
+        }
     }
 }
 
@@ -52,9 +54,8 @@ fun createAggregateTasks(sourceSet: SourceSet) {
         description = "Runs the cross-version tests against a subset of selected Gradle versions with 'forking' executer for quick feedback"
     }
 
-    val moduleIdentity = the<ModuleIdentityExtension>() // Convert CrossVersionTestsPlugin into a pre-compiled script plugin to have this accessor generated
-    val releasedVersions = moduleIdentity.releasedVersions.forUseAtConfigurationTime().get()
-    releasedVersions.allTestedVersions.forEach { targetVersion ->
+    val releasedVersions = moduleIdentity.releasedVersions.forUseAtConfigurationTime().getOrNull()
+    releasedVersions?.allTestedVersions?.forEach { targetVersion ->
         val crossVersionTest = createTestTask("gradle${targetVersion.version}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION, Action {
             this.description = "Runs the cross-version tests against Gradle ${targetVersion.version}"
             this.systemProperties["org.gradle.integtest.versions"] = targetVersion.version

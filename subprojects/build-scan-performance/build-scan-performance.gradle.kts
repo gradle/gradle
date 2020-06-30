@@ -18,6 +18,7 @@ import gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask
  */
 plugins {
     gradlebuild.internal.java
+    gradlebuild.`performance-test`
 }
 
 dependencies {
