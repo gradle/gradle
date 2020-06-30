@@ -33,11 +33,11 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryBlacklister;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryDisabler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashCodec;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryBlacklister;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryDisabler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
@@ -456,8 +456,8 @@ class DependencyManagementBuildScopeServices {
             checksumService));
     }
 
-    RepositoryBlacklister createRepositoryBlacklister() {
-        return new ConnectionFailureRepositoryBlacklister();
+    RepositoryDisabler createRepositoryDisabler() {
+        return new ConnectionFailureRepositoryDisabler();
     }
 
     StartParameterResolutionOverride createStartParameterResolutionOverride(StartParameter startParameter, BuildLayout buildLayout) {
@@ -485,7 +485,7 @@ class DependencyManagementBuildScopeServices {
                                               BuildCommencedTimeProvider buildCommencedTimeProvider,
                                               VersionComparator versionComparator,
                                               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                              RepositoryBlacklister repositoryBlacklister,
+                                              RepositoryDisabler repositoryBlacklister,
                                               VersionParser versionParser,
                                               InstantiatorFactory instantiatorFactory,
                                               ListenerManager listenerManager) {

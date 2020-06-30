@@ -28,7 +28,7 @@ import org.gradle.internal.event.ListenerManager
 
 
 private
-val whitelistedProperties = setOf(
+val allowedProperties = setOf(
     "os.name",
     "os.version",
     "os.arch",
@@ -74,7 +74,7 @@ class SystemPropertyAccessListener(
     val nullProperties = mutableSetOf<String>()
 
     override fun systemPropertyQueried(key: String, value: Any?, consumer: String) {
-        if (whitelistedProperties.contains(key) || Workarounds.canReadSystemProperty(consumer)) {
+        if (allowedProperties.contains(key) || Workarounds.canReadSystemProperty(consumer)) {
             return
         }
         if (value == null) {

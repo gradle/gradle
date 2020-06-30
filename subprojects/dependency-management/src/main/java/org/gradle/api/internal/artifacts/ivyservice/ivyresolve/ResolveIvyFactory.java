@@ -67,7 +67,7 @@ public class ResolveIvyFactory {
     private final BuildCommencedTimeProvider timeProvider;
     private final VersionComparator versionComparator;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final RepositoryBlacklister repositoryBlacklister;
+    private final RepositoryDisabler repositoryBlacklister;
     private final VersionParser versionParser;
     private final InstantiatorFactory instantiatorFactory;
 
@@ -80,7 +80,7 @@ public class ResolveIvyFactory {
                              BuildCommencedTimeProvider timeProvider,
                              VersionComparator versionComparator,
                              ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                             RepositoryBlacklister repositoryBlacklister,
+                             RepositoryDisabler repositoryBlacklister,
                              VersionParser versionParser,
                              InstantiatorFactory instantiatorFactory,
                              ChangingValueDependencyResolutionListener listener) {
