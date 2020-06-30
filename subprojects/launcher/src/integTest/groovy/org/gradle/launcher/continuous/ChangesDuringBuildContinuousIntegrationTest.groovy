@@ -18,6 +18,7 @@ package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.TestPrecondition
@@ -37,7 +38,7 @@ class ChangesDuringBuildContinuousIntegrationTest extends AbstractContinuousInte
         waitAtEndOfBuildForQuietPeriod(quietPeriod)
     }
 
-    @ToBeFixedForInstantExecution
+    @UnsupportedWithInstantExecution(because = "Spock interceptor interference")
     def "should trigger rebuild when java source file is changed during build execution"() {
         given:
         def inputFile = file("src/main/java/Thing.java")
@@ -83,7 +84,7 @@ jar.dependsOn postCompile
         assert classloader.loadClass('Thing').getDeclaredFields()*.name == ["CHANGED"]
     }
 
-    @ToBeFixedForInstantExecution(because = "taskGraph.afterTask")
+    @UnsupportedWithInstantExecution(because = "taskGraph.afterTask")
     def "new build should be triggered when input files to tasks are changed after each task has been executed, but before the build has completed"(changingInput) {
         given:
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }
@@ -131,7 +132,6 @@ jar.dependsOn postCompile
         changingInput << ['a', 'b', 'c', 'd']
     }
 
-    @ToBeFixedForInstantExecution
     def "new build should be triggered when input files to tasks are changed during the task is executing"(changingInput) {
         given:
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }
