@@ -334,7 +334,7 @@ public interface ResolutionStrategy {
     ComponentSelectionRules getComponentSelection();
 
     /**
-     * The componentSelection block provides rules to filter or blacklist certain components from appearing in the resolution result.
+     * The componentSelection block provides rules to filter or prevent certain components from appearing in the resolution result.
      *
      * @param action Action to be applied to the {@link ComponentSelectionRules}
      * @return this ResolutionStrategy instance

@@ -57,7 +57,7 @@ class IsolationSchemeTest extends Specification {
         e.message == "Could not create the parameters for RawActionType: must use a sub-type of SomeParams as the parameters type. Use Nothing as the parameters type for implementations that do not take parameters."
     }
 
-    def "exposes whitelisted service"() {
+    def "exposes authorized service"() {
         def allServices = Mock(ServiceLookup)
         def params = Stub(SomeParams)
         def service = Stub(serviceType)

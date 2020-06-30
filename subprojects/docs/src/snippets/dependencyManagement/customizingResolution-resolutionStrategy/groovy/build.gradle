@@ -15,7 +15,7 @@ def findDefaultVersionInCatalog(String group, String name) {
 }
 // end::custom-versioning-scheme[]
 
-// tag::blacklisting_version[]
+// tag::denying_version[]
 configurations.all {
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->
         if (details.requested.group == 'org.software' && details.requested.name == 'some-library' && details.requested.version == '1.2') {
@@ -24,7 +24,7 @@ configurations.all {
         }
     }
 }
-// end::blacklisting_version[]
+// end::denying_version[]
 
 // tag::module_substitution[]
 configurations.all {

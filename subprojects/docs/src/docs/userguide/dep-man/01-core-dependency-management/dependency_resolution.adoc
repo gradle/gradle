@@ -139,9 +139,9 @@ As it is a cache for Maven, it will sometimes miss some artifacts of a given mod
 If Gradle is sourcing such a module from Maven Local, it will consider the missing artifacts to be missing altogether.
 ====
 
-=== Repository blacklisting
+=== Repository disabling
 
-When Gradle fails to retrieve information from a repository, it will blacklist it for the duration of the build and fail all dependency resolution.
+When Gradle fails to retrieve information from a repository, it will disable it for the duration of the build and fail all dependency resolution.
 
 That last point is important for reproducibility.
 If the build was allowed to continue, ignoring the faulty repository, subsequent builds could have a different result once the repository is back online.
@@ -149,7 +149,7 @@ If the build was allowed to continue, ignoring the faulty repository, subsequent
 [[sub:http-retries]]
 ==== HTTP Retries
 
-Gradle will make several attempts to connect to a given repository before blacklisting it.
+Gradle will make several attempts to connect to a given repository before disabling it.
 If connection fails, Gradle will retry on certain errors which have a chance of being transient, increasing the amount of time waiting between each retry.
 
 Blacklisting happens when the repository cannot be contacted, either because of a permanent error or because the maximum retries was reached.

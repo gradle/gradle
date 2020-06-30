@@ -72,7 +72,7 @@ class ResolveIvyFactoryTest extends Specification {
     BuildCommencedTimeProvider buildCommencedTimeProvider
     VersionComparator versionComparator
     ImmutableModuleIdentifierFactory moduleIdentifierFactory
-    RepositoryBlacklister repositoryBlacklister
+    RepositoryDisabler repositoryBlacklister
     VersionParser versionParser
     InstantiatorFactory instantiatorFactory
     BuildOperationExecutor buildOperationExecutor
@@ -92,7 +92,7 @@ class ResolveIvyFactoryTest extends Specification {
         buildCommencedTimeProvider = Mock(BuildCommencedTimeProvider)
         moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
         versionComparator = Mock(VersionComparator)
-        repositoryBlacklister = Mock(RepositoryBlacklister)
+        repositoryBlacklister = Mock(RepositoryDisabler)
         versionParser = new VersionParser()
         instantiatorFactory = Mock()
         buildOperationExecutor = Mock()

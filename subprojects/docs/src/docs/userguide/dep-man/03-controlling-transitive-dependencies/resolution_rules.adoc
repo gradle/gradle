@@ -37,10 +37,10 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-resolut
 include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/kotlin",files="build.gradle.kts[tags=custom-versioning-scheme]"]
 ====
 
-[[sec:blacklisting_version]]
-=== Blacklisting a particular version with a replacement
+[[sec:denying_version]]
+=== Denying a particular version with a replacement
 
-Dependency resolve rules provide a mechanism for blacklisting a particular version of a dependency and providing a replacement version.
+Dependency resolve rules provide a mechanism for denying a particular version of a dependency and providing a replacement version.
 This can be useful if a certain dependency version is broken and should not be used, where a dependency resolve rule causes this version to be replaced with a known good version.
 One example of a broken module is one that declares a dependency on a library that cannot be found in any of the public repositories, but there are many other reasons why a particular module version is unwanted and a different version is preferred.
 
@@ -51,8 +51,8 @@ This means that the 'newest' conflict resolution strategy would still select ver
 
 .Example: Blacklisting a version with a replacement
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=blacklisting_version]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/kotlin",files="build.gradle.kts[tags=blacklisting_version]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=denying_version]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/kotlin",files="build.gradle.kts[tags=denying_version]"]
 ====
 
 [NOTE]

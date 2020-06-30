@@ -19,29 +19,29 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import java.util.Collections;
 import java.util.Set;
 
-public interface RepositoryBlacklister {
+public interface RepositoryDisabler {
 
-    boolean isBlacklisted(String repositoryId);
+    boolean isDisabled(String repositoryId);
 
-    boolean blacklistRepository(String repositoryId, Throwable throwable);
+    boolean disableRepository(String repositoryId, Throwable throwable);
 
-    Set<String> getBlacklistedRepositories();
+    Set<String> getDisabledRepositories();
 
-    enum NoOpBlacklister implements RepositoryBlacklister {
+    enum NoOpBlacklister implements RepositoryDisabler {
         INSTANCE;
 
         @Override
-        public boolean isBlacklisted(String repositoryId) {
+        public boolean isDisabled(String repositoryId) {
             return false;
         }
 
         @Override
-        public boolean blacklistRepository(String repositoryId, Throwable throwable) {
+        public boolean disableRepository(String repositoryId, Throwable throwable) {
             return false;
         }
 
         @Override
-        public Set<String> getBlacklistedRepositories() {
+        public Set<String> getDisabledRepositories() {
             return Collections.emptySet();
         }
     }
