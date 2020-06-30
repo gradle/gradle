@@ -79,7 +79,7 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.mergeIncrementalMappingsIntoOldMappings;
 import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.readSourceClassesMappingFile;
 
@@ -282,7 +282,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         throw new UnsupportedOperationException();
     }
 
-    private CleaningJavaCompiler<JavaCompileSpec> createCompiler(JavaCompileSpec spec) {
+    CleaningJavaCompiler<JavaCompileSpec> createCompiler(JavaCompileSpec spec) {
         Compiler<JavaCompileSpec> javaCompiler = createToolchainCompiler(spec);
         return new CleaningJavaCompiler<>(javaCompiler, getOutputs(), getDeleter());
     }
@@ -295,7 +295,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     }
 
     private Compiler<JavaCompileSpec> useNewToolchainCompiler() {
-        checkArgument(toolChain == null, "Must not use `javaCompiler` property together with (deprecated) `toolchain`");
+        checkState(toolChain == null, "Must not use `javaCompiler` property together with (deprecated) `toolchain`");
         return spec -> ((DefaultJavaCompiler) javaCompiler.get()).execute(spec);
     }
 
