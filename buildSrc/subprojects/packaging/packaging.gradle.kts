@@ -34,10 +34,6 @@ gradlePlugin {
             id = "gradlebuild.distributions"
             implementationClass = "org.gradle.gradlebuild.packaging.GradleDistributionsPlugin"
         }
-        register("install") {
-            id = "gradlebuild.install"
-            implementationClass = "org.gradle.gradlebuild.packaging.InstallPlugin"
-        }
     }
 }
 

@@ -1,7 +1,4 @@
-import org.gradle.gradlebuild.packaging.Install
 import org.gradle.gradlebuild.packaging.RunEmbeddedGradle
-import org.gradle.gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
-import org.gradle.gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
 
 plugins {
     gradlebuild.distribution.packaging
@@ -25,18 +22,6 @@ dependencies {
     pluginsRuntimeOnly(project(":javascript"))
     pluginsRuntimeOnly(project(":platformPlay"))
     pluginsRuntimeOnly(project(":idePlay"))
-}
-
-tasks.register<Install>("install") {
-    description = "Installs the minimal distribution"
-    group = "build"
-    with(binDistributionSpec())
-}
-
-tasks.register<Install>("installAll") {
-    description = "Installs the full distribution"
-    group = "build"
-    with(allDistributionSpec())
 }
 
 tasks.register<RunEmbeddedGradle>("runDevGradle") {
