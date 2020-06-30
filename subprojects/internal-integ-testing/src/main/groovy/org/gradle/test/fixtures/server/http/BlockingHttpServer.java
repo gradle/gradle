@@ -22,6 +22,7 @@ import com.sun.net.httpserver.HttpServer;
 import org.gradle.api.Action;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.test.fixtures.ResettableExpectations;
 import org.hamcrest.Matcher;
 import org.junit.rules.ExternalResource;
 
@@ -46,7 +47,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * An HTTP server that allows a test to synchronize and make assertions about concurrent activities that happen in another process.
  * For example, can be used to that certain tasks do or do not execute in parallel.
  */
-public class BlockingHttpServer extends ExternalResource {
+public class BlockingHttpServer extends ExternalResource implements ResettableExpectations {
     private static final AtomicInteger COUNTER = new AtomicInteger();
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
     private final Lock lock = new ReentrantLock();
@@ -362,6 +363,11 @@ public class BlockingHttpServer extends ExternalResource {
                 server.stop(10);
             }
         });
+    }
+
+    @Override
+    public void resetExpectations() {
+        handler.resetExpectations();
     }
 
     /**

@@ -16,8 +16,8 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftTaskNames
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -473,8 +473,8 @@ apply plugin: 'swift-library'
 
         then:
         result.assertTasksExecuted(tasks(':log').debug.allToLink,
-                tasks(':hello').debug.allToLink,
-                tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ':xcTest', ':test')
+            tasks(':hello').debug.allToLink,
+            tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ':xcTest', ':test')
     }
 
     @ToBeFixedForInstantExecution
@@ -533,7 +533,7 @@ apply plugin: 'swift-library'
 
         then:
         result.assertTasksExecuted(tasks(':log').debug.allToLink,
-                tasks(':hello').debug.allToLink,
+            tasks(':hello').debug.allToLink,
             tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ':xcTest', ':test')
     }
 

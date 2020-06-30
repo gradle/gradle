@@ -66,7 +66,6 @@ allprojects { p ->
     void createPassingFailingTest() {
         def testBundle = new SwiftXCTestTestFrameworkBundle('app')
         testBundle.writeToProject(testDirectory)
-
     }
 
     @Override

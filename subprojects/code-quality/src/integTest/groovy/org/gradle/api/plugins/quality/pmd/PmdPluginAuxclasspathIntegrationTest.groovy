@@ -59,7 +59,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
 
                 pmd {
                     ruleSets = ["java-auxclasspath"]
-                    ${supportIncrementalAnalysis()? "" : "incrementalAnalysis = false"}
+                    ${supportIncrementalAnalysis() ? "" : "incrementalAnalysis = false"}
                 }
             }
         """.stripIndent()

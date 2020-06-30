@@ -145,7 +145,6 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "warns when multiple publications share the same coordinates"() {
         given:
         settingsFile << "rootProject.name = 'duplicate-publications'"
@@ -232,7 +231,6 @@ include 'projectB'
         outputContains("Multiple publications with coordinates 'org.example:duplicate:1.0' are published to repository 'maven'. The publications will overwrite each other!")
     }
 
-    @ToBeFixedForInstantExecution
     def "does not fail for publication with duplicate repositories"() {
         given:
         settingsFile << "rootProject.name = 'duplicate-repos'"

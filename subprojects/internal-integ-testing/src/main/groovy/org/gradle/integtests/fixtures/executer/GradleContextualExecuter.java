@@ -159,6 +159,14 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
     }
 
     @Override
+    public GradleExecuter ignoreCleanupAssertions() {
+        if (gradleExecuter != null) {
+            gradleExecuter.ignoreCleanupAssertions();
+        }
+        return super.ignoreCleanupAssertions();
+    }
+
+    @Override
     public GradleExecuter reset() {
         if (gradleExecuter != null) {
             gradleExecuter.reset();

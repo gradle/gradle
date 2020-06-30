@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service.scopes;
+package org.gradle.test.fixtures;
 
-public enum Scopes {
-    Global,
-    UserHome,
-    BuildSession,
-    BuildTree,
-    Build,
-    Gradle
+/**
+ * Allows {@link org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension} to verify
+ * test expectations before cleanup so they can be silenced if necessary.
+ */
+public interface ResettableExpectations {
+    /**
+     * Resets all pending expectations after verifying them.
+     * Must throw when a verification fails.
+     */
+    void resetExpectations();
 }

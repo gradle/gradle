@@ -91,10 +91,10 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
 
         file("src/test/java/org/company/SystemOutTest.java") << """
             package org.company;
-    
+
             import org.testng.Assert;
             import org.testng.annotations.Test;
-    
+
             public class SystemOutTest {
                 @Test
                 public void testOut() {
@@ -143,10 +143,10 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
         given:
         file("src/test/java/org/company/TestWithBrokenSetupMethod.java") << """
             package org.company;
-    
+
             import org.testng.Assert;
             import org.testng.annotations.*;
-    
+
             public class TestWithBrokenSetupMethod {
                 @BeforeMethod
                 public void broken() {

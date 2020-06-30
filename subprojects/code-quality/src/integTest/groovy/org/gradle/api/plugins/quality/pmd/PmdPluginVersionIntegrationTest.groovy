@@ -36,7 +36,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
             pmd {
                 toolVersion = '$version'
-                ${supportIncrementalAnalysis()? "" : "incrementalAnalysis = false"}
+                ${supportIncrementalAnalysis() ? "" : "incrementalAnalysis = false"}
             }
 
             ${fileLockingIssuesSolved() ? "" : """
@@ -328,8 +328,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         String pathToRuleset = "category/java/codestyle.xml/IfStmtsMustUseBraces"
         if (versionNumber < VersionNumber.version(5)) {
             pathToRuleset = "rulesets/braces.xml"
-        }
-        else if (versionNumber < VersionNumber.version(6)) {
+        } else if (versionNumber < VersionNumber.version(6)) {
             pathToRuleset = "rulesets/java/braces.xml"
         }
         """

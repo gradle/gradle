@@ -131,7 +131,6 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         succeeds()
     }
 
-
     @Issue("https://github.com/gradle/gradle/issues/2891")
     def "can apply script with URI containing a query string"() {
         when:
