@@ -21,5 +21,6 @@ public enum Scopes {
     UserHome,
     BuildSession,
     BuildTree,
-    Build
+    Build,
+    Gradle
 }
