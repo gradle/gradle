@@ -64,7 +64,7 @@ open class BuildScanPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         buildScan = the()
 
-        extractCIData()
+        extractCiData()
 
         if (isCiServer) {
             if (!isTravis && !isJenkins) {
@@ -185,7 +185,7 @@ open class BuildScanPlugin : Plugin<Project> {
     fun isEc2Agent() = java.net.InetAddress.getLocalHost().hostName.startsWith("ip-")
 
     private
-    fun Project.extractCIData() {
+    fun Project.extractCiData() {
         if (isCiServer) {
             buildScan {
                 setCompileAllScanSearch(execAndGetStdout("git", "rev-parse", "--verify", "HEAD"))
