@@ -29,7 +29,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -63,7 +62,6 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
@@ -175,16 +173,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Inject
     protected ActorFactory getActorFactory() {
         throw new UnsupportedOperationException();
-    }
-
-    @Internal
-    @Deprecated
-    protected ClassLoaderCache getClassLoaderCache() {
-        DeprecationLogger.deprecateMethod(Test.class, "getClassLoaderCache()")
-            .willBeRemovedInGradle7()
-            .undocumented()
-            .nagUser();
-        return getServices().get(ClassLoaderCache.class);
     }
 
     @Inject

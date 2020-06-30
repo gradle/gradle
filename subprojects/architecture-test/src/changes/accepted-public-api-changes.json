@@ -15,6 +15,14 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getClassLoaderCache()",
+            "acceptation": "Service is no longer required",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
