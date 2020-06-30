@@ -442,7 +442,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         "sha1" | "ea8b622874eaa501476e0ebbe0c562ed" | "invalid"
     }
 
-    @ToBeFixedForInstantExecution
     def "can detect a compromised plugin using plugins block"() {
         createMetadataFile {
             addChecksum("test-plugin:test-plugin.gradle.plugin", "sha1", "woot")
@@ -474,7 +473,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "can detect a compromised plugin using buildscript block (terse output=#terse)"() {
         createMetadataFile {
             addChecksum("com:myplugin", "sha1", "woot")
