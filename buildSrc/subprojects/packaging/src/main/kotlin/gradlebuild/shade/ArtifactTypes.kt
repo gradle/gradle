@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package gradlebuild.distribution
 
-import gradlebuild.packaging.GradleModuleApiAttribute
+package gradlebuild.shade
 
-configurations["runtimeElements"].attributes {
-    attribute(GradleModuleApiAttribute.attribute, GradleModuleApiAttribute.API)
+
+object ArtifactTypes {
+    const val relocatedClassesAndAnalysisType = "relocatedClassesAndAnalysis"
+    const val relocatedClassesType = "relocatedClasses"
+    const val entryPointsType = "entryPoints"
+    const val classTreesType = "classTrees"
+    const val manifestsType = "manifests"
+    const val buildReceiptType = "buildReceipt"
 }

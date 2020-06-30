@@ -19,22 +19,3 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
-
-gradlePlugin {
-    plugins {
-        register("minify") {
-            id = "gradlebuild.minify"
-            implementationClass = "org.gradle.gradlebuild.packaging.MinifyPlugin"
-        }
-        register("shadedJar") {
-            id = "gradlebuild.shaded-jar"
-            implementationClass = "org.gradle.gradlebuild.packaging.ShadedJarPlugin"
-        }
-        register("distributions") {
-            id = "gradlebuild.distributions"
-            implementationClass = "org.gradle.gradlebuild.packaging.GradleDistributionsPlugin"
-        }
-    }
-}
-
-

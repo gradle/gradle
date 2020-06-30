@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.gradlebuild.packaging
+package gradlebuild.packaging
 
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.*

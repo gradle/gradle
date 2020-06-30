@@ -1,4 +1,4 @@
-import org.gradle.gradlebuild.packaging.RunEmbeddedGradle
+import gradlebuild.run.tasks.RunEmbeddedGradle
 
 plugins {
     gradlebuild.distribution.packaging

@@ -15,7 +15,6 @@
  */
 package gradlebuild
 
-import org.gradle.gradlebuild.packaging.ShadedJarPlugin
 import java.time.Year
 
 plugins {
@@ -49,7 +48,7 @@ fun Project.configurePublishingTasks() {
         failEarlyIfCredentialsAreNotSet(this)
     }
 
-    plugins.withType<ShadedJarPlugin> {
+    plugins.withId("gradlebuild.shaded-jar") {
         publishNormalizedToLocalRepository()
     }
 }

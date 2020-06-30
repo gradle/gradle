@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.gradlebuild.packaging
+package gradlebuild.classanalysis
 
 import gradlebuild.identity.tasks.BuildReceipt
 import org.gradle.api.attributes.Attribute
@@ -43,10 +43,7 @@ val ignoredPackagePatterns = PackagePatterns(setOf("java"))
 
 
 object Attributes {
-
-    internal
     val artifactType = Attribute.of("artifactType", String::class.java)
-
     val minified = Attribute.of("minified", Boolean::class.javaObjectType)
 }
 

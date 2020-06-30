@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.gradlebuild.packaging
+package gradlebuild.classanalysis
 
 
 internal

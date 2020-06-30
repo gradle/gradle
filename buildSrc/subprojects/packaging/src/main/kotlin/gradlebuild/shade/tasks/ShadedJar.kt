@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.gradlebuild.packaging
+package gradlebuild.shade.tasks
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import gradlebuild.classanalysis.addJarEntry
 import gradlebuild.identity.tasks.BuildReceipt
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
@@ -35,34 +38,34 @@ import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
 
 
-open class ShadedJar : DefaultTask() {
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @InputFiles
-    val relocatedClassesConfiguration = project.objects.fileCollection()
-    @PathSensitive(PathSensitivity.NONE)
-    @InputFiles
-    val classTreesConfiguration = project.objects.fileCollection()
-    @PathSensitive(PathSensitivity.NONE)
-    @InputFiles
-    val entryPointsConfiguration = project.objects.fileCollection()
-    @PathSensitive(PathSensitivity.NONE)
-    @InputFiles
-    val manifests = project.objects.fileCollection()
+abstract class ShadedJar : DefaultTask() {
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:InputFiles
+    abstract val relocatedClassesConfiguration: ConfigurableFileCollection
+    @get:PathSensitive(PathSensitivity.NONE)
+    @get:InputFiles
+    abstract val classTreesConfiguration: ConfigurableFileCollection
+    @get:PathSensitive(PathSensitivity.NONE)
+    @get:InputFiles
+    abstract val entryPointsConfiguration: ConfigurableFileCollection
+    @get:PathSensitive(PathSensitivity.NONE)
+    @get:InputFiles
+    abstract val manifests: ConfigurableFileCollection
 
     /**
      * The build receipt properties file.
      *
      * The file will be included in the shaded jar under {@code /org/gradle/build-receipt.properties}.
      */
-    @PathSensitive(PathSensitivity.NONE)
-    @InputFiles
-    val buildReceiptFile = project.objects.fileCollection()
+    @get:PathSensitive(PathSensitivity.NONE)
+    @get:InputFiles
+    abstract val buildReceiptFile: ConfigurableFileCollection
 
     /**
       * The output Jar file.
       */
-    @OutputFile
-    val jarFile = project.objects.fileProperty()
+    @get:OutputFile
+    abstract val jarFile: RegularFileProperty
 
     @TaskAction
     fun shade() {
