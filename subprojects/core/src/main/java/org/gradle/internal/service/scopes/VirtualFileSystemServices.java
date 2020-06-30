@@ -70,6 +70,7 @@ import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
+import org.gradle.internal.nativeintegration.NativeCapabilities;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
@@ -176,7 +177,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             Stat stat,
             StringInterner stringInterner,
             ListenerManager listenerManager,
-            DocumentationRegistry documentationRegistry
+            DocumentationRegistry documentationRegistry,
+            NativeCapabilities nativeCapabilities
         ) {
             // All the changes in global caches should be done by Gradle itself, so in order
             // to minimize the number of watches we don't watch anything within the global caches.
@@ -190,7 +192,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 updateFunctionDecorator,
                 DirectoryScanner.getDefaultExcludes()
             );
-            WatchingAwareVirtualFileSystem watchingAwareVirtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current())
+            WatchingAwareVirtualFileSystem watchingAwareVirtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities)
                 .<WatchingAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
                     delegate,
@@ -199,26 +201,25 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId)
                 ))
                 .orElse(new NonWatchingVirtualFileSystem(delegate));
-            listenerManager.addListener(new VirtualFileSystemBuildLifecycleListener(
-                watchingAwareVirtualFileSystem
-            ));
             listenerManager.addListener((BuildAddedListener) buildState ->
                 watchingAwareVirtualFileSystem.buildRootDirectoryAdded(buildState.getBuildRootDir())
             );
             return watchingAwareVirtualFileSystem;
         }
 
-        private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(OperatingSystem operatingSystem) {
-            try {
-                if (operatingSystem.isMacOsX()) {
-                    return Optional.of(new DarwinFileWatcherRegistryFactory());
-                } else if (operatingSystem.isWindows()) {
-                    return Optional.of(new WindowsFileWatcherRegistryFactory());
-                } else if (operatingSystem.isLinux()) {
-                    return Optional.of(new LinuxFileWatcherRegistryFactory());
+        private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(OperatingSystem operatingSystem, NativeCapabilities nativeCapabilities) {
+            if (nativeCapabilities.isNativeIntegrationAvailable()) {
+                try {
+                    if (operatingSystem.isMacOsX()) {
+                        return Optional.of(new DarwinFileWatcherRegistryFactory());
+                    } else if (operatingSystem.isWindows()) {
+                        return Optional.of(new WindowsFileWatcherRegistryFactory());
+                    } else if (operatingSystem.isLinux()) {
+                        return Optional.of(new LinuxFileWatcherRegistryFactory());
+                    }
+                } catch (NativeIntegrationUnavailableException e) {
+                    LOGGER.info("Native file system watching is not available for this operating system.", e);
                 }
-            } catch (NativeIntegrationUnavailableException e) {
-                LOGGER.info("Native file system watching is not available for this operating system.", e);
             }
             return Optional.empty();
         }

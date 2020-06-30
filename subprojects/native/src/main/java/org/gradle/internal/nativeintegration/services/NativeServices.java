@@ -31,6 +31,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.internal.Cast;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.nativeintegration.NativeCapabilities;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleDetector;
@@ -288,6 +289,15 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         }
 
         return new FallbackFileMetadataAccessor();
+    }
+
+    protected NativeCapabilities createNativeCapabilities() {
+        return new NativeCapabilities() {
+            @Override
+            public boolean isNativeIntegrationAvailable() {
+                return useNativeIntegrations;
+            }
+        };
     }
 
     private <T> T notAvailable(Class<T> type) {

@@ -35,6 +35,7 @@ dependencies {
     implementation(project(":jvmServices"))
     implementation(project(":buildEvents"))
     implementation(project(":toolingApi"))
+    implementation(project(":fileWatching"))
 
     implementation(library("groovy")) // for 'ReleaseInfo.getVersion()'
     implementation(library("slf4j_api"))

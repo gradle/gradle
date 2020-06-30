@@ -39,9 +39,9 @@ public class SessionScopeBuildActionExecuter implements BuildActionExecuter<Buil
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final GradleUserHomeScopeServiceRegistry userHomeServiceRegistry;
 
-    public SessionScopeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, GradleUserHomeScopeServiceRegistry userHomeServiceRegistry) {
-        this.delegate = delegate;
+    public SessionScopeBuildActionExecuter(GradleUserHomeScopeServiceRegistry userHomeServiceRegistry, BuildActionExecuter<BuildActionParameters> delegate) {
         this.userHomeServiceRegistry = userHomeServiceRegistry;
+        this.delegate = delegate;
     }
 
     @Override
