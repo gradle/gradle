@@ -31,6 +31,7 @@ abstract class ServerWithExpectations extends ExternalResource implements Resett
 
     protected Throwable failure
 
+    @Override
     void resetExpectations() {
         try {
             if (failure != null) {
@@ -59,6 +60,8 @@ abstract class ServerWithExpectations extends ExternalResource implements Resett
     }
 
     abstract protected List<? extends ServerExpectation> getExpectations()
+
     abstract protected void stop()
+
     abstract protected Logger getLogger()
 }
