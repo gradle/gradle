@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.BuildDependenciesOnlyFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
@@ -29,10 +28,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A {@link org.gradle.api.file.FileCollection} that contains the union of zero or more file collections. Maintains file ordering.
@@ -49,40 +45,6 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     public CompositeFileCollection() {
-    }
-
-    @Override
-    public Set<File> getFiles() {
-        return getFiles(getSourceCollections());
-    }
-
-    @Override
-    public Iterator<File> iterator() {
-        List<? extends FileCollectionInternal> sourceCollections = getSourceCollections();
-        switch (sourceCollections.size()) {
-            case 0:
-                return Collections.emptyIterator();
-            case 1:
-                return sourceCollections.get(0).iterator();
-            default:
-                // Need to make sure we remove duplicates, so we can't just compose iterators from source collections
-                return getFiles(sourceCollections).iterator();
-        }
-    }
-
-    private static Set<File> getFiles(List<? extends FileCollectionInternal> sourceCollections) {
-        switch (sourceCollections.size()) {
-            case 0:
-                return Collections.emptySet();
-            case 1:
-                return sourceCollections.get(0).getFiles();
-            default:
-                ImmutableSet.Builder<File> builder = ImmutableSet.builder();
-                for (FileCollection collection : sourceCollections) {
-                    builder.addAll(collection);
-                }
-                return builder.build();
-        }
     }
 
     @Override

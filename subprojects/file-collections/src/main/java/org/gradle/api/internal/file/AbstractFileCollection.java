@@ -95,6 +95,38 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     @Override
+    public Set<File> getFiles() {
+        ImmutableSet.Builder<File> builder = new ImmutableSet.Builder<>();
+        visitContents(new FileCollectionStructureVisitor() {
+            @Override
+            public void visitCollection(Source source, Iterable<File> contents) {
+                builder.addAll(contents);
+            }
+
+            private void addTreeContents(FileTreeInternal fileTree, ImmutableSet.Builder<File> builder) {
+                // TODO - add some convenient way to visit the files of the tree without collecting them into a set
+                builder.addAll(fileTree);
+            }
+
+            @Override
+            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                addTreeContents(fileTree, builder);
+            }
+
+            @Override
+            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                addTreeContents(fileTree, builder);
+            }
+
+            @Override
+            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                addTreeContents(fileTree, builder);
+            }
+        });
+        return builder.build();
+    }
+
+    @Override
     public File getSingleFile() throws IllegalStateException {
         Iterator<File> iterator = iterator();
         if (!iterator.hasNext()) {

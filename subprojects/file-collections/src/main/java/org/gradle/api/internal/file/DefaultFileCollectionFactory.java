@@ -262,7 +262,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         }
     }
 
-    private static final class FixedFileCollection extends AbstractFileCollection {
+    private static final class FixedFileCollection extends AbstractOpaqueFileCollection {
         private final String displayName;
         private final ImmutableSet<File> files;
 
@@ -278,7 +278,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         }
 
         @Override
-        public Set<File> getFiles() {
+        protected Set<File> getIntrinsicFiles() {
             return files;
         }
     }

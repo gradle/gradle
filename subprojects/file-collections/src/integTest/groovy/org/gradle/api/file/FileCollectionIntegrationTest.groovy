@@ -183,8 +183,8 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
                 }
             }
 
-            def files1 = files('a.txt')
-            def files2 = files('b.txt')
+            def files1 = files('a.txt', 'a.bin')
+            def files2 = files('b.txt', 'b.bin')
             task merge(type: LegacyTask) {
                 inFiles = files1
                 inFiles = files(inFiles, files2).filter { f -> f.name.endsWith('.txt') }

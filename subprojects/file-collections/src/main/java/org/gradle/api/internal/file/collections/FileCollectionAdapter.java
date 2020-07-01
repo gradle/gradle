@@ -16,7 +16,7 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.Buildable;
-import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.file.AbstractOpaqueFileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
@@ -27,7 +27,7 @@ import java.util.Set;
 /**
  * Adapts a {@link MinimalFileSet} into a full {@link org.gradle.api.file.FileCollection}.
  */
-public class FileCollectionAdapter extends AbstractFileCollection implements FileCollectionContainer {
+public class FileCollectionAdapter extends AbstractOpaqueFileCollection implements FileCollectionContainer {
     private final MinimalFileSet fileSet;
 
     public FileCollectionAdapter(MinimalFileSet fileSet) {
@@ -50,7 +50,7 @@ public class FileCollectionAdapter extends AbstractFileCollection implements Fil
     }
 
     @Override
-    public Set<File> getFiles() {
+    protected Set<File> getIntrinsicFiles() {
         return fileSet.getFiles();
     }
 

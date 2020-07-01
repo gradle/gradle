@@ -240,14 +240,15 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         files as List == [file1, file2]
     }
 
-    def canUseAFileCollectionToSpecifyTheContentsOfTheCollection() {
+    def canUseAFileCollectionWithChangingContentsToSpecifyTheContentsOfTheCollection() {
         given:
         def file1 = new File("1")
         def file2 = new File("2")
-        def src = Mock(FileCollectionInternal)
+        def src = Mock(MinimalFileSet)
+        def srcCollection = TestFiles.fileCollectionFactory().create(src)
 
         when:
-        collection.from(src)
+        collection.from(srcCollection)
         def files = collection.files
 
         then:
