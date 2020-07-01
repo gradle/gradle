@@ -22,7 +22,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
@@ -107,7 +106,7 @@ public interface OutgoingElementsBuilder {
      * @param name the capability name
      * @param version the capability version
      */
-    OutgoingElementsBuilder capability(String group, String name, @Nullable String version);
+    OutgoingElementsBuilder capability(String group, String name, String version);
 
     /**
      * Configures this outgoing configuration to provides a "classes directory" variant, which

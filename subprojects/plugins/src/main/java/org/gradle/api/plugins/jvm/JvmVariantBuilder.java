@@ -19,8 +19,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.HasInternalProtocol;
 
-import javax.annotation.Nullable;
-
 /**
  * A Java component builder, allowing the automatic creation of a number of configurations,
  * tasks, ...
@@ -70,7 +68,7 @@ public interface JvmVariantBuilder {
      * @param name the capability name
      * @param version the capability version
      */
-    JvmVariantBuilder capability(String group, String name, @Nullable String version);
+    JvmVariantBuilder capability(String group, String name, String version);
 
     /**
      * Tells that this component is not the main component and corresponds to a different "thing"

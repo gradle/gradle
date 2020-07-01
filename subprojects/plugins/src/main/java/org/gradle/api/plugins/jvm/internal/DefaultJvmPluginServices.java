@@ -18,6 +18,7 @@ package org.gradle.api.plugins.jvm.internal;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -361,11 +362,15 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         }
 
         @Override
-        public OutgoingElementsBuilder capability(String group, String name, @Nullable String version) {
+        public OutgoingElementsBuilder capability(String group, String name, String version) {
             if (capabilities == null) {
                 capabilities = Lists.newArrayList();
             }
-            capabilities.add(new ImmutableCapability(group, name, version));
+            ImmutableCapability capability = new ImmutableCapability(group, name, version);
+            if (capability.getVersion() == null) {
+                throw new InvalidUserDataException("Capabilities declared on outgoing variants must have a version");
+            }
+            capabilities.add(capability);
             return this;
         }
 
