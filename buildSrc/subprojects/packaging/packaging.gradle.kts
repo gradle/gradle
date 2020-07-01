@@ -1,5 +1,5 @@
 dependencies {
-    implementation(project(":docs")) {
+    implementation(project(":documentation")) {
         // TODO turn this around: move corresponding code to this project and let docs depend on it
         because("API metadata generation is part of the DSL guide")
     }

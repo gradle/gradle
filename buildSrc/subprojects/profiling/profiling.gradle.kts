@@ -2,7 +2,7 @@ dependencies {
     compileOnly("com.gradle:gradle-enterprise-gradle-plugin")
 
     implementation(project(":basics"))
-    implementation(project(":docs"))
+    implementation(project(":documentation"))
     implementation(project(":jvm"))
 
     implementation("me.champeau.gradle:jmh-gradle-plugin")

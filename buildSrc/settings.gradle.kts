@@ -50,19 +50,19 @@ include("dependencyModules")
 
 // Special purpose build logic for root project - please preserve alphabetical order
 include("cleanup")
-include("ide")
+include("idea")
 include("lifecycle")
 
 // Special purpose build logic for subproject - please preserve alphabetical order
 include("binaryCompatibility")
 include("buildquality")
-include("docs")
+include("documentation")
 include("integrationTesting")
 include("jvm")
 include("kotlinDsl")
 include("uberPlugins")
 include("packaging")
-include("performance")
+include("performanceTesting")
 include("profiling")
 include("publishing")
 
