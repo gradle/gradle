@@ -1,5 +1,5 @@
 import org.gradle.util.VersionNumber
-import java.util.*
+import java.util.Properties
 
 /*
  * Copyright 2013 the original author or authors.
@@ -130,6 +130,6 @@ val devSuffixes = arrayOf(
     "-dev-\\d+-\\d+",
     "-rc-?\\d+",
     "-RC-?\\d+",
-    "-M\\d+(-release-\\d+)?",
+    "-M.+",
     "-eap-?\\d+"
 )
