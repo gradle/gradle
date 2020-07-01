@@ -91,9 +91,22 @@ Gradle's dependency substitution API has been enriched to cover those cases.
 
 See the documentation on [variant-aware substitution](userguide/file:///home/cchampeau/DEV/PROJECTS/GITHUB/gradle/subprojects/docs/build/working/usermanual/render-multi/resolution_rules.html#sec:variant_aware_substitutions) for details.
 
-## Credentials API
+## Credentials Provider API
 
-TBD 
+In the previous release we added two samples that demonstrated two common use cases where credentials are used in Gradle builds -
+artifact repositories requiring authentication and arbitrary external tools invoked by the Gradle build requiring credentials.
+Both samples aimed at guiding the users to our recommended practice of externalizing credentials from the build scripts and
+supplying them using `gradle.properties`.
+
+In this release we are rolling out a new provider API for credentials that will make working with credentials easier by establishing
+a convention to supply credentials using `gradle.properties` and eliminating the previously demonstrated boilerplate code for
+validating credential presence.
+
+For more details on the new API see the [user manual](userguide/declaring_repositories.html#sec:handling_credentials) as well as 
+updated downloadable samples that now make use of the new credentials provider API:
+
+- [Authenticating with a Maven repository for publishing](samples/sample_publishing_credentials.html)
+- [Supplying credentials to an external tool](samples/sample_publishing_credentials.html)
 
 ## Improvements for plugin authors
 
