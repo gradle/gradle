@@ -106,7 +106,7 @@ For more details on the new API see the [user manual](userguide/declaring_reposi
 updated downloadable samples that now make use of the new credentials provider API:
 
 - [Authenticating with a Maven repository for publishing](samples/sample_publishing_credentials.html)
-- [supplying credentials to an external tool](samples/sample_publishing_credentials.html)
+- [Supplying credentials to an external tool](samples/sample_publishing_credentials.html)
 
 ## Improvements for plugin authors
 
