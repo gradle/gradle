@@ -9,7 +9,7 @@ import model.Stage
 open class BaseGradleBuildType(model: CIBuildModel, val stage: Stage? = null, usesParentBuildCache: Boolean = false, init: BaseGradleBuildType.() -> Unit = {}) : BuildType() {
 
     val buildCache: BuildCache =
-        if (stage != null && stage.disablesBuildCache) NoBuildCache
+        if (stage != null) NoBuildCache
         else if (usesParentBuildCache) model.parentBuildCache
         else model.childBuildCache
 

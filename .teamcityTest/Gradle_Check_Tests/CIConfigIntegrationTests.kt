@@ -3,7 +3,6 @@ import Gradle_Check.model.GradleBuildBucketProvider
 import Gradle_Check.model.JsonBasedGradleSubprojectProvider
 import Gradle_Check.model.StatisticBasedGradleBuildBucketProvider
 import Gradle_Check.model.ignoredSubprojects
-import common.JvmCategory
 import common.JvmVendor
 import common.JvmVersion
 import common.NoBuildCache
@@ -19,7 +18,6 @@ import model.Stage
 import model.StageNames
 import model.TestCoverage
 import model.TestType
-import model.Trigger
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -348,41 +346,6 @@ class CIConfigIntegrationTests {
         assertEquals("Gradle_Check_QuickFeedbackCrossVersion_1_buildCache", testCoverage.asConfigurationId(model, "buildCache"))
 
         assertEquals("Gradle_Check_QuickFeedbackCrossVersion_1_0", testCoverage.asConfigurationId(model))
-    }
-
-    @Test
-    fun canDeactivateBuildCacheForSpecificStage() {
-        val m = CIBuildModel(
-            projectPrefix = "Gradle_BuildCacheDeactivatedForStage_",
-            stages = listOf(
-                Stage(StageNames.QUICK_FEEDBACK_LINUX_ONLY,
-                    trigger = Trigger.never,
-                    runsIndependent = true,
-                    functionalTests = listOf(
-                        TestCoverage(20, TestType.quick, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))),
-                Stage(StageNames.QUICK_FEEDBACK,
-                    trigger = Trigger.never,
-                    runsIndependent = true,
-                    disablesBuildCache = true,
-                    functionalTests = listOf(
-                        TestCoverage(21, TestType.platform, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)))
-            ),
-            subprojects = subprojectProvider
-        )
-        val p = RootProject(m, SubProjectBucketProvider(m))
-        assertTrue(p.subProjects.size == 2)
-
-        val buildStepsWithCache: List<GradleBuildStep> = (p.subProjectsOrder[0] as StageProject)
-            .subProjects[0].buildTypes.map { ((it as FunctionalTest).steps.items.first { it is GradleBuildStep } as GradleBuildStep) }
-        buildStepsWithCache.forEach {
-            assertFalse(it.gradleParams!!.contains("--no-build-cache"))
-        }
-
-        val buildStepsWithoutCache = (p.subProjectsOrder[1] as StageProject)
-            .subProjects[0].buildTypes.map { ((it as FunctionalTest).steps.items.first { it is GradleBuildStep } as GradleBuildStep) }
-        buildStepsWithoutCache.forEach {
-            assertTrue(it.gradleParams!!.contains("--no-build-cache"))
-        }
     }
 
     @Test
