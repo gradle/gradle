@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.capabilities.Capability;
@@ -54,6 +55,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.instantiation.InstanceGenerator;
 
@@ -277,7 +279,6 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
             }
             jvmEcosystemUtilities.configureAttributes(cnf, details -> {
                     details.library()
-                        .asJar()
                         .withExternalDependencies();
                     if (api) {
                         details.apiUsage();
@@ -286,6 +287,11 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
                     }
                     if (attributesRefiner != null) {
                         attributesRefiner.execute(details);
+                    }
+                    if (Category.LIBRARY.equals(cnf.getAttributes().getAttribute(Category.CATEGORY_ATTRIBUTE).getName())) {
+                        if (!cnf.getAttributes().contains(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE)) {
+                            details.asJar();
+                        }
                     }
                 }
             );
@@ -351,6 +357,15 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         @Override
         public OutgoingElementsBuilder withCapabilities(List<Capability> capabilities) {
             this.capabilities = capabilities;
+            return this;
+        }
+
+        @Override
+        public OutgoingElementsBuilder capability(String group, String name, @Nullable String version) {
+            if (capabilities == null) {
+                capabilities = Lists.newArrayList();
+            }
+            capabilities.add(new ImmutableCapability(group, name, version));
             return this;
         }
 

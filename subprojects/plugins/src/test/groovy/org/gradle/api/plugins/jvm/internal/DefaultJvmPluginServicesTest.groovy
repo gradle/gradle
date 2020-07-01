@@ -39,7 +39,6 @@ import org.gradle.util.AttributeTestUtil
 import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE
 import static org.gradle.api.attributes.Bundling.EMBEDDED
 import static org.gradle.api.attributes.Bundling.EXTERNAL
-import static org.gradle.api.attributes.Bundling.EXTERNAL
 import static org.gradle.api.attributes.Bundling.SHADOWED
 import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE
 import static org.gradle.api.attributes.Category.DOCUMENTATION

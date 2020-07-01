@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.jvm.internal
 
 import org.gradle.api.Task
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput
 import org.gradle.api.tasks.SourceSet
@@ -54,6 +55,7 @@ class SourceDirectorySetJvmPluginServicesTest extends AbstractJvmPluginServicesT
         then:
         _ * sourceSet.getName() >> 'main'
         1 * sourceSet.getOutput() >> sourceSetOutput
+        1 * sourceSetOutput.getGeneratedSourcesDirs() >> Stub(ConfigurableFileCollection)
         1 * sourceSetOutput.addClassesDir(_)
         1 * sourceSetOutput.registerClassesContributor(_)
         1 * tasks.register("compileMylang", JavaCompile, _) >> compileTaskProvider
