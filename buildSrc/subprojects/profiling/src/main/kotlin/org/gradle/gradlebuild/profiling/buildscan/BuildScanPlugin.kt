@@ -186,7 +186,9 @@ open class BuildScanPlugin : Plugin<Project> {
     fun Project.extractCiData() {
         if (isCiServer) {
             buildScan {
-                setCompileAllScanSearch(execAndGetStdout("git", "rev-parse", "--verify", "HEAD"))
+                background {
+                    setCompileAllScanSearch(execAndGetStdout("git", "rev-parse", "--verify", "HEAD"))
+                }
                 if (isEc2Agent()) {
                     tag("EC2")
                 }
