@@ -753,4 +753,4 @@ if it knows that the build will fail at a later point because of missing credent
 
 Here is a link:{samplesPath}/sample_publishing_credentials.html[downloadable sample] that demonstrates the concept in more detail.
 
-Same rules apply for supplyng link:{javadocPath}/org/gradle/api/credentials/AwsCredentials.html[AwsCredentials].
+The same rules apply for supplying link:{javadocPath}/org/gradle/api/credentials/AwsCredentials.html[AwsCredentials].
