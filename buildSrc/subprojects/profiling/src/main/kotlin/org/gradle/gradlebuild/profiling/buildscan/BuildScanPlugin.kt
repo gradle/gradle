@@ -19,7 +19,6 @@ import com.gradle.scan.plugin.BuildScanExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.Reporting
