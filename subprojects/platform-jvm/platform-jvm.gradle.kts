@@ -2,6 +2,7 @@ import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
     gradlebuild.distribution.`api-java`
+    gradlebuild.jmh
 }
 
 dependencies {

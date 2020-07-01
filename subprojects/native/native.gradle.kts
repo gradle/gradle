@@ -1,5 +1,6 @@
 plugins {
     gradlebuild.distribution.`api-java`
+    gradlebuild.jmh
 }
 
 description = "This project contains various native operating system integration utilities"

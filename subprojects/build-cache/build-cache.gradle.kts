@@ -15,6 +15,7 @@
  */
 plugins {
     gradlebuild.distribution.`api-java`
+    gradlebuild.jmh
 }
 
 dependencies {

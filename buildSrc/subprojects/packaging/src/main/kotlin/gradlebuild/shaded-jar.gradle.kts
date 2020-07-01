@@ -104,7 +104,6 @@ fun createConfigurationToShade(): Configuration {
 
 fun addShadedJarTask(shadedJarExtension: ShadedJarExtension): TaskProvider<ShadedJar> {
     val configurationToShade = shadedJarExtension.shadedConfiguration
-    val jar: TaskProvider<Jar> = tasks.withType(Jar::class).named("jar")
 
     return tasks.register("${project.name}ShadedJar", ShadedJar::class) {
         jarFile.set(layout.buildDirectory.file(provider { "shaded-jar/${moduleIdentity.baseName.get()}-shaded-${moduleIdentity.version.get().baseVersion.version}.jar" }))
