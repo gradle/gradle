@@ -17,6 +17,7 @@
 package org.gradle.instantexecution.serialization
 
 import org.gradle.instantexecution.extensions.uncheckedCast
+import org.gradle.instantexecution.problems.DocumentationSection
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.serialize.BaseSerializerFactory
@@ -46,7 +47,7 @@ inline fun <reified T> ownerServiceCodec() =
 
 
 internal
-inline fun <reified T : Any> unsupported(documentationSection: String = DocumentationSections.requirementsDisallowedTypes): Codec<T> = codec(
+inline fun <reified T : Any> unsupported(documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes): Codec<T> = codec(
     encode = { value ->
         logUnsupported("serialize", T::class, value.javaClass, documentationSection)
     },

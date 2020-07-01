@@ -41,7 +41,7 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.BuildRequestMetaData
-import org.gradle.instantexecution.serialization.DocumentationSections
+import org.gradle.instantexecution.problems.DocumentationSection.NotYetImplementedJavaSerialization
 import org.gradle.instantexecution.serialization.codecs.transform.ChainedTransformationNodeCodec
 import org.gradle.instantexecution.serialization.codecs.transform.DefaultTransformerCodec
 import org.gradle.instantexecution.serialization.codecs.transform.InitialTransformationNodeCodec
@@ -192,7 +192,7 @@ class Codecs(
         bind(ProxyCodec)
 
         // Java serialization integration
-        bind(unsupported<Externalizable>(DocumentationSections.notYetImplementedJavaSerialization))
+        bind(unsupported<Externalizable>(NotYetImplementedJavaSerialization))
         bind(SerializableWriteObjectCodec())
         bind(SerializableWriteReplaceCodec())
 

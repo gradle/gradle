@@ -19,11 +19,10 @@ package org.gradle.instantexecution.serialization.codecs
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Project
 import org.gradle.instantexecution.extensions.uncheckedCast
+import org.gradle.instantexecution.problems.DocumentationSection.NotYetImplementedJavaSerialization
 import org.gradle.instantexecution.problems.PropertyKind
 import org.gradle.instantexecution.problems.PropertyTrace
-import org.gradle.instantexecution.serialization.DocumentationSections
 import org.gradle.kotlin.dsl.support.useToRun
-import org.hamcrest.CoreMatchers
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.CoreMatchers.sameInstance
@@ -120,7 +119,7 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
         assertThat(problems.size, equalTo(1))
         assertThat(
             problems[0].documentationSection,
-            equalTo(DocumentationSections.notYetImplementedJavaSerialization)
+            equalTo(NotYetImplementedJavaSerialization)
         )
     }
 
