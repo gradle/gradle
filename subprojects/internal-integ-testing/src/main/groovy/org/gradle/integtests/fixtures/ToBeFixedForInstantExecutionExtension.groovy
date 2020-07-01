@@ -29,7 +29,7 @@ import java.lang.reflect.Field
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Predicate
 
-import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecution.Skip.FLAKY
+import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecution.Skip.DO_NOT_SKIP
 
 class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExtension<ToBeFixedForInstantExecution> {
 
@@ -44,7 +44,7 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
             return
         }
 
-        if (annotation.skip() == FLAKY) {
+        if (annotation.skip() != DO_NOT_SKIP) {
             feature.skipped = true
             return
         }
