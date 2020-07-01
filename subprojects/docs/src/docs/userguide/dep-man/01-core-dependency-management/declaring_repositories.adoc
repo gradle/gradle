@@ -726,7 +726,7 @@ e.g. `gcs://myBucket/maven/release`
 [[sec:handling_credentials]]
 == Handling credentials
 
-In the real world scenario you should not specify repository credentials in your build script but rather keep them externalized.
+Repository credentials should never be part of your build script but rather be kept external.
 Gradle provides link:{javadocPath}/org/gradle/api/artifacts/repositories/AuthenticationSupported.html#credentials-java.lang.Class-[an API in artifact repositories]
 that allows you to declare only the type of required credentials. Credential values are looked up from the <<build_environment.adoc#sec:gradle_configuration_properties,Gradle Properties>>
 during the build that requires them.
