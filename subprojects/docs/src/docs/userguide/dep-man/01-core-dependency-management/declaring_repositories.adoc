@@ -745,7 +745,7 @@ Note that the configuration property prefix - the identity - is determined from 
 Credentials can then be provided in any of supported ways for Gradle Properties -
 `gradle.properties` file, command line arguments, environment variables or a combination of those options.
 
-Also note that credentials will only be required if the invoked build requires them. If for example a project is configured
+Also, note that credentials will only be required if the invoked build requires them. If for example a project is configured
 to publish artifacts to a secured repository, but the build does not invoke publishing task, Gradle will not require
 publishing credentials to be present. On the other hand, if the build needs to execute a task that requires credentials
 at some point, Gradle will check for credential presence first thing and will not start running any of the tasks
