@@ -18,9 +18,6 @@ package org.gradle.instantexecution.problems
 
 import org.gradle.BuildAdapter
 import org.gradle.BuildResult
-import org.gradle.api.internal.GradleInternal
-import org.gradle.api.logging.Logging
-import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.instantexecution.InstantExecutionCacheAction
 import org.gradle.instantexecution.InstantExecutionCacheAction.LOAD
 import org.gradle.instantexecution.InstantExecutionCacheAction.STORE
@@ -63,9 +60,6 @@ class InstantExecutionProblems(
     val buildFinishedHandler = BuildFinishedProblemsHandler()
 
     private
-    val postBuildHandler = PostBuildProblemsHandler()
-
-    private
     val problems = CopyOnWriteArrayList<PropertyProblem>()
 
     private
@@ -80,13 +74,11 @@ class InstantExecutionProblems(
     init {
         listenerManager.addListener(problemHandler)
         listenerManager.addListener(buildFinishedHandler)
-        listenerManager.addListener(postBuildHandler)
     }
 
     override fun close() {
         listenerManager.removeListener(problemHandler)
         listenerManager.removeListener(buildFinishedHandler)
-        listenerManager.removeListener(postBuildHandler)
     }
 
     fun storing() {
@@ -166,34 +158,22 @@ class InstantExecutionProblems(
             )
     }
 
-    private
-    inner class PostBuildProblemsHandler : RootBuildLifecycleListener {
-
-        override fun afterStart(gradle: GradleInternal) = Unit
-
-        override fun beforeComplete(gradle: GradleInternal) {
-            if (cacheAction == null) return
-            when {
-                isFailingBuildDueToSerializationError && problems.isEmpty() -> log("Configuration cache entry discarded.")
-                isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCount)
-                cacheAction == LOAD && problems.isEmpty() -> log("Configuration cache entry reused.")
-                cacheAction == LOAD -> log("Configuration cache entry reused with {}.", problemCount)
-                problems.isEmpty() -> log("Configuration cache entry stored.")
-                else -> log("Configuration cache entry stored with {}.", problemCount)
+    internal
+    val outcome: Outcome
+        get() {
+            if (cacheAction == null) return Outcome(CacheEntryOutcome.NONE, problems.size)
+            return when {
+                isFailingBuildDueToSerializationError -> Outcome(CacheEntryOutcome.DISCARDED, problems.size)
+                cacheAction == LOAD -> Outcome(CacheEntryOutcome.REUSED, problems.size)
+                else -> Outcome(CacheEntryOutcome.STORED, problems.size)
             }
         }
 
-        private
-        val problemCount: String
-            get() = if (problems.size == 1) "1 problem"
-            else "${problems.size} problems"
+    internal
+    class Outcome(val entryOutcome: CacheEntryOutcome, val problemCount: Int)
 
-        private
-        fun log(msg: String, vararg args: Any = emptyArray()) {
-            logger.warn(msg, *args)
-        }
-
-        private
-        val logger = Logging.getLogger(InstantExecutionProblems::class.java)
+    internal
+    enum class CacheEntryOutcome {
+        NONE, DISCARDED, STORED, REUSED
     }
 }

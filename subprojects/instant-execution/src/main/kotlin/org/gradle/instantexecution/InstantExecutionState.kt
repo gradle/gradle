@@ -53,16 +53,19 @@ class InstantExecutionState(
     private val relevantProjectsRegistry: RelevantProjectsRegistry
 ) {
 
-    suspend fun DefaultWriteContext.writeState() {
+    suspend fun DefaultWriteContext.writeState(cachedWorkDuration: Long) {
+        writeLong(cachedWorkDuration)
         encodeScheduledWork()
         writeInt(0x1ecac8e)
     }
 
-    suspend fun DefaultReadContext.readState() {
+    suspend fun DefaultReadContext.readState(): Long {
+        val savedTime = readLong()
         decodeScheduledWork()
         require(readInt() == 0x1ecac8e) {
             "corrupt state file"
         }
+        return savedTime
     }
 
     private

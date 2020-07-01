@@ -199,7 +199,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
             withProblem("input property 'otherBrokenProperty' of ':problems': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             problemsWithStackTraceCount = 0
         }
-        postBuildOutputContains("Configuration cache entry reused with 4 problems.")
+        postBuildOutputContains("Configuration cache entry reused with 4 problems")
 
         when:
         instantFails 'all'
@@ -214,7 +214,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
             withProblem("input property 'otherBrokenProperty' of ':problems': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             problemsWithStackTraceCount = 0
         }
-        outputContains("Configuration cache entry reused with 4 problems.")
+        outputContains("Configuration cache entry reused with 4 problems")
     }
 
     def "configuration time problems are reported and fail the build by default only when configuration is executed and do not invalidate the cache"() {
@@ -247,7 +247,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':all')
         instantExecution.assertStateLoaded()
-        postBuildOutputContains("Configuration cache entry reused.")
+        postBuildOutputContains("Configuration cache entry reused")
         problems.assertResultHasProblems(result) {
             // TODO - should give some indication to the user that the build may not work correctly
         }
@@ -258,7 +258,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':all')
         instantExecution.assertStateLoaded()
-        postBuildOutputContains("Configuration cache entry reused.")
+        postBuildOutputContains("Configuration cache entry reused")
         problems.assertResultHasProblems(result) {
             // TODO - should fail and give some indication to the user why
         }
@@ -304,7 +304,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':all')
         instantExecution.assertStateLoaded()
-        postBuildOutputContains("Configuration cache entry reused with 2 problems.")
+        postBuildOutputContains("Configuration cache entry reused with 2 problems")
         problems.assertResultHasProblems(result) {
             // TODO - retain the location information
             withProblem("task `:anotherBroken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
@@ -317,7 +317,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':all')
         instantExecution.assertStateLoaded()
-        outputContains("Configuration cache entry reused with 2 problems.")
+        outputContains("Configuration cache entry reused with 2 problems")
         problems.assertFailureHasProblems(failure) {
             withProblem("task `:anotherBroken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("task `:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
@@ -359,7 +359,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         then:
         instantExecution.assertStateLoaded()
-        outputContains("Configuration cache entry reused with 1 problem.")
+        outputContains("Configuration cache entry reused with 1 problem")
         problems.assertResultHasProblems(result) {
             withProblem("task `:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
         }
@@ -372,7 +372,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         then:
         instantExecution.assertStateLoaded()
-        outputContains("Configuration cache entry reused with 1 problem.")
+        outputContains("Configuration cache entry reused with 1 problem")
         problems.assertFailureHasProblems(failure) {
             withProblem("task `:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
         }
@@ -430,7 +430,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':problems', ':moreProblems', ':all')
         instantExecution.assertStateLoaded()
-        outputContains("Configuration cache entry reused with 4 problems.")
+        outputContains("Configuration cache entry reused with 4 problems")
         problems.assertFailureHasTooManyProblems(failure) {
             withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("field 'broken' from type 'BrokenTask': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
@@ -446,7 +446,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':problems', ':moreProblems', ':all')
         instantExecution.assertStateLoaded()
-        postBuildOutputContains("Configuration cache entry reused with 4 problems.")
+        postBuildOutputContains("Configuration cache entry reused with 4 problems")
         problems.assertResultHasProblems(result) {
             withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("field 'broken' from type 'BrokenTask': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
@@ -500,7 +500,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':problems', ':moreProblems', ':all')
         instantExecution.assertStateLoaded()
-        outputContains("Configuration cache entry reused with 4 problems.")
+        outputContains("Configuration cache entry reused with 4 problems")
         problems.assertFailureHasProblems(failure) {
             withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("field 'broken' from type 'BrokenTask': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
@@ -516,7 +516,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         then:
         executed(':problems', ':moreProblems', ':all')
         instantExecution.assertStateLoaded()
-        outputContains("Configuration cache entry reused with 4 problems.")
+        outputContains("Configuration cache entry reused with 4 problems")
         problems.assertFailureHasProblems(failure) {
             withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("field 'broken' from type 'BrokenTask': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
@@ -555,7 +555,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         instantRunLenient("broken")
 
         then:
-        postBuildOutputContains("Configuration cache entry reused with 1 problem.")
+        postBuildOutputContains("Configuration cache entry reused with 1 problem")
         problems.assertResultHasProblems(result) {
             withProblem("input property 'p' of ':broken': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             problemsWithStackTraceCount = 0
@@ -614,7 +614,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         then:
         instantExecution.assertStateLoaded()
-        postBuildOutputContains("Configuration cache entry reused with 5 problems.")
+        postBuildOutputContains("Configuration cache entry reused with 5 problems")
 
         and:
         problems.assertResultHasProblems(result) {

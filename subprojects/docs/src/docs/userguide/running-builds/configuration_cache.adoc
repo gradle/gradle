@@ -99,7 +99,7 @@ include::{snippetsPath}/configurationCache/noProblem/tests/load.out[]
 ...
 BUILD SUCCESSFUL in 50ms
 1 actionable task: 1 executed
-Configuration cache entry reused.
+Configuration cache entry reused, saving 150ms.
 ----
 
 If it succeeds on your build, congratulations, you can now try with more useful tasks.
@@ -373,7 +373,7 @@ Let's ignore the problems reported when storing the configuration cache, and run
 ❯ gradle --configuration-cache someTask -DsomeDestination=dest
 ...
 include::{snippetsPath}/configurationCache/problemsGroovy/tests/load.out[]
-Configuration cache entry reused.
+Configuration cache entry reused, saving 150ms.
 ----
 
 The build fails again, reporting the observed problems.
@@ -399,7 +399,7 @@ include::{snippetsPath}/configurationCache/problemsFixed/tests/store.out[]
 Configuration cache entry stored.
 ❯ gradle --configuration-cache someTask -DsomeDestination=dest
 include::{snippetsPath}/configurationCache/problemsFixed/tests/load.out[]
-Configuration cache entry reused.
+Configuration cache entry reused, saving 150ms.
 ----
 
 But, what if we change the value of the system property?
@@ -428,7 +428,7 @@ include::{snippetsPath}/configurationCache/problemsFixedReuse/tests/store.out[]
 Configuration cache entry stored.
 ❯ gradle --configuration-cache someTask -DsomeDestination=another
 include::{snippetsPath}/configurationCache/problemsFixedReuse/tests/load-another.out[]
-Configuration cache entry reused.
+Configuration cache entry reused, saving 150ms.
 ----
 
 We're now done with fixing the problems with this simple task.

@@ -16,11 +16,13 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.initialization.InstantExecution
+import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.instantexecution.InstantExecutionCache.CheckedFingerprint
 import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.extensions.unsafeLazy
@@ -28,6 +30,9 @@ import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprintC
 import org.gradle.instantexecution.fingerprint.InvalidationReason
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.problems.InstantExecutionProblems
+import org.gradle.instantexecution.problems.InstantExecutionProblems.CacheEntryOutcome.DISCARDED
+import org.gradle.instantexecution.problems.InstantExecutionProblems.CacheEntryOutcome.REUSED
+import org.gradle.instantexecution.problems.InstantExecutionProblems.CacheEntryOutcome.STORED
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
@@ -42,6 +47,8 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+import org.gradle.internal.time.Clock
+import org.gradle.internal.time.TimeFormatting.formatDurationTerse
 import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.util.IncubationLogger
 import java.io.File
@@ -59,7 +66,9 @@ class DefaultInstantExecution internal constructor(
     private val cacheFingerprintController: InstantExecutionCacheFingerprintController,
     private val beanConstructors: BeanConstructors,
     private val gradlePropertiesController: GradlePropertiesController,
-    private val relevantProjectsRegistry: RelevantProjectsRegistry
+    private val relevantProjectsRegistry: RelevantProjectsRegistry,
+    private val buildTreeListenerManager: BuildTreeListenerManager,
+    private val clock: Clock
 ) : InstantExecution {
 
     interface Host {
@@ -72,6 +81,9 @@ class DefaultInstantExecution internal constructor(
 
         fun <T> factory(serviceType: Class<T>): Factory<T>
     }
+
+    private
+    val postBuildHandler = PostBuildHandler()
 
     override fun canExecuteInstantaneously(): Boolean = when {
         !isInstantExecutionEnabled -> {
@@ -116,9 +128,21 @@ class DefaultInstantExecution internal constructor(
         }
     }
 
+    private
+    var cachedWorkStartTime: Long? = null
+
+    private
+    var cachedWorkEndTime: Long? = null
+
+    private
+    val cachedWorkDuration: Long
+        get() = cachedWorkEndTime!! - cachedWorkStartTime!!
+
     override fun prepareForBuildLogicExecution() {
 
         if (!isInstantExecutionEnabled) return
+
+        cachedWorkStartTime = clock.currentTime
 
         startCollectingCacheFingerprint()
         Instrumented.setListener(systemPropertyListener)
@@ -132,6 +156,10 @@ class DefaultInstantExecution internal constructor(
             scopeRegistryListener.dispose()
             return
         }
+
+        buildTreeListenerManager.service.addListener(postBuildHandler)
+
+        cachedWorkEndTime = clock.currentTime
 
         problems.storing()
 
@@ -159,6 +187,8 @@ class DefaultInstantExecution internal constructor(
 
         require(isInstantExecutionEnabled)
 
+        buildTreeListenerManager.service.addListener(postBuildHandler)
+
         problems.loading()
 
         // No need to record the `ClassLoaderScope` tree
@@ -167,7 +197,7 @@ class DefaultInstantExecution internal constructor(
 
         buildOperationExecutor.withLoadOperation {
             cache.useForStateLoad(cacheKey.string) { stateFile ->
-                readInstantExecutionState(stateFile)
+                postBuildHandler.savedTime = readInstantExecutionState(stateFile)
             }
         }
     }
@@ -183,20 +213,19 @@ class DefaultInstantExecution internal constructor(
         service<ProjectStateRegistry>().withLenientState {
             withWriteContextFor(stateFile) {
                 InstantExecutionState(codecs, host, relevantProjectsRegistry).run {
-                    writeState()
+                    writeState(cachedWorkDuration)
                 }
             }
         }
     }
 
     private
-    fun readInstantExecutionState(stateFile: File) {
+    fun readInstantExecutionState(stateFile: File): Long =
         withReadContextFor(stateFile) {
             InstantExecutionState(codecs, host, relevantProjectsRegistry).run {
                 readState()
             }
         }
-    }
 
     private
     fun startCollectingCacheFingerprint() {
@@ -366,6 +395,37 @@ class DefaultInstantExecution internal constructor(
             true -> LogLevel.INFO
             else -> LogLevel.LIFECYCLE
         }
+
+    private
+    inner class PostBuildHandler : RootBuildLifecycleListener {
+
+        var savedTime: Long? = null
+
+        override fun afterStart(gradle: GradleInternal) = Unit
+
+        override fun beforeComplete(gradle: GradleInternal) {
+            val outcome = problems.outcome
+            when (outcome.entryOutcome) {
+                DISCARDED -> log("Configuration cache entry discarded${outcome.problemCountText}.")
+                STORED -> log("Configuration cache entry stored${outcome.problemCountText}.")
+                REUSED -> log("Configuration cache entry reused${outcome.problemCountText}, saving ${formatDurationTerse(savedTime!!)}.")
+                else -> Unit
+            }
+            buildTreeListenerManager.service.removeListener(this)
+        }
+
+        val InstantExecutionProblems.Outcome.problemCountText: String
+            get() = when (problemCount) {
+                0 -> ""
+                1 -> " with 1 problem"
+                else -> " with $problemCount problems"
+            }
+
+        private
+        fun log(msg: String, vararg args: Any = emptyArray()) {
+            logger.warn(msg, *args)
+        }
+    }
 }
 
 
