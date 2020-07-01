@@ -74,8 +74,6 @@ open class BuildScanPlugin : Plugin<Project> {
         }
 
         extractCheckstyleAndCodenarcData()
-        extractBuildCacheData()
-        extractWatchFsData()
 
 // TODO LD - adapt after changes merged and master updated to build with them
 //        if ((project.gradle as GradleInternal).buildType != GradleInternal.BuildType.TASKS) {
@@ -209,19 +207,6 @@ open class BuildScanPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.extractBuildCacheData() {
-        if (gradle.startParameter.isBuildCacheEnabled) {
-            buildScan.tag("CACHED")
-        }
-    }
-
-    private
-    fun Project.extractWatchFsData() {
-        val watchFileSystem = (project.gradle.startParameter as StartParameterInternal).isWatchFileSystem
-        buildScan.value(watchFileSystemName, watchFileSystem.toString())
-    }
-
-    private
     fun Project.extractAllReportsFromCI() {
         val capturedReportingTypes = listOf("html") // can add xml, text, junitXml if wanted
         val basePath = "${System.getenv("BUILD_SERVER_URL")}/repository/download/${System.getenv("BUILD_TYPE_ID")}/${System.getenv("BUILD_ID")}:id"
@@ -247,11 +232,6 @@ open class BuildScanPlugin : Plugin<Project> {
         if (!isTravis) {
             link("CI CompileAll Scan", customValueSearchUrl(mapOf(gitCommitName to commitId)) + "&search.tags=CompileAll")
         }
-    }
-
-    private
-    fun Project.doNotUploadInBackground() {
-        buildScan.isUploadInBackground = false
     }
 
     private

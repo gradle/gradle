@@ -25,7 +25,7 @@ pluginManagement {
 
 plugins {
     id("com.gradle.enterprise").version("3.3.4")
-    id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.1")
+    id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.2")
 }
 
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
