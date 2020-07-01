@@ -94,7 +94,7 @@ See the documentation on [variant-aware substitution](userguide/file:///home/cch
 ## Credentials Provider API
 
 In the previous release we added two samples that demonstrated two common use cases where credentials are used in Gradle builds -
-artifact repositories requiring authentication and arbitrary external tools invoked by the Gradle build and requiring credentials.
+artifact repositories requiring authentication and arbitrary external tools invoked by the Gradle build requiring credentials.
 Both samples aimed at guiding the users to our recommended practice of externalizing credentials from the build scripts and
 supplying them using `gradle.properties`.
 
