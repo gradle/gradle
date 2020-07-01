@@ -18,7 +18,7 @@ package gradlebuild.shade.tasks
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import gradlebuild.classanalysis.addJarEntry
+import gradlebuild.basics.classanalysis.addJarEntry
 import gradlebuild.identity.tasks.BuildReceipt
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection

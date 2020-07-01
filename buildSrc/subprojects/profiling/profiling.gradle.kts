@@ -3,7 +3,6 @@ dependencies {
 
     implementation(project(":basics"))
     implementation(project(":documentation"))
-    implementation(project(":jvm"))
 
     implementation("me.champeau.gradle:jmh-gradle-plugin")
     implementation("org.jsoup:jsoup")

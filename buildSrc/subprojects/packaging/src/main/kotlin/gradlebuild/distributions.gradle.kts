@@ -16,17 +16,17 @@
 package gradlebuild
 
 import gradlebuild.basics.PublicApi
+import gradlebuild.basics.GradleModuleApiAttribute
+import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.docs.GradleUserManualPlugin
 import gradlebuild.docs.dsl.source.ExtractDslMetaDataTask
 import gradlebuild.docs.dsl.source.GenerateApiMapping
 import gradlebuild.docs.dsl.source.GenerateDefaultImports
-import gradlebuild.jvm.tasks.ClasspathManifest
 import gradlebuild.packaging.GradleDistributionSpecs
 import gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.docsDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.srcDistributionSpec
-import gradlebuild.packaging.GradleModuleApiAttribute
 import gradlebuild.packaging.tasks.PluginsManifest
 import org.gradle.api.internal.runtimeshaded.PackageListGenerator
 import java.util.jar.Attributes

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-package gradlebuild.classanalysis
+package gradlebuild.basics
 
-import org.gradle.internal.exceptions.Contextual
+import org.gradle.api.attributes.Attribute
 
 
-@Contextual
-class ClassAnalysisException(message: String, cause: Throwable) : RuntimeException(message, cause)
+enum class GradleModuleApiAttribute {
+    API,
+    IMPLEMENTATION;
+
+    companion object {
+        val attribute = Attribute.of(GradleModuleApiAttribute::class.java)
+    }
+}

@@ -20,10 +20,10 @@ import library
 import testLibrary
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.extension.vendorAndMajorVersion
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
-import gradlebuild.jvm.tasks.ClasspathManifest
 import org.gradle.internal.os.OperatingSystem
 import java.util.concurrent.Callable
 import java.util.jar.Attributes

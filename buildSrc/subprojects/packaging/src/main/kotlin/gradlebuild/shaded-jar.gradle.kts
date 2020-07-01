@@ -16,7 +16,7 @@
 
 package gradlebuild
 
-import gradlebuild.classanalysis.Attributes
+import gradlebuild.basics.classanalysis.Attributes
 import gradlebuild.shade.ArtifactTypes.buildReceiptType
 import gradlebuild.shade.ArtifactTypes.classTreesType
 import gradlebuild.shade.ArtifactTypes.entryPointsType

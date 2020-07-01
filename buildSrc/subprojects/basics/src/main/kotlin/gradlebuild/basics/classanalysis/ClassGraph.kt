@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package gradlebuild.classanalysis
+package gradlebuild.basics.classanalysis
 
 
-internal
 class ClassGraph(
     private val keepPackages: PackagePatterns,
     private val unshadedPackages: PackagePatterns,
@@ -30,7 +29,6 @@ class ClassGraph(
 
     val entryPoints: MutableSet<ClassDetails> = linkedSetOf()
 
-    internal
     val shadowPackagePrefix =
         if (shadowPackage.isEmpty()) ""
         else shadowPackage.replace('.', '/') + "/"
@@ -49,7 +47,6 @@ class ClassGraph(
 }
 
 
-internal
 class ClassDetails(val outputClassName: String) {
     var visited: Boolean = false
     val dependencies: MutableSet<ClassDetails> = linkedSetOf()
@@ -58,7 +55,6 @@ class ClassDetails(val outputClassName: String) {
 }
 
 
-internal
 class PackagePatterns(givenPrefixes: Set<String>) {
 
     private

@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package gradlebuild.classanalysis
+package gradlebuild.basics.classanalysis
 
-import gradlebuild.identity.tasks.BuildReceipt
 import org.gradle.api.attributes.Attribute
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
@@ -48,7 +47,6 @@ object Attributes {
 }
 
 
-internal
 class JarAnalyzer(
     private val shadowPackage: String,
     private val keepPackages: Set<String>,
@@ -114,7 +112,7 @@ class JarAnalyzer(
 
             private
             fun Path.isBuildReceipt() =
-                toString() == "/${BuildReceipt.buildReceiptLocation}"
+                toString() == "/org/gradle/build-receipt.properties"
 
             private
             fun Path.isUnseenManifestFilePath() =
@@ -153,7 +151,6 @@ class JarAnalyzer(
 }
 
 
-internal
 fun JarOutputStream.addJarEntry(entryName: String, sourceFile: File) {
     putNextEntry(ZipEntry(entryName))
     BufferedInputStream(FileInputStream(sourceFile)).use { inputStream -> inputStream.copyTo(this) }

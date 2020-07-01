@@ -1,4 +1,14 @@
 dependencies {
+    implementation("com.google.guava:guava") {
+        because("Used by class analysis")
+    }
+    implementation("org.ow2.asm:asm") {
+        because("Used by class analysis")
+    }
+    implementation("org.ow2.asm:asm-commons") {
+        because("Used by class analysis")
+    }
+
     implementation(kotlin("compiler-embeddable") as String) {
         because("Required by KotlinSourceParser")
     }

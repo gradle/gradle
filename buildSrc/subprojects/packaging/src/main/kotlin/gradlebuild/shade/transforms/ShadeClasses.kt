@@ -17,7 +17,7 @@
 package gradlebuild.shade.transforms
 
 import com.google.gson.Gson
-import gradlebuild.classanalysis.JarAnalyzer
+import gradlebuild.basics.classanalysis.JarAnalyzer
 import gradlebuild.identity.tasks.BuildReceipt
 import org.gradle.api.artifacts.transform.CacheableTransform
 import org.gradle.api.artifacts.transform.InputArtifact

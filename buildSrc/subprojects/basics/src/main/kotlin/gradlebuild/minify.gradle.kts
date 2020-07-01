@@ -16,9 +16,9 @@
 
 package gradlebuild
 
-import gradlebuild.classanalysis.Attributes.artifactType
-import gradlebuild.classanalysis.Attributes.minified
-import gradlebuild.minify.transforms.Minify
+import gradlebuild.basics.classanalysis.Attributes.artifactType
+import gradlebuild.basics.classanalysis.Attributes.minified
+import gradlebuild.basics.transforms.Minify
 
 /**
  * A map from artifact name to a set of class name prefixes that should be kept.

@@ -7,9 +7,6 @@ dependencies {
     implementation(project(":moduleIdentity"))
     implementation(project(":jvm"))
 
-    implementation("com.google.guava:guava")
-    implementation("org.ow2.asm:asm")
-    implementation("org.ow2.asm:asm-commons")
     implementation("com.google.code.gson:gson")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api")

@@ -21,7 +21,7 @@ import gradlebuild.basics.BuildEnvironment.isCiServer
 import gradlebuild.basics.BuildEnvironment.isJenkins
 import gradlebuild.basics.BuildEnvironment.isTravis
 import gradlebuild.basics.kotlindsl.execAndGetStdout
-import gradlebuild.jvm.tasks.ClasspathManifest
+import gradlebuild.basics.tasks.ClasspathManifest
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import java.net.URLEncoder

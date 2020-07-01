@@ -6,7 +6,6 @@ dependencies {
     implementation(project(":dependencyModules"))
     implementation(project(":kotlinDsl"))
     implementation(project(":jvm"))
-    implementation(project(":packaging"))
     implementation(project(":profiling"))
     implementation(project(":publishing"))
 
