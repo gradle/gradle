@@ -145,7 +145,7 @@ public class JvmPluginsHelper {
         sourceDirectorySet.compiledBy(compileTask, classesDirectoryExtractor);
     }
 
-    public static void configureJavaDocTask(@Nullable String featureName, SourceSet sourceSet, TaskContainer tasks, JavaPluginExtension javaPluginExtension) {
+    public static void configureJavaDocTask(@Nullable String featureName, SourceSet sourceSet, TaskContainer tasks, @Nullable JavaPluginExtension javaPluginExtension) {
         String javadocTaskName = sourceSet.getJavadocTaskName();
         if (!tasks.getNames().contains(javadocTaskName)) {
             tasks.register(javadocTaskName, Javadoc.class, javadoc -> {
@@ -153,7 +153,9 @@ public class JvmPluginsHelper {
                 javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
                 javadoc.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
                 javadoc.setSource(sourceSet.getAllJava());
-                javadoc.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
+                if (javaPluginExtension != null) {
+                    javadoc.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
+                }
             });
         }
     }

@@ -406,7 +406,7 @@ public interface SourceSet extends ExtensionAware {
     /**
      * Determines if this source set is the main source set
      *
-     * @since 6.6
+     * @since 6.7
      */
     @Incubating
     static boolean isMain(SourceSet sourceSet) {

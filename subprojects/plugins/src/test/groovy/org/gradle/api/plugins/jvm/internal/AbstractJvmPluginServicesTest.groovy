@@ -52,9 +52,8 @@ abstract class AbstractJvmPluginServicesTest extends Specification {
 
     def setup() {
         services.inject(
-            convention,
-            extension,
-            project
+                extension,
+                project
         )
     }
 }

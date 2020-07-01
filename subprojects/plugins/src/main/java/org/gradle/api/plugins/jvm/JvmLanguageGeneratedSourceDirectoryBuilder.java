@@ -15,12 +15,20 @@
  */
 package org.gradle.api.plugins.jvm;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.TaskProvider;
 
 import java.util.function.Function;
 
+/**
+ * A source directory set builder which assumes that the sources are generated
+ * by a task.
+ *
+ * @since 6.7
+ */
+@Incubating
 public interface JvmLanguageGeneratedSourceDirectoryBuilder extends JvmLanguageSourceDirectoryBuilder {
     /**
      * Registers a source generation task

@@ -16,12 +16,12 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.plugins.jvm.JavaComponentBuilder;
+import org.gradle.api.plugins.jvm.JvmVariantBuilder;
 
-public interface JavaComponentBuilderInternal extends JavaComponentBuilder {
+public interface JvmVariantBuilderInternal extends JvmVariantBuilder {
     /**
      * Explicitly declares a capability provided by this component
      * @param capability the capability this component provides
      */
-    JavaComponentBuilder capability(Capability capability);
+    JvmVariantBuilder capability(Capability capability);
 }

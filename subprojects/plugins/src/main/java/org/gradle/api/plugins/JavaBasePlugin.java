@@ -24,15 +24,10 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
-import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.attributes.LibraryElements;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -51,7 +46,6 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.jvm.toolchain.JavaInstallationRegistry;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -114,6 +108,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(BasePlugin.class);
+        project.getPluginManager().apply(JvmEcosystemPlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);
 
         JavaPluginConvention javaConvention = addExtensions(project);
@@ -125,23 +120,15 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         configureTest(project, javaConvention);
         configureBuildNeeded(project);
         configureBuildDependents(project);
-        configureSchema(project);
         bridgeToSoftwareModelIfNecessary(project);
-        configureVariantDerivationStrategy(project);
-    }
-
-    private void configureVariantDerivationStrategy(ProjectInternal project) {
-        ComponentMetadataHandlerInternal metadataHandler = (ComponentMetadataHandlerInternal) project.getDependencies().getComponents();
-        metadataHandler.setVariantDerivationStrategy(JavaEcosystemVariantDerivationStrategy.getInstance());
     }
 
     private JavaPluginConvention addExtensions(final ProjectInternal project) {
-        JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, objectFactory);
+        SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
+        JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, sourceSets);
         project.getConvention().getPlugins().put("java", javaConvention);
-        project.getExtensions().add(SourceSetContainer.class, "sourceSets", javaConvention.getSourceSets());
         JavaPluginExtension extension = project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project, jvmPluginServices);
         project.getExtensions().add(JavaInstallationRegistry.class, "javaInstalls", javaInstallationRegistry);
-        jvmPluginServices.inject(javaConvention, extension, project);
         return javaConvention;
     }
 
@@ -149,14 +136,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         project.addRuleBasedPluginListener(targetProject -> {
             targetProject.getPluginManager().apply(JavaBasePluginRules.class);
         });
-    }
-
-    private void configureSchema(ProjectInternal project) {
-        AttributesSchema attributesSchema = project.getDependencies().getAttributesSchema();
-        JavaEcosystemSupport.configureSchema(attributesSchema, objectFactory);
-        project.getDependencies().getArtifactTypes().create(ArtifactTypeDefinition.JAR_TYPE).getAttributes()
-            .attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME))
-            .attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
     }
 
     private void configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {

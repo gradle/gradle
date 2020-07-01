@@ -21,7 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.plugins.jvm.JvmModelingServices;
+import org.gradle.api.plugins.jvm.internal.JvmModelingServices;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 
@@ -56,7 +56,7 @@ public class JavaTestFixturesPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().withPlugin("java", plugin -> {
-            jvmEcosystemUtilities.createJavaComponent(TEST_FIXTURES_FEATURE_NAME, builder ->
+            jvmEcosystemUtilities.createJvmVariant(TEST_FIXTURES_FEATURE_NAME, builder ->
                 builder
                     .exposesApi()
                     .published()

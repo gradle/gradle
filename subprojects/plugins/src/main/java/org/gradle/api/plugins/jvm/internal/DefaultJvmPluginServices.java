@@ -39,14 +39,13 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.plugins.jvm.JavaComponentBuilder;
-import org.gradle.api.plugins.jvm.JvmEcosystemAttributesDetails;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.jvm.JvmEcosystemAttributesDetails;
 import org.gradle.api.plugins.jvm.JvmLanguageGeneratedSourceDirectoryBuilder;
 import org.gradle.api.plugins.jvm.JvmLanguageSourceDirectoryBuilder;
+import org.gradle.api.plugins.jvm.JvmVariantBuilder;
 import org.gradle.api.plugins.jvm.OutgoingElementsBuilder;
-import org.gradle.api.plugins.jvm.ResolvableGraphBuilder;
+import org.gradle.api.plugins.jvm.ResolvableConfigurationBuilder;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -71,8 +70,6 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     private final SoftwareComponentContainer components;
     private final InstanceGenerator instanceGenerator;
 
-    private JavaPluginConvention javaConvention;
-    private JavaPluginExtension javaPluginExtension;
     private SourceSetContainer sourceSets;
     private ProjectInternal project; // would be great to avoid this but for lazy capabilities it's hard to avoid!
 
@@ -90,11 +87,9 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     }
 
     @Override
-    public void inject(JavaPluginConvention javaConvention, JavaPluginExtension javaPluginExtension, ProjectInternal project) {
-        this.javaConvention = javaConvention;
-        this.javaPluginExtension = javaPluginExtension;
+    public void inject(ProjectInternal project, SourceSetContainer sourceSets) {
         this.project = project;
-        this.sourceSets = javaConvention.getSourceSets();
+        this.sourceSets = sourceSets;
     }
 
     @Override
@@ -193,7 +188,8 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
     private Action<ConfigurationInternal> configureDefaultTargetPlatform(boolean alwaysEnabled, TaskProvider<JavaCompile> compileTaskProvider) {
         return conf -> {
-            if (alwaysEnabled || !javaConvention.getAutoTargetJvmDisabled()) {
+            JavaPluginConvention javaConvention = project.getConvention().findPlugin(JavaPluginConvention.class);
+            if (alwaysEnabled || javaConvention == null || !javaConvention.getAutoTargetJvmDisabled()) {
                 JavaCompile javaCompile = compileTaskProvider.get();
                 int majorVersion;
                 int releaseOption = getReleaseOption(javaCompile.getOptions().getCompilerArgs());
@@ -219,8 +215,8 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     }
 
     @Override
-    public Configuration createResolvableGraph(String name, Action<? super ResolvableGraphBuilder> action) {
-        DefaultResolvableGraphBuilder builder = instanceGenerator.newInstance(DefaultResolvableGraphBuilder.class,
+    public Configuration createResolvableConfiguration(String name, Action<? super ResolvableConfigurationBuilder> action) {
+        DefaultResolvableConfigurationBuilder builder = instanceGenerator.newInstance(DefaultResolvableConfigurationBuilder.class,
             name,
             this,
             configurations);
@@ -229,11 +225,10 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     }
 
     @Override
-    public void createJavaComponent(String name, Action<? super JavaComponentBuilder> configuration) {
-        DefaultJavaComponentBuilder builder = instanceGenerator.newInstance(DefaultJavaComponentBuilder.class,
+    public void createJvmVariant(String name, Action<? super JvmVariantBuilder> configuration) {
+        DefaultJvmVariantBuilder builder = instanceGenerator.newInstance(DefaultJvmVariantBuilder.class,
             name,
             new ProjectDerivedCapability(project, name),
-            javaPluginExtension,
             this,
             sourceSets,
             configurations,
@@ -381,20 +376,20 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         }
     }
 
-    public static class DefaultResolvableGraphBuilder extends AbstractConfigurationBuilder<DefaultResolvableGraphBuilder> implements ResolvableGraphBuilder {
+    public static class DefaultResolvableConfigurationBuilder extends AbstractConfigurationBuilder<DefaultResolvableConfigurationBuilder> implements ResolvableConfigurationBuilder {
         private Boolean libraryApi;
         private Boolean libraryRuntime;
         private List<String> bucketNames;
 
         @Inject
-        public DefaultResolvableGraphBuilder(String name,
-                                             JvmPluginServices jvmEcosystemUtilities,
-                                             ConfigurationContainer configurations) {
+        public DefaultResolvableConfigurationBuilder(String name,
+                                                     JvmPluginServices jvmEcosystemUtilities,
+                                                     ConfigurationContainer configurations) {
             super(name, jvmEcosystemUtilities, configurations);
         }
 
         @Override
-        public ResolvableGraphBuilder usingDependencyBucket(String name) {
+        public ResolvableConfigurationBuilder usingDependencyBucket(String name) {
             if (bucketNames == null) {
                 bucketNames = Lists.newArrayList();
             }
@@ -452,14 +447,14 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         }
 
         @Override
-        public ResolvableGraphBuilder requiresJavaLibrariesRuntime() {
+        public ResolvableConfigurationBuilder requiresJavaLibrariesRuntime() {
             this.libraryApi = null;
             this.libraryRuntime = true;
             return this;
         }
 
         @Override
-        public ResolvableGraphBuilder requiresJavaLibrariesAPI() {
+        public ResolvableConfigurationBuilder requiresJavaLibrariesAPI() {
             this.libraryRuntime = null;
             this.libraryApi = true;
             return this;

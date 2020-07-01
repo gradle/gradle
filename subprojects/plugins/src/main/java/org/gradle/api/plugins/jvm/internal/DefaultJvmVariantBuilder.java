@@ -29,7 +29,7 @@ import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
-import org.gradle.api.plugins.jvm.JavaComponentBuilder;
+import org.gradle.api.plugins.jvm.JvmVariantBuilder;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -48,9 +48,8 @@ import static org.gradle.api.attributes.DocsType.JAVADOC;
 import static org.gradle.api.attributes.DocsType.SOURCES;
 import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureJavaDocTask;
 
-public class DefaultJavaComponentBuilder implements JavaComponentBuilderInternal {
+public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
     private final String name;
-    private final JavaPluginExtension javaPluginExtension;
     private final JvmPluginServices jvmPluginServices;
     private final SourceSetContainer sourceSets;
     private final ConfigurationContainer configurations;
@@ -68,23 +67,21 @@ public class DefaultJavaComponentBuilder implements JavaComponentBuilderInternal
     private final List<Capability> capabilities = Lists.newArrayListWithExpectedSize(2);
 
     @Inject
-    public DefaultJavaComponentBuilder(String name,
-                                       Capability defaultCapability,
-                                       JavaPluginExtension javaPluginExtension,
-                                       JvmPluginServices jvmPluginServices,
-                                       SourceSetContainer sourceSets,
-                                       ConfigurationContainer configurations,
-                                       TaskContainer tasks,
-                                       SoftwareComponentContainer components,
-                                       // Ideally we should use project but more specific components
-                                       // like the previous parameters. However for project derived
-                                       // capabilities we need a handle on the project coordinates
-                                       // which can't be externalized. So we use Project but must
-                                       // reduce the scope to this usage only so that we can replace
-                                       // it later
-                                       ProjectInternal project) {
+    public DefaultJvmVariantBuilder(String name,
+                                    Capability defaultCapability,
+                                    JvmPluginServices jvmPluginServices,
+                                    SourceSetContainer sourceSets,
+                                    ConfigurationContainer configurations,
+                                    TaskContainer tasks,
+                                    SoftwareComponentContainer components,
+                                    // Ideally we should use project but more specific components
+                                    // like the previous parameters. However for project derived
+                                    // capabilities we need a handle on the project coordinates
+                                    // which can't be externalized. So we use Project but must
+                                    // reduce the scope to this usage only so that we can replace
+                                    // it later
+                                    ProjectInternal project) {
         this.name = name;
-        this.javaPluginExtension = javaPluginExtension;
         this.jvmPluginServices = jvmPluginServices;
         this.sourceSets = sourceSets;
         this.configurations = configurations;
@@ -95,43 +92,43 @@ public class DefaultJavaComponentBuilder implements JavaComponentBuilderInternal
     }
 
     @Override
-    public JavaComponentBuilder withDisplayName(String displayName) {
+    public JvmVariantBuilder withDisplayName(String displayName) {
         this.displayName = displayName;
         return this;
     }
 
     @Override
-    public JavaComponentBuilder exposesApi() {
+    public JvmVariantBuilder exposesApi() {
         exposeApi = true;
         return this;
     }
 
     @Override
-    public JavaComponentBuilder withJar() {
+    public JvmVariantBuilder withJar() {
         jar = true;
         return this;
     }
 
     @Override
-    public JavaComponentBuilder withJavadocJar() {
+    public JvmVariantBuilder withJavadocJar() {
         javadocJar = true;
         return this;
     }
 
     @Override
-    public JavaComponentBuilder withSourcesJar() {
+    public JvmVariantBuilder withSourcesJar() {
         sourcesJar = true;
         return this;
     }
 
     @Override
-    public JavaComponentBuilder usingSourceSet(SourceSet sourceSet) {
+    public JvmVariantBuilder usingSourceSet(SourceSet sourceSet) {
         this.sourceSet = sourceSet;
         return this;
     }
 
     @Override
-    public JavaComponentBuilder capability(Capability capability) {
+    public JvmVariantBuilder capability(Capability capability) {
         if (overrideDefaultCapability) {
             capabilities.clear();
             overrideDefaultCapability = false;
@@ -141,17 +138,17 @@ public class DefaultJavaComponentBuilder implements JavaComponentBuilderInternal
     }
 
     @Override
-    public JavaComponentBuilder capability(String group, String name, @Nullable String version) {
+    public JvmVariantBuilder capability(String group, String name, @Nullable String version) {
         return capability(new ImmutableCapability(group, name, version));
     }
 
     @Override
-    public JavaComponentBuilder secondaryComponent() {
+    public JvmVariantBuilder secondaryComponent() {
         return capability(new ProjectDerivedCapability(project, name));
     }
 
     @Override
-    public JavaComponentBuilder published() {
+    public JvmVariantBuilder published() {
         jar = true;
         published = true;
         return this;
@@ -228,6 +225,7 @@ public class DefaultJavaComponentBuilder implements JavaComponentBuilderInternal
         }
 
         final AdhocComponentWithVariants component = findJavaComponent();
+        JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
         configureJavaDocTask(name, sourceSet, tasks, javaPluginExtension);
         if (javadocJar) {
             configureDocumentationVariantWithArtifact(sourceSet.getJavadocElementsConfigurationName(), mainSourceSet ? null : name, displayName, JAVADOC, sourceSet.getJavadocJarTaskName(), tasks.named(sourceSet.getJavadocTaskName()), component);

@@ -25,44 +25,44 @@ import javax.annotation.Nullable;
  * A Java component builder, allowing the automatic creation of a number of configurations,
  * tasks, ...
  *
- * @since 6.6
+ * @since 6.7
  */
 @Incubating
 @HasInternalProtocol
-public interface JavaComponentBuilder {
+public interface JvmVariantBuilder {
     /**
      * If this method is called, this allows using an existing source set instead
      * of relying on automatic creation of a source set
      * @param sourceSet the existing source set to use
      */
-    JavaComponentBuilder usingSourceSet(SourceSet sourceSet);
+    JvmVariantBuilder usingSourceSet(SourceSet sourceSet);
 
     /**
      * Sets a display name for this component
      * @param displayName the display name
      */
-    JavaComponentBuilder withDisplayName(String displayName);
+    JvmVariantBuilder withDisplayName(String displayName);
 
     /**
      * Tells that this component exposes an API, in which case a configuration
      * to declare API dependencies will be automatically created.
      */
-    JavaComponentBuilder exposesApi();
+    JvmVariantBuilder exposesApi();
 
     /**
      * Tells that this component should build a jar
      */
-    JavaComponentBuilder withJar();
+    JvmVariantBuilder withJar();
 
     /**
      * Tells that this component should build a javadoc jar too
      */
-    JavaComponentBuilder withJavadocJar();
+    JvmVariantBuilder withJavadocJar();
 
     /**
      * Tells that this component should build a sources jar too
      */
-    JavaComponentBuilder withSourcesJar();
+    JvmVariantBuilder withSourcesJar();
 
     /**
      * Explicitly declares a capability provided by this component
@@ -70,7 +70,7 @@ public interface JavaComponentBuilder {
      * @param name the capability name
      * @param version the capability version
      */
-    JavaComponentBuilder capability(String group, String name, @Nullable String version);
+    JvmVariantBuilder capability(String group, String name, @Nullable String version);
 
     /**
      * Tells that this component is not the main component and corresponds to a different "thing"
@@ -79,11 +79,11 @@ public interface JavaComponentBuilder {
      * this component name. For example, for project "lib" and a component named "languageSupport",
      * the capability name for this component will be "lib-language-support"
      */
-    JavaComponentBuilder secondaryComponent();
+    JvmVariantBuilder secondaryComponent();
 
     /**
      * If this method is called, then this component will automatically be
      * published externally if a publishing plugin is applied.
      */
-    JavaComponentBuilder published();
+    JvmVariantBuilder published();
 }

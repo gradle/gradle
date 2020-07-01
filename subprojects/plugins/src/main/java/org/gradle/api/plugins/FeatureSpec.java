@@ -69,7 +69,7 @@ public interface FeatureSpec {
      * By default, features are published on external repositories.
      * Calling this method allows disabling publishing.
      *
-     * @since 6.6
+     * @since 6.7
      */
     @Incubating
     void disablePublication();

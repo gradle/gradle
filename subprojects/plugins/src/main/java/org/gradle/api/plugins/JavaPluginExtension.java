@@ -21,8 +21,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.jvm.ModularitySpec;
-import org.gradle.api.plugins.jvm.JvmEcosystemUtilities;
-import org.gradle.api.plugins.jvm.JvmModelingServices;
 
 /**
  * Common configuration for Java based projects. This is added by the {@link JavaBasePlugin}.
@@ -121,32 +119,4 @@ public interface JavaPluginExtension {
     @Incubating
     ModularitySpec getModularity();
 
-    /**
-     * Provides access to the several handy JVM related utilities.
-     *
-     * @param action the action to execute
-     *
-     * @since 6.6
-     */
-    @Incubating
-    void configure(Action<? super JvmEcosystemUtilities> action);
-
-    /**
-     * Provides access to the JVM modeling services, which help
-     * building higher level components like cross-project publications.
-     *
-     * @param action the action to execute
-     *
-     * @since 6.6
-     */
-    @Incubating
-    void modeling(Action<? super JvmModelingServices> action);
-
-    /**
-     * Returns the modeling services.
-     *
-     * @since 6.6
-     */
-    @Incubating
-    JvmModelingServices getModeling();
 }

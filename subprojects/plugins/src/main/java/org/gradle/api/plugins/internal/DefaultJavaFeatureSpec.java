@@ -18,8 +18,8 @@ package org.gradle.api.plugins.internal;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.plugins.jvm.JvmModelingServices;
-import org.gradle.api.plugins.jvm.internal.JavaComponentBuilderInternal;
+import org.gradle.api.plugins.jvm.internal.JvmModelingServices;
+import org.gradle.api.plugins.jvm.internal.JvmVariantBuilderInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 
@@ -83,7 +83,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
             throw new InvalidUserCodeException("You must specify which source set to use for feature '" + name + "'");
         }
 
-        jvmEcosystemUtilities.createJavaComponent(name, builder -> {
+        jvmEcosystemUtilities.createJvmVariant(name, builder -> {
             builder.usingSourceSet(sourceSet)
                 .withDisplayName("feature " + name)
                 .exposesApi()
@@ -98,7 +98,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
                 builder.published();
             }
             for (Capability capability : capabilities) {
-                ((JavaComponentBuilderInternal)builder).capability(capability);
+                ((JvmVariantBuilderInternal)builder).capability(capability);
             }
         });
 
