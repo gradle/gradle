@@ -45,9 +45,18 @@ details of 2
 ## n
 -->
 
+## Configuration Cache
+
+TBD
+
+## Support Java cross-compilation using the `release` flag
+
+TBD
+
 ## Improved handling of ZIP archives on runtime classpaths
-Runtime classpath analysis can now inspect manifest and `META-INF` properties files, ignore changes to comments, and selectively ignore attributes or properties that don't impact the
-runtime classpath.
+For [up to date checks](userguide/more_about_tasks.html#sec:up_to_date_checks) and the build cache Gradle needs to determine if two task input properties have the same value. In order to do so, Gradle
+first normalizes both inputs and then compares the result. Runtime classpath analysis can now inspect manifest and `META-INF` properties files, ignore changes to comments, and selectively ignore
+attributes or properties that don't impact the runtime classpath.
 
 ```groovy
 normalization {
@@ -89,7 +98,16 @@ Similarly, dependencies with attributes (typically "platform" dependencies) or c
 Gradle now supports substitution of dependencies with classifiers, attributes or capabilities.
 Gradle's dependency substitution API has been enriched to cover those cases.
 
-See the documentation on [variant-aware substitution](userguide/file:///home/cchampeau/DEV/PROJECTS/GITHUB/gradle/subprojects/docs/build/working/usermanual/render-multi/resolution_rules.html#sec:variant_aware_substitutions) for details.
+```kotlin
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute(platform(module("com.google.guava:guava:28.2-jre")))
+            .using(module("com.google.guava:guava:28.2-jre"))
+    }
+}
+```
+
+See the documentation on [variant-aware substitution](userguide/resolution_rules.html#sec:variant_aware_substitutions) for details.
 
 ## Credentials Provider API
 
