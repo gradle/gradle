@@ -135,7 +135,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         return generatedSourcesDirs;
     }
 
-    public void registerClassesContributor(TaskProvider task) {
+    public void registerClassesContributor(TaskProvider<?> task) {
         compileTasks.add(task);
     }
 

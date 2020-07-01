@@ -60,6 +60,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         then:
         project.plugins.hasPlugin(ReportingBasePlugin)
         project.plugins.hasPlugin(BasePlugin)
+        project.plugins.hasPlugin(JvmEcosystemPlugin)
         project.convention.plugins.java instanceof JavaPluginConvention
         project.extensions.sourceSets.is(project.convention.plugins.java.sourceSets)
         project.extensions.java instanceof JavaPluginExtension

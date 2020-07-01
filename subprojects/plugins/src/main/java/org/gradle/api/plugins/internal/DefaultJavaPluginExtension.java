@@ -29,8 +29,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.plugins.jvm.JvmEcosystemUtilities;
-import org.gradle.api.plugins.jvm.JvmModelingServices;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
@@ -122,21 +120,6 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     @Override
     public ModularitySpec getModularity() {
         return modularity;
-    }
-
-    @Override
-    public void configure(Action<? super JvmEcosystemUtilities> action) {
-        action.execute(jvmPluginServices);
-    }
-
-    @Override
-    public void modeling(Action<? super JvmModelingServices> action) {
-        action.execute(jvmPluginServices);
-    }
-
-    @Override
-    public JvmModelingServices getModeling() {
-        return jvmPluginServices;
     }
 
     private static String validateFeatureName(String name) {

@@ -16,11 +16,9 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.jvm.JvmEcosystemUtilities;
-import org.gradle.api.plugins.jvm.JvmModelingServices;
+import org.gradle.api.tasks.SourceSetContainer;
 
 public interface JvmPluginServices extends JvmEcosystemUtilities, JvmModelingServices {
-    void inject(JavaPluginConvention javaConvention, JavaPluginExtension javaPluginExtension, ProjectInternal project);
+    void inject(ProjectInternal project, SourceSetContainer sourceSets);
 }

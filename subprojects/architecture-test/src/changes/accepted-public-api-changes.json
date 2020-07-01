@@ -1,15 +1,35 @@
 {
     "acceptedApiChanges": [
         {
-            "acceptedApiChanges": [
-                {
-                    "type": "org.gradle.api.plugins.JavaLibraryPlugin",
-                    "member": "Constructor org.gradle.api.plugins.JavaLibraryPlugin()",
-                    "acceptation": "This is an @Inject'ed constructor, not part of the API",
-                    "changes": [
-                        "Constructor has been removed"
-                    ]
-                }
+            "type": "org.gradle.api.plugins.JavaLibraryPlugin",
+            "member": "Constructor org.gradle.api.plugins.JavaLibraryPlugin()",
+            "acceptation": "This is an @Inject'ed constructor, not part of the API",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Class org.gradle.api.tasks.compile.GroovyCompile",
+            "acceptation": "Interface added to avoid breaking compatibility with custom user tasks",
+            "changes": [
+                "org.gradle.api.internal.tasks.compile.HasCompileOptions"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Class org.gradle.api.tasks.compile.JavaCompile",
+            "acceptation": "Interface added to avoid breaking compatibility with custom user tasks",
+            "changes": [
+                "org.gradle.api.internal.tasks.compile.HasCompileOptions"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Class org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "acceptation": "Interface added to avoid breaking compatibility with custom user tasks",
+            "changes": [
+                "org.gradle.api.internal.tasks.compile.HasCompileOptions"
             ]
         }
     ]

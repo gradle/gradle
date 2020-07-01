@@ -24,7 +24,7 @@ import org.gradle.api.tasks.SourceSet;
  * This can be used both on the producer side, to explain what it provides,
  * or on the consumer side, to express requirements.
  *
- * @since 6.6
+ * @since 6.7
  */
 @Incubating
 public

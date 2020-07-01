@@ -27,46 +27,46 @@ import java.util.List;
  * An incoming configuration builder. Such a configuration is meant
  * to be resolved.
  *
- * @since 6.6
+ * @since 6.7
  */
 @Incubating
-public interface ResolvableGraphBuilder {
+public interface ResolvableConfigurationBuilder {
     /**
      * Also create the dependency bucket of the provided name and
      * make the resolvable configuration extend from it.
      * @param name the name of the bucket of dependencies
      */
-    ResolvableGraphBuilder usingDependencyBucket(String name);
+    ResolvableConfigurationBuilder usingDependencyBucket(String name);
 
     /**
      * Configures the resolution for runtime of java libraries
      */
-    ResolvableGraphBuilder requiresJavaLibrariesRuntime();
+    ResolvableConfigurationBuilder requiresJavaLibrariesRuntime();
 
     /**
      * Configures the resolution for API of java libraries
      */
-    ResolvableGraphBuilder requiresJavaLibrariesAPI();
+    ResolvableConfigurationBuilder requiresJavaLibrariesAPI();
 
     /**
      * Adds configurations the resolvable configuration should extend from.
      * Those configurations should be typically buckets of dependencies
      * @param parentConfigurations the parent configurations
      */
-    ResolvableGraphBuilder extendsFrom(Configuration... parentConfigurations);
+    ResolvableConfigurationBuilder extendsFrom(Configuration... parentConfigurations);
 
     /**
      * Adds configurations the resolvable configuration should extend from.
      * Those configurations should be typically buckets of dependencies
      * @param parentConfigurations the parent configurations
      */
-    ResolvableGraphBuilder extendsFrom(List<Provider<Configuration>> parentConfigurations);
+    ResolvableConfigurationBuilder extendsFrom(List<Provider<Configuration>> parentConfigurations);
 
     /**
      * Adds this configuration as a parent configuration of the resolvable configuration
      * @param configuration the parent configuration
      */
-    default ResolvableGraphBuilder extendsFrom(Provider<Configuration> configuration) {
+    default ResolvableConfigurationBuilder extendsFrom(Provider<Configuration> configuration) {
         return extendsFrom(Collections.singletonList(configuration));
     }
 
@@ -75,5 +75,5 @@ public interface ResolvableGraphBuilder {
      * sufficient. The refiner will be called after the default attributes are set.
      * @param refiner the attributes refiner configuration
      */
-    ResolvableGraphBuilder attributes(Action<? super JvmEcosystemAttributesDetails> refiner);
+    ResolvableConfigurationBuilder attributes(Action<? super JvmEcosystemAttributesDetails> refiner);
 }

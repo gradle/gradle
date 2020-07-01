@@ -13,25 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.jvm;
+package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.plugins.jvm.JvmVariantBuilder;
+import org.gradle.api.plugins.jvm.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.OutgoingElementsBuilder;
+import org.gradle.api.plugins.jvm.ResolvableConfigurationBuilder;
 
 /**
- * Provides helpers to model JVM components, cross-project JVM publications
- * or resolvable configurations.
+ * This extension is shared by JVM plugins (Java, Groovy, Scala, ...)
+ * and can be used to configure JVM specific behavior.
  *
- * @since 6.6
+ * @since 6.7
  */
 @Incubating
-@NonNullApi
-@HasInternalProtocol
-@SuppressWarnings("UnusedReturnValue")
-public interface JvmModelingServices {
+public interface JvmPluginExtension {
+    /**
+     * Provides access to the several handy JVM related utilities.
+     */
+    JvmEcosystemUtilities getUtilities();
+
     /**
      * Creates an outgoing configuration and configures it with reasonable defaults.
      * @param name the name of the outgoing configurtion
@@ -41,7 +45,9 @@ public interface JvmModelingServices {
     Configuration createOutgoingElements(String name, Action<? super OutgoingElementsBuilder> configuration);
 
     /**
-     * Creates an incoming configuration for resolution of a dependency graph.
+     * Creates a configuration which can be used to resolve dependencies for the JVM
+     * ecosystem. It will also create the configurations used to declare dependencies,
+     * also known as "bucket" configurations.
      *
      * The action is used to configure the created <i>resolvable</i> configuration.
      *
@@ -49,10 +55,10 @@ public interface JvmModelingServices {
      * @param action the configuration of the resolvable configuration
      * @return the resolvable configuration
      */
-    Configuration createResolvableGraph(String name, Action<? super ResolvableGraphBuilder> action);
+    Configuration createResolvableConfiguration(String name, Action<? super ResolvableConfigurationBuilder> action);
 
     /**
-     * Creates a generic "java component", which implies creation of an underlying source set,
+     * Creates a generic "JVM variant", which implies creation of an underlying source set,
      * compile tasks, jar tasks, possibly javadocs and sources jars and allows configuring if such
      * a component has to be published externally.
      *
@@ -62,5 +68,5 @@ public interface JvmModelingServices {
      * @param name the name of the component to create
      * @param configuration the configuration for the component to be created
      */
-    void createJavaComponent(String name, Action<? super JavaComponentBuilder> configuration);
+    void createJvmVariant(String name, Action<? super JvmVariantBuilder> configuration);
 }

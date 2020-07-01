@@ -137,15 +137,15 @@ public class JvmPluginsHelper {
         sourceDirectorySet.getDestinationDirectory().convention(target.getLayout().getBuildDirectory().dir(sourceSetChildPath));
 
         DefaultSourceSetOutput sourceSetOutput = Cast.cast(DefaultSourceSetOutput.class, sourceSet.getOutput());
-        sourceSetOutput.addClassesDir(sourceDirectorySet.getClassesDirectory());
+        // This little dance with `providers.provider` is only there for backwards compatibility, because the old "task dependencies" didn't transitively get `compileJava`
+        // we should investigate if we can just use the provider directly and update the corresponding tests instead
+        sourceSetOutput.addClassesDir(target.getProviders().provider(() -> sourceDirectorySet.getClassesDirectory().get()));
         sourceSetOutput.registerClassesContributor(compileTask);
-        if (options.isPresent()) {
-            sourceSetOutput.getGeneratedSourcesDirs().from(options.flatMap(CompileOptions::getGeneratedSourceOutputDirectory));
-        }
+        sourceSetOutput.getGeneratedSourcesDirs().from(options.flatMap(CompileOptions::getGeneratedSourceOutputDirectory));
         sourceDirectorySet.compiledBy(compileTask, classesDirectoryExtractor);
     }
 
-    public static void configureJavaDocTask(@Nullable String featureName, SourceSet sourceSet, TaskContainer tasks, JavaPluginExtension javaPluginExtension) {
+    public static void configureJavaDocTask(@Nullable String featureName, SourceSet sourceSet, TaskContainer tasks, @Nullable JavaPluginExtension javaPluginExtension) {
         String javadocTaskName = sourceSet.getJavadocTaskName();
         if (!tasks.getNames().contains(javadocTaskName)) {
             tasks.register(javadocTaskName, Javadoc.class, javadoc -> {
@@ -153,7 +153,9 @@ public class JvmPluginsHelper {
                 javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
                 javadoc.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
                 javadoc.setSource(sourceSet.getAllJava());
-                javadoc.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
+                if (javaPluginExtension != null) {
+                    javadoc.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
+                }
             });
         }
     }
