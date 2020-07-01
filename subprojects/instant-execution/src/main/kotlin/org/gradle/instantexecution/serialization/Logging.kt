@@ -40,13 +40,14 @@ fun IsolateContext.logPropertyInfo(action: String, value: Any?) {
 
 internal
 object DocumentationSections {
-    const val disallowedTypes = "config_cache:requirements:disallowed_types"
     const val notYetImplemented = "config_cache:not_yet_implemented"
-    const val taskAccess = "config_cache:requirements:task_access"
-    const val compositeBuilds = "config_cache:not_yet_implemented:composite_builds"
-    const val undeclaredSysPropReads = "config_cache:requirements:undeclared_sys_prop_read"
-    const val useProjectDuringExecution = "config_cache:requirements:use_project_during_execution"
-    const val buildListeners = "config_cache:requirements:build_listeners"
+    const val notYetImplementedCompositeBuilds = "config_cache:not_yet_implemented:composite_builds"
+    const val notYetImplementedJavaSerialization = "config_cache:not_yet_implemented:java_serialization"
+    const val requirementsBuildListeners = "config_cache:requirements:build_listeners"
+    const val requirementsDisallowedTypes = "config_cache:requirements:disallowed_types"
+    const val requirementsTaskAccess = "config_cache:requirements:task_access"
+    const val requirementsUndeclaredSysPropRead = "config_cache:requirements:undeclared_sys_prop_read"
+    const val requirementsUseProjectDuringExecution = "config_cache:requirements:use_project_during_execution"
 }
 
 
@@ -54,7 +55,7 @@ fun IsolateContext.logUnsupported(
     action: String,
     baseType: KClass<*>,
     actualType: Class<*>,
-    documentationSection: String = DocumentationSections.disallowedTypes
+    documentationSection: String = DocumentationSections.requirementsDisallowedTypes
 ) {
     logPropertyProblem(action, PropertyProblem(trace,
         build {
@@ -72,7 +73,7 @@ fun IsolateContext.logUnsupported(
 fun IsolateContext.logUnsupported(
     action: String,
     baseType: KClass<*>,
-    documentationSection: String = DocumentationSections.disallowedTypes
+    documentationSection: String = DocumentationSections.requirementsDisallowedTypes
 ) {
     logPropertyProblem(action, PropertyProblem(trace,
         build {

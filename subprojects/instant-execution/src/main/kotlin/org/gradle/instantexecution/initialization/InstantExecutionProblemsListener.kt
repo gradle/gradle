@@ -79,7 +79,7 @@ class DefaultInstantExecutionProblemsListener internal constructor(
                 text(" at execution time is unsupported.")
             },
             exception,
-            documentationSection = DocumentationSections.useProjectDuringExecution
+            documentationSection = DocumentationSections.requirementsUseProjectDuringExecution
         )
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
@@ -109,7 +109,7 @@ class DefaultInstantExecutionProblemsListener internal constructor(
                 text(" is unsupported")
             },
             exception,
-            documentationSection = DocumentationSections.buildListeners
+            documentationSection = DocumentationSections.requirementsBuildListeners
         )
 }
 

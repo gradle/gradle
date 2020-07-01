@@ -134,7 +134,7 @@ class InstantExecutionState(
         if (gradle.includedBuilds.isNotEmpty()) {
             logNotImplemented(
                 feature = "included builds",
-                documentationSection = DocumentationSections.compositeBuilds
+                documentationSection = DocumentationSections.notYetImplementedCompositeBuilds
             )
             writeBoolean(true)
         } else {
@@ -147,7 +147,7 @@ class InstantExecutionState(
         if (readBoolean()) {
             logNotImplemented(
                 feature = "included builds",
-                documentationSection = DocumentationSections.compositeBuilds
+                documentationSection = DocumentationSections.notYetImplementedCompositeBuilds
             )
         }
     }

@@ -21,8 +21,11 @@ import org.gradle.api.Project
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.problems.PropertyKind
 import org.gradle.instantexecution.problems.PropertyTrace
+import org.gradle.instantexecution.serialization.DocumentationSections
 import org.gradle.kotlin.dsl.support.useToRun
+import org.hamcrest.CoreMatchers
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Ignore
@@ -109,6 +112,23 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
                 equalTo<Any>("42")
             )
         }
+    }
+
+    @Test
+    fun `Externalizable problems link to the Java serialization section`() {
+        val problems = serializationProblemsOf(ExternalizableBean(), userTypesCodec())
+        assertThat(problems.size, equalTo(1))
+        assertThat(
+            problems[0].documentationSection,
+            equalTo(DocumentationSections.notYetImplementedJavaSerialization)
+        )
+    }
+
+    @Test
+    fun `Externalizable roundtrips to null`() {
+        val (first, second) = configurationCacheRoundtripOf(pairOf(ExternalizableBean()))
+        assertThat(first, nullValue())
+        assertThat(second, nullValue())
     }
 
     @Ignore("wip")

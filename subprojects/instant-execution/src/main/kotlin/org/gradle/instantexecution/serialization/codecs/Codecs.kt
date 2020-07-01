@@ -192,7 +192,7 @@ class Codecs(
         bind(ProxyCodec)
 
         // Java serialization integration
-        bind(unsupported<Externalizable>(DocumentationSections.notYetImplemented))
+        bind(unsupported<Externalizable>(DocumentationSections.notYetImplementedJavaSerialization))
         bind(SerializableWriteObjectCodec())
         bind(SerializableWriteReplaceCodec())
 

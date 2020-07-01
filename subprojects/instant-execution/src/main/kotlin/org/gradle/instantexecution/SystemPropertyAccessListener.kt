@@ -95,7 +95,7 @@ class SystemPropertyAccessListener(
                 location,
                 message,
                 exception,
-                documentationSection = DocumentationSections.undeclaredSysPropReads
+                documentationSection = DocumentationSections.requirementsUndeclaredSysPropRead
             )
         )
     }

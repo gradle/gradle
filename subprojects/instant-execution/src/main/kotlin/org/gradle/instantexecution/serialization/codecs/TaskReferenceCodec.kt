@@ -35,7 +35,7 @@ object TaskReferenceCodec : Codec<Task> {
                 "serialize",
                 Task::class,
                 value.javaClass,
-                documentationSection = DocumentationSections.taskAccess
+                documentationSection = DocumentationSections.requirementsTaskAccess
             )
             writeBoolean(false)
         }
@@ -48,7 +48,7 @@ object TaskReferenceCodec : Codec<Task> {
             logUnsupported(
                 "deserialize",
                 Task::class,
-                documentationSection = DocumentationSections.taskAccess
+                documentationSection = DocumentationSections.requirementsTaskAccess
             )
             null
         }
