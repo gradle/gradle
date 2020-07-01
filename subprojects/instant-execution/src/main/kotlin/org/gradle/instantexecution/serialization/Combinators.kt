@@ -46,12 +46,12 @@ inline fun <reified T> ownerServiceCodec() =
 
 
 internal
-inline fun <reified T : Any> unsupported(): Codec<T> = codec(
+inline fun <reified T : Any> unsupported(documentationSection: String = DocumentationSections.disallowedTypes): Codec<T> = codec(
     encode = { value ->
-        logUnsupported("serialize", T::class, value.javaClass)
+        logUnsupported("serialize", T::class, value.javaClass, documentationSection)
     },
     decode = {
-        logUnsupported("deserialize", T::class)
+        logUnsupported("deserialize", T::class, documentationSection)
         null
     }
 )

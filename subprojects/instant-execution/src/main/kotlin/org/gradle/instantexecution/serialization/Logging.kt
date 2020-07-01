@@ -38,11 +38,23 @@ fun IsolateContext.logPropertyInfo(action: String, value: Any?) {
 }
 
 
+internal
+object DocumentationSections {
+    const val disallowedTypes = "config_cache:requirements:disallowed_types"
+    const val notYetImplemented = "config_cache:not_yet_implemented"
+    const val taskAccess = "config_cache:requirements:task_access"
+    const val compositeBuilds = "config_cache:not_yet_implemented:composite_builds"
+    const val undeclaredSysPropReads = "config_cache:requirements:undeclared_sys_prop_read"
+    const val useProjectDuringExecution = "config_cache:requirements:use_project_during_execution"
+    const val buildListeners = "config_cache:requirements:build_listeners"
+}
+
+
 fun IsolateContext.logUnsupported(
     action: String,
     baseType: KClass<*>,
     actualType: Class<*>,
-    documentationSection: String = "config_cache:requirements:disallowed_types"
+    documentationSection: String = DocumentationSections.disallowedTypes
 ) {
     logPropertyProblem(action, PropertyProblem(trace,
         build {
@@ -60,7 +72,7 @@ fun IsolateContext.logUnsupported(
 fun IsolateContext.logUnsupported(
     action: String,
     baseType: KClass<*>,
-    documentationSection: String = "config_cache:requirements:disallowed_types"
+    documentationSection: String = DocumentationSections.disallowedTypes
 ) {
     logPropertyProblem(action, PropertyProblem(trace,
         build {
@@ -82,7 +94,7 @@ fun IsolateContext.logNotImplemented(baseType: Class<*>) {
 }
 
 
-fun IsolateContext.logNotImplemented(feature: String, documentationSection: String = "config_cache:not_yet_implemented") {
+fun IsolateContext.logNotImplemented(feature: String, documentationSection: String = DocumentationSections.notYetImplemented) {
     onProblem(PropertyProblem(trace, build {
         text("support for $feature is not yet implemented with the configuration cache.")
     }, null, documentationSection))
