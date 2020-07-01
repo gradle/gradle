@@ -24,27 +24,27 @@ import java.util.Set;
 
 import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFailure;
 
-public class ConnectionFailureRepositoryBlacklister implements RepositoryBlacklister {
-    private static final Logger LOGGER = Logging.getLogger(ConnectionFailureRepositoryBlacklister.class);
+public class ConnectionFailureRepositoryDisabler implements RepositoryDisabler {
+    private static final Logger LOGGER = Logging.getLogger(ConnectionFailureRepositoryDisabler.class);
 
-    private final Set<String> blacklistedRepositories = Sets.newConcurrentHashSet();
+    private final Set<String> disabledRepositories = Sets.newConcurrentHashSet();
 
     @Override
-    public boolean isBlacklisted(String repositoryId) {
-        return blacklistedRepositories.contains(repositoryId);
+    public boolean isDisabled(String repositoryId) {
+        return disabledRepositories.contains(repositoryId);
     }
 
     @Override
-    public boolean blacklistRepository(String repositoryId, Throwable throwable) {
-        boolean blacklisted = isBlacklisted(repositoryId);
+    public boolean disableRepository(String repositoryId, Throwable throwable) {
+        boolean disabled = isDisabled(repositoryId);
 
-        if (blacklisted) {
+        if (disabled) {
             return true;
         }
 
         if (isCriticalFailure(throwable)) {
-            LOGGER.debug("Repository {} has been blacklisted for this build due to connectivity issues", repositoryId);
-            blacklistedRepositories.add(repositoryId);
+            LOGGER.debug("Repository {} has been disabled for this build due to connectivity issues", repositoryId);
+            disabledRepositories.add(repositoryId);
             return true;
         }
 
@@ -52,7 +52,7 @@ public class ConnectionFailureRepositoryBlacklister implements RepositoryBlackli
     }
 
     @Override
-    public Set<String> getBlacklistedRepositories() {
-        return blacklistedRepositories;
+    public Set<String> getDisabledRepositories() {
+        return disabledRepositories;
     }
 }

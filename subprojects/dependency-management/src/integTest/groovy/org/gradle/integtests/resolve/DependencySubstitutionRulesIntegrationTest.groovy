@@ -873,7 +873,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "can blacklist a version"() {
+    void "can deny a version"() {
         mavenRepo.module("org.utils", "a", '1.4').publish()
         mavenRepo.module("org.utils", "a", '1.3').publish()
         mavenRepo.module("org.utils", "a", '1.2').publish()
@@ -906,7 +906,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "can blacklist a version that is not used"() {
+    void "can deny a version that is not used"() {
         mavenRepo.module("org.utils", "a", '1.3').publish()
         mavenRepo.module("org.utils", "a", '1.2').publish()
         mavenRepo.module("org.utils", "b", '1.3').dependsOn("org.utils", "a", "1.3").publish()

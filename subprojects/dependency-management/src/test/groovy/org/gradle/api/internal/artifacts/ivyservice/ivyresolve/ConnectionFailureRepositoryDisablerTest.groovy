@@ -21,53 +21,53 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-class ConnectionFailureRepositoryBlacklisterTest extends Specification {
+class ConnectionFailureRepositoryDisablerTest extends Specification {
 
-    @Subject RepositoryBlacklister blacklister = new ConnectionFailureRepositoryBlacklister()
+    @Subject RepositoryDisabler disabler = new ConnectionFailureRepositoryDisabler()
 
     @Unroll
-    def "blacklists repository for critical exception [#exception]"() {
+    def "disables repository for critical exception [#exception]"() {
         given:
         def repositoryId1 = 'abc'
         def repositoryId2 = 'def'
 
         when:
-        boolean blacklisted = blacklister.blacklistRepository(repositoryId1, exception)
+        boolean disabled = disabler.disableRepository(repositoryId1, exception)
 
         then:
-        blacklisted
-        blacklister.blacklistedRepositories.size() == 1
-        blacklister.blacklistedRepositories.contains(repositoryId1)
+        disabled
+        disabler.disabledRepositories.size() == 1
+        disabler.disabledRepositories.contains(repositoryId1)
 
         when:
-        blacklisted = blacklister.blacklistRepository(repositoryId1, exception)
+        disabled = disabler.disableRepository(repositoryId1, exception)
 
         then:
-        blacklisted
-        blacklister.blacklistedRepositories.size() == 1
-        blacklister.blacklistedRepositories.contains(repositoryId1)
+        disabled
+        disabler.disabledRepositories.size() == 1
+        disabler.disabledRepositories.contains(repositoryId1)
 
         when:
-        blacklisted = blacklister.blacklistRepository(repositoryId2, exception)
+        disabled = disabler.disableRepository(repositoryId2, exception)
 
         then:
-        blacklisted
-        blacklister.blacklistedRepositories.size() == 2
-        blacklister.blacklistedRepositories.contains(repositoryId1)
-        blacklister.blacklistedRepositories.contains(repositoryId2)
+        disabled
+        disabler.disabledRepositories.size() == 2
+        disabler.disabledRepositories.contains(repositoryId1)
+        disabler.disabledRepositories.contains(repositoryId2)
 
         where:
         exception << [createTimeoutException(), createInternalServerException()]
     }
 
     @Unroll
-    def "does not blacklist repository for #type"() {
+    def "does not disable repository for #type"() {
         when:
-        boolean blacklisted = blacklister.blacklistRepository('abc', exception)
+        boolean disabled = disabler.disableRepository('abc', exception)
 
         then:
-        !blacklisted
-        blacklister.blacklistedRepositories.empty
+        !disabled
+        disabler.disabledRepositories.empty
 
         where:
         type                                        | exception
