@@ -327,20 +327,17 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
         }
 
         @Suppress("unused")
-        private
         fun readResolve(): Any? = SINGLETON
     }
 
     class SerializableWriteReplaceBean(val value: Any? = null) : Serializable {
 
         @Suppress("unused")
-        private
         fun writeReplace(): Any? = Memento()
 
         private
         class Memento : Serializable {
             @Suppress("unused")
-            private
             fun readResolve(): Any? = SerializableWriteReplaceBean("42")
         }
     }
