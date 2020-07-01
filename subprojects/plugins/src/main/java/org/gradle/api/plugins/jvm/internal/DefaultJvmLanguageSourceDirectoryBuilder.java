@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.jvm.internal;
 
-import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
@@ -111,7 +110,7 @@ public class DefaultJvmLanguageSourceDirectoryBuilder implements JvmLanguageSour
     private DefaultCompileTaskDetails createTaskDetails(SourceDirectorySet langSrcDir) {
         DefaultCompileTaskDetails details = new DefaultCompileTaskDetails(
             project.getObjects().directoryProperty().fileProvider(
-                langSrcDir.getElements().map(fileSystemLocations -> Iterables.getOnlyElement(fileSystemLocations).getAsFile())
+                project.getProviders().provider(() -> langSrcDir.getSourceDirectories().getSingleFile())
             ));
         taskBuilder.execute(details);
         return details;
