@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file.collections
 
 import org.gradle.api.Task
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionSpec
@@ -387,23 +386,6 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         0 * _
     }
 
-    def resolveAddsEachSourceObjectAndBuildDependencies() {
-        given:
-        def resolveContext = Mock(FileCollectionResolveContext)
-        def fileCollectionMock = Mock(FileCollection)
-
-        collection.from("file")
-        collection.from(fileCollectionMock)
-
-        when:
-        collection.visitContents(resolveContext)
-
-        then:
-        1 * resolveContext.add("file", fileResolver)
-        1 * resolveContext.add(fileCollectionMock)
-        0 * resolveContext._
-    }
-
     def canGetAndSetTaskDependencies() {
         given:
         def task = Mock(Task)
@@ -470,7 +452,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         filteredFileTreeDependencies == [task] as Set<? extends Task>
     }
 
-    def "can visit contents when collection contains paths"() {
+    def "can visit structure when collection contains paths"() {
         def visitor = Mock(FileCollectionStructureVisitor)
         def one = testDir.file('one')
         def two = testDir.file('two')
@@ -490,6 +472,27 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         1 * visitor.startVisit(FileCollectionInternal.OTHER, { it as List == [two] }) >> true
         1 * visitor.visitCollection(FileCollectionInternal.OTHER, { it as List == [two] })
         0 * _
+    }
+
+    def "can visit structure when collection contains paths and collections"() {
+        given:
+        def visitor = Mock(FileCollectionStructureVisitor)
+        def fileCollectionMock = Mock(FileCollectionInternal)
+        def file = new File("some-file")
+
+        collection.from("file")
+        collection.from(fileCollectionMock)
+
+        when:
+        collection.visitStructure(visitor)
+
+        then:
+        1 * visitor.startVisit(_, collection) >> true
+        1 * fileResolver.resolve("file") >> file
+        1 * visitor.startVisit(_, _) >> true
+        1 * visitor.visitCollection(_, {it.toList() == [file]})
+        1 * fileCollectionMock.visitStructure(visitor)
+        0 * visitor._
     }
 
     def resolvesPathToFileWhenFinalized() {

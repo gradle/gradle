@@ -16,11 +16,8 @@
 
 package org.gradle.api.internal.file;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.BuildDependenciesOnlyFileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.FileCollectionContainer;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
@@ -29,17 +26,17 @@ import org.gradle.internal.Factory;
 
 import java.io.File;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * A {@link org.gradle.api.file.FileCollection} that contains the union of zero or more file collections. Maintains file ordering.
  *
- * <p>The source file collections are calculated from the result of calling {@link #visitContents(FileCollectionResolveContext)}, and may be lazily created.
- * This also means that the source collections can be created using any representation supported by {@link FileCollectionResolveContext}.
+ * <p>The source file collections are calculated from the result of calling {@link #visitChildren(Consumer)}, and may be lazily created.
  * </p>
  *
  * <p>The dependencies of this collection are calculated from the result of calling {@link #visitDependencies(TaskDependencyResolveContext)}.</p>
  */
-public abstract class CompositeFileCollection extends AbstractFileCollection implements FileCollectionContainer, TaskDependencyContainer {
+public abstract class CompositeFileCollection extends AbstractFileCollection implements TaskDependencyContainer {
     public CompositeFileCollection(Factory<PatternSet> patternSetFactory) {
         super(patternSetFactory);
     }
@@ -75,13 +72,11 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     @Override
-    public FileCollection filter(final Spec<? super File> filterSpec) {
+    public FileCollectionInternal filter(final Spec<? super File> filterSpec) {
         return new CompositeFileCollection(patternSetFactory) {
             @Override
-            public void visitContents(FileCollectionResolveContext context) {
-                for (FileCollection collection : CompositeFileCollection.this.getSourceCollections()) {
-                    context.add(collection.filter(filterSpec));
-                }
+            protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
+                CompositeFileCollection.this.visitChildren(child -> visitor.accept(child.filter(filterSpec)));
             }
 
             @Override
@@ -96,22 +91,21 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
         };
     }
 
+    abstract protected void visitChildren(Consumer<FileCollectionInternal> visitor);
+
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        BuildDependenciesOnlyFileCollectionResolveContext fileContext = new BuildDependenciesOnlyFileCollectionResolveContext(context);
-        visitContents(fileContext);
+        visitChildren(context::add);
     }
 
     protected List<? extends FileCollectionInternal> getSourceCollections() {
-        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(patternSetFactory);
-        visitContents(context);
-        return context.resolveAsFileCollections();
+        ImmutableList.Builder<FileCollectionInternal> builder = ImmutableList.builder();
+        visitChildren(builder::add);
+        return builder.build();
     }
 
     @Override
     protected void visitContents(FileCollectionStructureVisitor visitor) {
-        for (FileCollectionInternal element : getSourceCollections()) {
-            element.visitStructure(visitor);
-        }
+        visitChildren(child -> child.visitStructure(visitor));
     }
 }

@@ -22,7 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.FileNormalizer;
@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @NonNullApi
@@ -111,9 +112,9 @@ public class DefaultTaskProperties implements TaskProperties {
             }
 
             @Override
-            public void visitContents(FileCollectionResolveContext context) {
+            protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
                 for (InputFilePropertySpec filePropertySpec : inputFileProperties) {
-                    context.add(filePropertySpec.getPropertyFiles());
+                    visitor.accept(filePropertySpec.getPropertyFiles());
                 }
             }
         };
@@ -124,10 +125,10 @@ public class DefaultTaskProperties implements TaskProperties {
             }
 
             @Override
-            public void visitContents(FileCollectionResolveContext context) {
+            protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
                 for (InputFilePropertySpec filePropertySpec : inputFileProperties) {
                     if (filePropertySpec.isSkipWhenEmpty()) {
-                        context.add(filePropertySpec.getPropertyFiles());
+                        visitor.accept(filePropertySpec.getPropertyFiles());
                     }
                 }
             }
@@ -141,9 +142,9 @@ public class DefaultTaskProperties implements TaskProperties {
             }
 
             @Override
-            public void visitContents(FileCollectionResolveContext context) {
+            protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
                 for (FilePropertySpec propertySpec : outputFileProperties) {
-                    context.add(propertySpec.getPropertyFiles());
+                    visitor.accept(propertySpec.getPropertyFiles());
                 }
             }
         };

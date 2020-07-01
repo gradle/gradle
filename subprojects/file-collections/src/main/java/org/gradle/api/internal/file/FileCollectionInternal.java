@@ -19,8 +19,17 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.specs.Spec;
+
+import java.io.File;
 
 public interface FileCollectionInternal extends FileCollection, TaskDependencyContainer {
+    @Override
+    FileCollectionInternal filter(Spec<? super File> filterSpec);
+
+    @Override
+    FileTreeInternal getAsFileTree();
+
     /**
      * Visits the structure of this collection, that is, zero or more atomic sources of files.
      *

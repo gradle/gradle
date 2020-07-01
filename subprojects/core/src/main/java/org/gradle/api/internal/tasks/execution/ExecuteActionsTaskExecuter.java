@@ -28,6 +28,7 @@ import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction;
@@ -555,9 +556,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor
-                        .displayName(actionDisplayName + " for " + task.getIdentityPath().getPath())
-                        .name(actionDisplayName)
-                        .details(ExecuteTaskActionBuildOperationType.DETAILS_INSTANCE);
+                    .displayName(actionDisplayName + " for " + task.getIdentityPath().getPath())
+                    .name(actionDisplayName)
+                    .details(ExecuteTaskActionBuildOperationType.DETAILS_INSTANCE);
             }
 
             @Override
@@ -623,7 +624,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public FileCollection createDelegate() {
+        public FileCollectionInternal createDelegate() {
             ImmutableCollection<FileCollectionFingerprint> outputFingerprints = previousExecution.getOutputFileProperties().values();
             Set<File> outputs = new HashSet<>();
             for (FileCollectionFingerprint fileCollectionFingerprint : outputFingerprints) {

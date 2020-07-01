@@ -28,7 +28,6 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollectio
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
@@ -51,6 +50,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public class DefaultFileCollectionFactory implements FileCollectionFactory {
     public static final String DEFAULT_COLLECTION_DISPLAY_NAME = "file collection";
@@ -216,7 +216,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         }
 
         @Override
-        public FileTree getAsFileTree() {
+        public FileTreeInternal getAsFileTree() {
             return new EmptyFileTree();
         }
     }
@@ -248,7 +248,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         }
 
         @Override
-        public FileTree matching(PatternFilterable patterns) {
+        public FileTreeInternal matching(PatternFilterable patterns) {
             return this;
         }
 
@@ -301,8 +301,8 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         }
 
         @Override
-        public void visitContents(FileCollectionResolveContext context) {
-            UnpackingVisitor nested = new UnpackingVisitor(context, resolver);
+        protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
+            UnpackingVisitor nested = new UnpackingVisitor(visitor, resolver, patternSetFactory);
             nested.add(source);
         }
     }

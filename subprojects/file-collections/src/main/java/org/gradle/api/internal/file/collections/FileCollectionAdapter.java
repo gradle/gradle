@@ -27,7 +27,7 @@ import java.util.Set;
 /**
  * Adapts a {@link MinimalFileSet} into a full {@link org.gradle.api.file.FileCollection}.
  */
-public class FileCollectionAdapter extends AbstractOpaqueFileCollection implements FileCollectionContainer {
+public class FileCollectionAdapter extends AbstractOpaqueFileCollection {
     private final MinimalFileSet fileSet;
 
     public FileCollectionAdapter(MinimalFileSet fileSet) {
@@ -42,11 +42,6 @@ public class FileCollectionAdapter extends AbstractOpaqueFileCollection implemen
     @Override
     public String getDisplayName() {
         return fileSet.getDisplayName();
-    }
-
-    @Override
-    public void visitContents(FileCollectionResolveContext context) {
-        context.add(fileSet);
     }
 
     @Override

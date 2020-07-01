@@ -16,13 +16,11 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class FilteredFileTree extends CompositeFileTree implements FileCollectionInternal.Source {
@@ -52,14 +50,10 @@ public class FilteredFileTree extends CompositeFileTree implements FileCollectio
     }
 
     @Override
-    public void visitContents(FileCollectionResolveContext context) {
+    protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
         // For backwards compatibility, need to calculate the patterns on each query
         PatternFilterable patterns = getPatterns();
-        ResolvableFileCollectionResolveContext nestedContext = context.newContext();
-        tree.visitContents(nestedContext);
-        for (FileTree set : nestedContext.resolveAsFileTrees()) {
-            context.add(set.matching(patterns));
-        }
+        tree.visitChildren(child -> visitor.accept(((FileTreeInternal) child).matching(patterns)));
     }
 
     @Override

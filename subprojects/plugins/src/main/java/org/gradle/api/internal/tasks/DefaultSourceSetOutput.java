@@ -20,8 +20,8 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.TaskDependency;
@@ -32,6 +32,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 public class DefaultSourceSetOutput extends CompositeFileCollection implements SourceSetOutput {
     private final ConfigurableFileCollection outputDirectories;
@@ -60,8 +61,8 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     }
 
     @Override
-    public void visitContents(FileCollectionResolveContext context) {
-        context.add(outputDirectories);
+    protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
+        visitor.accept((FileCollectionInternal) outputDirectories);
     }
 
     @Override
@@ -99,7 +100,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
 
     @Override
     public void setResourcesDir(Object resourcesDir) {
-       this.resourcesDir = resourcesDir;
+        this.resourcesDir = resourcesDir;
     }
 
     public void builtBy(Object... taskPaths) {

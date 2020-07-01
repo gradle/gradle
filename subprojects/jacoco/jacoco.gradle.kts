@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":testingJvm"))
     implementation(project(":plugins"))
     implementation(project(":reporting"))
+    implementation(project(":fileCollections"))
 
     implementation(library("groovy"))
     implementation(library("slf4j_api"))
@@ -42,7 +43,6 @@ dependencies {
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(testLibrary("jsoup"))
 
-    testImplementation(project(":fileCollections"))
     testImplementation(project(":internalTesting"))
     testImplementation(project(":resources"))
     testImplementation(project(":internalIntegTesting"))
