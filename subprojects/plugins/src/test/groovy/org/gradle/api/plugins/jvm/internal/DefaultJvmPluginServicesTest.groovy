@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.DocsType
 import org.gradle.api.attributes.HasConfigurableAttributes
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
@@ -36,9 +37,16 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.util.AttributeTestUtil
 
 import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE
+import static org.gradle.api.attributes.Bundling.EMBEDDED
 import static org.gradle.api.attributes.Bundling.EXTERNAL
+import static org.gradle.api.attributes.Bundling.EXTERNAL
+import static org.gradle.api.attributes.Bundling.SHADOWED
 import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE
+import static org.gradle.api.attributes.Category.DOCUMENTATION
+import static org.gradle.api.attributes.Category.ENFORCED_PLATFORM
 import static org.gradle.api.attributes.Category.LIBRARY
+import static org.gradle.api.attributes.Category.REGULAR_PLATFORM
+import static org.gradle.api.attributes.DocsType.DOCS_TYPE_ATTRIBUTE
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE
 import static org.gradle.api.attributes.Usage.*
 import static org.gradle.api.attributes.java.TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE
@@ -168,6 +176,144 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         1 * output.getClassesDirs() >> classes
         1 * output.getClassesContributors() >> Stub(TaskDependency)
         0 * _
+    }
+
+    def "configures attributes"() {
+        def attrs = AttributeTestUtil.attributesFactory().mutable()
+
+        when:
+        services.configureAttributes(Stub(HasConfigurableAttributes) { getAttributes() >> attrs }) {
+            it.library()
+        }
+
+        then:
+        attrs.asMap() == [
+            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY)
+        ]
+
+        when:
+        attrs = AttributeTestUtil.attributesFactory().mutable()
+        services.configureAttributes(Stub(HasConfigurableAttributes) { getAttributes() >> attrs }) {
+            it.platform()
+        }
+
+        then:
+        attrs.asMap() == [
+            (CATEGORY_ATTRIBUTE): named(Category, REGULAR_PLATFORM)
+        ]
+
+        when:
+        attrs = AttributeTestUtil.attributesFactory().mutable()
+        services.configureAttributes(Stub(HasConfigurableAttributes) { getAttributes() >> attrs }) {
+            it.enforcedPlatform()
+        }
+
+        then:
+        attrs.asMap() == [
+            (CATEGORY_ATTRIBUTE): named(Category, ENFORCED_PLATFORM)
+        ]
+
+        when:
+        attrs = AttributeTestUtil.attributesFactory().mutable()
+        services.configureAttributes(Stub(HasConfigurableAttributes) { getAttributes() >> attrs }) {
+            it.library('foo')
+        }
+
+        then:
+        attrs.asMap() == [
+            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
+            (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, 'foo')
+        ]
+
+        when:
+        services.configureAttributes(Stub(HasConfigurableAttributes) { getAttributes() >> attrs }) {
+            it.asJar()
+        }
+
+        then:
+        attrs.asMap() == [
+            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
+            (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR)
+        ]
+
+        when:
+        attrs = AttributeTestUtil.attributesFactory().mutable()
+        services.configureAttributes(Stub(HasConfigurableAttributes) { getAttributes() >> attrs }) {
+            it.documentation("foo")
+        }
+
+        then:
+        attrs.asMap() == [
+            (CATEGORY_ATTRIBUTE): named(Category, DOCUMENTATION),
+            (DOCS_TYPE_ATTRIBUTE): named(DocsType, 'foo')
+        ]
+
+        when:
+        attrs = AttributeTestUtil.attributesFactory().mutable()
+        services.configureAttributes(Stub(HasConfigurableAttributes) { getAttributes() >> attrs }) {
+            it.apiUsage()
+        }
+
+        then:
+        attrs.asMap() == [
+            (USAGE_ATTRIBUTE): named(Usage, JAVA_API)
+        ]
+
+        when:
+        attrs = AttributeTestUtil.attributesFactory().mutable()
+        services.configureAttributes(Stub(HasConfigurableAttributes) { getAttributes() >> attrs }) {
+            it.runtimeUsage()
+        }
+
+        then:
+        attrs.asMap() == [
+            (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME)
+        ]
+
+        when:
+        services.configureAttributes(Stub(HasConfigurableAttributes) { getAttributes() >> attrs }) {
+            it.withExternalDependencies()
+        }
+
+        then:
+        attrs.asMap() == [
+            (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
+            (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL)
+        ]
+
+        when:
+        services.configureAttributes(Stub(HasConfigurableAttributes) { getAttributes() >> attrs }) {
+            it.withEmbeddedDependencies()
+        }
+
+        then:
+        attrs.asMap() == [
+            (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
+            (BUNDLING_ATTRIBUTE): named(Bundling, EMBEDDED)
+        ]
+
+        when:
+        services.configureAttributes(Stub(HasConfigurableAttributes) { getAttributes() >> attrs }) {
+            it.withShadowedDependencies()
+        }
+
+        then:
+        attrs.asMap() == [
+            (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
+            (BUNDLING_ATTRIBUTE): named(Bundling, SHADOWED)
+        ]
+
+        when:
+        services.configureAttributes(Stub(HasConfigurableAttributes) { getAttributes() >> attrs }) {
+            it.withTargetJvmVersion(15)
+        }
+
+        then:
+        attrs.asMap() == [
+            (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
+            (BUNDLING_ATTRIBUTE): named(Bundling, SHADOWED),
+            (TARGET_JVM_VERSION_ATTRIBUTE): 15
+        ]
     }
 
 }

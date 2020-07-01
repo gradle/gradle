@@ -21,8 +21,8 @@ import org.gradle.api.component.SoftwareComponentContainer
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.api.plugins.JavaPluginConvention
-import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.plugins.Convention
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -31,12 +31,14 @@ abstract class AbstractJvmPluginServicesTest extends Specification {
     def configurations = Mock(ConfigurationContainer)
     def tasks = Mock(TaskContainerInternal)
     def softwareComponents = Mock(SoftwareComponentContainer)
-    def convention = Mock(JavaPluginConvention)
-    def extension = Mock(JavaPluginExtension)
+    def sourceSets = Mock(SourceSetContainer)
     def project = Stub(ProjectInternal) {
         getObjects() >> TestUtil.objectFactory()
         getLayout() >> Stub(ProjectLayout) {
             getBuildDirectory() >> TestUtil.objectFactory().directoryProperty()
+        }
+        getConvention() >> Stub(Convention) {
+            findPlugin(_) >> null
         }
         getTasks() >> tasks
     }
@@ -52,8 +54,8 @@ abstract class AbstractJvmPluginServicesTest extends Specification {
 
     def setup() {
         services.inject(
-                extension,
-                project
+            project,
+            sourceSets
         )
     }
 }
