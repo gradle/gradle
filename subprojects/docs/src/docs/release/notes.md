@@ -1,6 +1,8 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [1](), [2](), ... [n](), and more.
+This release features [TBD Config cache](), [release flag support]() and a new [Credentials Provider API]().
+
+There are also several other improvements including [injectable ArchiveOperations], improved normalization of manifest files [many bug fixes](#fixed-issues). 
 
 We would like to thank the following community contributors to this release of Gradle:
 
