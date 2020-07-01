@@ -749,7 +749,7 @@ Also, note that credentials will only be required if the invoked build requires 
 to publish artifacts to a secured repository, but the build does not invoke publishing task, Gradle will not require
 publishing credentials to be present. On the other hand, if the build needs to execute a task that requires credentials
 at some point, Gradle will check for credential presence first thing and will not start running any of the tasks
-if it knows that the build will fail down the line because of missing credentials.
+if it knows that the build will fail at a later point because of missing credentials.
 
 Here is a link:{samplesPath}/sample_publishing_credentials.html[downloadable sample] that demonstrates the concept in more detail.
 
