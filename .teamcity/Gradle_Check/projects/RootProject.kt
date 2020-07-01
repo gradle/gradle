@@ -30,6 +30,7 @@ class RootProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBuc
 
     params {
         password("teamcity.user.bot-gradle.token", "credentialsJSON:6b612db7-378d-4c16-adeb-f74543ff29ae", display = ParameterDisplay.HIDDEN)
+        param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
     }
 
     var prevStage: Stage? = null

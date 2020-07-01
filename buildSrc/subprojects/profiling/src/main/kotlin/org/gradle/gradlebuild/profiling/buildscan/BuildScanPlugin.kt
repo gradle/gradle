@@ -19,13 +19,11 @@ import com.gradle.scan.plugin.BuildScanExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
-import org.gradle.gradlebuild.BuildEnvironment.isGhActions
 import org.gradle.gradlebuild.BuildEnvironment.isJenkins
 import org.gradle.gradlebuild.BuildEnvironment.isTravis
 import org.gradle.gradlebuild.packaging.ClasspathManifest
@@ -38,7 +36,7 @@ import kotlin.collections.component1
 import kotlin.collections.component2
 
 
-const val serverUrl = "https://e.grdev.net"
+const val serverUrl = "https://ge.gradle.org"
 
 
 private
@@ -65,11 +63,9 @@ open class BuildScanPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         buildScan = the()
 
-        extractCiOrLocalData()
-        extractVcsData()
+        extractCiData()
 
         if (isCiServer) {
-            doNotUploadInBackground()
             if (!isTravis && !isJenkins) {
                 extractAllReportsFromCI()
                 monitorUnexpectedCacheMisses()
@@ -77,8 +73,6 @@ open class BuildScanPlugin : Plugin<Project> {
         }
 
         extractCheckstyleAndCodenarcData()
-        extractBuildCacheData()
-        extractWatchFsData()
 
 // TODO LD - adapt after changes merged and master updated to build with them
 //        if ((project.gradle as GradleInternal).buildType != GradleInternal.BuildType.TASKS) {
@@ -188,46 +182,18 @@ open class BuildScanPlugin : Plugin<Project> {
     fun isEc2Agent() = java.net.InetAddress.getLocalHost().hostName.startsWith("ip-")
 
     private
-    fun Project.extractCiOrLocalData() {
+    fun Project.extractCiData() {
         if (isCiServer) {
             buildScan {
-                tag("CI")
+                background {
+                    setCompileAllScanSearch(execAndGetStdout("git", "rev-parse", "--verify", "HEAD"))
+                }
                 if (isEc2Agent()) {
                     tag("EC2")
-                }
-                when {
-                    isTravis -> {
-                        link("Travis Build", System.getenv("TRAVIS_BUILD_WEB_URL"))
-                        value("Build ID", System.getenv("TRAVIS_BUILD_ID"))
-                        setCommitId(System.getenv("TRAVIS_COMMIT"))
-                    }
-                    isJenkins -> {
-                        link("Jenkins Build", System.getenv("BUILD_URL"))
-                        value("Build ID", System.getenv("BUILD_ID"))
-                        setCommitId(System.getenv("GIT_COMMIT"))
-                    }
-                    isGhActions -> {
-                        link("GitHub Actions Build", "https://github.com/gradle/gradle/runs/${System.getenv("GITHUB_RUN_ID")}")
-                        value("Build ID", "${System.getenv("GITHUB_RUN_ID")} ${System.getenv("GITHUB_RUN_NUMBER")}")
-                        setCommitId(System.getenv("GITHUB_SHA"))
-                    }
-                    else -> {
-                        link("TeamCity Build", System.getenv("BUILD_URL"))
-                        value("Build ID", System.getenv("BUILD_ID"))
-                        setCommitId(System.getenv("BUILD_VCS_NUMBER"))
-                    }
                 }
                 whenEnvIsSet("BUILD_TYPE_ID") { buildType ->
                     value(ciBuildTypeName, buildType)
                     link("Build Type Scans", customValueSearchUrl(mapOf(ciBuildTypeName to buildType)))
-                }
-            }
-        } else {
-            buildScan.tag("LOCAL")
-            if (listOf("idea.registered", "idea.active", "idea.paths.selector").map(System::getProperty).filterNotNull().isNotEmpty()) {
-                buildScan.tag("IDEA")
-                System.getProperty("idea.paths.selector")?.let { ideaVersion ->
-                    buildScan.value("IDEA version", ideaVersion)
                 }
             }
         }
@@ -239,45 +205,6 @@ open class BuildScanPlugin : Plugin<Project> {
         if (!envValue.isNullOrEmpty()) {
             action(envValue)
         }
-    }
-
-    private
-    fun Project.extractVcsData() {
-        buildScan {
-
-            if (!isCiServer) {
-                background {
-                    setCommitId(execAndGetStdout("git", "rev-parse", "--verify", "HEAD"))
-                }
-            }
-
-            background {
-                execAndGetStdout("git", "status", "--porcelain").takeIf { it.isNotEmpty() }?.let { status ->
-                    tag("dirty")
-                    value("Git Status", status)
-                }
-            }
-
-            background {
-                execAndGetStdout("git", "rev-parse", "--abbrev-ref", "HEAD").takeIf { it.isNotEmpty() && it != "HEAD" }?.let { branchName ->
-                    tag(branchName)
-                    value("Git Branch Name", branchName)
-                }
-            }
-        }
-    }
-
-    private
-    fun Project.extractBuildCacheData() {
-        if (gradle.startParameter.isBuildCacheEnabled) {
-            buildScan.tag("CACHED")
-        }
-    }
-
-    private
-    fun Project.extractWatchFsData() {
-        val watchFileSystem = (project.gradle.startParameter as StartParameterInternal).isWatchFileSystem
-        buildScan.value(watchFileSystemName, watchFileSystem.toString())
     }
 
     private
@@ -302,18 +229,10 @@ open class BuildScanPlugin : Plugin<Project> {
     }
 
     private
-    fun BuildScanExtension.setCommitId(commitId: String) {
-        value(gitCommitName, commitId)
-        link("Source", "https://github.com/gradle/gradle/commit/$commitId")
+    fun BuildScanExtension.setCompileAllScanSearch(commitId: String) {
         if (!isTravis) {
-            link("Git Commit Scans", customValueSearchUrl(mapOf(gitCommitName to commitId)))
             link("CI CompileAll Scan", customValueSearchUrl(mapOf(gitCommitName to commitId)) + "&search.tags=CompileAll")
         }
-    }
-
-    private
-    fun Project.doNotUploadInBackground() {
-        buildScan.isUploadInBackground = false
     }
 
     private
