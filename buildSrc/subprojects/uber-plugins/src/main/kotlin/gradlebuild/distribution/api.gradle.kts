@@ -15,7 +15,7 @@
  */
 package gradlebuild.distribution
 
-import org.gradle.gradlebuild.packaging.GradleModuleApiAttribute
+import gradlebuild.basics.GradleModuleApiAttribute
 
 configurations["runtimeElements"].attributes {
     attribute(GradleModuleApiAttribute.attribute, GradleModuleApiAttribute.API)

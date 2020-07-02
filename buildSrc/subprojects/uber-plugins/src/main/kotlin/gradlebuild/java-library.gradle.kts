@@ -19,6 +19,8 @@ import org.gradle.kotlin.dsl.*
 
 plugins {
     `java-library`
+    id("gradlebuild.dependency-modules")
+    id("gradlebuild.dependencies-metadata-rules")
     id("gradlebuild.repositories")
     id("gradlebuild.minify")
     id("gradlebuild.reproducible-archives")
@@ -29,27 +31,12 @@ plugins {
     id("gradlebuild.task-properties-validation")
     id("gradlebuild.strict-compile")
     id("gradlebuild.classycle")
+    id("gradlebuild.integration-tests")
+    id("gradlebuild.cross-version-tests")
 }
 
 apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
 
-if (file("src/integTest").isDirectory) {
-    apply(plugin = "gradlebuild.integration-tests")
-}
-
-if (file("src/crossVersionTest").isDirectory) {
-    apply(plugin = "gradlebuild.cross-version-tests")
-}
-
-if (file("src/performanceTest").isDirectory) {
-    apply(plugin = "gradlebuild.performance-test")
-}
-
-if (file("src/jmh").isDirectory) {
-    apply(plugin = "gradlebuild.jmh")
-}
-
 tasks.named("check").configure {
-    dependsOn(":docs:checkstyleApi")
     dependsOn("codeQuality")
 }

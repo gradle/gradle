@@ -1,9 +1,9 @@
-import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
-import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
+import gradlebuild.basics.BuildEnvironment
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
+import gradlebuild.integrationtests.tasks.IntegrationTest
 
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 val integTestRuntimeResources: Configuration by configurations.creating {

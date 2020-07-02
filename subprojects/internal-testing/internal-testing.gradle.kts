@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.internal.java
+    id("gradlebuild.internal.java")
 }
 
 dependencies {

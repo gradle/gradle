@@ -15,8 +15,6 @@
  */
 package gradlebuild
 
-import build.configureKotlinCompilerForGradleBuild
-
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -35,6 +33,10 @@ tasks {
     withType<KotlinCompile>().configureEach {
         configureKotlinCompilerForGradleBuild()
         kotlinOptions.allWarningsAsErrors = true
+        if (name == "compileTestKotlin") {
+            // Make sure the classes dir is used for test compilation (required by tests accessing internal methods) - https://github.com/gradle/gradle/issues/11501
+            classpath = sourceSets.main.get().output.classesDirs + classpath - files(tasks.jar)
+        }
     }
 
     withType<KtlintFormatTask>().configureEach {
@@ -55,5 +57,19 @@ tasks {
         systemProperty(
             DefaultClassLoaderScope.STRICT_MODE_PROPERTY,
             true)
+    }
+}
+
+fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
+    kotlinOptions {
+        apiVersion = "1.3"
+        languageVersion = "1.3"
+        freeCompilerArgs += listOf(
+            "-Xjsr305=strict",
+            "-java-parameters",
+            "-Xskip-runtime-version-check",
+            "-progressive"
+        )
+        jvmTarget = "1.8"
     }
 }

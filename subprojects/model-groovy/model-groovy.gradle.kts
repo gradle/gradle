@@ -18,7 +18,7 @@
  * Groovy specific adaptations to the model management.
  */
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {

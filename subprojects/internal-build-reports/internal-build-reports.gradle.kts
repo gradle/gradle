@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiAggregateReportTask
-import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiReportTask
+import gradlebuild.incubation.tasks.IncubatingApiAggregateReportTask
+import gradlebuild.incubation.tasks.IncubatingApiReportTask
 
 plugins {
-    gradlebuild.internal.java
+    id("gradlebuild.internal.java")
 }
 
 val allIncubationReports = tasks.register<IncubatingApiAggregateReportTask>("allIncubationReports") {

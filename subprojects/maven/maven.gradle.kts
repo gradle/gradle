@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradlebuild.cleanup.WhenNotEmpty
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {

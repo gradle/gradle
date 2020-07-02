@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import build.kotlinVersion
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -29,7 +28,7 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":snapshots"))
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:${libs.kotlinVersion}")
     implementation(library("inject"))
     implementation(library("groovy"))
     implementation(library("slf4j_api"))

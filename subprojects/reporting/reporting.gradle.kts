@@ -1,5 +1,5 @@
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 val implementationResources: Configuration by configurations.creating
@@ -45,12 +45,11 @@ classycle {
     excludePatterns.set(listOf("org/gradle/api/reporting/internal/**"))
 }
 
-val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
-
-val reportResources by tasks.registering(Copy::class) {
+val reportResources = tasks.register<Copy>("reportResources") {
     from(implementationResources)
-    into(generatedResourcesDir.dir("org/gradle/reporting").get().asFile)
+    into(layout.buildDirectory.file("generated-resources/report-resources/org/gradle/reporting"))
 }
+
 sourceSets.main {
-    output.dir(generatedResourcesDir, "builtBy" to reportResources)
+    output.dir(reportResources.map { it.destinationDir.parentFile.parentFile.parentFile })
 }

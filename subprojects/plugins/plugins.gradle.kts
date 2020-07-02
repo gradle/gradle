@@ -1,5 +1,5 @@
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
+import gradlebuild.cleanup.WhenNotEmpty
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 /*
  * Copyright 2010 the original author or authors.
@@ -17,7 +17,7 @@ import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {

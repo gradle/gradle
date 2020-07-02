@@ -1,5 +1,5 @@
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 description = "A set of general-purpose resource abstractions"

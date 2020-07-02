@@ -1,8 +1,8 @@
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
+import gradlebuild.cleanup.WhenNotEmpty
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
