@@ -232,9 +232,9 @@ class CIConfigIntegrationTests {
     fun onlyReadyForNightlyTriggerHasUpdateBranchStatus() {
         val triggerNameToTasks = rootProject.buildTypes.map { it.uuid to ((it as StagePasses).steps.items[0] as GradleBuildStep).tasks }.toMap()
         val readyForNightlyId = toTriggerId("MasterAccept")
-        assertEquals("createBuildReceipt updateBranchStatus", triggerNameToTasks[readyForNightlyId])
+        assertEquals(":baseServices:createBuildReceipt updateBranchStatus", triggerNameToTasks[readyForNightlyId])
         val otherTaskNames = triggerNameToTasks.filterKeys { it != readyForNightlyId }.values.toSet()
-        assertEquals(setOf("createBuildReceipt"), otherTaskNames)
+        assertEquals(setOf(":baseServices:createBuildReceipt"), otherTaskNames)
     }
 
     private fun toTriggerId(id: String) = "Gradle_Check_Stage_${id}_Trigger"
