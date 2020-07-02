@@ -42,6 +42,7 @@ public class DefaultJvmLanguageGeneratedSourceDirectoryBuilder implements JvmLan
     private Action<? super CompileTaskDetails> taskBuilder;
     private TaskProvider<? extends Task> sourceTaskProvider;
     private Function<? extends Task, DirectoryProperty> mapping;
+    private boolean includeInAllJava;
 
     @Inject
     public DefaultJvmLanguageGeneratedSourceDirectoryBuilder(ProjectInternal project, SourceSet sourceSet) {
@@ -85,12 +86,13 @@ public class DefaultJvmLanguageGeneratedSourceDirectoryBuilder implements JvmLan
 
     @Override
     public JvmLanguageSourceDirectoryBuilder includeInAllJava() {
-        throw new IllegalStateException("Generated sources can't be included in the all sources source set");
+        includeInAllJava = true;
+        return this;
     }
 
     void build() {
         if (taskBuilder == null) {
-            throw new IllegalStateException("You must specify the task which will contribute classes from this source directory");
+            throw new IllegalStateException("You must specify how sources will be compiled either by calling compiledWithJava or compiledBy");
         }
         if (mapping == null) {
             throw new IllegalStateException("You must specify the mapping function from your source generating task to a directory property");
@@ -106,8 +108,16 @@ public class DefaultJvmLanguageGeneratedSourceDirectoryBuilder implements JvmLan
         sourceSetOutput.addClassesDir(details.compileTask.flatMap(task -> details.compileMapping.apply(Cast.uncheckedCast(task))));
         sourceSetOutput.registerClassesContributor(details.compileTask);
         sourceSetOutput.getGeneratedSourcesDirs().from(sourceDirectory);
-        project.getTasks().named(JavaPlugin.CLASSES_TASK_NAME).configure(classes ->
+        project.getTasks().matching(DefaultJvmLanguageGeneratedSourceDirectoryBuilder::isClassesTask).configureEach(classes ->
             classes.dependsOn(details.compileTask));
+        if (includeInAllJava) {
+            sourceSet.getAllJava().srcDir(sourceDirectory);
+        }
+        sourceSet.getAllSource().srcDir(sourceDirectory);
+    }
+
+    private static boolean isClassesTask(Task t) {
+        return JavaPlugin.CLASSES_TASK_NAME.equals(t.getName());
     }
 
     private DefaultCompileTaskDetails createTaskDetails(DirectoryProperty sources) {

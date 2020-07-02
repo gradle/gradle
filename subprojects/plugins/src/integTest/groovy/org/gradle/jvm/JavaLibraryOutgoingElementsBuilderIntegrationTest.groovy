@@ -91,7 +91,7 @@ Attributes
     - org.gradle.usage               = java-${runtime ? 'runtime' : 'api'}
 
 Artifacts
-    - build/libs/mylib-1.4-all.jar (artifactType = jar)
+    - build${File.separator}libs${File.separator}mylib-1.4-all.jar (artifactType = jar)
 """
         when:
         run 'publish'
@@ -168,7 +168,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = classes
           - org.gradle.usage               = java-api
        - Artifacts
-          - build/classes/java/integTest (artifactType = java-classes-directory)"""
+          - build${File.separator}classes${File.separator}java${File.separator}integTest (artifactType = java-classes-directory)"""
         }
 
         where:
