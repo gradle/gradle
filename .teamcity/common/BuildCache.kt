@@ -32,11 +32,5 @@ data class RemoteBuildCache(val url: String, val username: String = "%gradle.cac
 
 val builtInRemoteBuildCacheNode = RemoteBuildCache("%gradle.cache.remote.url%")
 
-object NoBuildCache : BuildCache {
-    override fun gradleParameters(os: Os): List<String> {
-        return listOf("--no-build-cache")
-    }
-}
-
 private
 fun Os.escapeKeyValuePair(key: String, value: String) = if (this == Os.windows) """$key="$value"""" else """"$key=$value""""

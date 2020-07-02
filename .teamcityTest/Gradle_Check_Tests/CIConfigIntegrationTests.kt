@@ -5,7 +5,6 @@ import Gradle_Check.model.StatisticBasedGradleBuildBucketProvider
 import Gradle_Check.model.ignoredSubprojects
 import common.JvmVendor
 import common.JvmVersion
-import common.NoBuildCache
 import common.Os
 import configurations.FunctionalTest
 import configurations.StagePasses
@@ -13,7 +12,6 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import model.CIBuildModel
 import model.GradleSubproject
-import model.SpecificBuild
 import model.Stage
 import model.StageNames
 import model.TestCoverage
@@ -105,30 +103,6 @@ class CIConfigIntegrationTests {
             model.subprojects.subprojects.map { it.createFunctionalTestsFor(model, stage, testConfig, Int.MAX_VALUE) }
 
         override fun createDeferredFunctionalTestsFor(stage: Stage) = emptyList<FunctionalTest>()
-    }
-
-    @Test
-    fun canDeactivateBuildCacheAndAdjustCIModel() {
-        val m = CIBuildModel(
-            projectPrefix = "Gradle_BuildCacheDeactivated_",
-            parentBuildCache = NoBuildCache,
-            childBuildCache = NoBuildCache,
-            stages = listOf(
-                Stage(StageNames.QUICK_FEEDBACK,
-                    specificBuilds = listOf(
-                        SpecificBuild.CompileAll,
-                        SpecificBuild.SanityCheck,
-                        SpecificBuild.BuildDistributions),
-                    functionalTests = listOf(
-                        TestCoverage(1, TestType.quick, Os.linux, JvmVersion.java8),
-                        TestCoverage(2, TestType.quick, Os.windows, JvmVersion.java11, vendor = JvmVendor.openjdk)),
-                    omitsSlowProjects = true)
-            ),
-            subprojects = subprojectProvider
-        )
-        val p = RootProject(m, SubProjectBucketProvider(m))
-        printTree(p)
-        assertTrue(p.subProjects.size == 1)
     }
 
     private
