@@ -137,9 +137,7 @@ public class JvmPluginsHelper {
         sourceDirectorySet.getDestinationDirectory().convention(target.getLayout().getBuildDirectory().dir(sourceSetChildPath));
 
         DefaultSourceSetOutput sourceSetOutput = Cast.cast(DefaultSourceSetOutput.class, sourceSet.getOutput());
-        // This little dance with `providers.provider` is only there for backwards compatibility, because the old "task dependencies" didn't transitively get `compileJava`
-        // we should investigate if we can just use the provider directly and update the corresponding tests instead
-        sourceSetOutput.addClassesDir(target.getProviders().provider(() -> sourceDirectorySet.getClassesDirectory().get()));
+        sourceSetOutput.addClassesDir(sourceDirectorySet.getDestinationDirectory());
         sourceSetOutput.registerClassesContributor(compileTask);
         sourceSetOutput.getGeneratedSourcesDirs().from(options.flatMap(CompileOptions::getGeneratedSourceOutputDirectory));
         sourceDirectorySet.compiledBy(compileTask, classesDirectoryExtractor);
