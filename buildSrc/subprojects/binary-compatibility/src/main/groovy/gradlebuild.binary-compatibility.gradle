@@ -68,9 +68,9 @@ configurations {
 }
 
 def configurationsContainer = configurations
-def apiSourceFolders = files()
-def oldArchivesFiles = files()
-def newArchivesFiles = files()
+def apiSourceFolders = objects.fileCollection()
+def oldArchivesFiles = objects.fileCollection()
+def newArchivesFiles = objects.fileCollection()
 dependencies {
     baseline "gradle:gradle:${compatibilityBaselineVersion}@zip"
 
