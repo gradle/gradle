@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * An immutable sequence of file collections.
@@ -42,6 +43,24 @@ public class UnionFileCollection extends CompositeFileCollection {
 
     public Set<? extends FileCollection> getSources() {
         return source;
+    }
+
+    @Override
+    public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
+        for (FileCollectionInternal files : source) {
+            if (files == original) {
+                ImmutableSet.Builder<FileCollectionInternal> newSource = ImmutableSet.builderWithExpectedSize(source.size());
+                for (FileCollectionInternal candidate : source) {
+                    if (candidate == original) {
+                        newSource.add(supplier.get());
+                    } else {
+                        newSource.add(candidate);
+                    }
+                }
+                return new UnionFileCollection(newSource.build());
+            }
+        }
+        return this;
     }
 
     @Override

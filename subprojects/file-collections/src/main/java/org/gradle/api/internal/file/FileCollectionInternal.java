@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
+import java.util.function.Supplier;
 
 public interface FileCollectionInternal extends FileCollection, TaskDependencyContainer {
     @Override
@@ -29,6 +30,13 @@ public interface FileCollectionInternal extends FileCollection, TaskDependencyCo
 
     @Override
     FileTreeInternal getAsFileTree();
+
+    /**
+     * Returns a copy of this collection, with the given collection replaced with the value returned by the given supplier.
+     *
+     * This is used to deal with the case where a mutable collection may be added to itself. This is intended to become an error at some point.
+     */
+    FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier);
 
     /**
      * Visits the structure of this collection, that is, zero or more atomic sources of files.

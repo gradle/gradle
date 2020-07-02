@@ -19,6 +19,7 @@ package org.gradle.api.internal.file
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.AbstractFileCollectionTest.TestFileCollection
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -174,7 +175,7 @@ class CompositeFileCollectionTest extends Specification {
         0 * _
 
         when:
-        ((CompositeFileTree) fileTree).getSourceCollections()
+        fileTree.getSourceCollections()
 
         then:
         fileTree instanceof CompositeFileTree
@@ -193,13 +194,13 @@ class CompositeFileCollectionTest extends Specification {
         def collection = new TestCompositeFileCollection(source1, source2)
 
         when:
-        def fileTree = collection.getAsFileTree();
+        def fileTree = collection.getAsFileTree()
 
         then:
         0 * _
 
         when:
-        ((CompositeFileTree) fileTree).getSourceCollections()
+        fileTree.getSourceCollections()
 
         then:
         fileTree instanceof CompositeFileTree
@@ -209,12 +210,65 @@ class CompositeFileCollectionTest extends Specification {
 
         when:
         collection.sourceCollections.add(source3)
-        ((CompositeFileTree) fileTree).getSourceCollections()
+        fileTree.getSourceCollections()
 
         then:
         1 * source1.visitStructure(_) >> { FileCollectionStructureVisitor visitor -> visitor.visitCollection(null, [dir1]) }
         1 * source2.visitStructure(_) >> { FileCollectionStructureVisitor visitor -> visitor.visitCollection(null, [dir2]) }
         1 * source3.visitStructure(_) >> { FileCollectionStructureVisitor visitor -> visitor.visitCollection(null, [dir3]) }
+        0 * _
+    }
+
+    def "can filter the elements of collection"() {
+        def source1 = Mock(FileCollectionInternal)
+        def source2 = Mock(FileCollectionInternal)
+        def filtered1 = Mock(FileCollectionInternal)
+        def filtered2 = Mock(FileCollectionInternal)
+        def spec = Stub(Spec)
+        def collection = new TestCompositeFileCollection(source1, source2)
+
+        when:
+        def filtered = collection.filter(spec)
+
+        then:
+        0 * _
+
+        when:
+        def result = filtered.getSourceCollections()
+
+        then:
+        result == [filtered1, filtered2]
+        1 * source1.filter(spec) >> filtered1
+        1 * source2.filter(spec) >> filtered2
+        0 * _
+    }
+
+    def "can replace backing collection of filtered collection"() {
+        def source1 = Mock(FileCollectionInternal)
+        def source2 = Mock(FileCollectionInternal)
+        def filtered2 = Mock(FileCollectionInternal)
+        def other = Mock(FileCollectionInternal)
+        def spec = Stub(Spec)
+        def collection = new TestCompositeFileCollection(source1, source2)
+        def collection2 = new TestCompositeFileCollection(source2)
+
+        def filtered = collection.filter(spec)
+
+        when:
+        def replaced = filtered.replace(other, {})
+        def replaced2 = filtered.replace(collection, { collection2 })
+
+        then:
+        replaced.is(filtered)
+        replaced2 != filtered
+        0 * _
+
+        when:
+        def result = replaced2.getSourceCollections()
+
+        then:
+        result == [filtered2]
+        1 * source2.filter(spec) >> filtered2
         0 * _
     }
 

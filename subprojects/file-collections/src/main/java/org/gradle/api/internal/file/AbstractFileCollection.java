@@ -48,6 +48,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public abstract class AbstractFileCollection implements FileCollectionInternal {
     protected final Factory<PatternSet> patternSetFactory;
@@ -92,6 +93,14 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         // Assume no dependencies
+    }
+
+    @Override
+    public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
+        if (original == this) {
+            return supplier.get();
+        }
+        return this;
     }
 
     @Override

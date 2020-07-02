@@ -27,6 +27,7 @@ import org.gradle.internal.Factory;
 import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * A {@link org.gradle.api.file.FileCollection} that contains the union of zero or more file collections. Maintains file ordering.
@@ -74,6 +75,15 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     @Override
     public FileCollectionInternal filter(final Spec<? super File> filterSpec) {
         return new CompositeFileCollection(patternSetFactory) {
+            @Override
+            public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
+                FileCollectionInternal newCollection = CompositeFileCollection.this.replace(original, supplier);
+                if (newCollection == CompositeFileCollection.this) {
+                    return this;
+                }
+                return newCollection.filter(filterSpec);
+            }
+
             @Override
             protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
                 CompositeFileCollection.this.visitChildren(child -> visitor.accept(child.filter(filterSpec)));

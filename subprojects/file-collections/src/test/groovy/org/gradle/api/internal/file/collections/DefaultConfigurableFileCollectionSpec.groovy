@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
 
 import java.util.concurrent.Callable
+import java.util.function.Supplier
 
 class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
@@ -490,7 +491,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         1 * visitor.startVisit(_, collection) >> true
         1 * fileResolver.resolve("file") >> file
         1 * visitor.startVisit(_, _) >> true
-        1 * visitor.visitCollection(_, {it.toList() == [file]})
+        1 * visitor.visitCollection(_, { it.toList() == [file] })
         1 * fileCollectionMock.visitStructure(visitor)
         0 * visitor._
     }
@@ -1433,5 +1434,43 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         result == [file] as Set
+    }
+
+    def "can replace one of the elements of an empty collection"() {
+        expect:
+        def replaced = collection.replace(Stub(FileCollectionInternal), {})
+        replaced.is(collection)
+    }
+
+    def "can replace one of the elements of a mutable collection"() {
+        def collection1 = Mock(FileCollectionInternal)
+        def collection2 = Mock(FileCollectionInternal)
+        def replaced1 = Stub(FileCollectionInternal)
+        def supplier = Stub(Supplier)
+
+        collection.from(collection1, collection2)
+
+        when:
+        def replaced = collection.replace(collection1, supplier)
+
+        then:
+        replaced != collection
+        replaced.sourceCollections == [replaced1, collection2]
+
+        1 * collection1.replace(collection1, supplier) >> replaced1
+        1 * collection2.replace(collection1, supplier) >> collection2
+        0 * _
+    }
+
+    def "can replace one of the elements of a finalized collection"() {
+        def collection1 = Stub(FileCollectionInternal)
+        def collection2 = Stub(FileCollectionInternal)
+
+        collection.from(collection1, collection2)
+        collection.finalizeValue()
+
+        expect:
+        def replaced = collection.replace(collection1, {})
+        replaced.is(collection)
     }
 }
