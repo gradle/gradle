@@ -480,10 +480,11 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Configure the minimal Java release version for this compile task (--release compiler flag)
-     *
-     * If set, it will take precedences over the {@link AbstractCompile#getSourceCompatibility()} and {@link AbstractCompile#getTargetCompatibility()} settings,
-     * which will have no effect in that case.
+     * Configures the Java language version for this compile task ({@code --release} compiler flag).
+     * <p>
+     * If set, it will take precedences over the {@link AbstractCompile#getSourceCompatibility()} and {@link AbstractCompile#getTargetCompatibility()} settings.
+     * <p>
+     * This option is only taken into account by the {@link JavaCompile} task.
      *
      * @since 6.6
      */
