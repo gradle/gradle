@@ -34,6 +34,7 @@ abstract class AbstractJvmPluginServicesTest extends Specification {
     def sourceSets = Mock(SourceSetContainer)
     def project = Stub(ProjectInternal) {
         getObjects() >> TestUtil.objectFactory()
+        getProviders() >> TestUtil.providerFactory()
         getLayout() >> Stub(ProjectLayout) {
             getBuildDirectory() >> TestUtil.objectFactory().directoryProperty()
         }
