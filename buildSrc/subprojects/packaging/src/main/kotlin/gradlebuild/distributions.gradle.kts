@@ -80,7 +80,7 @@ coreRuntimeClasspath.description = "Resolves to all Jars, including transitives,
 val gradleScriptPath by startScriptResolver(":launcher")
 gradleScriptPath.description = "Resolves to the Gradle start scripts (bin/*) - automatically adds dependency to the :launcher project"
 val sourcesPath by sourcesResolver(listOf(coreRuntimeOnly, pluginsRuntimeOnly))
-gradleScriptPath.description = "Resolves the source code of all Gradle modules Jars (required for the All distribution)"
+sourcesPath.description = "Resolves the source code of all Gradle modules Jars (required for the All distribution)"
 val docsPath by docsResolver(":docs")
 docsPath.description = "Resolves to the complete Gradle documentation - automatically adds dependency to the :docs project"
 
