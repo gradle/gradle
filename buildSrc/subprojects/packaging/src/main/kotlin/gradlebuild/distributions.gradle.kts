@@ -76,7 +76,7 @@ coreRuntimeOnly.description = "To define dependencies to the Gradle modules that
 val runtimeClasspath by libraryResolver(listOf(coreRuntimeOnly, pluginsRuntimeOnly))
 runtimeClasspath.description = "Resolves to all Jars that need to be in the distribution including all transitive dependencies"
 val coreRuntimeClasspath by libraryResolver(listOf(coreRuntimeOnly))
-runtimeClasspath.description = "Resolves to all Jars, including transitives, that make up the core of the distribution (needed to decide if a Jar goes into 'plugins' or not)"
+coreRuntimeClasspath.description = "Resolves to all Jars, including transitives, that make up the core of the distribution (needed to decide if a Jar goes into 'plugins' or not)"
 val gradleScriptPath by startScriptResolver(":launcher")
 gradleScriptPath.description = "Resolves to the Gradle start scripts (bin/*) - automatically adds dependency to the :launcher project"
 val sourcesPath by sourcesResolver(listOf(coreRuntimeOnly, pluginsRuntimeOnly))
@@ -115,7 +115,7 @@ val apiMapping by tasks.registering(GenerateApiMapping::class) {
     excludedPackages.set(GradleUserManualPlugin.getDefaultExcludedPackages())
 }
 
-// Which plugins are in the distribution and which are part of the public API? Required to generate API and Kotlind DSL Jars
+// Which plugins are in the distribution and which are part of the public API? Required to generate API and Kotlin DSL Jars
 val pluginsManifest by pluginsManifestTask(runtimeClasspath, coreRuntimeClasspath, GradleModuleApiAttribute.API)
 val implementationPluginsManifest by pluginsManifestTask(runtimeClasspath, coreRuntimeClasspath, GradleModuleApiAttribute.IMPLEMENTATION)
 
@@ -200,7 +200,7 @@ fun configureDistribution(name: String, distributionSpec: CopySpec, buildDistLif
 
     // A 'installation' variant providing a folder where the distribution is present in the final format for forked integration testing
     consumableVariant("${name}Installation", "gradle-$name-installation", Bundling.EMBEDDED, emptyList(), installation)
-    // A variant providing the zipped distribution as additional input for tests that test the final distribution or require a distributin as test data
+    // A variant providing the zipped distribution as additional input for tests that test the final distribution or require a distribution as test data
     consumableVariant("${name}DistributionZip", "gradle-$name-distribution-zip", Bundling.EMBEDDED, emptyList(), distributionZip)
 }
 
