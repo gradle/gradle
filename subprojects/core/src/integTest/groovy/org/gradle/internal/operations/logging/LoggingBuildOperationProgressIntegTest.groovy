@@ -431,8 +431,9 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         // Spent 18 ms registering watches for file system events
         // Virtual file system retained information about 0 files, 0 directories and 0 missing files since last build
         // Received 50 file system events for current build
+        // Watching 20 directories to track changes
         // Virtual file system retains information about 21 files, 15 directories and 3 missing files till next build
-        def watchFsExtraEvents = GradleContextualExecuter.watchFs ? 5 : 0
+        def watchFsExtraEvents = GradleContextualExecuter.watchFs ? 6 : 0
         assert progressOutputEvents
             .size() == 14 + watchFsExtraEvents // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
     }
