@@ -21,6 +21,7 @@ import org.gradle.instantexecution.problems.StructuredMessage
 import org.gradle.instantexecution.serialization.EncodingProvider
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.beans.BeanStateReader
 import org.gradle.instantexecution.serialization.codecs.BrokenValue
 import org.gradle.instantexecution.serialization.codecs.Decoding
 import org.gradle.instantexecution.serialization.codecs.Encoding
@@ -28,9 +29,11 @@ import org.gradle.instantexecution.serialization.codecs.EncodingProducer
 import org.gradle.instantexecution.serialization.decodePreservingIdentity
 import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
 import org.gradle.instantexecution.serialization.logPropertyProblem
+import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withBeanTrace
 import org.gradle.instantexecution.serialization.withImmediateMode
+import org.gradle.instantexecution.serialization.writeEnum
 
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -48,33 +51,52 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
 
     override fun encodingForType(type: Class<*>): Encoding? =
         type.takeIf { it.isSerializable() }?.let { serializableType ->
-            writeObjectMethodHierarchyOf(serializableType)
-                .takeIf { it.isNotEmpty() }
-                ?.let(SerializableWriteObjectCodec::WriteObjectEncoding)
+            writeObjectEncodingFor(serializableType)
+                ?: readObjectEncodingFor(serializableType)
         }
+
+    private
+    fun writeObjectEncodingFor(serializableType: Class<*>): Encoding? =
+        writeObjectMethodHierarchyOf(serializableType)
+            .takeIf { it.isNotEmpty() }
+            ?.let(::WriteObjectEncoding)
+
+    private
+    fun readObjectEncodingFor(serializableType: Class<*>): Encoding? =
+        readObjectMethodHierarchyOf(serializableType)
+            .takeIf { it.isNotEmpty() }
+            ?.let { ReadObjectEncoding }
 
     override suspend fun ReadContext.decode(): Any? =
         decodePreservingIdentity { id ->
+            val format = readEnum<Format>()
             withImmediateMode {
                 val beanType = readClass()
                 withBeanTrace(beanType) {
                     val beanStateReader = beanStateReaderFor(beanType)
                     beanStateReader.run { newBeanWithId(false, id) }.also { bean ->
-                        if (readBoolean()) {
-                            val objectInputStream = ObjectInputStreamAdapter(
-                                bean,
-                                beanStateReader,
-                                this@decode
-                            )
-                            val readObject = readObjectMethodHierarchyOf(beanType)
-                            when {
-                                readObject.isNotEmpty() -> readObject.forEach { it.invoke(bean, objectInputStream) }
-                                else -> objectInputStream.defaultReadObject()
+                        when (format) {
+                            Format.ReadObject -> {
+                                invokeAll(
+                                    readObjectMethodHierarchyOf(beanType),
+                                    bean,
+                                    objectInputStreamAdapterFor(bean, beanStateReader)
+                                )
                             }
-                        } else {
-                            val brokenValue = readNonNull<BrokenValue>()
-                            logPropertyProblem("deserialize", brokenValue.failure, NotYetImplementedJavaSerialization) {
-                                failedJOS(bean)
+                            Format.WriteObject -> {
+                                if (readBoolean()) {
+                                    val objectInputStream = objectInputStreamAdapterFor(bean, beanStateReader)
+                                    val readObject = readObjectMethodHierarchyOf(beanType)
+                                    when {
+                                        readObject.isNotEmpty() -> invokeAll(readObject, bean, objectInputStream)
+                                        else -> objectInputStream.defaultReadObject()
+                                    }
+                                } else {
+                                    val brokenValue = readNonNull<BrokenValue>()
+                                    logPropertyProblem("deserialize", brokenValue.failure, NotYetImplementedJavaSerialization) {
+                                        failedJOS(bean)
+                                    }
+                                }
                             }
                         }
                     }
@@ -83,11 +105,23 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
         }
 
     private
+    fun invokeAll(readObject: List<Method>, bean: Any, objectInputStream: ObjectInputStreamAdapter) {
+        readObject.forEach { method ->
+            method.invoke(bean, objectInputStream)
+        }
+    }
+
+    private
+    fun ReadContext.objectInputStreamAdapterFor(bean: Any, beanStateReader: BeanStateReader): ObjectInputStreamAdapter =
+        ObjectInputStreamAdapter(bean, beanStateReader, this)
+
+    private
     class WriteObjectEncoding(private val writeObject: List<Method>) : EncodingProvider<Any> {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
 
                 val beanType = value.javaClass
+                writeEnum(Format.WriteObject)
                 writeClass(beanType)
 
                 runCatching {
@@ -117,6 +151,21 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
                     method.invoke(value, recordingObjectOutputStream)
                 }
             }
+    }
+
+    private
+    object ReadObjectEncoding : Encoding {
+        override suspend fun WriteContext.encode(value: Any) {
+            encodePreservingIdentityOf(value) {
+                writeEnum(Format.ReadObject)
+                encodeBean(value)
+            }
+        }
+    }
+
+    enum class Format {
+        ReadObject,
+        WriteObject
     }
 
     private

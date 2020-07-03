@@ -72,7 +72,7 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
     }
 
     private
-    inner class WriteReplaceEncoding(private val writeReplace: Method) : EncodingProvider<Any> {
+    class WriteReplaceEncoding(private val writeReplace: Method) : EncodingProvider<Any> {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 val replacement = writeReplace.invoke(value)
@@ -88,22 +88,11 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
     }
 
     private
-    inner class ReadResolveEncoding : Encoding {
+    class ReadResolveEncoding : Encoding {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 writeEnum(Format.Inline)
                 encodeBean(value)
-            }
-        }
-    }
-
-    private
-    suspend fun WriteContext.encodeBean(value: Any) {
-        val beanType = value.javaClass
-        withBeanTrace(beanType) {
-            writeClass(beanType)
-            beanStateWriterFor(beanType).run {
-                writeStateOf(value)
             }
         }
     }
@@ -142,4 +131,16 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
     private
     fun Method.isReadResolve() =
         parameterCount == 0 && name == "readResolve" && returnType == java.lang.Object::class.java
+}
+
+
+internal
+suspend fun WriteContext.encodeBean(value: Any) {
+    val beanType = value.javaClass
+    withBeanTrace(beanType) {
+        writeClass(beanType)
+        beanStateWriterFor(beanType).run {
+            writeStateOf(value)
+        }
+    }
 }

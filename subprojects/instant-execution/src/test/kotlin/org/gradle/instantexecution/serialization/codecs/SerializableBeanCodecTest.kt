@@ -114,16 +114,6 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
     }
 
     @Test
-    fun `Externalizable problems link to the Java serialization section`() {
-        val problems = serializationProblemsOf(ExternalizableBean())
-        assertThat(problems.size, equalTo(1))
-        assertThat(
-            problems[0].documentationSection,
-            equalTo(NotYetImplementedJavaSerialization)
-        )
-    }
-
-    @Test
     fun `unimplemented serialization feature problems link to the Java serialization section`() {
         val problems = serializationProblemsOf(UnsupportedSerializableBean())
         assertThat(problems.size, equalTo(1))
@@ -133,12 +123,14 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
         )
     }
 
-    class UnsupportedSerializableBean : Serializable {
-
-        private
-        fun writeObject(objectOutputStream: ObjectOutputStream) {
-            objectOutputStream.putFields() // will throw
-        }
+    @Test
+    fun `Externalizable problems link to the Java serialization section`() {
+        val problems = serializationProblemsOf(ExternalizableBean())
+        assertThat(problems.size, equalTo(1))
+        assertThat(
+            problems[0].documentationSection,
+            equalTo(NotYetImplementedJavaSerialization)
+        )
     }
 
     @Test
@@ -186,6 +178,20 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
         verifyRoundtripOf(::SerializableWriteObjectOnlyBean) {
             assertThat(
                 it.value,
+                equalTo<Any>("42")
+            )
+        }
+    }
+
+    @Test
+    fun `can handle readObject without writeObject`() {
+        verifyRoundtripOf({ SerializableReadObjectOnlyBean("42") }) {
+            assertThat(
+                it.value,
+                equalTo<Any>("42")
+            )
+            assertThat(
+                it.transientValue,
                 equalTo<Any>("42")
             )
         }
@@ -292,6 +298,14 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
     fun javaDeserialize(bytes: ByteArray) =
         ObjectInputStream(ByteArrayInputStream(bytes)).readObject()
 
+    class UnsupportedSerializableBean : Serializable {
+
+        private
+        fun writeObject(objectOutputStream: ObjectOutputStream) {
+            objectOutputStream.putFields() // will throw
+        }
+    }
+
     class ExternalizableBean(var value: Int? = null) : Externalizable {
 
         override fun writeExternal(out: ObjectOutput) {
@@ -385,6 +399,19 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
         fun writeObject(objectOutputStream: ObjectOutputStream) {
             value = "42"
             objectOutputStream.defaultWriteObject()
+        }
+    }
+
+    class SerializableReadObjectOnlyBean(var value: Any? = null) : Serializable {
+
+        @Transient
+        var transientValue: Any? = null
+
+        @Suppress("UNUSED_PARAMETER")
+        private
+        fun readObject(objectInputStream: ObjectInputStream) {
+            transientValue = "42"
+            objectInputStream.defaultReadObject()
         }
     }
 

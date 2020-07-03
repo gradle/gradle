@@ -195,8 +195,8 @@ class Codecs(
 
         // Java serialization integration
         bind(unsupported<Externalizable>(NotYetImplementedJavaSerialization))
-        bind(SerializableWriteObjectCodec())
         bind(SerializableWriteReplaceCodec())
+        bind(SerializableWriteObjectCodec())
 
         // This protects the BeanCodec against StackOverflowErrors but
         // we can still get them for the other codecs, for instance,
