@@ -91,6 +91,15 @@ Gradle's dependency substitution API has been enriched to cover those cases.
 
 See the documentation on [variant-aware substitution](userguide/file:///home/cchampeau/DEV/PROJECTS/GITHUB/gradle/subprojects/docs/build/working/usermanual/render-multi/resolution_rules.html#sec:variant_aware_substitutions) for details.
 
+## `JavaCompile` supports the `--release` compiler option
+
+Java 9 introduced cross compilation support with the `--release` flag on the Java compiler.
+This option enables it to produce bytecode for an earlier version of Java combined with the guarantee that the code does not use any APIs from later versions.
+
+With this release, Gradle now supports that option on the `CompileOptions` of `JavaCompile` tasks.
+See the section on [cross compilation](userguide/building_java_projects.html#sec:java_cross_compilation) for details.
+Support on the javadoc tasks and other JVM language compilation will be added in future releases.
+
 ## Credentials Provider API
 
 In the previous release we added two samples that demonstrated two common use cases where credentials are used in Gradle builds -
