@@ -21,31 +21,9 @@ import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.provider.ProviderFactory
 import spock.lang.Specification
 
-class LocationListInstallationSupplierTest extends Specification {
+class CurrentInstallationSupplierTest extends Specification {
 
-    def "supplies no installations for absent property"() {
-        given:
-        def supplier = createSupplier(null)
-
-        when:
-        def directories = supplier.get()
-
-        then:
-        directories.isEmpty()
-    }
-
-    def "supplies no installations for empty property"() {
-        given:
-        def supplier = createSupplier("")
-
-        when:
-        def directories = supplier.get()
-
-        then:
-        directories.isEmpty()
-    }
-
-    def "supplies single installations for single path"() {
+    def "supplies java home as installation"() {
         given:
         def supplier = createSupplier("/foo/bar")
 
@@ -54,29 +32,18 @@ class LocationListInstallationSupplierTest extends Specification {
 
         then:
         directories*.location == [new File("/foo/bar")]
-        directories*.source == ["system property 'org.gradle.java.installations.paths'"]
-    }
-
-    def "supplies multiple installations for multiple paths"() {
-        given:
-        def supplier = createSupplier("/foo/bar,/foo/123")
-
-        when:
-        def directories = supplier.get()
-
-        then:
-        directories*.location.sort() == [new File("/foo/123"), new File("/foo/bar")]
+        directories*.source == ["current jvm"]
     }
 
     private createSupplier(String propertyValue) {
-        new LocationListInstallationSupplier(createProviderFactory(propertyValue))
+        new CurrentInstallationSupplier(createProviderFactory(propertyValue))
     }
 
     private ProviderFactory createProviderFactory(String propertyValue) {
         def providerFactory = Mock(ProviderFactory)
         def provider = new DefaultProperty(PropertyHost.NO_OP, String)
         provider.set(propertyValue)
-        providerFactory.gradleProperty("org.gradle.java.installations.paths") >> provider
+        providerFactory.systemProperty("java.home") >> provider
         providerFactory
     }
 
