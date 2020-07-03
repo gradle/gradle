@@ -17,9 +17,9 @@
 package gradlebuild.buildutils.tasks
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import gradlebuild.buildutils.model.ReleasedVersion
 import gradlebuild.buildutils.model.ReleasedVersions
-import groovy.json.JsonBuilder
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
@@ -44,7 +44,7 @@ abstract class UpdateReleasedVersions : DefaultTask() {
         val releasedVersions = Gson().fromJson(releasedVersionsFileObject.reader(), ReleasedVersions::class.java)
         val newReleasedVersions = updateReleasedVersions(currentReleasedVersionValue, releasedVersions)
 
-        releasedVersionsFileObject.appendText(JsonBuilder(newReleasedVersions).toPrettyString())
+        releasedVersionsFileObject.writeText(GsonBuilder().setPrettyPrinting().create().toJson(newReleasedVersions))
     }
 
     companion object {
