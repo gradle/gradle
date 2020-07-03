@@ -47,7 +47,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
         when:
         def jdk14 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_14)
         result = executer
-            .withArguments("-Porg.gradle.java.installations.paths=" + jdk14.javaHome.absolutePath, "--info")
+            .withArguments("-Porg.gradle.java.installations.paths=" + jdk14.javaHome.absolutePath)
             .withTasks("compileJava")
             .run()
 
