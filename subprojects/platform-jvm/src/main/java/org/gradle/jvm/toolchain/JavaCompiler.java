@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * A java compiler used by compile tasks.
  *
- * @since 6.6
+ * @since 6.7
  */
 @Incubating
 public interface JavaCompiler {
