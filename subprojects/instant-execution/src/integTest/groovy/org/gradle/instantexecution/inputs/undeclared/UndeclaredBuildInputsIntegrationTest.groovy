@@ -47,38 +47,73 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13569")
-    def "reports build logic reading system properties using GString parameters"() {
+    @Unroll
+    def "reports build logic reading system properties using GString parameters - #expression"() {
         buildFile << """
             def ci = "ci"
             def value = "value"
-            println "CI1 = " + System.getProperty("\${ci.toUpperCase()}1")
-            println "CI2 = " + System.getProperty("CI2", "\${value.toUpperCase()}")
-            println "CI3 = " + System.getProperty("\${ci.toUpperCase()}3", "value")
+            println "CI1 = " + $expression
         """
 
         when:
         instantRun()
 
         then:
-        outputContains("CI1 = ")
-        outputContains("CI2 = VALUE")
-        outputContains("CI3 = value")
+        outputContains("CI1 = ${notDefined}")
 
         when:
-        instantFails("-DCI1=true", "-DCI2=", "-DCI3=Value")
+        instantFails("-DCI1=${value}")
 
         then:
         problems.assertFailureHasProblems(failure) {
             withProblem("build file 'build.gradle': read system property 'CI1'")
-            withProblem("build file 'build.gradle': read system property 'CI2'")
-            withProblem("build file 'build.gradle': read system property 'CI3'")
         }
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
         failure.assertThatCause(containsNormalizedString("Read system property 'CI1'"))
-        outputContains("CI1 = true")
-        outputContains("CI2 = ")
-        outputContains("CI3 = Value")
+
+        outputContains("CI1 = ${expectedValue}")
+
+        where:
+        expression                                                             | notDefined | value     | expectedValue
+        'System.getProperty("${ci.toUpperCase()}1")'                           | ""         | "defined" | "defined"
+        'System.getProperty("${ci.toUpperCase()}1", "${value.toUpperCase()}")' | "VALUE"    | "defined" | "defined"
+        'Boolean.getBoolean("${ci.toUpperCase()}1")'                           | "false"    | "true"    | "true"
+        'Integer.getInteger("${ci.toUpperCase()}1")'                           | "null"     | "123"     | "123"
+        'Long.getLong("${ci.toUpperCase()}1")'                                 | "null"     | "123"     | "123"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13652")
+    @Unroll
+    def "reports build logic reading system properties with null defaults - #expression"() {
+        buildFile << """
+            println "CI1 = " + $expression
+        """
+
+        when:
+        instantRun()
+
+        then:
+        outputContains("CI1 = null")
+
+        when:
+        instantFails("-DCI1=${value}")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblem("build file 'build.gradle': read system property 'CI1'")
+        }
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertHasLineNumber(2)
+        failure.assertThatCause(containsNormalizedString("Read system property 'CI1'"))
+
+        outputContains("CI1 = ${expectedValue}")
+
+        where:
+        expression                        | value     | expectedValue
+        'System.getProperty("CI1", null)' | "defined" | "defined"
+        'Integer.getInteger("CI1", null)' | "123"     | "123"
+        'Long.getLong("CI1", null)'       | "123"     | "123"
     }
 
     @Unroll
