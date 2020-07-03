@@ -36,6 +36,7 @@ import org.gradle.jvm.internal.resolve.JvmVariantSelector;
 import org.gradle.jvm.internal.resolve.VariantAxisCompatibilityFactory;
 import org.gradle.jvm.internal.resolve.VariantsMetaData;
 import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultJavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
@@ -68,6 +69,7 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         registration.add(SharedJavaInstallationRegistry.class);
         registration.add(LocationListInstallationSupplier.class);
         registration.add(EnvironmentVariableListInstallationSupplier.class);
+        registration.add(CurrentInstallationSupplier.class);
     }
 
     @Override
