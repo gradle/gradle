@@ -16,7 +16,6 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
@@ -24,7 +23,6 @@ import org.gradle.testing.fixture.TestNGCoverage
 @TargetCoverage({TestNGCoverage.PRESERVE_ORDER})
 public class TestNGPreserveOrderIntegrationTest extends MultiVersionIntegrationSpec {
 
-    @ToBeFixedForInstantExecution
     def "run tests using preserveOrder"() {
         buildFile << """
             apply plugin: 'java'

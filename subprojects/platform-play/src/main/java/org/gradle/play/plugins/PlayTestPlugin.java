@@ -86,8 +86,6 @@ public class PlayTestPlugin extends RuleSource {
             tasks.create(testTaskName, Test.class, test -> {
                 test.setDescription("Runs " + WordUtils.uncapitalize(binary.getDisplayName() + "."));
 
-                test.setClasspath(testClassesDirs.plus(testCompileClasspath));
-
                 test.setTestClassesDirs(testClassesDirs);
                 test.setBinResultsDir(new File(binaryBuildDir, "results/" + testTaskName + "/bin"));
                 test.getReports().getJunitXml().setDestination(new File(binaryBuildDir, "reports/test/xml"));
@@ -95,6 +93,7 @@ public class PlayTestPlugin extends RuleSource {
                 test.dependsOn(testCompileTaskName);
                 test.setWorkingDir(projectIdentifier.getProjectDir());
             });
+            tasks.withType(Test.class).named(testTaskName, test -> test.setClasspath(testClassesDirs.plus(testCompileClasspath)));
             binary.getTasks().add(tasks.get(testTaskName));
         }
     }

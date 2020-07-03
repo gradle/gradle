@@ -23,6 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
@@ -62,6 +63,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
@@ -150,7 +152,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     private FileCollection testClassesDirs;
     private final PatternFilterable patternSet;
-    private FileCollection classpath;
+    private final ConfigurableFileCollection classpath;
     private TestFramework testFramework;
     private boolean scanForTestClasses = true;
     private long forkEvery;
@@ -159,6 +161,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     public Test() {
         patternSet = getPatternSetFactory().create();
+        classpath = getObjectFactory().fileCollection();
         forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.setEnableAssertions(true);
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
@@ -174,9 +177,14 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         throw new UnsupportedOperationException();
     }
 
-    @Inject
+    @Internal
+    @Deprecated
     protected ClassLoaderCache getClassLoaderCache() {
-        throw new UnsupportedOperationException();
+        DeprecationLogger.deprecateMethod(Test.class, "getClassLoaderCache()")
+            .willBeRemovedInGradle7()
+            .undocumented()
+            .nagUser();
+        return getServices().get(ClassLoaderCache.class);
     }
 
     @Inject
@@ -986,7 +994,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 3.5
      */
     public void useTestNG(Action<? super TestNGOptions> testFrameworkConfigure) {
-        useTestFramework(new TestNGTestFramework(this, (DefaultTestFilter) getFilter(), getInstantiator(), getClassLoaderCache()), testFrameworkConfigure);
+        useTestFramework(new TestNGTestFramework(this, (DefaultTestFilter) getFilter(), getObjectFactory()), testFrameworkConfigure);
     }
 
     /**
@@ -998,7 +1006,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
+        this.classpath.setFrom(classpath);
     }
 
     /**
