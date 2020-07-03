@@ -26,49 +26,27 @@ afterEvaluate {
     // This is in an after evaluate block to defer the decision until after the `java-gradle-plugin` may have been applied, so as to not collide with it
     // It would be better to use some convention plugins instead, that apply a fixes set of plugins (including this one)
     if (plugins.hasPlugin("java-base")) {
-        val validationRuntime by configurations.creating {
-            isCanBeConsumed = false
-            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            // Required to select the right :distributions variant
-            attributes {
-                attribute(Attribute.of("org.gradle.runtime", String::class.java), "minimal")
-                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
-            }
-        }
-        dependencies {
-            // use a minimal gradle runtime here
-            validationRuntime(project(":core"))
-            validationRuntime(project(":dependencyManagement"))
-            validationRuntime(project(":platformJvm"))
-        }
-
         val validateTask = if (plugins.hasPlugin("java-gradle-plugin")) {
-            tasks.named(validateTaskName, ValidatePlugins::class)
+            tasks.named<ValidatePlugins>(validateTaskName)
         } else {
-            tasks.register(validateTaskName, ValidatePlugins::class)
+            tasks.register<ValidatePlugins>(validateTaskName)
         }
-
         validateTask {
-            configureValidateTask(validationRuntime)
+            configureValidateTask()
         }
         tasks.named("codeQuality") {
             dependsOn(validateTask)
         }
-        tasks.withType(Test::class).configureEach {
+        tasks.withType<Test>().configureEach {
             shouldRunAfter(validateTask)
         }
     }
 }
 
-fun ValidatePlugins.configureValidateTask(validationRuntime: Configuration) {
-    val main by project.sourceSets
-    dependsOn(main.output)
-    classes.setFrom(main.output.classesDirs)
-    classpath.from(main.output) // to pick up resources too
+fun ValidatePlugins.configureValidateTask() {
+    val main = project.sourceSets.main.get()
+    classes.from(main.output)
     classpath.from(main.runtimeClasspath)
-    classpath.from(validationRuntime)
-    // TODO Should we provide a more intuitive way in the task definition to configure this property from Kotlin?
     outputFile.set(project.reporting.baseDirectory.file(reportFileName))
     failOnWarning.set(true)
     enableStricterValidation.set(true)
