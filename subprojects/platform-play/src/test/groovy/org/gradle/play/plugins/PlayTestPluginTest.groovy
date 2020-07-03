@@ -70,6 +70,8 @@ class PlayTestPluginTest extends Specification {
         then:
         1 * taskModelMap.create("compileSomeBinaryTests", PlatformScalaCompile, _)
         1 * taskModelMap.create("testSomeBinary", Test, _)
+        1 * taskModelMap.withType(Test) >> taskModelMap
+        1 * taskModelMap.named("testSomeBinary", _)
         0 * taskModelMap.create(_)
         0 * taskModelMap.create(_, _, _)
         1 * taskModelMap.get('testSomeBinary')

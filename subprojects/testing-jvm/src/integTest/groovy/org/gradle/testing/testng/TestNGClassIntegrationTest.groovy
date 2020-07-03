@@ -20,9 +20,9 @@ import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
 import org.gradle.api.tasks.testing.TestDescriptor
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.testing.fixture.TestNGCoverage
 
 import static org.gradle.testing.fixture.TestNGCoverage.FIXED_ICLASS_LISTENER
@@ -40,51 +40,50 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
         TestNGCoverage.enableTestNG(buildFile, version)
 
         buildFile << """
-            import org.gradle.api.internal.tasks.testing.TestCompleteEvent
-            import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
-            import org.gradle.api.internal.tasks.testing.TestStartEvent
-            import org.gradle.api.internal.tasks.testing.results.TestListenerInternal
-            import org.gradle.api.tasks.testing.TestOutputEvent
-            import org.gradle.api.tasks.testing.TestResult
-    
+
             test {
                 useTestNG()
-            }
-    
-            gradle.addListener(new TestListenerInternal() {
-                void started(TestDescriptorInternal d, TestStartEvent s) {
-                    printEventInformation('$STARTED', d)
-                }
-    
-                void completed(TestDescriptorInternal d, TestResult result, TestCompleteEvent cE) {
-                    printEventInformation('$FINISHED', d)
-                }
-    
-                private void printEventInformation(String eventTypeDescription, TestDescriptorInternal d) {
-                    def name = d.name
-                    def descriptor = d;
-                    while (descriptor.parent != null) {
-                        name = "\${descriptor.parent.name} > \$name"
-                        descriptor = descriptor.parent
+                addTestListener(new TestListener() {
+
+                    void beforeSuite(TestDescriptor d) {
+                        printEventInformation('$STARTED', d)
                     }
-                    println "\$eventTypeDescription event type \${d.descriptor.class.name} for \${name}"
-                }
-    
-                void output(TestDescriptorInternal descriptor, TestOutputEvent output) {
-                }
-            })
+
+                    void afterSuite(TestDescriptor d, TestResult result) {
+                        printEventInformation('$FINISHED', d)
+                    }
+
+                    void beforeTest(TestDescriptor d) {
+                        printEventInformation('$STARTED', d)
+                    }
+
+                    void afterTest(TestDescriptor d, TestResult result) {
+                        printEventInformation('$FINISHED', d)
+                    }
+
+                    private void printEventInformation(String eventTypeDescription, TestDescriptor d) {
+                        def name = d.name
+                        def descriptor = d;
+                        while (descriptor.parent != null) {
+                            name = "\${descriptor.parent.name} > \$name"
+                            descriptor = descriptor.parent
+                        }
+                        println "\$eventTypeDescription event type \${d.descriptor.class.name} for \${name}"
+                    }
+                })
+            }
         """
     }
 
-    @ToBeFixedForInstantExecution
     def "test class events references correct suite as parent"() {
         given:
         def testNgSuite = file("src/test/resources/testng.xml")
 
         buildFile << """
             test {
+                def suiteFile = file("${(normaliseFileSeparators(testNgSuite.absolutePath))}")
                 useTestNG {
-                    suites file("${(normaliseFileSeparators(testNgSuite.absolutePath))}")
+                    suites suiteFile
                 }
             }
         """
@@ -138,7 +137,7 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
         containsEvent(FINISHED, DefaultTestSuiteDescriptor, 'TestSuite > FullTest')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "build failed with multiple exceptions")
     def "synthesized events for broken configuration methods reference test class descriptors"() {
         given:
         file("src/test/java/org/company/TestWithBrokenSetupMethod.java") << """
