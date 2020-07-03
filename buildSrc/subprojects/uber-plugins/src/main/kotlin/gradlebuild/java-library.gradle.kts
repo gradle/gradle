@@ -15,8 +15,6 @@
  */
 package gradlebuild
 
-import org.gradle.kotlin.dsl.*
-
 plugins {
     `java-library`
     id("gradlebuild.dependency-modules")
@@ -28,7 +26,6 @@ plugins {
     id("gradlebuild.test-fixtures")
     id("gradlebuild.distribution-testing")
     id("gradlebuild.incubation-report")
-    id("gradlebuild.task-properties-validation")
     id("gradlebuild.strict-compile")
     id("gradlebuild.classycle")
     id("gradlebuild.integration-tests")
