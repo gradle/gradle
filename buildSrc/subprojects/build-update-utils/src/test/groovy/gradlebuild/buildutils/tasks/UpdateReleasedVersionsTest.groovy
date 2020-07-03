@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package gradlebuild.utils.tasks
+package gradlebuild.buildutils.tasks
 
 import gradlebuild.buildutils.model.ReleasedVersion
 import gradlebuild.buildutils.model.ReleasedVersions
-import gradlebuild.buildutils.tasks.UpdateReleasedVersions
 import spock.lang.Specification
 
 import java.text.SimpleDateFormat
