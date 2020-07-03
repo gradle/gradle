@@ -18,8 +18,18 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.JavaVersion;
 
-public interface JavaToolchainSpec {
+// TODO: turn this into API with Properties
+public class DefaultToolchainSpec implements JavaToolchainSpec {
 
-    public JavaVersion getLanguageVersion();
+    private JavaVersion languageVersion;
+
+    public DefaultToolchainSpec(JavaVersion languageVersion) {
+        this.languageVersion = languageVersion;
+    }
+
+    @Override
+    public JavaVersion getLanguageVersion() {
+        return languageVersion;
+    }
 
 }

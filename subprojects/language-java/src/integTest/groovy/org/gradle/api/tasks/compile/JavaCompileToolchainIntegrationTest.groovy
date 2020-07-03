@@ -25,6 +25,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
     def "can manually set java compiler via toolchain on java compile task"() {
         buildFile << """
             import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService
+            import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 
             apply plugin: "java"
 
@@ -34,7 +35,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
                 void apply(Project project) {
                     project.tasks.withType(JavaCompile) {
-                        javaCompiler = getQueryService().findMatchingToolchain().map({it.javaCompiler.get()})
+                        javaCompiler = getQueryService().findMatchingToolchain(new DefaultToolchainSpec(JavaVersion.VERSION_14)).map({it.javaCompiler.get()})
                     }
                 }
             }
@@ -53,6 +54,39 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
         then:
         outputContains("Toolchain selected: 14")
+        javaClassFile("Foo.class").exists()
+    }
+
+    def "can query for running vm as toolchain"() {
+        buildFile << """
+            import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService
+            import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
+
+            apply plugin: "java"
+
+            abstract class InstallToolchain implements Plugin<Project> {
+                @javax.inject.Inject
+                abstract JavaToolchainQueryService getQueryService()
+
+                void apply(Project project) {
+                    project.tasks.withType(JavaCompile) {
+                        javaCompiler = getQueryService().findMatchingToolchain(new DefaultToolchainSpec(JavaVersion.current())).map({it.javaCompiler.get()})
+                    }
+                }
+            }
+
+            apply plugin: InstallToolchain
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        result = executer
+            .withTasks("compileJava")
+            .run()
+
+        then:
+        outputContains("Toolchain selected: " + JavaVersion.current())
         javaClassFile("Foo.class").exists()
     }
 

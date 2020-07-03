@@ -22,6 +22,7 @@ import org.gradle.api.provider.Provider;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.function.Predicate;
 
 public class JavaToolchainQueryService {
 
@@ -34,12 +35,17 @@ public class JavaToolchainQueryService {
         this.toolchainFactory = toolchainFactory;
     }
 
-    public Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec query) {
-        return new DefaultProvider<>(() -> query());
+    public Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
+        return new DefaultProvider<>(() -> query(filter));
     }
 
-    private JavaToolchain query() {
-        return registry.listInstallations().stream().findFirst().map(this::asToolchain).orElseThrow(() -> new InvalidUserDataException("No java installations defined"));
+    private JavaToolchain query(JavaToolchainSpec filter) {
+        return registry.listInstallations().stream().map(this::asToolchain).filter(matchingToolchain(filter)).findFirst().orElseThrow(() -> new InvalidUserDataException("No java installations defined"));
+    }
+
+    // TODO: to be replaced with AttributeContainer/AttributeMatcher
+    private Predicate<JavaToolchain> matchingToolchain(JavaToolchainSpec spec) {
+        return toolchain -> toolchain.getJavaMajorVersion() == spec.getLanguageVersion();
     }
 
     private JavaToolchain asToolchain(File javaHome) {
