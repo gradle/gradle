@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution.serialization.codecs
+package org.gradle.instantexecution.serialization.codecs.jos
 
 import org.gradle.internal.reflect.ClassInspector
 
