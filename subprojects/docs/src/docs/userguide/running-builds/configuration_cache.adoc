@@ -274,13 +274,13 @@ link:{gradle-issues}13488[[.red]#✖#]:: <<xctest_plugin.adoc#xctest_plugin,XCTe
 
 a|
 [horizontal]
-link:{gradle-issues}13463[[.green]#✓#]:: <<application_plugin.adoc#application_plugin,Application>>
+link:{gradle-issues}13466[[.yellow]#⚠#]:: <<application_plugin.adoc#application_plugin,Application>>
 link:{gradle-issues}13466[[.yellow]#⚠#]:: <<war_plugin.adoc#war_plugin,WAR>>
-link:{gradle-issues}13467[[.green]#✓#]:: <<ear_plugin.adoc#ear_plugin,EAR>>
+link:{gradle-issues}13466[[.yellow]#⚠#]:: <<ear_plugin.adoc#ear_plugin,EAR>>
 link:{gradle-issues}13468[[.yellow]#⚠#]:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
 link:{gradle-issues}13469[[.red]#✖#]:: <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
 [.gray]#✖#:: <<maven_plugin.adoc#maven_plugin,Legacy Maven Plugin>>
-link:{gradle-issues}13464[[.green]#✓#]:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
+link:{gradle-issues}13466[[.yellow]#⚠#]:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
 link:{gradle-issues}13465[[.yellow]#⚠#]:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
 
 h| Code analysis
@@ -304,7 +304,7 @@ link:{gradle-issues}13483[[.red]#✖#]:: <<xcode_plugin.adoc#xcode_plugin,Xcode>
 a|
 [horizontal]
 link:{gradle-issues}13455[[.green]#✓#]:: <<base_plugin.adoc#base_plugin,Base>>
-link:{gradle-issues}13456[[.green]#✓#]:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
+link:{gradle-issues}13466[[.yellow]#⚠#]:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
 link:{gradle-issues}13470[[.red]#✖#]:: <<signing_plugin.adoc#signing_plugin,Signing>>
 link:{gradle-issues}13471[[.yellow]#⚠#]:: <<java_gradle_plugin.adoc#java_gradle_plugin,Plugin Development>>
 link:{gradle-issues}13472[[.red]#✖#]:: <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL Plugin Development>>
@@ -515,6 +515,9 @@ If problems with the configuration cache are found then Gradle will fail the bui
 
 In order to capture the state of the task graph to the configuration cache and reload it again in a later build, Gradle applies certain requirements to tasks and other build logic.
 Each of these requirements is treated as a configuration cache "problem" and fails the build if violations are present.
+
+For the most part these requirements are actually surfacing some undeclared inputs.
+In other words, using the configuration cache is an opt-in to more strictness, correctness and reliability for all builds.
 
 The following sections describe each of the requirements and how to change your build to fix the problems.
 

@@ -45,6 +45,34 @@ details of 2
 ## n
 -->
 
+## Performance improvements
+
+Fast feedback in local incremental builds is crucial for developer productivity.
+This is especially true if your IDE uses Gradle to build and run your project and run tests, which IntelliJ IDEA does by default.
+That’s why this scenario is the primary focus of performance improvements since Gradle 6.5, in this and several upcoming Gradle releases.
+
+### Configuration caching
+
+The configuration cache is a feature that significantly improves build performance by caching the result of the [configuration phase](userguide/build_lifecycle.html#build_lifecycle) and reusing this for subsequent builds.
+Using the configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration, such as build scripts, has changed.
+Gradle also applies some performance improvements to task execution as well.
+
+The configuration cache is conceptually similar to the [build cache](userguide/build_cache.html#build_cache), but caches different information.
+The build cache takes care of caching the outputs and intermediate files of the build, such as task outputs or artifact transform outputs.
+The configuration cache takes care of caching the build configuration for a particular set of tasks.
+In other words, the configuration cache caches the output of the configuration phase, and the build cache caches the outputs of the execution phase.
+
+This feature is currently *experimental* and not enabled by default.
+
+Not all [core Gradle plugins](userguide/configuration_cache.html#config_cache:plugins:core) are supported.
+Your build and the plugins you depend on might require changes to fulfil the [requirements](userguide/configuration_cache.html#config_cache:requirements).
+Some Gradle features are [not yet implemented](userguide/configuration_cache.html#config_cache:not_yet_implemented).
+Importing and syncing Gradle builds in IDEs is not improved by configuration caching yet.
+
+You can enable this experimental feature by supplying the parameter `--configuration-cache` on the command-line.
+
+Learn more about this new feature and its impact in the [Configuration Cache](userguide/configuration_cache.html) documentation.
+
 ## Improved handling of ZIP archives on runtime classpaths
 Runtime classpath analysis can now inspect manifest and `META-INF` properties files, ignore changes to comments, and selectively ignore attributes or properties that don't impact the
 runtime classpath.
