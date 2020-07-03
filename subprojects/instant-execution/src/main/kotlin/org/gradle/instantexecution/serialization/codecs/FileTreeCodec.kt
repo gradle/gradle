@@ -19,7 +19,7 @@ package org.gradle.instantexecution.serialization.codecs
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.AbstractFileCollection
-import org.gradle.api.internal.file.FileCollectionBackFileTree
+import org.gradle.api.internal.file.FileCollectionBackedFileTree
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
@@ -87,13 +87,13 @@ class FileTreeCodec(
             val specs = readNonNull<List<FileTreeSpec>>()
             val fileTrees = specs.map {
                 when (it) {
-                    is WrappedFileCollectionTreeSpec -> it.collection.asFileTree as FileTreeInternal
+                    is WrappedFileCollectionTreeSpec -> it.collection.asFileTree
                     is DirectoryTreeSpec -> fileCollectionFactory.treeOf(directoryFileTreeFactory.create(it.file, it.patterns))
                     is GeneratedTreeSpec -> it.spec.run {
                         fileCollectionFactory.generated(tmpDir, fileName, fileGenerationListener, contentGenerator)
                     }
-                    is ZipTreeSpec -> fileOperations.zipTree(it.file) as FileTreeInternal
-                    is TarTreeSpec -> fileOperations.tarTree(it.file) as FileTreeInternal
+                    is ZipTreeSpec -> fileOperations.zipTree(it.file)
+                    is TarTreeSpec -> fileOperations.tarTree(it.file)
                 }
             }
             val tree = fileCollectionFactory.treeOf(fileTrees)
@@ -114,7 +114,7 @@ class FileTreeCodec(
         var roots = mutableListOf<FileTreeSpec>()
 
         override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean {
-            if (fileCollection is FileCollectionBackFileTree) {
+            if (fileCollection is FileCollectionBackedFileTree) {
                 roots.add(WrappedFileCollectionTreeSpec(fileCollection.collection))
                 return false
             } else if (fileCollection is FilteredFileTree && fileCollection.patterns.isEmpty) {

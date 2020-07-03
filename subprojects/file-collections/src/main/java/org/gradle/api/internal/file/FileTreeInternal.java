@@ -17,6 +17,9 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileTree;
+import org.gradle.api.tasks.util.PatternFilterable;
 
 public interface FileTreeInternal extends FileTree, FileCollectionInternal {
+    @Override
+    FileTreeInternal matching(PatternFilterable patterns);
 }

@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.properties;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -93,7 +92,7 @@ public class FileParameterUtils {
      *
      * The value is the file tree rooted at the provided path for an input directory, and the provided path otherwise.
      */
-    public static FileCollection resolveInputFileValue(FileCollectionFactory fileCollectionFactory, InputFilePropertyType inputFilePropertyType, Object path) {
+    public static FileCollectionInternal resolveInputFileValue(FileCollectionFactory fileCollectionFactory, InputFilePropertyType inputFilePropertyType, Object path) {
         if (inputFilePropertyType == InputFilePropertyType.DIRECTORY) {
             return fileCollectionFactory.resolving(path).getAsFileTree();
         } else {

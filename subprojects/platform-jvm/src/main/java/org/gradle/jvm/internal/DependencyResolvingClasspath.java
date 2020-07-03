@@ -40,7 +40,7 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.file.AbstractOpaqueFileCollection;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Specs;
@@ -60,7 +60,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-public class DependencyResolvingClasspath extends AbstractFileCollection {
+public class DependencyResolvingClasspath extends AbstractOpaqueFileCollection {
     private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
     private final List<ResolutionAwareRepository> remoteRepositories;
     private final BinarySpecInternal binary;
@@ -98,7 +98,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     }
 
     @Override
-    public Set<File> getFiles() {
+    protected Set<File> getIntrinsicFiles() {
         ensureResolved(true);
         final Set<File> result = new LinkedHashSet<File>();
         ParallelResolveArtifactSet artifacts = ParallelResolveArtifactSet.wrap(resolveResult.artifactsResults.getArtifacts(), buildOperationExecutor);

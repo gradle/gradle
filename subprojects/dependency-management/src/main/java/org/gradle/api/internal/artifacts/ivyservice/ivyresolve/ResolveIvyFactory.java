@@ -35,7 +35,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCo
 import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
 import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.ArtifactType;
@@ -117,12 +116,8 @@ public class ResolveIvyFactory {
         for (ResolutionAwareRepository repository : repositories) {
             ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
 
-            Instantiator instantiator = instantiatorFactory.inject();
-            if (baseRepository instanceof ExternalResourceResolver) {
-                ExternalResourceResolver<?> resourceResolver = (ExternalResourceResolver<?>) baseRepository;
-                resourceResolver.setComponentResolvers(parentModuleResolver);
-                instantiator = resourceResolver.getComponentMetadataInstantiator();
-            }
+            baseRepository.setComponentResolvers(parentModuleResolver);
+            Instantiator instantiator = baseRepository.getComponentMetadataInstantiator();
             MetadataResolutionContext metadataResolutionContext = new DefaultMetadataResolutionContext(cachePolicy, instantiator);
             ComponentMetadataProcessor componentMetadataProcessor = metadataProcessor.createComponentMetadataProcessor(metadataResolutionContext);
 

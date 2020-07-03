@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.artifacts
 
-import spock.lang.Specification
-import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.UnionFileCollection
+import spock.lang.Specification
 
 class CachingDependencyResolveContextTest extends Specification {
     private final CachingDependencyResolveContext context = new CachingDependencyResolveContext(true, null)
 
     def resolvesAFileCollection() {
         ResolvableDependency dependency = Mock()
-        FileCollection fileCollection = Mock()
+        FileCollectionInternal fileCollection = Mock()
 
         when:
         context.add(dependency)
@@ -40,7 +40,7 @@ class CachingDependencyResolveContextTest extends Specification {
     def resolvesADependencyInternal() {
         ResolvableDependency dependency = Mock()
         ResolvableDependency otherDependency = Mock()
-        FileCollection fileCollection = Mock()
+        FileCollectionInternal fileCollection = Mock()
 
         when:
         context.add(dependency)
@@ -69,7 +69,7 @@ class CachingDependencyResolveContextTest extends Specification {
     def handlesCyclesBetweenDependencies() {
         ResolvableDependency dependency = Mock()
         ResolvableDependency otherDependency = Mock()
-        FileCollection fileCollection = Mock()
+        FileCollectionInternal fileCollection = Mock()
 
         when:
         context.add(dependency)

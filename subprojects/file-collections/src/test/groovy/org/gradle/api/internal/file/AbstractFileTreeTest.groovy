@@ -130,7 +130,7 @@ class AbstractFileTreeTest extends Specification {
         }
 
         @Override
-        FileTree matching(PatternFilterable patterns) {
+        FileTreeInternal matching(PatternFilterable patterns) {
             return new FilteredTestFileTree(patterns: patterns)
         }
 

@@ -21,11 +21,13 @@ import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.CompositeFileCollection
 import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.tasks.TaskPropertyUtils
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor
 import org.gradle.api.internal.tasks.properties.PropertyWalker
+
+import java.util.function.Consumer
 
 class TaskPropertyTestUtils {
     static Map<String, Object> getProperties(AbstractTask task) {
@@ -50,9 +52,9 @@ class TaskPropertyTestUtils {
             }
 
             @Override
-            void visitContents(FileCollectionResolveContext context) {
+            protected void visitChildren(Consumer<FileCollectionInternal> consumer) {
                 for (def filePropertySpec : visitor.fileProperties) {
-                    context.add(filePropertySpec.getPropertyFiles())
+                    consumer.accept(filePropertySpec.getPropertyFiles())
                 }
             }
         }
