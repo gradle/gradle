@@ -16,14 +16,19 @@
 
 package org.gradle.instantexecution.serialization.codecs.jos
 
+import org.gradle.instantexecution.problems.DocumentationSection.NotYetImplementedJavaSerialization
+import org.gradle.instantexecution.problems.StructuredMessage
 import org.gradle.instantexecution.serialization.EncodingProvider
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.codecs.BrokenValue
 import org.gradle.instantexecution.serialization.codecs.Decoding
 import org.gradle.instantexecution.serialization.codecs.Encoding
 import org.gradle.instantexecution.serialization.codecs.EncodingProducer
 import org.gradle.instantexecution.serialization.decodePreservingIdentity
 import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
+import org.gradle.instantexecution.serialization.logPropertyProblem
+import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withBeanTrace
 import org.gradle.instantexecution.serialization.withImmediateMode
 
@@ -55,15 +60,22 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
                 withBeanTrace(beanType) {
                     val beanStateReader = beanStateReaderFor(beanType)
                     beanStateReader.run { newBeanWithId(false, id) }.also { bean ->
-                        val objectInputStream = ObjectInputStreamAdapter(
-                            bean,
-                            beanStateReader,
-                            this@decode
-                        )
-                        val readObject = readObjectMethodHierarchyOf(beanType)
-                        when {
-                            readObject.isNotEmpty() -> readObject.forEach { it.invoke(bean, objectInputStream) }
-                            else -> objectInputStream.defaultReadObject()
+                        if (readBoolean()) {
+                            val objectInputStream = ObjectInputStreamAdapter(
+                                bean,
+                                beanStateReader,
+                                this@decode
+                            )
+                            val readObject = readObjectMethodHierarchyOf(beanType)
+                            when {
+                                readObject.isNotEmpty() -> readObject.forEach { it.invoke(bean, objectInputStream) }
+                                else -> objectInputStream.defaultReadObject()
+                            }
+                        } else {
+                            val brokenValue = readNonNull<BrokenValue>()
+                            logPropertyProblem("deserialize", brokenValue.failure, NotYetImplementedJavaSerialization) {
+                                failedJOS(bean)
+                            }
                         }
                     }
                 }
@@ -76,25 +88,41 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
             encodePreservingIdentityOf(value) {
 
                 val beanType = value.javaClass
-
-                val recordingObjectOutputStream = RecordingObjectOutputStream(beanType, value)
-                writeObject.forEach {
-                    it.invoke(value, recordingObjectOutputStream)
-                }
-
                 writeClass(beanType)
-                recordingObjectOutputStream.run {
-                    playback()
+
+                runCatching {
+                    // Exceptions during the recording phase can be safely recovered from
+                    // because recording doesn't affect the WriteContext.
+                    recordWritingOf(beanType, value)
+                }.apply {
+                    onSuccess { record ->
+                        writeBoolean(true)
+                        record.run { playback() }
+                    }
+                    onFailure { ex ->
+                        logPropertyProblem("serialize", ex, NotYetImplementedJavaSerialization) {
+                            failedJOS(value)
+                        }
+                        writeBoolean(false)
+                        write(BrokenValue(ex))
+                    }
                 }
             }
         }
+
+        private
+        fun recordWritingOf(beanType: Class<Any>, value: Any): RecordingObjectOutputStream =
+            RecordingObjectOutputStream(beanType, value).also { recordingObjectOutputStream ->
+                writeObject.forEach { method ->
+                    method.invoke(value, recordingObjectOutputStream)
+                }
+            }
     }
 
     private
     fun writeObjectMethodHierarchyOf(type: Class<*>) = type
         .serializationMethodHierarchy("writeObject", ObjectOutputStream::class.java)
 
-    // TODO:instant-execution readObjectNoData
     private
     fun readObjectMethodHierarchyOf(type: Class<*>): List<Method> = type
         .serializationMethodHierarchy("readObject", ObjectInputStream::class.java)
@@ -119,6 +147,14 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
 internal
 fun Class<*>.isSerializable() =
     Serializable::class.java.isAssignableFrom(this)
+
+
+private
+fun StructuredMessage.Builder.failedJOS(value: Any) {
+    text("value ")
+    reference(value.toString())
+    text(" failed Java Object Serialization")
+}
 
 
 internal

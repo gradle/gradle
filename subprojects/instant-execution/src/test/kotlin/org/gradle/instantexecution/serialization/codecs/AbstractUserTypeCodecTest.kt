@@ -45,7 +45,7 @@ import java.io.OutputStream
 abstract class AbstractUserTypeCodecTest {
 
     protected
-    fun serializationProblemsOf(bean: Any, codec: Codec<Any?>): List<PropertyProblem> =
+    fun serializationProblemsOf(bean: Any, codec: Codec<Any?> = userTypesCodec()): List<PropertyProblem> =
         mutableListOf<PropertyProblem>().also { problems ->
             writeTo(
                 NullOutputStream.INSTANCE,

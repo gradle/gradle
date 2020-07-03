@@ -35,7 +35,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         buildFile << """
             class BrokenSerializable implements java.io.Serializable {
-                private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+                private Object writeReplace() {
                     throw new RuntimeException("BOOM")
                 }
             }
@@ -88,7 +88,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
 
         buildFile << """
             class BrokenSerializable implements java.io.Serializable {
-                private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+                private Object writeReplace() {
                     throw new RuntimeException("BOOM")
                 }
             }

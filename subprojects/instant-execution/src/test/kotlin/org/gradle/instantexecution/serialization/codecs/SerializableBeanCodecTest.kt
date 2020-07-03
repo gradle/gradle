@@ -115,12 +115,30 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
 
     @Test
     fun `Externalizable problems link to the Java serialization section`() {
-        val problems = serializationProblemsOf(ExternalizableBean(), userTypesCodec())
+        val problems = serializationProblemsOf(ExternalizableBean())
         assertThat(problems.size, equalTo(1))
         assertThat(
             problems[0].documentationSection,
             equalTo(NotYetImplementedJavaSerialization)
         )
+    }
+
+    @Test
+    fun `unimplemented serialization feature problems link to the Java serialization section`() {
+        val problems = serializationProblemsOf(UnsupportedSerializableBean())
+        assertThat(problems.size, equalTo(1))
+        assertThat(
+            problems[0].documentationSection,
+            equalTo(NotYetImplementedJavaSerialization)
+        )
+    }
+
+    class UnsupportedSerializableBean : Serializable {
+
+        private
+        fun writeObject(objectOutputStream: ObjectOutputStream) {
+            objectOutputStream.putFields() // will throw
+        }
     }
 
     @Test
@@ -197,7 +215,7 @@ class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
 
         val bean = SerializableWriteObjectBean(mock<Project>())
 
-        val problems = serializationProblemsOf(bean, userTypesCodec())
+        val problems = serializationProblemsOf(bean)
 
         val fieldTrace = assertInstanceOf<PropertyTrace.Property>(problems.single().trace)
         assertThat(
