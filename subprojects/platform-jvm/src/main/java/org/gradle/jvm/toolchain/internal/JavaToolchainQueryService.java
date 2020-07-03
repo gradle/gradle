@@ -34,8 +34,7 @@ public class JavaToolchainQueryService {
         this.toolchainFactory = toolchainFactory;
     }
 
-    // TODO: accept toolchain spec
-    public Provider<JavaToolchain> findMatchingToolchain() {
+    public Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec query) {
         return new DefaultProvider<>(() -> query());
     }
 
