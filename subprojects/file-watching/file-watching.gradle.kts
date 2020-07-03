@@ -15,7 +15,7 @@
  */
 
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 description = "File system watchers for keeping the VFS up-to-date"

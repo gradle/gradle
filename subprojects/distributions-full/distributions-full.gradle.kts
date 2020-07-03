@@ -1,12 +1,9 @@
-import org.gradle.plugins.install.Install
-import org.gradle.gradlebuild.packaging.RunEmbeddedGradle
-import org.gradle.gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
-import org.gradle.gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
+import gradlebuild.run.tasks.RunEmbeddedGradle
 
 plugins {
-    gradlebuild.distribution.packaging
-    gradlebuild.`add-verify-production-environment-task`
-    gradlebuild.install
+    id("gradlebuild.distribution.packaging")
+    id("gradlebuild.verify-build-environment")
+    id("gradlebuild.install")
 }
 
 dependencies {
@@ -25,18 +22,6 @@ dependencies {
     pluginsRuntimeOnly(project(":javascript"))
     pluginsRuntimeOnly(project(":platformPlay"))
     pluginsRuntimeOnly(project(":idePlay"))
-}
-
-tasks.register<Install>("install") {
-    description = "Installs the minimal distribution"
-    group = "build"
-    with(binDistributionSpec())
-}
-
-tasks.register<Install>("installAll") {
-    description = "Installs the full distribution"
-    group = "build"
-    with(allDistributionSpec())
 }
 
 tasks.register<RunEmbeddedGradle>("runDevGradle") {

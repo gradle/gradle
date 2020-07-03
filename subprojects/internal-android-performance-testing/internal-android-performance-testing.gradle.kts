@@ -1,5 +1,5 @@
 plugins {
-    gradlebuild.internal.java
+    id("gradlebuild.internal.java")
     application
 }
 

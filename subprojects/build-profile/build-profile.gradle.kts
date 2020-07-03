@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`implementation-java`
+    id("gradlebuild.distribution.implementation-java")
 }
 
 description = "Provides high-level insights into a Gradle build (--profile)"

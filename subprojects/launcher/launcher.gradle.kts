@@ -1,20 +1,8 @@
-import org.gradle.build.GradleStartScriptGenerator
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
 
 plugins {
-    gradlebuild.distribution.`api-java`
-}
-
-val manifestClasspath by configurations.creating {
-    isCanBeResolved = true
-    isCanBeConsumed = false
-    isTransitive = false
-
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
-    }
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.launchable-jar")
 }
 
 dependencies {
@@ -90,40 +78,12 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
-// Needed for testing debug command line option (JDWPUtil) - 'CommandLineIntegrationSpec.can debug with org.gradle.debug=true'
-val toolsJar = buildJvms.testJvm.map { jvm -> jvm.toolsClasspath }
-dependencies {
-    integTestRuntimeOnly(files(toolsJar))
-}
-
-tasks.jar.configure {
-    val classpath = manifestClasspath.elements.map { classpathDependency ->
-        classpathDependency.joinToString(" ") {
-            it.asFile.name
-        }
-    }
-    manifest.attributes("Class-Path" to classpath)
-    manifest.attributes("Main-Class" to "org.gradle.launcher.GradleMain")
-}
-
-val startScripts = tasks.register<GradleStartScriptGenerator>("startScripts") {
-    startScriptsDir = file("$buildDir/startScripts")
-    launcherJar = tasks.jar.get().outputs.files
-}
-
-configurations {
-    create("gradleScriptsElements") {
-        isVisible = false
-        isCanBeResolved = false
-        isCanBeConsumed = true
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "start-scripts"))
-        // TODO: Update GradleStartScriptGenerator to retain dependency information with Provider API
-        outgoing.artifact(startScripts.map { it.startScriptsDir }) {
-            builtBy(startScripts)
-        }
-    }
-}
-
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
+}
+
+// Needed for testing debug command line option (JDWPUtil) - 'CommandLineIntegrationSpec.can debug with org.gradle.debug=true'
+val toolsJar = buildJvms.testJvm.map { jvm -> jvm.jdk.get().toolsClasspath }
+dependencies {
+    integTestRuntimeOnly(toolsJar)
 }

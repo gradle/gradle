@@ -33,23 +33,38 @@ fun String.toKebabCase() =
 
 rootProject.name = "buildSrc"
 
-// Please preserve alphabetical order
-include("binaryCompatibility")
-include("build")
-include("buildquality")
+// Platform: defines shared dependency versions
+include("buildPlatform")
+
+// Utilities for updating the build itself which are not part of the usual build process
+include("buildUpdateUtils")
+
+// Shared basics for all
+include("basics")
+
+// Compute the identity/version we are building and related details (like current git commit)
+include("moduleIdentity")
+
+// Shared information about external modules
+include("dependencyModules")
+
+// Special purpose build logic for root project - please preserve alphabetical order
 include("cleanup")
-include("configuration")
-include("docs")
-include("ide")
+include("idea")
+include("lifecycle")
+
+// Special purpose build logic for subproject - please preserve alphabetical order
+include("binaryCompatibility")
+include("buildquality")
+include("documentation")
 include("integrationTesting")
+include("jvm")
 include("kotlinDsl")
 include("uberPlugins")
 include("packaging")
-include("plugins")
+include("performanceTesting")
 include("profiling")
-include("performance")
-include("versioning")
-include("buildPlatform")
+include("publishing")
 
 fun buildFileNameFor(projectDirName: String) =
     "$projectDirName.gradle.kts"

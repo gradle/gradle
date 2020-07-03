@@ -1,31 +1,8 @@
 dependencies {
-    api(kotlin("stdlib"))
-    implementation(project(":build"))
+    implementation(project(":basics"))
     implementation(project(":cleanup"))
-    implementation(project(":configuration"))
-    implementation(project(":kotlinDsl"))
-    implementation(project(":packaging"))
-    implementation(project(":versioning"))
-    testImplementation("junit:junit:4.13")
-}
+    implementation(project(":dependencyModules"))
+    implementation(project(":moduleIdentity"))
 
-gradlePlugin {
-    plugins {
-        register("crossVersionTests") {
-            id = "gradlebuild.cross-version-tests"
-            implementationClass = "org.gradle.gradlebuild.test.integrationtests.CrossVersionTestsPlugin"
-        }
-        register("distributionTesting") {
-            id = "gradlebuild.distribution-testing"
-            implementationClass = "org.gradle.gradlebuild.test.integrationtests.DistributionTestingPlugin"
-        }
-        register("integrationTests") {
-            id = "gradlebuild.integration-tests"
-            implementationClass = "org.gradle.gradlebuild.test.integrationtests.IntegrationTestsPlugin"
-        }
-        register("testFixtures") {
-            id = "gradlebuild.test-fixtures"
-            implementationClass = "org.gradle.gradlebuild.test.fixtures.TestFixturesPlugin"
-        }
-    }
+    testImplementation("junit:junit")
 }

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`api-java`
-    gradlebuild.`publish-public-libraries`
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.publish-public-libraries")
 }
 
 description = "Base tools to work with files"

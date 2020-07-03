@@ -14,21 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradlebuild.integrationtests.model.GradleDistribution
 import org.gradle.docs.samples.internal.tasks.InstallSample
-import org.gradle.gradlebuild.test.integrationtests.GradleDistribution
 
 plugins {
     id 'gradlebuild.internal.java'
     // TODO: Apply asciidoctor in documentation plugin instead.
     id 'org.asciidoctor.convert'
     id 'gradlebuild.documentation'
-    id 'gradlebuild.unittest-and-compile'
     id 'org.gradle.samples' version "0.16.8"
 }
 
 repositories { handler ->
     // TODO migrate this build script to Kotlin DSL to replace this is a simple googleApisJs()
-    Plugins_extensionsKt.googleApisJs(handler)
+    Build_extensionsKt.googleApisJs(handler)
 }
 
 configurations {
@@ -88,7 +87,7 @@ asciidoctorj {
 gradleDocumentation {
     javadocs {
         javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
-        groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${groovyVersion}/html/gapi")
+        groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${libs.groovyVersion}/html/gapi")
     }
 }
 
@@ -613,6 +612,9 @@ configurations {
 
 tasks.named('platformTest') {
     dependsOn(tasks.named('checkSamples'))
+}
+tasks.named("check") {
+    dependsOn(tasks.named('checkstyleApi'))
 }
 
 // TODO there is some duplication with DistributionTest.kt here - https://github.com/gradle/gradle-private/issues/3126

@@ -16,12 +16,10 @@
 
 ext {
     libraries = [:]
-    groovyVersion = '2.5.12'
-    kotlinVersion = '1.3.72'
 }
 
 // TODO This must match the version number in code-quality-configuration.gradle.kts
-def gradleGroovyVersion = "1.3-${groovyVersion}" as String
+def gradleGroovyVersion = "1.3-2.5.12" as String
 
 // All libraries that are required to compile and run Gradle are listed here.
 // Most of them are also part of the distribution as they are declared as dependencies in one of Gradle's subprojects.

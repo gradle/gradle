@@ -46,5 +46,5 @@
         <exclude name="ClassNameSameAsSuperclass"/>
     </ruleset-ref>
 
-    <rule class='org.gradle.gradlebuild.buildquality.codenarc.IntegrationTestFixturesRule'/>
+    <rule class='gradlebuild.codenarc.rules.IntegrationTestFixturesRule'/>
 </ruleset>

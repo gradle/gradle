@@ -1,4 +1,4 @@
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
 /*
  * Copyright 2012 the original author or authors.
  *
@@ -15,7 +15,7 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {

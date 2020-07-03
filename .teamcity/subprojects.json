@@ -245,13 +245,6 @@
     "crossVersionTests": false
   },
   {
-    "dirName": "enterprise",
-    "name": "enterprise",
-    "unitTests": true,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
     "dirName": "execution",
     "name": "execution",
     "unitTests": true,
