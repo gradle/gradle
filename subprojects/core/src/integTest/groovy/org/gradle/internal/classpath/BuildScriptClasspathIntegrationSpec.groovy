@@ -44,7 +44,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     }
 
     @Unroll("jars on buildscript classpath can change (loopNumber: #loopNumber)")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "changing flatDir buildscript repository")
     def "jars on buildscript classpath can change"() {
         given:
         buildFile << '''
@@ -164,7 +164,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         succeeds("checkUrlConnectionCaching")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "changing flatDir buildscript repository")
     def "jars with resources on buildscript classpath can change"() {
         given:
         buildFile << '''
