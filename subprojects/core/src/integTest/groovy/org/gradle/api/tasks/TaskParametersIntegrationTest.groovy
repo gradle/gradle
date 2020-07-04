@@ -651,11 +651,17 @@ task someTask(type: SomeTask) {
         succeeds "foo"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "task references other task")
     def "input and output properties are not evaluated too often"() {
-        buildFile << """ 
-            @CacheableTask    
-            class CustomTask extends DefaultTask {
+        buildFile << """
+            import javax.inject.Inject
+
+            @CacheableTask
+            abstract class CustomTask extends DefaultTask {
+
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @Internal
                 int outputFileCount = 0
                 @Internal
@@ -672,14 +678,14 @@ task someTask(type: SomeTask) {
                 @OutputFile
                 File getOutputFile() {
                     count("outputFile", ++outputFileCount)
-                    return project.file('build/foo.bar')
-                }        
-                
+                    return layout.buildDirectory.file("foo.bar").get().asFile
+                }
+
                 @InputFile
                 @PathSensitive(PathSensitivity.NONE)
                 File getInputFile() {
                     count("inputFile", ++inputFileCount)
-                    return project.file('input.txt')
+                    return layout.projectDirectory.file("input.txt").asFile
                 }
                 
                 @Input
@@ -721,7 +727,7 @@ task someTask(type: SomeTask) {
                 dependsOn myTask
                 doLast {
                     ['outputFileCount', 'inputFileCount', 'inputValueCount', 'nestedInputCount', 'nestedInputValueCount'].each { name ->
-                        assert myTask."\$name" == project.property(name) as Integer                    
+                        assert myTask."\$name" == providers.gradleProperty(name).get() as Integer
                     }
                 }
             }
