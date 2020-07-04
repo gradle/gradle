@@ -106,7 +106,7 @@ public class TransformerTask extends DefaultTask {
 '''
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "task wrongly up-to-date")
     def "skips task when output file is up-to-date"() {
         writeTransformerTask()
 
@@ -567,7 +567,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "task wrongly up-to-date")
     def "skips tasks when input properties have not changed"() {
         buildFile << '''
 public class GeneratorTask extends DefaultTask {
@@ -1110,7 +1110,7 @@ task generate(type: TransformerTask) {
         output.contains "The type of task ':customTask' was loaded with an unknown classloader (class 'CustomTask_Decorated')."
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "ClassNotFoundException: CustomTaskAction")
     def "task with custom action loaded with custom classloader is never up-to-date"() {
         file("input.txt").text = "data"
         buildFile << """
