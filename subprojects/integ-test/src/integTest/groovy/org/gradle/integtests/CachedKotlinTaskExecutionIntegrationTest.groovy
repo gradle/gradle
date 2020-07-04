@@ -47,7 +47,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
 
     @IgnoreIf({GradleContextualExecuter.parallel})
     @LeaksFileHandles
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     def "tasks stay cached after buildSrc with custom Kotlin task is rebuilt"() {
         withKotlinBuildSrc()
         file("buildSrc/src/main/kotlin/CustomTask.kt") << customKotlinTask()
@@ -75,7 +75,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
 
     @IgnoreIf({GradleContextualExecuter.parallel})
     @LeaksFileHandles
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     def "changing custom Kotlin task implementation in buildSrc invalidates cached result"() {
         withKotlinBuildSrc()
         def taskSourceFile = file("buildSrc/src/main/kotlin/CustomTask.kt")
