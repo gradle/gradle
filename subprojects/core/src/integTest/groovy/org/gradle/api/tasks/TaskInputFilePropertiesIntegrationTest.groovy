@@ -61,7 +61,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @Issue("https://github.com/gradle/gradle/issues/3193")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "multiple build failures")
     def "TaskInputs.#method shows error message when used with complex input"() {
         buildFile << """
             task dependencyTask {
@@ -87,7 +87,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "multiple build failures")
     def "#annotation.simpleName shows error message when used with complex input"() {
         buildFile << """
             import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
