@@ -16,8 +16,9 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "legacy maven plugin")
 class MavenWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -25,7 +26,6 @@ class MavenWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
         executer.noDeprecationChecks()
     }
 
-    @ToBeFixedForInstantExecution
     public void "publishes WAR only for mixed java and WAR project"() {
         given:
         using m2
