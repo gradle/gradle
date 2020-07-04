@@ -38,7 +38,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'kotlin-application', '--dsl', scriptDsl.id)
@@ -67,7 +67,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     def "creates sample source with package and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'kotlin-application', '--package', 'my.app', '--dsl', scriptDsl.id)
@@ -96,7 +96,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     def "setupProjectLayout is skipped when kotlin sources detected with #scriptDsl build scripts"() {
         setup:
         targetDir.file("src/main/kotlin/org/acme/SampleMain.kt") << """
