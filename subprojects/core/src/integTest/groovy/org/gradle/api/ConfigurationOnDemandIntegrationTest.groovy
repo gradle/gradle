@@ -208,23 +208,21 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":impl", ":impl:one", ":impl:two", ":impl:two:abc")
     }
 
-    @ToBeFixedForInstantExecution
     def "may run implicit tasks from root"() {
         settingsFile << "include 'api', 'impl'"
 
         when:
-        run(":tasks")
+        run(":help")
 
         then:
         fixture.assertProjectsConfigured(":")
     }
 
-    @ToBeFixedForInstantExecution
     def "may run implicit tasks for subproject"() {
         settingsFile << "include 'api', 'impl'"
 
         when:
-        run(":api:tasks")
+        run(":api:help")
 
         then:
         fixture.assertProjectsConfigured(":", ":api")
@@ -246,7 +244,6 @@ project(':api') {
         result.assertTasksExecuted(':api:foo')
     }
 
-    @ToBeFixedForInstantExecution
     def "respects evaluationDependsOn"() {
         settingsFile << "include 'api', 'impl', 'other'"
         file("api/build.gradle") << """
@@ -254,7 +251,7 @@ project(':api') {
         """
 
         when:
-        run("api:tasks")
+        run("api:help")
 
         then:
         fixture.assertProjectsConfigured(":", ":impl", ":api")
