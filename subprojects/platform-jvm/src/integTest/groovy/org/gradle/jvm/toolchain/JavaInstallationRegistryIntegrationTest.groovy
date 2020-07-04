@@ -170,7 +170,7 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
     @IgnoreIf({ AvailableJavaHomes.differentVersion == null })
     @Requires(TestPrecondition.SYMLINKS)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "installationForDirectory(dir) not configuration cache ready")
     def "notices changes to Java installation between builds"() {
         def jvm = AvailableJavaHomes.differentVersion
 
