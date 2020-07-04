@@ -696,28 +696,29 @@ task b(type: DirTransformerTask) {
         result.assertTasksNotSkipped(":b")
     }
 
-    @ToBeFixedForInstantExecution
     def "can use up-to-date predicate to force task to execute"() {
         def inputFileName = 'src.txt'
 
         buildFile << """
+def isUpToDate = providers.gradleProperty('uptodate').map { true }.orElse(false)
+
 task inputsAndOutputs {
-    def inputFile = '${inputFileName}'
-    def outputFile = 'src.a.txt'
+    def inputFile = file('${inputFileName}')
+    def outputFile = file('src.a.txt')
     inputs.files inputFile
     outputs.file outputFile
-    outputs.upToDateWhen { project.hasProperty('uptodate') }
+    outputs.upToDateWhen { isUpToDate.get() }
     doFirst {
-        file(outputFile).text = "[\${file(inputFile).text}]"
+        outputFile.text = "[\${inputFile.text}]"
     }
 }
 task noOutputs {
     inputs.file 'src.txt'
-    outputs.upToDateWhen { project.hasProperty('uptodate') }
+    outputs.upToDateWhen { isUpToDate.get() }
     doFirst { }
 }
 task nothing {
-    outputs.upToDateWhen { project.hasProperty('uptodate') }
+    outputs.upToDateWhen { isUpToDate.get() }
     doFirst { }
 }
 """
@@ -828,7 +829,7 @@ task b(dependsOn: a)
         result.assertTasksSkipped(":a", ":b")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "GradleBuild task")
     def "can share artifacts between builds"() {
         writeTransformerTask()
 
@@ -1075,7 +1076,7 @@ task generate(type: TransformerTask) {
         output.contains "Task 'b2' file 'output.txt' with 'output-file'"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "ClassNotFoundException: CustomTask")
     def "task loaded with custom classloader is never up-to-date"() {
         file("input.txt").text = "data"
         buildFile << """
@@ -1283,13 +1284,20 @@ task generate(type: TransformerTask) {
     }
 
     @ToBeImplemented("Private getters should be ignored")
-    @ToBeFixedForInstantExecution
     def "private inputs can be overridden in subclass"() {
         given:
         buildFile << '''
-            class MyBaseTask extends DefaultTask {
+            import javax.inject.Inject
+
+            abstract class MyBaseTask extends DefaultTask {
+
+                @Inject
+                abstract ProviderFactory getProviders()
+
                 @Input
-                private String getMyPrivateInput() { project.property('private') }
+                private String getMyPrivateInput() {
+                    return providers.gradleProperty('private').get()
+                }
 
                 @OutputFile
                 File getOutput() {
@@ -1302,7 +1310,7 @@ task generate(type: TransformerTask) {
                 }
             }
 
-            class MyTask extends MyBaseTask {
+            abstract class MyTask extends MyBaseTask {
                 @Input
                 private String getMyPrivateInput() { 'only private' }
             }
@@ -1343,13 +1351,20 @@ task generate(type: TransformerTask) {
     }
 
     @ToBeImplemented("Private getters should be ignored")
-    @ToBeFixedForInstantExecution
     def "private inputs in superclass are respected"() {
         given:
         buildFile << '''
-            class MyBaseTask extends DefaultTask {
+            import javax.inject.Inject
+
+            abstract class MyBaseTask extends DefaultTask {
+
+                @Inject
+                abstract ProviderFactory getProviders()
+
                 @Input
-                private String getMyPrivateInput() { project.property('private') }
+                private String getMyPrivateInput() {
+                    return providers.gradleProperty('private').get()
+                }
 
                 @OutputFile
                 File getOutput() {
@@ -1362,7 +1377,7 @@ task generate(type: TransformerTask) {
                 }
             }
 
-            class MyTask extends MyBaseTask {
+            abstract class MyTask extends MyBaseTask {
             }
 
             task myTask(type: MyTask)
