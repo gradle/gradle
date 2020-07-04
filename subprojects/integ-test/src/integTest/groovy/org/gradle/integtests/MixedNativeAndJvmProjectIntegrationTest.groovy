@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 
 class MixedNativeAndJvmProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "cpp plugin")
     def "can combine legacy java and cpp plugins in a single project"() {
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
