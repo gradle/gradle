@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
+@UnsupportedWithInstantExecution(because = "legacy maven plugin")
 class MavenWagonPublishIntegrationTest extends AbstractMavenPublishIntegTest {
 
-    @ToBeFixedForInstantExecution
     def "uses provided wagon type to perform publication"() {
         executer.expectDeprecationWarnings(2)
 

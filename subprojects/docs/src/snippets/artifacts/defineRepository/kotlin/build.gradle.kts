@@ -273,9 +273,10 @@ repositories {
 // end::authenticated-ivy-repo[]
 
 tasks.register("lookup") {
+    val repoNames = repositories.map { it.name }
     doLast {
-        repositories.forEach { require(it?.name != null) }
-        require(repositories[0]?.name != null)
+        repoNames.forEach { require(it != null) }
+        require(repoNames[0] != null)
     }
 }
 

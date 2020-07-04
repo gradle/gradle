@@ -17,7 +17,6 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
@@ -36,7 +35,6 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
         settingsFile << "rootProject.projectDir = file('..')\n"
     }
 
-    @ToBeFixedForInstantExecution
     def "can apply plugin class from settings.gradle"() {
         when:
         settingsFile << """
@@ -50,10 +48,9 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         then:
-        succeeds(':moduleA:dependencies')
+        succeeds(':moduleA:help')
     }
 
-    @ToBeFixedForInstantExecution
     def "can apply script with relative path"() {
         setup:
         testDirectory.createFile("settings/somePath/settingsPlugin.gradle") << "apply from: 'path2/settings.gradle'";
@@ -63,7 +60,7 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
         settingsFile << "apply from: 'somePath/settingsPlugin.gradle'"
 
         then:
-        succeeds(':moduleA:dependencies')
+        succeeds(':moduleA:help')
     }
 
     def "can use plugins block"() {

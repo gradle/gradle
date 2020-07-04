@@ -38,7 +38,7 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         originBuildInvocationId.originId(taskPath)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "build ID doesn't change")
     def "exposes origin build id when reusing outputs"() {
         given:
         buildScript """
@@ -135,7 +135,7 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         originBuildInvocationId(":w2") == firstBuildId
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "buildSrc is skipped")
     def "buildSrc tasks advertise build id"() {
         given:
         file("buildSrc/build.gradle").text = """
@@ -160,7 +160,7 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         originBuildInvocationId(":buildSrc:w") == origin
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "composite participant tasks advertise build id"() {
         given:
         ["a", "b"].each {

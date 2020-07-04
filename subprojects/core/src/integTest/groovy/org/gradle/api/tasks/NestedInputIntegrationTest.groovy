@@ -22,6 +22,7 @@ import org.gradle.initialization.StartParameterBuildOptions.BuildCacheDebugLoggi
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
@@ -151,7 +152,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @UnsupportedWithInstantExecution(because = "task references another task")
     def "re-configuring #change in nested bean during execution time is detected"() {
         def fixture = new NestedBeanTestFixture()
 
@@ -190,7 +191,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @UnsupportedWithInstantExecution(because = "task references another task")
     def "re-configuring a nested bean from #from to #to during execution time is detected"() {
         def fixture = new NestedBeanTestFixture()
 
@@ -231,7 +232,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*inputProperty.*")
+    @ToBeFixedForInstantExecution(because = "task wrongly up-to-date", iterationMatchers = ".*inputProperty.*")
     def "re-configuring #change in nested bean after the task started executing has no effect"() {
         def fixture = new NestedBeanTestFixture()
         fixture.prepareInputFiles()
@@ -264,7 +265,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*from firstBean to null.*")
+    @ToBeFixedForInstantExecution(because = "task wrongly up-to-date", iterationMatchers = ".*from firstBean to null.*")
     def "re-configuring a nested bean from #from to #to after the task started executing has no effect"() {
         def fixture = new NestedBeanTestFixture()
         fixture.prepareInputFiles()
@@ -507,7 +508,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         succeeds "myTask"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "task wrongly up-to-date")
     def "changes to nested bean implementation are detected"() {
         buildFile << """
             class TaskWithNestedInput extends DefaultTask {
@@ -582,7 +583,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         failure.assertHasCause('Null is not allowed as nested property \'beans.$1\'')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "task wrongly up-to-date")
     def "nested iterable beans can be iterables themselves"() {
         buildFile << nestedBeanWithStringInput()
         buildFile << """
@@ -671,7 +672,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         succeeds "myTask"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "task wrongly up-to-date")
     def "nested Provider is unpacked"() {
         buildFile << taskWithNestedInput()
         buildFile << nestedBeanWithStringInput()
@@ -697,7 +698,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         output.contains "Value of input property 'nested.input' has changed for task ':myTask'"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "task wrongly up-to-date")
     def "input changes for task with named nested beans"() {
         buildFile << taskWithNestedInput()
         buildFile << namedBeanClass()
@@ -724,7 +725,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         output.contains("Input property 'nested.name1\$0' has been removed for task ':myTask'")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "task wrongly up-to-date")
     def "input changes for task with nested map"() {
         buildFile << taskWithNestedInput()
         buildFile << nestedBeanWithStringInput()
@@ -777,7 +778,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             "  Non-cacheable inputs: property 'bean' was loaded with an unknown classloader (class 'NestedBean')."
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "ClassNotFoundException: NestedBean")
     def "task with nested bean loaded with custom classloader is never up-to-date"() {
         file("input.txt").text = "data"
         buildFile << taskWithNestedBeanFromCustomClassLoader()
@@ -794,7 +795,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         output.contains "Implementation of input property 'bean' has changed for task ':customTask'"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "task wrongly up-to-date")
     def "changes to nested domain object container are tracked"() {
         buildFile << taskWithNestedInput()
         buildFile << """
