@@ -31,6 +31,7 @@ import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.internal.reflect.Instantiator;
@@ -227,13 +228,14 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
             @Override
             public void execute(JavaPlugin javaPlugin) {
                 final TaskProvider<Task> testTaskProvider = project.getTasks().named(JavaPlugin.TEST_TASK_NAME);
-                addDefaultReportTask(extension, testTaskProvider);
-                addDefaultCoverageVerificationTask(testTaskProvider);
+                final TaskProvider<JavaCompile> compileJavaTaskProvider = project.getTasks().named(JavaPlugin.COMPILE_JAVA_TASK_NAME, JavaCompile.class);
+                addDefaultReportTask(extension, testTaskProvider, compileJavaTaskProvider);
+                addDefaultCoverageVerificationTask(testTaskProvider, compileJavaTaskProvider);
             }
         });
     }
 
-    private void addDefaultReportTask(final JacocoPluginExtension extension, final TaskProvider<Task> testTaskProvider) {
+    private void addDefaultReportTask(final JacocoPluginExtension extension, final TaskProvider<Task> testTaskProvider, final TaskProvider<JavaCompile> compileJavaTaskProvider) {
         project.getTasks().register(
             "jacoco" + StringUtils.capitalize(testTaskProvider.getName()) + "Report",
             JacocoReport.class,
@@ -243,6 +245,10 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
                     reportTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
                     reportTask.setDescription(String.format("Generates code coverage report for the %s task.", testTaskProvider.getName()));
                     reportTask.executionData(testTaskProvider.get());
+                    String compileJavaEncoding = compileJavaTaskProvider.get().getOptions().getEncoding();
+                    if (compileJavaEncoding != null) {
+                        reportTask.getSourceEncoding().set(compileJavaEncoding);
+                    }
                     reportTask.sourceSets(project.getExtensions().getByType(SourceSetContainer.class).getByName("main"));
                     // TODO: Change the default location for these reports to follow the convention defined in #configureReportOutputDirectory
                     reportTask.getReports().all(new Action<ConfigurableReport>() {
@@ -275,7 +281,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
             });
     }
 
-    private void addDefaultCoverageVerificationTask(final TaskProvider<Task> testTaskProvider) {
+    private void addDefaultCoverageVerificationTask(final TaskProvider<Task> testTaskProvider, final TaskProvider<JavaCompile> compileJavaTaskProvider) {
         project.getTasks().register(
             "jacoco" + StringUtils.capitalize(testTaskProvider.getName()) + "CoverageVerification",
             JacocoCoverageVerification.class,
@@ -286,6 +292,10 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
                     coverageVerificationTask.setDescription(String.format("Verifies code coverage metrics based on specified rules for the %s task.", testTaskProvider.getName()));
                     coverageVerificationTask.executionData(testTaskProvider.get());
                     coverageVerificationTask.sourceSets(project.getExtensions().getByType(SourceSetContainer.class).getByName("main"));
+                    String compileJavaEncoding = compileJavaTaskProvider.get().getOptions().getEncoding();
+                    if (compileJavaEncoding != null) {
+                        coverageVerificationTask.getSourceEncoding().set(compileJavaEncoding);
+                    }
                 }
             });
     }

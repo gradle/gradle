@@ -24,7 +24,9 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -37,6 +39,7 @@ import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -53,6 +56,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     private final ConfigurableFileCollection classDirectories = getProject().files();
     private final ConfigurableFileCollection additionalClassDirs = getProject().files();
     private final ConfigurableFileCollection additionalSourceDirs = getProject().files();
+    private final Property<String> sourceEncoding = getProject().getObjects().property(String.class).value(Charset.defaultCharset().name());
 
     public JacocoReportBase() {
         onlyIf(new Spec<Task>() {
@@ -133,6 +137,15 @@ public abstract class JacocoReportBase extends JacocoBase {
     @InputFiles
     public ConfigurableFileCollection getAdditionalSourceDirs() {
         return additionalSourceDirs;
+    }
+
+    /**
+     * The character encoding of the source files.
+     */
+    @Optional
+    @Input
+    public Property<String> getSourceEncoding() {
+        return sourceEncoding;
     }
 
     /**

@@ -283,6 +283,38 @@ public class ThingTest {
         htmlReport().numberOfClasses() == 2000
     }
 
+    @ToBeFixedForInstantExecution
+    def "allows specifying an encoding"() {
+        given:
+        buildFile << """
+            jacocoTestReport {
+                sourceEncoding = 'UTF-8'
+            }
+            """
+
+        when:
+        succeeds('test', 'jacocoTestReport')
+
+        then:
+        htmlReport().exists()
+    }
+
+    @ToBeFixedForInstantExecution
+    def "specified encoding is actually used"() {
+        given:
+        buildFile << """
+            jacocoTestReport {
+                sourceEncoding = 'THIS_ENCODING_DOES_NOT_EXIST'
+            }
+            """
+
+        when:
+        fails('test', 'jacocoTestReport')
+
+        then:
+        failure.hasErrorOutput("java.io.UnsupportedEncodingException")
+    }
+
     private JacocoReportFixture htmlReport(String basedir = "${REPORTING_BASE}/jacoco/test/html") {
         return new JacocoReportFixture(file(basedir))
     }

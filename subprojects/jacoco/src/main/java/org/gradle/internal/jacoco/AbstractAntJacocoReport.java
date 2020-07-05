@@ -51,7 +51,7 @@ public abstract class AbstractAntJacocoReport<T> {
 
     protected void invokeJacocoReport(final GroovyObjectSupport antBuilder, final String projectName,
                      final FileCollection allClassesDirs, final FileCollection allSourcesDirs,
-                     final FileCollection executionData, final T t) {
+                     final String encoding, final FileCollection executionData, final T t) {
         final Map<String, Object> emptyArgs = Collections.emptyMap();
         antBuilder.invokeMethod("jacocoReport", new Object[]{Collections.emptyMap(), new Closure<Object>(this, this) {
             @SuppressWarnings("UnusedDeclaration")
@@ -71,7 +71,8 @@ public abstract class AbstractAntJacocoReport<T> {
                                 return null;
                             }
                         }});
-                        antBuilder.invokeMethod("sourcefiles", new Object[]{emptyArgs, new Closure<Object>(this, this) {
+                        final Map<String, Object> sourcefileArgs = Collections.singletonMap("encoding", encoding);
+                        antBuilder.invokeMethod("sourcefiles", new Object[]{sourcefileArgs, new Closure<Object>(this, this) {
                             public Object doCall(Object ignore) {
                                 allSourcesDirs.addToAntBuilder(antBuilder, "resources");
                                 return null;

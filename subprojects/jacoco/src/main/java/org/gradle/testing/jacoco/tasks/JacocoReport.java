@@ -95,6 +95,7 @@ public class JacocoReport extends JacocoReportBase implements Reporting<JacocoRe
             projectName.get(),
             getAllClassDirs().filter(fileExistsSpec),
             getAllSourceDirs().filter(fileExistsSpec),
+            getSourceEncoding().get(),
             getExecutionData(),
             getReports()
         );

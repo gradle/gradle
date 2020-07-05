@@ -51,14 +51,14 @@ public class AntJacocoCheck extends AbstractAntJacocoReport<JacocoViolationRules
 
     public JacocoCheckResult execute(FileCollection classpath, final String projectName,
                                      final FileCollection allClassesDirs, final FileCollection allSourcesDirs,
-                                     final FileCollection executionData, final JacocoViolationRulesContainer violationRules) {
+                                     final String encoding, final FileCollection executionData, final JacocoViolationRulesContainer violationRules) {
         final JacocoCheckResult jacocoCheckResult = new JacocoCheckResult();
 
         configureAntReportTask(classpath, new Action<GroovyObjectSupport>() {
             @Override
             public void execute(GroovyObjectSupport antBuilder) {
                 try {
-                    invokeJacocoReport(antBuilder, projectName, allClassesDirs, allSourcesDirs, executionData, violationRules);
+                    invokeJacocoReport(antBuilder, projectName, allClassesDirs, allSourcesDirs, encoding, executionData, violationRules);
                 } catch (Exception e) {
                     String violations = getViolations(antBuilder);
                     jacocoCheckResult.setSuccess(false);

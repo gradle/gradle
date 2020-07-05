@@ -25,6 +25,8 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import java.nio.charset.Charset
+
 class JacocoPluginSpec extends AbstractProjectBuilderSpec {
     def setup() {
         project.apply plugin: 'jacoco'
@@ -108,5 +110,29 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
         jacocoTestCoverageVerificationTask.group == LifecycleBasePlugin.VERIFICATION_GROUP
         jacocoTestReportTask.description == 'Generates code coverage report for the test task.'
         jacocoTestCoverageVerificationTask.description == 'Verifies code coverage metrics based on specified rules for the test task.'
+    }
+
+    def "declares task property values for sourceEncoding, with default value if compileJava does not have an encoding"() {
+        given:
+        project.apply plugin: 'java'
+
+        expect:
+        def jacocoTestReportTask = project.tasks.getByName('jacocoTestReport')
+        def jacocoTestCoverageVerificationTask = project.tasks.getByName('jacocoTestCoverageVerification')
+        jacocoTestReportTask.sourceEncoding.get() == Charset.defaultCharset().name()
+        jacocoTestCoverageVerificationTask.sourceEncoding.get() == Charset.defaultCharset().name()
+    }
+
+    def "declares task property values for sourceEncoding, with value specified for compileJava"() {
+        given:
+        project.apply plugin: 'java'
+        def compileJavaTask = project.tasks.getByName('compileJava')
+        compileJavaTask.options.encoding = "SOME_ENCODING"
+
+        expect:
+        def jacocoTestReportTask = project.tasks.getByName('jacocoTestReport')
+        def jacocoTestCoverageVerificationTask = project.tasks.getByName('jacocoTestCoverageVerification')
+        jacocoTestReportTask.sourceEncoding.get() == "SOME_ENCODING"
+        jacocoTestCoverageVerificationTask.sourceEncoding.get() == "SOME_ENCODING"
     }
 }

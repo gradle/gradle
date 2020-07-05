@@ -27,6 +27,8 @@ dependencies {
     implementation(project(":platformBase"))
     implementation(project(":testingBase"))
     implementation(project(":testingJvm"))
+    implementation(project(":languageJvm"))
+    implementation(project(":languageJava"))
     implementation(project(":plugins"))
     implementation(project(":reporting"))
 
