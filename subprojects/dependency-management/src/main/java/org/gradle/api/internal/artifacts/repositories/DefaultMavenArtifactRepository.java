@@ -100,7 +100,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final MavenMetadataSources metadataSources = new MavenMetadataSources();
     private final InstantiatorFactory instantiatorFactory;
 
-    public DefaultMavenArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
+    public DefaultMavenArtifactRepository(FileResolver fileResolver,
+                                          RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                           InstantiatorFactory instantiatorFactory,
                                           FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
@@ -121,7 +122,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
-                                          FileResolver fileResolver, RepositoryTransportFactory transportFactory,
+                                          FileResolver fileResolver,
+                                          RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                           InstantiatorFactory instantiatorFactory,
                                           FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,

@@ -33,8 +33,8 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryDisabler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryDisabler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashCodec;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryDisabler;
@@ -160,6 +160,7 @@ import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.resource.cached.TwoStageByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.TwoStageExternalResourceFileStore;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
+import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
@@ -430,8 +431,7 @@ class DependencyManagementBuildScopeServices {
         return finderFactory.create();
     }
 
-    RepositoryTransportFactory createRepositoryTransportFactory(StartParameter startParameter,
-                                                                ProgressLoggerFactory progressLoggerFactory,
+    RepositoryTransportFactory createRepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
                                                                 TemporaryFileProvider temporaryFileProvider,
                                                                 FileStoreAndIndexProvider fileStoreAndIndexProvider,
                                                                 BuildCommencedTimeProvider buildCommencedTimeProvider,
@@ -441,7 +441,8 @@ class DependencyManagementBuildScopeServices {
                                                                 ProducerGuard<ExternalResourceName> producerGuard,
                                                                 FileResourceRepository fileResourceRepository,
                                                                 ChecksumService checksumService,
-                                                                StartParameterResolutionOverride startParameterResolutionOverride) {
+                                                                StartParameterResolutionOverride startParameterResolutionOverride,
+                                                                ListenerManager listenerManager) {
         return artifactCachesProvider.withWritableCache((md, manager) -> new RepositoryTransportFactory(
             resourceConnectorFactories,
             progressLoggerFactory,
@@ -453,7 +454,8 @@ class DependencyManagementBuildScopeServices {
             startParameterResolutionOverride,
             producerGuard,
             fileResourceRepository,
-            checksumService));
+            checksumService,
+            listenerManager.getBroadcaster(FileResourceListener.class)));
     }
 
     RepositoryDisabler createRepositoryDisabler() {
