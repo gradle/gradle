@@ -21,8 +21,8 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class TaskNameComparatorTest extends Specification {
-    @Unroll('compares task names #first and #second')
-    def compare() {
+    @Unroll
+    def "compares task names #first and #second"() {
         def comparator = new TaskNameComparator()
 
         expect:
@@ -32,7 +32,7 @@ class TaskNameComparatorTest extends Specification {
         comparator.compare(second, second) == 0
 
         where:
-        first | second
+        first   | second
         ':t1' | ':t2'
         ':a:t1' | ':a:t2'
         ':a:t1' | ':a1:t1'

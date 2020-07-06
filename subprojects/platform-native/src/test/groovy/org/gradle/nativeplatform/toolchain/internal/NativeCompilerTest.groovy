@@ -140,8 +140,8 @@ abstract class NativeCompilerTest extends Specification {
         actualArgs == expectedArgs
     }
 
-    @Unroll("Compiles source files (options.txt=#withOptionsFile) with #description")
-    def "compiles all source files in separate executions"() {
+    @Unroll
+    def "Compiles source files (options.txt=#withOptionsFile) with #description"() {
         given:
         GradleThread.setManaged()
 

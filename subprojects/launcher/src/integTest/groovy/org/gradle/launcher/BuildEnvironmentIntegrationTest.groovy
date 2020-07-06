@@ -28,8 +28,8 @@ import java.nio.charset.Charset
 
 class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll("default locale for gradle build switched to #locale")
-    def "builds can be executed with different default locales"() {
+    @Unroll
+    def "builds can be executed default locale switched to #locale"() {
         given:
         executer.withDefaultLocale(locale)
 
@@ -143,8 +143,8 @@ task check {
         }
     }
 
-    @Unroll("build default encoding matches specified - input = #inputEncoding, expectedEncoding: #expectedEncoding")
-    def "build default encoding matches specified"(String inputEncoding, String expectedEncoding) {
+    @Unroll
+    def "build default encoding matches specified - input = #inputEncoding, expectedEncoding: #expectedEncoding"(String inputEncoding, String expectedEncoding) {
         given:
         executerEncoding inputEncoding
 
@@ -170,8 +170,8 @@ task check {
         null          | Charset.defaultCharset().name()
     }
 
-    @Unroll("forked java processes inherit default encoding - input = #inputEncoding, expectedEncoding: #expectedEncoding")
-    def "forked java processes inherit default encoding"() {
+    @Unroll
+    def "forked java processes inherit default encoding - input = #inputEncoding, expectedEncoding: #expectedEncoding"() {
         given:
         executerEncoding inputEncoding
 

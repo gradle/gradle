@@ -17,13 +17,12 @@
 package org.gradle.nativeplatform.platform.internal
 
 import org.gradle.nativeplatform.fixtures.binaryinfo.ReadelfBinaryInfo
-
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class ReadelfBinaryInfoTest extends Specification {
-    @Unroll("reads soname value with #language readelf output")
-    def "reads soname value"() {
+    @Unroll
+    def "reads soname value with #language readelf output"() {
         when:
         def inputLines = input.readLines()
 
@@ -75,8 +74,8 @@ Dynamische Sektion an Offset 0x1a6da8 enthält 26 Einträge:
             ]]
     }
 
-    @Unroll("returns null for no soname value with #language readelf output")
-    def "returns null for no soname value"() {
+    @Unroll
+    def "returns null for no soname value with #language readelf output"() {
         when:
         def inputLines = input.readLines()
 
@@ -126,8 +125,8 @@ Dynamische Sektion an Offset 0x1a6da8 enthält 26 Einträge:
             ]]
     }
 
-    @Unroll("reads architecture value with #language readelf output")
-    def "reads architecture value"() {
+    @Unroll
+    def "reads architecture value with #language readelf output"() {
         when:
         def inputLines = input.readLines()
 
@@ -160,7 +159,7 @@ ELF Header:
 """],
             ["German", """
 ELF-Header:
-  Magic:   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00 
+  Magic:   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00
   Klasse:                            ELF32
   Daten:                             2er-Komplement, Little-Endian
   Version:                           1 (current)
@@ -183,8 +182,8 @@ ELF-Header:
             ]]
     }
 
-    @Unroll("reads architecture value and throws RuntimeException with #language readelf output")
-    def "reads architecture value and throws RuntimeException"() {
+    @Unroll
+    def "reads architecture value and throws RuntimeException with #language readelf output"() {
         when:
         def inputLines = input.readLines()
         ReadelfBinaryInfo.readArch(inputLines)
@@ -217,7 +216,7 @@ ELF Header:
 """],
             ["German", """
 ELF-Header:
-  Magic:   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00 
+  Magic:   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00
   Klasse:                            ELF32
   Daten:                             2er-Komplement, Little-Endian
   Version:                           1 (current)

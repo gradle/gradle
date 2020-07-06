@@ -94,8 +94,8 @@ class BuildInvocationsBuilderTest extends Specification {
         canBuild
     }
 
-    @Unroll("tasks and selectors for #startProject")
-    def "BuildInvocations model is created from tasks and task selectors for given project and its subprojects"() {
+    @Unroll
+    def "BuildInvocations model is created from tasks and task selectors for #startProject and its subprojects"() {
         given:
         def builder = new BuildInvocationsBuilder(new DefaultProjectTaskLister())
 
