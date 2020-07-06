@@ -26,8 +26,6 @@ import org.junit.AssumptionViolatedException
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
-import spock.lang.Unroll
-
 @Requires([TestPrecondition.ONLINE])
 class MavenDownloaderTest extends Specification {
 
@@ -45,7 +43,6 @@ class MavenDownloaderTest extends Specification {
         }
     }
 
-    @Unroll
     def "can download Maven distribution with version #mavenVersion"() {
         when:
         def install

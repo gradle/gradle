@@ -23,8 +23,6 @@ import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Specification
-import spock.lang.Unroll
-
 // Ignored for file system watching since
 // - For file system watching, we start an isolated daemon, which by definition is not an in process daemon, so the test doesn't make much sense.
 // - The daemon then leaves back some running daemons which write to the registry and cause an error for `verifyTestFilesCleanup`.
@@ -37,7 +35,6 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
     def distribution = new UnderDevelopmentGradleDistribution(IntegrationTestBuildContext.INSTANCE)
     def executer = new GradleContextualExecuter(distribution, temporaryFolder, IntegrationTestBuildContext.INSTANCE)
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "can write to System.out and System.err around build invocation with #console console when errors are redirected to stdout"() {
         given:
@@ -94,7 +91,6 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
         console << [ConsoleOutput.Plain, ConsoleOutput.Rich, ConsoleOutput.Verbose]
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "can write to System.out and System.err around build invocation with #console console when errors are written to stderr"() {
         given:

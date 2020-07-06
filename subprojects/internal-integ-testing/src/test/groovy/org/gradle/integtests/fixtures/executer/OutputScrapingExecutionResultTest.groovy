@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.fixtures.executer
 
-import spock.lang.Unroll
-
 class OutputScrapingExecutionResultTest extends AbstractExecutionResultTest {
     def "can have empty output"() {
         def result = OutputScrapingExecutionResult.from("", "")
@@ -75,12 +73,12 @@ post build
         error(e).startsWith(error('''
             Did not find expected text in build output.
             Expected: missing
-             
+
             Build output:
             =======
             message
             message 2
-             
+
             Output:
             '''))
 
@@ -92,12 +90,12 @@ post build
         error(e2).startsWith(error('''
             Did not find expected text in build output.
             Expected: post build
-             
+
             Build output:
             =======
             message
             message 2
-             
+
             Output:
             '''))
 
@@ -109,12 +107,12 @@ post build
         error(e3).startsWith(error('''
             Did not find expected text in build output.
             Expected: BUILD
-             
+
             Build output:
             =======
             message
             message 2
-             
+
             Output:
             '''))
 
@@ -126,12 +124,12 @@ post build
         error(e4).startsWith(error('''
             Did not find expected text in build output.
             Expected: message extra
-             
+
             Build output:
             =======
             message
             message 2
-             
+
             Output:
             '''))
 
@@ -143,14 +141,14 @@ post build
         error(e6).startsWith(error('''
             Did not find expected text in build output.
             Expected: message
-            
-            
-            
+
+
+
             Build output:
             =======
             message
             message 2
-            
+
             Output:
             '''))
     }
@@ -182,13 +180,13 @@ more post build
         error(e).startsWith(error('''
             Did not find expected text in post-build output.
             Expected: missing
-            
+
             Post-build output:
             =======
-             
+
             post build
             more post build
-             
+
             Output:
             '''))
 
@@ -200,13 +198,13 @@ more post build
         error(e2).startsWith(error('''
             Did not find expected text in post-build output.
             Expected: message
-            
+
             Post-build output:
             =======
-             
+
             post build
             more post build
-             
+
             Output:
             '''))
 
@@ -218,13 +216,13 @@ more post build
         error(e3).startsWith(error('''
             Did not find expected text in post-build output.
             Expected: BUILD
-            
+
             Post-build output:
             =======
-             
+
             post build
             more post build
-             
+
             Output:
             '''))
 
@@ -236,13 +234,13 @@ more post build
         error(e4).startsWith(error('''
             Did not find expected text in post-build output.
             Expected: post build extra
-            
+
             Post-build output:
             =======
-             
+
             post build
             more post build
-             
+
             Output:
             '''))
 
@@ -256,18 +254,17 @@ more post build
             Expected: post build
 
 
-            
+
             Post-build output:
             =======
-             
+
             post build
             more post build
-             
+
             Output:
             '''))
     }
 
-    @Unroll
     def "can assert output is not present = #text"() {
         def output = """
 message
