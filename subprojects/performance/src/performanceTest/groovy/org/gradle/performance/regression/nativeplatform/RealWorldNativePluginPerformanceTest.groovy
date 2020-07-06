@@ -22,8 +22,6 @@ import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.measure.MeasuredOperation
-import spock.lang.Unroll
-
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
     def setup() {
@@ -31,7 +29,6 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionGradleInt
         runner.minimumBaseVersion = "4.0"
     }
 
-    @Unroll
     def "build on #testProject with #parallelWorkers parallel workers"() {
         given:
         runner.testProject = testProject
@@ -58,7 +55,6 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionGradleInt
         "nativeMonolithicOverlapping" | 12
     }
 
-    @Unroll
     def "build with #changeType change on #testProject"() {
         given:
         runner.testProject = testProject

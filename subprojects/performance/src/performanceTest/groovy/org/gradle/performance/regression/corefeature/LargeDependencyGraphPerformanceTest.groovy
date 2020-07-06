@@ -19,8 +19,6 @@ package org.gradle.performance.regression.corefeature
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.performance.WithExternalRepository
 import spock.lang.Ignore
-import spock.lang.Unroll
-
 class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest implements WithExternalRepository {
 
     private final static TEST_PROJECT_NAME = 'excludeRuleMergingBuild'
@@ -47,7 +45,6 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProf
         result.assertCurrentVersionHasNotRegressed()
     }
 
-    @Unroll
     def "resolve large dependency graph (parallel = #parallel, locking = #locking)"() {
         runner.testProject = TEST_PROJECT_NAME
         startServer()

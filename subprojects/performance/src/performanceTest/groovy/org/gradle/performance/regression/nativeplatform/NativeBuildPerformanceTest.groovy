@@ -18,15 +18,12 @@ package org.gradle.performance.regression.nativeplatform
 
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.profiler.mutations.ApplyChangeToNativeSourceFileMutator
-import spock.lang.Unroll
-
 class NativeBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
     def setup() {
         runner.minimumBaseVersion = '4.1' // minimum version that contains new C++ plugins
         runner.targetVersions = ["6.5-20200506110523+0000"]
     }
 
-    @Unroll
     def "up-to-date assemble on #testProject"() {
         given:
         runner.testProject = testProject
@@ -45,7 +42,6 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerfo
         "bigCppMulti"      | '1g'
     }
 
-    @Unroll
     def "assemble with #changeType file change on #testProject"() {
         given:
         runner.testProject = testProject

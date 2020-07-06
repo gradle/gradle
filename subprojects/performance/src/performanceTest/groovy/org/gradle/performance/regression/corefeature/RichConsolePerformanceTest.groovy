@@ -17,8 +17,6 @@
 package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
-import spock.lang.Unroll
-
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
@@ -30,7 +28,6 @@ class RichConsolePerformanceTest extends AbstractCrossVersionGradleProfilerPerfo
         runner.args << '--console=rich'
     }
 
-    @Unroll
     def "#tasks on #testProject with rich console"() {
         given:
         runner.testProject = testProject

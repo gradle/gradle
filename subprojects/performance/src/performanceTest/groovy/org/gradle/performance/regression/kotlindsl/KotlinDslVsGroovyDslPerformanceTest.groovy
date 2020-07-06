@@ -22,15 +22,12 @@ import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
-
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
 
 @Category(PerformanceRegressionTest)
 class KotlinDslVsGroovyDslPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
-    @Unroll
     def "help on #kotlinProject vs. help on #groovyProject"() {
 
         given:

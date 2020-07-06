@@ -17,14 +17,11 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
-import spock.lang.Unroll
-
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 class JavaTasksPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
-    @Unroll
     def "tasks on #testProject"() {
         given:
         runner.testProject = testProject
@@ -44,7 +41,6 @@ class JavaTasksPerformanceTest extends AbstractCrossVersionGradleProfilerPerform
         LARGE_JAVA_MULTI_PROJECT      | _
     }
 
-    @Unroll
     def "tasks --all on #testProject"() {
         given:
         runner.testProject = testProject

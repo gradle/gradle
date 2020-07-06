@@ -20,8 +20,6 @@ import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
-
 @Category(SlowPerformanceRegressionTest)
 class SwiftCleanBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
@@ -31,7 +29,6 @@ class SwiftCleanBuildPerformanceTest extends AbstractCrossVersionGradleProfilerP
         runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
-    @Unroll
     def "clean assemble on #testProject"() {
         given:
         runner.testProject = testProject

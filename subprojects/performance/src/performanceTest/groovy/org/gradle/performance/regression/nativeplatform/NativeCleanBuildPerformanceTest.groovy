@@ -19,8 +19,6 @@ package org.gradle.performance.regression.nativeplatform
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
-
 @Category(SlowPerformanceRegressionTest)
 class NativeCleanBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
     def setup() {
@@ -28,7 +26,6 @@ class NativeCleanBuildPerformanceTest extends AbstractCrossVersionGradleProfiler
         runner.targetVersions = ["6.5-20200424145747+0000"]
     }
 
-    @Unroll
     def "clean assemble on #testProject"() {
         given:
         runner.testProject = testProject

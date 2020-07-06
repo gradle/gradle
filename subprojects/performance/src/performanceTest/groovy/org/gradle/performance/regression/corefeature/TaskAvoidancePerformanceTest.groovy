@@ -19,15 +19,12 @@ package org.gradle.performance.regression.corefeature
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceRegressionTest
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
-
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 @Category(PerformanceRegressionTest)
 class TaskAvoidancePerformanceTest extends AbstractCrossBuildPerformanceTest {
 
-    @Unroll
     def "help on #testProject with lazy and eager tasks"() {
         given:
         runner.testGroup = "configuration avoidance"

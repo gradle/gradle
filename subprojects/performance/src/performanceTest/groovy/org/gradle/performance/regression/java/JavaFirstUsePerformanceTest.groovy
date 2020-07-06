@@ -24,8 +24,6 @@ import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.measure.MeasuredOperation
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
-
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
@@ -33,7 +31,6 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_
 @Category(SlowPerformanceRegressionTest)
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
-    @Unroll
     def "first use of #testProject"() {
         given:
         runner.testProject = testProject
@@ -66,7 +63,6 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionGradleInternalPerf
         LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL | 5
     }
 
-    @Unroll
     def "clean checkout of #testProject"() {
         given:
         runner.testProject = testProject
@@ -97,7 +93,6 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionGradleInternalPerf
         LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL      | _
     }
 
-    @Unroll
     def "cold daemon on #testProject"() {
         given:
         runner.testProject = testProject

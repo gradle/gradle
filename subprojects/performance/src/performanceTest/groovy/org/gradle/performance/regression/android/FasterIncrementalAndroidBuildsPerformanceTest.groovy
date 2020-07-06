@@ -32,8 +32,6 @@ import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearInstantExecutionStateMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
-
 import static org.gradle.performance.regression.android.IncrementalAndroidTestProject.SANTA_TRACKER_JAVA
 import static org.gradle.performance.regression.android.IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
 
@@ -45,7 +43,6 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         runner.testGroup = "incremental android changes"
     }
 
-    @Unroll
     def "faster non-abi change on #testProject (build comparison)"() {
         given:
         buildSpecForSupportedOptimizations(testProject) {
@@ -61,7 +58,6 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         testProject << [SANTA_TRACKER_KOTLIN, SANTA_TRACKER_JAVA]
     }
 
-    @Unroll
     def "faster abi-change on #testProject (build comparison)"() {
         given:
         buildSpecForSupportedOptimizations(testProject) {

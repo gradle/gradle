@@ -17,14 +17,11 @@
 package org.gradle.performance.regression.android
 
 
-import spock.lang.Unroll
-
 import static org.gradle.performance.regression.android.AndroidTestProject.K9_ANDROID
 import static org.gradle.performance.regression.android.AndroidTestProject.LARGE_ANDROID_BUILD
 import static org.gradle.performance.regression.android.IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPerformanceTest {
-    @Unroll
     def "#tasks on #testProject"() {
         given:
         testProject.configure(runner)
@@ -58,7 +55,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPe
         SANTA_TRACKER_KOTLIN | true     | null       | null | 'assembleDebug'
     }
 
-    @Unroll
     def "abi change on #testProject"() {
         given:
         testProject.configureForAbiChange(runner)
@@ -76,7 +72,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPe
         testProject << [SANTA_TRACKER_KOTLIN]
     }
 
-    @Unroll
     def "non-abi change on #testProject"() {
         given:
         testProject.configureForNonAbiChange(runner)

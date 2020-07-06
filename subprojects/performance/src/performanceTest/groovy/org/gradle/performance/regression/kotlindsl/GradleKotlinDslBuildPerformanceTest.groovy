@@ -18,12 +18,9 @@ package org.gradle.performance.regression.kotlindsl
 
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.junit.Ignore
-import spock.lang.Unroll
-
 @Ignore
 class GradleKotlinDslBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
-    @Unroll
     def "configuration of #testProject"() {
         given:
         runner.testProject = testProject
@@ -43,7 +40,6 @@ class GradleKotlinDslBuildPerformanceTest extends AbstractCrossVersionGradleProf
         "ktsManyProjects" | _
     }
 
-    @Unroll
     def "first use of #testProject"() {
         given:
         runner.testProject = testProject

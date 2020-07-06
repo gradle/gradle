@@ -17,8 +17,6 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
-import spock.lang.Unroll
-
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.MEDIUM_JAVA_COMPOSITE_BUILD
@@ -26,7 +24,6 @@ import static org.gradle.performance.generator.JavaTestProject.MEDIUM_JAVA_PREDE
 
 class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
-    @Unroll
     def "clean assemble on #testProject"() {
         given:
         runner.testProject = testProject
