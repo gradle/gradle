@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
-import spock.lang.Unroll
-
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 import static org.gradle.language.java.JavaIntegrationTesting.expectJavaLangPluginDeprecationWarnings
 
@@ -71,7 +69,6 @@ public class TestApp {
         file(path).write(contents)
     }
 
-    @Unroll
     def "fails compilation when referencing a non-API class from a #scope dependency"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -110,7 +107,6 @@ public class TestApp {
         scope << scopes
     }
 
-    @Unroll
     def "changing API class in ABI breaking way should trigger recompilation of a consuming library with #scope dependency when an API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -159,7 +155,6 @@ public class Person {
         apiDeclared = api?'declared':'not declared'
     }
 
-    @Unroll
     def "changing non-API class should not trigger recompilation of a consuming library with #scope dependency when API is declared"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -205,7 +200,6 @@ public class PersonInternal extends Person {
         scope << scopes
     }
 
-    @Unroll
     def "changing comment in API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -255,7 +249,6 @@ public class Person {
         apiDeclared = api?'declared':'not declared'
     }
 
-    @Unroll
     @Requires(TestPrecondition.JDK8_OR_EARLIER) // behavior changed with Java 9; we do not investigate as this tests a deprecated feature to be removed in Gradle 7.0
     def "changing method body of API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
@@ -385,7 +378,6 @@ public class Person {
         recompiled 'Main'
     }
 
-    @Unroll
     def "extraction of private method in API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -440,7 +432,6 @@ public class Person {
         apiDeclared = api?'declared':'not declared'
     }
 
-    @Unroll
     def "changing the order of public methods of API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -500,7 +491,6 @@ public class Person {
         apiDeclared = api?'declared':'not declared'
     }
 
-    @Unroll
     def "adding a private field to an API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -552,7 +542,6 @@ public class Person {
         apiDeclared = api?'declared':'not declared'
     }
 
-    @Unroll
     def "adding a private method to an API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -605,7 +594,6 @@ public class Person {
         apiDeclared = api?'declared':'not declared'
     }
 
-    @Unroll
     def "changing the order of members of API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -667,7 +655,6 @@ public class Person {
         apiDeclared = api?'declared':'not declared'
     }
 
-    @Unroll
     def "changing an API field of an API class should trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -721,7 +708,6 @@ public class Person {
         apiDeclared = api?'declared':'not declared'
     }
 
-    @Unroll
     def "changing the superclass of an API class should trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -777,7 +763,6 @@ public class Person {
         apiDeclared = api?'declared':'not declared'
     }
 
-    @Unroll
     def "changing the interfaces of an API class should trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -834,7 +819,6 @@ public class Person {
         apiDeclared = api?'declared':'not declared'
     }
 
-    @Unroll
     def "changing order of annotations on API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -915,7 +899,6 @@ public class Person {
         apiDeclared = api?'declared':'not declared'
     }
 
-    @Unroll
     def "changing order of annotations on API method should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -998,7 +981,6 @@ public class Person {
         apiDeclared = api?'declared':'not declared'
     }
 
-    @Unroll
     def "changing order of annotations on API method parameter should not trigger recompilation of the consuming library when #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -1082,7 +1064,6 @@ public class Person {
         apiDeclared = api?'declared':'not declared'
     }
 
-    @Unroll
     def "changing order of annotations on API field should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -1165,7 +1146,6 @@ public class Person {
         apiDeclared = api?'declared':'not declared'
     }
 
-    @Unroll
     def "building the API jar should not depend on the runtime jar when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile, executer)

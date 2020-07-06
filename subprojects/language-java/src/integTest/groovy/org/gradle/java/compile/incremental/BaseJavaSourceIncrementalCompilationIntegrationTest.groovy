@@ -20,8 +20,6 @@ import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
-import spock.lang.Unroll
-
 abstract class BaseJavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.JAVA
 
@@ -30,7 +28,6 @@ abstract class BaseJavaSourceIncrementalCompilationIntegrationTest extends Abstr
         failure.assertHasErrorOutput(expectedFailure)
     }
 
-    @Unroll
     def "change to #retention retention annotation class recompiles #desc"() {
         def annotationClass = file("src/main/${language.name}/SomeAnnotation.${language.name}") << """
             import java.lang.annotation.*;

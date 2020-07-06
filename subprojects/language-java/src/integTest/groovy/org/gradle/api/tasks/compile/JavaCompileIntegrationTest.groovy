@@ -26,8 +26,6 @@ import org.gradle.util.ToBeImplemented
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
-import spock.lang.Unroll
-
 class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
     @Rule
@@ -396,7 +394,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         noExceptionThrown()
     }
 
-    @Unroll
     def "can depend on #scenario without building the jar"() {
         given:
         settingsFile << "include 'a', 'b'"

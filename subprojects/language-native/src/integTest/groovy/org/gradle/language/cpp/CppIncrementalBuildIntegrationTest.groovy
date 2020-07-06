@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Unroll
-
 import static org.junit.Assume.assumeFalse
 
 class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
@@ -453,7 +451,6 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         allSkipped()
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "header file referenced using macro #macro is considered an input"() {
         when:
@@ -557,7 +554,6 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         ]
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "header file referenced using external macro #macro is considered an input"() {
         when:
@@ -636,7 +632,6 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         ]
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "considers all header files as input to source file with complex macro include #include"() {
         when:

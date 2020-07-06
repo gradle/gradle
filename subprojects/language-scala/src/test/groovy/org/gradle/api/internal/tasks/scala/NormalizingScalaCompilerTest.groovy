@@ -22,8 +22,6 @@ import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class NormalizingScalaCompilerTest extends Specification {
     Compiler<ScalaJavaJointCompileSpec> target = Mock()
     DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec()
@@ -68,7 +66,6 @@ class NormalizingScalaCompilerTest extends Specification {
         e == failure
     }
 
-    @Unroll
     def "ignores compile failure when one of #options dot failOnError is false"() {
         target.execute(spec) >> { throw new CompilationFailedException() }
 

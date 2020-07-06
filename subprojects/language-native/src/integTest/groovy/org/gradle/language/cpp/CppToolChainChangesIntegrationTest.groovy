@@ -22,14 +22,12 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.junit.Assume
-import spock.lang.Unroll
-
 class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         def app = new CppHelloWorldApp()
 
-        buildFile << """    
+        buildFile << """
             project(':library') {
                 apply plugin: 'cpp-library'
                 library {
@@ -55,7 +53,6 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "recompiles binary when toolchain changes from #toolChainBefore to #toolChainAfter"() {
         buildFile.text = buildScriptForToolChains(toolChainBefore, toolChainAfter)

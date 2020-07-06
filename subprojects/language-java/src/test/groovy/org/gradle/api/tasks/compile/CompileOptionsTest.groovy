@@ -18,8 +18,6 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class CompileOptionsTest extends Specification {
     static final TEST_DEBUG_OPTION_MAP = [someDebugOption: 'someDebugOptionValue']
     static final TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']
@@ -60,7 +58,6 @@ class CompileOptionsTest extends Specification {
         optionMap.subMap(TEST_FORK_OPTION_MAP.keySet()) == TEST_FORK_OPTION_MAP
     }
 
-    @Unroll
     def "option map with nullable #option"() {
         expect:
         !compileOptions.optionMap().keySet().contains(option)
@@ -77,7 +74,6 @@ class CompileOptionsTest extends Specification {
         "extensionDirs"      | "extdirs"
     }
 
-    @Unroll
     def "option map with true/false #property"() {
         when:
         compileOptions."$property" = true
@@ -104,7 +100,6 @@ class CompileOptionsTest extends Specification {
 
     }
 
-    @Unroll
     def "with exclude #option from option map"() {
         compileOptions.compilerArgs = ["-value=something"]
 

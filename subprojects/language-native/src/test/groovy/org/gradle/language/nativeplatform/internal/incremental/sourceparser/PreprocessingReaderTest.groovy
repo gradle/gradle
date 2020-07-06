@@ -17,8 +17,6 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser
 
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class PreprocessingReaderTest extends Specification {
     private static final String BN = "\\" + System.getProperty("line.separator")
     String input
@@ -138,7 +136,6 @@ line comments.
         output == "Here \n\n\\\n\\\n\\\n\\\n\\\n\\\n."
     }
 
-    @Unroll
     def "replaces #description at the start of content"() {
         when:
         input = testIn

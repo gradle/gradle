@@ -18,9 +18,6 @@ package org.gradle.swiftpm
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.vcs.fixtures.GitFileRepository
-import spock.lang.Unroll
-
-
 class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
     @ToBeFixedForInstantExecution
     def "export fails when external dependency cannot be mapped to a git url"() {
@@ -332,7 +329,6 @@ let package = Package(
         lib2Repo?.close()
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "maps dependency on #src to #mapped"() {
         given:
@@ -406,7 +402,6 @@ let package = Package(
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
     def "cannot map dependency #src"() {
         given:
         settingsFile << """

@@ -20,8 +20,6 @@ import com.google.common.collect.Multimap
 import com.google.common.collect.MultimapBuilder
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
-
 class GroovySourceFileClassNameConverterTest extends Specification {
     @Subject
     DefaultSourceFileClassNameConverter converter
@@ -39,7 +37,6 @@ class GroovySourceFileClassNameConverterTest extends Specification {
         converter = new DefaultSourceFileClassNameConverter(sourceClassesMapping)
     }
 
-    @Unroll
     def 'can get class names by file'() {
         expect:
         converter.getClassNames(file) == classes
@@ -51,7 +48,6 @@ class GroovySourceFileClassNameConverterTest extends Specification {
         'OtherClass.groovy' | [] as Set
     }
 
-    @Unroll
     def 'can get file by classname'() {
         expect:
         converter.getRelativeSourcePath(fqcn) == file

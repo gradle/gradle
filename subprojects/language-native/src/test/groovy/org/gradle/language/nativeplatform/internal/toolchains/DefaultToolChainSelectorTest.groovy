@@ -32,8 +32,6 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.util.UsesNativeServices
 import org.gradle.util.VersionNumber
 import spock.lang.Specification
-import spock.lang.Unroll
-
 import static org.gradle.language.swift.SwiftVersion.SWIFT3
 import static org.gradle.language.swift.SwiftVersion.SWIFT4
 import static org.gradle.language.swift.SwiftVersion.SWIFT5
@@ -95,7 +93,6 @@ class DefaultToolChainSelectorTest extends Specification {
         ]
     }
 
-    @Unroll
     def "can associate the compiler version #compilerVersion to #languageVersion language version"() {
         expect:
         DefaultToolChainSelector.toSwiftVersion(VersionNumber.parse(compilerVersion)) == languageVersion
