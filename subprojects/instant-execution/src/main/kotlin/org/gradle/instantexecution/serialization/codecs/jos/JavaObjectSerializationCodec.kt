@@ -34,13 +34,12 @@ import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withBeanTrace
 import org.gradle.instantexecution.serialization.withImmediateMode
 import org.gradle.instantexecution.serialization.writeEnum
-
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
-
 import java.lang.reflect.Method
-import java.lang.reflect.Modifier
+import java.lang.reflect.Modifier.isPrivate
+import java.lang.reflect.Modifier.isStatic
 
 
 /**
@@ -102,7 +101,25 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
 
     override suspend fun ReadContext.decode(): Any? =
         decodePreservingIdentity { id ->
-            when (val format = readEnum<Format>()) {
+            when (readEnum<Format>()) {
+                Format.WriteObject -> {
+                    withImmediateMode {
+                        decodingBeanWithId(id) { bean, beanType, beanStateReader ->
+                            decodeWriteObject(bean, beanType, beanStateReader)
+                        }
+                    }
+                }
+                Format.ReadObject -> {
+                    withImmediateMode {
+                        decodingBeanWithId(id) { bean, beanType, beanStateReader ->
+                            invokeAll(
+                                readObjectMethodHierarchyOf(beanType),
+                                bean,
+                                objectInputStreamAdapterFor(bean, beanStateReader)
+                            )
+                        }
+                    }
+                }
                 Format.WriteReplace -> {
                     readResolve(readNonNull())
                         .also { putIdentity(id, it) }
@@ -111,53 +128,25 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
                     readResolve(decodeBean())
                         .also { putIdentity(id, it) }
                 }
-                else -> {
-                    withImmediateMode {
-                        val beanType = readClass()
-                        withBeanTrace(beanType) {
-                            val beanStateReader = beanStateReaderFor(beanType)
-                            beanStateReader.run { newBeanWithId(false, id) }.also { bean ->
-                                when (format) {
-                                    Format.ReadObject -> {
-                                        invokeAll(
-                                            readObjectMethodHierarchyOf(beanType),
-                                            bean,
-                                            objectInputStreamAdapterFor(bean, beanStateReader)
-                                        )
-                                    }
-                                    Format.WriteObject -> {
-                                        if (readBoolean()) {
-                                            val objectInputStream = objectInputStreamAdapterFor(bean, beanStateReader)
-                                            val readObject = readObjectMethodHierarchyOf(beanType)
-                                            when {
-                                                readObject.isNotEmpty() -> invokeAll(readObject, bean, objectInputStream)
-                                                else -> objectInputStream.defaultReadObject()
-                                            }
-                                        } else {
-                                            val brokenValue = readNonNull<BrokenValue>()
-                                            logPropertyProblem("deserialize", brokenValue.failure, NotYetImplementedJavaSerialization) {
-                                                failedJOS(bean)
-                                            }
-                                        }
-                                    }
-                                    else -> TODO("unreachable")
-                                }
-                            }
+                Format.Broken -> {
+                    decodingBeanWithId(id) { bean, _, _ ->
+                        val brokenValue = readNonNull<BrokenValue>()
+                        logPropertyProblem("deserialize", brokenValue.failure, NotYetImplementedJavaSerialization) {
+                            failedJOS(bean)
                         }
                     }
                 }
             }
         }
 
-    private
-    fun ReadContext.putIdentity(id: Int, instance: Any) {
-        isolate.identities.putInstance(id, instance)
-    }
 
     private
-    fun invokeAll(readObject: List<Method>, bean: Any, objectInputStream: ObjectInputStreamAdapter) {
-        readObject.forEach { method ->
-            method.invoke(bean, objectInputStream)
+    fun ReadContext.decodeWriteObject(bean: Any, beanType: Class<*>, beanStateReader: BeanStateReader) {
+        val objectInputStream = objectInputStreamAdapterFor(bean, beanStateReader)
+        val readObject = readObjectMethodHierarchyOf(beanType)
+        when {
+            readObject.isNotEmpty() -> invokeAll(readObject, bean, objectInputStream)
+            else -> objectInputStream.defaultReadObject()
         }
     }
 
@@ -170,10 +159,7 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
 
-                writeEnum(Format.WriteObject)
-
                 val beanType = value.javaClass
-                writeClass(beanType)
 
                 runCatching {
                     // Exceptions during the recording phase can be safely recovered from
@@ -181,14 +167,16 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
                     recordWritingOf(beanType, value)
                 }.apply {
                     onSuccess { record ->
-                        writeBoolean(true)
+                        writeEnum(Format.WriteObject)
+                        writeClass(beanType)
                         record.run { playback() }
                     }
                     onFailure { ex ->
                         logPropertyProblem("serialize", ex, NotYetImplementedJavaSerialization) {
                             failedJOS(value)
                         }
-                        writeBoolean(false)
+                        writeEnum(Format.Broken)
+                        writeClass(beanType)
                         write(BrokenValue(ex))
                     }
                 }
@@ -242,22 +230,11 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
 
     private
     enum class Format {
-        ReadObject,
-        WriteObject,
+        WriteReplace,
         ReadResolve,
-        WriteReplace
-    }
-
-    private
-    suspend fun ReadContext.decodeBean(): Any {
-        val beanType = readClass()
-        return withBeanTrace(beanType) {
-            beanStateReaderFor(beanType).run {
-                newBean(false).also {
-                    readStateOf(it)
-                }
-            }
-        }
+        WriteObject,
+        ReadObject,
+        Broken
     }
 
     private
@@ -268,20 +245,26 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
         }
 
     private
-    fun writeReplaceMethodOf(type: Class<*>) = type
-        .firstAccessibleMatchingMethodOrNull {
-            parameterCount == 0 && name == "writeReplace" && returnType == java.lang.Object::class.java
-        }
-
-    private
     fun readResolveMethodOf(type: Class<*>) = type
         .firstMatchingMethodOrNull {
             isReadResolve()
         }
 
     private
+    fun writeReplaceMethodOf(type: Class<*>) = type
+        .firstAccessibleMatchingMethodOrNull {
+            !isStatic(modifiers)
+                && parameterCount == 0
+                && returnType == java.lang.Object::class.java
+                && name == "writeReplace"
+        }
+
+    private
     fun Method.isReadResolve() =
-        parameterCount == 0 && name == "readResolve" && returnType == java.lang.Object::class.java
+        !isStatic(modifiers)
+            && parameterCount == 0
+            && returnType == java.lang.Object::class.java
+            && name == "readResolve"
 
     private
     fun writeObjectMethodHierarchyOf(type: Class<*>) = type
@@ -296,7 +279,7 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
         allMethods()
             .filter { method ->
                 method.run {
-                    Modifier.isPrivate(modifiers)
+                    isPrivate(modifiers)
                         && parameterCount == 1
                         && returnType == Void.TYPE
                         && name == methodName
@@ -316,7 +299,7 @@ fun StructuredMessage.Builder.failedJOS(value: Any) {
 }
 
 
-internal
+private
 suspend fun WriteContext.encodeBean(value: Any) {
     val beanType = value.javaClass
     withBeanTrace(beanType) {
@@ -324,5 +307,44 @@ suspend fun WriteContext.encodeBean(value: Any) {
         beanStateWriterFor(beanType).run {
             writeStateOf(value)
         }
+    }
+}
+
+
+private
+inline fun ReadContext.decodingBeanWithId(id: Int, decode: (Any, Class<*>, BeanStateReader) -> Unit): Any? {
+    val beanType = readClass()
+    return withBeanTrace(beanType) {
+        val beanStateReader = beanStateReaderFor(beanType)
+        beanStateReader.run { newBeanWithId(false, id) }.also { bean ->
+            decode(bean, beanType, beanStateReader)
+        }
+    }
+}
+
+
+private
+suspend fun ReadContext.decodeBean(): Any {
+    val beanType = readClass()
+    return withBeanTrace(beanType) {
+        beanStateReaderFor(beanType).run {
+            newBean(false).also {
+                readStateOf(it)
+            }
+        }
+    }
+}
+
+
+private
+fun ReadContext.putIdentity(id: Int, instance: Any) {
+    isolate.identities.putInstance(id, instance)
+}
+
+
+private
+fun invokeAll(methods: List<Method>, bean: Any, vararg args: Any?) {
+    methods.forEach { method ->
+        method.invoke(bean, *args)
     }
 }
