@@ -16,6 +16,7 @@
 
 package org.gradle.internal.vfs.impl;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.util.concurrent.Striped;
 import org.gradle.internal.file.FileMetadata;
@@ -54,7 +55,7 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
     public DefaultVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, CaseSensitivity caseSensitivity, SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator, String... defaultExcludes) {
         this.stat = stat;
         this.updateFunctionDecorator = updateFunctionDecorator;
-        this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, defaultExcludes);
+        this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, ImmutableSet.copyOf(defaultExcludes));
         this.hasher = hasher;
         this.root = new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
     }

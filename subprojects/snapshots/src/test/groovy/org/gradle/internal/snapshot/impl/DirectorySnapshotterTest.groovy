@@ -48,7 +48,7 @@ class DirectorySnapshotterTest extends Specification {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def fileHasher = new TestFileHasher()
-    def directorySnapshotter = new DirectorySnapshotter(fileHasher, new StringInterner())
+    def directorySnapshotter = new DirectorySnapshotter(fileHasher, new StringInterner(), [])
 
     def "should snapshot without filters"() {
         given:
@@ -259,7 +259,7 @@ class DirectorySnapshotterTest extends Specification {
     }
 
     def "default excludes are correctly parsed"() {
-        def defaultExcludes = new DirectorySnapshotter.DefaultExcludes(DirectoryScanner.getDefaultExcludes())
+        def defaultExcludes = new DirectorySnapshotter.DefaultExcludes(DirectoryScanner.getDefaultExcludes() as List)
 
         expect:
         DirectoryScanner.getDefaultExcludes() as Set == ['**/%*%', '**/.git/**', '**/SCCS', '**/.bzr', '**/.hg/**', '**/.bzrignore', '**/.git', '**/SCCS/**', '**/.hg', '**/.#*', '**/vssver.scc', '**/.bzr/**', '**/._*', '**/#*#', '**/*~', '**/CVS', '**/.hgtags', '**/.svn/**', '**/.hgignore', '**/.svn', '**/.gitignore', '**/.gitmodules', '**/.hgsubstate', '**/.gitattributes', '**/CVS/**', '**/.hgsub', '**/.DS_Store', '**/.cvsignore'] as Set
