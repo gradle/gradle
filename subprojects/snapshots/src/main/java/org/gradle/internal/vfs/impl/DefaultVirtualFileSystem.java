@@ -48,14 +48,18 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
     private final AtomicSnapshotHierarchyReference root;
     private final Stat stat;
     private final SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator;
-    private final DirectorySnapshotter directorySnapshotter;
+    private final Interner<String> stringInterner;
+    private ImmutableSet<String> defaultExcludes;
+    private DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
     private final StripedProducerGuard<String> producingSnapshots = new StripedProducerGuard<>();
 
     public DefaultVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, CaseSensitivity caseSensitivity, SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator, String... defaultExcludes) {
+        this.stringInterner = stringInterner;
         this.stat = stat;
         this.updateFunctionDecorator = updateFunctionDecorator;
-        this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, ImmutableSet.copyOf(defaultExcludes));
+        this.defaultExcludes = ImmutableSet.copyOf(defaultExcludes);
+        this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, this.defaultExcludes);
         this.hasher = hasher;
         this.root = new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
     }
@@ -205,6 +209,15 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
             } finally {
                 lock.unlock();
             }
+        }
+    }
+
+    public synchronized void updateDefaultExcludes(String... newDefaultExcludesArgs) {
+        ImmutableSet<String> newDefaultExcludes = ImmutableSet.copyOf(newDefaultExcludesArgs);
+        if (!defaultExcludes.equals(newDefaultExcludes)) {
+            defaultExcludes = newDefaultExcludes;
+            directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, newDefaultExcludes);
+            invalidateAll();
         }
     }
 }

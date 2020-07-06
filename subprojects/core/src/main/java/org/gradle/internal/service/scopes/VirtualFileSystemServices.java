@@ -19,7 +19,9 @@ package org.gradle.internal.service.scopes;
 import com.google.common.annotations.VisibleForTesting;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import org.apache.tools.ant.DirectoryScanner;
+import org.gradle.BuildAdapter;
 import org.gradle.StartParameter;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
@@ -192,6 +194,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 updateFunctionDecorator,
                 DirectoryScanner.getDefaultExcludes()
             );
+            listenerManager.addListener(new DefaultExcludesBuildListener(delegate));
             WatchingAwareVirtualFileSystem watchingAwareVirtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities)
                 .<WatchingAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
@@ -280,7 +283,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             VirtualFileSystem gradleUserHomeVirtualFileSystem
         ) {
             StartParameterInternal startParameterInternal = (StartParameterInternal) startParameter;
-            VirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(
+            DefaultVirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(
                 hasher,
                 stringInterner,
                 stat,
@@ -306,6 +309,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     buildSessionsScopedVirtualFileSystem.invalidateAll();
                 }
             });
+            listenerManager.addListener(new DefaultExcludesBuildListener(buildSessionsScopedVirtualFileSystem));
             listenerManager.addListener(new OutputChangeListener() {
                 @Override
                 public void beforeOutputChange() {
@@ -366,6 +370,18 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         CompileClasspathFingerprinter createCompileClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
             return new DefaultCompileClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, stringInterner);
         }
+    }
 
+    private static class DefaultExcludesBuildListener extends BuildAdapter {
+        private final DefaultVirtualFileSystem virtualFileSystem;
+
+        public DefaultExcludesBuildListener(DefaultVirtualFileSystem virtualFileSystem) {
+            this.virtualFileSystem = virtualFileSystem;
+        }
+
+        @Override
+        public void settingsEvaluated(Settings settings) {
+            virtualFileSystem.updateDefaultExcludes(DirectoryScanner.getDefaultExcludes());
+        }
     }
 }
