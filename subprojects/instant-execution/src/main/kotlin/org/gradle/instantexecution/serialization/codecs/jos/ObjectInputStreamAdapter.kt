@@ -125,3 +125,8 @@ class ObjectInputStreamAdapter(
     val inputStream: InputStream
         get() = readContext.inputStream
 }
+
+
+internal
+fun unsupported(feature: String): Nothing =
+    throw UnsupportedOperationException("'$feature' is not supported by the Gradle configuration cache.")

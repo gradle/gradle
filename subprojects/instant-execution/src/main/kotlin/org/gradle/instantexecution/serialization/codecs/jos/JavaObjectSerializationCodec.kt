@@ -52,11 +52,8 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
     private
     val readResolveMethod = MethodCache { isReadResolve() }
 
-    private
-    val readResolveEncoding = ReadResolveEncoding()
-
     override fun encodingForType(type: Class<*>): Encoding? =
-        type.takeIf { it.isSerializable() }?.let { serializableType ->
+        type.takeIf { Serializable::class.java.isAssignableFrom(it) }?.let { serializableType ->
             writeReplaceEncodingFor(serializableType)
                 ?: readResolveEncodingFor(serializableType)
                 ?: writeObjectEncodingFor(serializableType)
@@ -71,7 +68,7 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
     private
     fun readResolveEncodingFor(serializableType: Class<*>) =
         readResolveMethodOf(serializableType)
-            ?.let { readResolveEncoding }
+            ?.let { ReadResolveEncoding }
 
     private
     fun writeObjectEncodingFor(serializableType: Class<*>): Encoding? =
@@ -88,8 +85,14 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
     override suspend fun ReadContext.decode(): Any? =
         decodePreservingIdentity { id ->
             when (val format = readEnum<Format>()) {
-                Format.Inline -> readResolve(decodeBean()).also { putIdentity(id, it) }
-                Format.Replaced -> readResolve(readNonNull()).also { putIdentity(id, it) }
+                Format.WriteReplace -> {
+                    readResolve(readNonNull())
+                        .also { putIdentity(id, it) }
+                }
+                Format.ReadResolve -> {
+                    readResolve(decodeBean())
+                        .also { putIdentity(id, it) }
+                }
                 else -> {
                     withImmediateMode {
                         val beanType = readClass()
@@ -125,12 +128,12 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
                         }
                     }
                 }
-
             }
         }
 
-    private fun ReadContext.putIdentity(id: Int, it: Any) {
-        isolate.identities.putInstance(id, it)
+    private
+    fun ReadContext.putIdentity(id: Int, instance: Any) {
+        isolate.identities.putInstance(id, instance)
     }
 
     private
@@ -150,6 +153,7 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
             encodePreservingIdentityOf(value) {
 
                 writeEnum(Format.WriteObject)
+
                 val beanType = value.javaClass
                 writeClass(beanType)
 
@@ -192,23 +196,16 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
         }
     }
 
-    enum class Format {
-        ReadObject,
-        WriteObject,
-        Inline,
-        Replaced
-    }
-
     private
     class WriteReplaceEncoding(private val writeReplace: Method) : EncodingProvider<Any> {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 val replacement = writeReplace.invoke(value)
                 if (replacement === value) {
-                    writeEnum(Format.Inline)
+                    writeEnum(Format.ReadResolve)
                     encodeBean(value)
                 } else {
-                    writeEnum(Format.Replaced)
+                    writeEnum(Format.WriteReplace)
                     write(replacement)
                 }
             }
@@ -216,13 +213,21 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
     }
 
     private
-    class ReadResolveEncoding : Encoding {
+    object ReadResolveEncoding : Encoding {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
-                writeEnum(Format.Inline)
+                writeEnum(Format.ReadResolve)
                 encodeBean(value)
             }
         }
+    }
+
+    private
+    enum class Format {
+        ReadObject,
+        WriteObject,
+        ReadResolve,
+        WriteReplace
     }
 
     private
@@ -285,22 +290,12 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
 }
 
 
-internal
-fun Class<*>.isSerializable() =
-    Serializable::class.java.isAssignableFrom(this)
-
-
 private
 fun StructuredMessage.Builder.failedJOS(value: Any) {
     text("value ")
     reference(value.toString())
     text(" failed Java Object Serialization")
 }
-
-
-internal
-fun unsupported(feature: String): Nothing =
-    throw UnsupportedOperationException("'$feature' is not supported by the Gradle configuration cache.")
 
 
 internal
