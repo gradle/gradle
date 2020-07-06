@@ -621,9 +621,9 @@ All of them match the consumer attributes:
   - Variant 'foo' capability com.acme.external:external:2.0-SNAPSHOT declares attribute 'flavor' with value 'red'""")
     }
 
-    @Unroll("context travels down to transitive dependencies with typed attributes using plugin [#v1, #v2, pluginsDSL=#usePluginsDSL]")
+    @Unroll
     @ToBeFixedForInstantExecution
-    def "context travels down to transitive dependencies with typed attributes"() {
+    def "context travels down to transitive dependencies with typed attributes using plugin [#v1, #v2, pluginsDSL=#usePluginsDSL]"() {
         buildTypedAttributesPlugin('1.0')
         buildTypedAttributesPlugin('1.1')
 

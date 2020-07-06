@@ -84,8 +84,8 @@ class TaskReportContainerTest extends Specification {
         }.unique().sort()
     }
 
-    @Unroll("tasks inputs and outputs are wired correctly A: #aEnabled, B: #bEnabled")
-    def "tasks inputs and outputs are wired correctly"() {
+    @Unroll
+    def "tasks inputs and outputs are wired correctly A: #aEnabled, B: #bEnabled"() {
         when:
         container.a.enabled = aEnabled
         container.b.enabled = bEnabled

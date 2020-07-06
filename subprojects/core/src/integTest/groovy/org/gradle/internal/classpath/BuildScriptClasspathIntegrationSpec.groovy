@@ -44,6 +44,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     }
 
     @Unroll("jars on buildscript classpath can change (loopNumber: #loopNumber)")
+    @ToBeFixedForInstantExecution
     def "jars on buildscript classpath can change"() {
         given:
         buildFile << '''

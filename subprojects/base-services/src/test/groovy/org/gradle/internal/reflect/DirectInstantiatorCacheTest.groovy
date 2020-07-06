@@ -25,12 +25,12 @@ class DirectInstantiatorCacheTest extends Specification {
     @Shared
     def cache = new DirectInstantiator.ConstructorCache()
 
-    @Unroll("constructor cache returns the same constructors as 'getConstructors' for #clazz")
-    def "constructor cache returns the same constructors as 'getConstructors'"() {
+    @Unroll
+    def "constructor cache returns the same constructors as 'getConstructors' for #clazz"() {
         given:
         def constructor = null
         int i = 0
-        while (!constructor && ++i<50) {
+        while (!constructor && ++i < 50) {
             // need a loop because IBM JDK is much more proactive in cleaning weak references
             constructor = cache.get(clazz, [] as Class[]).method
         }

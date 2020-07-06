@@ -40,8 +40,8 @@ class TargetJvmVersionRulesTest extends Specification {
         disambiguationRules = schema.disambiguationRules(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
     }
 
-    @Unroll("compatibility consumer=#consumer producer=#producer compatible=#compatible")
-    def "check compatibility rules"() {
+    @Unroll
+    def "compatibility consumer=#consumer producer=#producer compatible=#compatible"() {
         CompatibilityCheckResult details = Mock(CompatibilityCheckResult)
 
         when:
@@ -67,8 +67,7 @@ class TargetJvmVersionRulesTest extends Specification {
         8        | 11       | false
     }
 
-    @Unroll("disamgiguates when consumer=#consumer and candidates=#candidates chooses=#expected")
-    def "check disambiguation rules"() {
+    def "disamgiguates when consumer=#consumer and candidates=#candidates chooses=#expected"() {
         MultipleCandidatesResult details = Mock()
 
         when:

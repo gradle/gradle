@@ -105,8 +105,8 @@ class TextUtilTest extends Specification {
         TextUtil.shorterOf("", "") == ""
     }
 
-    @Unroll("#camelCase to kebab = #kebabCase")
-    def kebabCase() {
+    @Unroll
+    def "#camelCase to kebab = #kebabCase"() {
         expect:
         TextUtil.camelToKebabCase(camelCase) == kebabCase
 

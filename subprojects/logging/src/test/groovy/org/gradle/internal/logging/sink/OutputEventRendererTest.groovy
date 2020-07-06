@@ -188,8 +188,8 @@ class OutputEventRendererTest extends OutputSpecification {
         0 * listener._
     }
 
-    @Unroll("forward progress events to listener for #logLevel log level")
-    def forwardsProgressEventsToListenerRegardlessOfTheLogLevel() {
+    @Unroll
+    def "forward progress events to listener for #logLevel log level"() {
         OutputEventListener listener = Mock()
         def start = start('start')
         def progress = progress('progress')
