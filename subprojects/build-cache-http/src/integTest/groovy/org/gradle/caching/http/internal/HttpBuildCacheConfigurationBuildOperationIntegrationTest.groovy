@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.server.http.HttpBuildCacheServer
 import org.junit.Rule
-import spock.lang.Unroll
-
 class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
     private static final SOME_CREDENTIALS =
@@ -46,20 +44,19 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
     @Rule
     HttpBuildCacheServer httpBuildCacheServer = new HttpBuildCacheServer(testDirectoryProvider)
 
-    @Unroll
     def "remote build cache configuration is exposed"() {
         given:
         httpBuildCacheServer.start()
         def url = "${httpBuildCacheServer.uri}/"
         settingsFile << """
-            buildCache {  
+            buildCache {
                 local {
-                    enabled = false 
+                    enabled = false
                 }
                 remote(org.gradle.caching.http.HttpBuildCache) {
-                    enabled = true 
-                    url = "$url"   
-                    push = $push 
+                    enabled = true
+                    url = "$url"
+                    push = $push
                     $credentials
                 }
             }
@@ -101,10 +98,10 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
         def safeUri = httpBuildCacheServer.uri
         def basicAuthUri = new URI(safeUri.getScheme(), 'user:pwd', safeUri.getHost(), safeUri.getPort(), safeUri.getPath(), safeUri.getQuery(), safeUri.getFragment())
         settingsFile << """
-            buildCache {  
+            buildCache {
                 remote(org.gradle.caching.http.HttpBuildCache) {
-                    enabled = true 
-                    url = "${basicAuthUri}/"   
+                    enabled = true
+                    url = "${basicAuthUri}/"
                 }
             }
         """
@@ -124,10 +121,10 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
         httpBuildCacheServer.start()
         def url = "${httpBuildCacheServer.uri}/"
         settingsFile << """
-            buildCache {  
+            buildCache {
                 remote(org.gradle.caching.http.HttpBuildCache) {
-                    enabled = true 
-                    url = "$url/"   
+                    enabled = true
+                    url = "$url/"
                 }
             }
         """
@@ -145,10 +142,10 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
         httpBuildCacheServer.start()
         def url = "${httpBuildCacheServer.uri}/"
         settingsFile << """
-            buildCache {  
+            buildCache {
                 remote(org.gradle.caching.http.HttpBuildCache) {
-                    enabled = false 
-                    url = "$url/"   
+                    enabled = false
+                    url = "$url/"
                 }
             }
         """
@@ -166,11 +163,11 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
     def "remote build cache configuration details is not exposed when not defined"() {
         given:
         settingsFile << """
-            buildCache {  
+            buildCache {
                 local {
-                    enabled = false 
+                    enabled = false
                     directory = 'directory'
-                    push = false 
+                    push = false
                 }
             }
         """
