@@ -27,11 +27,8 @@ import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
-import spock.lang.Unroll
-
 import static org.gradle.internal.execution.history.changes.AbstractFingerprintCompareStrategy.compareTrivialFingerprints
 
-@Unroll
 class FingerprintCompareStrategyTest extends Specification {
 
     private static final ABSOLUTE = AbsolutePathFingerprintCompareStrategy.INSTANCE

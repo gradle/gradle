@@ -23,8 +23,6 @@ import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
-import spock.lang.Unroll
-
 class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
     def step = new SkipEmptyWorkStep<>(delegate)
     def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
@@ -58,7 +56,6 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
         0 * _
     }
 
-    @Unroll
     def "removes execution history when empty work is skipped (outcome: #outcome)"() {
         when:
         def result = step.execute(context)

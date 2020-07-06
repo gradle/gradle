@@ -20,8 +20,6 @@ import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.changes.InputChangesInternal
-import spock.lang.Unroll
-
 class ExecuteStepTest extends StepSpec<InputChangesContext> {
     def step = new ExecuteStep<>()
     def inputChanges = Mock(InputChangesInternal)
@@ -31,7 +29,6 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
         Stub(InputChangesContext)
     }
 
-    @Unroll
     def "result #workResult yields outcome #expectedOutcome (incremental false)"() {
         when:
         def result = step.execute(context)
@@ -49,7 +46,6 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
         UnitOfWork.WorkResult.DID_NO_WORK | ExecutionOutcome.UP_TO_DATE
     }
 
-    @Unroll
     def "failure #failure.class.simpleName is not caught"() {
         when:
         step.execute(context)
@@ -66,7 +62,6 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
         failure << [new RuntimeException(), new Error()]
     }
 
-    @Unroll
     def "incremental work with result #workResult yields outcome #outcome (executed incrementally: #incrementalExecution)"() {
         when:
         def result = step.execute(context)
