@@ -31,6 +31,13 @@ import java.util.List;
  */
 @Incubating
 public interface ResolvableConfigurationBuilder {
+
+    /**
+     * Sets the description of the resolvable configuration this builder creates
+     * @param description the description
+     */
+    ResolvableConfigurationBuilder withDescription(String description);
+
     /**
      * Also create the dependency bucket of the provided name and
      * make the resolvable configuration extend from it.
