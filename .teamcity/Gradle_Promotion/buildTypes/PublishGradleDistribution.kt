@@ -27,8 +27,8 @@ abstract class PublishGradleDistribution(
     branch: String,
     task: String,
     val triggerName: String,
-    gitUserName: String = "Gradleware Git Bot",
-    gitUserEmail: String = "gradlewaregitbot@gradleware.com",
+    gitUserName: String = "bot-teamcity",
+    gitUserEmail: String = "bot-teamcity@gradle.com",
     extraParameters: String = "",
     vcsRoot: GitVcsRoot = Gradle_Promotion.vcsRoots.Gradle_Promotion__master_
 ) : BasePromotionBuildType(vcsRoot = vcsRoot) {
