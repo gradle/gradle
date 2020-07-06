@@ -17,9 +17,6 @@
 package org.gradle.internal.snapshot
 
 import spock.lang.Specification
-import spock.lang.Unroll
-
-@Unroll
 class VfsRelativePathTest extends Specification {
 
     def "convert absolute path '#absolutePath' to relative path '#relativePath'"() {
