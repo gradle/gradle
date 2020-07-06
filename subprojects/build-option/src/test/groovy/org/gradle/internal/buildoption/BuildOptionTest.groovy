@@ -18,15 +18,12 @@ package org.gradle.internal.buildoption
 
 import org.gradle.cli.CommandLineArgumentException
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class BuildOptionTest extends Specification {
     private static final String VALUE = '0'
     private static final String HINT = 'must be positive'
     private static final String GRADLE_PROPERTY = 'org.gradle.property'
     private static final String OPTION = 'option'
 
-    @Unroll
     def "can handle invalid value for Gradle property with empty #hint"() {
         when:
         Origin.forGradleProperty(GRADLE_PROPERTY).handleInvalidValue(VALUE, hint)
