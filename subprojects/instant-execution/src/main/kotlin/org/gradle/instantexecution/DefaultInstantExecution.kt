@@ -88,6 +88,20 @@ class DefaultInstantExecution internal constructor(
             )
             false
         }
+        startParameter.isWriteDependencyLocks -> {
+            logBootstrapSummary(
+                "Calculating task graph as configuration cache cannot be reused due to {}",
+                "--write-locks"
+            )
+            false
+        }
+        startParameter.isUpdateDependencyLocks -> {
+            logBootstrapSummary(
+                "Calculating task graph as configuration cache cannot be reused due to {}",
+                "--update-locks"
+            )
+            false
+        }
         else -> {
             val checkedFingerprint = cache.useForFingerprintCheck(
                 cacheKey.string,
