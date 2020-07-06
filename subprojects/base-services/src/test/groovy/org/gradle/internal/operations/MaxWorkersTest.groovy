@@ -24,8 +24,6 @@ import org.gradle.internal.time.Clock
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import spock.lang.Unroll
-
 import java.util.concurrent.CountDownLatch
 
 class MaxWorkersTest extends ConcurrentSpec {
@@ -154,7 +152,6 @@ class MaxWorkersTest extends ConcurrentSpec {
         workerLeaseService?.stop()
     }
 
-    @Unroll
     def "BuildOperationExecutor can fully utilize worker leases when multiple threads owning worker leases are submitting work (maxWorkers: #maxWorkers)"() {
         CountDownLatch leaseAcquiredLatch = new CountDownLatch(maxWorkers)
         CountDownLatch runningLatch = new CountDownLatch(maxWorkers)

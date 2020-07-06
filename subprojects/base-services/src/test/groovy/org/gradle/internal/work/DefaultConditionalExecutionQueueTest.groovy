@@ -24,8 +24,6 @@ import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import spock.lang.Unroll
-
 import java.util.concurrent.Callable
 
 class DefaultConditionalExecutionQueueTest extends ConcurrentSpec {
@@ -171,7 +169,6 @@ class DefaultConditionalExecutionQueueTest extends ConcurrentSpec {
         }
     }
 
-    @Unroll
     def "can process more executions than max workers (maxWorkers = #maxWorkers)"() {
         def executions = []
         queue = new DefaultConditionalExecutionQueue(DISPLAY_NAME, maxWorkers, new DefaultExecutorFactory(), coordinationService)
