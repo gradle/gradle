@@ -18,8 +18,6 @@ package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import spock.lang.Unroll
-
 class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
@@ -56,7 +54,6 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
         file("build/reports/custom/dependencies").assertIsDir()
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "prints link to default #task"(String task) {
         when:
@@ -69,7 +66,6 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
         task << ["taskReport", "propertyReport", "dependencyReport", "htmlDependencyReport"]
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "given no output file, does not print link to default #task"(String task) {
         given:

@@ -20,8 +20,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Unroll
-
 class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.requireOwnGradleUserHomeDir()
@@ -31,7 +29,6 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
         new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "shows selected variant details"() {
         given:

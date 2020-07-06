@@ -19,15 +19,12 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
-import spock.lang.Unroll
-
 class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     private final static String[] TASKS_REPORT_TASK = ['tasks'] as String[]
     private final static String[] TASKS_DETAILED_REPORT_TASK = TASKS_REPORT_TASK + ['--all'] as String[]
     private final static String GROUP = 'Hello world'
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "always renders default tasks running #tasks"() {
         given:
@@ -62,7 +59,6 @@ tasks - Displays the tasks runnable from root project '$projectName'.""")
         tasks << [TASKS_REPORT_TASK, TASKS_DETAILED_REPORT_TASK]
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "always renders task rule running #tasks"() {
         given:
@@ -91,7 +87,6 @@ Pattern: ping<ID>
         tasks << [TASKS_REPORT_TASK, TASKS_DETAILED_REPORT_TASK]
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "renders tasks with and without group running #tasks"() {
         given:
@@ -122,7 +117,6 @@ b
         TASKS_DETAILED_REPORT_TASK | true               | true
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "renders task with dependencies without group in detailed report running #tasks"() {
         given:
@@ -150,7 +144,6 @@ b
         TASKS_DETAILED_REPORT_TASK | true
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "renders grouped task with dependencies in detailed report running #tasks"() {
         given:
@@ -283,7 +276,6 @@ alpha - ALPHA_in_sub1
 """
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "task report includes tasks defined via model rules running #tasks"() {
         when:
@@ -314,7 +306,6 @@ alpha - ALPHA_in_sub1
         TASKS_DETAILED_REPORT_TASK | true               | true
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "task report includes tasks with dependencies defined via model rules running #tasks"() {
         when:
@@ -396,7 +387,6 @@ b
         succeeds TASKS_DETAILED_REPORT_TASK
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "renders tasks with dependencies created by model rules running #tasks"() {
         when:

@@ -23,8 +23,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
 import spock.lang.Ignore
-import spock.lang.Unroll
-
 class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def jvmVersion = JavaVersion.current().majorVersion
 
@@ -2221,7 +2219,6 @@ foo:foo:1.0
 """)
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "renders dependency constraint differently"() {
         given:
@@ -2278,7 +2275,6 @@ org:foo -> $selected
         "prefer '[1.0, 1.4]'; reject '1.4'" | '1.3'    | "rejected version 1.4"
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "renders custom dependency constraint reasons (#version)"() {
         given:
@@ -2336,7 +2332,6 @@ org:foo -> $selected
         "prefer '[1.0, 1.4]'; reject '1.4'" | "1.4 has a critical bug"                        | '1.3'    | "rejected version 1.4 because "
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "renders custom dependency reasons"() {
         given:
@@ -2593,7 +2588,6 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
 """
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "renders dependency from BOM as a constraint"() {
         given:
@@ -2943,7 +2937,6 @@ org.test:leaf:1.0
 """
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "shows that version is rejected because of attributes (#type)"() {
         mavenRepo.module("org", "foo", "1.0").publish()
