@@ -23,8 +23,6 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
-import spock.lang.Unroll
-
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
@@ -42,7 +40,6 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         swiftcToolChain.resetEnvironment()
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = "swift-application plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
@@ -68,7 +65,6 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = "swift-application plugin")
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
@@ -94,7 +90,6 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = "swift-application plugin")
     def "source generation is skipped when swift sources detected with #scriptDsl build scripts"() {
         setup:
@@ -102,18 +97,18 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
             public func hola() -> String {
                 return "Hola, Mundo!"
             }
-            
+
             print(hola())
         """
         targetDir.file("src/test/swift/HolaTests.swift") << """
             import XCTest
             @testable import App
-            
+
             class HolaTests: XCTestCase {
                 public static var allTests = [
                     ("testGreeting", testGreeting),
                 ]
-            
+
                 func testGreeting() {
                     XCTAssertEqual("Hola, Mundo!", hola())
                 }

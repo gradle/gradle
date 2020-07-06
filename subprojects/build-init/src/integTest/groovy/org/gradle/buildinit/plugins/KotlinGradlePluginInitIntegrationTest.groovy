@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
-
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
 @LeaksFileHandles
@@ -35,7 +33,6 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
     def "creates sample source if no source present with #scriptDsl build scripts"() {

@@ -20,8 +20,6 @@ import org.gradle.api.internal.file.TestFiles/**/
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
-
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class GitIgnoreGeneratorTest extends Specification {
@@ -59,7 +57,6 @@ class GitIgnoreGeneratorTest extends Specification {
 ${getGeneratedGitignoreContent()}""")
     }
 
-    @Unroll
     def "avoid adding duplicated entries when .gitignore file already exists [#entry]"() {
         setup:
         def generator = new GitIgnoreGenerator(fileResolver)

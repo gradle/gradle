@@ -28,7 +28,6 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     public static final String SAMPLE_APP_HEADER = "app.h"
     public static final String SAMPLE_APP_TEST_CLASS = "app_test.cpp"
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = "cpp-application plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
@@ -57,7 +56,6 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = "cpp-application plugin")
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
@@ -86,7 +84,6 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = "cpp-application plugin")
     def "source generation is skipped when cpp sources detected with #scriptDsl build scripts"() {
         setup:
@@ -94,11 +91,11 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
             #include <iostream>
             #include <stdlib.h>
             #include "hola.h"
-            
+
             std::string hola() {
                 return std::string("Hola, Mundo!");
             }
-            
+
             int main () {
                 std::cout << hola() << std::endl;
                 return 0;

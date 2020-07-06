@@ -17,8 +17,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import spock.lang.Unroll
-
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
@@ -32,7 +30,6 @@ class BasicTypeInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(GROOVY).assertGradleFilesGenerated()
     }
 
-    @Unroll
     def "can configure root project name with #scriptDsl build scripts"() {
         when:
         run('init', '--project-name', 'someApp', '--dsl', scriptDsl.id)
@@ -52,7 +49,6 @@ class BasicTypeInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "merges .gitignore if it already exists with #scriptDsl build scripts"() {
         when:
         def gitignoreFile = targetDir.file(".gitignore")
