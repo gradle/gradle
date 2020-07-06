@@ -23,8 +23,6 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
-import spock.lang.Unroll
-
 @UnsupportedWithInstantExecution(because = "software model")
 class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -93,7 +91,6 @@ class JdkDeclarationIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause "Path to JDK 'myJDK' doesn't exist"
     }
 
-    @Unroll
     def "pointing to an existent file or directory but not a JDK home throws reasonable error message"() {
         given:
         buildFile << """

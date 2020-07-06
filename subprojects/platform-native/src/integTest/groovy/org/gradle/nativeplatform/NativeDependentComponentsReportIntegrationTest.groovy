@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
-
 class NativeDependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -43,7 +41,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         outputContains simpleCppMainDependents()
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = ":dependentComponents")
     def "displays dependents of targeted '#component' component"() {
         given:
@@ -100,7 +97,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         !output.contains(simpleCppUtilDependents())
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = ":dependentComponents")
     def "hide non-buildable dependents by default #nonBuildables"() {
         given:
@@ -139,7 +135,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         ['util', 'lib', 'main'] | _
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = ":dependentComponents")
     def "displays non-buildable dependents when using #option"() {
         given:
@@ -335,7 +330,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         output.contains 'Some test suites were not shown, use --test-suites or --all to show them.'
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = ":dependentComponents")
     def "displays dependent test suites when using #option"() {
         given:
@@ -544,7 +538,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         output.contains emptyDependents()
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = ":dependentComponents")
     def "report for empty build displays no component with task option #option"() {
         given:

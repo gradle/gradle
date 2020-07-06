@@ -24,12 +24,9 @@ import org.gradle.platform.base.Variant
 import org.gradle.platform.base.internal.BinarySpecInternal
 import org.gradle.platform.base.internal.VariantAspectExtractionStrategy
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class VariantsMetaDataHelperTest extends Specification {
     def schemaStore = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
 
-    @Unroll
     def "Incompatible variant dimensions for #referenceClass.simpleName(#dimensions) onto #candidateClass.simpleName are #expectedIncompatible"() {
         given:
         def referenceBinary = binary(referenceClass)

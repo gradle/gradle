@@ -18,8 +18,6 @@ package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.logging.Logger
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class SharedJavaInstallationRegistryTest extends Specification {
 
     def registry = new SharedJavaInstallationRegistry(Collections.emptyList())
@@ -95,7 +93,6 @@ class SharedJavaInstallationRegistryTest extends Specification {
         installations.is(installations2)
     }
 
-    @Unroll
     def "warns and filters invalid installations, exists: #exists, directory: #directory"() {
         given:
         def file = Mock(File)

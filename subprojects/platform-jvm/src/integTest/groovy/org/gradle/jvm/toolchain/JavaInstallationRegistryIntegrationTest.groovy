@@ -25,8 +25,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
-
 import javax.inject.Inject
 
 class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
@@ -93,7 +91,6 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
         outputContains("javadoc executable = ${jvm.javadocExecutable}")
     }
 
-    @Unroll
     def "plugin can query information about JDK #version install"() {
         def jvm = AvailableJavaHomes.getJdk(version)
         Assume.assumeTrue(jvm != null)

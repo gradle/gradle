@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.VersionNumber
-import spock.lang.Unroll
-
 import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 import static org.hamcrest.CoreMatchers.containsString
 
@@ -48,7 +46,6 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         """
     }
 
-    @Unroll
     def "can run TwirlCompile with #format template"() {
         given:
         twirlTemplate("test.scala.${format}") << template
@@ -93,7 +90,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
             model {
                 components {
                     play {
-                        sources {                        
+                        sources {
                             withType(TwirlSourceSet) {
                                 addUserTemplateFormat("unused", "views.formats.unused.UnusedFormat")
                             }
@@ -126,7 +123,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         """
         file("app/my/pkg/MyClass.scala") << """
             package my.pkg
-            
+
             object MyClass;
         """
 
@@ -331,7 +328,6 @@ Binaries
 
     }
 
-    @Unroll
     def "has reasonable error if Twirl template is configured incorrectly with (#template)"() {
         given:
         executer.noDeprecationChecks()
@@ -339,7 +335,7 @@ Binaries
             model {
                 components {
                     play {
-                        sources {                        
+                        sources {
                             withType(TwirlSourceSet) {
                                 addUserTemplateFormat($template)
                             }
@@ -494,7 +490,7 @@ Binaries
             model {
                 components {
                     play {
-                        sources {                        
+                        sources {
                             withType(TwirlSourceSet) {
                                 addUserTemplateFormat("csv", "views.formats.csv.CsvFormat", "views.formats.csv._")
                             }
@@ -522,7 +518,7 @@ object Csv {
   implicit def contentTypeCsv(implicit codec: Codec): ContentTypeOf[Csv] = ContentTypeOf[Csv](Some(Csv.contentType))
 
   def apply(text: String): Csv = new Csv(new StringBuilder(text))
-  
+
   def empty: Csv = new Csv(new StringBuilder)
 }
 

@@ -24,8 +24,6 @@ import org.gradle.process.internal.JavaExecAction
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
-import spock.lang.Unroll
-
 import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.InstallType.INVALID_JDK
 import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.InstallType.IS_JDK
 import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.InstallType.IS_JRE
@@ -35,7 +33,6 @@ class JavaInstallationProbeTest extends Specification {
     @Rule
     TemporaryFolder temporaryFolder
 
-    @Unroll
     def "Can probe version of #jdk is #displayName"() {
         given:
         def execFactory = Mock(ExecActionFactory)

@@ -29,8 +29,6 @@ import org.gradle.platform.base.component.internal.ComponentSpecFactory
 import org.gradle.platform.base.internal.registry.AbstractAnnotationModelRuleExtractorTest
 import org.gradle.platform.base.internal.registry.ComponentTypeModelRuleExtractor
 import org.gradle.platform.base.plugins.ComponentBasePlugin
-import spock.lang.Unroll
-
 import java.lang.annotation.Annotation
 
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
@@ -71,7 +69,6 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         "application"      | ComponentModelBasePlugin
     }
 
-    @Unroll
     def "decent error message for rule declaration problem - #descr"() {
         def ruleMethod = ruleDefinitionForMethod(methodName)
         def ruleDescription = getStringDescription(ruleMethod.method)
@@ -96,7 +93,6 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         "notComponentSpec"  | "Type '${NotComponentSpec.name}' is not a subtype of '${ComponentSpec.name}'."                                | "type not extending ComponentSpec"
     }
 
-    @Unroll
     def "decent error message for rule execution problem - #descr"() {
         def ruleMethod = ruleDefinitionForMethod(methodName)
         def ruleDescription = getStringDescription(ruleMethod)

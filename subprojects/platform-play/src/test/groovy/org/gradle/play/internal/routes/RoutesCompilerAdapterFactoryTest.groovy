@@ -19,11 +19,8 @@ package org.gradle.play.internal.routes
 import org.gradle.play.internal.PlayPlatformRequirement
 import org.gradle.play.internal.PlayPlatformResolver
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class RoutesCompilerAdapterFactoryTest extends Specification {
 
-    @Unroll
     def "route compiler for play #playVersion uses #scalaVersion"() {
         when:
         def routesCompilerAdapter = RoutesCompilerAdapterFactory.createAdapter(new PlayPlatformResolver().resolve(new PlayPlatformRequirement(playVersion, scalaVersion, null)))

@@ -17,8 +17,6 @@
 package org.gradle.language.base.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
-
 class LifecycleBasePluginIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -27,7 +25,6 @@ class LifecycleBasePluginIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Unroll
     def "fails when applied in build with #taskName"() {
         buildFile << """
 

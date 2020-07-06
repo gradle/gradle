@@ -17,11 +17,8 @@
 package org.gradle.jvm.internal
 
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class JvmPackageNameTest extends Specification {
 
-    @Unroll
     def "should accept valid package name '#value'"() {
         expect:
         JvmPackageName.isValid(value)
@@ -33,7 +30,6 @@ class JvmPackageNameTest extends Specification {
         ]
     }
 
-    @Unroll
     def "should reject invalid package name '#value'"() {
         expect:
         !JvmPackageName.isValid(value)

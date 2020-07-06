@@ -38,8 +38,6 @@ import org.gradle.util.TextUtil
 import org.gradle.workers.internal.ActionExecutionSpecFactory
 import org.gradle.workers.internal.WorkerDaemonFactory
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class DefaultPlayToolChainTest extends Specification {
     def forkOptionsFactory = Mock(JavaForkOptionsFactory)
     WorkerDaemonFactory workerDaemonFactory = Mock()
@@ -85,7 +83,6 @@ class DefaultPlayToolChainTest extends Specification {
         toolprovider.isAvailable()
     }
 
-    @Unroll
     def "cannot select toolprovider when #failedDependency is not available" () {
         given:
         dependencyAvailableIfNotFailed("twirl-compiler_2.10", failedDependency)

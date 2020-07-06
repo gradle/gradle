@@ -30,8 +30,6 @@ import org.gradle.nativeplatform.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.ReadelfBinaryInfo
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
-import spock.lang.Unroll
-
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32_AND_64
 
@@ -319,7 +317,6 @@ model {
         }
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "fails with reasonable error message when trying to build for an #type"() {
         when:

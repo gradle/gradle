@@ -25,8 +25,6 @@ import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentBinaries
 import org.gradle.platform.base.GeneralComponentSpec
 import org.gradle.platform.base.VariantComponentSpec
-import spock.lang.Unroll
-
 import java.lang.annotation.Annotation
 
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
@@ -42,7 +40,6 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
 
     Class<?> ruleClass = Rules
 
-    @Unroll
     def "applies ComponentModelBasePlugin and creates componentBinary rule #descr"() {
         def registry = Mock(ModelRegistry)
 
@@ -66,7 +63,6 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
         "librarySubType" | "for library sub types"
     }
 
-    @Unroll
     def "decent error message for #descr"() {
         def ruleMethod = ruleDefinitionForMethod(methodName)
         def ruleDescription = getStringDescription(ruleMethod.method)

@@ -37,8 +37,6 @@ import org.gradle.process.internal.worker.WorkerProcessFactory
 import org.gradle.workers.internal.ActionExecutionSpecFactory
 import org.gradle.workers.internal.WorkerDaemonFactory
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class DefaultPlayToolProviderTest extends Specification {
     def forkOptionsFactory = Mock(JavaForkOptionsFactory)
     WorkerDaemonFactory workerDaemonFactory = Mock()
@@ -62,7 +60,6 @@ class DefaultPlayToolProviderTest extends Specification {
         return new DefaultPlayToolProvider(forkOptionsFactory, daemonWorkingDir, workerDaemonFactory, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath, fingerprinter, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory, fileCollectionFactory)
     }
 
-    @Unroll
     def "provides playRunner for play #playVersion"() {
         setup:
         _ * playPlatform.getPlayVersion() >> playVersion

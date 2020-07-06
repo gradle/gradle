@@ -24,11 +24,8 @@ import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.GeneralComponentSpec
 import org.gradle.platform.base.LibrarySpec
 import org.gradle.platform.base.SourceComponentSpec
-import spock.lang.Unroll
-
 @UnsupportedWithInstantExecution(because = "software model")
 class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
-    @Unroll
     def "can declare custom managed #componentSpecType"() {
         buildFile << """
             @Managed
@@ -150,7 +147,6 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test"
     }
 
-    @Unroll
     def "can add binaries to custom managed #componentSpecType"() {
         buildFile << """
             @Managed
@@ -192,7 +188,6 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         componentSpecType << [GeneralComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
     }
 
-    @Unroll
     def "can add sources to custom managed #componentSpecType"() {
         buildFile << """
             @Managed

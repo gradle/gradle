@@ -63,8 +63,6 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.platform.base.internal.DefaultDependencySpecContainer
 import org.gradle.platform.base.internal.VariantAspectExtractionStrategy
 import spock.lang.Specification
-import spock.lang.Unroll
-
 import static org.gradle.util.WrapUtil.toDomainObjectSet
 
 class JvmLocalLibraryDependencyResolverTest extends Specification {
@@ -117,7 +115,6 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         mock
     }
 
-    @Unroll
     def "Resolution for library #lib on project #projectPath completes"() {
         given:
         selector.projectPath >> projectPath

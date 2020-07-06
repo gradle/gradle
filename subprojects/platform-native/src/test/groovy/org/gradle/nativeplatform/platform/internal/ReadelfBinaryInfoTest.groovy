@@ -18,10 +18,7 @@ package org.gradle.nativeplatform.platform.internal
 
 import org.gradle.nativeplatform.fixtures.binaryinfo.ReadelfBinaryInfo
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class ReadelfBinaryInfoTest extends Specification {
-    @Unroll
     def "reads soname value with #language readelf output"() {
         when:
         def inputLines = input.readLines()
@@ -74,7 +71,6 @@ Dynamische Sektion an Offset 0x1a6da8 enthält 26 Einträge:
             ]]
     }
 
-    @Unroll
     def "returns null for no soname value with #language readelf output"() {
         when:
         def inputLines = input.readLines()
@@ -125,7 +121,6 @@ Dynamische Sektion an Offset 0x1a6da8 enthält 26 Einträge:
             ]]
     }
 
-    @Unroll
     def "reads architecture value with #language readelf output"() {
         when:
         def inputLines = input.readLines()
@@ -182,7 +177,6 @@ ELF-Header:
             ]]
     }
 
-    @Unroll
     def "reads architecture value and throws RuntimeException with #language readelf output"() {
         when:
         def inputLines = input.readLines()

@@ -19,8 +19,6 @@ package org.gradle.language.base
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
-import spock.lang.Unroll
-
 @UnsupportedWithInstantExecution(because = "software model")
 class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
@@ -54,7 +52,6 @@ class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Unroll
     def "executing #taskdescr triggers custom task"() {
         given:
         buildFile << """

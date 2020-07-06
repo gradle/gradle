@@ -22,8 +22,6 @@ import org.gradle.platform.base.internal.DefaultPlatformRequirement
 import org.gradle.play.internal.platform.PlayMajorVersion
 import org.gradle.play.platform.PlayPlatform
 import spock.lang.Specification
-import spock.lang.Unroll
-
 import static org.gradle.play.internal.PlayPlatformResolver.*
 
 class PlayPlatformResolverTest extends Specification {
@@ -94,7 +92,6 @@ class PlayPlatformResolverTest extends Specification {
         playPlatform.scalaPlatform.scalaVersion == "2.10.7"
     }
 
-    @Unroll
     def "fails to resolve Play platform #playVersion incompatible Scala version #scalaVersion"() {
         when:
         resolve play: playVersion, scala: scalaVersion
