@@ -20,9 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
-import spock.lang.Unroll
-
-
 class SourceDependencyIdentityIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     GitFileRepository repo = new GitFileRepository('buildB', temporaryFolder.getTestDirectory())
@@ -59,7 +56,6 @@ class SourceDependencyIdentityIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Unroll
     def "includes build identifier in error message on failure to resolve dependencies of build with #display"() {
         repo.file("settings.gradle") << """
             ${settings}
@@ -87,7 +83,6 @@ Required by:
         "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "includes build identifier in task failure error message with #display"() {
         repo.file("settings.gradle") << """
@@ -115,7 +110,6 @@ Required by:
         "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "includes build identifier in dependency resolution results with #display"() {
         repo.file("settings.gradle") << """
