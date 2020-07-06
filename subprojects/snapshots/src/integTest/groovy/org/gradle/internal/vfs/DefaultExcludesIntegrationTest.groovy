@@ -23,16 +23,23 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
 
     private static final EXCLUDED_FILE_NAME = "my-excluded-file.txt"
 
-    def "default excludes defined in settings.gradle are used"() {
+    def outputDir = file("build/output")
+    def excludedFile = file("input/${EXCLUDED_FILE_NAME}")
+    def copyOfExcludedFile = outputDir.file(EXCLUDED_FILE_NAME)
+
+    def setup() {
+        file("input/inputFile.txt").text = "input"
+        excludedFile.text = "excluded"
         buildFile << """
             task copyTask(type: Copy) {
                 from("input")
                 into("build/output")
             }
         """
-        settingsFile << """
-            ${DirectoryScanner.name}.addDefaultExclude('**/${EXCLUDED_FILE_NAME}')
-        """
+    }
+
+    def "default excludes defined in settings.gradle are used"() {
+        settingsFile << addDefaultExclude(EXCLUDED_FILE_NAME)
 
         def outputDir = file("build/output")
         file("input/inputFile.txt").text = "input"
@@ -51,5 +58,35 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         run "copyTask"
         then:
         skipped(":copyTask")
+    }
+
+    def "default excludes are reset if nothing is defined in settings"() {
+        settingsFile << addDefaultExclude(EXCLUDED_FILE_NAME)
+
+        when:
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+        !copyOfExcludedFile.exists()
+
+        when:
+        excludedFile.text = "changed"
+        run "copyTask"
+        then:
+        skipped(":copyTask")
+
+        when:
+        settingsFile.text = ""
+        excludedFile.text = "changedAgain"
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+        copyOfExcludedFile.exists()
+    }
+
+    private static String addDefaultExclude(String excludedFileName = EXCLUDED_FILE_NAME) {
+        """
+            ${DirectoryScanner.name}.addDefaultExclude('**/${ excludedFileName}')
+        """
     }
 }

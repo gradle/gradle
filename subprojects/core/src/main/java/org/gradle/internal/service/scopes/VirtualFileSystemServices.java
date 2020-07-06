@@ -195,6 +195,17 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 DirectoryScanner.getDefaultExcludes()
             );
             listenerManager.addListener(new DefaultExcludesBuildListener(delegate));
+            listenerManager.addListener(new RootBuildLifecycleListener() {
+                @Override
+                public void afterStart(GradleInternal gradle) {
+                    // Reset default excludes for each build
+                    DirectoryScanner.resetDefaultExcludes();
+                }
+
+                @Override
+                public void beforeComplete(GradleInternal gradle) {
+                }
+            });
             WatchingAwareVirtualFileSystem watchingAwareVirtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities)
                 .<WatchingAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
