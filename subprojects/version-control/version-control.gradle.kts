@@ -32,6 +32,7 @@ dependencies {
     implementation(library("guava"))
     implementation(library("inject"))
     implementation(library("jgit"))
+    implementation(library("jgit_apache"))
     implementation(library("commons_httpclient"))
     implementation(library("jsch"))
 
