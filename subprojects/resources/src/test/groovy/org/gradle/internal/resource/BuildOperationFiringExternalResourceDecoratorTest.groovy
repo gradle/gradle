@@ -26,11 +26,8 @@ import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
 
-    @Unroll
     def "delegates method call #methodName"() {
         given:
         def delegate = Mock(ExternalResource)
@@ -131,7 +128,6 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         }
     }
 
-    @Unroll
     def "wraps #methodSignature method call in a build operation"() {
         given:
         def delegateMock = Mock(ExternalResource)
@@ -258,7 +254,6 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         }
     }
 
-    @Unroll
     def "fails build operation if ResourceException is thrown in #methodSignature "() {
         given:
         def delegate = Mock(ExternalResource)

@@ -19,8 +19,6 @@ package org.gradle.internal.resource.metadata
 import org.gradle.internal.Factory
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class ExternalResourceMetaDataCompareTest extends Specification {
 
     @Shared now = new Date()
@@ -40,8 +38,7 @@ class ExternalResourceMetaDataCompareTest extends Specification {
         0 * factory.create()
     }
 
-    @Unroll
-    "always unchanged with incomplete local metadata"() {
+    def "always unchanged with incomplete local metadata"() {
         given:
         configureMetadata(local, etag, lastModified, contentLength)
 
@@ -59,8 +56,7 @@ class ExternalResourceMetaDataCompareTest extends Specification {
         null | null         | -1
     }
 
-    @Unroll
-    "always unchanged with incomplete remote metadata"() {
+    def "always unchanged with incomplete remote metadata"() {
         given:
         configureMetadata(local)
         configureMetadata(remote, null, lastModified, contentLength)
