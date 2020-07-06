@@ -136,18 +136,13 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     def "production class files are removed even if output directory is reconfigured during execution phase"() {
         given:
         def javaProject = new StaleOutputJavaProject(testDirectory)
-        // This can be removed once 6.7 is out!
-        def workaroundForNonLazyCompileJava = mostRecentReleaseVersion <= GradleVersion.version("6.6") ? 'jar.from compileJava' : ''
         buildFile << """
             apply plugin: 'java'
 
             task configureCompileJava {
                 doLast {
                     compileJava.destinationDir = file('build/out')
-                    // In Gradle <6.7, `compileJava` wasn't "lazy enough" that the jar included
-                    // the change in the output directory. It is now so if we want to avoid
-                    // duplicates in the jar we need to include only in <6.7
-                    ${workaroundForNonLazyCompileJava}
+                    jar.from compileJava
                 }
             }
 
@@ -165,7 +160,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProject.redundantClassFileAlternate.assertIsFile()
 
         when:
-        buildFile.text = buildFile.text.replace(workaroundForNonLazyCompileJava, '')
         forceDelete(javaProject.redundantSourceFile)
         succeeds JAR_TASK_NAME
 
