@@ -18,8 +18,6 @@ package org.gradle.workers.internal
 
 import org.gradle.workers.fixtures.WorkerExecutorFixture.WorkActionClass
 import spock.lang.Timeout
-import spock.lang.Unroll
-
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 @Timeout(120)
@@ -35,24 +33,23 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
                 Logging.getLogger(getClass()).info("info message");
                 Logging.getLogger(getClass()).debug("debug message");
                 Logging.getLogger(getClass()).error("error message");
-                
+
                 org.slf4j.LoggerFactory.getLogger(getClass()).warn("slf4j warn");
                 org.slf4j.LoggerFactory.getLogger(getClass()).info("slf4j info");
                 org.slf4j.LoggerFactory.getLogger(getClass()).debug("slf4j debug message");
                 org.slf4j.LoggerFactory.getLogger(getClass()).error("slf4j error");
-                
+
                 java.util.logging.Logger.getLogger("worker").warning("jul warn");
                 java.util.logging.Logger.getLogger("worker").warning("jul info");
                 java.util.logging.Logger.getLogger("worker").fine("jul debug message");
                 java.util.logging.Logger.getLogger("worker").severe("jul error");
-                
+
                 System.out.println("stdout message");
                 System.err.println("stderr message");
             """
         }
     }
 
-    @Unroll
     def "worker lifecycle is logged in #isolationMode"() {
         def workAction = fixture.workActionThatCreatesFiles.writeToBuildSrc()
 
@@ -77,7 +74,6 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "stdout, stderr and logging output of worker is redirected in #isolationMode"() {
         executionWithLogging.writeToBuildFile()
 
@@ -109,7 +105,6 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "stdout, stderr and logging output of worker is redirected in #isolationMode when Gradle logging is --info"() {
         executionWithLogging.writeToBuildFile()
 
@@ -145,7 +140,6 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "stdout, stderr and logging output of worker is redirected in #isolationMode when Gradle logging is --debug"() {
         executionWithLogging.writeToBuildFile()
 

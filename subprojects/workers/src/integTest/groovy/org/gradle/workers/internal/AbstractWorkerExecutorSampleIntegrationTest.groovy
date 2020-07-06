@@ -20,9 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
-
-
 abstract class AbstractWorkerExecutorSampleIntegrationTest extends AbstractIntegrationSpec {
     abstract String getSampleName()
 
@@ -37,7 +34,6 @@ abstract class AbstractWorkerExecutorSampleIntegrationTest extends AbstractInteg
         sampleProvider.dir.file(dsl)
     }
 
-    @Unroll
     def "creates expected content (#dsl)"() {
         when:
         executer.inDirectory(workerExecutorSample(dsl))

@@ -22,13 +22,11 @@ import org.gradle.workers.IsolationMode
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import spock.lang.Ignore
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import java.util.concurrent.atomic.AtomicInteger
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
-@Unroll
 class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
     WorkerExecutorFixture fixture = new WorkerExecutorFixture(temporaryFolder)
 

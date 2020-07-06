@@ -19,8 +19,6 @@ package org.gradle.workers.internal
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
-import spock.lang.Unroll
-
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
@@ -58,18 +56,17 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
         """
     }
 
-    @Unroll
     def "can wait on work items submitted to a queue with #isolationMode"() {
         buildFile << """
             task runWork(type: WorkItemTask) {
                 doLast {
                     def workQueue1 = submit(ParallelWorkAction.class, [ "item1", "item2"])
                     def workQueue2 = submit(ParallelWorkAction.class, [ "item3" ])
-                    
+
                     signal("submitted")
 
                     workQueue1.await()
-                    
+
                     signal("finished")
                 }
             }
@@ -106,14 +103,13 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "all errors are reported when waiting on work submitted to a queue in #isolationMode"() {
         buildFile << """
             task runWork(type: WorkItemTask) {
                 doLast {
                     def workQueue1 = submitFailure(ParallelWorkAction.class, [ "item1", "item2"])
                     def workQueue2 = submit(ParallelWorkAction.class, [ "item3" ])
-                    
+
                     signal("submitted")
 
                     try {
@@ -121,7 +117,7 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
                     } catch (Exception e) {
                         printMessages(e)
                     }
-                    
+
                     signal("finished")
                 }
             }
@@ -161,14 +157,13 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "errors in work submitted to other queues cause a task failure when waiting for work in #isolationMode"() {
         buildFile << """
             task runWork(type: WorkItemTask) {
                 doLast {
                     def workQueue1 = submitFailure(ParallelWorkAction.class, [ "item1", "item2"])
                     def workQueue2 = submitFailure(ParallelWorkAction.class, [ "item3" ])
-                    
+
                     signal("submitted")
 
                     try {
@@ -176,7 +171,7 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
                     } catch (Exception e) {
                         printMessages(e)
                     }
-                    
+
                     signal("finished")
                 }
             }
@@ -237,7 +232,7 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
                 WorkerExecutor getWorkerExecutor() {
                     throw new UnsupportedOperationException()
                 }
-                
+
                 def submitFailure(Class<?> executionClass, List<String> items) {
                     return submit(executionClass, items, true)
                 }
@@ -252,11 +247,11 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
                     }
                     return workQueue
                 }
-                
+
                 def signal(String signal) {
                     new URI("http", null, "localhost", ${blockingHttpServer.getPort()}, "/\${signal}", null, null).toURL().text
                 }
-                
+
                 def printMessages(Exception e) {
                     println e.message
                     if (e.cause == null || e.cause == e) {
@@ -270,7 +265,7 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
                         printMessages(e.cause)
                     }
                 }
-                
+
                 ${fixture.workerMethodTranslation}
             }
         """

@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.work.DefaultConditionalExecutionQueue
 import org.gradle.workers.WorkerExecutor
 import org.gradle.workers.fixtures.WorkerExecutorFixture
-import spock.lang.Unroll
-
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 @IntegrationTestTimeout(120)
@@ -32,7 +30,6 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
         "childSubmissions": "int"
     ])
 
-    @Unroll
     def "workers with no isolation can spawn more work with #nestedIsolationMode"() {
         buildFile << """
             ${getWorkActionWithNesting("IsolationMode.NONE", nestedIsolationMode)}
@@ -53,7 +50,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
         buildFile << """
             ${getWorkActionWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
             task runInWorker(type: NestingWorkerTask) {
-                waitForChildren = true 
+                waitForChildren = true
             }
         """.stripIndent()
 
@@ -87,7 +84,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
         buildFile << """
             ${getWorkActionWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
             task runInWorker(type: NestingWorkerTask) {
-                waitForChildren = true 
+                waitForChildren = true
                 submissions = ${maxWorkers * 2}
                 childSubmissions = ${maxWorkers}
             }
@@ -105,7 +102,6 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
      * This is not intended, but current behavior. We'll need to find a way to pass the service
      * registry across the classloader isolation barrier.
      */
-    @Unroll
     def "workers with classpath isolation cannot spawn more work with #nestedIsolationMode"() {
         buildFile << """
             ${getWorkActionWithNesting("IsolationMode.CLASSLOADER", nestedIsolationMode)}
@@ -127,7 +123,6 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
      * Ideally this would be possible, but it would require coordination between workers and the daemon
      * to figure out who is allowed to schedule more work without violating the max-workers setting.
      */
-    @Unroll
     def "workers with process isolation cannot spawn more work with #nestedIsolationMode"() {
         buildFile << """
             ${getWorkActionWithNesting("IsolationMode.PROCESS", nestedIsolationMode)}
@@ -156,7 +151,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
 
                 doLast {
                     def timeout = System.currentTimeMillis() + (${DefaultConditionalExecutionQueue.KEEP_ALIVE_TIME_MS} * 3)
-                    
+
                     // Let the keep-alive time on the thread pool expire
                     sleep(${DefaultConditionalExecutionQueue.KEEP_ALIVE_TIME_MS})
 
@@ -168,10 +163,10 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
                         sleep 100
                         executorThreads = getWorkerExecutorThreads()
                     }
-                        
+
                     println "\\nWorker Executor threads:"
                     executorThreads.each { println it }
-                    
+
                     // Ensure that we don't leave any threads lying around
                     assert executorThreads.size() <= ${maxWorkers}
                 }
@@ -180,8 +175,8 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
             def getWorkerExecutorThreads() {
                 def threadGroup = Thread.currentThread().threadGroup
                 def threads = new Thread[threadGroup.activeCount()]
-                threadGroup.enumerate(threads)                     
-                return threads.findAll { it?.name?.startsWith("${WorkerExecutionQueueFactory.QUEUE_DISPLAY_NAME}") } 
+                threadGroup.enumerate(threads)
+                return threads.findAll { it?.name?.startsWith("${WorkerExecutionQueueFactory.QUEUE_DISPLAY_NAME}") }
             }
         """.stripIndent()
 
@@ -198,7 +193,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
         workerClass.imports += [WorkerExecutor.name, Internal.name]
         workerClass.extraFields = """
             @Internal WorkerExecutor executor
-            
+
             ${fixture.workerMethodTranslation}
         """
         workerClass.constructorArgs = "WorkerExecutor executor"
