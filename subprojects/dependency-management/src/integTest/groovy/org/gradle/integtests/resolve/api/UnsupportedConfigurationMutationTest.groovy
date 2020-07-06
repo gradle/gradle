@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.junit.runner.RunWith
 import spock.lang.Issue
-import spock.lang.Unroll
-
 @RunWith(FluidDependenciesResolveRunner)
 class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
@@ -473,7 +471,6 @@ task resolveChildFirst {
         then: failure.assertHasCause("Cannot change attributes of dependency configuration ':a' after it has been resolved")
     }
 
-    @Unroll
     def "cannot change the configuration role (#code) after it has been resolved"() {
         buildFile << """
             configurations { a }

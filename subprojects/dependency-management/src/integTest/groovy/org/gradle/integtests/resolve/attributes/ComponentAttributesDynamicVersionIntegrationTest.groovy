@@ -20,12 +20,9 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Unroll
-
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    @Unroll
     @ToBeFixedForInstantExecution(iterationMatchers = ['fails.*'])
     def "#outcome if component-level attribute is #requested"() {
         given:
@@ -78,7 +75,6 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
         'canary'  | 'fails'
     }
 
-    @Unroll
     def "selects the first version which matches the component-level attributes (requested=#requested)"() {
         given:
         repository {
@@ -138,7 +134,6 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
         requested << ["[1.0,)", latestNotation(), "1.+", "1+", "+"]
     }
 
-    @Unroll
     def "selects the first version which matches the component-level attributes (requested=#requested) using dependency attributes"() {
         given:
         repository {

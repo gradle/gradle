@@ -19,8 +19,6 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Unroll
-
 class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     private Map<String, ?> expectedJavaLibraryAttributes(boolean hasJavaLibraryVariants) {
@@ -434,7 +432,6 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
-    @Unroll
     def "can add variants for ivy - #usageAttribute"() {
         // through this, we opt-into variant aware dependency management for a pure ivy module
         given:
@@ -512,7 +509,6 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
-    @Unroll
     def "can add variants for ivy - #usageAttribute - honors conf based excludes "() {
         // through this, we opt-into variant aware dependency management for a pure ivy module
         given:
@@ -610,7 +606,6 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
-    @Unroll
     def "do #not opt-out of maven artifact discovery when #not adding files to a variant (#extension artifact)"() {
         given:
         repository {

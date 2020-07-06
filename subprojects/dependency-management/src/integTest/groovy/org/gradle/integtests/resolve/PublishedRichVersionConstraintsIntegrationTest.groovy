@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
-import spock.lang.Unroll
-
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
     @ToBeFixedForInstantExecution
@@ -257,7 +255,6 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
    Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo:{require 1.0; reject 1.1}'""")
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     void "honors multiple rejections #rejects using dynamic versions using dependency notation #notation"() {
         given:

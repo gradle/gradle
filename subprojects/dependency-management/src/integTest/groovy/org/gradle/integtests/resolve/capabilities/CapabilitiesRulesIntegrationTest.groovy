@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
-import spock.lang.Unroll
-
 class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     @ToBeFixedForInstantExecution
@@ -139,7 +137,6 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
    Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib-nodep:3.2.5($variant)]""")
     }
 
-    @Unroll
     def "can detect conflict with capability in different versions (#rule)"() {
         given:
         repository {
@@ -314,7 +311,6 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
 
     @Issue("gradle/gradle#12011")
     @ToBeFixedForInstantExecution
-    @Unroll
     def "can detect capability conflict even when participants belong to a virtual platform (#first, #second)"() {
         given:
         repository {

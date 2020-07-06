@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Unroll
-
 abstract class AbstractLockingIntegrationTest extends AbstractDependencyResolutionTest {
     def lockfileFixture = new LockfileFixture(testDirectory: testDirectory)
     ResolveTestFixture resolve
@@ -36,7 +34,6 @@ abstract class AbstractLockingIntegrationTest extends AbstractDependencyResoluti
 
     abstract LockMode lockMode()
 
-    @Unroll
     def 'succeeds when lock file does not conflict from declared versions (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -89,7 +86,6 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
     def 'does not write-locks for not locked configuration (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
@@ -123,7 +119,6 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
     def 'writes dependency lock file when requested (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -164,7 +159,6 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
     def "writes dependency lock file for resolved version #version"() {
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.1').publish()
@@ -210,7 +204,6 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
     def "does not lock a configuration that is marked with deactivateDependencyLocking (unique: #unique)"() {
         ['foo', 'foz', 'bar', 'baz'].each { artifact ->
             mavenRepo.module('org', artifact, '1.0').publish()
@@ -274,7 +267,6 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
     def 'upgrades lock file (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -358,7 +350,6 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
     def 'includes transitive dependencies in the lock file'() {
         def dep = mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.0').dependsOn(dep).publish()
@@ -398,7 +389,6 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
     def 'updates part of the lockfile (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -443,7 +433,6 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
     def 'updates part of the lockfile using wildcard'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -488,7 +477,6 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
     def 'updates but ignores irrelevant modules'() {
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.1').publish()
@@ -533,7 +521,6 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
     def 'updates multiple parts of the lockfile'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -583,7 +570,6 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
     def 'writes an empty lock file for an empty configuration (unique: #unique)'() {
         if (unique) {
             FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
@@ -615,7 +601,6 @@ configurations {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
     def 'overwrites a not empty lock file with an empty one when configuration no longer has dependencies (unique: #unique)'() {
         if (unique) {
             FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
@@ -648,7 +633,6 @@ configurations {
         unique << [true, false]
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "fails if trying to resolve a locked configuration with #flag"() {
         buildFile << """

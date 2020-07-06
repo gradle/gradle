@@ -23,8 +23,6 @@ import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.junit.runner.RunWith
 import spock.lang.Issue
-import spock.lang.Unroll
-
 @RunWith(FluidDependenciesResolveRunner)
 class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTest {
     ResolveTestFixture resolve = new ResolveTestFixture(buildFile, 'conf')
@@ -228,7 +226,6 @@ baz:1.0 requested
         }
     }
 
-    @Unroll
     def "constraint are not mis-showing up as a separate REQUESTED and do not overwrite selection by rule"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -292,7 +289,6 @@ baz:1.0 requested
         useReason << [true, false]
     }
 
-    @Unroll
     def "direct dependency reasons are not mis-showing up as a separate REQUESTED and do not overwrite selection by rule"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()

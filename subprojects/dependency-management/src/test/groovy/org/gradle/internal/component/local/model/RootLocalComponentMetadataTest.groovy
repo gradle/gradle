@@ -26,8 +26,6 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.locking.DefaultDependencyLockingState
-import spock.lang.Unroll
-
 class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
     def dependencyLockingHandler = Mock(DependencyLockingProvider)
     def metadata = new RootLocalComponentMetadata(id, componentIdentifier, "status", Mock(AttributesSchemaInternal), dependencyLockingHandler)
@@ -66,7 +64,6 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
         }
     }
 
-    @Unroll
     def 'provides useful reason for locking constraints (#strict)'() {
         given:
         def constraint = DefaultModuleComponentIdentifier.newId(mid, '1.1')

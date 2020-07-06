@@ -19,8 +19,6 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
 import spock.lang.Issue
-import spock.lang.Unroll
-
 @RunWith(FluidDependenciesResolveRunner)
 class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
@@ -34,7 +32,6 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         """
     }
 
-    @Unroll
     def "resolves strictly for dependency resolve failures when #expression is used"() {
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
@@ -81,7 +78,6 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         "resolvedArtifacts"                        | _
     }
 
-    @Unroll
     def "resolves strictly for artifact resolve failures when #expression is used"() {
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
@@ -155,19 +151,19 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
                     assert resolved.size() == 3
                     assert resolved.collect { it.moduleName } == ['hiphop', 'child', 'rock']
-                    
+
                     resolved = compile.getFirstLevelModuleDependencies { true }
                     assert resolved.collect { it.moduleName } == ['hiphop', 'child', 'rock']
 
                     def files = compile.files
-                    
+
                     assert files.size() == 3
                     assert files.collect { it.name } == ['hiphop-1.0.jar', 'child.jar', 'rock-1.0.jar']
-                    
+
                     files = compile.getFiles { true }
-                    
+
                     assert files.collect { it.name } == ['hiphop-1.0.jar', 'child.jar', 'rock-1.0.jar']
-                    
+
                     def artifacts = compile.artifacts
 
                     assert artifacts.size() == 3
@@ -218,7 +214,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
                 implementation 'org.foo:b:1.0'
                 implementation 'org.foo:d:1.0'
                 implementation 'org.foo:e:1.0'
-                
+
                 modules.module('org.foo:c') { replacedBy('org.foo:f') }
             }
 
@@ -230,19 +226,19 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
                     assert resolved.size() == 4
                     assert resolved.collect { it.moduleName } == ['a', 'd', 'e', 'b']
-                    
+
                     resolved = compile.getFirstLevelModuleDependencies { true }
                     assert resolved.collect { it.moduleName } == ['a', 'd', 'e', 'b']
 
                     def files = compile.files.collect { it.name }
-                    
+
                     assert files.size() == 5
                     assert files == ['a-1.0.jar', 'd-1.0.jar', 'e-1.0.jar', 'b-2.0.jar', 'f-1.0.jar']
-                    
+
                     files = compile.getFiles { true }.collect { it.name }
-                    
+
                     assert files == ['a-1.0.jar', 'f-1.0.jar', 'd-1.0.jar', 'b-2.0.jar', 'e-1.0.jar']
-                    
+
                     def artifacts = compile.artifacts.collect { it.file.name }
 
                     assert artifacts.size() == 5
@@ -294,19 +290,19 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
                     assert resolved.size() == 3
                     assert resolved.collect { it.moduleName } == ['hiphop', 'child', 'rock']
-                    
+
                     resolved = compile.getFirstLevelModuleDependencies { true }
                     assert resolved.collect { it.moduleName } == ['hiphop', 'child', 'rock']
 
                     def files = compile.files
-                    
+
                     assert files.size() == 2
                     assert files.collect { it.name } == ['hiphop-1.0.jar', 'child.jar']
-                    
+
                     files = compile.getFiles { true }
-                    
+
                     assert files.collect { it.name } == ['hiphop-1.0.jar', 'child.jar']
-                    
+
                     def artifacts = compile.artifacts
 
                     assert artifacts.size() == 2
@@ -399,19 +395,19 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
                     def resolved = compile.firstLevelModuleDependencies
 
                     assert resolved.collect { "\${it.moduleName}:\${it.moduleVersion}" } == ['bar:1', 'foo:2']
-                    
+
                     resolved = compile.getFirstLevelModuleDependencies { true }
                     assert resolved.collect { "\${it.moduleName}:\${it.moduleVersion}" } == ['bar:1', 'foo:2']
 
                     def files = compile.files
-                    
+
                     assert files.size() == 2
                     assert files.collect { it.name } == ['bar-1.jar', 'foo-2.jar']
-                    
+
                     files = compile.getFiles { true }
-                    
+
                     assert files.collect { it.name } == ['bar-1.jar', 'foo-2.jar']
-                    
+
                     def artifacts = compile.artifacts
 
                     assert artifacts.size() == 2

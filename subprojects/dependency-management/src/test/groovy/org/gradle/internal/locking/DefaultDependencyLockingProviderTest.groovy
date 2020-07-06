@@ -39,8 +39,6 @@ import org.gradle.util.Path
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
-
 import static java.util.Collections.emptySet
 import static org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId
 
@@ -110,7 +108,6 @@ empty=
 
     }
 
-    @Unroll
     def 'can load lockfile as strict constraints (Unique: #unique)'() {
         given:
         if (unique) {
@@ -132,7 +129,6 @@ empty=
         unique << [true, false]
     }
 
-    @Unroll
     def 'can load lockfile as prefer constraints in update mode (Unique: #unique)'() {
         given:
         startParameter = Mock()
@@ -155,7 +151,6 @@ empty=
         unique << [true, false]
     }
 
-    @Unroll
     def 'can filter lock entries using module update patterns (Unique: #unique)'() {
         given:
         startParameter = Mock()
@@ -178,7 +173,6 @@ empty=
         unique << [true, false]
     }
 
-    @Unroll
     def 'can filter lock entries using group update patterns (Unique: #unique)'() {
         given:
         startParameter = Mock()
@@ -201,7 +195,6 @@ empty=
         unique << [true, false]
     }
 
-    @Unroll
     def 'can filter lock entries impacted by dependency substitutions (Unique: #unique)'() {
         given:
         dependencySubstitutionRules.hasRules() >> true
@@ -228,7 +221,6 @@ empty=
         unique << [true, false]
     }
 
-    @Unroll
     def 'fails with invalid content in lock file (Unique: #unique)'() {
         given:
         if (unique) {
@@ -254,7 +246,6 @@ empty=
         return new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(org, name), version)
     }
 
-    @Unroll
     def 'fails with missing lockfile in strict mode (Unique: #unique)'() {
         given:
         if (unique) {

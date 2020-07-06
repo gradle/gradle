@@ -42,8 +42,6 @@ import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
-
 class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
     private static final String REPOSITORY_ID = 'abc'
@@ -83,7 +81,6 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         }
     }
 
-    @Unroll
     def "can list module versions (max retries = #maxRetries, exception=#exception)"() {
         access = createAccess(maxRetries)
 
@@ -119,7 +116,6 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         [maxRetries, exception, effectiveRetries] << retryCombinations()
     }
 
-    @Unroll
     def "can resolve component meta data (max retries = #maxRetries, exception=#exception)"() {
         access = createAccess(maxRetries)
 
@@ -155,7 +151,6 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         [maxRetries, exception, effectiveRetries] << retryCombinations()
     }
 
-    @Unroll
     def "can resolve artifacts with type (max retries = #maxRetries, exception=#exception)"() {
         access = createAccess(maxRetries)
 
@@ -193,7 +188,6 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         [maxRetries, exception, effectiveRetries] << retryCombinations()
     }
 
-    @Unroll
     def "can resolve artifacts (max retries = #maxRetries, exception=#exception)"() {
         access = createAccess(maxRetries)
 
@@ -231,7 +225,6 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         [maxRetries, exception, effectiveRetries] << retryCombinations()
     }
 
-    @Unroll
     def "can resolve artifact (max retries = #maxRetries, exception=#exception)"() {
         access = createAccess(maxRetries)
 

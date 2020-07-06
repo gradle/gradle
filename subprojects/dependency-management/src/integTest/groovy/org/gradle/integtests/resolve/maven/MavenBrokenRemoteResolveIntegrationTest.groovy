@@ -18,8 +18,6 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import spock.lang.Unroll
-
 class MavenBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @ToBeFixedForInstantExecution
     public void "reports and recovers from missing module"() {
@@ -265,7 +263,6 @@ task showBroken { doLast { println configurations.broken.files } }
         succeeds("showBroken")
     }
 
-    @Unroll
     void "recovers from initial failed POM download (max retries = #retries)"() {
         withMaxHttpRetryCount(retries)
 
@@ -299,7 +296,6 @@ task showBroken { doLast { println configurations.broken.files } }
         retries << (1..3)
     }
 
-    @Unroll
     void "recovers from initial failed artifact download (max retries = #retries)"() {
         withMaxHttpRetryCount(retries)
 
@@ -333,7 +329,6 @@ task showBroken { doLast { println configurations.broken.files } }
         retries << (1..3)
     }
 
-    @Unroll
     void "doesn't attempt to retry downloading missing POM file (max retries = #retries)"() {
         withMaxHttpRetryCount(retries)
 
@@ -369,7 +364,6 @@ task showBroken { doLast { println configurations.broken.files } }
         retries << (1..3)
     }
 
-    @Unroll
     void "doesn't attempt to retry downloading missing artifact file (max retries = #retries)"() {
         withMaxHttpRetryCount(retries)
 

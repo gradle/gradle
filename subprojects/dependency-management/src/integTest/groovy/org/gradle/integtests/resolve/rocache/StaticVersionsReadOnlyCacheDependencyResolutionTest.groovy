@@ -19,8 +19,6 @@ package org.gradle.integtests.resolve.rocache
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
-import spock.lang.Unroll
-
 class StaticVersionsReadOnlyCacheDependencyResolutionTest extends AbstractReadOnlyCacheDependencyResolutionTest {
 
     @Override
@@ -83,7 +81,6 @@ class StaticVersionsReadOnlyCacheDependencyResolutionTest extends AbstractReadOn
         assertNotInReadOnlyCache("other-1.0.jar")
     }
 
-    @Unroll
     def "can recover from corrupt read-only cache (#file)"() {
         given:
         def core = mavenHttpRepo.module('org.readonly', 'core', '1.0')

@@ -22,9 +22,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Ignore
 import spock.lang.Issue
-import spock.lang.Unroll
-
-
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyResolveTest {
 
@@ -203,7 +200,6 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
    Cannot select module with conflict on capability 'org:test:1.0' also provided by [org:test:1.0(api), org:test:1.0(runtime)]""")
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(iterationMatchers = [".*conflict=true.*"])
     void "can select distinct variants of the same component by using different attributes with capabilities (conflict=#conflict)"() {
         given:

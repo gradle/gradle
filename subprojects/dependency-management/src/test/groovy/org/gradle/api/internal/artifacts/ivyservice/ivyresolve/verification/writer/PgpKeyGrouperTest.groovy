@@ -23,14 +23,11 @@ import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifie
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class PgpKeyGrouperTest extends Specification {
     private DependencyVerifierBuilder builder = new DependencyVerifierBuilder()
     private DependencyVerifier verifier
     private PgpKeyGrouper pgpKeyGrouper
 
-    @Unroll
     def "common prefix for groups #groups == #expected"() {
         expect:
         PgpKeyGrouper.tryComputeCommonPrefixes(groups) == expected

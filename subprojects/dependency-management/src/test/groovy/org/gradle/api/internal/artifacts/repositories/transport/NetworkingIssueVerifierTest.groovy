@@ -21,12 +21,9 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
-
 @Subject(NetworkingIssueVerifier)
 class NetworkingIssueVerifierTest extends Specification {
 
-    @Unroll
     def "verifies '#description' is likely transient network issue"() {
         expect:
         NetworkingIssueVerifier.isLikelyTransientNetworkingIssue(failure)

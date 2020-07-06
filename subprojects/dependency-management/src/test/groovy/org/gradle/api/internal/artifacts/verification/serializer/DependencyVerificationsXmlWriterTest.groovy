@@ -25,14 +25,11 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
 import org.gradle.util.TextUtil
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class DependencyVerificationsXmlWriterTest extends Specification {
     private final DependencyVerifierBuilder builder = new DependencyVerifierBuilder()
     private String rawContents
     private String contents
 
-    @Unroll
     def "can write an empty file"() {
         when:
         builder.verifyMetadata = verifyMetadata

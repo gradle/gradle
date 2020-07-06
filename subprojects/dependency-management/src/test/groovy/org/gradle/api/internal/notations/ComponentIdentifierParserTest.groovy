@@ -22,14 +22,11 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.typeconversion.NotationParser
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
-
 class ComponentIdentifierParserTest extends Specification {
 
     @Subject
     NotationParser<Object, ComponentIdentifier> parser = new ComponentIdentifierParserFactory().create()
 
-    @Unroll
     def "can parse #notation"() {
         when:
         def id = parser.parseNotation(notation)
@@ -50,7 +47,6 @@ class ComponentIdentifierParserTest extends Specification {
         [group: ' group ', name: 'foo ', version: '  1.4-beta-1'] | 'group'       | 'foo'        | '1.4-beta-1'
     }
 
-    @Unroll
     def "fails if string doesn't have 3 parts (#notation)"() {
         when:
         parser.parseNotation(notation)
@@ -63,7 +59,6 @@ class ComponentIdentifierParserTest extends Specification {
         notation << ["foo", "foo:", "foo:bar", "foo:bar:", "foo:bar:baz:qux"]
     }
 
-    @Unroll
     def "fails to parse map notation (#notation) which doesn't pass validation"() {
         when:
         parser.parseNotation(notation)

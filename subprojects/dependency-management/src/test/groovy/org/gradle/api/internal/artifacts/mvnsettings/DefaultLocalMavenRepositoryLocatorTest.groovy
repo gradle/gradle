@@ -23,8 +23,6 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class DefaultLocalMavenRepositoryLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
@@ -194,7 +192,6 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         locator.localMavenRepository == tmpDir.file("sys/prop/value/env/var/value")
     }
 
-    @Unroll
     def "unresolvable placeholder for #propType throws exception with decent error message"() {
         TestFile repoPath = tmpDir.file("\${$prop}")
         writeSettingsFile(locations.userSettingsFile, repoPath)

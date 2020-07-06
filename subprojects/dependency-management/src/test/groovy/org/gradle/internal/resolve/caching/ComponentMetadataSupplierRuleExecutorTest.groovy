@@ -47,8 +47,6 @@ import org.gradle.util.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
-
 import javax.inject.Inject
 import java.time.Duration
 
@@ -95,7 +93,6 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
     }
 
     // Tests --refresh-dependencies behavior
-    @Unroll
     def "Cache expiry check expired=#expired, refresh = #mustRefresh - #scenario - #ruleClass.simpleName"() {
         def id = DefaultModuleVersionIdentifier.newId('org', 'foo', '1.0')
         def inputsSnapshot = new StringValueSnapshot("1")

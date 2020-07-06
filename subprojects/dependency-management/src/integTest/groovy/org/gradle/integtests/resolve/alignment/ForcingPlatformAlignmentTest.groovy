@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
-
 @IgnoreIf({
     // This test is very expensive due to the permutation testing.
     // Because it tests the internal state of the resolution engine, the Gradle execution model does not matter.
@@ -194,7 +192,6 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         }
     }
 
-    @Unroll
     def "fails if forcing a virtual platform version by forcing multiple leaves with different versions"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -646,7 +643,6 @@ include 'other'
 
     }
 
-    @Unroll
     def "can force a virtual platform version by forcing the platform itself via a dependency"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -698,7 +694,6 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-    @Unroll
     def "can force a virtual platform version by forcing the platform itself via a constraint"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -751,7 +746,6 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-    @Unroll
     def "can force a virtual platform version by forcing the platform itself via a constraint using a strict version"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -807,7 +801,6 @@ include 'other'
 
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @Unroll
     def "can constrain a virtual platforms components by adding the platform itself via a constraint"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -852,7 +845,6 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-    @Unroll
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def "can force a published platform version by forcing the platform itself via a dependency"() {
         repository {
@@ -970,7 +962,6 @@ include 'other'
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Issue("nebula-plugins/gradle-nebula-integration#51")
-    @Unroll
     def "force to higher patch version should bring the rest of aligned group up (notation=#forceNotation)"() {
         given:
         "repository simulating Jackson situation" {
@@ -1026,7 +1017,6 @@ include 'other'
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Issue("nebula-plugins/gradle-nebula-integration#51")
-    @Unroll
     def "force to lower patch version should bring the rest of aligned group up (notation=#forceNotation)"() {
         given:
         "repository simulating Jackson situation" {

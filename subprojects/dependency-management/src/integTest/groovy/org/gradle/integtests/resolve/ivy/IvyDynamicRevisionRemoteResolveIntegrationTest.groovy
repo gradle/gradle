@@ -22,8 +22,6 @@ import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.encoding.Identifier
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import spock.lang.Issue
-import spock.lang.Unroll
-
 class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     ResolveTestFixture resolve
 
@@ -112,7 +110,6 @@ dependencies {
             "group:projectB:latest.integration": "group:projectB:2.2"
     }
 
-    @Unroll
     def "uses latest version from version range with #identifier characters"() {
         given:
         def name = identifier.safeForFileName().decorate("name")
@@ -1219,7 +1216,6 @@ dependencies {
         checkResolve "group:projectA:latest.release": "group:projectA:1.2"
     }
 
-    @Unroll
     def "finds best matching version in local and remote repository with #order"() {
         given:
         def fileRepo = ivyRepo("fileRepo")

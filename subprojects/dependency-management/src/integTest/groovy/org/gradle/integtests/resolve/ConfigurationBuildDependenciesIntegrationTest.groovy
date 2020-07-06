@@ -18,8 +18,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import spock.lang.Unroll
-
 class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
         settingsFile << "include 'child'"
@@ -30,7 +28,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
                     create('default').extendsFrom compile
                 }
             }
-            task useCompileConfiguration { 
+            task useCompileConfiguration {
                 inputs.files configurations.compile
                 outputs.file file('output.txt')
                 doLast { }
@@ -44,16 +42,16 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
                 task lib
                 task jar
             }
-            dependencies { 
+            dependencies {
                 compile project(':child')
-                compile files('main-lib.jar') { builtBy lib } 
+                compile files('main-lib.jar') { builtBy lib }
             }
             project(':child') {
                 artifacts {
                     compile file: file('child.jar'), builtBy: jar
                 }
-                dependencies { 
-                    compile files('child-lib.jar') { builtBy lib } 
+                dependencies {
+                    compile files('child-lib.jar') { builtBy lib }
                 }
             }
             task direct { inputs.files configurations.compile }
@@ -84,15 +82,14 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         "filteredTree"         | _
     }
 
-    @Unroll
     def "builds correct artifacts when there is a project cycle in dependency graph - fluid: #fluid"() {
         makeFluid(fluid)
 
         // A graph from root compile -> child default -> root default, so not an actual cycle here
         // Graph includes artifact and file dependencies on each node, should build all of them
         buildFile << """
-            allprojects { 
-                task jar 
+            allprojects {
+                task jar
                 task lib
                 artifacts {
                     compile file: file("\${project.name}.jar"), builtBy: jar
@@ -121,15 +118,14 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         fluid << [true, false]
     }
 
-    @Unroll
     def "builds correct artifacts when there is a cycle in dependency graph - fluid: #fluid"() {
         makeFluid(fluid)
 
         // A graph from root compile -> child default -> root compile
         // Graph includes artifact and file dependencies on each node, should build all of them
         buildFile << """
-            allprojects { 
-                task jar 
+            allprojects {
+                task jar
                 task lib
                 artifacts {
                     compile file: file("\${project.name}.jar"), builtBy: jar
@@ -158,7 +154,6 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         fluid << [true, false]
     }
 
-    @Unroll
     def "reports failure to calculate build dependencies when artifact build dependencies cannot be queried - fluid: #fluid"() {
         makeFluid(fluid)
         buildFile << """
@@ -186,7 +181,6 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         fluid << [true, false]
     }
 
-    @Unroll
     def "reports failure to calculate build dependencies when file dependency cannot be resolved - fluid: #fluid"() {
         makeFluid(fluid)
         buildFile << """
@@ -214,7 +208,6 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         fluid << [true, false]
     }
 
-    @Unroll
     def "reports failure to calculate build dependencies when local configuration cannot be selected - fluid: #fluid"() {
         makeFluid(fluid)
         buildFile << """
@@ -242,7 +235,6 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         fluid << [true, false]
     }
 
-    @Unroll
     def "reports failure to calculate build dependencies when local variant cannot be selected - fluid: #fluid"() {
         makeFluid(fluid)
         buildFile << """
@@ -282,14 +274,14 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
                     maven { url '$mavenHttpRepo.uri' }
                 }
             }
-            
+
             dependencies {
                 compile project(':child')
             }
             project(':child') {
                 dependencies {
                     compile 'test:test:1.0'
-                }                
+                }
             }
 """
 
@@ -320,12 +312,12 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
                     maven { url '$mavenHttpRepo.uri' }
                 }
             }
-            
+
             dependencies {
                 compile project(':child')
             }
             project(':child') {
-                task jar { 
+                task jar {
                     outputs.files file('thing.jar')
                 }
                 artifacts {
@@ -333,7 +325,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
                 }
                 dependencies {
                     compile 'test:test:1.0'
-                }                
+                }
             }
 """
 
@@ -364,12 +356,12 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
                     maven { url '$mavenHttpRepo.uri' }
                 }
             }
-            
+
             dependencies {
                 compile project(':child')
             }
             project(':child') {
-                task jar { 
+                task jar {
                     outputs.files file('thing.jar')
                 }
                 artifacts {
@@ -377,7 +369,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
                 }
                 dependencies {
                     compile 'test:test:1.0'
-                }                
+                }
             }
 """
 

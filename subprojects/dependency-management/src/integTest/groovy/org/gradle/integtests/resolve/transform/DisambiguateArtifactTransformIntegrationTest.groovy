@@ -18,22 +18,20 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Issue
-import spock.lang.Unroll
-
 class DisambiguateArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     private static String artifactTransform(String className, String extension = "txt", String message = "Transforming") {
         """
             import org.gradle.api.artifacts.transform.TransformParameters
-            
+
             abstract class ${className} implements TransformAction<TransformParameters.None> {
                 ${className}() {
                     println "Creating ${className}"
                 }
-                
+
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
-                
+
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     def output = outputs.file("\${input.name}.${extension}")
@@ -277,7 +275,7 @@ dependencies {
         from.attribute(buildType, 'default')
         to.attribute(buildType, 'release')
     }
-    
+
     registerTransform(AarDebug) {
         from.attribute(artifactType, 'jar')
         to.attribute(artifactType, 'aar')
@@ -285,7 +283,7 @@ dependencies {
         from.attribute(buildType, 'default')
         to.attribute(buildType, 'debug')
     }
-    
+
     registerTransform(AarClasses) {
         from.attribute(artifactType, 'aar')
         to.attribute(artifactType, 'classes')
@@ -294,9 +292,9 @@ dependencies {
 
 task resolveReleaseClasses {
     def artifacts = configurations.compile.incoming.artifactView {
-        attributes { 
-            it.attribute(artifactType, 'classes') 
-            it.attribute(buildType, 'release') 
+        attributes {
+            it.attribute(artifactType, 'classes')
+            it.attribute(buildType, 'release')
         }
     }.artifacts
     inputs.files artifacts.artifactFiles
@@ -312,9 +310,9 @@ task resolveReleaseClasses {
 
 task resolveTestClasses {
     def artifacts = configurations.compile.incoming.artifactView {
-        attributes { 
-            it.attribute(artifactType, 'classes') 
-            it.attribute(buildType, 'test') 
+        attributes {
+            it.attribute(artifactType, 'classes')
+            it.attribute(buildType, 'test')
         }
     }.artifacts
     inputs.files artifacts.artifactFiles
@@ -375,16 +373,16 @@ allprojects {
 
 dependencies {
     implementation 'test:test:1.3'
-    
+
     artifactTypes.getByName("jar") {
         attributes.attribute(minified, false)
     }
-    
+
     registerTransform(FileSizer) {
         from.attribute(artifactType, 'jar')
         to.attribute(artifactType, 'size')
     }
-    
+
     registerTransform(Minifier) {
         from.attribute(minified, false)
         to.attribute(minified, true)
@@ -417,7 +415,6 @@ task resolve(type: Copy) {
         output.count('Sizing') == 0
     }
 
-    @Unroll
     def "disambiguation leverages schema rules before doing it size based"() {
         given:
         settingsFile << """
@@ -449,8 +446,8 @@ project(':child') {
             }
         }
     }
-    
-    
+
+
     artifacts {
         buildDir.mkdirs()
         file("\$buildDir/test.jar").text = "toto"
@@ -460,11 +457,11 @@ project(':child') {
 
 dependencies {
     api project(':child')
-    
+
     artifactTypes.getByName("jar") {
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "weird"))
     }
-    
+
     if ($apiFirst) {
         registerTransform(Identity) {
             from.attribute(artifactType, 'jar')

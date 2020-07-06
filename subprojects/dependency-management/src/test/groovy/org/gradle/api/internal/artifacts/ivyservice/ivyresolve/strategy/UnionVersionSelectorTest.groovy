@@ -20,15 +20,12 @@ import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.FeaturePreviews
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class UnionVersionSelectorTest extends Specification {
     private final VersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(new FeaturePreviews()), new VersionParser())
     private final VersionParser parser = new VersionParser()
     private final List<VersionSelector> members = []
     private final UnionVersionSelector union = new UnionVersionSelector(members)
 
-    @Unroll
     def "accept version '#candidate' with union of #selectors matches is #accept"() {
         when:
         withSelectors(selectors)
@@ -52,7 +49,6 @@ class UnionVersionSelectorTest extends Specification {
         ['1.0', '1.1', '(,2)'] | '2.0'     | false
     }
 
-    @Unroll
     def "union selector respects selectors #selectors flags semantics"() {
         when:
         withSelectors(selectors)

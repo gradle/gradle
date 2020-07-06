@@ -19,13 +19,10 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
-import spock.lang.Unroll
-
 class ConcurrentDerivationStrategyIntegTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForInstantExecution
     @Issue("https://github.com/gradle/gradle/issues/13555")
-    @Unroll
     // If this test becomes flaky it means we broke the code which prevents mutation of in-memory cached module metadata
     def "selected variants are consistent using concurrent resolution of graphs from cache having different derivation strategies with #displayName"() {
         executer.requireOwnGradleUserHomeDir()

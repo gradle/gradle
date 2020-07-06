@@ -19,12 +19,9 @@ package org.gradle.integtests.resolve.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
-import spock.lang.Unroll
-
 @RunWith(FluidDependenciesResolveRunner)
 class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
     def "cannot resolve a configuration with role #role at execution time"() {
         given:
         buildFile << """
@@ -59,7 +56,6 @@ class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    @Unroll
     def "cannot resolve a configuration with role #role at configuration time"() {
         given:
         buildFile << """
@@ -91,7 +87,6 @@ class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    @Unroll
     def "cannot resolve a configuration with role #role using #method"() {
         given:
         buildFile << """
@@ -126,7 +121,6 @@ class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
         ].combinations()
     }
 
-    @Unroll
     def "cannot add a dependency on a configuration role #role not meant to be consumed or published"() {
         given:
         file('settings.gradle') << 'include "a", "b"'
@@ -165,7 +159,6 @@ class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
         'bucket'                | 'canBeResolved = false; canBeConsumed = false'
     }
 
-    @Unroll
     def "cannot depend on default configuration if it's not consumable (#role)"() {
         given:
         file('settings.gradle') << 'include "a", "b"'

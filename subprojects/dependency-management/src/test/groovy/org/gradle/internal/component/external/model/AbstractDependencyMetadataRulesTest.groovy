@@ -45,8 +45,6 @@ import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
-
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 abstract class AbstractDependencyMetadataRulesTest extends Specification {
@@ -114,7 +112,6 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         metadata
     }
 
-    @Unroll
     def "dependency metadata rules are evaluated once and lazily for #metadataType metadata"() {
         given:
         def rule = Mock(Action)
@@ -147,7 +144,6 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata()
     }
 
-    @Unroll
     def "dependency metadata rules are not evaluated if their variant is not selected for #metadataType metadata"() {
         given:
         def rule = Mock(Action)
@@ -166,7 +162,6 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata()
     }
 
-    @Unroll
     def "dependencies of selected variant are accessible in dependency metadata rule for #metadataType metadata"() {
         given:
         def rule = { dependencies ->
@@ -199,7 +194,6 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata("dep1", "dep2")
     }
 
-    @Unroll
     def "dependencies of selected variant are modifiable in dependency metadata rule for #metadataType metadata"() {
         given:
         def rule = { dependencies ->
@@ -235,7 +229,6 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata("toModify")
     }
 
-    @Unroll
     def "dependencies added in dependency metadata rules are added to dependency list for #metadataType metadata"() {
         given:
         def rule = { dependencies ->
@@ -256,7 +249,6 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata()
     }
 
-    @Unroll
     def "dependencies removed in dependency metadata rules are removed from dependency list for #metadataType metadata"() {
         given:
         def rule = { dependencies ->

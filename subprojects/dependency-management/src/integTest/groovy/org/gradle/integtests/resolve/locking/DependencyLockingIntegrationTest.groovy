@@ -19,8 +19,6 @@ package org.gradle.integtests.resolve.locking
 import org.gradle.api.artifacts.dsl.LockMode
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import spock.lang.Unroll
-
 class DependencyLockingIntegrationTest extends AbstractValidatingLockingIntegrationTest {
 
     @Override
@@ -29,7 +27,6 @@ class DependencyLockingIntegrationTest extends AbstractValidatingLockingIntegrat
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
     def 'succeeds without lock file present and does not create one'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
@@ -66,7 +63,6 @@ dependencies {
         unique << [true, false]
     }
 
-    @Unroll
     def "version selector combinations are resolved equally for locked and unlocked configurations"() {
         ['foo', 'foz', 'bar', 'baz'].each { artifact ->
             mavenRepo.module('org', artifact, '1.0').publish()
@@ -119,7 +115,6 @@ task check {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
     def 'writes a new lock file if update done without lockfile present'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -161,7 +156,6 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
     def 'does not write an empty lock file for an empty configuration if not requested'() {
         if (unique) {
             FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)

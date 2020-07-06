@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.TestDependency
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Ignore
 import spock.lang.Issue
-import spock.lang.Unroll
-
 class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -442,7 +440,6 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'a:2', 'b', 'c', 'to', 'm', 'n', 'o', 'p', 'q'
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "can provide custom replacement reason"() {
         declaredDependencies 'a', 'b'

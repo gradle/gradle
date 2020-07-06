@@ -50,8 +50,6 @@ import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class DefaultComponentMetadataProcessorTest extends Specification {
 
     private static final String GROUP = "group"
@@ -146,7 +144,6 @@ class DefaultComponentMetadataProcessorTest extends Specification {
         e.message == /Unexpected status 'green' specified for group:module:version. Expected one of: [alpha, beta]/
     }
 
-    @Unroll
     def "process different type rules whatever addition order"() {
         given:
         context.injectingInstantiator >> instantiator

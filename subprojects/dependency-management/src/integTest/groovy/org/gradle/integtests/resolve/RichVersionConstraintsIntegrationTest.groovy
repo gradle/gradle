@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ivy.IvyModule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
-
 @IgnoreIf({
     // This test is very expensive. Ideally we shouldn't need an integration test here, but lack the
     // infrastructure to simulate everything done here, so we're only going to execute this test in
@@ -367,7 +365,6 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         }
     }
 
-    @Unroll
     void "should pass if transitive dependency version (#transitiveDependencyVersion) matches a strict dependency version (#directDependencyVersion)"() {
         given:
         repository {
@@ -697,7 +694,6 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         }
     }
 
-    @Unroll
     void "honors rejection using dynamic versions using dependency notation #notation"() {
         given:
         repository {
@@ -869,7 +865,6 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         }
     }
 
-    @Unroll
     void "honors multiple rejections #rejects using dynamic versions using dependency notation #notation"() {
         given:
         repository {

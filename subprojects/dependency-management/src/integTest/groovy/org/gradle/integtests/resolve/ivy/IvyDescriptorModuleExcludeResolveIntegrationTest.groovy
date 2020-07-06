@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.test.fixtures.ivy.IvyModule
 import spock.lang.Issue
-import spock.lang.Unroll
 /**
  * Demonstrates the use of Ivy module excludes.
  *
@@ -32,7 +31,6 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
      * Dependency graph:
      * a -> b, c
      */
-    @Unroll
     def "module exclude having single artifact with #name"() {
         given:
         ivyRepo.module('b').publish()
@@ -63,7 +61,6 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
      * b -> d
      * c -> e
      */
-    @Unroll
     def "module exclude for transitive dependency having single artifact with #name"() {
         given:
         ivyRepo.module('d').publish()
@@ -95,7 +92,6 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
      * b -> d -> f
      * c -> e
      */
-    @Unroll
     def "module exclude for transitive dependency having single artifact with #name does not exclude its transitive module"() {
         given:
         ivyRepo.module('f').publish()
@@ -128,7 +124,6 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
      * b -> d
      * c -> e
      */
-    @Unroll
     def "module exclude for transitive dependency having multiple artifacts with #name"() {
         given:
         ivyRepo.module('d')
@@ -168,7 +163,6 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
      * b -> d
      * c -> d
      */
-    @Unroll
     def "when a module is depended on via multiple paths and excluded on only one of those paths, it is not excluded (#name)"() {
         given:
         ivyRepo.module('d').publish()
@@ -199,7 +193,6 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
      * b -> d
      * c -> d
      */
-    @Unroll
     def "when a module is depended on via multiple paths and excluded on all of those paths, it is excluded (#name)"() {
         given:
         ivyRepo.module('d').publish()
@@ -233,7 +226,6 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
      * c -> d
      * d -> e
      */
-    @Unroll
     def "when a module is depended on via multiple paths, it is excluded only if excluded on each of the paths (#name)"() {
         given:
         ivyRepo.module('e').publish()
@@ -272,7 +264,6 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
      * Dependency graph:
      * a -> b -> c -> d
      */
-    @Unroll
     def "when a module is depended on via a single chained path, it is excluded if excluded on any of the links in that path (#name)"() {
         given:
         ivyRepo.module('d').publish()

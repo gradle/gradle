@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Ignore
-import spock.lang.Unroll
-
 class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolveTest {
     def setup() {
         buildFile << """
@@ -37,7 +35,6 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
      * were not published using Gradle, so the consumer needs a way to express that and
      * enforce the use of only one of them at the same time.
      */
-    @Unroll
     @ToBeFixedForInstantExecution(iterationMatchers = [".*conflict fix not applied.*"])
     def "can choose between cglib and cglib-nodep by declaring capabilities (#description)"() {
         given:
@@ -131,7 +128,6 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
      *
      * This is from the consumer point of view, fixing the fact the library doesn't declare capabilities.
      */
-    @Unroll
     @ToBeFixedForInstantExecution(iterationMatchers = [".*conflict fix not applied.*"])
     def "can select groovy-all over individual groovy-whatever (#description)"() {
         given:
@@ -254,7 +250,6 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
      *
      * This is from the consumer point of view, fixing the fact the library doesn't declare capabilities.
      */
-    @Unroll
     @ToBeFixedForInstantExecution(iterationMatchers = [".*conflict fix not applied.*"])
     def "can select individual groovy-whatever over individual groovy-all (#description)"() {
         given:
@@ -375,7 +370,6 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
      */
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @ToBeFixedForInstantExecution(iterationMatchers = [".*failOnVersionConflict=true.*"])
-    @Unroll
     def "published module can declare relocation (first in graph = #first, second in graph = #second, failOnVersionConflict=#failOnVersionConflict)"() {
         given:
         repository {
@@ -444,7 +438,6 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @ToBeFixedForInstantExecution(iterationMatchers = [".*conflict fix not applied.*"])
-    @Unroll
     def "can express preference for capabilities declared in published modules (#description)"() {
         given:
         repository {

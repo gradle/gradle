@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
 import spock.lang.Issue
-import spock.lang.Unroll
-
 @RunWith(FluidDependenciesResolveRunner)
 class LocalExcludeResolveIntegrationTest extends AbstractDependencyResolutionTest {
     /**
@@ -32,7 +30,6 @@ class LocalExcludeResolveIntegrationTest extends AbstractDependencyResolutionTes
      * org.gradle:test:1.45 -> org.gradle:foo:2.0, org.gradle:bar:3.0, com.company:company:4.0, com.company:other-company:4.0
      * com.company:company:4.0 -> com.enterprise:enterprise:5.0, org.gradle:baz:6.0
      */
-    @Unroll
     def "dependency exclude rule for #condition"() {
         given:
         final String orgGradleGroupId = 'org.gradle'
@@ -142,7 +139,6 @@ task test {
      * +--- org.foo:foo:2.0
      *      \--- org.bar:bar:3.0
      */
-    @Unroll
     @Issue("gradle/gradle#951")
     def "can declare fine-grained transitive dependency #condition"() {
         given:
@@ -196,7 +192,7 @@ task check {
                 apply plugin: 'java'
                 repositories { maven { url "${mavenRepo.uri}" } }
             }
-            
+
             project(':a') {
                 configurations {
                     implementation {
@@ -213,7 +209,7 @@ task check {
                     implementation project(':b')
                 }
             }
-            
+
             project(':b') {
                 configurations {
                     implementation {
@@ -221,15 +217,15 @@ task check {
                     }
                 }
             }
-            
+
             dependencies {
                 implementation project(':a')
             }
-            
+
             def compare(config, expectedDependencies) {
                 assert config*.name as Set == expectedDependencies as Set
             }
-            
+
             task checkDeps {
                 doLast {
                     assert configurations.runtimeClasspath*.name == ['a.jar', 'external-1.0.jar', 'b.jar']
@@ -249,15 +245,15 @@ task check {
 
         when:
         buildFile << """
-            configurations { 
+            configurations {
                 foo {
                     exclude group: 'org.gradle.test', modue: 'external'
-                }  
+                }
             }
             dependencies {
                 foo "org.gradle.test:external:1.0"
             }
-            
+
             task resolve() {
                 doLast {
                     configurations.foo.resolve()

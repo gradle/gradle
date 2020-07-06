@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.util.Path
-import spock.lang.Unroll
-
 /**
  * This tests the following scenario with different version settings:
  *
@@ -58,7 +56,6 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
      */
     abstract boolean isAutoDependencySubstitution();
 
-    @Unroll
     @ToBeFixedForInstantExecution(bottomSpecs = [
         "CompositeBuildProjectDependencyConflictResolutionIntegrationTest",
         "CompositeBuildIncludesMultiProjectProjectDependencyConflictResolutionIntegrationTest"

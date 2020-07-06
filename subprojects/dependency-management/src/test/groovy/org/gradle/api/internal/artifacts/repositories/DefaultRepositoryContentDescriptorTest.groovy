@@ -20,14 +20,11 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
-
 class DefaultRepositoryContentDescriptorTest extends Specification {
 
     @Subject
     DefaultRepositoryContentDescriptor descriptor = new DefaultMavenRepositoryContentDescriptor({ throw new RuntimeException("only required in error cases") })
 
-    @Unroll
     def "reasonable error message when input is incorrect (include string)"() {
         when:
         descriptor.includeGroup(null)
@@ -72,7 +69,6 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
         ex.message == "Group cannot be null"
     }
 
-    @Unroll
     def "reasonable error message when input is incorrect (include regex)"() {
         when:
         descriptor.includeGroupByRegex(null)
@@ -117,7 +113,6 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
         ex.message == "Group cannot be null"
     }
 
-    @Unroll
     def "reasonable error message when input is incorrect (exclude string)"() {
         when:
         descriptor.excludeGroup(null)
@@ -162,7 +157,6 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
         ex.message == "Group cannot be null"
     }
 
-    @Unroll
     def "reasonable error message when input is incorrect (exclude regex)"() {
         when:
         descriptor.excludeGroupByRegex(null)
@@ -207,7 +201,6 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
         ex.message == "Group cannot be null"
     }
 
-    @Unroll
     def "can exclude or include whole groups using #method(#expr)"() {
         def fooMod = DefaultModuleIdentifier.newId(group, module)
         def details = Mock(ArtifactResolutionDetails)
@@ -256,7 +249,6 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
         'GroupByRegex' | '[org]+' | 'other' | 'foo'  | '1.0'   | false
     }
 
-    @Unroll
     def "can exclude or include whole modules using #method(#expr)"() {
         def fooMod = DefaultModuleIdentifier.newId(group, module)
         def details = Mock(ArtifactResolutionDetails)
@@ -305,7 +297,6 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
         'ModuleByRegex' | 'f[o]+' | 'org' | 'bar'  | '1.0'   | false
     }
 
-    @Unroll
     def "can exclude or include specific versions using #method(#expr)"() {
         def fooMod = DefaultModuleIdentifier.newId(group, module)
         def details = Mock(ArtifactResolutionDetails)

@@ -39,8 +39,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
-
 import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.FAILED
 import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.IGNORED_KEY
 import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.MISSING_KEY
@@ -104,7 +102,6 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         bodyContainsExact("Second section 0 error")
     }
 
-    @Unroll
     def "reports verification errors (#failure)"() {
         given:
         renderer.startNewSection(":someConfiguration")

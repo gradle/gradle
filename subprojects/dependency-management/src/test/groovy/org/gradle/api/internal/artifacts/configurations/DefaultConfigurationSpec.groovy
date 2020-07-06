@@ -73,8 +73,6 @@ import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
-
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED_WITH_FAILURES
 import static org.gradle.api.artifacts.Configuration.State.UNRESOLVED
@@ -759,7 +757,6 @@ class DefaultConfigurationSpec extends Specification {
         checkCopiedConfiguration(configuration, copied3Configuration, resolutionStrategyCopy, 3)
     }
 
-    @Unroll
     void "copies configuration role"() {
         def configuration = prepareConfigurationForCopyTest()
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)

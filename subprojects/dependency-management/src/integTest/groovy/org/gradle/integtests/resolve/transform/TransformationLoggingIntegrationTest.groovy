@@ -20,8 +20,6 @@ import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
-import spock.lang.Unroll
-
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunctionalTest {
@@ -150,7 +148,6 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
         """
     }
 
-    @Unroll
     def "does not show transformation headers when there is no output for #type console"() {
         consoleType = type
 
@@ -163,7 +160,6 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
         type << TESTED_CONSOLE_TYPES
     }
 
-    @Unroll
     def "does show transformation headers when there is output for #type console"() {
         consoleType = type
 

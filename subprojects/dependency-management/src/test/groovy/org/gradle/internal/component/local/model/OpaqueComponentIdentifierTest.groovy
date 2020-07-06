@@ -18,8 +18,6 @@ package org.gradle.internal.component.local.model
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import spock.lang.Specification
-import spock.lang.Unroll
-
 import static org.gradle.util.Matchers.strictlyEquals
 
 class OpaqueComponentIdentifierTest extends Specification {
@@ -43,7 +41,6 @@ class OpaqueComponentIdentifierTest extends Specification {
         thrown(AssertionError)
     }
 
-    @Unroll
     def "can compare with other instance (#displayName)"() {
         expect:
         ComponentIdentifier componentIdentifier1 = new OpaqueComponentIdentifier('compile')

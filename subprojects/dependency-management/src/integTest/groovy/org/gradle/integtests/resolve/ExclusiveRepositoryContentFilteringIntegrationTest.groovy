@@ -22,8 +22,6 @@ import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
-import spock.lang.Unroll
-
 class ExclusiveRepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyResolutionTest {
     ResolveTestFixture resolve
 
@@ -38,7 +36,6 @@ class ExclusiveRepositoryContentFilteringIntegrationTest extends AbstractHttpDep
         resolve.prepare()
     }
 
-    @Unroll
     def "can include a module from a repository using #notation (Maven 1st)"() {
         def foo = ivyHttpRepo.module('org', 'foo', '1.0').publish()
         def bar = mavenHttpRepo.module('other', 'bar', '2.0').publish()
@@ -88,7 +85,6 @@ class ExclusiveRepositoryContentFilteringIntegrationTest extends AbstractHttpDep
         ]
     }
 
-    @Unroll
     def "can include a module from a repository using #notation and combine with local repository filter"() {
         def foo = ivyHttpRepo.module('org', 'foo', '1.0').publish()
         def barIvy = ivyHttpRepo.module('other', 'bar', '2.0')
@@ -145,7 +141,6 @@ class ExclusiveRepositoryContentFilteringIntegrationTest extends AbstractHttpDep
         ]
     }
 
-    @Unroll
     def "can declare a group of repositories to search for artifacts exclusively using #notation"() {
         def foo = ivyHttpRepo.module('org', 'foo', '1.0').publish()
         def bar = mavenHttpRepo.module('other', 'bar', '2.0').publish()

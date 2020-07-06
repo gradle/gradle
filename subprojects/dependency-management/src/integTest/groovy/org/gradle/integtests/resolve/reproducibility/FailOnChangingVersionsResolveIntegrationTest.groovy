@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Unroll
-
 class FailOnChangingVersionsResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     String getNotation() {
@@ -99,7 +97,6 @@ class FailOnChangingVersionsResolveIntegrationTest extends AbstractModuleDepende
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @ToBeFixedForInstantExecution
-    @Unroll
     def "can deny a direct snapshot dependency (unique = #unique)"() {
         buildFile << """
             dependencies {
@@ -134,7 +131,6 @@ class FailOnChangingVersionsResolveIntegrationTest extends AbstractModuleDepende
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @ToBeFixedForInstantExecution
-    @Unroll
     def "can deny a transitive snapshot dependency (unique = #unique)"() {
         buildFile << """
             dependencies {

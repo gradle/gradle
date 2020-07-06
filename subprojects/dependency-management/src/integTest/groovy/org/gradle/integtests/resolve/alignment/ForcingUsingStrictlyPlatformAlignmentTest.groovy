@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
-
 @IgnoreIf({
     // This test is very expensive due to the permutation testing.
     // Because it tests the internal state of the resolution engine, the Gradle execution model does not matter.
@@ -84,7 +82,6 @@ class ForcingUsingStrictlyPlatformAlignmentTest extends AbstractAlignmentSpec {
         }
     }
 
-    @Unroll
     def "fails if forcing a virtual platform version by forcing multiple leaves with different versions"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {

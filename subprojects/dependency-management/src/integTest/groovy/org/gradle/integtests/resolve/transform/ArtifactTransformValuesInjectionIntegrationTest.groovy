@@ -41,15 +41,12 @@ import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
-import spock.lang.Unroll
-
 import java.util.concurrent.atomic.AtomicInteger
 
 import static org.gradle.util.Matchers.matchesRegexp
 
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
-    @Unroll
     def "transform can receive parameters, workspace and input artifact (#inputArtifactType) via abstract getter"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -111,7 +108,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         'Provider<FileSystemLocation>' | '.get().asFile' | null
     }
 
-    @Unroll
     def "transform can receive parameter of type #type"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -219,7 +215,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("result = [out-1.txt]")
     }
 
-    @Unroll
     def "transform can receive Gradle provided service #serviceType via injection"() {
         settingsFile << """
             include 'a', 'b'
@@ -262,7 +257,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ].collect { it.name }
     }
 
-    @Unroll
     def "transform cannot receive Gradle provided service #serviceType via injection"() {
         settingsFile << """
             include 'a', 'b'
@@ -471,7 +465,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Type 'MakeGreen.Parameters': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.")
     }
 
-    @Unroll
     def "transform parameters type cannot use annotation @#annotation.simpleName"() {
         settingsFile << """
             include 'a', 'b'
@@ -516,7 +509,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         annotation << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
     }
 
-    @Unroll
     def "transform parameters type cannot use injection annotation @#annotation.simpleName"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -657,7 +649,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Type 'MakeGreen': Cannot use @CacheableTask on type. This annotation can only be used with Task types.")
     }
 
-    @Unroll
     def "transform action type cannot use annotation @#annotation.simpleName"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -703,7 +694,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         annotation << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]
     }
 
-    @Unroll
     def "transform can receive dependencies via abstract getter of type #targetType"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -750,7 +740,6 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         targetType << ["FileCollection", "Iterable<File>"]
     }
 
-    @Unroll
     def "old style transform cannot use @#annotation.name"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -838,7 +827,6 @@ abstract class MakeGreen extends ArtifactTransform {
         succeeds(":a:resolve")
     }
 
-    @Unroll
     def "transform cannot use @InputArtifact to receive #propertyType"() {
         settingsFile << """
             include 'a', 'b'
@@ -876,7 +864,6 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         propertyType << [FileCollection, new TypeToken<Provider<File>>() {}.getType(), new TypeToken<Provider<String>>() {}.getType()]
     }
 
-    @Unroll
     def "transform cannot use @InputArtifactDependencies to receive #propertyType"() {
         settingsFile << """
             include 'a', 'b'
@@ -990,7 +977,6 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         failure.assertHasCause("Type 'Options': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.")
     }
 
-    @Unroll
     def "task implementation cannot use injection annotation @#annotation.simpleName"() {
         buildFile << """
             class MyTask extends DefaultTask {

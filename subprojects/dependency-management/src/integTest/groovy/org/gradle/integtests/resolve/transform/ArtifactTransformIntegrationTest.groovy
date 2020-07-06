@@ -23,8 +23,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.file.FileType
 import org.hamcrest.Matcher
 import spock.lang.Issue
-import spock.lang.Unroll
-
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 import static org.gradle.util.Matchers.matchesRegexp
 
@@ -1508,7 +1506,6 @@ Found the following transforms:
         outputContains("files: [thing1.jar.txt, thing2.jar.txt]")
     }
 
-    @Unroll
     def "user gets a reasonable error message when null is registered via outputs.#method"() {
         given:
         buildFile << """
@@ -1576,7 +1573,6 @@ Found the following transforms:
         outputContains(":resolve NO-SOURCE")
     }
 
-    @Unroll
     def "user gets a reasonable error message when transform registers a #type output via #method"() {
         given:
         buildFile << """
@@ -1682,7 +1678,6 @@ Found the following transforms:
         succeeds "resolve"
     }
 
-    @Unroll
     def "directories are not created for output #method which is part of the input"() {
         given:
         buildFile << """
@@ -1957,7 +1952,6 @@ Found the following transforms:
         failure.assertHasCause("Could not serialize value of type CustomType")
     }
 
-    @Unroll
     def "provides useful error message when parameter value cannot be isolated for #type transform"() {
         mavenRepo.module("test", "a", "1.3").publish()
         settingsFile << "include 'lib'"

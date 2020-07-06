@@ -30,8 +30,6 @@ import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
-
 import static org.spockframework.util.CollectionUtil.mapOf
 
 class ConsumerProvidedVariantFinderTest extends Specification {
@@ -229,7 +227,6 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
     }
 
-    @Unroll
     def "prefers shortest chain of transforms #registrationsIndex"() {
         def transform1 = Mock(Transformer)
         def transform2 = Mock(Transformer)

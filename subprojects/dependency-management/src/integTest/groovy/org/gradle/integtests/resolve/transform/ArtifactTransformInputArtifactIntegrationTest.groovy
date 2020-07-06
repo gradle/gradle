@@ -21,8 +21,6 @@ import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import spock.lang.Unroll
-
 import java.util.regex.Pattern
 
 class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
@@ -65,7 +63,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
     // Documents existing behaviour. The absolute path of the input artifact is baked into the workspace identity
     // and so when the path changes the outputs are invalidated
-    @Unroll
     def "can attach #description to input artifact property with project artifact file but it has no effect when not caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction()
@@ -177,7 +174,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         "@PathSensitive(PathSensitivity.NONE)"      | "@PathSensitive(PathSensitivity.NONE)"
     }
 
-    @Unroll
     def "can attach #description to input artifact property with project artifact directory but it has no effect when not caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {
@@ -491,7 +487,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.green, c.green]")
     }
 
-    @Unroll
     def "honors @PathSensitive(#sensitivity) to input artifact property for project artifact directory when caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {
@@ -585,7 +580,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         sensitivity << [PathSensitivity.NAME_ONLY, PathSensitivity.RELATIVE]
     }
 
-    @Unroll
     def "honors @PathSensitive(#sensitivity) on input artifact property for project artifact file when caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction()
@@ -929,7 +923,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [new-lib.green]")
     }
 
-    @Unroll
     def "can attach @PathSensitive(#sensitivity) to input artifact property for external artifact"() {
         setupBuildWithColorTransformAction()
         def lib1 = withColorVariants(mavenRepo.module("group1", "lib", "1.0")).publish()
@@ -1007,7 +1000,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         sensitivity << [PathSensitivity.RELATIVE, PathSensitivity.NAME_ONLY]
     }
 
-    @Unroll
     def "honors content changes with @#annotation on input artifact property with project artifact file when not caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {
@@ -1107,7 +1099,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         annotation << ["Classpath", "CompileClasspath"]
     }
 
-    @Unroll
     def "honors @#annotation on input artifact property with project artifact file when caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {
