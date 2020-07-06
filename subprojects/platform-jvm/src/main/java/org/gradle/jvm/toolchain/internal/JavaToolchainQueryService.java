@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Provider;
 
@@ -44,7 +43,7 @@ public class JavaToolchainQueryService {
             .map(this::asToolchain)
             .filter(matchingToolchain(filter))
             .findFirst()
-            .orElseThrow(() -> new InvalidUserDataException("No java installations defined"));
+            .orElseThrow(() -> new NoToolchainAvailableException());
     }
 
     // TODO: to be replaced with AttributeContainer/AttributeMatcher
