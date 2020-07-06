@@ -130,6 +130,7 @@
             <trusting group="org.junit.jupiter"/>
          </trusted-key>
          <trusted-key id="ff986d345395d4ad1dc48137bb6fd5ad91d01857" group="org.seleniumhq.selenium"/>
+         <trusted-key id="5816f0bd5c41aff9dec520ef05e4d630658784a5" group="info.solidsoft.spock"/>
       </trusted-keys>
    </configuration>
    <components>
