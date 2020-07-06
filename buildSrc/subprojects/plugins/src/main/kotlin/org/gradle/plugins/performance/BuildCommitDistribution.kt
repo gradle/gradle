@@ -72,8 +72,6 @@ open class BuildCommitDistribution : DefaultTask() {
         project.delete(commitDistributionHome.get().asFile)
         val buildCommands = mutableListOf(
             "./gradlew",
-            "--init-script",
-            File(checkoutDir, "gradle/init-scripts/build-scan.init.gradle.kts").absolutePath,
             "clean",
             ":distributionsFull:install",
             "-Pgradle_installPath=" + commitDistributionHome.get().asFile.absolutePath,
