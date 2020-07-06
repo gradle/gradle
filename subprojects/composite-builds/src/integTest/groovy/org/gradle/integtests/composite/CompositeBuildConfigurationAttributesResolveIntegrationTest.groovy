@@ -18,8 +18,6 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import spock.lang.Unroll
-
 class CompositeBuildConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
 
     def setup(){
@@ -306,7 +304,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         notExecuted ':includedBuild:fooJar'
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "attribute values are matched across builds - #type"() {
         given:
@@ -621,7 +618,6 @@ All of them match the consumer attributes:
   - Variant 'foo' capability com.acme.external:external:2.0-SNAPSHOT declares attribute 'flavor' with value 'red'""")
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "context travels down to transitive dependencies with typed attributes using plugin [#v1, #v2, pluginsDSL=#usePluginsDSL]"() {
         buildTypedAttributesPlugin('1.0')
