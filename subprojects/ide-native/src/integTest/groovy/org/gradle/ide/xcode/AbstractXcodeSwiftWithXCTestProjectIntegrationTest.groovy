@@ -25,8 +25,6 @@ import org.gradle.nativeplatform.fixtures.app.Swift4WithXCTest
 import org.gradle.nativeplatform.fixtures.app.Swift5WithSwift4XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift5WithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
-import spock.lang.Unroll
-
 abstract class AbstractXcodeSwiftWithXCTestProjectIntegrationTest extends AbstractXcodeSwiftProjectIntegrationTest {
     @Override
     SwiftSourceElement getSwift3Component() {
@@ -70,7 +68,6 @@ abstract class AbstractXcodeSwiftWithXCTestProjectIntegrationTest extends Abstra
         return super.getExpectedXcodeTargets() + [new ExpectedXcodeTarget('AppTest')]
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "honors Swift source compatibility difference on both tested component (#componentSourceCompatibility) and XCTest component (#xctestSourceCompatibility)"() {
         given:

@@ -19,8 +19,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
-
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.autoModuleJar
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.moduleJar
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.traditionalJar
@@ -41,7 +39,6 @@ class EclipseJavaModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
     def "Marks modules on classpath as such"() {
         given:
         publishJavaModule('jmodule')

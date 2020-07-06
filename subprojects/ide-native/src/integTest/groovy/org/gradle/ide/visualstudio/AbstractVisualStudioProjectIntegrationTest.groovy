@@ -26,8 +26,6 @@ import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
-
 import static org.gradle.language.VariantContext.dimensions
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GCC
 import static org.junit.Assume.assumeFalse
@@ -264,7 +262,6 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         result.assertHasCause("No tool chain is available to build C++")
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "can detect the language standard for Visual Studio IntelliSense [#expectedLanguageStandard] #uniqueIndex"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
