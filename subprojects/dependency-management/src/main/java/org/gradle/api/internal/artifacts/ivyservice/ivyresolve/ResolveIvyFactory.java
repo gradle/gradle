@@ -44,7 +44,6 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -68,7 +67,6 @@ public class ResolveIvyFactory {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final RepositoryDisabler repositoryBlacklister;
     private final VersionParser versionParser;
-    private final InstantiatorFactory instantiatorFactory;
 
     private final DependencyVerificationOverride dependencyVerificationOverride;
     private final ChangingValueDependencyResolutionListener listener;
@@ -81,7 +79,6 @@ public class ResolveIvyFactory {
                              ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                              RepositoryDisabler repositoryBlacklister,
                              VersionParser versionParser,
-                             InstantiatorFactory instantiatorFactory,
                              ChangingValueDependencyResolutionListener listener) {
         this.cacheProvider = cacheProvider;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
@@ -90,7 +87,6 @@ public class ResolveIvyFactory {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.repositoryBlacklister = repositoryBlacklister;
         this.versionParser = versionParser;
-        this.instantiatorFactory = instantiatorFactory;
         this.dependencyVerificationOverride = dependencyVerificationOverride;
         this.listener = listener;
     }
@@ -123,7 +119,7 @@ public class ResolveIvyFactory {
 
             ModuleComponentRepository moduleComponentRepository = baseRepository;
             if (baseRepository.isLocal()) {
-                moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, cacheProvider.getInMemoryOnlyCaches(), cachePolicy, timeProvider, componentMetadataProcessor, listener);
+                moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, cacheProvider.getInMemoryOnlyCaches(), cachePolicy, timeProvider, componentMetadataProcessor, ChangingValueDependencyResolutionListener.NO_OP);
                 moduleComponentRepository = new LocalModuleComponentRepository(moduleComponentRepository);
             } else {
                 moduleComponentRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleComponentRepository);

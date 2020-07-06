@@ -412,10 +412,72 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
         new MavenLocalRepo() | _
     }
 
+    @Unroll
+    def "reports changes to matching versions in #repo.displayName"() {
+        repo.setup(this)
+        taskTypeLogsInputFileCollectionContent()
+        buildFile << """
+            configurations {
+                resolve1
+                resolve2
+            }
+            dependencies {
+                resolve1 'thing:lib1:2.+'
+                resolve2 'thing:lib1:2.+'
+            }
+
+            task resolve1(type: ShowFilesTask) {
+                inFiles.from(configurations.resolve1)
+            }
+            task resolve2(type: ShowFilesTask) {
+                inFiles.from(configurations.resolve2)
+            }
+        """
+        def fixture = newInstantExecutionFixture()
+
+        when:
+        instantRun("resolve1", "resolve2")
+
+        then:
+        fixture.assertStateStored()
+        outputContains("result = [lib1-2.1.jar]")
+
+        when:
+        instantRun("resolve1", "resolve2")
+
+        then:
+        fixture.assertStateLoaded()
+        outputContains("result = [lib1-2.1.jar]")
+
+        when:
+        repo.publishNewVersion(this)
+        instantRun("resolve1", "resolve2")
+
+        then:
+        fixture.assertStateStored()
+        outputContains("Calculating task graph as configuration cache cannot be reused because file '${repo.versionMetadataLocation}' has changed.")
+        outputContains("result = [lib1-2.5.jar, lib2-4.0.jar]")
+
+        when:
+        instantRun("resolve1", "resolve2")
+
+        then:
+        fixture.assertStateLoaded()
+        outputContains("result = [lib1-2.5.jar, lib2-4.0.jar]")
+
+        where:
+        repo                | _
+        new MavenFileRepo() | _
+    }
+
     abstract class FileRepoSetup {
         abstract String getDisplayName()
 
         abstract String getProblemDisplayName()
+
+        String getVersionMetadataLocation() {
+            return 'maven-repo/thing/lib1/maven-metadata.xml'.replace('/', File.separator)
+        }
 
         abstract String getPomLocation()
 
@@ -424,6 +486,8 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
         abstract void publishWithDifferentArtifactContent(AbstractIntegrationSpec owner)
 
         abstract void publishWithDifferentDependencies(AbstractIntegrationSpec owner)
+
+        abstract void publishNewVersion(AbstractIntegrationSpec owner)
     }
 
     class MavenFileRepo extends FileRepoSetup {
@@ -439,7 +503,7 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
 
         @Override
         String getPomLocation() {
-            return 'maven-repo/thing/lib1/2.1/lib1-2.1.pom'
+            return 'maven-repo/thing/lib1/2.1/lib1-2.1.pom'.replace('/', File.separator)
         }
 
         @Override
@@ -470,6 +534,14 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
                 mavenRepo.module("thing", "lib1", "2.1").dependsOn(dep).publish()
             }
         }
+
+        @Override
+        void publishNewVersion(AbstractIntegrationSpec owner) {
+            owner.with {
+                def dep = mavenRepo.module("thing", "lib2", "4.0").publish()
+                mavenRepo.module("thing", "lib1", "2.5").dependsOn(dep).publish()
+            }
+        }
     }
 
     class MavenLocalRepo extends FileRepoSetup {
@@ -485,7 +557,7 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
 
         @Override
         String getPomLocation() {
-            return 'maven_home/.m2/repository/thing/lib1/2.1/lib1-2.1.pom'
+            return 'maven_home/.m2/repository/thing/lib1/2.1/lib1-2.1.pom'.replace('/', File.separator)
         }
 
         @Override
@@ -515,6 +587,15 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
                 m2.execute(executer)
                 def dep = m2.mavenRepo().module("thing", "lib2", "4.0").publish()
                 m2.mavenRepo().module("thing", "lib1", "2.1").dependsOn(dep).publish()
+            }
+        }
+
+        @Override
+        void publishNewVersion(AbstractIntegrationSpec owner) {
+            owner.with {
+                m2.execute(executer)
+                def dep = m2.mavenRepo().module("thing", "lib2", "4.0").publish()
+                m2.mavenRepo().module("thing", "lib1", "2.5").dependsOn(dep).publish()
             }
         }
     }

@@ -489,7 +489,6 @@ class DependencyManagementBuildScopeServices {
                                               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                               RepositoryDisabler repositoryBlacklister,
                                               VersionParser versionParser,
-                                              InstantiatorFactory instantiatorFactory,
                                               ListenerManager listenerManager) {
         return new ResolveIvyFactory(
             moduleRepositoryCacheProvider,
@@ -500,7 +499,6 @@ class DependencyManagementBuildScopeServices {
             moduleIdentifierFactory,
             repositoryBlacklister,
             versionParser,
-            instantiatorFactory,
             listenerManager.getBroadcaster(ChangingValueDependencyResolutionListener.class)
         );
     }
