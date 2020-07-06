@@ -19,8 +19,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
-import spock.lang.Unroll
-
 import static org.hamcrest.core.StringContains.containsString
 
 class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
@@ -121,7 +119,6 @@ task ivyXml(type: Upload) {
     }
 
     // This test represents the state of the art, not the expected behavior (which remains to be spec'ed out)
-    @Unroll
     @ToBeFixedForInstantExecution(because = ":uploadArchives")
     def "Generated ivy.xml file is not influenced by configuration attributes"() {
         given:

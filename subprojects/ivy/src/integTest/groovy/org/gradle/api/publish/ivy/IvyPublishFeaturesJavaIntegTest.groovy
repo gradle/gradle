@@ -17,8 +17,6 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import spock.lang.Unroll
-
 class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaIntegTest {
 
     @ToBeFixedForInstantExecution
@@ -162,7 +160,6 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
         resolveRuntimeArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "publish java-library with feature with additional artifact #id (#optionalFeatureFileName)"() {
         ivyRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()

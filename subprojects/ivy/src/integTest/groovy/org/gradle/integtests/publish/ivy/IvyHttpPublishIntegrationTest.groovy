@@ -29,8 +29,6 @@ import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.util.GradleVersion
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
-import spock.lang.Unroll
-
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.gradle.util.Matchers.matchesRegexp
 
@@ -58,7 +56,6 @@ class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << 'rootProject.name = "publish"'
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
@@ -106,7 +103,6 @@ class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
         authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "reports failure publishing with #credsName credentials to authenticated repository using #authScheme auth"() {
         given:

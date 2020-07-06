@@ -19,12 +19,9 @@ package org.gradle.integtests.publish.ivy
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.ivy.IvyJavaModule
-import spock.lang.Unroll
-
 class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTest  {
     IvyJavaModule javaLibrary = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "can publish java-library with dependencies (#apiMapping, #runtimeMapping)"() {
         given:
@@ -104,7 +101,6 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
         ].combinations() + [[allVariants(), noop()]])
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "can publish java-library with dependencies (#runtimeMapping, #apiMapping)"() {
         given:
@@ -190,7 +186,6 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
      * This can be the case if there are multiple compile classpath and one should be preferred for publication,
      * or when the component is not a Java library and we don't have a default.
      */
-    @Unroll
     @ToBeFixedForInstantExecution
     def "can publish resolved versions from a different configuration (#config)"() {
         given:
@@ -281,7 +276,6 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
         ]
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "can publish resolved versions from dependency constraints (#apiMapping, #runtimeMapping)"() {
         javaLibrary(ivyRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -432,7 +426,6 @@ $append
     // for a first level dependency? However it may be that you implicitly get a
     // substitution rule (via a plugin for example) that you are not aware of.
     // Ideally we should warn when such things happen (linting).
-    @Unroll
     @ToBeFixedForInstantExecution
     def "substituted dependencies are also substituted in the generated Ivy file"() {
         javaLibrary(ivyRepo.module("org", "foo", "1.0")).withModuleMetadata().publish()

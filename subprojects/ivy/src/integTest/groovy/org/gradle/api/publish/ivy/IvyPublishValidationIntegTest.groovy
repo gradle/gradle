@@ -18,13 +18,10 @@ package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.encoding.Identifier
-import spock.lang.Unroll
-
 import javax.xml.namespace.QName
 
 class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "can publish with metadata containing #identifier characters"() {
         given:
@@ -88,7 +85,6 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         identifier << Identifier.all
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "can publish artifacts with attributes containing #identifier characters"() {
         given:
@@ -172,7 +168,6 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         failure.assertHasCause "Invalid publication 'ivy': organisation cannot be empty."
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "fails with reasonable error message for invalid metadata value" () {
         when:
@@ -211,7 +206,6 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         "status 'a/b'"  | "Invalid publication 'ivy': status cannot contain '/'"
     }
 
-    @Unroll
     def "fails with reasonable error message for invalid #invalidComponent name"() {
         settingsFile << "rootProject.name = 'invalid'"
         buildFile << """
@@ -224,7 +218,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
                 repositories {
                     ivy {
                         name '${repoName}'
-                        url "${ivyRepo.uri}" 
+                        url "${ivyRepo.uri}"
                     }
                 }
                 publications {
