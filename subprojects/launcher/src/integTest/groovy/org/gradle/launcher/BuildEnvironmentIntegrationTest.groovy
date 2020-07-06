@@ -22,13 +22,10 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
-
 import java.nio.charset.Charset
 
 class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
     def "builds can be executed default locale switched to #locale"() {
         given:
         executer.withDefaultLocale(locale)
@@ -143,7 +140,6 @@ task check {
         }
     }
 
-    @Unroll
     def "build default encoding matches specified - input = #inputEncoding, expectedEncoding: #expectedEncoding"(String inputEncoding, String expectedEncoding) {
         given:
         executerEncoding inputEncoding
@@ -170,7 +166,6 @@ task check {
         null          | Charset.defaultCharset().name()
     }
 
-    @Unroll
     def "forked java processes inherit default encoding - input = #inputEncoding, expectedEncoding: #expectedEncoding"() {
         given:
         executerEncoding inputEncoding

@@ -22,12 +22,9 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
-
 @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6", "1.7") })
 class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
     @IgnoreIf({ GradleContextualExecuter.embedded }) // This test requires to start Gradle from scratch with the wrong Java version
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
         given:
@@ -41,7 +38,6 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
         jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
     }
 
-    @Unroll
     def "fails when build is configured to use Java #jdk.javaVersion"() {
         given:
         file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.canonicalPath)
