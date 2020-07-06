@@ -131,6 +131,6 @@ val devSuffixes = arrayOf(
     "-dev-\\d+-\\d+",
     "-rc-?\\d+",
     "-RC-?\\d+",
-    "-M\\d+(-release-\\d+)?",
+    "-M.+",
     "-eap-?\\d+"
 )
