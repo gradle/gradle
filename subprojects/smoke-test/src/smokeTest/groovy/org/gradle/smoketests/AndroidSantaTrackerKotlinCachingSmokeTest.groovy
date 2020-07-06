@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
-
 import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -32,7 +30,6 @@ import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 @Requires(TestPrecondition.JDK11_OR_EARLIER)
 class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
 
-    @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     @ToBeFixedForInstantExecution(iterationMatchers = [AGP_4_1_ITERATION_MATCHER, AGP_4_2_ITERATION_MATCHER])
     def "can cache Santa Tracker Kotlin Android application (agp=#agpVersion)"() {

@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import spock.lang.Unroll
-
 class NebulaPluginsSmokeTest extends AbstractSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/nebula.dependency-recommender')
@@ -133,7 +131,6 @@ testCompile('junit:junit:4.7')""")
     }
 
     @Issue("gradle/gradle#3798")
-    @Unroll
     @ToBeFixedForInstantExecution
     def "nebula dependency lock plugin version #version binary compatibility"() {
         when:
