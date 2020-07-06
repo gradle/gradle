@@ -22,8 +22,6 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.internal.state.Managed
-import spock.lang.Unroll
-
 import static org.gradle.api.internal.provider.ValueSourceProviderFactory.Listener.ObtainedValue
 
 class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
@@ -42,7 +40,6 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         configured
     }
 
-    @Unroll
     def "obtaining value at configuration time fails with message that includes source #nameKind name"() {
 
         given:
@@ -83,7 +80,6 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         thrown(IllegalStateException)
     }
 
-    @Unroll
     def "providers forUseAtConfigurationTime obtain value only once at #time time"() {
 
         given:

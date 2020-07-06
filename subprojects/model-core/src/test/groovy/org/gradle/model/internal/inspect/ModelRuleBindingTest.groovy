@@ -26,8 +26,6 @@ import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.report.AmbiguousBindingReporter
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter
 import org.gradle.model.internal.type.ModelType
-import spock.lang.Unroll
-
 /**
  * Test the binding of rules by the registry.
  */
@@ -96,7 +94,6 @@ class ModelRuleBindingTest extends ProjectRegistrySpec {
         }
     }
 
-    @Unroll
     def "ambiguous binding is detected irrespective of discovery order - #order.simpleName"() {
         when:
         order.each {
@@ -127,7 +124,6 @@ class ModelRuleBindingTest extends ProjectRegistrySpec {
         }
     }
 
-    @Unroll
     def "incompatible writable type binding of mutate rule is detected irrespective of discovery order - #order.simpleName"() {
         when:
         order.each {
@@ -165,7 +161,6 @@ class ModelRuleBindingTest extends ProjectRegistrySpec {
         }
     }
 
-    @Unroll
     def "incompatible readable type binding of mutate rule is detected irrespective of discovery order - #order.simpleName"() {
         when:
         order.each {

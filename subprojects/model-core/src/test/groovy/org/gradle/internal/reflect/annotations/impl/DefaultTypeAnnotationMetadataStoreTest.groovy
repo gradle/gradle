@@ -24,8 +24,6 @@ import org.gradle.internal.reflect.AnnotationCategory
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
-
 import javax.annotation.Nullable
 import javax.inject.Inject
 import java.lang.annotation.ElementType
@@ -105,7 +103,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getInjectedProperty() { "injected" }
         }
 
-    @Unroll
     def "ignores all properties on type #type.simpleName"() {
         expect:
         assertProperties type, [:]

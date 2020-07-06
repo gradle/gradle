@@ -18,14 +18,11 @@ package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
-import spock.lang.Unroll
-
 import static org.hamcrest.CoreMatchers.containsString
 
 @UnsupportedWithInstantExecution(because = "software model")
 class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
 
-    @Unroll
     def "rules are detected when model path is a straight property reference chain - #path"() {
         given:
         def normalisedPath = path.replace('"', '').replaceAll("'", "")
@@ -94,7 +91,6 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
         ]
     }
 
-    @Unroll
     def "only literal property paths are allowed - #pathCode"() {
         when:
         buildScript """
@@ -121,7 +117,6 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
         ]
     }
 
-    @Unroll
     def "only rules are allowed in the model block - #code"() {
         when:
         buildScript """

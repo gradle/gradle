@@ -20,8 +20,6 @@ import org.codehaus.groovy.reflection.CachedClass
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer
 import org.gradle.api.internal.coerce.PropertySetTransformer
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class BeanDynamicObjectTest extends Specification {
     def "can get value of property of groovy object"() {
         def bean = new Bean(prop: "value")
@@ -613,7 +611,6 @@ class BeanDynamicObjectTest extends Specification {
         dynamicObject.invokeMethod("dyno", [12, "a"] as Object[]) == "[12, a]"
     }
 
-    @Unroll
     def "fails when invoke unknown method [#method(#arguments)] of groovy object"() {
         def bean = new Bean(prop: "value")
         def dynamicObject = new BeanDynamicObject(bean)
