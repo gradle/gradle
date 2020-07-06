@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Rule
-import spock.lang.Unroll
-
 class SamplesOrganizingGradleProjectsIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
@@ -42,7 +40,6 @@ class SamplesOrganizingGradleProjectsIntegrationTest extends AbstractSampleInteg
     }
 
     @UsesSample("organizingGradleProjects/separatedTestTypes")
-    @Unroll
     def "can execute different types of tests with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 

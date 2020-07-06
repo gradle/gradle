@@ -21,14 +21,11 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
-import spock.lang.Unroll
-
 class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Unroll
     @UsesSample("antMigration/importBuild")
     @ToBeFixedForInstantExecution
     def "can import an Ant build and reconfigure its tasks (#dsl)"() {
@@ -50,7 +47,6 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("antMigration/fileDeps")
     def "can copy file and flatDir dependencies (#dsl)"() {
         given: "A sample Java project with file and flatDir dependencies"
@@ -69,7 +65,6 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("antMigration/fileDeps")
     def "can use task properties to link tasks (#dsl)"() {
         given: "A sample Java project"
@@ -86,7 +81,6 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("antMigration/multiProject")
     @ToBeFixedForInstantExecution
     def "can link projects in a multi-project build via task dependencies (#dsl)"() {

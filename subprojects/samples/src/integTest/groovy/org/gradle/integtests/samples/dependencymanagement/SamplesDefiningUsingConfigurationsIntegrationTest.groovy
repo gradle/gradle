@@ -23,8 +23,6 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.junit.Rule
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
-
 class SamplesDefiningUsingConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
@@ -34,7 +32,6 @@ class SamplesDefiningUsingConfigurationsIntegrationTest extends AbstractIntegrat
         executer.withRepositoryMirrors()
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/definingUsingConfigurations-custom")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     @IgnoreIf({ GradleContextualExecuter.embedded }) // Sample only works with isolated distribution classpath, because otherwise multiple JARs contain conflicting versions of 'javax/servlet/descriptor/JspConfigDescriptor'
@@ -52,7 +49,6 @@ class SamplesDefiningUsingConfigurationsIntegrationTest extends AbstractIntegrat
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/definingUsingConfigurations-inheritance")
     def "can extend one configuration from another configuration"() {
         setup:

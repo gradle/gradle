@@ -21,14 +21,11 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
-import spock.lang.Unroll
-
 class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Unroll
     @UsesSample("files/misc")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
     def "can create a directory with #dsl dsl"() {
@@ -46,7 +43,6 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("files/misc")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
     def "can move a directory with #dsl dsl"() {
@@ -74,7 +70,6 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("files/misc")
     def "can delete a directory with #dsl dsl"() {
         given:
@@ -92,7 +87,6 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("files/misc")
     def "can delete files matching a pattern with #dsl dsl"() {
         given:
@@ -113,7 +107,6 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("files/misc")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
     def "can use the rootDir property in a child project with #dsl dsl"() {

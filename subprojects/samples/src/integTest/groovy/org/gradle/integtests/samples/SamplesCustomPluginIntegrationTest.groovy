@@ -22,12 +22,9 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
-
 class SamplesCustomPluginIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
-    @Unroll
     @UsesSample("plugins/customPlugin")
     def "can test plugin and task implementation with #dsl dsl"() {
         when:
@@ -45,7 +42,6 @@ class SamplesCustomPluginIntegrationTest extends AbstractSampleIntegrationTest {
     @ToBeFixedForInstantExecution(
         iterationMatchers = ".* for javaGradlePlugin producer .*"
     )
-    @Unroll
     @UsesSample("plugins/customPlugin")
     def "can publish and use plugin and test implementations for #producerName producer and #dsl dsl"() {
         given:

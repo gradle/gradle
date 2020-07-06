@@ -22,14 +22,11 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.TextUtil
 import org.junit.Rule
-import spock.lang.Unroll
-
 class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Unroll
     @UsesSample("dependencyManagement/customizingResolution-conditionalSubstitutionRule")
     @ToBeFixedForInstantExecution(because = "sample uses system property", iterationMatchers = ".*kotlin dsl.*")
     def "can run sample with all external dependencies with #dsl dsl" () {
@@ -50,7 +47,6 @@ class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSp
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/customizingResolution-conditionalSubstitutionRule")
     @ToBeFixedForInstantExecution(because = "sample uses system property")
     def "can run sample with some internal projects with #dsl dsl" () {

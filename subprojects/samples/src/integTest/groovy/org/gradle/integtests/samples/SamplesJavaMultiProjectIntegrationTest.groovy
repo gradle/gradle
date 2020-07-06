@@ -25,8 +25,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
-
 import static org.hamcrest.CoreMatchers.containsString
 
 @LeaksFileHandles
@@ -44,7 +42,6 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationSpec {
         executer.withGlobalRepositoryMirrors()
     }
 
-    @Unroll
     def "multi project Java project sample with #dsl dsl"() {
         // Build and test projects
         TestFile dslDir = sample.dir.file(dsl)
@@ -140,7 +137,6 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
-    @Unroll
     def "multi project javadoc with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir).withTasks('clean', 'javadoc').run()
@@ -157,7 +153,6 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationSpec {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     def "multi project partial build with #dsl dsl"() {
         String packagePrefix = 'build/classes/java/main/org/gradle'
         String testPackagePrefix = 'build/classes/java/test/org/gradle'
@@ -183,7 +178,6 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationSpec {
     }
 
 
-    @Unroll
     def "buildDependents with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir).withTasks('clean', "$SHARED_NAME:buildDependents".toString()).run()
@@ -193,7 +187,6 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationSpec {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     def "clean with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir).withTasks('classes').run()
@@ -208,7 +201,6 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationSpec {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     def "no rebuild of project dependencies with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir).withTasks(":$API_NAME:classes").run()
@@ -221,7 +213,6 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationSpec {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "should not use cache for project dependencies with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)

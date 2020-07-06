@@ -23,8 +23,6 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
-
 class SamplesScalaCustomizedLayoutIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
@@ -32,7 +30,6 @@ class SamplesScalaCustomizedLayoutIntegrationTest extends AbstractSampleIntegrat
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Unroll
     @UsesSample("scala/customizedLayout")
     def "can build jar with #dsl dsl"() {
         TestFile projectDir = sample.dir.file(dsl)

@@ -22,12 +22,9 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
-
 import static org.gradle.api.JavaVersion.VERSION_1_8
 import static org.gradle.api.JavaVersion.VERSION_1_9
 
-@Unroll
 class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -97,17 +94,17 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     def scalaProjectBuildScript(String zincVersion, String scalaVersion) {
         return """
             apply plugin: 'scala'
-                        
+
             ${jcenterRepository()}
 
             dependencies {
-                implementation "org.scala-lang:scala-library:${scalaVersion}" 
+                implementation "org.scala-lang:scala-library:${scalaVersion}"
             }
-            
+
             scala {
                 zincVersion = "${zincVersion}"
             }
-            
+
             sourceCompatibility = '1.7'
             targetCompatibility = '1.7'
         """.stripIndent()

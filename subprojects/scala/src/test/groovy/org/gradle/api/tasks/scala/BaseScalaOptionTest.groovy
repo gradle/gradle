@@ -17,8 +17,6 @@ package org.gradle.api.tasks.scala
 
 import org.gradle.api.tasks.compile.AbstractOptions
 import spock.lang.Specification
-import spock.lang.Unroll
-
 abstract class BaseScalaOptionTest<T extends AbstractOptions> extends Specification {
 
     protected T testObject
@@ -31,7 +29,6 @@ abstract class BaseScalaOptionTest<T extends AbstractOptions> extends Specificat
 
     abstract List<Map<String, String>> listProperties()
 
-    @Unroll
     def "String #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue"(Map<String, String> fixture) {
         given:
         assert testObject."${fixture.fieldName}" == fixture.defaultValue
@@ -48,7 +45,6 @@ abstract class BaseScalaOptionTest<T extends AbstractOptions> extends Specificat
         fixture << stringProperties()
     }
 
-    @Unroll
     def "OnOff #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue"(Map<String, String> fixture) {
         given:
         assert testObject."${fixture.fieldName}" == fixture.defaultValue
@@ -67,7 +63,6 @@ abstract class BaseScalaOptionTest<T extends AbstractOptions> extends Specificat
         fixture << onOffProperties()
     }
 
-    @Unroll
     def "List #fixture.fieldName with value #fixture.args maps to #fixture.antProperty with value #fixture.expected"(Map<String, Object> fixture) {
         given:
         assert testObject."${fixture.fieldName}" == null

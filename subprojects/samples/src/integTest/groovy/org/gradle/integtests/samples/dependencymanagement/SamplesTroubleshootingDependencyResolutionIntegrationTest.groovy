@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
-import spock.lang.Unroll
-
 class SamplesTroubleshootingDependencyResolutionIntegrationTest extends AbstractSampleIntegrationTest {
 
     private static final String COPY_LIBS_TASK_NAME = 'copyLibs'
@@ -29,7 +27,6 @@ class SamplesTroubleshootingDependencyResolutionIntegrationTest extends Abstract
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Unroll
     @UsesSample("dependencyManagement/troubleshooting-cache-changing")
     def "can declare custom TTL for dependency with changing version"() {
 
@@ -47,7 +44,6 @@ class SamplesTroubleshootingDependencyResolutionIntegrationTest extends Abstract
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/troubleshooting-cache-dynamic")
     def "can declare custom TTL for dependency with dynamic version"() {
 

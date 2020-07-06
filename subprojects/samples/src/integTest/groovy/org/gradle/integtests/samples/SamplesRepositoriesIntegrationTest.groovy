@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
-import spock.lang.Unroll
-
 class SamplesRepositoriesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
@@ -32,7 +30,6 @@ class SamplesRepositoriesIntegrationTest extends AbstractIntegrationSpec {
         requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
     }
 
-    @Unroll
     @LeaksFileHandles
     @UsesSample("artifacts/defineRepository")
     def "can use repositories notation with #dsl dsl"() {
