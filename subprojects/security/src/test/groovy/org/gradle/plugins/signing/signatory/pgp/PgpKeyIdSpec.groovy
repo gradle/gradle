@@ -29,7 +29,6 @@ class PgpKeyIdSpec extends Specification  {
         key("ABCDABCD").asHex == "ABCDABCD"
     }
 
-    @Unroll
     def "conversion"() {
         expect:
         key(hex).asLong == decimal

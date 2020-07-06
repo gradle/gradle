@@ -19,8 +19,6 @@ package org.gradle.plugins.signing.signatory.pgp
 import org.gradle.api.InvalidUserDataException
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Issue
-import spock.lang.Unroll
-
 class PgpSignatoryFactoryTest extends AbstractProjectBuilderSpec {
 
     private static final String KEY_ID_VALUE = '24875D73'
@@ -29,7 +27,6 @@ class PgpSignatoryFactoryTest extends AbstractProjectBuilderSpec {
     def factory = new PgpSignatoryFactory()
 
     @Issue("https://github.com/gradle/gradle/issues/2267")
-    @Unroll
     def "property '#nullPropertyName' with null value throws a descriptive exception if required"() {
         given:
         project.ext.'signing.keyId' = keyId
@@ -51,7 +48,6 @@ class PgpSignatoryFactoryTest extends AbstractProjectBuilderSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2267")
-    @Unroll
     def "returns null signatory if any of the properties is null and not required"() {
         given:
         project.ext.'signing.keyId' = keyId
@@ -71,7 +67,6 @@ class PgpSignatoryFactoryTest extends AbstractProjectBuilderSpec {
         KEY_ID_VALUE | PASSWORD_VALUE | null
     }
 
-    @Unroll
     def "undeclared property '#missingPropertyName' throws a descriptive exception if required"() {
         given:
         declaredProperties.each {
