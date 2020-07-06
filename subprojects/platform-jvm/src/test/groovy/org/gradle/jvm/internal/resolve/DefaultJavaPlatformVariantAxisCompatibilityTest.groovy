@@ -23,8 +23,8 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultJavaPlatformVariantAxisCompatibilityTest extends Specification {
-    @Unroll("Java #requirement is compatible with #value : #expected")
-    def "should check that Java platform is compatible"() {
+    @Unroll
+    def "Java #requirement is compatible with #value : #expected"() {
         given:
         VariantAxisCompatibility<JavaPlatform> selector = new DefaultJavaPlatformVariantAxisCompatibility()
 
@@ -47,8 +47,8 @@ class DefaultJavaPlatformVariantAxisCompatibilityTest extends Specification {
         value = new DefaultJavaPlatform(JavaVersion.toVersion(found))
     }
 
-    @Unroll("Java #newValue is a better fit than #oldValue : #expected")
-    def "should check that Java platform is a better fit than one other"() {
+    @Unroll
+    def "Java #newValue is a better fit than #oldValue : #expected"() {
         given:
         VariantAxisCompatibility<JavaPlatform> selector = new DefaultJavaPlatformVariantAxisCompatibility()
 

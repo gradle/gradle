@@ -117,8 +117,8 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         mock
     }
 
-    @Unroll("Resolution for library #lib on project #projectPath completes")
-    def "can resolve the library defined in a project"() {
+    @Unroll
+    def "Resolution for library #lib on project #projectPath completes"() {
         given:
         selector.projectPath >> projectPath
         selector.libraryName >> lib

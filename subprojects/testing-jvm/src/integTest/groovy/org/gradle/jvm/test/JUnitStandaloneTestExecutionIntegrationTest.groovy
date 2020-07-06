@@ -62,8 +62,8 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         failure.assertHasCause "Cannot resolve external dependency junit:junit:4.13 because no repositories are defined."
     }
 
-    @Unroll("Fails if no JUnit version is specified for a test suite declared under #container")
-    def "fails if no JUnit version is specified"() {
+    @Unroll
+    def "Fails if no JUnit version is specified for a test suite declared under #container"() {
         given:
         applyJUnitPlugin()
 
@@ -86,8 +86,8 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         container << ['testSuites', 'components']
     }
 
-    @Unroll("Fails if no JUnit version is specified even if found in dependencies for a test suite declared under #container")
-    def "fails if no JUnit version is specified even if found in dependencies"() {
+    @Unroll
+    def "Fails if no JUnit version is specified even if found in dependencies for a test suite declared under #container"() {
         given:
         applyJUnitPlugin()
 
@@ -116,8 +116,8 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         container << ['testSuites', 'components']
     }
 
-    @Unroll("Executes a passing test suite with a JUnit component and #sourceconfig.description")
-    def "executes a passing test suite"() {
+    @Unroll
+    def "Executes a passing test suite with a JUnit component and #sourceconfig.description"() {
         given:
         applyJUnitPlugin()
         boolean useLib = sourceconfig.hasLibraryDependency
@@ -160,8 +160,8 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         sourceconfig << SourceSetConfiguration.values()
     }
 
-    @Unroll("Executes a failing test suite with a JUnit component and #sourceconfig.description")
-    def "executes a failing test suite"() {
+    @Unroll
+    def "Executes a failing test suite with a JUnit component and #sourceconfig.description"() {
         given:
         applyJUnitPlugin()
         boolean useLib = sourceconfig.hasLibraryDependency
@@ -207,8 +207,8 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         sourceconfig << SourceSetConfiguration.values()
     }
 
-    @Unroll("Can have multiple JUnit test suites in a single project under #container")
-    def "can have multiple JUnit test suites in a single project"() {
+    @Unroll
+    def "Can have multiple JUnit test suites in a single project under #container"() {
         given:
         applyJUnitPlugin()
 
@@ -465,8 +465,8 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         executedAndNotSkipped ':compileMyTestBinaryMyTestJava', ':processMyTestBinaryMyTestResources', ':myTestBinaryTest'
     }
 
-    @Unroll("Test should execute test suite with dependency on local library #library")
-    def "test should execute with transitive dependencies of local libraries"() {
+    @Unroll
+    def "Test should execute test suite with dependency on local library #library"() {
         given:
         applyJUnitPlugin()
 

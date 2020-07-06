@@ -136,8 +136,8 @@ class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
         apiUsage.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == Category.REGULAR_PLATFORM
     }
 
-    @Unroll("cannot add a dependency to the #configuration configuration by default")
-    def "adding a dependency is not allowed by default"() {
+    @Unroll
+    def "cannot add a dependency to the #configuration configuration by default"() {
         given:
         project.pluginManager.apply(JavaPlatformPlugin)
         project.dependencies.add(JavaPlatformPlugin.API_CONFIGURATION_NAME, "org:api1:1.0")
@@ -154,14 +154,14 @@ class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
 
         where:
         configuration << [
-                JavaPlatformPlugin.API_CONFIGURATION_NAME,
-                JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME
+            JavaPlatformPlugin.API_CONFIGURATION_NAME,
+            JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME
         ]
     }
 
 
-    @Unroll("can add a dependency to the #configuration configuration when extension configured")
-    def "adding a dependency is allowed when activated on the project extension"() {
+    @Unroll
+    def "can add a dependency to the #configuration configuration when extension configured"() {
         given:
         project.pluginManager.apply(JavaPlatformPlugin)
         project.extensions.javaPlatform.allowDependencies()

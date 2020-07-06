@@ -31,8 +31,8 @@ abstract class BaseScalaOptionTest<T extends AbstractOptions> extends Specificat
 
     abstract List<Map<String, String>> listProperties()
 
-    @Unroll("String #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue")
-    def "string values"(Map<String, String> fixture) {
+    @Unroll
+    def "String #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue"(Map<String, String> fixture) {
         given:
         assert testObject."${fixture.fieldName}" == fixture.defaultValue
         if (fixture.defaultValue == null) {
@@ -48,8 +48,8 @@ abstract class BaseScalaOptionTest<T extends AbstractOptions> extends Specificat
         fixture << stringProperties()
     }
 
-    @Unroll("OnOff #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue")
-    def "onOff values"(Map<String, String> fixture) {
+    @Unroll
+    def "OnOff #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue"(Map<String, String> fixture) {
         given:
         assert testObject."${fixture.fieldName}" == fixture.defaultValue
 
@@ -67,8 +67,8 @@ abstract class BaseScalaOptionTest<T extends AbstractOptions> extends Specificat
         fixture << onOffProperties()
     }
 
-    @Unroll("List #fixture.fieldName with value #fixture.args maps to #fixture.antProperty with value #fixture.expected")
-    def "list values"(Map<String, Object> fixture) {
+    @Unroll
+    def "List #fixture.fieldName with value #fixture.args maps to #fixture.antProperty with value #fixture.expected"(Map<String, Object> fixture) {
         given:
         assert testObject."${fixture.fieldName}" == null
         assert value(fixture.antProperty as String) == null

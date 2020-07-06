@@ -40,12 +40,12 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
             }
-            
+
             dependencies {
                 optionalFeatureImplementation 'org:optionaldep:1.0'
             }
-            
-            components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) { 
+
+            components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
                 mapToMavenScope('compile')
                 mapToOptional()
             }
@@ -109,7 +109,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     outgoing.capability("org:optional-feature1:\${version}")
                 }
                 compileClasspath.extendsFrom(optionalFeature1Implementation)
-                
+
                 optionalFeature2Implementation
                 optionalFeature2RuntimeElements {
                     extendsFrom optionalFeature2Implementation
@@ -122,13 +122,13 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 }
                 compileClasspath.extendsFrom(optionalFeature2Implementation)
             }
-            
+
             dependencies {
                 optionalFeature1Implementation 'org:optionaldep-g1:1.0'
                 optionalFeature2Implementation 'org:optionaldep1-g2:1.0'
                 optionalFeature2Implementation 'org:optionaldep2-g2:1.0'
             }
-            
+
             components.java.addVariantsFromConfiguration(configurations.optionalFeature1RuntimeElements) {
                 mapToMavenScope('compile')
                 mapToOptional()
@@ -172,9 +172,9 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
         resolveRuntimeArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
     }
 
-    @Unroll("publish java-library with feature with additional artifact #id (#optionalFeatureFileName)")
+    @Unroll
     @ToBeFixedForInstantExecution
-    def "publish java-library with feature with additional artifact"() {
+    def "publish java-library with feature with additional artifact #id (#optionalFeatureFileName)"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
         given:
@@ -192,24 +192,24 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
             }
-            
+
             dependencies {
                 optionalFeatureImplementation 'org:optionaldep:1.0'
             }
-            
+
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
                 mapToMavenScope('compile')
                 mapToOptional()
             }
-            
-            artifacts {     
+
+            artifacts {
                 if ('$classifier' == 'null') {
                     optionalFeatureRuntimeElements file:file("\$buildDir/$optionalFeatureFileName"), builtBy:'touchFile'
                 } else {
                     optionalFeatureRuntimeElements file:file("\$buildDir/$optionalFeatureFileName"), builtBy:'touchFile', classifier: '$classifier'
                 }
             }
-            
+
             task touchFile {
                 doLast {
                     file("\$buildDir/$optionalFeatureFileName") << "test"
@@ -296,16 +296,16 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
             }
-            
+
             dependencies {
                 optionalFeatureImplementation 'org:optionaldep:1.0'
             }
-            
+
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
                 mapToMavenScope('compile')
                 mapToOptional()
             }
-            
+
             def alt = configurations.optionalFeatureRuntimeElements.outgoing.variants.create("alternate")
             alt.attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'java-runtime-alt'))
@@ -313,7 +313,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             def altFile = file("\${buildDir}/\${name}-\${version}-alt.jar")
             task createFile { doFirst { altFile.parentFile.mkdirs(); altFile.text = "test file" } }
             alt.artifact(file:altFile, builtBy: 'createFile')
-            
+
         """
 
         when:
@@ -377,20 +377,20 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
             }
-            
+
             dependencies {
                 optionalFeatureImplementation 'org:optionaldep:1.0'
             }
-            
+
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
                 if (it.configurationVariant.name != 'alternate') {
                     skip()
                 } else {
                     mapToMavenScope('compile')
                     mapToOptional()
-                } 
+                }
             }
-            
+
             def alt = configurations.optionalFeatureRuntimeElements.outgoing.variants.create("alternate")
             alt.attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'java-runtime'))
@@ -398,7 +398,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             def altFile = file("\${buildDir}/\${name}-\${version}-alt.jar")
             task createFile { doFirst { altFile.parentFile.mkdirs(); altFile.text = "test file" } }
             alt.artifact(file:altFile, builtBy: 'createFile')
-            
+
         """
 
         when:

@@ -458,7 +458,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @Unroll('can publish java-library with dependencies with maven incompatible version notation: #version')
+    @Unroll
     def "can publish java-library with dependencies with maven incompatible version notation: #version"() {
 
         given:
@@ -542,8 +542,8 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
-    void "maps dependencies in the correct Maven scope"() {
+    @Unroll
+    void "'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin"() {
         if (deprecatedConfiguration) {
             executer.expectDeprecationWarning()
         }

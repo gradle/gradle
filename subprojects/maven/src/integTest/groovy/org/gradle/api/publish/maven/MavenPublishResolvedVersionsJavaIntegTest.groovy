@@ -24,8 +24,8 @@ import spock.lang.Unroll
 class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishIntegTest {
     MavenJavaModule javaLibrary = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
 
-    @Unroll("can publish java-library with dependencies (#apiMapping, #runtimeMapping)")
-    def "can publish java-library with dependencies (runtime last)"() {
+    @Unroll
+    def "can publish java-library with dependencies (#apiMapping, #runtimeMapping)"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "foo", "1.1")).withModuleMetadata().publish()
@@ -110,8 +110,8 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         ].combinations() + [[allVariants(), noop()]])
     }
 
-    @Unroll("can publish java-library with dependencies (#runtimeMapping, #apiMapping)")
-    def "can publish java-library with dependencies (runtime first)"() {
+    @Unroll
+    def "can publish java-library with dependencies (#runtimeMapping, #apiMapping)"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "foo", "1.1")).withModuleMetadata().publish()
@@ -203,8 +203,8 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
      * This can be the case if there are multiple compile classpath and one should be preferred for publication,
      * or when the component is not a Java library and we don't have a default.
      */
-    @Unroll("can publish resolved versions from a different configuration (#config)")
-    def "can publish resolved versions from a different configuration"() {
+    @Unroll
+    def "can publish resolved versions from a different configuration (#config)"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
@@ -279,8 +279,8 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         ]
     }
 
-    @Unroll("can publish resolved versions from dependency constraints (#apiMapping, #runtimeMapping)")
-    def "can publish resolved versions from dependency constraints"() {
+    @Unroll
+    def "can publish resolved versions from dependency constraints (#apiMapping, #runtimeMapping)"() {
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()

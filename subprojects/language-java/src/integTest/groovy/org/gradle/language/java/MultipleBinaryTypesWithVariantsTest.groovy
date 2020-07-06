@@ -26,8 +26,8 @@ import static org.gradle.util.Matchers.containsText
 @UnsupportedWithInstantExecution(because = "software model")
 class MultipleBinaryTypesWithVariantsTest extends VariantAwareDependencyResolutionSpec {
 
-    @Unroll("Component A(#binaryTypeA) fails resolving on B(#binaryTypeB) because of incompatible variant types")
-    def "binaries have the same variant dimension names but incompatible types"() {
+    @Unroll
+    def "Component A(#binaryTypeA) fails resolving on B(#binaryTypeB) because of incompatible variant types"() {
         given:
         applyJavaPlugin(buildFile, executer)
         addConflictingVariantTypesComponents(buildFile)
