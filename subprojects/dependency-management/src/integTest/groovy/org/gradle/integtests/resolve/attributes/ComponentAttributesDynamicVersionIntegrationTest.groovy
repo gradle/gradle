@@ -25,9 +25,9 @@ import spock.lang.Unroll
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    @Unroll("#outcome if component-level attribute is #requested")
+    @Unroll
     @ToBeFixedForInstantExecution(iterationMatchers = ['fails.*'])
-    def "component attributes are used to reject fixed version"() {
+    def "#outcome if component-level attribute is #requested"() {
         given:
         repository {
             'org.test:module:1.0' {
@@ -78,8 +78,8 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
         'canary'  | 'fails'
     }
 
-    @Unroll("selects the first version which matches the component-level attributes (requested=#requested)")
-    def "selects the first version which matches the component-level attributes"() {
+    @Unroll
+    def "selects the first version which matches the component-level attributes (requested=#requested)"() {
         given:
         repository {
             'org.test:module:1.3' {
@@ -138,8 +138,8 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
         requested << ["[1.0,)", latestNotation(), "1.+", "1+", "+"]
     }
 
-    @Unroll("selects the first version which matches the component-level attributes (requested=#requested) using dependency attributes")
-    def "selects the first version which matches the component-level attributes using dependency attributes"() {
+    @Unroll
+    def "selects the first version which matches the component-level attributes (requested=#requested) using dependency attributes"() {
         given:
         repository {
             'org.test:module:1.3' {

@@ -74,9 +74,9 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @Unroll("'#gradleConfiguration' dependencies end up in '#ivyConfiguration' configuration with '#plugin' plugin")
+    @Unroll
     @ToBeFixedForInstantExecution
-    void "maps dependencies in the correct Ivy configuration"() {
+    void "'#gradleConfiguration' dependencies end up in '#ivyConfiguration' configuration with '#plugin' plugin"() {
         if (deprecatedConfiguration) {
             executer.expectDeprecationWarning()
         }
@@ -743,9 +743,9 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @Unroll("'#requestedVersion' end up in '#expectedVersion' resolved version and '#requestedVersion' revConstraint")
+    @Unroll
     @ToBeFixedForInstantExecution
-    def "can publish java-library with revConstraint"() {
+    def "'#requestedVersion' end up in '#expectedVersion' resolved version and '#requestedVersion' revConstraint"() {
         requiresExternalDependencies = true
         given:
         createBuildScripts("""

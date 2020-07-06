@@ -30,8 +30,8 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
     @Shared
     private DefaultIvyArtifactName artifactName = new DefaultIvyArtifactName("a", "b", "c")
 
-    @Unroll("#left ∪ #right = #expected")
-    def "union of two elements"() {
+    @Unroll
+    def "union of two elements: #left ∪ #right = #expected"() {
         expect:
         factory.anyOf(left, right) == expected
 
@@ -39,19 +39,19 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
         factory.anyOf(right, left) == expected
 
         where:
-        left                                                                | right                                       | expected
-        everything()                                                        | nothing()                                   | everything()
-        everything()                                                        | everything()                                | everything()
-        nothing()                                                           | nothing()                                   | nothing()
-        everything()                                                        | group("foo")                                | everything()
-        nothing()                                                           | group("foo")                                | group("foo")
-        group("foo")                                                        | group("bar")                                | groupSet("foo", "bar")
-        group("foo")                                                        | module("bar")                               | anyOf(group("foo"), module("bar"))
-        anyOf(group("foo"), group("bar"))                                   | group("foo")                                | groupSet("foo", "bar")
-        anyOf(group("foo"), module("bar"))                                  | module("bar")                               | anyOf(module("bar"), group("foo"))
-        moduleId("org", "a")                                                | moduleId("org", "b")                        | moduleIdSet(["org", "a"], ["org", "b"])
-        module("org")                                                       | module("org2")                              | moduleSet("org", "org2")
-        groupSet("org", "org2")                                             | groupSet("org3", "org4")                    | groupSet("org", "org2", "org3", "org4")
+        left                                                                | right                    | expected
+        everything()                                                        | nothing()                | everything()
+        everything()                                                        | everything()             | everything()
+        nothing()                                                           | nothing()                | nothing()
+        everything()                                                        | group("foo")             | everything()
+        nothing()                                                           | group("foo")             | group("foo")
+        group("foo")                                                        | group("bar")             | groupSet("foo", "bar")
+        group("foo")                                                        | module("bar")            | anyOf(group("foo"), module("bar"))
+        anyOf(group("foo"), group("bar"))                                   | group("foo")             | groupSet("foo", "bar")
+        anyOf(group("foo"), module("bar"))                                  | module("bar")            | anyOf(module("bar"), group("foo"))
+        moduleId("org", "a")                                                | moduleId("org", "b")     | moduleIdSet(["org", "a"], ["org", "b"])
+        module("org")                                                       | module("org2")           | moduleSet("org", "org2")
+        groupSet("org", "org2")                                             | groupSet("org3", "org4") | groupSet("org", "org2", "org3", "org4")
         moduleSet("mod", "mod2")                                            | moduleSet("mod3", "mod4")                   | moduleSet("mod", "mod2", "mod3", "mod4")
         moduleIdSet(["org", "foo"], ["org", "bar"])                         | moduleIdSet(["org", "baz"], ["org", "quz"]) | moduleIdSet(["org", "foo"], ["org", "bar"], ["org", "baz"], ["org", "quz"])
         module("mod")                                                       | moduleSet("m1", "m2")                       | moduleSet("m1", "m2", "mod")
@@ -60,28 +60,28 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
 
         moduleId("g1", "m1")                                                | module("m1")                                | module("m1")
         moduleIdSet(["g1", "m1"], ["g2", "m2"])                             | module("m1")                                | anyOf(module("m1"), moduleId("g2", "m2"))
-        moduleIdSet(["g1", "m1"], ["g2", "m1"])                             | module("m1")                                | module("m1")
-        moduleIdSet(["g1", "m1"], ["g2", "m2"], ["g3", "m3"])               | module("m1")                                | anyOf(module("m1"), moduleIdSet(["g2", "m2"], ["g3", "m3"]))
+        moduleIdSet(["g1", "m1"], ["g2", "m1"])                             | module("m1")             | module("m1")
+        moduleIdSet(["g1", "m1"], ["g2", "m2"], ["g3", "m3"])               | module("m1")             | anyOf(module("m1"), moduleIdSet(["g2", "m2"], ["g3", "m3"]))
 
-        moduleId("g1", "m1")                                                | group("g1")                                 | group("g1")
-        moduleIdSet(["g1", "m1"], ["g2", "m2"])                             | group("g1")                                 | anyOf(group("g1"), moduleId("g2", "m2"))
-        moduleIdSet(["g1", "m1"], ["g1", "m2"])                             | group("g1")                                 | group("g1")
-        moduleIdSet(["g1", "m1"], ["g2", "m2"], ["g3", "m3"])               | group("g1")                                 | anyOf(group("g1"), moduleIdSet(["g2", "m2"], ["g3", "m3"]))
+        moduleId("g1", "m1")                                                | group("g1")              | group("g1")
+        moduleIdSet(["g1", "m1"], ["g2", "m2"])                             | group("g1")              | anyOf(group("g1"), moduleId("g2", "m2"))
+        moduleIdSet(["g1", "m1"], ["g1", "m2"])                             | group("g1")              | group("g1")
+        moduleIdSet(["g1", "m1"], ["g2", "m2"], ["g3", "m3"])               | group("g1")              | anyOf(group("g1"), moduleIdSet(["g2", "m2"], ["g3", "m3"]))
 
-        moduleId("g1", "m1")                                                | moduleSet("m1", "m2")                       | moduleSet("m1", "m2")
-        moduleIdSet(["g1", "m1"], ["g2", "m2"])                             | moduleSet("m1", "m2")                       | moduleSet("m1", "m2")
-        moduleIdSet(["g1", "m1"], ["g2", "m2"], ["g3", "m3"])               | moduleSet("m1", "m2")                       | anyOf(moduleId("g3", "m3"), moduleSet("m1", "m2"))
-        moduleIdSet(["g1", "m1"], ["g2", "m2"], ["g3", "m3"], ["g4", "m4"]) | moduleSet("m1", "m2")                       | anyOf(moduleIdSet(["g3", "m3"], ["g4", "m4"]), moduleSet("m1", "m2"))
+        moduleId("g1", "m1")                                                | moduleSet("m1", "m2")    | moduleSet("m1", "m2")
+        moduleIdSet(["g1", "m1"], ["g2", "m2"])                             | moduleSet("m1", "m2")    | moduleSet("m1", "m2")
+        moduleIdSet(["g1", "m1"], ["g2", "m2"], ["g3", "m3"])               | moduleSet("m1", "m2")    | anyOf(moduleId("g3", "m3"), moduleSet("m1", "m2"))
+        moduleIdSet(["g1", "m1"], ["g2", "m2"], ["g3", "m3"], ["g4", "m4"]) | moduleSet("m1", "m2")    | anyOf(moduleIdSet(["g3", "m3"], ["g4", "m4"]), moduleSet("m1", "m2"))
 
-        moduleId("g1", "m1")                                                | groupSet("g1", "g2")                        | groupSet("g1", "g2")
-        moduleIdSet(["g1", "m1"], ["g2", "m2"])                             | groupSet("g1", "g2")                        | groupSet("g1", "g2")
-        moduleIdSet(["g1", "m1"], ["g2", "m2"], ["g3", "m3"])               | groupSet("g1", "g2")                        | anyOf(moduleId("g3", "m3"), groupSet("g1", "g2"))
-        moduleIdSet(["g1", "m1"], ["g2", "m2"], ["g3", "m3"], ["g4", "m4"]) | groupSet("g1", "g2")                        | anyOf(moduleIdSet(["g3", "m3"], ["g4", "m4"]), groupSet("g1", "g2"))
+        moduleId("g1", "m1")                                                | groupSet("g1", "g2")     | groupSet("g1", "g2")
+        moduleIdSet(["g1", "m1"], ["g2", "m2"])                             | groupSet("g1", "g2")     | groupSet("g1", "g2")
+        moduleIdSet(["g1", "m1"], ["g2", "m2"], ["g3", "m3"])               | groupSet("g1", "g2")     | anyOf(moduleId("g3", "m3"), groupSet("g1", "g2"))
+        moduleIdSet(["g1", "m1"], ["g2", "m2"], ["g3", "m3"], ["g4", "m4"]) | groupSet("g1", "g2")     | anyOf(moduleIdSet(["g3", "m3"], ["g4", "m4"]), groupSet("g1", "g2"))
 
     }
 
-    @Unroll("#one ∪ #two ∪ #three = #expected")
-    def "union of three elements"() {
+    @Unroll
+    def "union of three elements: #one ∪ #two ∪ #three = #expected"() {
         expect:
         [one, two, three].combinations().each { list ->
             assert factory.anyOf(list as Set) == expected
@@ -96,8 +96,8 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
         group("foo") | group("bar") | group("baz") | groupSet("foo", "bar", "baz")
     }
 
-    @Unroll("#left ∩ #right = #expected")
-    def "intersection of two elements"() {
+    @Unroll
+    def "intersection of two elements: #left ∩ #right = #expected"() {
         expect:
         factory.allOf(left, right) == expected
 
@@ -117,8 +117,8 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
         moduleSet("m1", "m2", "m3")        | moduleSet("m1", "m3") | moduleSet("m1", "m3")
     }
 
-    @Unroll("#one ∩ #two ∩ #three = #expected")
-    def "intersection of three elements"() {
+    @Unroll
+    def "intersection of three elements: #one ∩ #two ∩ #three = #expected"() {
         expect:
         [one, two, three].combinations().each { list ->
             assert factory.allOf(list as Set) == expected

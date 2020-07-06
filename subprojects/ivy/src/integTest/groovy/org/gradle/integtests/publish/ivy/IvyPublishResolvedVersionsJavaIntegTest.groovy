@@ -24,9 +24,9 @@ import spock.lang.Unroll
 class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTest  {
     IvyJavaModule javaLibrary = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
 
-    @Unroll("can publish java-library with dependencies (#apiMapping, #runtimeMapping)")
+    @Unroll
     @ToBeFixedForInstantExecution
-    def "can publish java-library with dependencies (runtime last)"() {
+    def "can publish java-library with dependencies (#apiMapping, #runtimeMapping)"() {
         given:
         javaLibrary(ivyRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(ivyRepo.module("org.test", "foo", "1.1")).withModuleMetadata().publish()
@@ -104,9 +104,9 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
         ].combinations() + [[allVariants(), noop()]])
     }
 
-    @Unroll("can publish java-library with dependencies (#runtimeMapping, #apiMapping)")
+    @Unroll
     @ToBeFixedForInstantExecution
-    def "can publish java-library with dependencies (runtime first)"() {
+    def "can publish java-library with dependencies (#runtimeMapping, #apiMapping)"() {
         given:
         javaLibrary(ivyRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(ivyRepo.module("org.test", "foo", "1.1")).withModuleMetadata().publish()
@@ -190,9 +190,9 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
      * This can be the case if there are multiple compile classpath and one should be preferred for publication,
      * or when the component is not a Java library and we don't have a default.
      */
-    @Unroll("can publish resolved versions from a different configuration (#config)")
+    @Unroll
     @ToBeFixedForInstantExecution
-    def "can publish resolved versions from a different configuration"() {
+    def "can publish resolved versions from a different configuration (#config)"() {
         given:
         javaLibrary(ivyRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(ivyRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
@@ -281,9 +281,9 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
         ]
     }
 
-    @Unroll("can publish resolved versions from dependency constraints (#apiMapping, #runtimeMapping)")
+    @Unroll
     @ToBeFixedForInstantExecution
-    def "can publish resolved versions from dependency constraints"() {
+    def "can publish resolved versions from dependency constraints (#apiMapping, #runtimeMapping)"() {
         javaLibrary(ivyRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(ivyRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
         javaLibrary(ivyRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
@@ -412,7 +412,7 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
                 // use for resolving
                 ivy { url "${ivyRepo.uri}" }
             }
-            
+
             publishing {
                 repositories {
                     // used for publishing
@@ -450,7 +450,7 @@ $append
             }
 
             $substitution
-            
+
             publishing {
                 publications {
                     maven(IvyPublication) {
@@ -460,7 +460,7 @@ $append
                             ${runtimeUsingUsage()}
                         }
                     }
-            
+
                 }
             }
         """)
@@ -522,7 +522,7 @@ $append
                     substitute(module('org:foo')) with(project(':lib'))
                 }
             }
-            
+
             publishing {
                 publications {
                     maven(IvyPublication) {
@@ -532,14 +532,14 @@ $append
                             ${runtimeUsingUsage()}
                         }
                     }
-            
+
                 }
             }
         """)
 
         file("lib/build.gradle") << """
             apply plugin: 'java-library'
-            
+
             group = 'com.acme'
             version = '1.45'
         """

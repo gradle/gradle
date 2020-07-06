@@ -101,8 +101,8 @@ class ComponentMetadataRuleExecutorTest extends Specification {
     }
 
     // Tests --refresh-dependencies behavior
-    @Unroll("Cache expiry check refresh = #mustRefresh - #scenario - #ruleClass")
-    def "expires entry when cache policy tells us to"() {
+    @Unroll
+    def "Cache expiry check refresh = #mustRefresh - #scenario - #ruleClass"() {
         def id = DefaultModuleVersionIdentifier.newId('org', 'foo', '1.0')
         def hashValue = HashCode.fromInt(42)
         def key = Mock(ModuleComponentResolveMetadata)

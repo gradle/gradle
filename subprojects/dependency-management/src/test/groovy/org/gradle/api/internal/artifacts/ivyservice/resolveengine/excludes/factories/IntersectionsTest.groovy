@@ -102,8 +102,8 @@ class IntersectionsTest extends Specification implements ExcludeTestSupport {
         anyOf(group("g1"), moduleIdSet(["a", "b"], ["a", "c"]))                                                        | anyOf(group("g1"), moduleIdSet(["a", "b"], ["a", "d"]))                                                               | anyOf(group("g1"), allOf(moduleIdSet(["a", "b"], ["a", "c"]), moduleIdSet(["a", "b"], ["a", "d"])))
     }
 
-    @Unroll("intersection of #one with #other = #expected using normalizing factory")
-    def "further simplifications are performed by the normalizing factory"() {
+    @Unroll
+    def "intersection of #one with #other = #expected using normalizing factory"() {
         given:
         factory = new NormalizingExcludeFactory(factory)
 

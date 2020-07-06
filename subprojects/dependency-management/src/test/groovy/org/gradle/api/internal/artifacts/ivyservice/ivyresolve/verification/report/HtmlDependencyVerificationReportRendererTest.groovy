@@ -104,8 +104,8 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         bodyContainsExact("Second section 0 error")
     }
 
-    @Unroll("reports verification errors (#failure)")
-    def "reports verification errors"() {
+    @Unroll
+    def "reports verification errors (#failure)"() {
         given:
         renderer.startNewSection(":someConfiguration")
         renderer.startNewArtifact(artifact()) {

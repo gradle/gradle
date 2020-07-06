@@ -646,7 +646,7 @@ include 'other'
 
     }
 
-    @Unroll("can force a virtual platform version by forcing the platform itself via a dependency")
+    @Unroll
     def "can force a virtual platform version by forcing the platform itself via a dependency"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -698,7 +698,7 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-    @Unroll("can force a virtual platform version by forcing the platform itself via a constraint")
+    @Unroll
     def "can force a virtual platform version by forcing the platform itself via a constraint"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -751,7 +751,7 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-    @Unroll("can force a virtual platform version by forcing the platform itself via a constraint using a strict version")
+    @Unroll
     def "can force a virtual platform version by forcing the platform itself via a constraint using a strict version"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -807,7 +807,7 @@ include 'other'
 
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @Unroll("can constrain a virtual platforms components by adding the platform itself via a constraint")
+    @Unroll
     def "can constrain a virtual platforms components by adding the platform itself via a constraint"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -852,7 +852,7 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-    @Unroll("can force a published platform version by forcing the platform itself via a dependency")
+    @Unroll
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def "can force a published platform version by forcing the platform itself via a dependency"() {
         repository {
@@ -970,8 +970,8 @@ include 'other'
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Issue("nebula-plugins/gradle-nebula-integration#51")
-    @Unroll("force to higher patch version should bring the rest of aligned group up (notation=#forceNotation)")
-    def "force to higher patch version should bring the rest of aligned group up"() {
+    @Unroll
+    def "force to higher patch version should bring the rest of aligned group up (notation=#forceNotation)"() {
         given:
         "repository simulating Jackson situation" {
             path 'com.amazonaws:aws-java-sdk-core:1.11.438 -> org:cbor:2.6.7'
@@ -1026,8 +1026,8 @@ include 'other'
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Issue("nebula-plugins/gradle-nebula-integration#51")
-    @Unroll("force to lower patch version should bring the rest of aligned group up (notation=#forceNotation)")
-    def "force to lower patch version should bring the rest of aligned group up"() {
+    @Unroll
+    def "force to lower patch version should bring the rest of aligned group up (notation=#forceNotation)"() {
         given:
         "repository simulating Jackson situation" {
             path 'com.amazonaws:aws-java-sdk-core:1.11.438 -> org:cbor:2.6.7'

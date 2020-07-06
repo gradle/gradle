@@ -95,8 +95,8 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
     }
 
     // Tests --refresh-dependencies behavior
-    @Unroll("Cache expiry check expired=#expired, refresh = #mustRefresh - #scenario - #ruleClass.simpleName")
-    def "expires entry when cache policy tells us to"() {
+    @Unroll
+    def "Cache expiry check expired=#expired, refresh = #mustRefresh - #scenario - #ruleClass.simpleName"() {
         def id = DefaultModuleVersionIdentifier.newId('org', 'foo', '1.0')
         def inputsSnapshot = new StringValueSnapshot("1")
         def hasher = Hashing.newHasher()

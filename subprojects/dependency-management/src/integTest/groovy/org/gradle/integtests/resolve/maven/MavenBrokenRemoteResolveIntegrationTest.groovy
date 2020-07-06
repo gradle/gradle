@@ -265,8 +265,8 @@ task showBroken { doLast { println configurations.broken.files } }
         succeeds("showBroken")
     }
 
-    @Unroll("recovers from initial failed POM download (max retries = #retries)")
-    void "recovers from initial failed POM download"() {
+    @Unroll
+    void "recovers from initial failed POM download (max retries = #retries)"() {
         withMaxHttpRetryCount(retries)
 
         given:
@@ -299,8 +299,8 @@ task showBroken { doLast { println configurations.broken.files } }
         retries << (1..3)
     }
 
-    @Unroll("recovers from initial failed artifact download (max retries = #retries)")
-    void "recovers from initial failed artifact download"() {
+    @Unroll
+    void "recovers from initial failed artifact download (max retries = #retries)"() {
         withMaxHttpRetryCount(retries)
 
         given:
@@ -333,8 +333,8 @@ task showBroken { doLast { println configurations.broken.files } }
         retries << (1..3)
     }
 
-    @Unroll("doesn't attempt to retry downloading missing POM file (max retries = #retries)")
-    void "doesn't attempt to retry downloading missing POM file"() {
+    @Unroll
+    void "doesn't attempt to retry downloading missing POM file (max retries = #retries)"() {
         withMaxHttpRetryCount(retries)
 
         given:
@@ -369,8 +369,8 @@ task showBroken { doLast { println configurations.broken.files } }
         retries << (1..3)
     }
 
-    @Unroll("doesn't attempt to retry downloading missing artifact file (max retries = #retries)")
-    void "doesn't attempt to retry downloading missing artifact file"() {
+    @Unroll
+    void "doesn't attempt to retry downloading missing artifact file (max retries = #retries)"() {
         withMaxHttpRetryCount(retries)
 
         given:

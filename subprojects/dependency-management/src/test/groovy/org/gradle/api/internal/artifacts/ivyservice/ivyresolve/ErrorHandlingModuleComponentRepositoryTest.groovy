@@ -83,8 +83,8 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         }
     }
 
-    @Unroll("can list module versions (max retries = #maxRetries, exception=#exception)")
-    def "can list module versions"() {
+    @Unroll
+    def "can list module versions (max retries = #maxRetries, exception=#exception)"() {
         access = createAccess(maxRetries)
 
         given:
@@ -119,8 +119,8 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         [maxRetries, exception, effectiveRetries] << retryCombinations()
     }
 
-    @Unroll("can resolve component meta data (max retries = #maxRetries, exception=#exception)")
-    def "can resolve component meta data"() {
+    @Unroll
+    def "can resolve component meta data (max retries = #maxRetries, exception=#exception)"() {
         access = createAccess(maxRetries)
 
         given:
@@ -155,8 +155,8 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         [maxRetries, exception, effectiveRetries] << retryCombinations()
     }
 
-    @Unroll("can resolve artifacts with type (max retries = #maxRetries, exception=#exception)")
-    def "can resolve artifacts with type"() {
+    @Unroll
+    def "can resolve artifacts with type (max retries = #maxRetries, exception=#exception)"() {
         access = createAccess(maxRetries)
 
         given:
@@ -193,8 +193,8 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         [maxRetries, exception, effectiveRetries] << retryCombinations()
     }
 
-    @Unroll("can resolve artifacts (max retries = #maxRetries, exception=#exception)")
-    def "can resolve artifacts"() {
+    @Unroll
+    def "can resolve artifacts (max retries = #maxRetries, exception=#exception)"() {
         access = createAccess(maxRetries)
 
         given:
@@ -231,8 +231,8 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         [maxRetries, exception, effectiveRetries] << retryCombinations()
     }
 
-    @Unroll("can resolve artifact (max retries = #maxRetries, exception=#exception)")
-    def "can resolve artifact"() {
+    @Unroll
+    def "can resolve artifact (max retries = #maxRetries, exception=#exception)"() {
         access = createAccess(maxRetries)
 
         given:

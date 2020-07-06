@@ -25,9 +25,9 @@ class ConcurrentDerivationStrategyIntegTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForInstantExecution
     @Issue("https://github.com/gradle/gradle/issues/13555")
-    @Unroll("consistent resolution using rules=#displayName")
+    @Unroll
     // If this test becomes flaky it means we broke the code which prevents mutation of in-memory cached module metadata
-    def "selected variants are consistent using concurrent resolution of graphs from cache having different derivation strategies"() {
+    def "selected variants are consistent using concurrent resolution of graphs from cache having different derivation strategies with #displayName"() {
         executer.requireOwnGradleUserHomeDir()
         settingsFile << """
             include 'app'

@@ -26,8 +26,8 @@ import spock.lang.Unroll
 @Subject(NetworkingIssueVerifier)
 class NetworkingIssueVerifierTest extends Specification {
 
-    @Unroll("'#description' is likely transient network issue")
-    def "verifies if an exception is a related to transient network issue"() {
+    @Unroll
+    def "verifies '#description' is likely transient network issue"() {
         expect:
         NetworkingIssueVerifier.isLikelyTransientNetworkingIssue(failure)
 

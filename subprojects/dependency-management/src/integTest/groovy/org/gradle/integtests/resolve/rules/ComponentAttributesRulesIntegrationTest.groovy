@@ -25,9 +25,9 @@ import spock.lang.Unroll
 
 class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    @Unroll("#outcome if attribute is #mutation via component metadata rule")
+    @Unroll
     @ToBeFixedForInstantExecution(iterationMatchers = ["fails.*"])
-    def "check that attribute rules modify the result of dependency resolution"() {
+    def "#outcome if attribute is #mutation via component metadata rule"() {
         given:
         repository {
             'org.test:module:1.0'()

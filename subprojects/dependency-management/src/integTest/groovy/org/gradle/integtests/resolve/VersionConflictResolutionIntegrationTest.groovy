@@ -1770,7 +1770,7 @@ task checkDeps(dependsOn: configurations.compile) {
 
     }
 
-    @Unroll('optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover has constraint: #dependsOptional, root has constraint: #constraintsOptional)')
+    @Unroll
     @ToBeFixedForInstantExecution(because = ":dependencies")
     def 'optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover has constraint: #dependsOptional, root has constraint: #constraintsOptional)'() {
         given:
