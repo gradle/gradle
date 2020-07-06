@@ -38,6 +38,7 @@ import org.gradle.api.internal.changedetection.state.SplitFileHasher;
 import org.gradle.api.internal.changedetection.state.SplitResourceSnapshotterCacheService;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher;
+import org.gradle.api.tasks.util.internal.PatternSpecFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentIndexedCache;
@@ -94,6 +95,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -180,7 +182,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             StringInterner stringInterner,
             ListenerManager listenerManager,
             DocumentationRegistry documentationRegistry,
-            NativeCapabilities nativeCapabilities
+            NativeCapabilities nativeCapabilities,
+            PatternSpecFactory patternSpecFactory
         ) {
             // All the changes in global caches should be done by Gradle itself, so in order
             // to minimize the number of watches we don't watch anything within the global caches.
@@ -194,12 +197,19 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 updateFunctionDecorator,
                 DirectoryScanner.getDefaultExcludes()
             );
-            listenerManager.addListener(new DefaultExcludesBuildListener(delegate));
+            listenerManager.addListener(new DefaultExcludesBuildListener(delegate) {
+                @Override
+                public void settingsEvaluated(Settings settings) {
+                    super.settingsEvaluated(settings);
+                    patternSpecFactory.setDefaultExcludesFromSettings(Arrays.asList(DirectoryScanner.getDefaultExcludes()));
+                }
+            });
             listenerManager.addListener(new RootBuildLifecycleListener() {
                 @Override
                 public void afterStart(GradleInternal gradle) {
                     // Reset default excludes for each build
                     DirectoryScanner.resetDefaultExcludes();
+                    patternSpecFactory.setDefaultExcludesFromSettings(null);
                 }
 
                 @Override

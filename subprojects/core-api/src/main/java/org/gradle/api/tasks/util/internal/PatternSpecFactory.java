@@ -25,10 +25,13 @@ import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +46,7 @@ public class PatternSpecFactory {
     public static final PatternSpecFactory INSTANCE = new PatternSpecFactory();
     private final List<String> previousDefaultExcludes = Lists.newArrayList();
     private final Map<Boolean, Spec<FileTreeElement>> defaultExcludeSpecs = new HashMap<>(2);
+    private List<String> excludesFromSettings;
 
     public Spec<FileTreeElement> createSpec(PatternSet patternSet) {
         return Specs.intersect(createIncludeSpec(patternSet), Specs.negate(createExcludeSpec(patternSet)));
@@ -82,6 +86,9 @@ public class PatternSpecFactory {
         Spec<FileTreeElement> specs = defaultExcludeSpecs.get(caseSensitive);
         List<String> defaultExcludes = Arrays.asList(DirectoryScanner.getDefaultExcludes());
 
+        if (excludesFromSettings != null && !excludesFromSettings.equals(defaultExcludes)) {
+            reportChangedDefaultExcludes(excludesFromSettings, defaultExcludes);
+        }
         if (specs == null) {
             specs = updateDefaultExcludeCache(defaultExcludes, caseSensitive);
         } else if (!previousDefaultExcludes.equals(defaultExcludes)) {
@@ -89,6 +96,24 @@ public class PatternSpecFactory {
         }
 
         return specs;
+    }
+
+    private void reportChangedDefaultExcludes(List<String> excludesFromSettings, List<String> newDefaultExcludes) {
+        List<String> sortedExcludesFromSettings = new ArrayList<>(excludesFromSettings);
+        sortedExcludesFromSettings.sort(Comparator.naturalOrder());
+        List<String> sortedNewExcludes = new ArrayList<>(newDefaultExcludes);
+        sortedNewExcludes.sort(Comparator.naturalOrder());
+        DeprecationLogger
+            .deprecateIndirectUsage("Changing default excludes during the build")
+            .withContext(String.format("Default excludes changed from %s to %s.", sortedExcludesFromSettings, sortedNewExcludes))
+            .withAdvice("Configure default excludes in settings instead.")
+            .willBeRemovedInGradle7()
+            .withUserManual("working_with_files", "sec:change_ant_excludes")
+            .nagUser();
+    }
+
+    public synchronized void setDefaultExcludesFromSettings(@Nullable List<String> excludesFromSettings) {
+        this.excludesFromSettings = excludesFromSettings;
     }
 
     private Spec<FileTreeElement> updateDefaultExcludeCache(List<String> defaultExcludes, boolean caseSensitive) {

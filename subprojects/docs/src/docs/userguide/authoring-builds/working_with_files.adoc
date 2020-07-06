@@ -438,6 +438,7 @@ You can see more examples of supported patterns in the API docs for link:{javado
 
 By default, `fileTree()` returns a `FileTree` instance that applies some default exclusion patterns for convenience — the same defaults as Ant in fact. For the complete default exclusion list, see http://ant.apache.org/manual/dirtasks.html#defaultexcludes[the Ant manual].
 
+[[sec:change_ant_excludes]]
 If those default exclusions prove problematic, you can workaround the issue by changing Ant's default excludes in settings:
 
 .Changing Ant default exclusions in settings

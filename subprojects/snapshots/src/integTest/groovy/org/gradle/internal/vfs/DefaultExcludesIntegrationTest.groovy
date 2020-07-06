@@ -22,6 +22,43 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
 
     private static final EXCLUDED_FILE_NAME = "my-excluded-file.txt"
+    private static final DEFAULT_EXCLUDES = [
+        "**/%*%",
+        "**/.#*",
+        "**/._*",
+        "**/#*#",
+        "**/*~",
+        "**/.DS_Store",
+
+        "**/CVS",
+        "**/CVS/**",
+        "**/.cvsignore",
+
+        "**/SCCS",
+        "**/SCCS/**",
+
+        "**/.bzr",
+        "**/.bzr/**",
+        "**/.bzrignore",
+
+        "**/vssver.scc",
+
+        "**/.hg",
+        "**/.hg/**",
+        "**/.hgtags",
+        "**/.hgignore",
+        "**/.hgsubstate",
+        "**/.hgsub",
+
+        "**/.svn",
+        "**/.svn/**",
+
+        "**/.git",
+        "**/.git/**",
+        "**/.gitignore",
+        "**/.gitmodules",
+        "**/.gitattributes"
+    ]
 
     def outputDir = file("build/output")
     def excludedFile = file("input/${EXCLUDED_FILE_NAME}")
@@ -78,6 +115,32 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         when:
         settingsFile.text = ""
         excludedFile.text = "changedAgain"
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+        copyOfExcludedFile.exists()
+    }
+
+    def "emits deprecation warning when default excludes are changed during the build"() {
+        settingsFile << addDefaultExclude(EXCLUDED_FILE_NAME)
+
+        buildFile << """
+            copyTask.doFirst {
+                ant.defaultexcludes remove: '**/${EXCLUDED_FILE_NAME}'
+            }
+            copyTask.doLast {
+                ant.defaultexcludes default: true
+            }
+        """
+        List<String> defaultExcludesFromSettings = (DEFAULT_EXCLUDES  + ['**/' + EXCLUDED_FILE_NAME]).toSorted()
+        List<String> defaultExcludesInTask = DEFAULT_EXCLUDES.toSorted()
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Changing default excludes during the build has been deprecated. " +
+            "This is scheduled to be removed in Gradle 7.0. " +
+            "Default excludes changed from ${defaultExcludesFromSettings} to ${defaultExcludesInTask}. " +
+            "Configure default excludes in settings instead. " +
+            "See https://docs.gradle.org/current/userguide/working_with_files.html#sec:change_ant_excludes for more details.")
         run "copyTask"
         then:
         executedAndNotSkipped(":copyTask")

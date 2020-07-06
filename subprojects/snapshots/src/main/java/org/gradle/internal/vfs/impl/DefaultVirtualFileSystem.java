@@ -16,7 +16,7 @@
 
 package org.gradle.internal.vfs.impl;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Interner;
 import com.google.common.util.concurrent.Striped;
 import org.gradle.internal.file.FileMetadata;
@@ -49,7 +49,7 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
     private final Stat stat;
     private final SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator;
     private final Interner<String> stringInterner;
-    private ImmutableSet<String> defaultExcludes;
+    private ImmutableList<String> defaultExcludes;
     private DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
     private final StripedProducerGuard<String> producingSnapshots = new StripedProducerGuard<>();
@@ -58,7 +58,7 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
         this.stringInterner = stringInterner;
         this.stat = stat;
         this.updateFunctionDecorator = updateFunctionDecorator;
-        this.defaultExcludes = ImmutableSet.copyOf(defaultExcludes);
+        this.defaultExcludes = ImmutableList.copyOf(defaultExcludes);
         this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, this.defaultExcludes);
         this.hasher = hasher;
         this.root = new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
@@ -213,7 +213,7 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
     }
 
     public synchronized void updateDefaultExcludes(String... newDefaultExcludesArgs) {
-        ImmutableSet<String> newDefaultExcludes = ImmutableSet.copyOf(newDefaultExcludesArgs);
+        ImmutableList<String> newDefaultExcludes = ImmutableList.copyOf(newDefaultExcludesArgs);
         if (!defaultExcludes.equals(newDefaultExcludes)) {
             defaultExcludes = newDefaultExcludes;
             directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, newDefaultExcludes);
