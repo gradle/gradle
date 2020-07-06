@@ -19,8 +19,6 @@ package org.gradle.testing.junitplatform
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import spock.lang.Issue
 import spock.lang.Timeout
-import spock.lang.Unroll
-
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 import static org.hamcrest.CoreMatchers.containsString
 
@@ -98,7 +96,6 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
             .testClass('org.gradle.IgnoredTest').assertTestCount(1, 0, 0).assertTestsSkipped("testIgnored1()")
     }
 
-    @Unroll
     def 'can handle class-level error in #location method'() {
         given:
         file('src/test/java/org/gradle/ClassErrorTest.java') << """
@@ -324,7 +321,6 @@ public class StaticInnerTest {
             .assertTestPassed('inside')
     }
 
-    @Unroll
     @Issue('https://github.com/gradle/gradle/issues/4924')
     def "re-executes test when #key is changed"() {
         given:

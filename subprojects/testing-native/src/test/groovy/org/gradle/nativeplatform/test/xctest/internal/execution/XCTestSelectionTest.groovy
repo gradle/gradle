@@ -18,8 +18,6 @@ package org.gradle.nativeplatform.test.xctest.internal.execution
 
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
-
 @Subject(XCTestSelection)
 class XCTestSelectionTest extends Specification {
     def "includes all tests when no filter provided"() {
@@ -77,7 +75,6 @@ class XCTestSelectionTest extends Specification {
         select('a.1', 'a.2', 'a.3', 'a.4').includedTests == ['a.1', 'a.2', 'a.3', 'a.4']
     }
 
-    @Unroll
     def "throws IllegalArgumentException when filter contains forward slash [#testFilter]"() {
         when:
         select(testFilter)

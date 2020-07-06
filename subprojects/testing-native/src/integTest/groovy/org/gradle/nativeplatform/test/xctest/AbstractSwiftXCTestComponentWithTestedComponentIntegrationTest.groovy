@@ -25,8 +25,6 @@ import org.gradle.nativeplatform.fixtures.app.MainWithXCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.Swift3WithSwift4XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift4WithSwift3XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift5WithSwift4XCTest
-import spock.lang.Unroll
-
 import static org.junit.Assume.assumeTrue
 
 abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest extends AbstractSwiftXCTestComponentIntegrationTest implements XCTestExecutionResult {
@@ -60,7 +58,6 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
         swift3Component.assertTestCasesRan(testExecutionResult)
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "honors Swift source compatibility difference on both tested component (#componentSourceCompatibility) and XCTest component (#xctestSourceCompatibility)"() {
         given:

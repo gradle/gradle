@@ -34,8 +34,6 @@ import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.util.ConfigureUtil
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class DefaultTestReportTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
@@ -72,7 +70,6 @@ class DefaultTestReportTest extends Specification {
         index.assertHasNoNavLinks()
     }
 
-    @Unroll
     def "generates report with aggregated index page for build with no failures - #numThreads parallel thread(s)"() {
         given:
         report = reportWithMaxThreads(numThreads)
@@ -132,7 +129,6 @@ class DefaultTestReportTest extends Specification {
         numThreads << [1, 4]
     }
 
-    @Unroll
     def "generates report with aggregated index page for failing build - #numThreads parallel thread(s)"() {
         given:
         report = reportWithMaxThreads(numThreads)
@@ -222,7 +218,6 @@ class DefaultTestReportTest extends Specification {
         numThreads << [1, 4]
     }
 
-    @Unroll
     def "generates report with aggregated package pages - #numThreads parallel thread(s)"() {
         given:
         report = reportWithMaxThreads(numThreads)
@@ -301,7 +296,6 @@ class DefaultTestReportTest extends Specification {
         numThreads << [1, 4]
     }
 
-    @Unroll
     def "generates report with class pages - #numThreads parallel thread(s)"() {
         given:
         report = reportWithMaxThreads(numThreads)
@@ -383,7 +377,6 @@ class DefaultTestReportTest extends Specification {
         numThreads << [1, 4]
     }
 
-    @Unroll
     def "aggregate same tests run with different results - #numThreads parallel thread(s)"() {
         given:
         report = reportWithMaxThreads(numThreads)
@@ -423,7 +416,6 @@ class DefaultTestReportTest extends Specification {
         numThreads << [1, 4]
     }
 
-    @Unroll
     def "aggregate same tests different methods run with different results - #numThreads parallel thread(s)"() {
         given:
         report = reportWithMaxThreads(numThreads)

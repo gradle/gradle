@@ -19,8 +19,6 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.hamcrest.CoreMatchers
-import spock.lang.Unroll
-
 class RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSpec {
     private static final String INDEX_OF_TEST_TO_FAIL = "index.of.test.to.fail"
     private static final List<Integer> TESTS = [1, 2, 3]
@@ -62,7 +60,6 @@ class RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Unroll
     def 'subsequent execution runs failed test first'() {
         given:
         letTestFail(indexOfTestToFail)
@@ -106,7 +103,6 @@ class RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSpec {
     }
 
 
-    @Unroll
     def 'can delete previous failed test'() {
         given:
         letTestFail(indexOfTestToFail)
@@ -128,7 +124,6 @@ class RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSpec {
         indexOfTestToFail << TESTS
     }
 
-    @Unroll
     def 'can modify previous failed test'() {
         given:
         letTestFail(indexOfTestToFail)

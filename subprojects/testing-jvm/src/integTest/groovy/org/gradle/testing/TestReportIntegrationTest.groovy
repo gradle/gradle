@@ -16,7 +16,6 @@
 
 package org.gradle.testing
 
-
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
@@ -25,7 +24,6 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUPITER
@@ -266,8 +264,7 @@ public class SubClassTests extends SuperClassTests {
         skipped(":testReport")
     }
 
-    @Unroll
-    "#type report files are considered outputs"() {
+    def "#type report files are considered outputs"() {
         given:
         buildScript """
             $junitSetup

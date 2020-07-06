@@ -23,8 +23,6 @@ import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import spock.lang.Unroll
-
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
 
@@ -100,7 +98,6 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         classFormat(classFile('java', 'test', 'MyTest.class')) == 53
     }
 
-    @Unroll
     def "test task does not hang if maxParallelForks is greater than max-workers (#maxWorkers)"() {
         given:
         def maxParallelForks = maxWorkers + 1

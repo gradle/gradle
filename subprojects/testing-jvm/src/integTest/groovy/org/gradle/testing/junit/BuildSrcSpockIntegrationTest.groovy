@@ -105,10 +105,7 @@ dependencies {
         writeSpockDependencies()
         file('src/test/groovy/UnrollTest.groovy') << '''
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class UnrollTest extends Specification {
-    @Unroll
     def "can test #type"() {
         expect: type
 

@@ -24,8 +24,6 @@ import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDep
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDepXCTest
-import spock.lang.Unroll
-
 class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest implements XCTestExecutionResult, SwiftTaskNames {
     def setup() {
         buildFile << """
@@ -33,7 +31,6 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
         """
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "can depend on a #linkage.toLowerCase() c++ library"() {
         given:
@@ -45,7 +42,7 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
         """
         buildFile << """
             apply plugin: 'swift-library'
-            
+
             dependencies {
                 implementation project(':cppGreeter')
             }
@@ -57,7 +54,7 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
                     linkTask.get().linkerArgs.add("-lstdc++")
                 }
             }
-            
+
             project(':cppGreeter') {
                 apply plugin: 'cpp-library'
                 library.linkage = [Linkage.${linkage}]
@@ -96,13 +93,13 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
                     api project(':cppGreeter')
                 }
             }
-            
+
             project(':cppGreeter') {
                 apply plugin: 'cpp-library'
             }
-            
+
             apply plugin: 'swift-library'
-            
+
             dependencies {
                 testImplementation project(':greeter')
             }

@@ -24,8 +24,6 @@ import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class DefaultGradleRunnerTest extends Specification {
 
     public static final BuildOperationParameters BUILD_OPERATION_PARAMETERS = new BuildOperationParameters(GradleVersion.version('2.4'), false)
@@ -203,7 +201,6 @@ class DefaultGradleRunnerTest extends Specification {
         TextUtil.normaliseLineSeparators(message) == basicDiagnosticsMessage
     }
 
-    @Unroll
     def "creates diagnostic message for execution result for thrown #description"() {
         given:
         def runner = createRunnerWithWorkingDirAndArgument()
@@ -249,7 +246,6 @@ class DefaultGradleRunnerTest extends Specification {
         debug << [true, false]
     }
 
-    @Unroll
     def "debug flag is #description for system property value '#systemPropertyValue'"() {
         when:
         System.properties[DefaultGradleRunner.DEBUG_SYS_PROP] = systemPropertyValue

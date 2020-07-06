@@ -32,8 +32,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class Binary2JUnitXmlReportGeneratorSpec extends Specification {
 
     @Rule private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
@@ -52,7 +50,6 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         return reportGenerator
     }
 
-    @Unroll
     def "writes results - #numThreads parallel thread(s)"() {
         generator = generatorWithMaxThreads(numThreads)
 

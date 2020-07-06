@@ -22,8 +22,6 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.junit.Assume
-import spock.lang.Unroll
-
 import static org.gradle.nativeplatform.MachineArchitecture.X86
 import static org.gradle.nativeplatform.MachineArchitecture.X86_64
 
@@ -41,7 +39,6 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         result.assertTasksSkipped(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, ":test", ":check")
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "runs tests when #task lifecycle task executes"() {
         given:
@@ -62,7 +59,6 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         "build" | [":test", ":check", ":build", tasksToAssembleComponentUnderTest, ":assemble"]
     }
 
-    @Unroll
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
     @ToBeFixedForInstantExecution
     def "runs tests when #task lifecycle task executes and target machines are specified on the component under test"() {
@@ -88,7 +84,6 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         "runTestX86" | X86                  | [":runTestX86"]
     }
 
-    @Unroll
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
     @ToBeFixedForInstantExecution
     def "runs tests when #task lifecycle task executes and target machines are specified on both main component and test component"() {
@@ -114,7 +109,6 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         "build" | X86_64               | [":test", ":check", ":build", getTasksToAssembleComponentUnderTest(X86_64), ":assemble"]
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "runs tests when #task lifecycle task executes and target machines are specified on the test component only"() {
         given:
@@ -136,7 +130,6 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         "build" | [":test", ":check", ":build", tasksToAssembleComponentUnderTest, ":assemble"]
     }
 
-    @Unroll
     def "fails when target machines are specified on the test component that do not match those on the main component"() {
         Assume.assumeFalse(componentUnderTestDsl == null)
 

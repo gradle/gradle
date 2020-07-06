@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.hamcrest.CoreMatchers
 import spock.lang.Ignore
-import spock.lang.Unroll
-
 @UnsupportedWithInstantExecution(because = "software model")
 class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecutionIntegrationSpec {
 
@@ -62,7 +60,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         failure.assertHasCause "Cannot resolve external dependency junit:junit:4.13 because no repositories are defined."
     }
 
-    @Unroll
     def "Fails if no JUnit version is specified for a test suite declared under #container"() {
         given:
         applyJUnitPlugin()
@@ -86,7 +83,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         container << ['testSuites', 'components']
     }
 
-    @Unroll
     def "Fails if no JUnit version is specified even if found in dependencies for a test suite declared under #container"() {
         given:
         applyJUnitPlugin()
@@ -116,7 +112,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         container << ['testSuites', 'components']
     }
 
-    @Unroll
     def "Executes a passing test suite with a JUnit component and #sourceconfig.description"() {
         given:
         applyJUnitPlugin()
@@ -160,7 +155,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         sourceconfig << SourceSetConfiguration.values()
     }
 
-    @Unroll
     def "Executes a failing test suite with a JUnit component and #sourceconfig.description"() {
         given:
         applyJUnitPlugin()
@@ -207,7 +201,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         sourceconfig << SourceSetConfiguration.values()
     }
 
-    @Unroll
     def "Can have multiple JUnit test suites in a single project under #container"() {
         given:
         applyJUnitPlugin()
@@ -465,7 +458,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         executedAndNotSkipped ':compileMyTestBinaryMyTestJava', ':processMyTestBinaryMyTestResources', ':myTestBinaryTest'
     }
 
-    @Unroll
     def "Test should execute test suite with dependency on local library #library"() {
         given:
         applyJUnitPlugin()
