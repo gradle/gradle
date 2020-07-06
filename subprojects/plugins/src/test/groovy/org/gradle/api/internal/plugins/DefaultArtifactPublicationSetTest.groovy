@@ -18,8 +18,6 @@ package org.gradle.api.internal.plugins
 import spock.lang.Specification
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.artifacts.PublishArtifact
-import spock.lang.Unroll
-
 class DefaultArtifactPublicationSetTest extends Specification {
     final PublishArtifactSet publications = Mock()
     final DefaultArtifactPublicationSet publication = new DefaultArtifactPublicationSet(publications)
@@ -180,7 +178,6 @@ class DefaultArtifactPublicationSetTest extends Specification {
         publication.defaultArtifactProvider.get() == set(ear)
     }
 
-    @Unroll
     def "always adds other types of artifacts when the default is a #artifactType"() {
         def jarWarEar = artifact(artifactType)
         def exe = artifact("exe")

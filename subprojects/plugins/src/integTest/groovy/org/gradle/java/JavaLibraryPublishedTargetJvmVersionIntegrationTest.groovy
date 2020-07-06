@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.server.http.MavenHttpModule
-import spock.lang.Unroll
-
 class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     ResolveTestFixture resolve
     MavenHttpModule module
@@ -116,7 +114,6 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
       - Incompatible because this component declares a component compatible with Java 9 and the consumer needed a component compatible with Java 5''')
     }
 
-    @Unroll
     def "can select the most appropriate producer variant (#expected) based on target compatibility (#requested)"() {
         buildFile << """
             configurations.compileClasspath.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, $requested)

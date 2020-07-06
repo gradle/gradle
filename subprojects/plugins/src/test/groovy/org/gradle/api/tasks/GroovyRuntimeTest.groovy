@@ -20,8 +20,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import spock.lang.Unroll
-
 class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
 
     def setup() {
@@ -43,7 +41,6 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         classifier << ["", "-indy"]
     }
 
-    @Unroll
     def "inferred Groovy #groovyVersion#classifier class path uses repository dependency if 'groovy' Jar is found on class path (to get transitive dependencies right)"() {
         project.repositories {
             mavenCentral()

@@ -18,8 +18,6 @@ package org.gradle.java
 
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
-
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 
@@ -33,7 +31,6 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @Unroll
     def "project can declare an API dependency [compileClasspathPackaging=#compileClasspathPackaging]"() {
         toggleCompileClasspathPackaging(compileClasspathPackaging)
 
@@ -119,7 +116,6 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         skipped ':b:processResources'
     }
 
-    @Unroll
     def "uses the API of a library when compiling production code against it using the #configuration configuration"() {
         if (configuration == 'compile') {
             executer.expectDeprecationWarning()
@@ -166,7 +162,6 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         configuration << ['compile', 'implementation']
     }
 
-    @Unroll
     def "uses the API of a library when compiling a custom source set against it [compileClasspathPackaging=#compileClasspathPackaging]"() {
         toggleCompileClasspathPackaging(compileClasspathPackaging)
 
@@ -218,7 +213,6 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         true                      | _
     }
 
-    @Unroll
     def "uses the API of a library when compiling tests against it using the #configuration configuration"() {
         if (configuration == 'testCompile') {
             executer.expectDeprecationWarning()
@@ -265,7 +259,6 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         configuration << ['testCompile', 'testImplementation']
     }
 
-    @Unroll
     def "recompiles consumer if API dependency of producer changed [compileClasspathPackaging=#compileClasspathPackaging]"() {
         toggleCompileClasspathPackaging(compileClasspathPackaging)
 
@@ -339,7 +332,6 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         true                      | _
     }
 
-    @Unroll
     def "doesn't recompile consumer if implementation dependency of producer changed [compileClasspathPackaging=#compileClasspathPackaging]"() {
         toggleCompileClasspathPackaging(compileClasspathPackaging)
 
@@ -410,17 +402,16 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         true                      | _
     }
 
-    @Unroll
     def "can depend on #scenario without building the jar"() {
         given:
         settingsFile << "include 'a', 'b'"
         file('a/build.gradle') << """
             apply plugin: 'java'
-            
+
             dependencies {
                 implementation project(':b')
             }
-            
+
             task processDependency {
                 def lazyInputs = configurations.runtimeClasspath.incoming.artifactView {
                     attributes{ attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.${token})) }

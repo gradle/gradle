@@ -18,8 +18,6 @@ package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Unroll
-
 class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractIntegrationSpec {
     ResolveTestFixture resolve
 
@@ -63,7 +61,6 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
       - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6''')
     }
 
-    @Unroll
     def "can select the most appropriate producer variant (#expected) based on target compatibility (#requested)"() {
         file('producer/build.gradle') << """
             // avoid test noise so that typically version 8 is not selected when running on JDK 8

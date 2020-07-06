@@ -18,8 +18,6 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
-import spock.lang.Unroll
-
 class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -28,7 +26,6 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Unroll
     def "delegates to validatePlugins and emits deprecation warning when configuration is changed via #methodCall for validateTaskProperties"() {
         buildFile << """
             validateTaskProperties {

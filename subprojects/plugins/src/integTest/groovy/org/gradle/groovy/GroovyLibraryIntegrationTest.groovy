@@ -17,12 +17,9 @@ package org.gradle.groovy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
-import spock.lang.Unroll
-
 class GroovyLibraryIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("gradle/gradle#9872")
-    @Unroll
     def "extension methods should be visible to Groovy library consumers (consumer java lib=#consumerIsJavaLib, producer java library=#producerIsJavaLib, CompileStatic=#cs)"() {
         settingsFile << """
             include 'groovy-lib'
@@ -33,7 +30,7 @@ class GroovyLibraryIntegrationTest extends AbstractIntegrationSpec {
                dependencies {
                   implementation(localGroovy())
                }
-            }            
+            }
 
             if ($consumerIsJavaLib) { apply plugin: 'java-library' }
 
@@ -55,7 +52,7 @@ class GroovyLibraryIntegrationTest extends AbstractIntegrationSpec {
         file("groovy-lib/src/main/groovy/support/FrenchStrings.groovy") << """
             package support
             import groovy.transform.CompileStatic
-            
+
             @CompileStatic
             class FrenchStrings {
                 static int getTaille(String self) { self.length() }
@@ -63,10 +60,10 @@ class GroovyLibraryIntegrationTest extends AbstractIntegrationSpec {
         """
         file("src/main/groovy/Consumer.groovy") << """
             import groovy.transform.CompileStatic
-            
+
             ${cs ? '@CompileStatic' : ''}
             void check() {
-                assert "foo".taille == 3 
+                assert "foo".taille == 3
             }
         """
 
@@ -75,7 +72,7 @@ class GroovyLibraryIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":groovy-lib:jar")
-        
+
         where:
         consumerIsJavaLib | producerIsJavaLib | cs
         false             | false             | false

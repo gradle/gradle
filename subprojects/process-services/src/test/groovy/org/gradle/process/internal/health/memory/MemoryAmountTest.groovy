@@ -17,11 +17,8 @@
 package org.gradle.process.internal.health.memory
 
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class MemoryAmountTest extends Specification {
 
-    @Unroll
     def "bytes #bytes"() {
         given:
         def amount = MemoryAmount.of(bytes)
@@ -34,7 +31,6 @@ class MemoryAmountTest extends Specification {
         bytes << [1L, Long.MAX_VALUE]
     }
 
-    @Unroll
     def "invalid bytes #bytes"() {
         when:
         MemoryAmount.of(bytes)
@@ -46,7 +42,6 @@ class MemoryAmountTest extends Specification {
         bytes << [0L, -1L, Long.MIN_VALUE]
     }
 
-    @Unroll
     def "string notation #notation"() {
         given:
         def amount = MemoryAmount.of(notation)
@@ -68,7 +63,6 @@ class MemoryAmountTest extends Specification {
         '23T'    | 23L * 1024 * 1024 * 1024 * 1024
     }
 
-    @Unroll
     def "invalid string notation #notation"() {
         when:
         MemoryAmount.of(notation)

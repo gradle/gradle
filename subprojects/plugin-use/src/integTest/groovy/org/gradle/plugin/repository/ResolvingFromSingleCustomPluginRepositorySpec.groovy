@@ -25,8 +25,6 @@ import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
-
 @LeaksFileHandles
 class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyResolutionTest {
     private static final String MAVEN = 'maven'
@@ -67,7 +65,6 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         repo.uri
     }
 
-    @Unroll
     def "can resolve plugin from #pathType #repoType repo"() {
         given:
         publishTestPlugin(repoType)
@@ -94,7 +91,6 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         MAVEN    | PathType.RELATIVE
     }
 
-    @Unroll
     def "can access classes from plugin from #repoType repo"() {
         given:
         publishTestPlugin(repoType)
@@ -120,7 +116,6 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         repoType << [IVY, MAVEN]
     }
 
-    @Unroll
     def "can apply plugin from #repoType repo to subprojects"() {
         given:
         publishTestPlugin(repoType)
@@ -147,7 +142,6 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         repoType << [IVY, MAVEN]
     }
 
-    @Unroll
     def "custom #repoType repo is not mentioned in plugin resolution errors if none is defined"() {
         given:
         publishTestPlugin(repoType)
@@ -167,7 +161,6 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         repoType << [IVY, MAVEN]
     }
 
-    @Unroll
     @Requires(TestPrecondition.ONLINE)
     def "Fails gracefully if a plugin is not found in #repoType repo"() {
         given:
@@ -198,7 +191,6 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         repoType << [IVY, MAVEN]
     }
 
-    @Unroll
     def "Works with subprojects and relative #repoType repo specification."() {
         given:
         publishTestPlugin(repoType)
