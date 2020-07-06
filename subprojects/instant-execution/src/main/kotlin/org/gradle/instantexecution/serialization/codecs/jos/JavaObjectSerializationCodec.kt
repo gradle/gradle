@@ -44,8 +44,26 @@ import java.lang.reflect.Modifier
 
 
 /**
- * Instant execution serialization for objects that support [Java serialization][java.io.Serializable]
- * via a custom `writeObject(ObjectOutputStream)` / `readObject(ObjectInputStream)` method pair.
+ * Allows objects that support the [Java Object Serialization](https://docs.oracle.com/javase/8/docs/platform/serialization/spec/serialTOC.html)
+ * protocol to be stored in the configuration cache.
+ *
+ * The implementation is currently limited to serializable classes that implement the [java.io.Serializable] interface
+ * and define one of the following combination of methods:
+ * - a `writeObject` method combined with a `readObject` method to control exactly which information to store;
+ * - a `writeObject` method with no corresponding `readObject`; `writeObject` must eventually call [ObjectOutputStream.defaultWriteObject];
+ * - a `readObject` method with no corresponding `writeObject`; `readObject` must eventually all [ObjectInputStream.defaultReadObject];
+ * - a `writeReplace` method to allow the class to nominate a replacement to be written;
+ * - a `readResolve` method to allow the class to nominate a replacement for the object just read;
+ *
+ * The following _Java Object Serialization_ features are **not** supported:
+ * - serializable classes implementing the [java.io.Externalizable] interface; objects of such classes are discarded by the configuration cache during serialization and reported as problems;
+ * - the `serialPersistentFields` member to explicitly declare which fields are serializable; the member, if present, is ignored; the configuration cache considers all but `transient` fields serializable;
+ * - the following methods of [ObjectOutputStream] are not supported and will throw [UnsupportedOperationException]:
+ *    - `reset()`, `writeFields()`, `putFields()`, `writeChars(String)`, `writeBytes(String)` and `writeUnshared(Any?)`.
+ * - the following methods of [ObjectInputStream] are not supported and will throw [UnsupportedOperationException]:
+ *    - `readLine()`, `readFully(ByteArray)`, `readFully(ByteArray, Int, Int)`, `readUnshared()`, `readFields()`, `transferTo(OutputStream)` and `readAllBytes()`.
+ * - validations registered via [ObjectInputStream.registerValidation] are simply ignored;
+ * - the `readObjectNoData` method, if present, is never invoked;
  */
 class JavaObjectSerializationCodec : EncodingProducer, Decoding {
 
