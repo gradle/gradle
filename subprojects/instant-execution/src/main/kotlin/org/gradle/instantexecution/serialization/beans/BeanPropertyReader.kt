@@ -51,7 +51,7 @@ class BeanPropertyReader(
         constructors.constructorForSerialization(beanType)
     }
 
-    override suspend fun ReadContext.newBean(generated: Boolean) = if (generated) {
+    override fun ReadContext.newBean(generated: Boolean): Any = if (generated) {
         val services = ownerService<ServiceRegistry>()
         instantiationScheme.withServices(services).deserializationInstantiator().newInstance(beanType, Any::class.java)
     } else {
