@@ -16,7 +16,6 @@
 package gradlebuild.distribution
 
 plugins {
-    id("gradlebuild.java-library")
+    id("gradlebuild.distribution-module")
     id("gradlebuild.distribution.implementation")
-    id("gradlebuild.api-parameter-names-index")
 }

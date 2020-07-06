@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,9 @@
  */
 package gradlebuild
 
+// Common configuration for everything that belongs to the Gradle distribution
 plugins {
-    java
-}
-
-val validateTaskName = "validatePlugins"
-val reportFileName = "task-properties/report.txt"
-
-tasks.register<ValidatePlugins>(validateTaskName) {
-    val main = project.sourceSets.main.get()
-    classes.from(main.output)
-    classpath.from(main.runtimeClasspath)
-    outputFile.set(project.reporting.baseDirectory.file(reportFileName))
-    enableStricterValidation.set(true)
+    id("gradlebuild.java-library")
+    id("gradlebuild.api-parameter-names-index")
+    id("gradlebuild.task-properties-validation")
 }

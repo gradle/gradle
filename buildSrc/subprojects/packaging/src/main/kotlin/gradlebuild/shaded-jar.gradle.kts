@@ -88,19 +88,15 @@ fun Project.registerTransforms(shadedJarExtension: ShadedJarExtension) {
     }
 }
 
-fun createConfigurationToShade(): Configuration {
-    val configurationName = "jarsToShade"
-    afterEvaluate {
-        dependencies.add(configurationName, project)
-    }
-
-    return configurations.create(configurationName) {
+fun createConfigurationToShade() = configurations.create("jarsToShade") {
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
         attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
         isCanBeResolved = true
         isCanBeConsumed = false
+        withDependencies {
+            this.add(project.dependencies.create(project))
+        }
     }
-}
 
 fun addShadedJarTask(shadedJarExtension: ShadedJarExtension): TaskProvider<ShadedJar> {
     val configurationToShade = shadedJarExtension.shadedConfiguration
