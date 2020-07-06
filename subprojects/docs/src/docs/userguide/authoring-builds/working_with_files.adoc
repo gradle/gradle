@@ -436,18 +436,18 @@ include::sample[dir="snippets/files/fileTrees/kotlin",files="build.gradle.kts[ta
 
 You can see more examples of supported patterns in the API docs for link:{javadocPath}/org/gradle/api/tasks/util/PatternFilterable.html[PatternFilterable]. Also, see the API documentation for `fileTree()` to see what types you can pass as the base directory.
 
-By default, `fileTree()` returns a `FileTree` instance that applies some default exclusion patterns for convenience — the same defaults as Ant in fact. For the complete default exclusion list, see http://ant.apache.org/manual/dirtasks.html#defaultexcludes[the Ant manual].
+By default, `fileTree()` returns a `FileTree` instance that applies some default exclude patterns for convenience — the same defaults as Ant in fact. For the complete default exclude list, see http://ant.apache.org/manual/dirtasks.html#defaultexcludes[the Ant manual].
 
 [[sec:change_ant_excludes]]
-If those default exclusions prove problematic, you can workaround the issue by changing Ant's default excludes in settings:
+If those default excludes prove problematic, you can workaround the issue by changing the default excludes in settings:
 
-.Changing Ant default exclusions in settings
+.Changing default excludes in settings
 ====
 include::sample[dir="snippets/files/copy/groovy",files="settings.gradle[tags=change-default-exclusions]"]
 include::sample[dir="snippets/files/copy/kotlin",files="settings.gradle.kts[tags=change-default-exclusions]"]
 ====
 
-Gradle does not support to change Ant's default excludes during task execution.
+Gradle does not support to change default excludes during task execution.
 
 You can do many of the same things with file trees that you can with file collections:
 
