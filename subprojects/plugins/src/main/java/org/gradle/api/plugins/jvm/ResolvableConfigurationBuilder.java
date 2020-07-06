@@ -39,6 +39,14 @@ public interface ResolvableConfigurationBuilder {
     ResolvableConfigurationBuilder usingDependencyBucket(String name);
 
     /**
+     * Also create the dependency bucket of the provided name and
+     * make the resolvable configuration extend from it.
+     * @param name the name of the bucket of dependencies
+     * @param description a description for this dependency bucket
+     */
+    ResolvableConfigurationBuilder usingDependencyBucket(String name, String description);
+
+    /**
      * Configures the resolution for runtime of java libraries
      */
     ResolvableConfigurationBuilder requiresJavaLibrariesRuntime();

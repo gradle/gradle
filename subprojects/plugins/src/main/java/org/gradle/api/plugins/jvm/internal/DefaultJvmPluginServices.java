@@ -17,6 +17,7 @@ package org.gradle.api.plugins.jvm.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
@@ -48,6 +49,7 @@ import org.gradle.api.plugins.jvm.JvmLanguageSourceDirectoryBuilder;
 import org.gradle.api.plugins.jvm.JvmVariantBuilder;
 import org.gradle.api.plugins.jvm.OutgoingElementsBuilder;
 import org.gradle.api.plugins.jvm.ResolvableConfigurationBuilder;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -64,6 +66,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultJvmPluginServices implements JvmPluginServices {
@@ -153,6 +156,15 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
             sourceSet);
         configuration.execute(builder);
         builder.build();
+    }
+
+    @Override
+    public Provider<Configuration> registerDependencyBucket(String name, String description) {
+        return project.getConfigurations().register(name, cnf -> {
+            cnf.setCanBeResolved(false);
+            cnf.setCanBeConsumed(false);
+            cnf.setDescription(description);
+        });
     }
 
     private void clearArtifacts(Configuration outgoingConfiguration) {
@@ -399,7 +411,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     public static class DefaultResolvableConfigurationBuilder extends AbstractConfigurationBuilder<DefaultResolvableConfigurationBuilder> implements ResolvableConfigurationBuilder {
         private Boolean libraryApi;
         private Boolean libraryRuntime;
-        private List<String> bucketNames;
+        private Map<String, String> buckets;
 
         @Inject
         public DefaultResolvableConfigurationBuilder(String name,
@@ -410,20 +422,29 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
         @Override
         public ResolvableConfigurationBuilder usingDependencyBucket(String name) {
-            if (bucketNames == null) {
-                bucketNames = Lists.newArrayList();
+            return usingDependencyBucket(name, null);
+        }
+
+        @Override
+        public ResolvableConfigurationBuilder usingDependencyBucket(String name, String description) {
+            if (buckets == null) {
+                buckets = Maps.newLinkedHashMap();
             }
-            bucketNames.add(name);
+            buckets.put(name, description);
             return this;
         }
 
         @Override
         Configuration build() {
-            if (bucketNames != null) {
-                for (String bucketName : bucketNames) {
+            if (buckets != null) {
+                for (Map.Entry<String, String> entry : buckets.entrySet()) {
+                    String bucketName = entry.getKey();
+                    String description = entry.getValue();
                     Configuration bucket = configurations.maybeCreate(bucketName);
                     if (description != null) {
-                        bucket.setDescription("Dependencies for " + description);
+                        bucket.setDescription(description);
+                    } else if (this.description != null) {
+                        bucket.setDescription("Dependencies for " + this.description);
                     }
                     bucket.setVisible(false);
                     bucket.setCanBeConsumed(false);

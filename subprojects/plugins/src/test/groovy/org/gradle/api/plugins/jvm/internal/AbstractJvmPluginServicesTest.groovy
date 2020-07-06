@@ -42,6 +42,7 @@ abstract class AbstractJvmPluginServicesTest extends Specification {
             findPlugin(_) >> null
         }
         getTasks() >> tasks
+        getConfigurations() >> configurations
     }
 
     @Subject
