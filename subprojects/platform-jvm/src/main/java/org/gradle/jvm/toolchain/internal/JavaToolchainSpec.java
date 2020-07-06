@@ -16,9 +16,10 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.Describable;
 import org.gradle.api.JavaVersion;
 
-public interface JavaToolchainSpec {
+public interface JavaToolchainSpec extends Describable {
 
     JavaVersion getLanguageVersion();
 

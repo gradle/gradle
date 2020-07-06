@@ -61,7 +61,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(NoToolchainAvailableException)
-        e.message == "No compatible toolchains found for request filter"
+        e.message == "No compatible toolchains found for request filter: {languageVersion=12}"
     }
 
     private JavaToolchainFactory newToolchainFactory() {

@@ -43,7 +43,7 @@ public class JavaToolchainQueryService {
             .map(this::asToolchain)
             .filter(matchingToolchain(filter))
             .findFirst()
-            .orElseThrow(() -> new NoToolchainAvailableException());
+            .orElseThrow(() -> new NoToolchainAvailableException(filter));
     }
 
     // TODO: to be replaced with AttributeContainer/AttributeMatcher

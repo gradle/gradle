@@ -32,4 +32,9 @@ public class DefaultToolchainSpec implements JavaToolchainSpec {
         return languageVersion;
     }
 
+    @Override
+    public String getDisplayName() {
+        return "{languageVersion=" + languageVersion + "}";
+    }
+
 }
