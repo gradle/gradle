@@ -86,7 +86,7 @@ abstract class AbstractConfigurationBuilder<T extends AbstractConfigurationBuild
         return Cast.uncheckedCast(this);
     }
 
-    public T attributes(Action<? super JvmEcosystemAttributesDetails> refiner) {
+    protected T attributes(Action<? super JvmEcosystemAttributesDetails> refiner) {
         this.attributesRefiner = refiner;
         return Cast.uncheckedCast(this);
     }

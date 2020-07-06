@@ -31,6 +31,7 @@ import java.util.List;
  *
  * @since 6.7
  */
+@SuppressWarnings("UnusedReturnValue")
 @Incubating
 public interface OutgoingElementsBuilder {
     /**
@@ -85,14 +86,14 @@ public interface OutgoingElementsBuilder {
      *
      * @param producer the producer
      */
-    OutgoingElementsBuilder addArtifact(Object producer);
+    OutgoingElementsBuilder artifact(Object producer);
 
     /**
      * Allows refining the attributes of this configuration in case the defaults are not
      * sufficient. The refiner will be called after the default attributes are set.
      * @param refiner the attributes refiner configuration
      */
-    OutgoingElementsBuilder attributes(Action<? super JvmEcosystemAttributesDetails> refiner);
+    OutgoingElementsBuilder providesAttributes(Action<? super JvmEcosystemAttributesDetails> refiner);
 
     /**
      * Allows declaring the capabilities this outgoing configuration provides

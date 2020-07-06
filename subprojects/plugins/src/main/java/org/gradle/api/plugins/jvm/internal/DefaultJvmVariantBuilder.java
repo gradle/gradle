@@ -202,7 +202,7 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
                 .withCapabilities(capabilities)
                 .withClassDirectoryVariant();
             if (jarTask != null) {
-                builder.addArtifact(jarTask);
+                builder.artifact(jarTask);
             }
         }) : null;
         if (exposeApi) {
@@ -216,7 +216,7 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
                 .extendsFrom(implementation, runtimeOnly)
                 .withCapabilities(capabilities);
             if (jarTask != null) {
-                builder.addArtifact(jarTask);
+                builder.artifact(jarTask);
             }
         });
         if (mainSourceSet) {

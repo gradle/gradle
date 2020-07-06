@@ -359,12 +359,17 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         }
 
         @Override
-        public OutgoingElementsBuilder addArtifact(Object producer) {
+        public OutgoingElementsBuilder artifact(Object producer) {
             if (artifactProducers == null) {
                 artifactProducers = Lists.newArrayList();
             }
             artifactProducers.add(producer);
             return this;
+        }
+
+        @Override
+        public OutgoingElementsBuilder providesAttributes(Action<? super JvmEcosystemAttributesDetails> refiner) {
+            return attributes(refiner);
         }
 
         @Override
@@ -499,6 +504,11 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
             this.libraryRuntime = null;
             this.libraryApi = true;
             return this;
+        }
+
+        @Override
+        public ResolvableConfigurationBuilder requiresAttributes(Action<? super JvmEcosystemAttributesDetails> refiner) {
+            return attributes(refiner);
         }
     }
 }

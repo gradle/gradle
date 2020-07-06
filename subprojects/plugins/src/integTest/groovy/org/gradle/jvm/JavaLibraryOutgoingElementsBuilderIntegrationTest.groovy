@@ -65,7 +65,7 @@ class JavaLibraryOutgoingElementsBuilderIntegrationTest extends AbstractIntegrat
                 } else {
                     providesApi()
                 }
-                addArtifact(shadowJar)
+                artifact(shadowJar)
                 if ($published) {
                     published()
                 }
@@ -189,7 +189,7 @@ Secondary variants (*)
                 attributes {
                     documentation('userguide')
                 }
-                addArtifact(userguide)
+                artifact(userguide)
             }
         """
 
