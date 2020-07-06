@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal
 
+
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.Directory
 import org.gradle.api.internal.file.FileFactory
@@ -47,11 +48,27 @@ class JavaToolchainQueryServiceTest extends Specification {
         JavaVersion.VERSION_12  | "/path/12"
     }
 
+    def "returns failing provider if no toolchain matches"() {
+        given:
+        def registry = createInstallationRegistry(["8", "9", "10"])
+        def toolchainFactory = newToolchainFactory()
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory)
+
+        when:
+        def filter = new DefaultToolchainSpec(JavaVersion.VERSION_12)
+        def toolchain = queryService.findMatchingToolchain(filter)
+        toolchain.get()
+
+        then:
+        def e = thrown(NoToolchainAvailableException)
+        e.message == "No compatible toolchains found for request filter"
+    }
+
     private JavaToolchainFactory newToolchainFactory() {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolchainFactory = new JavaToolchainFactory(Mock(FileFactory), Mock(JavaInstallationRegistry), Mock(JavaCompilerFactory)) {
             JavaToolchain newInstance(File javaHome) {
-                return new JavaToolchain(newInstallation(javaHome), compilerFactory);
+                return new JavaToolchain(newInstallation(javaHome), compilerFactory)
             }
         }
         toolchainFactory
@@ -66,16 +83,11 @@ class JavaToolchainQueryServiceTest extends Specification {
         installation
     }
 
-    def createInstallationRegistry() {
+    def createInstallationRegistry(List<String> installations = ["8", "9", "10", "11", "12"]) {
         def supplier = new InstallationSupplier() {
             @Override
             Set<InstallationLocation> get() {
-                return [
-                    new InstallationLocation(new File("/path/8"), "test"),
-                    new InstallationLocation(new File("/path/9"), "test"),
-                    new InstallationLocation(new File("/path/10"), "test"),
-                    new InstallationLocation(new File("/path/12"), "test")
-                ] as Set
+                installations.collect { new InstallationLocation(new File("/path/${it}"), "test") } as Set
             }
         }
         def registry = new SharedJavaInstallationRegistry([supplier]) {

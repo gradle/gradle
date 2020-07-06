@@ -16,10 +16,11 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.JavaVersion;
+import org.gradle.api.GradleException;
 
-public interface JavaToolchainSpec {
+public class NoToolchainAvailableException extends GradleException {
 
-    JavaVersion getLanguageVersion();
-
+    public NoToolchainAvailableException() {
+        super("No compatible toolchains found for request filter");
+    }
 }
