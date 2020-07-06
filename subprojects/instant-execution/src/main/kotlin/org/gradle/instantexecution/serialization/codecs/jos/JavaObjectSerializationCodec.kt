@@ -47,13 +47,31 @@ import java.lang.reflect.Modifier
  * Instant execution serialization for objects that support [Java serialization][java.io.Serializable]
  * via a custom `writeObject(ObjectOutputStream)` / `readObject(ObjectInputStream)` method pair.
  */
-class SerializableWriteObjectCodec : EncodingProducer, Decoding {
+class JavaObjectSerializationCodec : EncodingProducer, Decoding {
+
+    private
+    val readResolveMethod = MethodCache { isReadResolve() }
+
+    private
+    val readResolveEncoding = ReadResolveEncoding()
 
     override fun encodingForType(type: Class<*>): Encoding? =
         type.takeIf { it.isSerializable() }?.let { serializableType ->
-            writeObjectEncodingFor(serializableType)
+            writeReplaceEncodingFor(serializableType)
+                ?: readResolveEncodingFor(serializableType)
+                ?: writeObjectEncodingFor(serializableType)
                 ?: readObjectEncodingFor(serializableType)
         }
+
+    private
+    fun writeReplaceEncodingFor(serializableType: Class<*>) =
+        writeReplaceMethodOf(serializableType)
+            ?.let(::WriteReplaceEncoding)
+
+    private
+    fun readResolveEncodingFor(serializableType: Class<*>) =
+        readResolveMethodOf(serializableType)
+            ?.let { readResolveEncoding }
 
     private
     fun writeObjectEncodingFor(serializableType: Class<*>): Encoding? =
@@ -69,40 +87,51 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
 
     override suspend fun ReadContext.decode(): Any? =
         decodePreservingIdentity { id ->
-            val format = readEnum<Format>()
-            withImmediateMode {
-                val beanType = readClass()
-                withBeanTrace(beanType) {
-                    val beanStateReader = beanStateReaderFor(beanType)
-                    beanStateReader.run { newBeanWithId(false, id) }.also { bean ->
-                        when (format) {
-                            Format.ReadObject -> {
-                                invokeAll(
-                                    readObjectMethodHierarchyOf(beanType),
-                                    bean,
-                                    objectInputStreamAdapterFor(bean, beanStateReader)
-                                )
-                            }
-                            Format.WriteObject -> {
-                                if (readBoolean()) {
-                                    val objectInputStream = objectInputStreamAdapterFor(bean, beanStateReader)
-                                    val readObject = readObjectMethodHierarchyOf(beanType)
-                                    when {
-                                        readObject.isNotEmpty() -> invokeAll(readObject, bean, objectInputStream)
-                                        else -> objectInputStream.defaultReadObject()
+            when (val format = readEnum<Format>()) {
+                Format.Inline -> readResolve(decodeBean()).also { putIdentity(id, it) }
+                Format.Replaced -> readResolve(readNonNull()).also { putIdentity(id, it) }
+                else -> {
+                    withImmediateMode {
+                        val beanType = readClass()
+                        withBeanTrace(beanType) {
+                            val beanStateReader = beanStateReaderFor(beanType)
+                            beanStateReader.run { newBeanWithId(false, id) }.also { bean ->
+                                when (format) {
+                                    Format.ReadObject -> {
+                                        invokeAll(
+                                            readObjectMethodHierarchyOf(beanType),
+                                            bean,
+                                            objectInputStreamAdapterFor(bean, beanStateReader)
+                                        )
                                     }
-                                } else {
-                                    val brokenValue = readNonNull<BrokenValue>()
-                                    logPropertyProblem("deserialize", brokenValue.failure, NotYetImplementedJavaSerialization) {
-                                        failedJOS(bean)
+                                    Format.WriteObject -> {
+                                        if (readBoolean()) {
+                                            val objectInputStream = objectInputStreamAdapterFor(bean, beanStateReader)
+                                            val readObject = readObjectMethodHierarchyOf(beanType)
+                                            when {
+                                                readObject.isNotEmpty() -> invokeAll(readObject, bean, objectInputStream)
+                                                else -> objectInputStream.defaultReadObject()
+                                            }
+                                        } else {
+                                            val brokenValue = readNonNull<BrokenValue>()
+                                            logPropertyProblem("deserialize", brokenValue.failure, NotYetImplementedJavaSerialization) {
+                                                failedJOS(bean)
+                                            }
+                                        }
                                     }
+                                    else -> TODO("unreachable")
                                 }
                             }
                         }
                     }
                 }
+
             }
         }
+
+    private fun ReadContext.putIdentity(id: Int, it: Any) {
+        isolate.identities.putInstance(id, it)
+    }
 
     private
     fun invokeAll(readObject: List<Method>, bean: Any, objectInputStream: ObjectInputStreamAdapter) {
@@ -120,8 +149,8 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
 
-                val beanType = value.javaClass
                 writeEnum(Format.WriteObject)
+                val beanType = value.javaClass
                 writeClass(beanType)
 
                 runCatching {
@@ -165,8 +194,71 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
 
     enum class Format {
         ReadObject,
-        WriteObject
+        WriteObject,
+        Inline,
+        Replaced
     }
+
+    private
+    class WriteReplaceEncoding(private val writeReplace: Method) : EncodingProvider<Any> {
+        override suspend fun WriteContext.encode(value: Any) {
+            encodePreservingIdentityOf(value) {
+                val replacement = writeReplace.invoke(value)
+                if (replacement === value) {
+                    writeEnum(Format.Inline)
+                    encodeBean(value)
+                } else {
+                    writeEnum(Format.Replaced)
+                    write(replacement)
+                }
+            }
+        }
+    }
+
+    private
+    class ReadResolveEncoding : Encoding {
+        override suspend fun WriteContext.encode(value: Any) {
+            encodePreservingIdentityOf(value) {
+                writeEnum(Format.Inline)
+                encodeBean(value)
+            }
+        }
+    }
+
+    private
+    suspend fun ReadContext.decodeBean(): Any {
+        val beanType = readClass()
+        return withBeanTrace(beanType) {
+            beanStateReaderFor(beanType).run {
+                newBean(false).also {
+                    readStateOf(it)
+                }
+            }
+        }
+    }
+
+    private
+    fun readResolve(bean: Any): Any =
+        when (val readResolve = readResolveMethod.forObject(bean)) {
+            null -> bean
+            else -> readResolve.invoke(bean)
+        }
+
+    private
+    fun writeReplaceMethodOf(type: Class<*>) = type
+        .firstAccessibleMatchingMethodOrNull {
+            parameterCount == 0 && name == "writeReplace" && returnType == java.lang.Object::class.java
+        }
+
+    private
+    fun readResolveMethodOf(type: Class<*>) = type
+        .firstMatchingMethodOrNull {
+            isReadResolve()
+        }
+
+    private
+    fun Method.isReadResolve() =
+        parameterCount == 0 && name == "readResolve" && returnType == java.lang.Object::class.java
 
     private
     fun writeObjectMethodHierarchyOf(type: Class<*>) = type
@@ -209,3 +301,15 @@ fun StructuredMessage.Builder.failedJOS(value: Any) {
 internal
 fun unsupported(feature: String): Nothing =
     throw UnsupportedOperationException("'$feature' is not supported by the Gradle configuration cache.")
+
+
+internal
+suspend fun WriteContext.encodeBean(value: Any) {
+    val beanType = value.javaClass
+    withBeanTrace(beanType) {
+        writeClass(beanType)
+        beanStateWriterFor(beanType).run {
+            writeStateOf(value)
+        }
+    }
+}

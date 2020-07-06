@@ -42,8 +42,7 @@ import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.instantexecution.problems.DocumentationSection.NotYetImplementedJavaSerialization
-import org.gradle.instantexecution.serialization.codecs.jos.SerializableWriteObjectCodec
-import org.gradle.instantexecution.serialization.codecs.jos.SerializableWriteReplaceCodec
+import org.gradle.instantexecution.serialization.codecs.jos.JavaObjectSerializationCodec
 import org.gradle.instantexecution.serialization.codecs.transform.ChainedTransformationNodeCodec
 import org.gradle.instantexecution.serialization.codecs.transform.DefaultTransformerCodec
 import org.gradle.instantexecution.serialization.codecs.transform.InitialTransformationNodeCodec
@@ -195,8 +194,7 @@ class Codecs(
 
         // Java serialization integration
         bind(unsupported<Externalizable>(NotYetImplementedJavaSerialization))
-        bind(SerializableWriteReplaceCodec())
-        bind(SerializableWriteObjectCodec())
+        bind(JavaObjectSerializationCodec())
 
         // This protects the BeanCodec against StackOverflowErrors but
         // we can still get them for the other codecs, for instance,
