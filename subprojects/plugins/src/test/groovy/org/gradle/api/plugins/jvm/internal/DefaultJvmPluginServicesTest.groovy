@@ -197,17 +197,6 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         when:
         attrs = AttributeTestUtil.attributesFactory().mutable()
         services.configureAttributes(Stub(HasConfigurableAttributes) { getAttributes() >> attrs }) {
-            it.enforcedPlatform()
-        }
-
-        then:
-        attrs.asMap() == [
-            (CATEGORY_ATTRIBUTE): named(Category, ENFORCED_PLATFORM)
-        ]
-
-        when:
-        attrs = AttributeTestUtil.attributesFactory().mutable()
-        services.configureAttributes(Stub(HasConfigurableAttributes) { getAttributes() >> attrs }) {
             it.library('foo')
         }
 

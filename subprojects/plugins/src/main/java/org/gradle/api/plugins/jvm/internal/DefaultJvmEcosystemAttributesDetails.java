@@ -71,12 +71,6 @@ public class DefaultJvmEcosystemAttributesDetails implements JvmEcosystemAttribu
     }
 
     @Override
-    public JvmEcosystemAttributesDetails enforcedPlatform() {
-        attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.ENFORCED_PLATFORM));
-        return this;
-    }
-
-    @Override
     public JvmEcosystemAttributesDetails documentation(String docsType) {
         attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.DOCUMENTATION));
         attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(DocsType.class, docsType));

@@ -46,11 +46,6 @@ interface JvmEcosystemAttributesDetails {
     JvmEcosystemAttributesDetails platform();
 
     /**
-     * Provides or requires an enforced platform
-     */
-    JvmEcosystemAttributesDetails enforcedPlatform();
-
-    /**
      * Provides or requires documentation
      * @param docsType the documentation type (javadoc, sources, ...)
      */
