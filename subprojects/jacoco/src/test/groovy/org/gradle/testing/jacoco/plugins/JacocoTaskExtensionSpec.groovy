@@ -22,8 +22,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class JacocoTaskExtensionSpec extends Specification {
     JacocoAgentJar agent = Mock()
     JavaForkOptions task = Mock()
@@ -61,7 +59,6 @@ class JacocoTaskExtensionSpec extends Specification {
         extension.asJvmArg == "-javaagent:../fakeagent.jar=append=true,dumponexit=true,output=file"
     }
 
-    @Unroll
     def 'asJvmArg with all arguments assembles correct string. includeNoLocationClasses: #includeNoLocationClassesValue'() {
         given:
         agent.supportsJmx() >> true
