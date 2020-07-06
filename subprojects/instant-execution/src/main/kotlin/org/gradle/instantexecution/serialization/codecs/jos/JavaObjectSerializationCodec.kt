@@ -74,31 +74,32 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
 
     override fun encodingForType(type: Class<*>): Encoding? =
         type.takeIf { Serializable::class.java.isAssignableFrom(it) }?.let { serializableType ->
-            writeReplaceEncodingFor(serializableType)
-                ?: readResolveEncodingFor(serializableType)
-                ?: writeObjectEncodingFor(serializableType)
-                ?: readObjectEncodingFor(serializableType)
+            val candidates = serializableType.allMethods()
+            writeReplaceEncodingFor(candidates)
+                ?: readResolveEncodingFor(candidates)
+                ?: writeObjectEncodingFor(candidates)
+                ?: readObjectEncodingFor(candidates)
         }
 
     private
-    fun writeReplaceEncodingFor(serializableType: Class<*>) =
-        writeReplaceMethodOf(serializableType)
+    fun writeReplaceEncodingFor(candidates: List<Method>) =
+        writeReplaceMethodFrom(candidates)
             ?.let(::WriteReplaceEncoding)
 
     private
-    fun readResolveEncodingFor(serializableType: Class<*>) =
-        readResolveMethodOf(serializableType)
+    fun readResolveEncodingFor(candidates: List<Method>) =
+        readResolveMethodFrom(candidates)
             ?.let { ReadResolveEncoding }
 
     private
-    fun writeObjectEncodingFor(serializableType: Class<*>): Encoding? =
-        writeObjectMethodHierarchyOf(serializableType)
+    fun writeObjectEncodingFor(candidates: List<Method>): Encoding? =
+        writeObjectMethodHierarchyFrom(candidates)
             .takeIf { it.isNotEmpty() }
             ?.let(::WriteObjectEncoding)
 
     private
-    fun readObjectEncodingFor(serializableType: Class<*>): Encoding? =
-        readObjectMethodHierarchyOf(serializableType)
+    fun readObjectEncodingFor(candidates: List<Method>): Encoding? =
+        readObjectMethodHierarchyFrom(candidates)
             .takeIf { it.isNotEmpty() }
             ?.let { ReadObjectEncoding }
 
@@ -240,14 +241,14 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
         }
 
     private
-    fun readResolveMethodOf(type: Class<*>) = type
-        .firstMatchingMethodOrNull {
-            isReadResolve()
+    fun readResolveMethodFrom(candidates: List<Method>) =
+        candidates.find {
+            it.isReadResolve()
         }
 
     private
-    fun writeReplaceMethodOf(type: Class<*>) = type
-        .firstAccessibleMatchingMethodOrNull {
+    fun writeReplaceMethodFrom(candidates: List<Method>) =
+        candidates.firstAccessibleMatchingMethodOrNull {
             !isStatic(modifiers)
                 && parameterCount == 0
                 && returnType == java.lang.Object::class.java
@@ -262,7 +263,7 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
             && name == "readResolve"
 
     private
-    fun writeObjectMethodHierarchyOf(type: Class<*>) = type
+    fun writeObjectMethodHierarchyFrom(candidates: List<Method>) = candidates
         .serializationMethodHierarchy("writeObject", ObjectOutputStream::class.java)
 
     /**
@@ -271,26 +272,27 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
      */
     private
     fun readObjectMethodHierarchyForDecoding(type: Class<*>): List<Method> =
-        readObjectHierarchy.computeIfAbsent(type, ::readObjectMethodHierarchyOf)
+        readObjectHierarchy.computeIfAbsent(type) {
+            readObjectMethodHierarchyFrom(it.allMethods())
+        }
 
     private
-    fun readObjectMethodHierarchyOf(type: Class<*>): List<Method> = type
+    fun readObjectMethodHierarchyFrom(candidates: List<Method>): List<Method> = candidates
         .serializationMethodHierarchy("readObject", ObjectInputStream::class.java)
 
     private
-    fun Class<*>.serializationMethodHierarchy(methodName: String, parameterType: Class<*>): List<Method> =
-        allMethods()
-            .filter { method ->
-                method.run {
-                    isPrivate(modifiers)
-                        && parameterCount == 1
-                        && returnType == Void.TYPE
-                        && name == methodName
-                        && parameterTypes[0].isAssignableFrom(parameterType)
-                }
-            }.onEach { serializationMethod ->
-                serializationMethod.isAccessible = true
-            }.reversed()
+    fun Iterable<Method>.serializationMethodHierarchy(methodName: String, parameterType: Class<*>): List<Method> =
+        filter { method ->
+            method.run {
+                isPrivate(modifiers)
+                    && parameterCount == 1
+                    && returnType == Void.TYPE
+                    && name == methodName
+                    && parameterTypes[0].isAssignableFrom(parameterType)
+            }
+        }.onEach { serializationMethod ->
+            serializationMethod.isAccessible = true
+        }.reversed()
 }
 
 
