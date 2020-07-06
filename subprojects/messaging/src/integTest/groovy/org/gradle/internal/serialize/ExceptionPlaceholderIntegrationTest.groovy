@@ -19,8 +19,6 @@ package org.gradle.internal.serialize
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import spock.lang.Issue
-import spock.lang.Unroll
-
 import static org.hamcrest.CoreMatchers.containsString
 
 class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
@@ -123,7 +121,6 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9487")
-    @Unroll
     def "best effort to capture multi-cause exceptions using adhoc exception type (methodName=#methodName)"() {
         given:
         buildFile << """
