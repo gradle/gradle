@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
-import spock.lang.Unroll
-
 @UnsupportedWithInstantExecution
 class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
 
@@ -166,7 +164,6 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         scanPlugin.issuedNoPluginWarningCount(output, 1)
     }
 
-    @Unroll
     def "detects that the build scan plugin has been #description"() {
         given:
         scanPlugin.collectConfig = applied
