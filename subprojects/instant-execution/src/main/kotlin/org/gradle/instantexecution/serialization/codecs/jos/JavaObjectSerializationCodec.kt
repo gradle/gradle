@@ -69,6 +69,9 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
     private
     val readResolveMethod = MethodCache { isReadResolve() }
 
+    private
+    val readObjectHierarchy = HashMap<Class<*>, List<Method>>()
+
     override fun encodingForType(type: Class<*>): Encoding? =
         type.takeIf { Serializable::class.java.isAssignableFrom(it) }?.let { serializableType ->
             writeReplaceEncodingFor(serializableType)
@@ -105,7 +108,12 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
                 Format.WriteObject -> {
                     withImmediateMode {
                         decodingBeanWithId(id) { bean, beanType, beanStateReader ->
-                            decodeWriteObject(bean, beanType, beanStateReader)
+                            val objectInputStream = objectInputStreamAdapterFor(bean, beanStateReader)
+                            val readObject = readObjectMethodHierarchyForDecoding(beanType)
+                            when {
+                                readObject.isNotEmpty() -> invokeAll(readObject, bean, objectInputStream)
+                                else -> objectInputStream.defaultReadObject()
+                            }
                         }
                     }
                 }
@@ -113,7 +121,7 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
                     withImmediateMode {
                         decodingBeanWithId(id) { bean, beanType, beanStateReader ->
                             invokeAll(
-                                readObjectMethodHierarchyOf(beanType),
+                                readObjectMethodHierarchyForDecoding(beanType),
                                 bean,
                                 objectInputStreamAdapterFor(bean, beanStateReader)
                             )
@@ -139,17 +147,6 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
             }
         }
 
-
-    private
-    fun ReadContext.decodeWriteObject(bean: Any, beanType: Class<*>, beanStateReader: BeanStateReader) {
-        val objectInputStream = objectInputStreamAdapterFor(bean, beanStateReader)
-        val readObject = readObjectMethodHierarchyOf(beanType)
-        when {
-            readObject.isNotEmpty() -> invokeAll(readObject, bean, objectInputStream)
-            else -> objectInputStream.defaultReadObject()
-        }
-    }
-
     private
     fun ReadContext.objectInputStreamAdapterFor(bean: Any, beanStateReader: BeanStateReader): ObjectInputStreamAdapter =
         ObjectInputStreamAdapter(bean, beanStateReader, this)
@@ -158,9 +155,7 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
     class WriteObjectEncoding(private val writeObject: List<Method>) : EncodingProvider<Any> {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
-
                 val beanType = value.javaClass
-
                 runCatching {
                     // Exceptions during the recording phase can be safely recovered from
                     // because recording doesn't affect the WriteContext.
@@ -269,6 +264,14 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
     private
     fun writeObjectMethodHierarchyOf(type: Class<*>) = type
         .serializationMethodHierarchy("writeObject", ObjectOutputStream::class.java)
+
+    /**
+     * Caches the computed `readObject` method hierarchies during decoding because [ReadContext.decode] might
+     * be called multiple times for the same type.
+     */
+    private
+    fun readObjectMethodHierarchyForDecoding(type: Class<*>): List<Method> =
+        readObjectHierarchy.computeIfAbsent(type, ::readObjectMethodHierarchyOf)
 
     private
     fun readObjectMethodHierarchyOf(type: Class<*>): List<Method> = type
