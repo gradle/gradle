@@ -18,9 +18,6 @@ package gradlebuild.performance.generator
 
 
 import spock.lang.Specification
-import spock.lang.Unroll
-
-
 class DependencyGeneratorTest extends Specification {
     def "can deal with 0 projects"() {
         given:
@@ -48,7 +45,6 @@ class DependencyGeneratorTest extends Specification {
         depInfo.layerSizes.isEmpty()
     }
 
-    @Unroll
     def "can generate #num project dependencies"() {
         given:
         def dependencyGenerator = new DependencyGenerator()

@@ -18,11 +18,9 @@ package gradlebuild.performance
 
 import gradlebuild.performance.rerun.RepeatRerunStrategy
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class RepeatRerunStrategyTest extends Specification {
 
-    @Unroll
     def "reruns the scenario the given number of times (outcome: #outcome)"() {
         def rerunStrategy = new RepeatRerunStrategy(3)
         expect:
