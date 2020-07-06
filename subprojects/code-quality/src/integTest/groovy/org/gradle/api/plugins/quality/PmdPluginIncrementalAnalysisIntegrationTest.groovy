@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Matchers
 import org.hamcrest.CoreMatchers
 import org.junit.Assume
-import spock.lang.Unroll
-
 import static org.hamcrest.CoreMatchers.containsString
 
 class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
@@ -96,7 +94,6 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         file("build/reports/pmd/main.xml").assertContents(CoreMatchers.not(containsString('BadClass')))
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def 'incremental analysis invalidated when #reason'() {
         given:
