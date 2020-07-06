@@ -468,6 +468,98 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
         where:
         repo                | _
         new MavenFileRepo() | _
+        // Maven local does not support dynamic versions
+    }
+
+    @Unroll
+    def "invalidates configuration cache when dependency lock file changes"() {
+        server.start()
+        def v3 = remoteRepo.module("thing", "lib", "1.3").publish()
+
+        taskTypeLogsInputFileCollectionContent()
+        settingsFile << """
+            ${settingsConfig}
+        """
+        buildFile << """
+            configurations {
+                implementation {
+                    resolutionStrategy.activateDependencyLocking()
+                }
+            }
+
+            repositories { maven { url = '${remoteRepo.uri}' } }
+
+            dependencies {
+                implementation 'thing:lib:1.+'
+            }
+
+            task resolve1(type: ShowFilesTask) {
+                inFiles.from(configurations.implementation)
+            }
+        """
+
+        def fixture = newInstantExecutionFixture()
+
+        def moduleMetaData = remoteRepo.getModuleMetaData("thing", "lib")
+        moduleMetaData.expectGet()
+        v3.pom.expectGet()
+        v3.artifact.expectGet()
+
+        when:
+        instantRun("resolve1")
+
+        then:
+        fixture.assertStateStored()
+        outputContains("result = [lib-1.3.jar]")
+
+        when:
+        instantRun("resolve1")
+
+        then:
+        fixture.assertStateLoaded()
+        outputContains("result = [lib-1.3.jar]")
+
+        when:
+        def v4 = remoteRepo.module("thing", "lib", "1.4").publish()
+        moduleMetaData.expectHead()
+        moduleMetaData.expectGet()
+        v4.pom.expectGet()
+        v4.artifact.expectGet()
+
+        run("resolve1", "--write-locks", "--refresh-dependencies")
+
+        then:
+        noExceptionThrown()
+
+        when:
+        instantRun("resolve1")
+
+        then:
+        fixture.assertStateStored()
+        def filePath = lockFile.replace('/', File.separator)
+        outputContains("Calculating task graph as configuration cache cannot be reused because file '${filePath}' has changed.")
+        outputContains("result = [lib-1.4.jar]")
+
+        when:
+        instantRun("resolve1")
+
+        then:
+        fixture.assertStateLoaded()
+        outputContains("result = [lib-1.4.jar]")
+
+        when:
+        file(lockFile).delete()
+        instantRun("resolve1")
+
+        then:
+        fixture.assertStateStored()
+        outputContains("Calculating task graph as configuration cache cannot be reused because file '${filePath}' has changed.")
+        outputContains("result = [lib-1.4.jar]")
+
+        where:
+        lockFile                                          | settingsConfig
+        'gradle/dependency-locks/implementation.lockfile' | ''
+        'gradle.lockfile'                                 | "enableFeaturePreview('ONE_LOCKFILE_PER_PROJECT')"
     }
 
     abstract class FileRepoSetup {

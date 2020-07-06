@@ -23,8 +23,8 @@ import java.io.File;
 
 @EventScope(Scopes.Build)
 public interface FileResourceListener {
-    FileResourceListener NO_OP = file -> {
-    };
-
+    /**
+     * Called when a file system resource is accessed.
+     */
     void fileObserved(File file);
 }
