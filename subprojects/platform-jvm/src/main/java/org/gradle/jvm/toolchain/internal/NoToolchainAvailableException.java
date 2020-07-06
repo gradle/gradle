@@ -20,7 +20,7 @@ import org.gradle.api.GradleException;
 
 public class NoToolchainAvailableException extends GradleException {
 
-    public NoToolchainAvailableException() {
-        super("No compatible toolchains found for request filter");
+    public NoToolchainAvailableException(JavaToolchainSpec filter) {
+        super("No compatible toolchains found for request filter: " + filter.getDisplayName());
     }
 }
