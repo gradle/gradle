@@ -90,6 +90,7 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         watchedRootProjectDirectoriesFromPreviousBuild.retainAll(watchedHierarchies);
         knownRootProjectDirectoriesFromCurrentBuild.clear();
         determineAndUpdateWatchedHierarchies();
+        LOGGER.warn("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
     }
 
     @Override
