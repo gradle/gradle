@@ -18,8 +18,6 @@ package org.gradle.api.file
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
-
 class FilePropertyIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
     def "can attach a calculated directory to task property"() {
         buildFile << """
@@ -645,7 +643,6 @@ task useDirProviderApi {
         result.assertTasksNotSkipped()
     }
 
-    @Unroll
     def "can wire the output of a task as a dependency of another task via #fileMethod"() {
         buildFile << """
             class DirOutputTask extends DefaultTask {

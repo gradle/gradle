@@ -38,8 +38,6 @@ import org.junit.Assert
 import org.junit.ClassRule
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
-
 import java.util.concurrent.Callable
 
 class DefaultFileCollectionFactoryTest extends Specification {
@@ -236,7 +234,6 @@ class DefaultFileCollectionFactoryTest extends Specification {
         files == [tmpDir.file('abc')] as Set
     }
 
-    @Unroll
     def 'resolving collection source #description can return null'() {
         def collection = factory.resolving('test files', input)
 
@@ -284,7 +281,6 @@ class DefaultFileCollectionFactoryTest extends Specification {
         files == [tmpDir.file('abc')] as Set
     }
 
-    @Unroll
     def 'can use a #description to specify the contents of a resolving collection'() {
         def collection = factory.resolving('test files', input)
 
@@ -320,7 +316,6 @@ class DefaultFileCollectionFactoryTest extends Specification {
         tree.is source
     }
 
-    @Unroll
     def 'can use a #description to specify the single content of the collection'() {
         def collection = factory.resolving('test files', input)
 
