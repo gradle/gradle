@@ -40,7 +40,11 @@ public class JavaToolchainQueryService {
     }
 
     private JavaToolchain query(JavaToolchainSpec filter) {
-        return registry.listInstallations().stream().map(this::asToolchain).filter(matchingToolchain(filter)).findFirst().orElseThrow(() -> new InvalidUserDataException("No java installations defined"));
+        return registry.listInstallations().stream()
+            .map(this::asToolchain)
+            .filter(matchingToolchain(filter))
+            .findFirst()
+            .orElseThrow(() -> new InvalidUserDataException("No java installations defined"));
     }
 
     // TODO: to be replaced with AttributeContainer/AttributeMatcher

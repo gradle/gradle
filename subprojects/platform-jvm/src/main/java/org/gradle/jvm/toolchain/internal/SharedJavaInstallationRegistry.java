@@ -79,7 +79,7 @@ public class SharedJavaInstallationRegistry {
             .collect(Collectors.toSet());
     }
 
-    private boolean installationExists(InstallationLocation installationLocation) {
+    boolean installationExists(InstallationLocation installationLocation) {
         File file = installationLocation.getLocation();
         if (!file.exists()) {
             logger.warn("Directory {} used for java installations does not exist", installationLocation.getDisplayName());
