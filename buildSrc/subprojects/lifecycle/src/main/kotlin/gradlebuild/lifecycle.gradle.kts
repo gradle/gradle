@@ -129,9 +129,6 @@ fun determineTimeoutMillis() =
     }
 
 fun setupGlobalState() {
-    if (needsToIgnoreIncomingBuildReceipt()) {
-        globalProperty("ignoreIncomingBuildReceipt" to true)
-    }
     if (needsToUseTestVersionsPartial()) {
         globalProperty("testVersions" to "partial")
     }
@@ -146,8 +143,6 @@ fun sharedDependencyAndQualityConfigs() {
     apply(from = "gradle/test-dependencies.gradle")
     apply(from = "gradle/remove-teamcity-temp-property.gradle") // https://github.com/gradle/gradle-private/issues/2463
 }
-
-fun needsToIgnoreIncomingBuildReceipt() = isRequestedTask(compileAllBuild)
 
 fun needsToUseTestVersionsPartial() = isRequestedTask(platformTest)
 
