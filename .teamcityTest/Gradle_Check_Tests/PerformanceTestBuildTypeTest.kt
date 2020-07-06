@@ -73,8 +73,6 @@ class PerformanceTestBuildTypeTest {
                 "-s",
                 "--daemon",
                 "",
-                "-I",
-                "\"%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts\"",
                 "-Dorg.gradle.internal.tasks.createops",
                 "-Porg.gradle.performance.buildTypeId=Gradle_Check_IndividualPerformanceScenarioWorkersLinux",
                 "-Porg.gradle.performance.workerTestTaskName=fullPerformanceTest",
