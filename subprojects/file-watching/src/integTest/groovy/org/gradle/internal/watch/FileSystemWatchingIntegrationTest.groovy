@@ -34,11 +34,8 @@ import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
-
 // The whole test makes no sense if there isn't a daemon to retain the state.
 @IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.watchFs })
-@Unroll
 class FileSystemWatchingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, FileSystemWatchingFixture {
     private static final String INCUBATING_MESSAGE = "Watching the file system is an incubating feature"
     private static final String UNABLE_TO_WATCH_MESSAGE = "Unable to watch the file system for changes."

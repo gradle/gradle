@@ -24,9 +24,6 @@ import org.gradle.internal.snapshot.PathUtil
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.watch.registry.impl.SnapshotWatchedDirectoryFinder
 import spock.lang.Specification
-import spock.lang.Unroll
-
-@Unroll
 class SnapshotWatchedDirectoryFinderTest extends Specification {
 
     def "resolves directories to watch from snapshot"() {
