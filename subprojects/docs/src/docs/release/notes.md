@@ -120,15 +120,6 @@ Similarly, dependencies with attributes (typically "platform" dependencies) or c
 Gradle now supports substitution of dependencies with classifiers, attributes or capabilities.
 Gradle's dependency substitution API has been enriched to cover those cases.
 
-```kotlin
-configurations.all {
-    resolutionStrategy.dependencySubstitution {
-        substitute(platform(module("com.google.guava:guava:28.2-jre")))
-            .using(module("com.google.guava:guava:28.2-jre"))
-    }
-}
-```
-
 See the documentation on [variant-aware substitution](userguide/resolution_rules.html#sec:variant_aware_substitutions) for details.
 
 ## `JavaCompile` supports the `--release` compiler option
