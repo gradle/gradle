@@ -22,18 +22,7 @@ plugins {
 val validateTaskName = "validatePlugins"
 val reportFileName = "task-properties/report.txt"
 
-val validateTask = tasks.register<ValidatePlugins>(validateTaskName)
-validateTask {
-    configureValidateTask()
-}
-tasks.named("codeQuality") {
-    dependsOn(validateTask)
-}
-tasks.withType<Test>().configureEach {
-    shouldRunAfter(validateTask)
-}
-
-fun ValidatePlugins.configureValidateTask() {
+tasks.register<ValidatePlugins>(validateTaskName) {
     val main = project.sourceSets.main.get()
     classes.from(main.output)
     classpath.from(main.runtimeClasspath)

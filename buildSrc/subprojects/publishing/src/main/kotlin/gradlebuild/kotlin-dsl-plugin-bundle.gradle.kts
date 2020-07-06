@@ -27,7 +27,7 @@ plugins {
 
 extensions.create<PluginPublishExtension>("pluginPublish", gradlePlugin, pluginBundle)
 
-tasks.withType<ValidatePlugins>() {
+tasks.validatePlugins.configure {
     enableStricterValidation.set(true)
 }
 

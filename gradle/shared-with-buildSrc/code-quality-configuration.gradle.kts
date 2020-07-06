@@ -82,7 +82,7 @@ fun Project.configureCodenarc(codeQualityConfigDir: File) {
 
 
 fun Project.configureCodeQualityTasks() {
-    val codeQualityTasks = tasks.matching { it is CodeNarc || it is Checkstyle || it.name == "classycle" }
+    val codeQualityTasks = tasks.matching { it is CodeNarc || it is Checkstyle || it.name == "classycle" || it is ValidatePlugins }
     tasks.register("codeQuality").configure {
         dependsOn(codeQualityTasks)
     }
