@@ -337,7 +337,7 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
 
         then:
         fixture.assertStateStored()
-        outputContains("Calculating task graph as configuration cache cannot be reused because file '${repo.pomLocation}' has changed.")
+        outputContains("Calculating task graph as configuration cache cannot be reused because file '${repo.metadataLocation}' has changed.")
         outputContains("result = [lib1-2.1.jar]")
 
         when:
@@ -350,6 +350,7 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
         where:
         repo                 | _
         new MavenFileRepo()  | _
+        new IvyFileRepo()    | _
         new MavenLocalRepo() | _
     }
 
@@ -396,7 +397,7 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
 
         then:
         fixture.assertStateStored()
-        outputContains("Calculating task graph as configuration cache cannot be reused because file '${repo.pomLocation}' has changed.")
+        outputContains("Calculating task graph as configuration cache cannot be reused because file '${repo.metadataLocation}' has changed.")
         outputContains("result = [lib1-2.1.jar, lib2-4.0.jar]")
 
         when:
@@ -409,6 +410,7 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
         where:
         repo                 | _
         new MavenFileRepo()  | _
+        new IvyFileRepo()    | _
         new MavenLocalRepo() | _
     }
 
@@ -468,6 +470,7 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
         where:
         repo                | _
         new MavenFileRepo() | _
+        // TODO - Ivy file repos + dynamic versions ignores changes
         // Maven local does not support dynamic versions
     }
 
@@ -571,7 +574,7 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
             return 'maven-repo/thing/lib1/maven-metadata.xml'.replace('/', File.separator)
         }
 
-        abstract String getPomLocation()
+        abstract String getMetadataLocation()
 
         abstract void setup(AbstractIntegrationSpec owner)
 
@@ -594,7 +597,7 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
         }
 
         @Override
-        String getPomLocation() {
+        String getMetadataLocation() {
             return 'maven-repo/thing/lib1/2.1/lib1-2.1.pom'.replace('/', File.separator)
         }
 
@@ -636,6 +639,60 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
         }
     }
 
+    class IvyFileRepo extends FileRepoSetup {
+        @Override
+        String getDisplayName() {
+            return "Ivy file repository"
+        }
+
+        @Override
+        String getProblemDisplayName() {
+            return 'ivy'
+        }
+
+        @Override
+        String getMetadataLocation() {
+            return 'ivy-repo/thing/lib1/2.1/ivy-2.1.xml'.replace('/', File.separator)
+        }
+
+        @Override
+        void setup(AbstractIntegrationSpec owner) {
+            owner.with {
+                ivyRepo.module("thing", "lib1", "2.1").publish()
+                buildFile << """
+                    repositories {
+                        ivy {
+                            url = '${ivyRepo.uri}'
+                        }
+                    }
+                """
+            }
+        }
+
+        @Override
+        void publishWithDifferentArtifactContent(AbstractIntegrationSpec owner) {
+            owner.with {
+                ivyRepo.module("thing", "lib1", "2.1").publishWithChangedContent()
+            }
+        }
+
+        @Override
+        void publishWithDifferentDependencies(AbstractIntegrationSpec owner) {
+            owner.with {
+                def dep = ivyRepo.module("thing", "lib2", "4.0").publish()
+                ivyRepo.module("thing", "lib1", "2.1").dependsOn(dep).publish()
+            }
+        }
+
+        @Override
+        void publishNewVersion(AbstractIntegrationSpec owner) {
+            owner.with {
+                def dep = ivyRepo.module("thing", "lib2", "4.0").publish()
+                ivyRepo.module("thing", "lib1", "2.5").dependsOn(dep).publish()
+            }
+        }
+    }
+
     class MavenLocalRepo extends FileRepoSetup {
         @Override
         String getDisplayName() {
@@ -648,7 +705,7 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
         }
 
         @Override
-        String getPomLocation() {
+        String getMetadataLocation() {
             return 'maven_home/.m2/repository/thing/lib1/2.1/lib1-2.1.pom'.replace('/', File.separator)
         }
 
