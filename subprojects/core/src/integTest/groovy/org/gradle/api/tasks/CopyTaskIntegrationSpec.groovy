@@ -24,8 +24,6 @@ import org.gradle.util.Matchers
 import org.gradle.util.ToBeImplemented
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
-
 class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
     @Rule
@@ -1946,7 +1944,6 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3418")
-    @Unroll
     def "can copy files with #filePath in path when excluding #pattern"() {
         given:
         file("test/${filePath}/a.txt").touch()
@@ -2104,7 +2101,6 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":copy")
     }
 
-    @Unroll
     def "changing spec-level property #property makes task out-of-date"() {
         given:
         buildScript """
@@ -2148,7 +2144,6 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         "filteringCharset"   | "'iso8859-1'"                | "'utf-8'"
     }
 
-    @Unroll
     def "null action is forbidden for #method"() {
         given:
         buildScript """
@@ -2167,7 +2162,6 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         method << ["from", "into"]
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(
         because = "eachFile, expand, filter and rename",
         skip = ToBeFixedForInstantExecution.Skip.FLAKY

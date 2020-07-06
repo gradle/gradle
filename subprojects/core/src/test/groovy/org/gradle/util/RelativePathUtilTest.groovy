@@ -17,11 +17,8 @@
 package org.gradle.util
 
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class RelativePathUtilTest extends Specification {
 
-    @Unroll
     def "relative path from #fromPath to #toPath is #path"() {
         when:
         def from = new File(fromPath)

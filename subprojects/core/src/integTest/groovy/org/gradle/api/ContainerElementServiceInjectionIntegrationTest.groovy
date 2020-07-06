@@ -25,9 +25,6 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.execution.WorkExecutor
 import org.gradle.process.ExecOperations
-import spock.lang.Unroll
-
-
 class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
     // Document current behaviour
     def "container element can receive services through constructor and is not annotated with @Inject"() {
@@ -138,7 +135,6 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
         outputContains("got it")
     }
 
-    @Unroll
     def "service of type #serviceType is available for injection into project container element"() {
         buildFile << """
             class Bean {

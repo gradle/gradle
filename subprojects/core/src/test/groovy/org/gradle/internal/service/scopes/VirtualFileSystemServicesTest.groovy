@@ -27,9 +27,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.vfs.RoutingVirtualFileSystem
 import org.gradle.internal.vfs.VirtualFileSystem
 import spock.lang.Specification
-import spock.lang.Unroll
-
-@Unroll
 class VirtualFileSystemServicesTest extends Specification {
     def globalCacheLocations = Mock(GlobalCacheLocations)
     def fileHasher = Mock(FileHasher)

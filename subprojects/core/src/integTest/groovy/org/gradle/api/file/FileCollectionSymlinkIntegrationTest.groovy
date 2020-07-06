@@ -23,13 +23,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import spock.lang.Unroll
-
 import static org.gradle.util.TextUtil.escapeString
 import static org.gradle.work.ChangeType.ADDED
 import static org.gradle.work.ChangeType.MODIFIED
 
-@Unroll
 @Requires(TestPrecondition.SYMLINKS)
 class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 

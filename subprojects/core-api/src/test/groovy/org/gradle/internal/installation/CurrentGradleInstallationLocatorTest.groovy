@@ -24,8 +24,6 @@ import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.ClassNode
 import spock.lang.Specification
-import spock.lang.Unroll
-
 @LeaksFileHandles
 // This test keeps the jars locked on Windows JDK 1.7
 class CurrentGradleInstallationLocatorTest extends Specification {
@@ -45,7 +43,6 @@ class CurrentGradleInstallationLocatorTest extends Specification {
         CompositeStoppable.stoppable(loaders).stop()
     }
 
-    @Unroll
     def "determines Gradle home by class bundled in JAR located in valid distribution subdirectory '#jarDirectory'"() {
         given:
         def jar = distDir.file("$jarDirectory/mydep-1.2.jar")
@@ -63,7 +60,6 @@ class CurrentGradleInstallationLocatorTest extends Specification {
         jarDirectory << ['lib', 'lib/plugins']
     }
 
-    @Unroll
     def "determines Gradle home by class bundled in JAR located in invalid distribution directory '#jarDirectory'"() {
         given:
         TestFile jar = distDir.file("$jarDirectory/mydep-1.2.jar")

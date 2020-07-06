@@ -18,8 +18,6 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
-import spock.lang.Unroll
-
 class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
 
     def "produces reasonable error message when taskGraph.whenReady closure fails"() {
@@ -45,7 +43,7 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
     def action = {
             throw new RuntimeException('broken')
     } as Action
-    gradle.taskGraph.whenReady(action) 
+    gradle.taskGraph.whenReady(action)
     task a
 """
 
@@ -64,7 +62,7 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
     def listener = {
             throw new RuntimeException('broken')
     } as TaskExecutionGraphListener
-    gradle.taskGraph.addTaskExecutionGraphListener(listener) 
+    gradle.taskGraph.addTaskExecutionGraphListener(listener)
     task a
 """
 
@@ -95,7 +93,6 @@ allprojects {
                 .assertHasLineNumber(3)
     }
 
-    @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = ".*Gradle.buildFinished.*")
     def "produces reasonable error when Gradle.#method closure fails"() {
         settingsFile << """
@@ -121,7 +118,6 @@ gradle.rootProject { task a }
         "buildFinished"     | _
     }
 
-    @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = ".*Gradle.buildFinished.*")
     def "produces reasonable error when Gradle.#method action fails"() {
         settingsFile << """
@@ -148,7 +144,6 @@ gradle.rootProject { task a }
         "buildFinished"     | _
     }
 
-    @Unroll
     @UnsupportedWithInstantExecution
     def "produces reasonable error when BuildListener.#method method fails"() {
         settingsFile << """

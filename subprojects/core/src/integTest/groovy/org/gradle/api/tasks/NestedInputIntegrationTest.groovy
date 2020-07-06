@@ -26,11 +26,8 @@ import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
-import spock.lang.Unroll
-
 class NestedInputIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
-    @Unroll
     def "nested #type.simpleName input adds a task dependency"() {
         buildFile << """
             class TaskWithNestedProperty extends DefaultTask  {
@@ -151,7 +148,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         executedAndNotSkipped(':consumer')
     }
 
-    @Unroll
     @UnsupportedWithInstantExecution(because = "task references another task")
     def "re-configuring #change in nested bean during execution time is detected"() {
         def fixture = new NestedBeanTestFixture()
@@ -190,7 +186,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         change << ['inputProperty', 'inputFile', 'outputFile']
     }
 
-    @Unroll
     @UnsupportedWithInstantExecution(because = "task references another task")
     def "re-configuring a nested bean from #from to #to during execution time is detected"() {
         def fixture = new NestedBeanTestFixture()
@@ -231,7 +226,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         'null'      | 'firstBean'
     }
 
-    @Unroll
     def "re-configuring #change in nested bean after the task started executing has no effect"() {
         def fixture = new NestedBeanTestFixture()
         fixture.prepareInputFiles()
@@ -263,7 +257,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         change << ['inputProperty', 'inputFile', 'outputFile']
     }
 
-    @Unroll
     def "re-configuring a nested bean from #from to #to after the task started executing has no effect"() {
         def fixture = new NestedBeanTestFixture()
         fixture.prepareInputFiles()

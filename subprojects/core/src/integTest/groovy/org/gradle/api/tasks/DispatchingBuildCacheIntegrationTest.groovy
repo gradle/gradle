@@ -19,9 +19,6 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Unroll
-
-@Unroll
 class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
     private TestBuildCache localCache = new TestBuildCache(file('local-cache'))
@@ -35,7 +32,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         inputFile.text = 'This is the input'
         cacheOriginInputFile.text = 'And this is not'
 
-        buildScript """           
+        buildScript """
             apply plugin: 'base'
 
             import org.gradle.api.*
@@ -46,12 +43,12 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
                 outputFile = file('build/output.txt')
                 cacheOrigin = file('cache-origin.txt')
             }
-            
+
             @CacheableTask
             class MyTask extends DefaultTask {
 
                 @OutputFile File outputFile
-                
+
                 @InputFile
                 @PathSensitive(PathSensitivity.NONE)
                 File inputFile
@@ -144,14 +141,14 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
     def 'push to the local cache by default'() {
         settingsFile.text = """
-            buildCache {        
+            buildCache {
                 local {
-                    directory = '${localCache.cacheDir.toURI()}'                    
+                    directory = '${localCache.cacheDir.toURI()}'
                 }
                 remote(DirectoryBuildCache) {
                     directory = '${remoteCache.cacheDir.toURI()}'
                 }
-            }            
+            }
         """.stripIndent()
 
         when:

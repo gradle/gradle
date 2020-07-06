@@ -38,8 +38,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
-
 import javax.annotation.Nullable
 import java.util.concurrent.Callable
 
@@ -303,7 +301,6 @@ class DefaultTaskInputsTest extends Specification {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4085")
-    @Unroll
     def "can register more unnamed properties with method #method after properties have been queried"() {
         inputs."$method"("input-1")
         // Trigger naming properties

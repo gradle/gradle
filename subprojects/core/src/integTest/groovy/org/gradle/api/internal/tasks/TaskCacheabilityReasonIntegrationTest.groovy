@@ -22,8 +22,6 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import spock.lang.Unroll
-
 import javax.annotation.Nullable
 
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.BUILD_CACHE_DISABLED
@@ -56,7 +54,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
 
             @CacheableTask
             class Cacheable extends NotCacheable {}
-            
+
             class NoOutputs extends DefaultTask {
                 @TaskAction
                 void generate() {}
@@ -114,7 +112,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
                 @TaskAction
                 void generate() {}
             }
-            
+
             task noOutputs(type: CacheableNoOutputs) {}
         """
         when:
@@ -133,7 +131,6 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task"
     }
 
-    @Unroll
     def "cacheability for a task with no actions is UNKNOWN (cacheable: #cacheable)"() {
         buildFile << """
             class NoActions extends DefaultTask {}
@@ -151,7 +148,6 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         cacheable << [true, false]
     }
 
-    @Unroll
     def "cacheability for a task with @#annotation file tree outputs is NON_CACHEABLE_TREE_OUTPUT"() {
         buildFile << """
             import javax.inject.Inject
@@ -170,7 +166,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
                     layout.buildDirectory.file("some-dir/output.txt").get().asFile.text = "output"
                 }
             }
-            
+
             task pluralOutputs(type: PluralOutputs)
         """
         when:
@@ -240,7 +236,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
                 @SkipWhenEmpty
                 FileCollection empty = project.layout.files()
             }
-            
+
             task cacheable(type: NoSources)
         """
         when:

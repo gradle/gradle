@@ -36,8 +36,6 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import spock.lang.Unroll
-
 class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     FileSystem fs = NativeServicesTestFixture.instance.get(FileSystem)
@@ -148,7 +146,6 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         lockedProjects.empty
     }
 
-    @Unroll
     def "two tasks with #relation relationship are not executed in parallel"() {
         given:
         Task a = task("a", type: Async)

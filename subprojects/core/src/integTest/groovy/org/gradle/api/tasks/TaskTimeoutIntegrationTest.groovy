@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.workers.IsolationMode
-import spock.lang.Unroll
-
 class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
     private static final TIMEOUT = 500
@@ -159,7 +157,6 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
     @LeaksFileHandles // TODO https://github.com/gradle/gradle-private/issues/1532
     @IntegrationTestTimeout(60)
-    @Unroll
     def "timeout stops long running work items with #isolationMode isolation"() {
         given:
         if (isolationMode == IsolationMode.PROCESS) {

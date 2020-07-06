@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestBuildCache
 import spock.lang.Issue
-import spock.lang.Unroll
-
 /**
  * Tests build cache configuration within composite builds and buildSrc.
  */
@@ -36,7 +34,6 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         PROGRAMMATIC
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = "composite builds & GradleBuild")
     def "can configure with settings.gradle - enabled by #by"() {
         def enablingCode = by == EnabledBy.PROGRAMMATIC ? """\ngradle.startParameter.buildCacheEnabled = true\n""" : ""
@@ -77,14 +74,14 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
                 dir = "../i3"
                 tasks = ["customTask"]
             }
-            
+
             customTask.dependsOn gradleBuild
         """
         file("i3/settings.gradle") << i3Cache.localCacheConfiguration() << enablingCode
         file("i3/build.gradle") << customTaskCode("i3")
 
         buildFile << """
-            task all { dependsOn gradle.includedBuilds*.task(':customTask'), tasks.customTask } 
+            task all { dependsOn gradle.includedBuilds*.task(':customTask'), tasks.customTask }
         """
 
         expect:
@@ -135,7 +132,7 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
                     gradle.startParameter.setTaskNames(['clean', 'build'])
                     allprojects {
                         apply plugin: 'java-library'
-                        
+
                         tasks.withType(Jar) {
                             doFirst {
                                 // this makes it more probable that tasks from the included build finish after the root build
@@ -153,7 +150,7 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         settingsFile << localCache.localCacheConfiguration() << """
             includeBuild "included"
         """
-        buildFile << """             
+        buildFile << """
             apply plugin: 'java-library'
             // This dependency is needed to actually trigger the included build at all
             processResources.dependsOn gradle.includedBuild('included').task(':processResources')

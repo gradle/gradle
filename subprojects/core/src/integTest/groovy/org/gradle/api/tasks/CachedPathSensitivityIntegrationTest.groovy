@@ -17,9 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import spock.lang.Unroll
-
-@Unroll
 class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegrationSpec implements DirectoryBuildCacheFixture {
     def setup() {
         buildFile << """

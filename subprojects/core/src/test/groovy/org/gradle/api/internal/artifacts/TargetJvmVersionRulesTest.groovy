@@ -27,8 +27,6 @@ import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class TargetJvmVersionRulesTest extends Specification {
     private CompatibilityRule<Object> compatibilityRules
     private DisambiguationRule<Object> disambiguationRules
@@ -40,7 +38,6 @@ class TargetJvmVersionRulesTest extends Specification {
         disambiguationRules = schema.disambiguationRules(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
     }
 
-    @Unroll
     def "compatibility consumer=#consumer producer=#producer compatible=#compatible"() {
         CompatibilityCheckResult details = Mock(CompatibilityCheckResult)
 

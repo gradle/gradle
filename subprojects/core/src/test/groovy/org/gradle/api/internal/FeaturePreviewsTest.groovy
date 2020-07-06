@@ -18,8 +18,6 @@ package org.gradle.api.internal
 
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
-
 class FeaturePreviewsTest extends Specification {
 
     @Subject
@@ -32,7 +30,6 @@ class FeaturePreviewsTest extends Specification {
         feature << FeaturePreviews.Feature.values()
     }
 
-    @Unroll
     def "can enable #feature feature"() {
         when:
         previews.enableFeature(feature)
@@ -42,7 +39,6 @@ class FeaturePreviewsTest extends Specification {
         feature << FeaturePreviewsActivationFixture.activeFeatures()
     }
 
-    @Unroll
     def "ignores activation of inactive #feature feature"() {
         when:
         previews.enableFeature(feature)

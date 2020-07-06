@@ -18,8 +18,6 @@ package org.gradle.caching.configuration.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
-import spock.lang.Unroll
-
 class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     String cacheDir = temporaryFolder.file("cache-dir").createDir().absoluteFile.toURI().toString()
     def localBuildCache = new TestBuildCache(new File(new URI(cacheDir).path))
@@ -292,7 +290,6 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         failureHasCause("Using a local build cache type other than DirectoryBuildCache is not allowed")
     }
 
-    @Unroll
     def "shows deprecation warning when specifying local cache type using #method"() {
         settingsFile << """
             buildCache {

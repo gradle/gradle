@@ -21,8 +21,6 @@ import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
-
 import static org.gradle.api.attributes.Bundling.EMBEDDED
 import static org.gradle.api.attributes.Bundling.EXTERNAL
 import static org.gradle.api.attributes.Bundling.SHADOWED
@@ -31,7 +29,6 @@ class BundlingRulesTest extends Specification {
     private JavaEcosystemSupport.BundlingCompatibilityRules compatibilityRules = new JavaEcosystemSupport.BundlingCompatibilityRules()
     private JavaEcosystemSupport.BundlingDisambiguationRules disambiguationRules = new JavaEcosystemSupport.BundlingDisambiguationRules()
 
-    @Unroll
     def "compatibility consumer=#consumer producer=#producer compatible=#compatible"() {
         CompatibilityCheckDetails details = Mock(CompatibilityCheckDetails)
 
@@ -68,7 +65,6 @@ class BundlingRulesTest extends Specification {
 
     }
 
-    @Unroll
     def "disamgiguates when consumer=#consumer and candidates=#candidates chooses=#expected"() {
         MultipleCandidatesDetails details = Mock(MultipleCandidatesDetails)
 

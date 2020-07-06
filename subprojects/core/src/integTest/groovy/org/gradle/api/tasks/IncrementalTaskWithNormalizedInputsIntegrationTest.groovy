@@ -21,9 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
 import org.gradle.work.InputChanges
 import spock.lang.Issue
-import spock.lang.Unroll
-
-@Unroll
 class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String INCREMENTAL_TASK_NAME = "incrementalTask"
@@ -112,11 +109,11 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
                 @Optional
                 @OutputFile
                 abstract RegularFileProperty getOutputFile()
-            
+
                 @TaskAction
                 def action(${incrementalChangesType.name} changes) {}
             }
-            
+
             task ${INCREMENTAL_TASK_NAME}(type: IncrementalTask) {}
         """
     }

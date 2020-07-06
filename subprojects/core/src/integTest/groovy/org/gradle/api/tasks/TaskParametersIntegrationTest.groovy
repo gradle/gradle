@@ -27,8 +27,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.Actions
 import spock.lang.Issue
-import spock.lang.Unroll
-
 class TaskParametersIntegrationTest extends AbstractIntegrationSpec {
 
     def "reports which properties are not serializable"() {
@@ -324,7 +322,6 @@ task someTask {
         skipped(":someTask")
     }
 
-    @Unroll
     def "task is out of date when property type changes #oldValue -> #newValue"() {
         buildFile << """
 task someTask {
@@ -373,7 +370,6 @@ task someTask {
         "123"                | "123 as short"
     }
 
-    @Unroll
     def "task can use input property of type #type"() {
         file("buildSrc/src/main/java/SomeTask.java") << """
 import org.gradle.api.DefaultTask;
@@ -392,7 +388,7 @@ public class SomeTask extends DefaultTask {
     File d;
     @OutputDirectory
     public File getD() { return d; }
-    
+
     @TaskAction
     public void go() { }
 }
@@ -486,7 +482,6 @@ task someTask(type: SomeTask) {
         succeeds "test"
     }
 
-    @Unroll
     def "null input files registered via TaskInputs.#method are not allowed"() {
         buildFile << """
             task test {
@@ -503,7 +498,6 @@ task someTask(type: SomeTask) {
         method << ["file", "files", "dir"]
     }
 
-    @Unroll
     def "optional null input files registered via TaskInputs.#method are allowed"() {
         buildFile << """
             task test {
@@ -518,7 +512,6 @@ task someTask(type: SomeTask) {
         method << ["file", "files", "dir"]
     }
 
-    @Unroll
     def "null output files registered via TaskOutputs.#method are not allowed"() {
         buildFile << """
             task test {
@@ -535,7 +528,6 @@ task someTask(type: SomeTask) {
         method << ["file", "files", "dir", "dirs"]
     }
 
-    @Unroll
     def "optional null output files registered via TaskOutputs.#method are allowed"() {
         buildFile << """
             task test {
@@ -550,7 +542,6 @@ task someTask(type: SomeTask) {
         method << ["file", "files", "dir", "dirs"]
     }
 
-    @Unroll
     def "missing input files registered via TaskInputs.#method are not allowed"() {
         buildFile << """
             task test {
@@ -570,7 +561,6 @@ task someTask(type: SomeTask) {
         "dir"  | "Directory"
     }
 
-    @Unroll
     def "wrong input file type registered via TaskInputs.#method is not allowed"() {
         file("input-file.txt").touch()
         file("input-dir").createDir()
@@ -592,7 +582,6 @@ task someTask(type: SomeTask) {
         "dir"  | "input-file.txt" | "directory"
     }
 
-    @Unroll
     def "wrong output file type registered via TaskOutputs.#method is not allowed"() {
         file("output-file.txt").touch()
         file("output-dir").createDir()
@@ -637,7 +626,7 @@ task someTask(type: SomeTask) {
                 public Foo() {
                     getInputs().property("a", null).optional(true);
                 }
-                
+
                 @TaskAction
                 public void doSomething() {}
             }
@@ -674,7 +663,7 @@ task someTask(type: SomeTask) {
                 int nestedInputValueCount = 0
 
                 private NestedBean bean = new NestedBean()
-                
+
                 @OutputFile
                 File getOutputFile() {
                     count("outputFile", ++outputFileCount)
@@ -687,42 +676,42 @@ task someTask(type: SomeTask) {
                     count("inputFile", ++inputFileCount)
                     return layout.projectDirectory.file("input.txt").asFile
                 }
-                
+
                 @Input
                 String getInput() {
                     count("inputValue", ++inputValueCount)
                     return "Input"
                 }
-                
+
                 @Nested
                 Object getBean() {
                     count("nestedInput", ++nestedInputCount)
                     return bean
                 }
-                
+
                 @TaskAction
                 void doStuff() {
                     outputFile.text = inputFile.text
                 }
-                
+
                 void count(String name, int currentValue) {
-                    println "Evaluating \${name} \${currentValue}"                
+                    println "Evaluating \${name} \${currentValue}"
                 }
-                                
+
                 class NestedBean {
                     @Input getFirst() {
                         count("nestedInputValue", ++nestedInputValueCount)
                         return "first"
                     }
-                    
+
                     @Input getSecond() {
                         return "second"
                     }
                 }
             }
-            
+
             task myTask(type: CustomTask)
-            
+
             task assertInputCounts {
                 dependsOn myTask
                 doLast {

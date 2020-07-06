@@ -35,8 +35,6 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
-
 import java.util.concurrent.Callable
 
 import static org.gradle.internal.file.TreeType.DIRECTORY
@@ -169,7 +167,6 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
-    @Unroll
     def "can register named #name with property name"() {
         when: outputs."$name"("fileA": "a", "fileB": "b").withPropertyName("prop")
         then:
@@ -184,7 +181,6 @@ class DefaultTaskOutputsTest extends Specification {
         "dirs"  | DIRECTORY
     }
 
-    @Unroll
     def "can register future named output #name"() {
         when: outputs."$name"({ [one: "a", two: "b"] })
         then:
@@ -199,7 +195,6 @@ class DefaultTaskOutputsTest extends Specification {
         "dirs"  | DIRECTORY
     }
 
-    @Unroll
     def "can register future named output #name with property name"() {
         when: outputs."$name"({ [one: "a", two: "b"] }).withPropertyName("prop")
         then:
@@ -214,7 +209,6 @@ class DefaultTaskOutputsTest extends Specification {
         "dirs"  | DIRECTORY
     }
 
-    @Unroll
     def "fails when #name registers mapped file with null key"() {
         when:
         outputs."$name"({ [(null): "a"] }).withPropertyName("prop")
@@ -229,7 +223,6 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4085")
-    @Unroll
     def "can register more unnamed properties with method #method after properties have been queried"() {
         outputs."$method"("output-1")
         // Trigger naming properties

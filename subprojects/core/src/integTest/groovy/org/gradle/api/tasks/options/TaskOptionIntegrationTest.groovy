@@ -17,11 +17,8 @@
 package org.gradle.api.tasks.options
 
 
-import spock.lang.Unroll
-
 class TaskOptionIntegrationTest extends AbstractOptionIntegrationSpec {
 
-    @Unroll
     def "can evaluate option value of type #optionType when #description for Java task on command line"() {
         given:
         file('buildSrc/src/main/java/SampleTask.java') << taskWithSingleOption(optionType)
@@ -55,7 +52,6 @@ class TaskOptionIntegrationTest extends AbstractOptionIntegrationSpec {
         'List<TestEnum>' | []                                   | 'null'              | 'not provided'
     }
 
-    @Unroll
     def "can evaluate option value of type #optionType when #description for Groovy task on command line"() {
         given:
         buildFile << groovyTaskWithSingleOption(optionType)
@@ -89,7 +85,6 @@ class TaskOptionIntegrationTest extends AbstractOptionIntegrationSpec {
         'List<TestEnum>' | []                                   | 'null'              | 'not provided'
     }
 
-    @Unroll
     def "can set boolean option using no-args method when #description for Java task on command line"() {
         given:
         file('buildSrc/src/main/java/SampleTask.java') << taskWithFlagMethod()
@@ -191,7 +186,7 @@ Options
                     sample.myProp = "fromConfigureTask"
                 }
             }
-            
+
             sample.dependsOn(configureTask)
         """
 
@@ -202,7 +197,6 @@ Options
         outputContains("Value of myProp: fromConfigureTask")
     }
 
-    @Unroll
     def "set value of property of type Property of type #optionType when #description for Java task"() {
         given:
         file('buildSrc/src/main/java/SampleTask.java') << taskWithSinglePropertyOption(optionType)
@@ -226,7 +220,6 @@ Options
         'TestEnum' | []                             | 'null'              | 'not provided'
     }
 
-    @Unroll
     def "set value of property of type Property of type #optionType when #description for Groovy task"() {
         given:
         buildFile << groovyTaskWithSinglePropertyOption(optionType)

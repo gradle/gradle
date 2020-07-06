@@ -17,12 +17,8 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
-
-
 class ArchiveOperationsIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
     def "can create readonly FileTree for #archiveType archive in task action"() {
 
         given:
@@ -65,7 +61,6 @@ class ArchiveOperationsIntegrationTest extends AbstractIntegrationSpec {
         archiveType << ['zip', 'tar']
     }
 
-    @Unroll
     def "can create readonly FileTree for #archiveType archive in #isolation isolation worker action"() {
 
         given:

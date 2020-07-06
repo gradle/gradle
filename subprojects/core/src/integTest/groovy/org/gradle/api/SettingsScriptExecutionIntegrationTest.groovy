@@ -21,11 +21,8 @@ import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
-import spock.lang.Unroll
-
 class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
     def "emits deprecation warnings when enabling inactive #feature feature"() {
         given:
         settingsFile << """

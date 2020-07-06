@@ -19,8 +19,6 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
-import spock.lang.Unroll
-
 class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpec {
     // Document current behaviour
     def "can create instance of extension with multiple constructors without @Inject annotation"() {
@@ -147,7 +145,6 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         failure.assertHasCause("Too many parameters provided for constructor for type Thing. Expected 2, received 3.")
     }
 
-    @Unroll
     def "can create instance of interface with mutable property of type #type"() {
         buildFile << """
             interface Thing {

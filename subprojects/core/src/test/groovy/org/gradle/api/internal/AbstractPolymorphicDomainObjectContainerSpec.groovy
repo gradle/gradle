@@ -19,8 +19,6 @@ package org.gradle.api.internal
 
 import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.internal.Actions
-import spock.lang.Unroll
-
 abstract class AbstractPolymorphicDomainObjectContainerSpec<T> extends AbstractNamedDomainObjectContainerSpec<T> {
     abstract PolymorphicDomainObjectContainer<T> getContainer()
 
@@ -34,7 +32,6 @@ abstract class AbstractPolymorphicDomainObjectContainerSpec<T> extends AbstractN
         ]
     }
 
-    @Unroll
     def "allow query and mutating methods from create with type using #methods.key"() {
         setupContainerDefaults()
         String methodUnderTest = methods.key
@@ -64,7 +61,6 @@ abstract class AbstractPolymorphicDomainObjectContainerSpec<T> extends AbstractN
         mutatingMethods << getMutatingMethods()
     }
 
-    @Unroll
     def "allow query methods from register with type using #queryMethods.key"() {
         setupContainerDefaults()
         String methodUnderTest = queryMethods.key

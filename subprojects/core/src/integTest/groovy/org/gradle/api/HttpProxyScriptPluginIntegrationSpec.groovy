@@ -23,8 +23,6 @@ import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.hamcrest.CoreMatchers
-import spock.lang.Unroll
-
 class HttpProxyScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
     @org.junit.Rule SetSystemProperties systemProperties = new SetSystemProperties()
     @org.junit.Rule TestResources resources = new TestResources(temporaryFolder)
@@ -38,7 +36,6 @@ class HttpProxyScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         executer.requireOwnGradleUserHomeDir()
     }
 
-    @Unroll
     def "uses #type proxy to access remote build script plugin"() {
         given:
         testProxyServer.start(userName, password)

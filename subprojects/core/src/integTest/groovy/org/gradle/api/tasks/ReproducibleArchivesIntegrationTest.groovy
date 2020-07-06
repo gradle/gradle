@@ -23,10 +23,6 @@ import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
-import spock.lang.Unroll
-
-
-@Unroll
 class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/8051")

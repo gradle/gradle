@@ -18,6 +18,7 @@ package org.gradle.internal.classpath
 
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.test.fixtures.file.TestFile
@@ -25,7 +26,6 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
     static final long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
@@ -43,9 +43,8 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         server.start()
     }
 
-    @Unroll("jars on buildscript classpath can change (loopNumber: #loopNumber)")
     @ToBeFixedForInstantExecution
-    def "jars on buildscript classpath can change"() {
+    def "jars on buildscript classpath can change (loopNumber: #loopNumber)"() {
         given:
         buildFile << '''
             buildscript {

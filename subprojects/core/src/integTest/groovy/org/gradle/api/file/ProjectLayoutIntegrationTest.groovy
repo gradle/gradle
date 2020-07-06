@@ -18,8 +18,6 @@ package org.gradle.api.file
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
-
 class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     private static final String STRING_CALLABLE = 'new java.util.concurrent.Callable<String>() { String call() { return "src/resource/file.txt" } }'
 
@@ -190,7 +188,6 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         "layout.buildDirectory.file('exe/main.exe')" | "build/exe/main.exe" | "output/exe/main.exe"
     }
 
-    @Unroll
     def 'can create empty #collectionType'() {
         given:
         buildFile << """
@@ -211,7 +208,6 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         'ConfigurableFileCollection' | 'project.layout.configurableFiles()'
     }
 
-    @Unroll
     def 'can create #collectionType containing #content'() {
         given:
         file('src/resource/file.txt') << "some text"
@@ -261,7 +257,6 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         'ConfigurableFileCollection' | 'nested objects' | "project.layout.configurableFiles({[{$STRING_CALLABLE}]})"
     }
 
-    @Unroll
     def 'can create #collectionType with #dependencyType dependency'() {
         buildFile << """
             task myTask {
@@ -291,7 +286,6 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         'ConfigurableFileCollection' | 'TaskOutputs'  | 'project.layout.configurableFiles(project.tasks.myTask.outputs)'
     }
 
-    @Unroll
     def '#methodName enforces build dependencies when given Task as input'() {
         buildFile << """
             task producer {
@@ -323,7 +317,6 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         expression << ['project.layout.files', 'project.layout.configurableFiles']
     }
 
-    @Unroll
     def 'can create #collectionType with Configuration dependency'() {
         file('src/resource/file.txt') << "some text"
         buildFile << """
@@ -352,7 +345,6 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         'ConfigurableFileCollection' | 'project.layout.configurableFiles(configurations.other)'
     }
 
-    @Unroll
     def 'fails to resolve #collectionType with null element'() {
         buildFile << """
             def fileCollection = $expression

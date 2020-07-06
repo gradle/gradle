@@ -23,8 +23,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class DefaultCacheScopeMappingTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def userHome = tmpDir.createDir("user-home")
@@ -115,7 +113,6 @@ class DefaultCacheScopeMappingTest extends Specification {
         mapping.getBaseDirectory(task, "key", VersionStrategy.CachePerVersion) == customCacheDir.file("version/tasks/_project_task/key")
     }
 
-    @Unroll
     def "can't use badly-formed key '#key'"() {
         when:
         mapping.getBaseDirectory(null, key, VersionStrategy.CachePerVersion)
@@ -127,7 +124,6 @@ class DefaultCacheScopeMappingTest extends Specification {
         key << ["tasks", "projects", "1.11", "1.2.3.4", "", "/", "..", "c:/some-dir", "\n", "a\\b", " no white space "]
     }
 
-    @Unroll
     def "can use well-formed key '#key'"() {
         when:
         mapping.getBaseDirectory(null, key, VersionStrategy.CachePerVersion)

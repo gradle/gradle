@@ -20,8 +20,6 @@ import org.gradle.api.logging.Logger
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class DefaultBuildOperationLoggerFactoryTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
@@ -30,7 +28,6 @@ class DefaultBuildOperationLoggerFactoryTest extends Specification {
     def outputDir = tmpDirProvider.testDirectory.file("logs")
     DefaultBuildOperationLoggerFactory factory = new DefaultBuildOperationLoggerFactory(logger)
 
-    @Unroll
     def "enabling debug causes all failures to be logged"() {
         given:
         logger.isDebugEnabled() >> debugEnabled

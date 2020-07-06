@@ -28,8 +28,6 @@ import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.TextUtil
 import spock.lang.Issue
-import spock.lang.Unroll
-
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.gradle.util.WrapUtil.toList
 
@@ -101,7 +99,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executes(b, c, a, d)
     }
 
-    @Unroll
     def "schedules #orderingRule task dependencies in name order"() {
         given:
         Task a = task("a")
@@ -148,7 +145,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executes(a, b, c, d)
     }
 
-    @Unroll
     def "#orderingRule ordering is honoured for tasks added separately to graph"() {
         Task a = task("a")
         Task b = task("b", dependsOn: [a])
@@ -166,7 +162,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         orderingRule << ['mustRunAfter', 'shouldRunAfter']
     }
 
-    @Unroll
     def "#orderingRule ordering is honoured for dependencies"() {
         Task b = task("b")
         Task a = task("a", (orderingRule): [b])
@@ -228,7 +223,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executes(e, x, a, b, c, f, d, build)
     }
 
-    @Unroll
     def "#orderingRule does not pull in tasks that are not in the graph"() {
         Task a = task("a")
         Task b = task("b", (orderingRule): [a])
@@ -406,7 +400,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executes(finalized1, finalized2, f1, dep, f2, df1, df2)
     }
 
-    @Unroll
     def "finalizer tasks run as soon as possible for tasks that #orderingRule finalized tasks"() {
         Task finalizer = task("finalizer")
         Task finalized = task("finalized", finalizedBy: [finalizer])
@@ -422,7 +415,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         orderingRule << ['mustRunAfter', 'shouldRunAfter']
     }
 
-    @Unroll
     def "finalizer tasks run as soon as possible but after its #orderingRule tasks"() {
         Task finalizer = createTask("finalizer")
         Task finalized = task("finalized", finalizedBy: [finalizer])
@@ -674,7 +666,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         failures == [failure]
     }
 
-    @Unroll
     def "continues to return tasks when failure handler does not abort execution and tasks are #orderingRule dependent"() {
         def failures = []
         RuntimeException failure = new RuntimeException()
@@ -788,7 +779,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         filtered(a)
     }
 
-    @Unroll
     def "does not build graph for or execute filtered tasks reachable via #orderingRule task ordering"() {
         given:
         Task a = filteredTask("a")

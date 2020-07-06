@@ -17,8 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
-
 import static org.gradle.util.GUtil.loadProperties
 
 class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
@@ -74,7 +72,6 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
             """)
     }
 
-    @Unroll
     def "unicode characters are escaped when #description"() {
         given:
         buildFile << """
@@ -143,7 +140,6 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
             """).split("\n", -1).join("EOL")
     }
 
-    @Unroll
     def "value cannot be '#propValue'"() {
         given:
         buildFile << """

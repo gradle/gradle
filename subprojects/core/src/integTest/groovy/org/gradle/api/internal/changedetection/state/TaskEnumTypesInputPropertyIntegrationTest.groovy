@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.Actions
 import spock.lang.Issue
-import spock.lang.Unroll
-
 class TaskEnumTypesInputPropertyIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-3018")
     def "task can take an input with enum type and task action defined in the build script"() {
@@ -348,8 +346,7 @@ public enum SomeEnum {
         skipped(":someTask")
     }
 
-    @Unroll
-    @ToBeFixedForInstantExecution(because = "ClassNotFoundException: ArrayList1_groovyProxy",iterationMatchers = '.*\\[2\\]$')
+    @ToBeFixedForInstantExecution(iterationMatchers = '.*\\[2\\]$')
     def "task can take as input a collection of enum type from various sources"() {
         def buildSrcEnum = file("buildSrc/src/main/java/BuildSrcEnum.java")
         buildSrcEnum << """

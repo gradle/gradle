@@ -17,10 +17,7 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
-
 class BuildSrcIdentityIntegrationTest extends AbstractIntegrationSpec {
-    @Unroll
     def "includes build identifier in logging output with #display"() {
         file("buildSrc/build.gradle") << """
             println "configuring \$project.path"
@@ -43,7 +40,6 @@ class BuildSrcIdentityIntegrationTest extends AbstractIntegrationSpec {
         "rootProject.name='someLib'" | "configured root project name"
     }
 
-    @Unroll
     def "includes build identifier in dependency report with #display"() {
         file("buildSrc/settings.gradle") << """
             $settings
@@ -73,7 +69,6 @@ runtimeClasspath - Runtime classpath of source set 'main'.
         "rootProject.name='someLib'" | "configured root project name"
     }
 
-    @Unroll
     def "includes build identifier in error message on failure to resolve dependencies of build with #display"() {
         def m = mavenRepo.module("org.test", "test", "1.2")
 
@@ -121,7 +116,6 @@ Required by:
         "rootProject.name='someLib'" | "configured root project name"
     }
 
-    @Unroll
     def "includes build identifier in task failure error message with #display"() {
         file("buildSrc/settings.gradle") << settings << "\n"
         def buildSrc = file("buildSrc/build.gradle")
@@ -144,7 +138,6 @@ Required by:
         "rootProject.name='someLib'" | "configured root project name"
     }
 
-    @Unroll
     def "includes build identifier in dependency resolution results with #display"() {
         given:
         file("buildSrc/settings.gradle") << """
