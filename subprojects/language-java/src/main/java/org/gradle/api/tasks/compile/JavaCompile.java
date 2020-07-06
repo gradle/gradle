@@ -53,6 +53,7 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -166,6 +167,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
      */
     @Incubating
     @Nested
+    @Optional
     public Property<JavaCompiler> getJavaCompiler() {
         // TODO: add proper @see tags once the DSL is available
         return javaCompiler;
