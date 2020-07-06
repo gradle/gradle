@@ -18,15 +18,12 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.encoding.Identifier
-import spock.lang.Unroll
-
 class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishIntegTest {
 
     // Group and Artifact are restricted to [A-Za-z0-9_\-.]+ by org.apache.maven.project.validation.DefaultModelValidator
     def groupId = 'a-valid.group'
     def artifactId = 'valid_artifact.name'
 
-    @Unroll
     def "can publish with version and description containing #identifier characters"() {
         given:
         def version = identifier.safeForFileName().decorate("version")
@@ -68,7 +65,6 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         identifier << Identifier.all
     }
 
-    @Unroll
     def "can publish artifacts with version, extension and classifier containing #identifier characters"() {
         given:
         file("content-file") << "some content"
@@ -141,7 +137,6 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         failure.assertHasCause "Invalid publication 'maven': groupId cannot be empty"
     }
 
-    @Unroll
     def "fails with reasonable error message for invalid #invalidComponent name"() {
         settingsFile << "rootProject.name = 'invalid'"
         buildFile << """

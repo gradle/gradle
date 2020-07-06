@@ -18,7 +18,6 @@ package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
-import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
@@ -32,7 +31,6 @@ class MavenPomGenerationPublishIntegrationTest extends AbstractIntegrationSpec {
         using m2 //uploadArchives leaks into local ~/.m2
     }
 
-    @Unroll
     def "how configuration of archive task affects generated POM"() {
         buildFile << """
 apply plugin: "java"
@@ -74,7 +72,6 @@ uploadArchives {
         "myBaseName" | "2.3"      | "war"        | null          | "myBaseName"  | "1.9"      | "war"
     }
 
-    @Unroll
     def "how configuration of mavenDeployer.pom object affects generated POM"() {
         buildFile << """
 apply plugin: "java"
@@ -118,7 +115,6 @@ uploadArchives {
         "deployer.group" | "deployerArtifactId" | "2.7"           | "jar"             | "deployer.group" | "deployerArtifactId" | "2.7"      | "war"
     }
 
-    @Unroll
     def "configuration attributes have no influence on generated POM file"() {
         buildFile << """
 apply plugin: "java"
@@ -176,7 +172,6 @@ configurations {
         ]
     }
 
-    @Unroll
     def "attributes have no influence on transitive dependencies in POM file"() {
         file("settings.gradle") << 'include "b"'
         buildFile << """
@@ -270,7 +265,6 @@ configurations {
     }
 
 
-    @Unroll
     def "'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin"() {
         file("settings.gradle") << 'include "b"'
         buildFile << """

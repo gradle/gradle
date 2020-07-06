@@ -17,8 +17,6 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import spock.lang.Unroll
-
 class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJavaIntegTest {
 
     @ToBeFixedForInstantExecution
@@ -172,7 +170,6 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
         resolveRuntimeArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def "publish java-library with feature with additional artifact #id (#optionalFeatureFileName)"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()

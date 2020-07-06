@@ -31,8 +31,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
-
 import static java.util.Collections.emptySet
 import static org.gradle.util.CollectionUtils.toSet
 
@@ -44,7 +42,6 @@ class ValidatingMavenPublisherTest extends Specification {
     def publisher = new ValidatingMavenPublisher(delegate)
     def repository = Mock(DefaultMavenArtifactRepository)
 
-    @Unroll
     def "delegates when publication is valid"() {
         when:
         def projectIdentity = makeProjectIdentity("the-group", "the-artifact", "the-version")
@@ -149,7 +146,6 @@ class ValidatingMavenPublisherTest extends Specification {
         "ext"     | "class\\ifier" | "classifier cannot contain '\\'"
     }
 
-    @Unroll
     def "cannot publish with file that #message"() {
         def projectIdentity = makeProjectIdentity("group", "artifact", "version")
         def pomFile = createPomFile(projectIdentity)

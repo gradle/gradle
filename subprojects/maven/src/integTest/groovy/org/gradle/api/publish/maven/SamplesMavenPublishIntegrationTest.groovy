@@ -24,13 +24,10 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.util.TextUtil
 import org.junit.Rule
-import spock.lang.Unroll
-
 class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule
     public final Sample sampleProject = new Sample(temporaryFolder)
 
-    @Unroll
     @UsesSample("maven-publish/quickstart")
     def "quickstart publish with #dsl dsl"() {
         given:
@@ -53,7 +50,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("maven-publish/quickstart")
     def "quickstart publish local with #dsl dsl"() {
         using m2
@@ -81,7 +77,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("maven-publish/javaProject")
     def "publish java project with #dsl dsl"() {
         given:
@@ -109,7 +104,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("maven-publish/multiple-publications")
     def "multiple publications with #dsl dsl"() {
         given:
@@ -141,7 +135,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("maven-publish/conditional-publishing")
     @ToBeFixedForInstantExecution(
         iterationMatchers = ".* kotlin dsl"
@@ -181,7 +174,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("maven-publish/conditional-publishing")
     @ToBeFixedForInstantExecution(
         iterationMatchers = ".* kotlin dsl"
@@ -202,7 +194,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("maven-publish/conditional-publishing")
     @ToBeFixedForInstantExecution(
         iterationMatchers = ".* kotlin dsl"
@@ -225,7 +216,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("maven-publish/publish-artifact")
     @ToBeFixedForInstantExecution(
         iterationMatchers = ".* kotlin dsl"
@@ -267,7 +257,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         parsedPom.name == "Example"
     }
 
-    @Unroll
     @UsesSample("maven-publish/distribution")
     def "publishes distribution archives with #dsl dsl"() {
         given:

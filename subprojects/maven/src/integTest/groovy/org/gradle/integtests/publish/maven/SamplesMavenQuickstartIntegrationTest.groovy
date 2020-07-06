@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.util.Resources
 import org.junit.Rule
-import spock.lang.Unroll
 
 @UnsupportedWithInstantExecution(because = "legacy maven plugin")
 class SamplesMavenQuickstartIntegrationTest extends AbstractSampleIntegrationTest {
@@ -39,7 +38,6 @@ class SamplesMavenQuickstartIntegrationTest extends AbstractSampleIntegrationTes
         using m2
     }
 
-    @Unroll
     def "can publish to a local repository with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)
@@ -59,7 +57,6 @@ class SamplesMavenQuickstartIntegrationTest extends AbstractSampleIntegrationTes
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     def "can install to local repository with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)

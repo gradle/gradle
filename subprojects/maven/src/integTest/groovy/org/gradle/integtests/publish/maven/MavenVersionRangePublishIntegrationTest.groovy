@@ -74,7 +74,6 @@ uploadArchives {
     }
 
     @Issue("GRADLE-3233")
-    @Unroll
     def "publishes POM dependency with #versionType version for Gradle dependency with null version"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "

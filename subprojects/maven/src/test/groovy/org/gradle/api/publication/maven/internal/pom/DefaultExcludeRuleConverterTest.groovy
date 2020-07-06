@@ -19,8 +19,6 @@ package org.gradle.api.publication.maven.internal.pom
 import org.apache.maven.model.Exclusion
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class DefaultExcludeRuleConverterTest extends Specification {
 
     private static final String TEST_ORG = 'org'
@@ -28,7 +26,6 @@ class DefaultExcludeRuleConverterTest extends Specification {
 
     DefaultExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter()
 
-    @Unroll
     def "can convert exclude rule for org '#excludeRuleOrg' and module '#excludeRuleModule'"() {
         when:
         DefaultExcludeRule excludeRule = new DefaultExcludeRule(excludeRuleOrg, excludeRuleModule)

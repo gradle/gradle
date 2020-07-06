@@ -19,12 +19,9 @@ package org.gradle.api.publish.maven
 import org.gradle.api.attributes.Category
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenJavaModule
-import spock.lang.Unroll
-
 class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishIntegTest {
     MavenJavaModule javaLibrary = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
 
-    @Unroll
     def "can publish java-library with dependencies (#apiMapping, #runtimeMapping)"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -110,7 +107,6 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         ].combinations() + [[allVariants(), noop()]])
     }
 
-    @Unroll
     def "can publish java-library with dependencies (#runtimeMapping, #apiMapping)"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -203,7 +199,6 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
      * This can be the case if there are multiple compile classpath and one should be preferred for publication,
      * or when the component is not a Java library and we don't have a default.
      */
-    @Unroll
     def "can publish resolved versions from a different configuration (#config)"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -279,7 +274,6 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         ]
     }
 
-    @Unroll
     def "can publish resolved versions from dependency constraints (#apiMapping, #runtimeMapping)"() {
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
@@ -521,7 +515,6 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
     // for a first level dependency? However it may be that you implicitly get a
     // substitution rule (via a plugin for example) that you are not aware of.
     // Ideally we should warn when such things happen (linting).
-    @Unroll
     def "substituted dependencies are also substituted in the generated POM file"() {
         javaLibrary(mavenRepo.module("org", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org", "bar", "1.0"))

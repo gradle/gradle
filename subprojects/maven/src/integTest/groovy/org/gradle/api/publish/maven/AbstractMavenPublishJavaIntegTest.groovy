@@ -26,8 +26,6 @@ import org.gradle.test.fixtures.maven.MavenJavaModule
 import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Issue
-import spock.lang.Unroll
-
 abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     MavenFileModule module = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
     MavenJavaModule javaLibrary = javaLibrary(module, features(), withDocs())
@@ -458,7 +456,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @Unroll
     def "can publish java-library with dependencies with maven incompatible version notation: #version"() {
 
         given:
@@ -542,7 +539,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @Unroll
     void "'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin"() {
         if (deprecatedConfiguration) {
             executer.expectDeprecationWarning()
@@ -983,7 +979,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         outputContains "Maven publication 'java' isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)"
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def 'can publish java library with a #config dependency on a published BOM platform"'() {
         given:
@@ -1145,7 +1140,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         // Sadly this does not take care of the Gradle metadata
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution
     def 'can publish java library with a #config dependency on a java-platform subproject"'() {
         given:
@@ -1217,7 +1211,6 @@ include(':platform')
 
     }
 
-    @Unroll
     def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:
         createBuildScripts("""
