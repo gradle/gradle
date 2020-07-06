@@ -438,15 +438,15 @@ You can see more examples of supported patterns in the API docs for link:{javado
 
 By default, `fileTree()` returns a `FileTree` instance that applies some default exclusion patterns for convenience — the same defaults as Ant in fact. For the complete default exclusion list, see http://ant.apache.org/manual/dirtasks.html#defaultexcludes[the Ant manual].
 
-If those default exclusions prove problematic, you can workaround the issue by using the {antManual}/Tasks/defaultexcludes.html[`defaultexcludes` Ant task], as demonstrated in this example:
+If those default exclusions prove problematic, you can workaround the issue by changing Ant's default excludes in settings:
 
-.Changing Ant default exclusions for a copy task
+.Changing Ant default exclusions in settings
 ====
-include::sample[dir="snippets/files/copy/groovy",files="build.gradle[tags=change-default-exclusions]"]
-include::sample[dir="snippets/files/copy/kotlin",files="build.gradle.kts[tags=change-default-exclusions]"]
+include::sample[dir="snippets/files/copy/groovy",files="settings.gradle[tags=change-default-exclusions]"]
+include::sample[dir="snippets/files/copy/kotlin",files="settings.gradle.kts[tags=change-default-exclusions]"]
 ====
 
-In general, it's best to ensure that the default exclusions are reset whenever you change them as modifications are visible to the entire build. The above example is performing such a reset in its `doLast` action.
+Gradle does not support to change Ant's default excludes during task execution.
 
 You can do many of the same things with file trees that you can with file collections:
 
