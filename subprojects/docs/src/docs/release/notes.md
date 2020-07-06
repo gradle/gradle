@@ -1,8 +1,8 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [TBD Config cache](#configuration-cache), [release flag support](#support-java-cross-compilation-using-the-release-flag) and a new [Credentials Provider API](#credentials-provider-api).
+This release features [configuration caching](#performance-improvements), [release flag support](#javacompile-supports-the---release-compiler-option) and a new [Credentials Provider API](#credentials-provider-api).
 
-There are also several other improvements including [injectable ArchiveOperations](#improvements-for-plugin-authors), [reproducible gradle metadata](#gradle-module-metadata-can-be-made-reproducible) and [many bug fixes](#fixed-issues). 
+There are also several other improvements including [reproducible gradle metadata](#gradle-module-metadata-can-be-made-reproducible), [injectable ArchiveOperations](#improvements-for-plugin-authors) and [many bug fixes](#fixed-issues). 
 
 We would like to thank the following community contributors to this release of Gradle:
 
