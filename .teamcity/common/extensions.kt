@@ -113,7 +113,6 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         "-s",
         if (daemon) "--daemon" else "--no-daemon",
         if (isContinue) "--continue" else "",
-        """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
         "-Dorg.gradle.internal.tasks.createops"
     )
 

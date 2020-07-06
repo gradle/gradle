@@ -27,10 +27,10 @@ import org.jsoup.parser.Parser
 import java.net.URLEncoder
 import java.util.concurrent.atomic.AtomicBoolean
 
-val serverUrl = "https://e.grdev.net"
+val serverUrl = "https://ge.gradle.org"
 val gitCommitName = "Git Commit ID"
 val ciBuildTypeName = "CI Build Type"
-val watchFileSystemName = "watchFileSystem"
+val tasksWithBuildScansOnFailure = listOf("verifyTestFilesCleanup", "killExistingProcessesStartedByGradle").map { listOf(it) }
 
 val cacheMissTagged = AtomicBoolean(false)
 
@@ -44,7 +44,16 @@ extractCiData()
 if (isCiServer) {
     if (!isTravis && !isJenkins) {
         extractAllReportsFromCI()
+        publishOnFailuresInCleanupBuilds()
         monitorUnexpectedCacheMisses()
+    }
+}
+
+fun Project.publishOnFailuresInCleanupBuilds() {
+    if (gradle.startParameter.taskNames in tasksWithBuildScansOnFailure) {
+        buildScan {
+            publishOnFailure()
+        }
     }
 }
 
