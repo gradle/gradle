@@ -31,8 +31,6 @@ import org.gradle.process.ExecOperations
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
 import org.slf4j.Logger
-import spock.lang.Unroll
-
 import javax.inject.Inject
 
 
@@ -302,7 +300,6 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("same reference = true")
     }
 
-    @Unroll
     def "restores task fields whose value is instance of #type"() {
         buildFile << """
             import java.util.concurrent.*
@@ -381,7 +378,6 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "EnumMap<SomeEnum, String>"          | "new EnumMap([(SomeEnum.One): 'one', (SomeEnum.Two): 'two'])" | "[One:one, Two:two]"
     }
 
-    @Unroll
     def "restores task fields whose value is instance of plugin specific version of Guava #type"() {
         buildFile << """
             import ${type.name}
@@ -517,7 +513,6 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("bean.value = 42")
     }
 
-    @Unroll
     def "restores task fields whose value is service of type #type"() {
         buildFile << """
             class SomeBean {
@@ -563,7 +558,6 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         JavaInstallationRegistry.name    | "project.services.get(${JavaInstallationRegistry.name})"    | "installationForCurrentVirtualMachine"
     }
 
-    @Unroll
     def "restores task fields whose value is provider of type #type"() {
         buildFile << """
             import ${Inject.name}
@@ -642,7 +636,6 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("this.value = value")
     }
 
-    @Unroll
     def "restores task fields whose value is broken #type"() {
         def instantExecution = newInstantExecutionFixture()
 
@@ -687,7 +680,6 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "FileCollection"   | "project.files"              | "files" | "value 'file collection' failed to visit file collection"
     }
 
-    @Unroll
     def "restores task fields whose value is property of type #type"() {
         buildFile << """
             import ${Inject.name}
@@ -754,7 +746,6 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "null"           | "null"
     }
 
-    @Unroll
     def "Directory value can resolve paths after being restored"() {
         buildFile << """
             import ${Inject.name}
@@ -798,7 +789,6 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("propValue.child.mapped = ${file("dir2/child")}")
     }
 
-    @Unroll
     def "restores task fields whose value is FileCollection"() {
         buildFile << """
             import ${Inject.name}
@@ -850,7 +840,6 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "layout.files('a', 'b')" | ['a', 'b']
     }
 
-    @Unroll
     def "restores task fields whose value is a serializable #kind Java lambda"() {
         given:
         file("buildSrc/src/main/java/my/LambdaTask.java").tap {
@@ -909,7 +898,6 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "non-instance capturing" | "setNonInstanceCapturingLambda()"
     }
 
-    @Unroll
     def "restores task with action and spec that are Java lambdas"() {
         given:
         file("buildSrc/src/main/java/my/LambdaPlugin.java").tap {
@@ -956,7 +944,6 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "boolean" | "true"     | "true"
     }
 
-    @Unroll
     def "restores task fields whose value is #kind TextResource"() {
 
         given:

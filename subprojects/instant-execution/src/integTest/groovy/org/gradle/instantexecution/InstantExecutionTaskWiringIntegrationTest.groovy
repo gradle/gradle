@@ -18,8 +18,6 @@ package org.gradle.instantexecution
 
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
-import spock.lang.Unroll
-
 class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecutionIntegrationTest implements TasksWithInputsAndOutputs {
     def "task input property can consume the mapped output of another task"() {
         taskTypeWithInputFileProperty()
@@ -125,7 +123,6 @@ class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecution
         result.assertTasksSkipped(":producer", ":transformer")
     }
 
-    @Unroll
     def "task input property can consume the mapped output of another task connected via project property with #description"() {
         taskTypeWithInputFileProperty()
         taskTypeWithIntInputProperty()

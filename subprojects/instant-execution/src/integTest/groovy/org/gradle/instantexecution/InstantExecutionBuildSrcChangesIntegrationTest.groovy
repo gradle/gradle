@@ -20,8 +20,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Unroll
-
 import static org.junit.Assume.assumeFalse
 
 class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExecutionIntegrationTest {
@@ -30,7 +28,6 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
     private static final String ORIGINAL_GREETING = "Hello!"
     private static final String CHANGED_GREETING = "G'day!"
 
-    @Unroll
     def "invalidates cache upon change to buildSrc #language project (#change)"() {
         given:
         def instant = newInstantExecutionFixture()
@@ -74,7 +71,6 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
         isKotlinBuildSrc = language == BuildSrcLanguage.KOTLIN
     }
 
-    @Unroll
     def "invalidates cache upon change to #inputName used by buildSrc"() {
 
         assumeFalse(

@@ -17,12 +17,9 @@
 package org.gradle.instantexecution
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
-import spock.lang.Unroll
-
 import javax.inject.Inject
 
 class InstantExecutionWorkerApiIntegrationTest extends AbstractInstantExecutionIntegrationTest implements TasksWithInputsAndOutputs {
-    @Unroll
     def "task can wire input #type with fixed value to worker action parameter property"() {
         buildFile << """
             import ${Inject.name}

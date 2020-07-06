@@ -17,14 +17,11 @@
 package org.gradle.instantexecution.inputs.undeclared
 
 import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
-import spock.lang.Unroll
-
 abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
     abstract void buildLogicApplication(SystemPropertyRead read)
 
     abstract String getLocation()
 
-    @Unroll
     def "reports undeclared system property read using #propertyRead.groovyExpression prior to task execution from plugin"() {
         buildLogicApplication(propertyRead)
         def fixture = newInstantExecutionFixture()
@@ -73,7 +70,6 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
         SystemPropertyRead.booleanGetBoolean("CI")                                    | "true" | "false"
     }
 
-    @Unroll
     def "reports undeclared system property read using when iterating over system properties"() {
         buildLogicApplication(propertyRead)
         def fixture = newInstantExecutionFixture()

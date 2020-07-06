@@ -16,11 +16,8 @@
 
 package org.gradle.instantexecution
 
-import spock.lang.Unroll
-
 class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    @Unroll
     def "system property from #systemPropertySource used as task and build logic input"() {
 
         given:
@@ -95,7 +92,6 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         }
     }
 
-    @Unroll
     def "#usage property from properties file used as build logic input"() {
 
         given:
@@ -185,7 +181,6 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         'isCi.getOrElse("false") != "false"'           | 'raw'
     }
 
-    @Unroll
     def "#kind property used as task and build logic input"() {
 
         given:
@@ -321,7 +316,6 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         instant.assertStateLoaded()
     }
 
-    @Unroll
     def "system property #usage used as build logic input"() {
 
         given:
@@ -411,7 +405,6 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         instant.assertStateStored()
     }
 
-    @Unroll
     def "file contents #usage used as build logic input"() {
 
         given:
@@ -521,7 +514,6 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         instant.assertStateLoaded()
     }
 
-    @Unroll
     def "file contents provider used as #usage has no value when underlying file provider has no value"() {
         given:
         def instant = newInstantExecutionFixture()

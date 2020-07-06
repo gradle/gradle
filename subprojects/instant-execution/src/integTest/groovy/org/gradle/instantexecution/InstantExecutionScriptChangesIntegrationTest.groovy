@@ -19,11 +19,8 @@ package org.gradle.instantexecution
 import groovy.transform.Canonical
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
-import spock.lang.Unroll
-
 class InstantExecutionScriptChangesIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    @Unroll
     @Test
     def "invalidates cache upon changes to #testLabel"() {
         given:
