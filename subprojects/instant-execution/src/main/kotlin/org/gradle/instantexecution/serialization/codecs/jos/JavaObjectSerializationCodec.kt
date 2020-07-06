@@ -50,7 +50,7 @@ import java.lang.reflect.Modifier.isStatic
  * and define one of the following combination of methods:
  * - a `writeObject` method combined with a `readObject` method to control exactly which information to store;
  * - a `writeObject` method with no corresponding `readObject`; `writeObject` must eventually call [ObjectOutputStream.defaultWriteObject];
- * - a `readObject` method with no corresponding `writeObject`; `readObject` must eventually all [ObjectInputStream.defaultReadObject];
+ * - a `readObject` method with no corresponding `writeObject`; `readObject` must eventually call [ObjectInputStream.defaultReadObject];
  * - a `writeReplace` method to allow the class to nominate a replacement to be written;
  * - a `readResolve` method to allow the class to nominate a replacement for the object just read;
  *
