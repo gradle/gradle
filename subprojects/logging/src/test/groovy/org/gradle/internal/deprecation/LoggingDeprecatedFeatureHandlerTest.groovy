@@ -37,8 +37,6 @@ import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
-
 @Subject(LoggingDeprecatedFeatureHandler)
 class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final outputEventListener = new CollectingTestOutputEventListener()
@@ -87,7 +85,6 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         event.logLevel == LogLevel.WARN
     }
 
-    @Unroll
     def "no warnings should be displayed in #type"() {
         when:
         handler.init(locationReporter, type, progressBroadcaster)
@@ -100,7 +97,6 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         type << WarningMode.values().findAll { !it.shouldDisplayMessages() }
     }
 
-    @Unroll
     def 'fake call with #deprecationTracePropertyName=true logs full stack trace.'() {
         given:
         System.setProperty(deprecationTracePropertyName, 'true')
@@ -145,7 +141,6 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         mock
     }
 
-    @Unroll
     def 'fake call with Gradle script element first and #deprecationTracePropertyName=false logs only Gradle script element'() {
         given:
         System.setProperty(deprecationTracePropertyName, 'false')
@@ -184,7 +179,6 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    @Unroll
     def 'fake call with Gradle Kotlin script element first and #deprecationTracePropertyName=false logs only Gradle Kotlin script element'() {
         given:
         System.setProperty(deprecationTracePropertyName, 'false')
@@ -223,7 +217,6 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    @Unroll
     def 'fake call without Gradle script elements and #deprecationTracePropertyName=false does not log a stack trace element.'() {
         given:
         System.setProperty(deprecationTracePropertyName, 'false')
@@ -254,7 +247,6 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    @Unroll
     def 'fake call with only a single stack trace element and #deprecationTracePropertyName=false does not log that element'() {
         given:
         System.setProperty(deprecationTracePropertyName, 'false')
@@ -278,7 +270,6 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    @Unroll
     def 'fake call with only a single stack non root trace element and #deprecationTracePropertyName=true logs that element'() {
         given:
         System.setProperty(deprecationTracePropertyName, 'true')
@@ -304,7 +295,6 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    @Unroll
     def 'fake call without stack trace elements and #deprecationTracePropertyName=#deprecationTraceProperty logs only message'() {
         given:
         System.setProperty(deprecationTracePropertyName, '' + deprecationTraceProperty)
@@ -339,7 +329,6 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         events[0].message == TextUtil.toPlatformLineSeparators('location\nfeature removal')
     }
 
-    @Unroll
     def 'Setting #deprecationTracePropertyName=#deprecationTraceProperty overrides setTraceLoggingEnabled value.'() {
         given:
         System.setProperty(deprecationTracePropertyName, deprecationTraceProperty)
@@ -362,7 +351,6 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         expectedResult << [true, false, false]
     }
 
-    @Unroll
     def 'Undefined #deprecationTracePropertyName does not influence setTraceLoggingEnabled value.'() {
         given:
         System.clearProperty(deprecationTracePropertyName)

@@ -18,8 +18,6 @@ package org.gradle.internal.deprecation
 
 import org.gradle.api.internal.DocumentationRegistry
 import spock.lang.Specification
-import spock.lang.Unroll
-
 class DocumentationTest extends Specification {
 
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
@@ -33,7 +31,6 @@ class DocumentationTest extends Specification {
         documentationReference.consultDocumentationMessage() == null
     }
 
-    @Unroll
     def "formats message for documentation id #documentationId, section #documentationSection"() {
         given:
         def documentationReference = Documentation.userManual(documentationId, documentationSection)

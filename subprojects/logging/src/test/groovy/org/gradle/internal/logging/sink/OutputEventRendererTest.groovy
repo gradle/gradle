@@ -31,8 +31,6 @@ import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.time.Time
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
-import spock.lang.Unroll
-
 class OutputEventRendererTest extends OutputSpecification {
     @Rule
     public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
@@ -188,7 +186,6 @@ class OutputEventRendererTest extends OutputSpecification {
         0 * listener._
     }
 
-    @Unroll
     def "forward progress events to listener for #logLevel log level"() {
         OutputEventListener listener = Mock()
         def start = start('start')
