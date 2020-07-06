@@ -23,6 +23,8 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.instantexecution.problems.DocumentationSection.RequirementsBuildListeners
+import org.gradle.instantexecution.problems.DocumentationSection.RequirementsUseProjectDuringExecution
 import org.gradle.instantexecution.problems.InstantExecutionProblems
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.PropertyTrace
@@ -80,7 +82,7 @@ class DefaultInstantExecutionProblemsListener internal constructor(
                 text(" at execution time is unsupported.")
             },
             exception,
-            documentationSection = "config_cache:requirements:use_project_during_execution"
+            documentationSection = RequirementsUseProjectDuringExecution
         )
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
@@ -110,7 +112,7 @@ class DefaultInstantExecutionProblemsListener internal constructor(
                 text(" is unsupported")
             },
             exception,
-            documentationSection = "config_cache:requirements:build_listeners"
+            documentationSection = RequirementsBuildListeners
         )
 }
 

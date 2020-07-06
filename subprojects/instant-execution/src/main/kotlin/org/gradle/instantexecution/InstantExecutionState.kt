@@ -23,6 +23,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.provider.Provider
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.execution.plan.Node
+import org.gradle.instantexecution.problems.DocumentationSection.NotYetImplementedCompositeBuilds
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
@@ -133,7 +134,7 @@ class InstantExecutionState(
         if (gradle.includedBuilds.isNotEmpty()) {
             logNotImplemented(
                 feature = "included builds",
-                documentationSection = "config_cache:not_yet_implemented:composite_builds"
+                documentationSection = NotYetImplementedCompositeBuilds
             )
             writeBoolean(true)
         } else {
@@ -146,7 +147,7 @@ class InstantExecutionState(
         if (readBoolean()) {
             logNotImplemented(
                 feature = "included builds",
-                documentationSection = "config_cache:not_yet_implemented:composite_builds"
+                documentationSection = NotYetImplementedCompositeBuilds
             )
         }
     }

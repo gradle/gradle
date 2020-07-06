@@ -18,6 +18,7 @@ package org.gradle.instantexecution
 
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.instantexecution.problems.DocumentationSection.RequirementsUndeclaredSysPropRead
 import org.gradle.instantexecution.problems.InstantExecutionProblems
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.StructuredMessage
@@ -94,7 +95,7 @@ class SystemPropertyAccessListener(
                 location,
                 message,
                 exception,
-                documentationSection = "config_cache:requirements:undeclared_sys_prop_read"
+                documentationSection = RequirementsUndeclaredSysPropRead
             )
         )
     }

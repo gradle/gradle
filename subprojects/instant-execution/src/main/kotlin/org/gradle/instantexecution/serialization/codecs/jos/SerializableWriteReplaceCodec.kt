@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution.serialization.codecs
+package org.gradle.instantexecution.serialization.codecs.jos
 
 import org.gradle.instantexecution.serialization.EncodingProvider
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.codecs.Decoding
+import org.gradle.instantexecution.serialization.codecs.Encoding
+import org.gradle.instantexecution.serialization.codecs.EncodingProducer
 import org.gradle.instantexecution.serialization.decodePreservingIdentity
 import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
 import org.gradle.instantexecution.serialization.readEnum
@@ -69,7 +72,7 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
     }
 
     private
-    inner class WriteReplaceEncoding(private val writeReplace: Method) : EncodingProvider<Any> {
+    class WriteReplaceEncoding(private val writeReplace: Method) : EncodingProvider<Any> {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 val replacement = writeReplace.invoke(value)
@@ -85,22 +88,11 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
     }
 
     private
-    inner class ReadResolveEncoding : Encoding {
+    class ReadResolveEncoding : Encoding {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 writeEnum(Format.Inline)
                 encodeBean(value)
-            }
-        }
-    }
-
-    private
-    suspend fun WriteContext.encodeBean(value: Any) {
-        val beanType = value.javaClass
-        withBeanTrace(beanType) {
-            writeClass(beanType)
-            beanStateWriterFor(beanType).run {
-                writeStateOf(value)
             }
         }
     }
@@ -127,7 +119,7 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
     private
     fun writeReplaceMethodOf(type: Class<*>) = type
         .firstAccessibleMatchingMethodOrNull {
-            parameterCount == 0 && name == "writeReplace"
+            parameterCount == 0 && name == "writeReplace" && returnType == java.lang.Object::class.java
         }
 
     private
@@ -138,5 +130,17 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
 
     private
     fun Method.isReadResolve() =
-        parameterCount == 0 && name == "readResolve"
+        parameterCount == 0 && name == "readResolve" && returnType == java.lang.Object::class.java
+}
+
+
+internal
+suspend fun WriteContext.encodeBean(value: Any) {
+    val beanType = value.javaClass
+    withBeanTrace(beanType) {
+        writeClass(beanType)
+        beanStateWriterFor(beanType).run {
+            writeStateOf(value)
+        }
+    }
 }
