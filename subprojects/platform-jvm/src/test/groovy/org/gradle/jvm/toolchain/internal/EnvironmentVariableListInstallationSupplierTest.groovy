@@ -83,11 +83,11 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
         directoriesAsStablePaths(directories) == stablePaths(["/path/jdk9"])
     }
 
-    private directoriesAsStablePaths(Set<InstallationLocation> actualDirectories) {
+    def directoriesAsStablePaths(Set<InstallationLocation> actualDirectories) {
         actualDirectories*.location.absolutePath.sort()
     }
 
-    private stablePaths(List<String> expectedPaths) {
+    def stablePaths(List<String> expectedPaths) {
         expectedPaths.replaceAll({ String s -> systemSpecificAbsolutePath(s) })
         expectedPaths
     }
@@ -105,7 +105,7 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
         providerFactory
     }
 
-    private Provider<String> mockProvider(String value) {
+    Provider<String> mockProvider(String value) {
         def provider = new DefaultProperty(PropertyHost.NO_OP, String)
         provider.set(value)
         provider
