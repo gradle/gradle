@@ -66,13 +66,13 @@ fun Project.failEarlyIfCredentialsAreNotSet(publish: Task) {
     }
 }
 
-val Project.artifactoryUserName
+val artifactoryUserName
     get() = findProperty("artifactoryUserName") as String?
 
-val Project.artifactoryUserPassword
+val artifactoryUserPassword
     get() = findProperty("artifactoryUserPassword") as String?
 
-fun Project.publishNormalizedToLocalRepository() {
+fun publishNormalizedToLocalRepository() {
     val localRepository = layout.buildDirectory.dir("repo")
     val baseName = moduleIdentity.baseName
 
@@ -91,10 +91,10 @@ fun Project.publishNormalizedToLocalRepository() {
             }
         }
     }
-    project.tasks.named("publishLocalPublicationToRemoteRepository") {
+    tasks.named("publishLocalPublicationToRemoteRepository") {
         enabled = false // don't publish normalized local version to remote repository when using 'publish' lifecycle task
     }
-    project.tasks.named("publishGradleDistributionPublicationToLocalRepository") {
+    tasks.named("publishGradleDistributionPublicationToLocalRepository") {
         enabled = false // this should not be used so we disable it to avoid confusion when using 'publish' lifecycle task
     }
     val localPublish = project.tasks.named("publishLocalPublicationToLocalRepository") {
@@ -124,7 +124,7 @@ fun Project.publishNormalizedToLocalRepository() {
     }
 
     // For local consumption by tests
-    project.configurations.create("localLibsRepositoryElements") {
+    configurations.create("localLibsRepositoryElements") {
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
             attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category.LIBRARY))
