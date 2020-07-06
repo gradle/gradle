@@ -60,7 +60,7 @@ val forceRealizeDependencyManagementTest = "forceRealizeDependencyManagementTest
 
 setupTimeoutMonitorOnCI()
 setupGlobalState()
-sharedDependencyAndQualityConfigs()
+sharedDependencyConfigs()
 
 subprojects.filter { it.name !in ignoredSubprojects }.forEach { it.registerLifecycleTasks() }
 
@@ -137,11 +137,10 @@ fun setupGlobalState() {
     }
 }
 
-fun sharedDependencyAndQualityConfigs() {
-    // TODO remove this cross project configuration by declaring dependency coordinates as fields in a Kotlin object and the versions in the platform directly
+fun sharedDependencyConfigs() {
+    // TODO https://github.com/gradle/gradle-private/issues/3098 - remove this cross project configuration by declaring dependency coordinates as fields in a Kotlin object and the versions in the platform directly
     apply(from = "gradle/dependencies.gradle")
     apply(from = "gradle/test-dependencies.gradle")
-    apply(from = "gradle/remove-teamcity-temp-property.gradle") // https://github.com/gradle/gradle-private/issues/2463
 }
 
 fun needsToUseTestVersionsPartial() = isRequestedTask(platformTest)

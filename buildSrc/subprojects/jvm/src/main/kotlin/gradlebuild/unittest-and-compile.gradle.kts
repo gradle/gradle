@@ -37,6 +37,7 @@ plugins {
 
 extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", java)
 
+removeTeamcityTempProperty()
 addDependencies()
 configureClasspathManifestGeneration()
 configureCompile()
@@ -216,6 +217,15 @@ fun configureTests() {
                 logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
             }
         }
+    }
+}
+
+fun removeTeamcityTempProperty() {
+    // Undo: https://github.com/JetBrains/teamcity-gradle/blob/e1dc98db0505748df7bea2e61b5ee3a3ba9933db/gradle-runner-agent/src/main/scripts/init.gradle#L818
+    if (project.hasProperty("teamcity")) {
+        @Suppress("UNCHECKED_CAST")
+        val teamcity = project.property("teamcity") as MutableMap<String, Any>
+        teamcity["teamcity.build.tempDir"] = ""
     }
 }
 
