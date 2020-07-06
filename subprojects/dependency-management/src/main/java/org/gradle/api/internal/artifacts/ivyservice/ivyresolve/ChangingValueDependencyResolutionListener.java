@@ -27,6 +27,16 @@ import org.gradle.internal.service.scopes.Scopes;
  */
 @EventScope(Scopes.Build)
 public interface ChangingValueDependencyResolutionListener {
+    ChangingValueDependencyResolutionListener NO_OP = new ChangingValueDependencyResolutionListener() {
+        @Override
+        public void onDynamicVersionSelection(ModuleComponentSelector requested, Expiry expiry) {
+        }
+
+        @Override
+        public void onChangingModuleResolve(ModuleComponentIdentifier moduleId, Expiry expiry) {
+        }
+    };
+
     /**
      * Called when a dynamic version is selected using the set of candidate versions queried from a repository.
      */

@@ -36,6 +36,7 @@ import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.runWriteOperation
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
 import java.io.File
 
@@ -44,7 +45,7 @@ internal
 class InstantExecutionCacheFingerprintWriter(
     private val host: Host,
     private val writeContext: DefaultWriteContext
-) : ValueSourceProviderFactory.Listener, TaskInputsListener, ScriptExecutionListener, UndeclaredBuildInputListener, ChangingValueDependencyResolutionListener {
+) : ValueSourceProviderFactory.Listener, TaskInputsListener, ScriptExecutionListener, UndeclaredBuildInputListener, ChangingValueDependencyResolutionListener, FileResourceListener {
 
     interface Host {
 
@@ -65,6 +66,9 @@ class InstantExecutionCacheFingerprintWriter(
 
     private
     val capturedFiles: MutableSet<File>
+
+    private
+    val inputFiles = mutableListOf<InputFile>()
 
     private
     val undeclaredSystemProperties = mutableSetOf<String>()
@@ -91,6 +95,9 @@ class InstantExecutionCacheFingerprintWriter(
         if (closestChangingValue != null) {
             write(closestChangingValue)
         }
+        for (inputFile in inputFiles) {
+            write(inputFile)
+        }
         write(null)
         writeContext.close()
     }
@@ -115,6 +122,10 @@ class InstantExecutionCacheFingerprintWriter(
         if (closestChangingValue == null || closestChangingValue!!.expireAt > changingValue.expireAt) {
             closestChangingValue = changingValue
         }
+    }
+
+    override fun fileObserved(file: File) {
+        captureFile(file)
     }
 
     override fun systemPropertyRead(key: String) {
@@ -161,9 +172,10 @@ class InstantExecutionCacheFingerprintWriter(
 
     private
     fun captureFile(file: File) {
-        if (!capturedFiles.add(file))
+        if (!capturedFiles.add(file)) {
             return
-        write(inputFile(file))
+        }
+        inputFiles.add(inputFile(file))
     }
 
     private
