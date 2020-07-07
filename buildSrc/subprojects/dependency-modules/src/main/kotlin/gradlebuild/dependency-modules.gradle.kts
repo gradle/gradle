@@ -20,7 +20,6 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import javax.inject.Inject
-import kotlin.reflect.KClass
 
 val libs = extensions.create<ExternalModulesExtension>("libs")
 
@@ -28,46 +27,46 @@ applyAutomaticUpgradeOfCapabilities()
 dependencies {
     components {
         // Gradle distribution - minify: remove unused transitive dependencies
-        withModule(libs.maven3, MavenDependencyCleaningRule::class.java)
-        withLibraryDependencies(libs.awsS3_core, DependencyRemovalByNameRule::class, setOf("jackson-dataformat-cbor"))
-        withLibraryDependencies(libs.jgit, DependencyRemovalByGroupRule::class, setOf("com.googlecode.javaewah"))
-        withLibraryDependencies(libs.maven3_wagon_http_shared, DependencyRemovalByGroupRule::class, setOf("org.jsoup"))
-        withLibraryDependencies(libs.aether_connector, DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
-        withLibraryDependencies(libs.maven3_compat, DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
-        withLibraryDependencies(libs.maven3_plugin_api, DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
-        withLibraryDependencies(libs.maven3_settings_builder, DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
+        withModule<MavenDependencyCleaningRule>(libs.maven3)
+        withLibraryDependencies<DependencyRemovalByNameRule>(libs.awsS3_core, setOf("jackson-dataformat-cbor"))
+        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.jgit, setOf("com.googlecode.javaewah"))
+        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.maven3_wagon_http_shared, setOf("org.jsoup"))
+        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.aether_connector, setOf("org.sonatype.sisu"))
+        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.maven3_compat, setOf("org.sonatype.sisu"))
+        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.maven3_plugin_api, setOf("org.sonatype.sisu"))
+        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.maven3_settings_builder, setOf("org.sonatype.sisu"))
 
         // We don't need the extra annotations provided by j2objc
-        withLibraryDependencies(libs.google_http_client, DependencyRemovalByNameRule::class, setOf("j2objc-annotations"))
+        withLibraryDependencies<DependencyRemovalByNameRule>(libs.google_http_client, setOf("j2objc-annotations"))
 
         // Read capabilities declared in capabilities.json
         readCapabilitiesFromJson()
 
-        withModule("org.spockframework:spock-core", ReplaceCglibNodepWithCglibRule::class.java)
+        withModule<ReplaceCglibNodepWithCglibRule>("org.spockframework:spock-core")
         // Prevent Spock from pulling in Groovy and third-party dependencies - see https://github.com/spockframework/spock/issues/899
-        withLibraryDependencies("org.spockframework:spock-core", DependencyRemovalByNameRule::class,
+        withLibraryDependencies<DependencyRemovalByNameRule>("org.spockframework:spock-core",
             setOf("groovy-groovysh", "groovy-json", "groovy-macro", "groovy-nio", "groovy-sql", "groovy-templates", "groovy-test", "groovy-xml"))
-        withLibraryDependencies("cglib:cglib", DependencyRemovalByNameRule::class, setOf("ant"))
+        withLibraryDependencies<DependencyRemovalByNameRule>("cglib:cglib", setOf("ant"))
 
         // asciidoctorj depends on a lot of stuff, which causes `Can't create process, argument list too long` on Windows
-        withLibraryDependencies("org.gradle:sample-discovery", DependencyRemovalByNameRule::class, setOf("asciidoctorj", "asciidoctorj-api"))
+        withLibraryDependencies<DependencyRemovalByNameRule>("org.gradle:sample-discovery", setOf("asciidoctorj", "asciidoctorj-api"))
 
-        withModule("jaxen:jaxen", DowngradeXmlApisRule::class.java)
-        withModule("jdom:jdom", DowngradeXmlApisRule::class.java)
-        withModule("xalan:xalan", DowngradeXmlApisRule::class.java)
-        withModule("jaxen:jaxen", DowngradeXmlApisRule::class.java)
+        withModule<DowngradeXmlApisRule>("jaxen:jaxen")
+        withModule<DowngradeXmlApisRule>("jdom:jdom")
+        withModule<DowngradeXmlApisRule>("xalan:xalan")
+        withModule<DowngradeXmlApisRule>("jaxen:jaxen")
 
         // We only need "failureaccess" of Guava's dependencies
-        withLibraryDependencies("com.google.guava:guava", KeepDependenciesByNameRule::class, setOf("failureaccess"))
+        withLibraryDependencies<KeepDependenciesByNameRule>("com.google.guava:guava", setOf("failureaccess"))
 
         // Test dependencies - minify: remove unused transitive dependencies
-        withLibraryDependencies("org.gradle.org.littleshoot:littleproxy", DependencyRemovalByNameRule::class,
+        withLibraryDependencies<DependencyRemovalByNameRule>("org.gradle.org.littleshoot:littleproxy",
             setOf("barchart-udt-bundle", "guava", "commons-cli"))
 
         // TODO: Gradle profiler should use the bundled tooling API.
         //   This should actually be handled by conflict resolution, though it doesn't seem to work.
         //   See https://github.com/gradle/gradle/issues/12002.
-        withLibraryDependencies("org.gradle.profiler:gradle-profiler", DependencyRemovalByNameRule::class,
+        withLibraryDependencies<DependencyRemovalByNameRule>("org.gradle.profiler:gradle-profiler",
             setOf("gradle-tooling-api"))
     }
 }
@@ -88,7 +87,7 @@ fun readCapabilitiesFromJson() {
         @Suppress("unchecked_cast")
         capabilities = extra["capabilities"] as List<CapabilitySpec>
     } else {
-        val capabilitiesFile = gradle.rootProject.file("gradle/dependency-management/capabilities.json")
+        val capabilitiesFile = gradle.rootProject.layout.projectDirectory.file("gradle/dependency-management/capabilities.json").asFile
         capabilities = if (capabilitiesFile.exists()) {
             readCapabilities(capabilitiesFile)
         } else {
@@ -154,7 +153,7 @@ class CapabilitySpec {
 
     private
     fun ComponentMetadataHandler.declareSyntheticCapability(provider: String, version: String) {
-        withModule(provider, CapabilityRule::class.java) {
+        withModule<CapabilityRule>(provider) {
             params(name)
             params(version)
         }
@@ -243,9 +242,9 @@ abstract class MavenDependencyCleaningRule : ComponentMetadataRule {
     }
 }
 
-
-fun ComponentMetadataHandler.withLibraryDependencies(module: String, kClass: KClass<out ComponentMetadataRule>, modulesToRemove: Set<String>) {
-    withModule(module, kClass.java) {
+inline
+fun <reified T : ComponentMetadataRule> ComponentMetadataHandler.withLibraryDependencies(module: String, modulesToRemove: Set<String>) {
+    withModule<T>(module) {
         params(modulesToRemove)
     }
 }
