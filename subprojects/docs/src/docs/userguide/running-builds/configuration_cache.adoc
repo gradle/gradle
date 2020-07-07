@@ -883,11 +883,3 @@ Support for link:https://blog.gradle.org/introducing-source-dependencies[source 
 With the configuration cache enabled, no problem will be reported and the build will fail.
 
 See link:{gradle-issues}13506[gradle/gradle#13506].
-
-[[config_cache:not_yet_implemented:dependency_locking]]
-=== Dependency locking
-
-<<dependency_locking#dependency-locking, Locking dependency versions>> isn't supported yet.
-With the configuration cache enabled, no problem will be reported and dependency locks will be ignored.
-
-See link:{gradle-issues}13507[gradle/gradle#13507].
