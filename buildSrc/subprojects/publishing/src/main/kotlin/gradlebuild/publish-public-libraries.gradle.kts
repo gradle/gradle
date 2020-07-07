@@ -25,16 +25,7 @@ plugins {
 publishing {
     publications {
         create<MavenPublication>("gradleDistribution") {
-            from(components["java"])
-            artifactId = moduleIdentity.baseName.get()
-            versionMapping {
-                usage("java-api") {
-                    fromResolutionResult()
-                }
-                usage("java-runtime") {
-                    fromResolutionResult()
-                }
-            }
+            configureGradleModulePublication()
         }
     }
     repositories {
@@ -49,6 +40,19 @@ publishing {
         }
     }
     configurePublishingTasks()
+}
+
+fun MavenPublication.configureGradleModulePublication() {
+    from(components["java"])
+    artifactId = moduleIdentity.baseName.get()
+    versionMapping {
+        usage("java-api") {
+            fromResolutionResult()
+        }
+        usage("java-runtime") {
+            fromResolutionResult()
+        }
+    }
 }
 
 fun Project.configurePublishingTasks() {
@@ -94,16 +98,7 @@ fun publishNormalizedToLocalRepository() {
         }
         publications {
             create<MavenPublication>("local") {
-                from(project.components["java"])
-                versionMapping {
-                    usage("java-api") {
-                        fromResolutionResult()
-                    }
-                    usage("java-runtime") {
-                        fromResolutionResult()
-                    }
-                }
-                artifactId = baseName.get()
+                configureGradleModulePublication()
                 version = moduleIdentity.version.get().baseVersion.version
             }
         }
