@@ -58,7 +58,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends CompileSpec> Compiler<T> createTargetCompiler(Class<? extends CompileSpec> type) {
+    private <T extends CompileSpec> Compiler<T> createTargetCompiler(Class<T> type) {
         if (!JavaCompileSpec.class.isAssignableFrom(type)) {
             throw new IllegalArgumentException(String.format("Cannot create a compiler for a spec with type %s", type.getSimpleName()));
         }
