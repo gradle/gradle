@@ -54,7 +54,8 @@ public interface ResolvableConfigurationBuilder {
     ResolvableConfigurationBuilder usingDependencyBucket(String name, String description);
 
     /**
-     * Configures the resolution for runtime of java libraries
+     * Configures the resolution for runtime of java libraries.
+     * This is the default if non of requiresJavaLibrariesRuntime() and requiresJavaLibrariesAPI() is used.
      */
     ResolvableConfigurationBuilder requiresJavaLibrariesRuntime();
 
@@ -65,14 +66,14 @@ public interface ResolvableConfigurationBuilder {
 
     /**
      * Adds configurations the resolvable configuration should extend from.
-     * Those configurations should be typically buckets of dependencies
+     * Those configurations should typically be buckets of dependencies.
      * @param parentConfigurations the parent configurations
      */
     ResolvableConfigurationBuilder extendsFrom(Configuration... parentConfigurations);
 
     /**
      * Adds configurations the resolvable configuration should extend from.
-     * Those configurations should be typically buckets of dependencies
+     * Those configurations should typically be buckets of dependencies.
      * @param parentConfigurations the parent configurations
      */
     ResolvableConfigurationBuilder extendsFrom(List<Provider<Configuration>> parentConfigurations);

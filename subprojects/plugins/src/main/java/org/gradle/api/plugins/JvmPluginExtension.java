@@ -46,8 +46,8 @@ public interface JvmPluginExtension {
 
     /**
      * Creates a configuration which can be used to resolve dependencies for the JVM
-     * ecosystem. It will also create the configurations used to declare dependencies,
-     * also known as "bucket" configurations.
+     * ecosystem. It may also be used to create configuration for declaring dependencies,
+     * also known as "bucket" configurations (see ResolvableConfigurationBuilder.usingDependencyBucket).
      *
      * The action is used to configure the created <i>resolvable</i> configuration.
      *
