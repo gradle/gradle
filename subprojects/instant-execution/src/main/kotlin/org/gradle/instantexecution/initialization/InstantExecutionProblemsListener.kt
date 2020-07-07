@@ -43,8 +43,6 @@ class DefaultInstantExecutionProblemsListener internal constructor(
     private val problems: InstantExecutionProblems,
     private val userCodeApplicationContext: UserCodeApplicationContext
 ) : InstantExecutionProblemsListener {
-    private
-    val fileRepos = mutableSetOf<String>()
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
         onTaskExecutionAccessProblem(invocationDescription, task)

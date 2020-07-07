@@ -62,6 +62,12 @@ class InstantExecutionStartParameter(
     val isRefreshDependencies
         get() = startParameter.isRefreshDependencies
 
+    val isWriteDependencyLocks
+        get() = startParameter.isWriteDependencyLocks && !isUpdateDependencyLocks
+
+    val isUpdateDependencyLocks
+        get() = startParameter.lockedDependenciesToUpdate.isNotEmpty()
+
     val requestedTaskNames: List<String> by unsafeLazy {
         startParameter.taskNames
     }
