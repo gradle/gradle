@@ -34,12 +34,12 @@ dependencies {
     implementation(project(":testingBase"))
     implementation(project(":testingNative"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("inject"))
-    implementation(library("plist"))
+    implementation(libs.groovy)
+    implementation(libs.slf4j_api)
+    implementation(libs.guava)
+    implementation(libs.commons_lang)
+    implementation(libs.inject)
+    implementation(libs.plist)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":platformNative")))
@@ -47,12 +47,12 @@ dependencies {
     testImplementation(testFixtures(project(":versionControl")))
 
     integTestImplementation(project(":native"))
-    integTestImplementation(library("commons_io"))
-    integTestImplementation(library("jgit"))
+    integTestImplementation(libs.commons_io)
+    integTestImplementation(libs.jgit)
 
     testFixturesApi(testFixtures(project(":ide")))
-    testFixturesImplementation(library("plist"))
-    testFixturesImplementation(library("guava"))
+    testFixturesImplementation(libs.plist)
+    testFixturesImplementation(libs.guava)
     testFixturesImplementation(testFixtures(project(":ide")))
 
     testRuntimeOnly(project(":distributionsCore")) {

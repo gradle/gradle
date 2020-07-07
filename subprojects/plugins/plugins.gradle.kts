@@ -42,22 +42,22 @@ dependencies {
     implementation(project(":testingJvm"))
     implementation(project(":snapshots"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("groovy"))
-    implementation(library("ant"))
-    implementation(library("asm"))
-    implementation(library("guava"))
-    implementation(library("commons_io"))
-    implementation(library("commons_lang"))
-    implementation(library("inject"))
+    implementation(libs.slf4j_api)
+    implementation(libs.groovy)
+    implementation(libs.ant)
+    implementation(libs.asm)
+    implementation(libs.guava)
+    implementation(libs.commons_io)
+    implementation(libs.commons_lang)
+    implementation(libs.inject)
 
     testImplementation(project(":messaging"))
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
-    testImplementation(library("gson")) {
+    testImplementation(libs.gson) {
         because("for unknown reason (bug in the Groovy/Spock compiler?) requires it to be present to use the Gradle Module Metadata test fixtures")
     }
-    testImplementation(testLibrary("jsoup"))
+    testImplementation(libs.jsoup)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependencyManagement")))
     testImplementation(testFixtures(project(":resourcesHttp")))
@@ -74,7 +74,7 @@ dependencies {
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(project(":processServices"))
     testFixturesImplementation(project(":resources"))
-    testFixturesImplementation(library("guava"))
+    testFixturesImplementation(libs.guava)
 
     testRuntimeOnly(project(":distributionsCore")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

@@ -16,9 +16,9 @@
 
 package gradlebuild.integrationtests
 
-import library
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.integrationtests.tasks.IntegrationTest
+import gradlebuild.modules.extension.ExternalModulesExtension
 
 import org.gradle.api.Action
 import org.gradle.api.Project
@@ -66,9 +66,9 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
         resolver("${prefix}TestSrcDistributionPath", "gradle-src-distribution-zip", srcDistribution)
     }
 
-    if (name != "test") {
-        dependencies {
-            "${prefix}TestRuntimeOnly"(library("junit5_vintage"))
+    dependencies {
+        "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junit5_vintage)
+        if (name != "test") { // do not attempt to find projects during script compilation
             "${prefix}TestImplementation"(project(":internalIntegTesting"))
             "${prefix}TestFullDistributionRuntimeClasspath"(project(":distributionsFull"))
         }

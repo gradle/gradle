@@ -7,7 +7,7 @@ description = "Logging infrastructure"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    api(library("slf4j_api"))
+    api(libs.slf4j_api)
 
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
@@ -15,22 +15,22 @@ dependencies {
     implementation(project(":buildOption"))
 
     implementation(project(":native"))
-    implementation(library("jul_to_slf4j"))
-    implementation(library("ant"))
-    implementation(library("commons_lang"))
-    implementation(library("guava"))
-    implementation(library("jansi"))
+    implementation(libs.jul_to_slf4j)
+    implementation(libs.ant)
+    implementation(libs.commons_lang)
+    implementation(libs.guava)
+    implementation(libs.jansi)
 
-    runtimeOnly(library("log4j_to_slf4j"))
-    runtimeOnly(library("jcl_to_slf4j"))
+    runtimeOnly(libs.log4j_to_slf4j)
+    runtimeOnly(libs.jcl_to_slf4j)
 
     testImplementation(testFixtures(project(":core")))
 
-    integTestImplementation(library("ansi_control_sequence_util"))
+    integTestImplementation(libs.ansi_control_sequence_util)
 
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(testFixtures(project(":core")))
-    testFixturesImplementation(library("slf4j_api"))
+    testFixturesImplementation(libs.slf4j_api)
 
     integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }

@@ -30,17 +30,17 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":reporting"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("inject"))
+    implementation(libs.groovy)
+    implementation(libs.slf4j_api)
+    implementation(libs.guava)
+    implementation(libs.commons_lang)
+    implementation(libs.inject)
 
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(testLibrary("jsoup"))
+    testFixturesImplementation(libs.jsoup)
 
     testImplementation(project(":fileCollections"))
     testImplementation(project(":internalTesting"))

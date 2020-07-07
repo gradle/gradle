@@ -32,10 +32,10 @@ dependencies {
     implementation(project(":internalTesting"))
     implementation(project(":internalIntegTesting"))
 
-    implementation(library("junit"))
-    implementation(testLibrary("mockito_kotlin"))
-    implementation(testLibrary("jackson_kotlin"))
-    implementation(library("asm"))
+    implementation(libs.junit)
+    implementation(libs.mockito_kotlin)
+    implementation(libs.jackson_kotlin)
+    implementation(libs.asm)
 
     testRuntimeOnly(project(":distributionsJvm")) {
         because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt).")

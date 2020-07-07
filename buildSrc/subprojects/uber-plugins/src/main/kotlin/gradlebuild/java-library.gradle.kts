@@ -18,7 +18,6 @@ package gradlebuild
 plugins {
     `java-library`
     id("gradlebuild.dependency-modules")
-    id("gradlebuild.dependencies-metadata-rules")
     id("gradlebuild.repositories")
     id("gradlebuild.minify")
     id("gradlebuild.reproducible-archives")

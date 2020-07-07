@@ -35,11 +35,11 @@ dependencies {
     implementation(project(":pluginUse"))
     implementation(project(":dependencyManagement"))
 
-    implementation(library("groovy")) // for 'Closure' and 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("inject"))
-    implementation(library("ivy"))
+    implementation(libs.groovy) // for 'Closure' and 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
+    implementation(libs.guava)
+    implementation(libs.commons_lang)
+    implementation(libs.inject)
+    implementation(libs.ivy)
 
     testImplementation(project(":native"))
     testImplementation(project(":processServices"))
@@ -51,8 +51,8 @@ dependencies {
     testImplementation(testFixtures(project(":dependencyManagement")))
 
     integTestImplementation(project(":ear"))
-    integTestImplementation(library("slf4j_api"))
-    integTestImplementation(testLibrary("jetty"))
+    integTestImplementation(libs.slf4j_api)
+    integTestImplementation(libs.jetty)
 
     integTestRuntimeOnly(project(":resourcesS3"))
     integTestRuntimeOnly(project(":resourcesSftp"))
@@ -67,8 +67,10 @@ dependencies {
     testFixturesImplementation(project(":logging"))
     testFixturesImplementation(project(":dependencyManagement"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("slf4j_api"))
-    testLibraries("sshd").forEach { testFixturesImplementation(it) }
+    testFixturesImplementation(libs.slf4j_api)
+    testFixturesImplementation(libs.sshdCore)
+    testFixturesImplementation(libs.sshdScp)
+    testFixturesImplementation(libs.sshdSftp)
 
     testRuntimeOnly(project(":distributionsCore")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

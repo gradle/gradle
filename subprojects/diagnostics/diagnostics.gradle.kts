@@ -32,25 +32,25 @@ dependencies {
     implementation(project(":baseServicesGroovy"))
     implementation(project(":buildOption"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("groovy"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("inject"))
-    implementation(library("jatl"))
+    implementation(libs.slf4j_api)
+    implementation(libs.groovy)
+    implementation(libs.guava)
+    implementation(libs.commons_lang)
+    implementation(libs.inject)
+    implementation(libs.jatl)
 
     testImplementation(project(":processServices"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependencyManagement")))
     testImplementation(testFixtures(project(":logging")))
 
-    integTestImplementation(testLibrary("jsoup"))
-    integTestImplementation(testLibrary("jetty"))
+    integTestImplementation(libs.jsoup)
+    integTestImplementation(libs.jetty)
 
     testFixturesApi(testFixtures(project(":platformNative")))
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("guava"))
+    testFixturesImplementation(libs.guava)
 
     testRuntimeOnly(project(":distributionsCore")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

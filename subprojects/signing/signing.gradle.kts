@@ -33,10 +33,10 @@ dependencies {
     implementation(project(":maven"))
     implementation(project(":security"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("inject"))
+    implementation(libs.groovy)
+    implementation(libs.slf4j_api)
+    implementation(libs.guava)
+    implementation(libs.inject)
 
     testImplementation(project(":ivy"))
     testImplementation(testFixtures(project(":core")))

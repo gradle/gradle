@@ -7,15 +7,15 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     implementation(project(":baseServices"))
 
-    implementation(library("fastutil"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("kryo"))
+    implementation(libs.fastutil)
+    implementation(libs.slf4j_api)
+    implementation(libs.guava)
+    implementation(libs.kryo)
 
     testImplementation(testFixtures(project(":core")))
 
     testFixturesImplementation(project(":baseServices"))
-    testFixturesImplementation(library("slf4j_api"))
+    testFixturesImplementation(libs.slf4j_api)
 
     integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }

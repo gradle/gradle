@@ -27,6 +27,14 @@ publishing {
         create<MavenPublication>("gradleDistribution") {
             from(components["java"])
             artifactId = moduleIdentity.baseName.get()
+            versionMapping {
+                usage("java-api") {
+                    fromResolutionResult()
+                }
+                usage("java-runtime") {
+                    fromResolutionResult()
+                }
+            }
         }
     }
     repositories {
@@ -87,6 +95,14 @@ fun publishNormalizedToLocalRepository() {
         publications {
             create<MavenPublication>("local") {
                 from(project.components["java"])
+                versionMapping {
+                    usage("java-api") {
+                        fromResolutionResult()
+                    }
+                    usage("java-runtime") {
+                        fromResolutionResult()
+                    }
+                }
                 artifactId = baseName.get()
                 version = moduleIdentity.version.get().baseVersion.version
             }

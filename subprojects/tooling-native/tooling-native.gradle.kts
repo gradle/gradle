@@ -32,7 +32,7 @@ dependencies {
         because("To pick up various builders (which should live somewhere else)")
     }
 
-    implementation(library("guava"))
+    implementation(libs.guava)
 
     testImplementation(testFixtures(project(":platformNative")))
 

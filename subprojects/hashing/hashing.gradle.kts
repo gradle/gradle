@@ -25,5 +25,5 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     implementation(project(":baseAnnotations"))
-    implementation(library("guava")) { version { require(libraryVersion("guava")) } }
+    implementation(libs.guava)
 }

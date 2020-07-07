@@ -29,10 +29,10 @@ dependencies {
     implementation(project(":workers"))
     implementation(project(":files"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("groovy"))
-    implementation(library("guava"))
-    implementation(library("inject"))
+    implementation(libs.slf4j_api)
+    implementation(libs.groovy)
+    implementation(libs.guava)
+    implementation(libs.inject)
 
     compileOnly("antlr:antlr:2.7.7") {
         because("this dependency is downloaded by the antlr plugin")

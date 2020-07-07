@@ -26,19 +26,19 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":processServices"))
     implementation(project(":resourcesHttp"))
-    implementation(library("guava"))
+    implementation(libs.guava)
 
-    api(library("bouncycastle_pgp"))
+    api(libs.bouncycastle_pgp)
 
-    implementation(library("groovy")) {
+    implementation(libs.groovy) {
         because("Project.exec() depends on Groovy")
     }
 
     testImplementation(testFixtures(project(":core")))
 
     testFixturesImplementation(project(":baseServices"))
-    testFixturesImplementation(library("slf4j_api"))
-    testFixturesImplementation(testLibrary("jetty"))
+    testFixturesImplementation(libs.slf4j_api)
+    testFixturesImplementation(libs.jetty)
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":internalIntegTesting"))
 

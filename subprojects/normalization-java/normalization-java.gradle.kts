@@ -26,10 +26,10 @@ dependencies {
     implementation(project(":files"))
     implementation(project(":snapshots"))
 
-    implementation(library("asm")) { version { require(libraryVersion("asm")) } }
-    implementation(library("guava")) { version { require(libraryVersion("guava")) } }
-    implementation(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
-    implementation(library("commons_io")) { version { require(libraryVersion("commons_io")) } }
+    implementation(libs.asm)
+    implementation(libs.guava)
+    implementation(libs.slf4j_api)
+    implementation(libs.commons_io)
 
     testImplementation(project(":baseServices"))
     testImplementation(project(":internalTesting"))

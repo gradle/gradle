@@ -18,11 +18,11 @@ dependencies {
     implementation(project(":languageJava"))
     implementation(project(":languageJvm"))
 
-    implementation(library("groovy")) // for 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
-    implementation(library("ant"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("inject"))
+    implementation(libs.groovy) // for 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
+    implementation(libs.ant)
+    implementation(libs.slf4j_api)
+    implementation(libs.guava)
+    implementation(libs.inject)
 
     testImplementation(project(":fileCollections"))
     testImplementation(project(":files"))
@@ -30,8 +30,8 @@ dependencies {
     testImplementation(testFixtures(project(":platformBase")))
     testImplementation(testFixtures(project(":plugins")))
 
-    integTestImplementation(library("commons_lang"))
-    integTestImplementation(library("ant"))
+    integTestImplementation(libs.commons_lang)
+    integTestImplementation(libs.ant)
 
     testFixturesApi(testFixtures(project(":languageJvm")))
     testFixturesImplementation(project(":baseServices"))

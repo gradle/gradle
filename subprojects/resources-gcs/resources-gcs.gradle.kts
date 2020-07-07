@@ -9,17 +9,17 @@ dependencies {
     implementation(project(":resourcesHttp"))
     implementation(project(":core"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("jackson_core"))
-    implementation(library("jackson_annotations"))
-    implementation(library("jackson_databind"))
-    implementation(library("gcs"))
-    implementation(library("commons_httpclient"))
-    implementation(library("joda"))
+    implementation(libs.slf4j_api)
+    implementation(libs.guava)
+    implementation(libs.commons_lang)
+    implementation(libs.jackson_core)
+    implementation(libs.jackson_annotations)
+    implementation(libs.jackson_databind)
+    implementation(libs.gcs)
+    implementation(libs.commons_httpclient)
+    implementation(libs.joda)
 
-    testImplementation(library("groovy"))
+    testImplementation(libs.groovy)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependencyManagement")))
     testImplementation(testFixtures(project(":ivy")))
@@ -27,8 +27,8 @@ dependencies {
 
     integTestImplementation(project(":coreApi"))
     integTestImplementation(project(":modelCore"))
-    integTestImplementation(library("commons_io"))
-    integTestImplementation(testLibrary("jetty"))
+    integTestImplementation(libs.commons_io)
+    integTestImplementation(libs.jetty)
 
     integTestDistributionRuntimeOnly(project(":distributionsBasics"))
 }

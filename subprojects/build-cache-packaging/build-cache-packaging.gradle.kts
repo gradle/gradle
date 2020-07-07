@@ -28,9 +28,9 @@ dependencies {
 
     implementation(project(":baseAnnotations"))
 
-    implementation(library("guava")) { version { require(libraryVersion("guava")) } }
-    implementation(library("commons_compress")) { version { require(libraryVersion("commons_compress")) } }
-    implementation(library("commons_io")) { version { require(libraryVersion("commons_io")) } }
+    implementation(libs.guava)
+    implementation(libs.commons_compress)
+    implementation(libs.commons_io)
 
     testImplementation(project(":processServices"))
     testImplementation(project(":fileCollections"))

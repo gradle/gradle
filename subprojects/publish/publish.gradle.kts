@@ -29,12 +29,12 @@ dependencies {
     implementation(project(":baseServicesGroovy")) // for 'Specs'
     implementation(project(":dependencyManagement"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("groovy"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("gson"))
-    implementation(library("inject"))
+    implementation(libs.slf4j_api)
+    implementation(libs.groovy)
+    implementation(libs.guava)
+    implementation(libs.commons_lang)
+    implementation(libs.gson)
+    implementation(libs.inject)
 
     testImplementation(testFixtures(project(":core")))
 

@@ -12,11 +12,11 @@ dependencies {
 
     implementation(project(":baseServices"))
 
-    implementation(library("nativePlatform"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_io"))
-    implementation(library("jansi"))
+    implementation(libs.nativePlatform)
+    implementation(libs.slf4j_api)
+    implementation(libs.guava)
+    implementation(libs.commons_io)
+    implementation(libs.jansi)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))

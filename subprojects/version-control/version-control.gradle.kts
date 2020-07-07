@@ -29,11 +29,11 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":dependencyManagement"))
 
-    implementation(library("guava"))
-    implementation(library("inject"))
-    implementation(library("jgit"))
-    implementation(library("commons_httpclient"))
-    implementation(library("jsch"))
+    implementation(libs.guava)
+    implementation(libs.inject)
+    implementation(libs.jgit)
+    implementation(libs.commons_httpclient)
+    implementation(libs.jsch)
 
     testImplementation(project(":native"))
     testImplementation(project(":snapshots"))
@@ -43,11 +43,11 @@ dependencies {
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":internalIntegTesting"))
 
-    testFixturesImplementation(library("jgit"))
-    testFixturesImplementation(library("commons_io"))
-    testFixturesImplementation(library("commons_httpclient"))
-    testFixturesImplementation(library("jsch"))
-    testFixturesImplementation(library("guava"))
+    testFixturesImplementation(libs.jgit)
+    testFixturesImplementation(libs.commons_io)
+    testFixturesImplementation(libs.commons_httpclient)
+    testFixturesImplementation(libs.jsch)
+    testFixturesImplementation(libs.guava)
 
     integTestImplementation(project(":launcher"))
     integTestDistributionRuntimeOnly(project(":distributionsBasics"))

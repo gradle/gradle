@@ -34,11 +34,11 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":wrapper"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("inject"))
+    implementation(libs.groovy)
+    implementation(libs.slf4j_api)
+    implementation(libs.guava)
+    implementation(libs.commons_lang)
+    implementation(libs.inject)
     implementation("org.codehaus.plexus:plexus-container-default")
     implementation("org.apache.maven:maven-compat")
     implementation("org.apache.maven:maven-plugin-api")
@@ -54,7 +54,7 @@ dependencies {
     testFixturesImplementation(project(":baseServices"))
 
     integTestImplementation(project(":native"))
-    integTestImplementation(testLibrary("jetty"))
+    integTestImplementation(libs.jetty)
 
     testRuntimeOnly(project(":distributionsCore")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

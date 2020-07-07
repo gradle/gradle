@@ -26,14 +26,14 @@ dependencies {
 
     testImplementation(project(":baseServices"))
     testImplementation(project(":native"))
-    testImplementation(library("ant"))
+    testImplementation(libs.ant)
     testImplementation(testFixtures(project(":core")))
 
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":coreApi"))
-    integTestImplementation(library("commons_io"))
-    integTestImplementation(testLibrary("littleproxy"))
-    integTestImplementation(testLibrary("jetty"))
+    integTestImplementation(libs.commons_io)
+    integTestImplementation(libs.littleproxy)
+    integTestImplementation(libs.jetty)
 
     crossVersionTestImplementation(project(":logging"))
     crossVersionTestImplementation(project(":persistentCache"))

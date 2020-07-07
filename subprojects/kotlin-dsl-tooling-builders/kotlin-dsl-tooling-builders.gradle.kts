@@ -41,9 +41,9 @@ dependencies {
     integTestImplementation(project(":internalTesting"))
 
     crossVersionTestImplementation(project(":persistentCache"))
-    crossVersionTestImplementation(library("slf4j_api"))
-    crossVersionTestImplementation(library("guava"))
-    crossVersionTestImplementation(library("ant"))
+    crossVersionTestImplementation(libs.slf4j_api)
+    crossVersionTestImplementation(libs.guava)
+    crossVersionTestImplementation(libs.ant)
 
     integTestDistributionRuntimeOnly(project(":distributionsBasics"))
     crossVersionTestDistributionRuntimeOnly(project(":distributionsBasics"))

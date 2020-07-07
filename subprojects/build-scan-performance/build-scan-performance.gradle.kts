@@ -23,7 +23,7 @@ plugins {
 
 dependencies {
     testFixturesApi(project(":internalPerformanceTesting"))
-    testFixturesApi(library("commons_io"))
+    testFixturesApi(libs.commons_io)
     testFixturesApi(project(":baseServices"))
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))

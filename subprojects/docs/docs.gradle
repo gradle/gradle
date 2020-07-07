@@ -17,6 +17,8 @@
 import gradlebuild.integrationtests.model.GradleDistribution
 import org.gradle.docs.samples.internal.tasks.InstallSample
 
+import static gradlebuild.basics.Repositories_extensionsKt.googleApisJs
+
 plugins {
     id 'gradlebuild.internal.java'
     // TODO: Apply asciidoctor in documentation plugin instead.
@@ -26,8 +28,7 @@ plugins {
 }
 
 repositories { handler ->
-    // TODO migrate this build script to Kotlin DSL to replace this is a simple googleApisJs()
-    Build_extensionsKt.googleApisJs(handler)
+    googleApisJs(handler)
 }
 
 configurations {
@@ -65,16 +66,17 @@ dependencies {
 
     testImplementation project(":baseServices")
     testImplementation project(":core")
-    testImplementation testLibraries.jsoup
+    testImplementation libs.jsoup
     testImplementation "org.gebish:geb-spock:2.2"
     testImplementation 'org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2'
-    testImplementation libraries.commons_httpclient.coordinates
-    testImplementation "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
+    testImplementation libs.commons_httpclient
+    testImplementation libs.httpmime
 
+    docsTestImplementation platform(project(":distributionsDependencies"))
     docsTestImplementation project(":internalIntegTesting")
     docsTestImplementation project(":testKit")
-    docsTestImplementation "${libraries.junit5_vintage.coordinates}:${libraries.junit5_vintage.version}"
-    docsTestImplementation "${libraries.junit.coordinates}:${libraries.junit.version}"
+    docsTestImplementation libs.junit5_vintage
+    docsTestImplementation libs.junit
 
     integTestDistributionRuntimeOnly project(":distributionsFull")
 }

@@ -13,9 +13,9 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":native"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("nativePlatform"))
+    implementation(libs.slf4j_api)
+    implementation(libs.guava)
+    implementation(libs.nativePlatform)
 
     testImplementation(testFixtures(project(":core")))
 

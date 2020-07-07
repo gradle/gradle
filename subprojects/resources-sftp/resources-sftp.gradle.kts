@@ -26,10 +26,10 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":core"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("jsch"))
-    implementation(library("commons_io"))
+    implementation(libs.slf4j_api)
+    implementation(libs.guava)
+    implementation(libs.jsch)
+    implementation(libs.commons_io)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependencyManagement")))
@@ -37,8 +37,10 @@ dependencies {
     testImplementation(testFixtures(project(":maven")))
 
     integTestImplementation(project(":logging"))
-    integTestImplementation(testLibrary("jetty"))
-    testLibraries("sshd").forEach { integTestImplementation(it) }
+    integTestImplementation(libs.jetty)
+    integTestImplementation(libs.sshdCore)
+    integTestImplementation(libs.sshdScp)
+    integTestImplementation(libs.sshdSftp)
 
     integTestDistributionRuntimeOnly(project(":distributionsBasics"))
 }

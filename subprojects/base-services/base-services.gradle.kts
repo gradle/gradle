@@ -16,15 +16,15 @@ dependencies {
     api(project(":baseAnnotations"))
     api(project(":hashing"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("commons_io"))
-    implementation(library("asm"))
+    implementation(libs.slf4j_api)
+    implementation(libs.guava)
+    implementation(libs.commons_lang)
+    implementation(libs.commons_io)
+    implementation(libs.asm)
 
     integTestImplementation(project(":logging"))
 
-    testFixturesImplementation(library("guava"))
+    testFixturesImplementation(libs.guava)
     testImplementation(testFixtures(project(":core")))
 
     integTestDistributionRuntimeOnly(project(":distributionsCore"))

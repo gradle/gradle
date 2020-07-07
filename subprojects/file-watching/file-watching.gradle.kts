@@ -25,9 +25,9 @@ dependencies {
 
     implementation(project(":baseAnnotations"))
 
-    implementation(library("guava"))
-    implementation(library("nativePlatform"))
-    implementation(library("slf4j_api"))
+    implementation(libs.guava)
+    implementation(libs.nativePlatform)
+    implementation(libs.slf4j_api)
 
     testImplementation(project(":processServices"))
     testImplementation(project(":resources"))
@@ -35,7 +35,7 @@ dependencies {
     testImplementation(project(":buildOption"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":fileCollections")))
-    testImplementation(library("commons_io"))
+    testImplementation(libs.commons_io)
 
     integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }

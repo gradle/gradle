@@ -27,14 +27,14 @@ dependencies {
 
     implementation(project(":baseAnnotations"))
 
-    implementation(library("guava")) { version { require(libraryVersion("guava")) } }
-    implementation(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
+    implementation(libs.guava)
+    implementation(libs.slf4j_api)
 
     testImplementation(project(":processServices"))
     testImplementation(project(":resources"))
     testImplementation(project(":native"))
     testImplementation(project(":persistentCache"))
-    testImplementation(library("ant"))
+    testImplementation(libs.ant)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":coreApi")))
     testImplementation(testFixtures(project(":baseServices")))

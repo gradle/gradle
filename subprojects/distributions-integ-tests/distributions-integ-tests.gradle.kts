@@ -7,9 +7,9 @@ dependencies {
     integTestImplementation(project(":baseServices"))
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":coreApi"))
-    integTestImplementation(library("guava"))
-    integTestImplementation(library("commons_io"))
-    integTestImplementation(library("ant"))
+    integTestImplementation(libs.guava)
+    integTestImplementation(libs.commons_io)
+    integTestImplementation(libs.ant)
 
     integTestBinDistribution(project(":distributionsFull"))
     integTestAllDistribution(project(":distributionsFull"))

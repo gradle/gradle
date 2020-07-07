@@ -39,25 +39,25 @@ dependencies {
     implementation(project(":execution"))
     implementation(project(":security"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("groovy"))
-    implementation(library("asm"))
-    implementation(library("asm_commons"))
-    implementation(library("asm_util"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("commons_io"))
-    implementation(library("commons_httpclient"))
-    implementation(library("inject"))
-    implementation(library("gson"))
-    implementation(library("ant"))
-    implementation(library("ivy"))
-    implementation(library("maven3"))
+    implementation(libs.slf4j_api)
+    implementation(libs.groovy)
+    implementation(libs.asm)
+    implementation(libs.asm_commons)
+    implementation(libs.asm_util)
+    implementation(libs.guava)
+    implementation(libs.commons_lang)
+    implementation(libs.commons_io)
+    implementation(libs.commons_httpclient)
+    implementation(libs.inject)
+    implementation(libs.gson)
+    implementation(libs.ant)
+    implementation(libs.ivy)
+    implementation(libs.maven3)
 
     testImplementation(project(":processServices"))
     testImplementation(project(":diagnostics"))
     testImplementation(project(":buildCachePackaging"))
-    testImplementation(library("nekohtml"))
+    testImplementation(libs.nekohtml)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":coreApi")))
@@ -68,9 +68,9 @@ dependencies {
     testImplementation(testFixtures(project(":execution")))
 
     integTestImplementation(project(":buildOption"))
-    integTestImplementation(library("jansi"))
-    integTestImplementation(library("ansi_control_sequence_util"))
-    integTestImplementation(testLibrary("jetty")) {
+    integTestImplementation(libs.jansi)
+    integTestImplementation(libs.ansi_control_sequence_util)
+    integTestImplementation(libs.jetty) {
         because("tests use HttpServlet directly")
     }
     integTestImplementation(testFixtures(project(":security")))
@@ -82,20 +82,20 @@ dependencies {
         because("Test fixtures export the CacheAccess class")
     }
 
-    testFixturesApi(testLibrary("jetty"))
+    testFixturesApi(libs.jetty)
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(testFixtures(project(":resourcesHttp")))
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("slf4j_api"))
-    testFixturesImplementation(library("inject"))
-    testFixturesImplementation(library("guava")) {
+    testFixturesImplementation(libs.slf4j_api)
+    testFixturesImplementation(libs.inject)
+    testFixturesImplementation(libs.guava) {
         because("Groovy compiler reflects on private field on TextUtil")
     }
-    testFixturesImplementation(library("bouncycastle_pgp"))
-    testFixturesApi(testLibrary("testcontainers_spock")) {
+    testFixturesImplementation(libs.bouncycastle_pgp)
+    testFixturesApi(libs.testcontainers_spock) {
         because("API because of Groovy compiler bug leaking internals")
     }
     testFixturesImplementation(project(":jvmServices")) {

@@ -26,15 +26,15 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":resourcesHttp"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_httpclient"))
-    implementation(library("commons_lang"))
-    implementation(library("inject"))
+    implementation(libs.slf4j_api)
+    implementation(libs.guava)
+    implementation(libs.commons_httpclient)
+    implementation(libs.commons_lang)
+    implementation(libs.inject)
 
     testImplementation(testFixtures(project(":core")))
 
-    integTestImplementation(testLibrary("jetty"))
+    integTestImplementation(libs.jetty)
 
     integTestDistributionRuntimeOnly(project(":distributionsBasics"))
 }

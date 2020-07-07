@@ -40,12 +40,12 @@ dependencies {
     implementation(project(":ear"))
     implementation(project(":toolingApi"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("commons_io"))
-    implementation(library("inject"))
+    implementation(libs.groovy)
+    implementation(libs.slf4j_api)
+    implementation(libs.guava)
+    implementation(libs.commons_lang)
+    implementation(libs.commons_io)
+    implementation(libs.inject)
 
     testFixturesApi(project(":baseServices")) {
         because("test fixtures export the Action class")
@@ -56,12 +56,12 @@ dependencies {
     testFixturesImplementation(project(":internalIntegTesting"))
 
     testImplementation(project(":dependencyManagement"))
-    testImplementation(testLibrary("xmlunit"))
+    testImplementation(libs.xmlunit)
     testImplementation("nl.jqno.equalsverifier:equalsverifier:2.1.6")
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependencyManagement")))
 
-    integTestImplementation(testLibrary("jetty"))
+    integTestImplementation(libs.jetty)
 
     testRuntimeOnly(project(":distributionsCore")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

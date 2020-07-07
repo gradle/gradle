@@ -8,5 +8,5 @@ dependencies {
     implementation(project(":cli"))
 
     implementation(project(":baseAnnotations"))
-    implementation(library("commons_lang"))
+    implementation(libs.commons_lang)
 }

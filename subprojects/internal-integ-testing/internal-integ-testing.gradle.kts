@@ -43,39 +43,43 @@ dependencies {
     implementation(project(":buildEvents"))
     implementation(project(":buildOption"))
 
-    implementation(library("groovy"))
-    implementation(library("junit"))
-    implementation(testLibrary("spock"))
-    implementation(library("nativePlatform"))
-    implementation(library("commons_lang"))
-    implementation(library("commons_io"))
-    implementation(testLibrary("jetty"))
-    implementation(testLibrary("littleproxy"))
-    implementation(library("gcs"))
-    implementation(library("inject"))
-    implementation(library("commons_httpclient"))
-    implementation(library("joda"))
-    implementation(library("jackson_core"))
-    implementation(library("jackson_annotations"))
-    implementation(library("jackson_databind"))
-    implementation(library("ivy"))
-    implementation(library("ant"))
-    implementation(library("jgit")) {
+    implementation(libs.groovy)
+    implementation(libs.junit)
+    implementation(libs.spock)
+    implementation(libs.nativePlatform)
+    implementation(libs.commons_lang)
+    implementation(libs.commons_io)
+    implementation(libs.jetty)
+    implementation(libs.littleproxy)
+    implementation(libs.gcs)
+    implementation(libs.inject)
+    implementation(libs.commons_httpclient)
+    implementation(libs.joda)
+    implementation(libs.jackson_core)
+    implementation(libs.jackson_annotations)
+    implementation(libs.jackson_databind)
+    implementation(libs.ivy)
+    implementation(libs.ant)
+    implementation(libs.jgit) {
         because("Some tests require a git reportitory - see AbstractIntegrationSpec.initGitDir(")
     }
-    testLibraries("sshd").forEach {
-        // we depend on both the platform and the library
-        implementation(it)
-        implementation(platform(it))
-    }
-    implementation(library("gson"))
-    implementation(library("joda"))
-    implementation(library("jsch"))
-    implementation(library("jcifs"))
-    implementation(library("jansi"))
-    implementation(library("ansi_control_sequence_util"))
+
+    // we depend on both: sshd platforms and libraries
+    implementation(libs.sshdCore)
+    implementation(platform(libs.sshdCore))
+    implementation(libs.sshdScp)
+    implementation(platform(libs.sshdScp))
+    implementation(libs.sshdSftp)
+    implementation(platform(libs.sshdSftp))
+
+    implementation(libs.gson)
+    implementation(libs.joda)
+    implementation(libs.jsch)
+    implementation(libs.jcifs)
+    implementation(libs.jansi)
+    implementation(libs.ansi_control_sequence_util)
     implementation("org.apache.mina:mina-core")
-    implementation(testLibrary("sampleCheck")) {
+    implementation(libs.sampleCheck) {
         exclude(module = "groovy-all")
         exclude(module = "slf4j-simple")
     }

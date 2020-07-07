@@ -32,12 +32,12 @@ dependencies {
     implementation(project(":languageNative"))
     implementation(project(":testingBase"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("commons_io"))
-    implementation(library("inject"))
+    implementation(libs.groovy)
+    implementation(libs.slf4j_api)
+    implementation(libs.guava)
+    implementation(libs.commons_lang)
+    implementation(libs.commons_io)
+    implementation(libs.inject)
 
     testImplementation(project(":fileCollections"))
     testImplementation(testFixtures(project(":core")))

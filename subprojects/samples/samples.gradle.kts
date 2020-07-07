@@ -10,11 +10,11 @@ dependencies {
     integTestImplementation(project(":coreApi"))
     integTestImplementation(project(":processServices"))
     integTestImplementation(project(":persistentCache"))
-    integTestImplementation(library("groovy"))
-    integTestImplementation(library("slf4j_api"))
-    integTestImplementation(library("guava"))
-    integTestImplementation(library("ant"))
-    integTestImplementation(testLibrary("sampleCheck")) {
+    integTestImplementation(libs.groovy)
+    integTestImplementation(libs.slf4j_api)
+    integTestImplementation(libs.guava)
+    integTestImplementation(libs.ant)
+    integTestImplementation(libs.sampleCheck) {
         exclude(group = "org.codehaus.groovy", module = "groovy-all")
         exclude(module = "slf4j-simple")
     }

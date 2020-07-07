@@ -18,9 +18,9 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":resources"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("inject"))
+    implementation(libs.slf4j_api)
+    implementation(libs.guava)
+    implementation(libs.inject)
 
     testImplementation(project(":native"))
     testImplementation(project(":fileCollections"))
@@ -36,7 +36,7 @@ dependencies {
 
     integTestImplementation(project(":jvmServices"))
 
-    testFixturesImplementation(library("inject"))
+    testFixturesImplementation(libs.inject)
     testFixturesImplementation(project(":baseServices"))
 
     testRuntimeOnly(project(":distributionsCore")) {

@@ -15,9 +15,6 @@
  */
 package gradlebuild
 
-import libraries
-import library
-import testLibrary
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.tasks.ClasspathManifest
@@ -31,6 +28,7 @@ import java.util.jar.Attributes
 plugins {
     groovy
     id("gradlebuild.module-identity")
+    id("gradlebuild.dependency-modules")
     id("gradlebuild.available-java-installations")
     id("org.gradle.test-retry")
 }
@@ -113,29 +111,25 @@ fun configureClasspathManifestGeneration() {
 }
 
 fun addDependencies() {
-    if (libraries.isEmpty()) {
-        return
-    }
-    val platformProject = ":distributionsDependencies"
     dependencies {
         val implementation = configurations.getByName("implementation")
         val compileOnly = configurations.getByName("compileOnly")
         val testImplementation = configurations.getByName("testImplementation")
         val testCompileOnly = configurations.getByName("testCompileOnly")
         val testRuntimeOnly = configurations.getByName("testRuntimeOnly")
-        testImplementation(platform(project(platformProject)))
-        testCompileOnly(library("junit"))
-        testRuntimeOnly(library("junit5_vintage"))
-        testImplementation(library("groovy"))
-        testImplementation(testLibrary("spock"))
-        testRuntimeOnly(testLibrary("bytebuddy"))
-        testRuntimeOnly(library("objenesis"))
+        testCompileOnly(libs.junit)
+        testRuntimeOnly(libs.junit5_vintage)
+        testImplementation(libs.groovy)
+        testImplementation(libs.spock)
+        testRuntimeOnly(libs.bytebuddy)
+        testRuntimeOnly(libs.objenesis)
 
-        compileOnly(platform(project(platformProject)))
-
-        implementation.withDependencies {
+        if (name != "test") { // do not attempt to find platform project during script compilation
+            val platformProject = ":distributionsDependencies"
+            compileOnly(platform(project(platformProject)))
+            testImplementation(platform(project(platformProject)))
             if (!isPublishedIndependently()) {
-                "implementation"(platform(project(platformProject)))
+                implementation(platform(project(platformProject)))
             }
         }
     }

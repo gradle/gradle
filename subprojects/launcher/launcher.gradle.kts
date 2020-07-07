@@ -25,18 +25,18 @@ dependencies {
     implementation(project(":toolingApi"))
     implementation(project(":fileWatching"))
 
-    implementation(library("groovy")) // for 'ReleaseInfo.getVersion()'
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_io"))
-    implementation(library("commons_lang"))
-    implementation(library("asm"))
-    implementation(library("ant"))
+    implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
+    implementation(libs.slf4j_api)
+    implementation(libs.guava)
+    implementation(libs.commons_io)
+    implementation(libs.commons_lang)
+    implementation(libs.asm)
+    implementation(libs.ant)
 
-    runtimeOnly(library("asm"))
-    runtimeOnly(library("commons_io"))
-    runtimeOnly(library("commons_lang"))
-    runtimeOnly(library("slf4j_api"))
+    runtimeOnly(libs.asm)
+    runtimeOnly(libs.commons_io)
+    runtimeOnly(libs.commons_lang)
+    runtimeOnly(libs.slf4j_api)
 
     manifestClasspath(project(":bootstrap"))
     manifestClasspath(project(":baseServices"))
@@ -61,10 +61,10 @@ dependencies {
     testImplementation(testFixtures(project(":toolingApi")))
 
     integTestImplementation(project(":persistentCache"))
-    integTestImplementation(library("slf4j_api"))
-    integTestImplementation(library("guava"))
-    integTestImplementation(library("commons_lang"))
-    integTestImplementation(library("commons_io"))
+    integTestImplementation(libs.slf4j_api)
+    integTestImplementation(libs.guava)
+    integTestImplementation(libs.commons_lang)
+    integTestImplementation(libs.commons_io)
 
     testRuntimeOnly(project(":distributionsCore")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

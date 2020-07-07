@@ -41,12 +41,12 @@ dependencies {
     smokeTestImplementation(project(":persistentCache"))
     smokeTestImplementation(project(":jvmServices"))
     smokeTestImplementation(project(":buildOption"))
-    smokeTestImplementation(library("commons_io"))
-    smokeTestImplementation(library("jgit"))
-    smokeTestImplementation(library("gradleProfiler")) {
+    smokeTestImplementation(libs.commons_io)
+    smokeTestImplementation(libs.jgit)
+    smokeTestImplementation(libs.gradleProfiler) {
         because("Using build mutators to change a Java file")
     }
-    smokeTestImplementation(testLibrary("spock"))
+    smokeTestImplementation(libs.spock)
 
     smokeTestImplementation(testFixtures(project(":core")))
     smokeTestImplementation(testFixtures(project(":versionControl")))

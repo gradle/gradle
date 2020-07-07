@@ -30,11 +30,11 @@ dependencies {
     implementation(project(":buildCache"))
     implementation(project(":buildCachePackaging"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_io"))
-    implementation(library("commons_lang"))
-    implementation(library("inject"))
+    implementation(libs.slf4j_api)
+    implementation(libs.guava)
+    implementation(libs.commons_io)
+    implementation(libs.commons_lang)
+    implementation(libs.inject)
 
     testImplementation(project(":native"))
     testImplementation(project(":logging"))
@@ -48,7 +48,7 @@ dependencies {
     testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":core")))
 
-    testFixturesImplementation(library("guava"))
+    testFixturesImplementation(libs.guava)
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":buildCache"))
     testFixturesImplementation(project(":snapshots"))

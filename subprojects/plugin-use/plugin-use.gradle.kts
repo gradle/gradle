@@ -29,13 +29,13 @@ dependencies {
     implementation(project(":dependencyManagement"))
     implementation(project(":buildOption"))
 
-    implementation(library("groovy"))
-    implementation(library("guava"))
+    implementation(libs.groovy)
+    implementation(libs.guava)
 
     testImplementation(testFixtures(project(":resourcesHttp")))
 
     integTestImplementation(project(":baseServicesGroovy"))
-    integTestImplementation(library("jetbrains_annotations"))
+    integTestImplementation(libs.jetbrains_annotations)
 
     integTestDistributionRuntimeOnly(project(":distributionsBasics")) {
         because("Requires test-kit: 'java-gradle-plugin' is used in integration tests which always adds the test-kit dependency.")
