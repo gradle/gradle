@@ -85,6 +85,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution(because = "source dependency VCS mappings are defined")
     fun `can use Gradle API generated extensions in scripts`() {
 
         withFile("init.gradle.kts", """

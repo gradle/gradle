@@ -24,6 +24,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.execution.plan.Node
 import org.gradle.instantexecution.problems.DocumentationSection.NotYetImplementedCompositeBuilds
+import org.gradle.instantexecution.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
@@ -44,6 +45,7 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.tooling.events.OperationCompletionListener
+import org.gradle.vcs.internal.VcsMappingsStore
 import java.util.ArrayList
 
 
@@ -104,7 +106,7 @@ class InstantExecutionState(
     private
     suspend fun DefaultWriteContext.writeGradleState(gradle: GradleInternal) {
         withGradleIsolate(gradle) {
-            writeIncludedBuilds(gradle)
+            writeChildBuilds(gradle)
             writeBuildCacheConfiguration(gradle)
             writeBuildEventListenerSubscriptions()
             writeBuildOutputCleanupRegistrations()
@@ -130,11 +132,20 @@ class InstantExecutionState(
         }
 
     private
-    suspend fun DefaultWriteContext.writeIncludedBuilds(gradle: GradleInternal) {
+    suspend fun DefaultWriteContext.writeChildBuilds(gradle: GradleInternal) {
         if (gradle.includedBuilds.isNotEmpty()) {
             logNotImplemented(
                 feature = "included builds",
                 documentationSection = NotYetImplementedCompositeBuilds
+            )
+            writeBoolean(true)
+        } else {
+            writeBoolean(false)
+        }
+        if (service<VcsMappingsStore>().asResolver().hasRules()) {
+            logNotImplemented(
+                feature = "source dependencies",
+                documentationSection = NotYetImplementedSourceDependencies
             )
             writeBoolean(true)
         } else {
@@ -148,6 +159,12 @@ class InstantExecutionState(
             logNotImplemented(
                 feature = "included builds",
                 documentationSection = NotYetImplementedCompositeBuilds
+            )
+        }
+        if (readBoolean()) {
+            logNotImplemented(
+                feature = "source dependencies",
+                documentationSection = NotYetImplementedSourceDependencies
             )
         }
     }
