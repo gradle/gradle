@@ -33,7 +33,7 @@ val archunitVersion = "0.11.0"
 val asmVersion = "7.3.1"
 val awsS3Version = "1.11.633"
 val bouncycastleVersion = "1.64"
-val googelApiVersion = "1.25.0"
+val googleApiVersion = "1.25.0"
 val jacksonVersion = "2.10.2"
 val mavenVersion = "3.0.5"
 val mavenWagonVersion = "3.0.0"
@@ -70,10 +70,10 @@ dependencies {
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.fastutil)              { version { strictly("8.3.0") }}
         api(libs.gcs)                   { version { strictly("v1-rev136-1.25.0") }}
-        api(libs.googleApiClient)       { version { strictly(googelApiVersion) }}
-        api(libs.googleHttpClient)      { version { strictly(googelApiVersion) }}
-        api(libs.googleHttpClientJackson2) { version { strictly(googelApiVersion) }}
-        api(libs.googleOauthClient)     { version { strictly(googelApiVersion) }}
+        api(libs.googleApiClient)       { version { strictly(googleApiVersion) }}
+        api(libs.googleHttpClient)      { version { strictly(googleApiVersion) }}
+        api(libs.googleHttpClientJackson2) { version { strictly(googleApiVersion) }}
+        api(libs.googleOauthClient)     { version { strictly(googleApiVersion) }}
         api(libs.gradleProfiler)        { version { strictly("0.11.0") }}
         api(libs.groovy)                { version { strictly("1.3-${libs.groovyVersion}"); because("emulating the Groovy 2.4-style groovy-all.jar, see https://github.com/gradle/gradle-groovy-all") }}
         api(libs.gson)                  { version { strictly("2.8.5") }}
