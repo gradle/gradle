@@ -87,8 +87,10 @@ public interface ResolvableConfigurationBuilder {
     }
 
     /**
-     * Allows refining the attributes of this configuration in case the defaults are not
-     * sufficient. The refiner will be called after the default attributes are set.
+     * Allows refining the attributes of this configuration.
+     * The refiner will be called after the default attributes are set, depending
+     * on calls like {@link #requiresJavaLibrariesAPI()} or {@link #requiresJavaLibrariesRuntime()}.
+     *
      * @param refiner the attributes refiner configuration
      */
     ResolvableConfigurationBuilder requiresAttributes(Action<? super JvmEcosystemAttributesDetails> refiner);
