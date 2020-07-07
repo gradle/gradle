@@ -20,6 +20,7 @@ import common.Os
 import common.requiresOs
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.v2019_2.vcs.GitVcsRoot
 
 abstract class BasePromotionBuildType(vcsRoot: GitVcsRoot, cleanCheckout: Boolean = true) : BuildType() {
@@ -34,6 +35,10 @@ abstract class BasePromotionBuildType(vcsRoot: GitVcsRoot, cleanCheckout: Boolea
 
         requirements {
             requiresOs(Os.linux)
+        }
+
+        params {
+            param("env.GE_GRADLE_ORG_GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
         }
     }
 }
