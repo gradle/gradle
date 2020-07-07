@@ -86,8 +86,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         jvmEcosystemUtilities.createJvmVariant(name, builder -> {
             builder.usingSourceSet(sourceSet)
                 .withDisplayName("feature " + name)
-                .exposesApi()
-                .withJar();
+                .exposesApi();
             if (withJavadocJar) {
                 builder.withJavadocJar();
             }

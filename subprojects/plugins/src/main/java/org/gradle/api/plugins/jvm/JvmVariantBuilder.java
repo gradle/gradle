@@ -48,11 +48,6 @@ public interface JvmVariantBuilder {
     JvmVariantBuilder exposesApi();
 
     /**
-     * Tells that this component should build a jar
-     */
-    JvmVariantBuilder withJar();
-
-    /**
      * Tells that this component should build a javadoc jar too
      */
     JvmVariantBuilder withJavadocJar();
@@ -77,7 +72,7 @@ public interface JvmVariantBuilder {
      * this component name. For example, for project "lib" and a component named "languageSupport",
      * the capability name for this component will be "lib-language-support"
      */
-    JvmVariantBuilder secondaryComponent();
+    JvmVariantBuilder distinctCapability();
 
     /**
      * If this method is called, then this component will automatically be

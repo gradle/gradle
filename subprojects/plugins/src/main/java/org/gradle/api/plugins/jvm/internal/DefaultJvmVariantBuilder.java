@@ -60,7 +60,6 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
     private String displayName;
     private SourceSet sourceSet;
     private boolean exposeApi;
-    private boolean jar;
     private boolean javadocJar;
     private boolean sourcesJar;
     private boolean published;
@@ -105,12 +104,6 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
     }
 
     @Override
-    public JvmVariantBuilder withJar() {
-        jar = true;
-        return this;
-    }
-
-    @Override
     public JvmVariantBuilder withJavadocJar() {
         javadocJar = true;
         return this;
@@ -147,13 +140,12 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
     }
 
     @Override
-    public JvmVariantBuilder secondaryComponent() {
+    public JvmVariantBuilder distinctCapability() {
         return capability(new ProjectDerivedCapability(project, name));
     }
 
     @Override
     public JvmVariantBuilder published() {
-        jar = true;
         published = true;
         return this;
     }
@@ -192,7 +184,7 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
         Configuration compileOnly = bucket("Compile-Only", compileOnlyConfigurationName, displayName);
         Configuration runtimeOnly = bucket("Runtime-Only", runtimeOnlyConfigurationName, displayName);
 
-        TaskProvider<Task> jarTask = jar ? registerOrGetJarTask(sourceSet, displayName) : null;
+        TaskProvider<Task> jarTask = registerOrGetJarTask(sourceSet, displayName);
         Configuration api = exposeApi ? bucket("API", apiConfigurationName, displayName) : null;
         Configuration apiElements = exposeApi ? jvmPluginServices.createOutgoingElements(apiElementsConfigurationName, builder -> {
             builder.fromSourceSet(sourceSet)
@@ -200,10 +192,8 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
                 .withDescription("API elements for " + displayName)
                 .extendsFrom(api)
                 .withCapabilities(capabilities)
-                .withClassDirectoryVariant();
-            if (jarTask != null) {
-                builder.artifact(jarTask);
-            }
+                .withClassDirectoryVariant()
+                .artifact(jarTask);
         }) : null;
         if (exposeApi) {
             implementation.extendsFrom(api);
@@ -214,10 +204,8 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
                 .providesRuntime()
                 .withDescription("Runtime elements for " + displayName)
                 .extendsFrom(implementation, runtimeOnly)
-                .withCapabilities(capabilities);
-            if (jarTask != null) {
-                builder.artifact(jarTask);
-            }
+                .withCapabilities(capabilities)
+                .artifact(jarTask);
         });
         if (mainSourceSet) {
             // we need to wire the compile only and runtime only to the classpath configurations
