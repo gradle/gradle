@@ -20,7 +20,6 @@ import common.Os
 import common.requiresOs
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.CheckoutMode
-import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.v2019_2.vcs.GitVcsRoot
 
 abstract class BasePromotionBuildType(vcsRoot: GitVcsRoot, cleanCheckout: Boolean = true) : BuildType() {
