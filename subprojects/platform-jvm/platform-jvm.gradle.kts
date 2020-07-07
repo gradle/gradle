@@ -22,8 +22,8 @@ dependencies {
 
     implementation(libs.groovy)
     implementation(libs.guava)
-    implementation(libs.commons_lang)
-    implementation(libs.commons_io)
+    implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
     implementation(libs.inject)
     implementation(libs.asm)
 
@@ -36,7 +36,7 @@ dependencies {
     testImplementation(testFixtures(project(":platformBase")))
     testImplementation(testFixtures(project(":platformNative")))
 
-    integTestImplementation(libs.slf4j_api)
+    integTestImplementation(libs.slf4jApi)
 
     testRuntimeOnly(project(":distributionsCore")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

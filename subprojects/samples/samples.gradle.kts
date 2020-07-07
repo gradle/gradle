@@ -11,7 +11,7 @@ dependencies {
     integTestImplementation(project(":processServices"))
     integTestImplementation(project(":persistentCache"))
     integTestImplementation(libs.groovy)
-    integTestImplementation(libs.slf4j_api)
+    integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
     integTestImplementation(libs.sampleCheck) {

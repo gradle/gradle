@@ -26,11 +26,11 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":native"))
 
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.groovy)
     implementation(libs.guava)
-    implementation(libs.commons_io)
-    implementation(libs.commons_lang)
+    implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
     implementation(libs.inject)
 
     testImplementation(project(":processServices"))

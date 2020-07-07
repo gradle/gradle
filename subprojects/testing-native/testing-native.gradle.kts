@@ -33,10 +33,10 @@ dependencies {
     implementation(project(":testingBase"))
 
     implementation(libs.groovy)
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
-    implementation(libs.commons_lang)
-    implementation(libs.commons_io)
+    implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
     implementation(libs.inject)
 
     testImplementation(project(":fileCollections"))

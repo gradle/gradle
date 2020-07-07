@@ -25,10 +25,10 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":logging"))
 
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
-    implementation(libs.commons_io)
-    implementation(libs.commons_lang)
+    implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
 
     testImplementation(project(":coreApi"))
     testImplementation(testFixtures(project(":core")))

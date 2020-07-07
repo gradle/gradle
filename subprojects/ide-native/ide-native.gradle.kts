@@ -35,9 +35,9 @@ dependencies {
     implementation(project(":testingNative"))
 
     implementation(libs.groovy)
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
-    implementation(libs.commons_lang)
+    implementation(libs.commonsLang)
     implementation(libs.inject)
     implementation(libs.plist)
 
@@ -47,7 +47,7 @@ dependencies {
     testImplementation(testFixtures(project(":versionControl")))
 
     integTestImplementation(project(":native"))
-    integTestImplementation(libs.commons_io)
+    integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.jgit)
 
     testFixturesApi(testFixtures(project(":ide")))

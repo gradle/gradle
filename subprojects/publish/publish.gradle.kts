@@ -29,10 +29,10 @@ dependencies {
     implementation(project(":baseServicesGroovy")) // for 'Specs'
     implementation(project(":dependencyManagement"))
 
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.groovy)
     implementation(libs.guava)
-    implementation(libs.commons_lang)
+    implementation(libs.commonsLang)
     implementation(libs.gson)
     implementation(libs.inject)
 

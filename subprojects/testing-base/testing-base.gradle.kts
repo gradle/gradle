@@ -35,11 +35,11 @@ dependencies {
     implementation(project(":reporting"))
     implementation(project(":platformBase"))
 
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.groovy)
     implementation(libs.guava)
-    implementation(libs.commons_lang)
-    implementation(libs.commons_io)
+    implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
     implementation(libs.kryo)
     implementation(libs.inject)
     implementation(libs.ant) // only used for DateUtils

@@ -31,7 +31,7 @@ dependencies {
 
     implementation(libs.groovy)
     implementation(libs.guava)
-    implementation(libs.commons_lang)
+    implementation(libs.commonsLang)
     implementation(libs.inject)
 
     testImplementation(project(":native"))

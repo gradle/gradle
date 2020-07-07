@@ -37,7 +37,7 @@ dependencies {
 
     implementation(libs.groovy) // for 'Closure' and 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
     implementation(libs.guava)
-    implementation(libs.commons_lang)
+    implementation(libs.commonsLang)
     implementation(libs.inject)
     implementation(libs.ivy)
 
@@ -51,7 +51,7 @@ dependencies {
     testImplementation(testFixtures(project(":dependencyManagement")))
 
     integTestImplementation(project(":ear"))
-    integTestImplementation(libs.slf4j_api)
+    integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.jetty)
 
     integTestRuntimeOnly(project(":resourcesS3"))
@@ -67,7 +67,7 @@ dependencies {
     testFixturesImplementation(project(":logging"))
     testFixturesImplementation(project(":dependencyManagement"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(libs.slf4j_api)
+    testFixturesImplementation(libs.slf4jApi)
     testFixturesImplementation(libs.sshdCore)
     testFixturesImplementation(libs.sshdScp)
     testFixturesImplementation(libs.sshdSftp)

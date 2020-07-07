@@ -9,7 +9,7 @@ class PerformanceTestIntegrationTest extends AbstractIntegrationTest {
                 id 'gradlebuild.dependency-modules'
             }
             ext {
-                libraries = ['junit5_vintage': [coordinates: 'org.junit.vintage:junit-vintage-engine', version: '5.6.2']]
+                libraries = ['junit5Vintage': [coordinates: 'org.junit.vintage:junit-vintage-engine', version: '5.6.2']]
             }
             subprojects {
                 apply plugin: 'java'

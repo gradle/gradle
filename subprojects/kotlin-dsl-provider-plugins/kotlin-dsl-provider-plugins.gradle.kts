@@ -38,11 +38,11 @@ dependencies {
         isTransitive = false
     }
 
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.inject)
 
     testImplementation(project(":kotlinDslTestFixtures"))
-    testImplementation(libs.mockito_kotlin2)
+    testImplementation(libs.mockitoKotlin2)
 }
 
 classycle {

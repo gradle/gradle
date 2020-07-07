@@ -33,8 +33,8 @@ dependencies {
     implementation(project(":internalIntegTesting"))
 
     implementation(libs.junit)
-    implementation(libs.mockito_kotlin)
-    implementation(libs.jackson_kotlin)
+    implementation(libs.mockitoKotlin)
+    implementation(libs.jacksonKotlin)
     implementation(libs.asm)
 
     testRuntimeOnly(project(":distributionsJvm")) {

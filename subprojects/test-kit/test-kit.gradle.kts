@@ -27,7 +27,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":wrapper"))
     implementation(project(":toolingApi"))
-    implementation(libs.commons_io)
+    implementation(libs.commonsIo)
 
     testImplementation(libs.guava)
     testImplementation(testFixtures(project(":core")))
@@ -37,7 +37,7 @@ dependencies {
     integTestImplementation(project(":launcher"))
     integTestImplementation(project(":buildOption"))
     integTestImplementation(project(":jvmServices"))
-    integTestImplementation(libs.slf4j_api)
+    integTestImplementation(libs.slf4jApi)
 
     testRuntimeOnly(project(":distributionsCore")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

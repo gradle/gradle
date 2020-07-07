@@ -9,14 +9,14 @@ dependencies {
     implementation(project(":resourcesHttp"))
     implementation(project(":core"))
 
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
-    implementation(libs.commons_lang)
-    implementation(libs.jackson_core)
-    implementation(libs.jackson_annotations)
-    implementation(libs.jackson_databind)
+    implementation(libs.commonsLang)
+    implementation(libs.jacksonCore)
+    implementation(libs.jacksonAnnotations)
+    implementation(libs.jacksonDatabind)
     implementation(libs.gcs)
-    implementation(libs.commons_httpclient)
+    implementation(libs.commonsHttpclient)
     implementation(libs.joda)
 
     testImplementation(libs.groovy)
@@ -27,7 +27,7 @@ dependencies {
 
     integTestImplementation(project(":coreApi"))
     integTestImplementation(project(":modelCore"))
-    integTestImplementation(libs.commons_io)
+    integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.jetty)
 
     integTestDistributionRuntimeOnly(project(":distributionsBasics"))

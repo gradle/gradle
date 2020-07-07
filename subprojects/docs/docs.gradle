@@ -69,13 +69,13 @@ dependencies {
     testImplementation libs.jsoup
     testImplementation "org.gebish:geb-spock:2.2"
     testImplementation 'org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2'
-    testImplementation libs.commons_httpclient
+    testImplementation libs.commonsHttpclient
     testImplementation libs.httpmime
 
     docsTestImplementation platform(project(":distributionsDependencies"))
     docsTestImplementation project(":internalIntegTesting")
     docsTestImplementation project(":testKit")
-    docsTestImplementation libs.junit5_vintage
+    docsTestImplementation libs.junit5Vintage
     docsTestImplementation libs.junit
 
     integTestDistributionRuntimeOnly project(":distributionsFull")

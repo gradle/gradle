@@ -30,8 +30,8 @@ dependencies {
     implementation(project(":dependencyManagement")) // Required by JavaScriptExtension#getGoogleApisRepository()
 
     implementation(libs.groovy)
-    implementation(libs.slf4j_api)
-    implementation(libs.commons_io)
+    implementation(libs.slf4jApi)
+    implementation(libs.commonsIo)
     implementation(libs.inject)
     implementation(libs.rhino)
     implementation(libs.gson) // used by JsHint.coordinates

@@ -30,14 +30,14 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":logging"))
 
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
-    implementation(libs.commons_io)
+    implementation(libs.commonsIo)
     implementation(libs.inject)
 
     jmhImplementation(platform(project(":distributionsDependencies")))
     jmhImplementation(libs.ant)
-    jmhImplementation(libs.commons_compress)
+    jmhImplementation(libs.commonsCompress)
     jmhImplementation("io.airlift:aircompressor:0.8")
     jmhImplementation("org.iq80.snappy:snappy:0.4")
     jmhImplementation("org.kamranzafar:jtar:2.3")

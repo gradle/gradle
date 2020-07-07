@@ -13,6 +13,6 @@ dependencies {
     testImplementation(project(":fileCollections"))
     testImplementation(project(":snapshots"))
     testImplementation(project(":resources"))
-    testImplementation(libs.slf4j_api)
+    testImplementation(libs.slf4jApi)
     testImplementation(testFixtures(project(":core")))
 }

@@ -26,5 +26,5 @@ dependencies {
     implementation(project(":testingJvm"))
 
     implementation(libs.junit)
-    implementation(libs.junit_platform)
+    implementation(libs.junitPlatform)
 }

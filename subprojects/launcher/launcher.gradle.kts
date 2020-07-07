@@ -26,17 +26,17 @@ dependencies {
     implementation(project(":fileWatching"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
-    implementation(libs.commons_io)
-    implementation(libs.commons_lang)
+    implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
     implementation(libs.asm)
     implementation(libs.ant)
 
     runtimeOnly(libs.asm)
-    runtimeOnly(libs.commons_io)
-    runtimeOnly(libs.commons_lang)
-    runtimeOnly(libs.slf4j_api)
+    runtimeOnly(libs.commonsIo)
+    runtimeOnly(libs.commonsLang)
+    runtimeOnly(libs.slf4jApi)
 
     manifestClasspath(project(":bootstrap"))
     manifestClasspath(project(":baseServices"))
@@ -61,10 +61,10 @@ dependencies {
     testImplementation(testFixtures(project(":toolingApi")))
 
     integTestImplementation(project(":persistentCache"))
-    integTestImplementation(libs.slf4j_api)
+    integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.guava)
-    integTestImplementation(libs.commons_lang)
-    integTestImplementation(libs.commons_io)
+    integTestImplementation(libs.commonsLang)
+    integTestImplementation(libs.commonsIo)
 
     testRuntimeOnly(project(":distributionsCore")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

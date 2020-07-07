@@ -28,16 +28,16 @@ dependencies {
     components {
         // Gradle distribution - minify: remove unused transitive dependencies
         withModule<MavenDependencyCleaningRule>(libs.maven3)
-        withLibraryDependencies<DependencyRemovalByNameRule>(libs.awsS3_core, setOf("jackson-dataformat-cbor"))
+        withLibraryDependencies<DependencyRemovalByNameRule>(libs.awsS3Core, setOf("jackson-dataformat-cbor"))
         withLibraryDependencies<DependencyRemovalByGroupRule>(libs.jgit, setOf("com.googlecode.javaewah"))
-        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.maven3_wagon_http_shared, setOf("org.jsoup"))
-        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.aether_connector, setOf("org.sonatype.sisu"))
-        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.maven3_compat, setOf("org.sonatype.sisu"))
-        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.maven3_plugin_api, setOf("org.sonatype.sisu"))
-        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.maven3_settings_builder, setOf("org.sonatype.sisu"))
+        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.maven3WagonHttpShared, setOf("org.jsoup"))
+        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.aetherConnector, setOf("org.sonatype.sisu"))
+        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.maven3Compat, setOf("org.sonatype.sisu"))
+        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.maven3PluginApi, setOf("org.sonatype.sisu"))
+        withLibraryDependencies<DependencyRemovalByGroupRule>(libs.maven3SettingsBuilder, setOf("org.sonatype.sisu"))
 
         // We don't need the extra annotations provided by j2objc
-        withLibraryDependencies<DependencyRemovalByNameRule>(libs.google_http_client, setOf("j2objc-annotations"))
+        withLibraryDependencies<DependencyRemovalByNameRule>(libs.googleHttpClient, setOf("j2objc-annotations"))
 
         // Read capabilities declared in capabilities.json
         readCapabilitiesFromJson()

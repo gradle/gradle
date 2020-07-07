@@ -13,9 +13,9 @@ dependencies {
     implementation(project(":baseServices"))
 
     implementation(libs.nativePlatform)
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
-    implementation(libs.commons_io)
+    implementation(libs.commonsIo)
     implementation(libs.jansi)
 
     testImplementation(testFixtures(project(":core")))

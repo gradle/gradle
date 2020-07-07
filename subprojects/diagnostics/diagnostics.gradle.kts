@@ -32,10 +32,10 @@ dependencies {
     implementation(project(":baseServicesGroovy"))
     implementation(project(":buildOption"))
 
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.groovy)
     implementation(libs.guava)
-    implementation(libs.commons_lang)
+    implementation(libs.commonsLang)
     implementation(libs.inject)
     implementation(libs.jatl)
 

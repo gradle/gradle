@@ -118,7 +118,7 @@ fun addDependencies() {
         val testCompileOnly = configurations.getByName("testCompileOnly")
         val testRuntimeOnly = configurations.getByName("testRuntimeOnly")
         testCompileOnly(libs.junit)
-        testRuntimeOnly(libs.junit5_vintage)
+        testRuntimeOnly(libs.junit5Vintage)
         testImplementation(libs.groovy)
         testImplementation(libs.spock)
         testRuntimeOnly(libs.bytebuddy)

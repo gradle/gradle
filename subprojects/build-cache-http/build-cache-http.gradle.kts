@@ -26,10 +26,10 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":resourcesHttp"))
 
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
-    implementation(libs.commons_httpclient)
-    implementation(libs.commons_lang)
+    implementation(libs.commonsHttpclient)
+    implementation(libs.commonsLang)
     implementation(libs.inject)
 
     testImplementation(testFixtures(project(":core")))

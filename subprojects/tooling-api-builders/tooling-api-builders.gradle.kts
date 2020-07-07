@@ -24,7 +24,7 @@ dependencies {
 
     implementation(libs.groovy) // for 'Closure'
     implementation(libs.guava)
-    implementation(libs.commons_io)
+    implementation(libs.commonsIo)
 
     testImplementation(project(":fileCollections"))
 }

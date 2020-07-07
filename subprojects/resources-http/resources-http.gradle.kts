@@ -25,13 +25,13 @@ dependencies {
     implementation(project(":modelCore"))
     implementation(project(":logging"))
 
-    implementation(libs.commons_httpclient)
-    implementation(libs.slf4j_api)
-    implementation(libs.jcl_to_slf4j)
+    implementation(libs.commonsHttpclient)
+    implementation(libs.slf4jApi)
+    implementation(libs.jclToSlf4j)
     implementation(libs.jcifs)
     implementation(libs.guava)
-    implementation(libs.commons_lang)
-    implementation(libs.commons_io)
+    implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
     implementation(libs.xerces)
     implementation(libs.nekohtml)
 
@@ -43,7 +43,7 @@ dependencies {
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":logging"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(libs.slf4j_api)
+    testFixturesImplementation(libs.slf4jApi)
 
     integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }

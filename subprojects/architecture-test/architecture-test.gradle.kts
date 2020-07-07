@@ -9,7 +9,7 @@ dependencies {
     testImplementation(project(":baseServices"))
     testImplementation(project(":modelCore"))
 
-    testImplementation(libs.archunit_junit4)
+    testImplementation(libs.archunitJunit4)
     testImplementation(libs.guava)
 
     testRuntimeOnly(project(":distributionsFull"))

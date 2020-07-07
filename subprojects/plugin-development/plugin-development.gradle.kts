@@ -45,9 +45,9 @@ dependencies {
     implementation(project(":modelGroovy"))
     implementation(project(":resources"))
 
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.groovy)
-    implementation(libs.commons_io)
+    implementation(libs.commonsIo)
     implementation(libs.guava)
     implementation(libs.inject)
     implementation(libs.asm)
@@ -57,7 +57,7 @@ dependencies {
     testImplementation(testFixtures(project(":logging")))
 
     integTestImplementation(project(":baseServicesGroovy"))
-    integTestImplementation(libs.jetbrains_annotations)
+    integTestImplementation(libs.jetbrainsAnnotations)
 
     integTestLocalRepository(project(":toolingApi")) {
         because("Required by GradleImplDepsCompatibilityIntegrationTest")

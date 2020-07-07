@@ -21,5 +21,5 @@ plugins {
 dependencies {
     implementation(project(":baseAnnotations"))
     implementation(project(":files"))
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
 }

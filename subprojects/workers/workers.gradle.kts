@@ -18,7 +18,7 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":resources"))
 
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.inject)
 

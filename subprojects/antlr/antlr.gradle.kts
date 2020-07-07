@@ -29,7 +29,7 @@ dependencies {
     implementation(project(":workers"))
     implementation(project(":files"))
 
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.groovy)
     implementation(libs.guava)
     implementation(libs.inject)

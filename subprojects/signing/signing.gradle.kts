@@ -34,7 +34,7 @@ dependencies {
     implementation(project(":security"))
 
     implementation(libs.groovy)
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.inject)
 

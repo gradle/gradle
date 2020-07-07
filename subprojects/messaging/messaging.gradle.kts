@@ -8,14 +8,14 @@ dependencies {
     implementation(project(":baseServices"))
 
     implementation(libs.fastutil)
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.kryo)
 
     testImplementation(testFixtures(project(":core")))
 
     testFixturesImplementation(project(":baseServices"))
-    testFixturesImplementation(libs.slf4j_api)
+    testFixturesImplementation(libs.slf4jApi)
 
     integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }

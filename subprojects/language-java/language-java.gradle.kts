@@ -29,19 +29,19 @@ dependencies {
     implementation(project(":toolingApi"))
 
     implementation(libs.groovy)
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
-    implementation(libs.commons_lang)
+    implementation(libs.commonsLang)
     implementation(libs.fastutil)
     implementation(libs.ant) // for 'ZipFile' and 'ZipEntry'
     implementation(libs.asm)
-    implementation(libs.asm_commons)
+    implementation(libs.asmCommons)
     implementation(libs.inject)
 
     runtimeOnly(project(":javaCompilerPlugin"))
 
     testImplementation(project(":baseServicesGroovy"))
-    testImplementation(libs.commons_io)
+    testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":platformBase")))
 
@@ -53,7 +53,7 @@ dependencies {
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(project(":platformBase"))
     testFixturesImplementation(project(":persistentCache"))
-    testFixturesImplementation(libs.slf4j_api)
+    testFixturesImplementation(libs.slf4jApi)
 
     testRuntimeOnly(project(":distributionsCore")) {
         because("ProjectBuilder test (JavaLanguagePluginTest) loads services from a Gradle distribution.")

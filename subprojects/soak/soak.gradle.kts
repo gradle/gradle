@@ -30,7 +30,7 @@ dependencies {
     integTestImplementation(project(":persistentCache"))
     integTestImplementation(project(":launcher"))
     integTestImplementation(project(":fileWatching"))
-    integTestImplementation(libs.slf4j_api)
+    integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.jetty)
 
     integTestDistributionRuntimeOnly(project(":distributionsFull"))

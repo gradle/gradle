@@ -10,9 +10,9 @@ dependencies {
     performanceTestImplementation(project(":modelCore"))
     performanceTestImplementation(project(":coreApi"))
     performanceTestImplementation(project(":buildOption"))
-    performanceTestImplementation(libs.slf4j_api)
-    performanceTestImplementation(libs.commons_io)
-    performanceTestImplementation(libs.commons_compress)
+    performanceTestImplementation(libs.slf4jApi)
+    performanceTestImplementation(libs.commonsIo)
+    performanceTestImplementation(libs.commonsCompress)
     performanceTestImplementation(libs.jetty)
     performanceTestImplementation(testFixtures(project(":toolingApi")))
 

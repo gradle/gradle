@@ -47,7 +47,7 @@ dependencies {
     implementation(project(":toolingApi"))
 
     implementation(libs.groovy)
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.inject)
 
@@ -84,8 +84,8 @@ dependencies {
     testImplementation(project(":versionControl"))
     testImplementation(libs.ant)
     testImplementation(libs.asm)
-    testImplementation(libs.mockito_kotlin)
-    testImplementation(libs.jackson_kotlin)
+    testImplementation(libs.mockitoKotlin)
+    testImplementation(libs.jacksonKotlin)
 
     testImplementation(libs.archunit)
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.3")
@@ -96,7 +96,7 @@ dependencies {
         because("ClassBytesRepositoryTest makes use of Groovydoc task.")
     }
     integTestImplementation(project(":internalTesting"))
-    integTestImplementation(libs.mockito_kotlin)
+    integTestImplementation(libs.mockitoKotlin)
 
     testRuntimeOnly(project(":distributionsNative")) {
         because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt) and BuildType from platform-native is used in ProjectAccessorsClassPathTest.")

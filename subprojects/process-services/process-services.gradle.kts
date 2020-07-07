@@ -13,7 +13,7 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":native"))
 
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.nativePlatform)
 

@@ -31,9 +31,9 @@ dependencies {
     implementation(project(":reporting"))
 
     implementation(libs.groovy)
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
-    implementation(libs.commons_lang)
+    implementation(libs.commonsLang)
     implementation(libs.inject)
 
     testFixturesImplementation(project(":baseServices"))

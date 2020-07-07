@@ -30,7 +30,7 @@ shadedJar {
 }
 
 dependencies {
-    shadedImplementation(libs.slf4j_api)
+    shadedImplementation(libs.slf4jApi)
 
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
@@ -48,15 +48,15 @@ dependencies {
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":baseServicesGroovy"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(libs.commons_io)
-    testFixturesImplementation(libs.slf4j_api)
+    testFixturesImplementation(libs.commonsIo)
+    testFixturesImplementation(libs.slf4jApi)
 
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":persistentCache"))
 
     crossVersionTestImplementation(project(":jvmServices"))
     crossVersionTestImplementation(libs.jetty)
-    crossVersionTestImplementation(libs.commons_io)
+    crossVersionTestImplementation(libs.commonsIo)
     crossVersionTestRuntimeOnly(libs.cglib) {
         because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
     }

@@ -10,9 +10,9 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":native"))
 
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
-    implementation(libs.commons_io)
+    implementation(libs.commonsIo)
 
     testImplementation(project(":processServices"))
     testImplementation(project(":coreApi"))

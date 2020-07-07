@@ -67,7 +67,7 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
     }
 
     dependencies {
-        "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junit5_vintage)
+        "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junit5Vintage)
         if (name != "test") { // do not attempt to find projects during script compilation
             "${prefix}TestImplementation"(project(":internalIntegTesting"))
             "${prefix}TestFullDistributionRuntimeClasspath"(project(":distributionsFull"))

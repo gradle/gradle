@@ -22,17 +22,17 @@ dependencies {
     implementation(project(":native"))
 
     implementation(libs.groovy)
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
-    implementation(libs.commons_lang)
-    implementation(libs.commons_io)
+    implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
     implementation(libs.ant)
     implementation(libs.asm)
-    implementation(libs.asm_tree)
+    implementation(libs.asmTree)
     implementation(libs.junit)
     implementation(libs.spock)
     implementation(libs.jsoup)
-    implementation(libs.testcontainers_spock)
+    implementation(libs.testcontainersSpock)
 
     runtimeOnly(libs.bytebuddy)
 }

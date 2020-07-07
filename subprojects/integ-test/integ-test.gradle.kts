@@ -16,7 +16,7 @@ dependencies {
     integTestImplementation(project(":bootstrap"))
     integTestImplementation(project(":launcher"))
     integTestImplementation(libs.groovy)
-    integTestImplementation(libs.slf4j_api)
+    integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
     integTestImplementation(libs.jsoup)

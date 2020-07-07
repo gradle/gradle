@@ -61,14 +61,14 @@ dependencies {
     implementation(project(":buildOption"))
 
     implementation(libs.groovy)
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
 
     implementation(libs.futureKotlin("stdlib-jdk8"))
     implementation(libs.futureKotlin("reflect"))
 
     testImplementation(testFixtures(project(":core")))
-    testImplementation(libs.mockito_kotlin2)
+    testImplementation(libs.mockitoKotlin2)
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.3.3")
 
     integTestImplementation(project(":jvmServices"))

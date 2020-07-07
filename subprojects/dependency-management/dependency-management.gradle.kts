@@ -39,15 +39,15 @@ dependencies {
     implementation(project(":execution"))
     implementation(project(":security"))
 
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.groovy)
     implementation(libs.asm)
-    implementation(libs.asm_commons)
-    implementation(libs.asm_util)
+    implementation(libs.asmCommons)
+    implementation(libs.asmUtil)
     implementation(libs.guava)
-    implementation(libs.commons_lang)
-    implementation(libs.commons_io)
-    implementation(libs.commons_httpclient)
+    implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
+    implementation(libs.commonsHttpclient)
     implementation(libs.inject)
     implementation(libs.gson)
     implementation(libs.ant)
@@ -69,7 +69,7 @@ dependencies {
 
     integTestImplementation(project(":buildOption"))
     integTestImplementation(libs.jansi)
-    integTestImplementation(libs.ansi_control_sequence_util)
+    integTestImplementation(libs.ansiControlSequenceUtil)
     integTestImplementation(libs.jetty) {
         because("tests use HttpServlet directly")
     }
@@ -89,13 +89,13 @@ dependencies {
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(libs.slf4j_api)
+    testFixturesImplementation(libs.slf4jApi)
     testFixturesImplementation(libs.inject)
     testFixturesImplementation(libs.guava) {
         because("Groovy compiler reflects on private field on TextUtil")
     }
-    testFixturesImplementation(libs.bouncycastle_pgp)
-    testFixturesApi(libs.testcontainers_spock) {
+    testFixturesImplementation(libs.bouncycastlePgp)
+    testFixturesApi(libs.testcontainersSpock) {
         because("API because of Groovy compiler bug leaking internals")
     }
     testFixturesImplementation(project(":jvmServices")) {

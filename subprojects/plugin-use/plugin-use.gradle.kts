@@ -35,7 +35,7 @@ dependencies {
     testImplementation(testFixtures(project(":resourcesHttp")))
 
     integTestImplementation(project(":baseServicesGroovy"))
-    integTestImplementation(libs.jetbrains_annotations)
+    integTestImplementation(libs.jetbrainsAnnotations)
 
     integTestDistributionRuntimeOnly(project(":distributionsBasics")) {
         because("Requires test-kit: 'java-gradle-plugin' is used in integration tests which always adds the test-kit dependency.")

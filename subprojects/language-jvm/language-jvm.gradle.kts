@@ -25,7 +25,7 @@ dependencies {
     testImplementation(project(":snapshots"))
     testImplementation(testFixtures(project(":core")))
 
-    testFixturesImplementation(libs.commons_lang)
+    testFixturesImplementation(libs.commonsLang)
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(testFixtures(project(":core")))

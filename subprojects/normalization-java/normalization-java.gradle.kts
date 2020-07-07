@@ -28,8 +28,8 @@ dependencies {
 
     implementation(libs.asm)
     implementation(libs.guava)
-    implementation(libs.slf4j_api)
-    implementation(libs.commons_io)
+    implementation(libs.slf4jApi)
+    implementation(libs.commonsIo)
 
     testImplementation(project(":baseServices"))
     testImplementation(project(":internalTesting"))

@@ -31,9 +31,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:${libs.kotlinVersion}")
     implementation(libs.inject)
     implementation(libs.groovy)
-    implementation(libs.slf4j_api)
+    implementation(libs.slf4jApi)
     implementation(libs.guava)
-    implementation(libs.commons_lang)
+    implementation(libs.commonsLang)
     implementation(libs.asm)
 
     testFixturesApi(testFixtures(project(":diagnostics")))
