@@ -15,7 +15,16 @@
  */
 package org.gradle.api.plugins.internal;
 
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.component.SoftwareComponentFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.jvm.internal.DefaultJvmPluginServices;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.Describables;
+import org.gradle.internal.instantiation.InstanceGenerator;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -29,9 +38,31 @@ public class PluginAuthorServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new GlobalScopeServices());
     }
 
+    @Override
+    public void registerProjectServices(ServiceRegistration registration) {
+        registration.addProvider(new ProjectScopeServices());
+    }
+
     private static class GlobalScopeServices {
         SoftwareComponentFactory createSoftwareComponentFactory(Instantiator instantiator) {
             return new DefaultSoftwareComponentFactory(instantiator);
+        }
+    }
+
+    private static class ProjectScopeServices {
+        JvmPluginServices createJvmPluginServices(ConfigurationContainer configurations,
+                                                  ObjectFactory objectFactory,
+                                                  TaskContainer tasks,
+                                                  SoftwareComponentContainer components,
+                                                  InstantiatorFactory instantiatorFactory) {
+            InstanceGenerator instantiator = instantiatorFactory.decorateScheme().instantiator();
+            return instantiator.newInstanceWithDisplayName(DefaultJvmPluginServices.class,
+                Describables.of("JVM Plugin Services"),
+                configurations,
+                objectFactory,
+                tasks,
+                components,
+                instantiator);
         }
     }
 }

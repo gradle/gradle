@@ -18,13 +18,13 @@ package org.gradle.api.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.attributes.Usage;
+import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.jvm.JvmEcosystemUtilities;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
-import static org.gradle.api.plugins.internal.JvmPluginsHelper.addApiToSourceSet;
-import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureClassesDirectoryVariant;
+import javax.inject.Inject;
 
 /**
  * <p>A {@link Plugin} which extends the capabilities of the {@link JavaPlugin Java plugin} by cleanly separating
@@ -34,15 +34,22 @@ import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureClassesD
  */
 public class JavaLibraryPlugin implements Plugin<Project> {
 
+    private final JvmEcosystemUtilities jvmEcosystemUtilities;
+
+    @Inject
+    public JavaLibraryPlugin(JvmEcosystemUtilities jvmEcosystemUtilities) {
+        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
+    }
+
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
 
         SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
         ConfigurationContainer configurations = project.getConfigurations();
-        SourceSet sourceSet = sourceSets.getByName("main");
-        addApiToSourceSet(sourceSet, configurations);
-        configureClassesDirectoryVariant(sourceSet, project, sourceSet.getApiElementsConfigurationName(), Usage.JAVA_API);
+        SourceSet sourceSet = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        JvmPluginsHelper.addApiToSourceSet(sourceSet, configurations);
+        jvmEcosystemUtilities.configureClassesDirectoryVariant(sourceSet.getApiElementsConfigurationName(), sourceSet);
         deprecateConfigurationsForDeclaration(sourceSets, configurations);
     }
 

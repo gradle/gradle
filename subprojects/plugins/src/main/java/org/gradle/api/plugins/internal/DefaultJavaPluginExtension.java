@@ -29,6 +29,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
@@ -47,22 +48,21 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final static Pattern VALID_FEATURE_NAME = Pattern.compile("[a-zA-Z0-9]+");
 
     private final JavaPluginConvention convention;
-    private final ConfigurationContainer configurations;
     private final ObjectFactory objectFactory;
     private final SoftwareComponentContainer components;
-    private final TaskContainer tasks;
     private final Project project;
     private final ModularitySpec modularity;
+    private final JvmPluginServices jvmPluginServices;
 
     public DefaultJavaPluginExtension(JavaPluginConvention convention,
-                                      Project project) {
+                                      Project project,
+                                      JvmPluginServices jvmPluginServices) {
         this.convention = convention;
-        this.configurations = project.getConfigurations();
         this.objectFactory = project.getObjects();
         this.components = project.getComponents();
-        this.tasks = project.getTasks();
         this.project = project;
         this.modularity = project.getObjects().newInstance(DefaultModularitySpec.class);
+        this.jvmPluginServices = jvmPluginServices;
     }
 
     @Override
@@ -89,12 +89,9 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     public void registerFeature(String name, Action<? super FeatureSpec> configureAction) {
         Capability defaultCapability = new ProjectDerivedCapability(project, name);
         DefaultJavaFeatureSpec spec = new DefaultJavaFeatureSpec(
-                validateFeatureName(name),
-                defaultCapability, convention, this,
-                configurations,
-                objectFactory,
-                components,
-                tasks);
+            validateFeatureName(name),
+            defaultCapability,
+            jvmPluginServices);
         configureAction.execute(spec);
         spec.create();
     }
