@@ -64,13 +64,13 @@ abstract class BuildCommitDistribution : DefaultTask() {
     private
     fun tryBuildDistribution(checkoutDir: File) {
         project.exec {
-            commandLine(*getBuildCommands(checkoutDir))
+            commandLine(*getBuildCommands())
             workingDir = checkoutDir
         }
     }
 
     private
-    fun getBuildCommands(checkoutDir: File): Array<String> {
+    fun getBuildCommands(): Array<String> {
         project.delete(commitDistributionHome.get().asFile)
         val buildCommands = mutableListOf(
             "./gradlew",
