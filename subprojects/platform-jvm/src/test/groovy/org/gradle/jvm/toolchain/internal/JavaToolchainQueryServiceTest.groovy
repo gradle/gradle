@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain.internal
 
-
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.Directory
 import org.gradle.api.internal.file.FileFactory
@@ -24,6 +23,8 @@ import org.gradle.jvm.toolchain.JavaInstallation
 import org.gradle.jvm.toolchain.JavaInstallationRegistry
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 
 class JavaToolchainQueryServiceTest extends Specification {
 
@@ -40,7 +41,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         toolchain.javaMajorVersion == versionToFind
-        toolchain.installation.installationDirectory.asFile.absolutePath == expectedPath
+        toolchain.installation.installationDirectory.asFile.absolutePath == systemSpecificAbsolutePath(expectedPath)
 
         where:
         versionToFind           | expectedPath
