@@ -42,8 +42,12 @@ class MethodCache(
 
 internal
 fun Class<*>.firstAccessibleMatchingMethodOrNull(predicate: Method.() -> Boolean): Method? =
-    firstMatchingMethodOrNull(predicate)
-        ?.apply { isAccessible = true }
+    allMethods().firstAccessibleMatchingMethodOrNull(predicate)
+
+
+internal
+fun Iterable<Method>.firstAccessibleMatchingMethodOrNull(predicate: Method.() -> Boolean): Method? =
+    find(predicate)?.apply { isAccessible = true }
 
 
 internal

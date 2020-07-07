@@ -39,7 +39,7 @@ import java.io.ObjectOutputStream
 import java.io.Serializable
 
 
-class SerializableBeanCodecTest : AbstractUserTypeCodecTest() {
+class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
 
     @Test
     fun `can handle mix of Serializable and plain beans`() {
