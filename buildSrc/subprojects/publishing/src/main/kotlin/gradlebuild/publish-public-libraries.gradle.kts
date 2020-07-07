@@ -26,6 +26,7 @@ publishing {
     publications {
         create<MavenPublication>("gradleDistribution") {
             from(components["java"])
+            artifactId = moduleIdentity.baseName.get()
         }
     }
     repositories {
