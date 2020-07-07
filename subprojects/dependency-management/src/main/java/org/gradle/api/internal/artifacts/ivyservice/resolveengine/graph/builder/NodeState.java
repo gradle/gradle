@@ -497,6 +497,7 @@ public class NodeState implements DependencyGraphNode {
         EdgeState dependencyEdge = edgesCache.computeIfAbsent(dependencyState, ds -> new EdgeState(this, ds, resolutionFilter, resolveState));
         dependencyEdge.computeSelector(); // the selector changes, if the 'versionProvidedByAncestors' state changes
         outgoingEdges.add(dependencyEdge);
+        dependencyEdge.markUsed();
         discoveredEdges.add(dependencyEdge);
         dependencyEdge.getSelector().use(deferSelection);
     }
@@ -566,6 +567,7 @@ public class NodeState implements DependencyGraphNode {
         }
         EdgeState edge = potentialEdge.edge;
         virtualEdges.add(edge);
+        edge.markUsed();
         discoveredEdges.add(edge);
         edge.getSelector().use(false);
     }
@@ -965,6 +967,7 @@ public class NodeState implements DependencyGraphNode {
         removingOutgoingEdges = true;
         if (!outgoingEdges.isEmpty() && !alreadyRemoving) {
             for (EdgeState outgoingDependency : outgoingEdges) {
+                outgoingDependency.markUnused();
                 ComponentState targetComponent = outgoingDependency.getTargetComponent();
                 if (targetComponent == component) {
                     // if the same component depends on itself: do not attempt to cleanup the same thing several times
@@ -980,6 +983,7 @@ public class NodeState implements DependencyGraphNode {
         }
         if (virtualEdges != null /*&& !removingOutgoing*/) {
             for (EdgeState outgoingDependency : virtualEdges) {
+                outgoingDependency.markUnused();
                 outgoingDependency.removeFromTargetConfigurations();
                 outgoingDependency.getSelector().release();
             }
@@ -1009,10 +1013,10 @@ public class NodeState implements DependencyGraphNode {
     private void restartIncomingEdges(boolean checkUnattached) {
         if (incomingEdges.size() == 1) {
             EdgeState singleEdge = incomingEdges.get(0);
-            singleEdge.restart(checkUnattached);
+            singleEdge.restartConnected(checkUnattached);
         } else {
-            for (EdgeState dependency : new ArrayList<>(incomingEdges)) {
-                dependency.restart(checkUnattached);
+            for (EdgeState edge : new ArrayList<>(incomingEdges)) {
+                edge.restartConnected(checkUnattached);
             }
         }
         clearIncomingEdges();
@@ -1101,6 +1105,7 @@ public class NodeState implements DependencyGraphNode {
             // because removeOutgoingEdges() will clear all of them so it's not required to do it twice
             // and it can cause a concurrent modification exception
             outgoingEdges.remove(edge);
+            edge.markUnused();
         }
     }
 
@@ -1169,6 +1174,7 @@ public class NodeState implements DependencyGraphNode {
 
     void makePending(EdgeState edgeState) {
         outgoingEdges.remove(edgeState);
+        edgeState.markUnused();
         edgeState.getSelector().release();
     }
 

@@ -843,6 +843,102 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         }
     }
 
+    def 'platform upgrade does not leave orphaned edges'() {
+        given:
+        def platform = mavenHttpRepo.module('org.test', 'platform', '1.0').withModuleMetadata().withoutDefaultVariants()
+            .withVariant('apiElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('org.test', 'depA', '1.0')
+                constraint('org.test', 'depB', '1.0')
+            }
+            .withVariant('runtimeElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('org.test', 'depA', '1.0')
+                constraint('org.test', 'depB', '1.0')
+            }.publish()
+        def platform11 = mavenHttpRepo.module('org.test', 'platform', '1.1').withModuleMetadata().withoutDefaultVariants()
+            .withVariant('apiElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('org.test', 'depA', '1.1')
+                constraint('org.test', 'depB', '1.1')
+            }
+            .withVariant('runtimeElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('org.test', 'depA', '1.1')
+                constraint('org.test', 'depB', '1.1')
+            }.publish()
+        def depA = mavenHttpRepo.module('org.test', 'depA', '1.0').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('org.test', 'platform', '1.0') {
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                    endorseStrictVersions = true
+                }
+            }.publish()
+        def depA11 = mavenHttpRepo.module('org.test', 'depA', '1.1').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('org.test', 'platform', '1.1') {
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                    endorseStrictVersions = true
+                }
+            }.publish()
+
+        def depB11 = mavenHttpRepo.module('org.test', 'depB', '1.1').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('org.test', 'platform', '1.1') {
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                    endorseStrictVersions = true
+                }//, null, [(Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM])
+                dependsOn('org.test', 'depA', '1.1')
+            }.publish()
+
+        depA.allowAll()
+        depA11.allowAll()
+        depB11.allowAll()
+        platform.allowAll()
+        platform11.allowAll()
+
+        buildFile << """
+            configurations {
+                conf.dependencies.clear()
+            }
+
+            dependencies {
+                conf 'org.test:depA:1.0'
+                conf 'org.test:depB:1.1'
+            }
+"""
+        checkConfiguration("conf")
+        resolve.expectDefaultConfiguration("runtime")
+
+        when:
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", "org.test:test:1.9") {
+                edge('org.test:depA:1.0', 'org.test:depA:1.1') {
+                    module('org.test:platform:1.1') {
+                        noArtifacts()
+                        constraint('org.test:depA:1.1')
+                        constraint('org.test:depB:1.1')
+                    }
+                }
+                module('org.test:depB:1.1') {
+                    module('org.test:platform:1.1')
+                    module('org.test:depA:1.1')
+                }
+            }
+        }
+    }
+
 
     private void checkConfiguration(String configuration) {
         resolve = new ResolveTestFixture(buildFile, configuration)
