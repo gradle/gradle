@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.Describable;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
@@ -23,7 +24,7 @@ import org.gradle.jvm.toolchain.JavaInstallation;
 
 import javax.inject.Inject;
 
-public class JavaToolchain {
+public class JavaToolchain implements Describable {
 
     private final JavaInstallation installation;
     private JavaCompilerFactory compilerFactory;
@@ -34,12 +35,17 @@ public class JavaToolchain {
         this.compilerFactory = compilerFactory;
     }
 
-    public Provider<DefaultJavaCompiler> getJavaCompiler() {
-        return Providers.of(new DefaultJavaCompiler(this, compilerFactory));
+    public Provider<DefaultToolchainJavaCompiler> getJavaCompiler() {
+        return Providers.of(new DefaultToolchainJavaCompiler(this, compilerFactory));
     }
 
     public JavaVersion getJavaMajorVersion() {
         return installation.getJavaVersion();
+    }
+
+    @Override
+    public String getDisplayName() {
+        return installation.getInstallationDirectory().getAsFile().getAbsolutePath();
     }
 
 }

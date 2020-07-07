@@ -69,7 +69,7 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaToolChain;
-import org.gradle.jvm.toolchain.internal.DefaultJavaCompiler;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaCompiler;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.work.Incremental;
@@ -300,7 +300,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         checkState(toolChain == null, "Must not use `javaCompiler` property together with (deprecated) `toolchain`");
         checkState(getOptions().getForkOptions().getJavaHome() == null, "Must not use `javaHome` property on `ForkOptions` together with `javaCompiler` property");
         checkState(getOptions().getForkOptions().getExecutable() == null, "Must not use `exectuable` property on `ForkOptions` together with `javaCompiler` property");
-        return spec -> ((DefaultJavaCompiler) javaCompiler.get()).execute(spec);
+        return spec -> ((DefaultToolchainJavaCompiler) javaCompiler.get()).execute(spec);
     }
 
     private Compiler<JavaCompileSpec> legacyCompiler(JavaCompileSpec spec) {

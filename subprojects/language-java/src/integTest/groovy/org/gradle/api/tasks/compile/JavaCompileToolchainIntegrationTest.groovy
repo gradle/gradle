@@ -16,13 +16,15 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
 
 class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest {
 
     def "can manually set java compiler via toolchain on java compile task"() {
+        def someJdk = AvailableJavaHomes.getDifferentJdk()
         buildFile << """
             import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService
             import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
@@ -35,7 +37,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
                 void apply(Project project) {
                     project.tasks.withType(JavaCompile) {
-                        javaCompiler = getQueryService().findMatchingToolchain(new DefaultToolchainSpec(JavaVersion.VERSION_14)).map({it.javaCompiler.get()})
+                        javaCompiler = getQueryService().findMatchingToolchain(new DefaultToolchainSpec(JavaVersion.${someJdk.javaVersion.name()})).map({it.javaCompiler.get()})
                     }
                 }
             }
@@ -46,14 +48,13 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         when:
-        def jdk14 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_14)
         result = executer
-            .withArguments("-Porg.gradle.java.installations.paths=" + jdk14.javaHome.absolutePath)
+            .withArguments("-Porg.gradle.java.installations.paths=" + someJdk.javaHome.absolutePath, "--info")
             .withTasks("compileJava")
             .run()
 
         then:
-        outputContains("Toolchain selected: 14")
+        outputContains("Compiling with toolchain '${someJdk.javaHome.absolutePath}'.")
         javaClassFile("Foo.class").exists()
     }
 
@@ -82,11 +83,12 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
         when:
         result = executer
+            .withArguments("--info")
             .withTasks("compileJava")
             .run()
 
         then:
-        outputContains("Toolchain selected: " + JavaVersion.current())
+        outputContains("Compiling with toolchain '${Jvm.current().javaHome.absolutePath}'.")
         javaClassFile("Foo.class").exists()
     }
 
