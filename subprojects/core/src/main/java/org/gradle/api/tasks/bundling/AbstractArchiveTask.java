@@ -55,6 +55,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private final Property<String> archiveClassifier;
     private final Property<Boolean> archivePreserveFileTimestamps;
     private final Property<Boolean> archiveReproducibleFileOrder;
+    private final Property<Long> outputTimestamp;
 
     public AbstractArchiveTask() {
         ObjectFactory objectFactory = getProject().getObjects();
@@ -84,6 +85,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
         archivePreserveFileTimestamps = objectFactory.property(Boolean.class).convention(true);
         archiveReproducibleFileOrder = objectFactory.property(Boolean.class).convention(false);
+        outputTimestamp = objectFactory.property(long.class).convention(-1L);
     }
 
     private static String maybe(@Nullable String prefix, @Nullable String value) {
@@ -465,6 +467,28 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     public void setPreserveFileTimestamps(boolean preserveFileTimestamps) {
         archivePreserveFileTimestamps.set(preserveFileTimestamps);
+    }
+
+    /**
+     * Specifies lastModified timestamp of entries in archive in milliseconds to epoch time.
+     * <p>
+     * If <tt>-1L</tt> there is no output timestamp specified.
+     * </p>
+     *
+     * @return milliseconds to epoch time if file timestamps should be set for archive entries
+     */
+    @Input
+    public long getOutputTimestamp() {
+        return outputTimestamp.get();
+    }
+
+    /**
+     * Specifies whether file timestamps should be set.
+     *
+     * @param timestamp milliseconds to epoch if file timestamps should be set.
+     */
+    public void setOutputTimestamp(long timestamp) {
+        outputTimestamp.set(timestamp);
     }
 
     /**

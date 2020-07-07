@@ -61,13 +61,15 @@ public class ZipCopyAction implements CopyAction {
     private final DocumentationRegistry documentationRegistry;
     private final String encoding;
     private final boolean preserveFileTimestamps;
+    private final long outputTimestamp;
 
-    public ZipCopyAction(File zipFile, ZipCompressor compressor, DocumentationRegistry documentationRegistry, String encoding, boolean preserveFileTimestamps) {
+    public ZipCopyAction(File zipFile, ZipCompressor compressor, DocumentationRegistry documentationRegistry, String encoding, boolean preserveFileTimestamps, long outputTimestamp) {
         this.zipFile = zipFile;
         this.compressor = compressor;
         this.documentationRegistry = documentationRegistry;
         this.encoding = encoding;
         this.preserveFileTimestamps = preserveFileTimestamps;
+        this.outputTimestamp = outputTimestamp;
     }
 
     @Override
@@ -145,6 +147,6 @@ public class ZipCopyAction implements CopyAction {
     }
 
     private long getArchiveTimeFor(FileCopyDetails details) {
-        return preserveFileTimestamps ? details.getLastModified() : CONSTANT_TIME_FOR_ZIP_ENTRIES;
+        return preserveFileTimestamps ? details.getLastModified() : (outputTimestamp > 0 ? outputTimestamp : CONSTANT_TIME_FOR_ZIP_ENTRIES);
     }
 }

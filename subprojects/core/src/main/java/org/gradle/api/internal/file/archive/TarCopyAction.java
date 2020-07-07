@@ -47,11 +47,13 @@ public class TarCopyAction implements CopyAction {
     private final File tarFile;
     private final ArchiveOutputStreamFactory compressor;
     private final boolean preserveFileTimestamps;
+    private final long outputTimestamp;
 
-    public TarCopyAction(File tarFile, ArchiveOutputStreamFactory compressor, boolean preserveFileTimestamps) {
+    public TarCopyAction(File tarFile, ArchiveOutputStreamFactory compressor, boolean preserveFileTimestamps, long outputTimestamp) {
         this.tarFile = tarFile;
         this.compressor = compressor;
         this.preserveFileTimestamps = preserveFileTimestamps;
+        this.outputTimestamp = outputTimestamp;
     }
 
     @Override
@@ -80,6 +82,10 @@ public class TarCopyAction implements CopyAction {
         });
 
         return WorkResults.didWork(true);
+    }
+
+    private long getArchiveTimeFor(FileCopyDetails details) {
+        return preserveFileTimestamps ? details.getLastModified() : (outputTimestamp > 0 ? outputTimestamp : CONSTANT_TIME_FOR_TAR_ENTRIES);
     }
 
     private class StreamAction implements CopyActionProcessingStreamAction {
@@ -124,9 +130,5 @@ public class TarCopyAction implements CopyAction {
                 throw new GradleException(String.format("Could not add %s to TAR '%s'.", dirDetails, tarFile), e);
             }
         }
-    }
-
-    private long getArchiveTimeFor(FileCopyDetails details) {
-        return preserveFileTimestamps ? details.getLastModified() : CONSTANT_TIME_FOR_TAR_ENTRIES;
     }
 }
