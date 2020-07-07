@@ -77,4 +77,7 @@ class InstantExecutionStartParameter(
 
     val allInitScripts: List<File>
         get() = startParameter.allInitScripts
+
+    val gradleUserHomeDir: File
+        get() = startParameter.gradleUserHomeDir
 }

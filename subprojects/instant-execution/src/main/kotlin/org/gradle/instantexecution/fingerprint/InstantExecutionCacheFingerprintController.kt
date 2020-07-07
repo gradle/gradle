@@ -152,6 +152,9 @@ class InstantExecutionCacheFingerprintController internal constructor(
     inner class CacheFingerprintComponentHost :
         InstantExecutionCacheFingerprintWriter.Host, InstantExecutionCacheFingerprintChecker.Host {
 
+        override val gradleUserHomeDir: File
+            get() = startParameter.gradleUserHomeDir
+
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts
 
