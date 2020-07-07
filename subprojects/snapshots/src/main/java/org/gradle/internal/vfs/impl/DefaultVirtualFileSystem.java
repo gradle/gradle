@@ -35,6 +35,8 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
 import org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Optional;
@@ -45,6 +47,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultVirtualFileSystem.class);
+
     private final AtomicSnapshotHierarchyReference root;
     private final Stat stat;
     private final SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator;
@@ -212,9 +216,10 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
         }
     }
 
-    public synchronized void updateDefaultExcludes(String... newDefaultExcludesArgs) {
+    public void updateDefaultExcludes(String... newDefaultExcludesArgs) {
         ImmutableList<String> newDefaultExcludes = ImmutableList.copyOf(newDefaultExcludesArgs);
         if (!defaultExcludes.equals(newDefaultExcludes)) {
+            LOGGER.debug("Default excludes changes from {} to {}", defaultExcludes, newDefaultExcludes);
             defaultExcludes = newDefaultExcludes;
             directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, newDefaultExcludes);
             invalidateAll();
