@@ -85,6 +85,9 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
                     if (host.gradleUserHomeDir != gradleUserHomeDir) {
                         return "Gradle user home directory has changed"
                     }
+                    if (jvmFingerprint() != jvm) {
+                        return "JVM has changed"
+                    }
                 }
                 else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
             }

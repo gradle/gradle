@@ -27,7 +27,8 @@ internal
 sealed class InstantExecutionCacheFingerprint {
 
     data class GradleEnvironment(
-        val gradleUserHomeDir: File
+        val gradleUserHomeDir: File,
+        val jvm: String
     ) : InstantExecutionCacheFingerprint()
 
     data class InitScripts(
