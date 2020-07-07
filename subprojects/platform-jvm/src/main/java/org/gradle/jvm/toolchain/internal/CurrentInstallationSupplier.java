@@ -16,8 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.jvm.Jvm;
 
 import java.io.File;
 import java.util.Collections;
@@ -25,20 +24,13 @@ import java.util.Set;
 
 public class CurrentInstallationSupplier implements InstallationSupplier {
 
-    private final ProviderFactory factory;
-
-    public CurrentInstallationSupplier(ProviderFactory factory) {
-        this.factory = factory;
-    }
-
     @Override
     public Set<InstallationLocation> get() {
-        final Provider<String> javaHome = factory.systemProperty("java.home").forUseAtConfigurationTime();
-        return Collections.singleton(asInstallation(javaHome.get()));
+        return Collections.singleton(asInstallation(Jvm.current().getJavaHome()));
     }
 
-    private InstallationLocation asInstallation(String javaHome) {
-        return new InstallationLocation(new File(javaHome), "current jvm");
+    private InstallationLocation asInstallation(File javaHome) {
+        return new InstallationLocation(javaHome, "current jvm");
     }
 
 }

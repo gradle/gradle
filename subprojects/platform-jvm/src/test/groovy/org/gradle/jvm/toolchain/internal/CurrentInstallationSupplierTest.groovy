@@ -16,35 +16,22 @@
 
 package org.gradle.jvm.toolchain.internal
 
-import org.gradle.api.internal.provider.DefaultProperty
-import org.gradle.api.internal.provider.PropertyHost
-import org.gradle.api.provider.ProviderFactory
+import org.gradle.internal.jvm.Jvm
 import spock.lang.Specification
 
 class CurrentInstallationSupplierTest extends Specification {
 
     def "supplies java home as installation"() {
         given:
-        def supplier = createSupplier("/foo/bar")
+        def supplier = new CurrentInstallationSupplier()
 
         when:
         def directories = supplier.get()
 
         then:
-        directories*.location == [new File("/foo/bar")]
+        directories*.location == [Jvm.current().javaHome]
         directories*.source == ["current jvm"]
     }
 
-    private createSupplier(String propertyValue) {
-        new CurrentInstallationSupplier(createProviderFactory(propertyValue))
-    }
-
-    private ProviderFactory createProviderFactory(String propertyValue) {
-        def providerFactory = Mock(ProviderFactory)
-        def provider = new DefaultProperty(PropertyHost.NO_OP, String)
-        provider.set(propertyValue)
-        providerFactory.systemProperty("java.home") >> provider
-        providerFactory
-    }
 
 }
