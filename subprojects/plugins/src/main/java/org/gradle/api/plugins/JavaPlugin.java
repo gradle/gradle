@@ -334,7 +334,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         addJar(apiElementConfiguration, jarArtifact);
         addJar(runtimeConfiguration, jarArtifact);
-        addRuntimeVariants(project, runtimeElementsConfiguration, jarArtifact, mainSourceSetOf(pluginConvention), processResources);
+        addRuntimeVariants(runtimeElementsConfiguration, jarArtifact, mainSourceSetOf(pluginConvention), processResources);
 
         registerSoftwareComponents(project);
     }
@@ -377,7 +377,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.JAR_TYPE);
     }
 
-    private void addRuntimeVariants(Project project, Configuration configuration, PublishArtifact jarArtifact, final SourceSet sourceSet, final Provider<ProcessResources> processResources) {
+    private void addRuntimeVariants(Configuration configuration, PublishArtifact jarArtifact, final SourceSet sourceSet, final Provider<ProcessResources> processResources) {
         ConfigurationPublications publications = configuration.getOutgoing();
 
         // Configure an implicit variant
