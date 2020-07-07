@@ -340,4 +340,23 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         output.count("resource = ") == 1
         outputContains("resource = two")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/13701")
+    @Unroll
+    def "reports build logic reading system properties where findProperty returns null"() {
+        buildFile << """
+            task printMyProperty {
+                doFirst {
+                    def myPropertyValue = System.getProperty('myproperty', findProperty('myproperty'))
+                    println "MY PROPERTY = " + (myPropertyValue ?: 'no value')
+                }
+            }
+        """
+
+        when:
+        instantRun('printMyProperty')
+
+        then:
+        outputContains("MY PROPERTY = no value")
+    }
 }

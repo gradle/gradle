@@ -367,7 +367,7 @@ public class Instrumented {
         @Override
         public Object call(Object receiver, Object arg) throws Throwable {
             if (receiver.equals(Integer.class)) {
-                return getInteger(arg.toString(), array.owner.getName());
+                return getInteger(arg != null ? arg.toString() : null, array.owner.getName());
             } else {
                 return super.call(receiver, arg);
             }
@@ -376,7 +376,7 @@ public class Instrumented {
         @Override
         public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
             if (receiver.equals(Integer.class)) {
-                return getInteger(arg1.toString(), (Integer) unwrap(arg2), array.owner.getName());
+                return getInteger(arg1 != null ? arg1.toString() : null, (Integer) unwrap(arg2), array.owner.getName());
             } else {
                 return super.call(receiver, arg1, arg2);
             }
@@ -391,7 +391,7 @@ public class Instrumented {
         @Override
         public Object call(Object receiver, Object arg) throws Throwable {
             if (receiver.equals(Long.class)) {
-                return getLong(arg.toString(), array.owner.getName());
+                return getLong(arg != null ? arg.toString() : null, array.owner.getName());
             } else {
                 return super.call(receiver, arg);
             }
@@ -400,7 +400,7 @@ public class Instrumented {
         @Override
         public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
             if (receiver.equals(Long.class)) {
-                return getLong(arg1.toString(), (Long) unwrap(arg2), array.owner.getName());
+                return getLong(arg1 != null ? arg1.toString() : null, (Long) unwrap(arg2), array.owner.getName());
             } else {
                 return super.call(receiver, arg1, arg2);
             }
@@ -415,7 +415,7 @@ public class Instrumented {
         @Override
         public Object call(Object receiver, Object arg) throws Throwable {
             if (receiver.equals(Boolean.class)) {
-                return getBoolean(arg.toString(), array.owner.getName());
+                return getBoolean(arg != null ? arg.toString() : null, array.owner.getName());
             } else {
                 return super.call(receiver, arg);
             }
@@ -430,7 +430,7 @@ public class Instrumented {
         @Override
         public Object call(Object receiver, Object arg) throws Throwable {
             if (receiver.equals(System.class)) {
-                return systemProperty(arg.toString(), array.owner.getName());
+                return systemProperty(arg != null ? arg.toString() : null, array.owner.getName());
             } else {
                 return super.call(receiver, arg);
             }
@@ -439,7 +439,7 @@ public class Instrumented {
         @Override
         public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
             if (receiver.equals(System.class)) {
-                return systemProperty(arg1.toString(), convertToString(arg2), array.owner.getName());
+                return systemProperty(arg1 != null ? arg1.toString() : null, convertToString(arg2), array.owner.getName());
             } else {
                 return super.call(receiver, arg1, arg2);
             }
