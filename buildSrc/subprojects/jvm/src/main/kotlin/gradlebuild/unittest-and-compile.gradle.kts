@@ -112,11 +112,6 @@ fun configureClasspathManifestGeneration() {
 
 fun addDependencies() {
     dependencies {
-        val implementation = configurations.getByName("implementation")
-        val compileOnly = configurations.getByName("compileOnly")
-        val testImplementation = configurations.getByName("testImplementation")
-        val testCompileOnly = configurations.getByName("testCompileOnly")
-        val testRuntimeOnly = configurations.getByName("testRuntimeOnly")
         testCompileOnly(libs.junit)
         testRuntimeOnly(libs.junit5Vintage)
         testImplementation(libs.groovy)
@@ -124,19 +119,18 @@ fun addDependencies() {
         testRuntimeOnly(libs.bytebuddy)
         testRuntimeOnly(libs.objenesis)
 
-        if (name != "test") { // do not attempt to find platform project during script compilation
-            val platformProject = ":distributionsDependencies"
-            compileOnly(platform(project(platformProject)))
-            testImplementation(platform(project(platformProject)))
-            if (!isPublishedIndependently()) {
-                implementation(platform(project(platformProject)))
-            }
+        // use a separate configuration for the platform dependency that does not get published as part of 'apiElements' or 'runtimeElements'
+        val platformImplementation by configurations.creating
+        configurations["compileClasspath"].extendsFrom(platformImplementation)
+        configurations["runtimeClasspath"].extendsFrom(platformImplementation)
+        configurations["testCompileClasspath"].extendsFrom(platformImplementation)
+        configurations["testRuntimeClasspath"].extendsFrom(platformImplementation)
+        platformImplementation.withDependencies {
+            // use 'withDependencies' to not attempt to find platform project during script compilation
+            add(project.dependencies.create(platform(project(":distributionsDependencies"))))
         }
     }
 }
-
-fun isPublishedIndependently() = name != "toolingApi" &&
-    (pluginManager.hasPlugin("gradlebuild.portalplugin.kotlin") || pluginManager.hasPlugin("gradlebuild.publish-public-libraries"))
 
 fun addCompileAllTask() {
     tasks.register("compileAll") {
