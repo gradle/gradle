@@ -21,7 +21,7 @@ import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.internal.hash.HashValue
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
-import org.gradle.util.GFileUtils
+import org.gradle.util.GFileUtils.relativePathOf
 import org.gradle.util.GradleVersion
 import java.io.File
 
@@ -55,14 +55,24 @@ class InstantExecutionCacheKey(
         val taskNames = requestedTaskNames.asSequence() + excludedTaskNames.asSequence()
         val hasRelativeTaskName = taskNames.any { !it.startsWith(':') }
         if (hasRelativeTaskName) {
-            // Because unqualified task names are resolved relative to the enclosing
-            // sub-project according to `invocationDirectory`,
-            // the relative invocation directory information must be part of the key.
-            relativeChildPathOrNull(
-                startParameter.currentDirectory,
-                startParameter.rootDirectory
-            )?.let { relativeSubDir ->
-                putString(relativeSubDir)
+            // Because unqualified task names are resolved relative to the selected
+            // sub-project according to either `projectDirectory` or `currentDirectory`,
+            // the relative directory information must be part of the key.
+            val projectDir = startParameter.projectDirectory
+            if (projectDir != null) {
+                relativePathOf(
+                    projectDir,
+                    startParameter.rootDirectory
+                ).let { relativeProjectDir ->
+                    putString(relativeProjectDir)
+                }
+            } else {
+                relativeChildPathOrNull(
+                    startParameter.currentDirectory,
+                    startParameter.rootDirectory
+                )?.let { relativeSubDir ->
+                    putString(relativeSubDir)
+                }
             }
         }
     }
@@ -79,6 +89,6 @@ class InstantExecutionCacheKey(
      */
     private
     fun relativeChildPathOrNull(target: File, base: File): String? =
-        GFileUtils.relativePathOf(target, base)
+        relativePathOf(target, base)
             .takeIf { !it.startsWith('.') }
 }

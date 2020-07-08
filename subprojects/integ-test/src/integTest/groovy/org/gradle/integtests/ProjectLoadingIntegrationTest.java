@@ -16,7 +16,6 @@
 package org.gradle.integtests;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest;
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution;
 import org.gradle.integtests.fixtures.executer.ExecutionFailure;
 import org.gradle.test.fixtures.file.TestFile;
 import org.junit.Test;
@@ -300,7 +299,6 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
     public void multiProjectBuildCanHaveSettingsFileAndRootBuildFileInSubDir() {
         TestFile buildFilesDir = getTestDirectory().file("root");
         TestFile settingsFile = buildFilesDir.file("settings.gradle");
