@@ -88,7 +88,8 @@ class InstantExecutionCacheFingerprintWriter(
         )
         write(
             InstantExecutionCacheFingerprint.GradleEnvironment(
-                host.gradleUserHomeDir
+                host.gradleUserHomeDir,
+                jvmFingerprint()
             )
         )
     }
@@ -216,3 +217,12 @@ class InstantExecutionCacheFingerprintWriter(
     fun isBuildSrcTask(task: TaskInternal) =
         task.taskIdentity.buildPath.path == BUILD_SRC_PROJECT_PATH
 }
+
+
+internal
+fun jvmFingerprint() = String.format(
+    "%s|%s|%s",
+    System.getProperty("java.vm.name"),
+    System.getProperty("java.vm.vendor"),
+    System.getProperty("java.vm.version")
+)
