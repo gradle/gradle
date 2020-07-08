@@ -49,6 +49,8 @@ class InstantExecutionCacheFingerprintWriter(
 
     interface Host {
 
+        val gradleUserHomeDir: File
+
         val allInitScripts: List<File>
 
         val buildStartTime: Long
@@ -82,6 +84,11 @@ class InstantExecutionCacheFingerprintWriter(
         write(
             InstantExecutionCacheFingerprint.InitScripts(
                 initScripts.map(::inputFile)
+            )
+        )
+        write(
+            InstantExecutionCacheFingerprint.GradleEnvironment(
+                host.gradleUserHomeDir
             )
         )
     }
