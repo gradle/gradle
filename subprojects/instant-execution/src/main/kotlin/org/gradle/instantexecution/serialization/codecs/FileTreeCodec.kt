@@ -92,8 +92,8 @@ class FileTreeCodec(
                     is GeneratedTreeSpec -> it.spec.run {
                         fileCollectionFactory.generated(tmpDir, fileName, fileGenerationListener, contentGenerator)
                     }
-                    is ZipTreeSpec -> fileOperations.zipTree(it.file)
-                    is TarTreeSpec -> fileOperations.tarTree(it.file)
+                    is ZipTreeSpec -> fileOperations.zipTree(it.file) as FileTreeInternal
+                    is TarTreeSpec -> fileOperations.tarTree(it.file) as FileTreeInternal
                 }
             }
             val tree = fileCollectionFactory.treeOf(fileTrees)

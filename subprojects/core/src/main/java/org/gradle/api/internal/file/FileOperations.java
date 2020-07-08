@@ -22,6 +22,7 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
@@ -58,9 +59,9 @@ public interface FileOperations {
 
     ConfigurableFileTree fileTree(Map<String, ?> args);
 
-    FileTreeInternal zipTree(Object zipPath);
+    FileTree zipTree(Object zipPath);
 
-    FileTreeInternal tarTree(Object tarPath);
+    FileTree tarTree(Object tarPath);
 
     CopySpec copySpec();
 
