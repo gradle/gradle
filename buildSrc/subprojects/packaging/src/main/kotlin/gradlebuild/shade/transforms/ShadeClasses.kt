@@ -26,8 +26,9 @@ import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 
 
 private
@@ -60,7 +61,7 @@ abstract class ShadeClasses : TransformAction<ShadeClasses.Parameters> {
         var ignoredPackages: Set<String>
     }
 
-    @get:Classpath
+    @get:PathSensitive(PathSensitivity.NONE)
     @get:InputArtifact
     abstract val input: Provider<FileSystemLocation>
 
