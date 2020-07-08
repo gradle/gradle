@@ -1,6 +1,6 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [configuration caching](#performance-improvements), [release flag support](#javacompile-supports-the---release-compiler-option) and a new [Credentials Provider API](#credentials-provider-api).
+This release features [configuration caching](#performance-improvements), [release flag support](#javacompile-supports-the---release-compiler-option) and a new [Credentials Provider API](#improved-handling-of-user-provided-credentials).
 
 There are also several other improvements including [reproducible gradle metadata](#gradle-module-metadata-can-be-made-reproducible), [injectable ArchiveOperations](#improvements-for-plugin-authors) and [many bug fixes](#fixed-issues). 
 
