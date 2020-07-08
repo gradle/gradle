@@ -52,6 +52,7 @@ dependencies {
     implementation(project(":publish"))
     implementation(project(":resources"))
     implementation(project(":snapshots"))
+    implementation(project(":pluginUse"))
 
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     implementation(project(":workers"))

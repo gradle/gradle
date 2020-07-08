@@ -117,7 +117,7 @@ class InstantExecutionState(
     private
     suspend fun DefaultReadContext.readGradleState(gradle: GradleInternal) {
         withGradleIsolate(gradle) {
-            readIncludedBuilds()
+            readChildBuilds()
             readBuildCacheConfiguration(gradle)
             readBuildEventListenerSubscriptions()
             readBuildOutputCleanupRegistrations()
@@ -154,7 +154,7 @@ class InstantExecutionState(
     }
 
     private
-    suspend fun DefaultReadContext.readIncludedBuilds() {
+    suspend fun DefaultReadContext.readChildBuilds() {
         if (readBoolean()) {
             logNotImplemented(
                 feature = "included builds",

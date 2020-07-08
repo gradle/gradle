@@ -37,6 +37,7 @@ enum class DocumentationSection(val anchor: String) {
     NotYetImplementedCompositeBuilds("config_cache:not_yet_implemented:composite_builds"),
     NotYetImplementedSourceDependencies("config_cache:not_yet_implemented:source_dependencies"),
     NotYetImplementedJavaSerialization("config_cache:not_yet_implemented:java_serialization"),
+    NotYetImplementedTestKitJavaAgent("config_cache:not_yet_implemented:testkit_build_with_java_agent"),
     RequirementsBuildListeners("config_cache:requirements:build_listeners"),
     RequirementsDisallowedTypes("config_cache:requirements:disallowed_types"),
     RequirementsTaskAccess("config_cache:requirements:task_access"),

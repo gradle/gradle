@@ -891,6 +891,10 @@ With the configuration cache enabled, no problem will be reported and the build 
 
 See link:{gradle-issues}13506[gradle/gradle#13506].
 
+[[config_cache:not_yet_implemented:testkit_build_with_java_agent]]
+=== Using a Java agent for builds started using TestKit
+
+
 [[config_cache:not_yet_implemented:java_serialization]]
 === Java Object Serialization
 
