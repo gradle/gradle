@@ -243,7 +243,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
         result = usingProjectDir(subDirectory).withTasks("help").runWithFailure();
         result.assertHasDescription(String.format("Project directory '%s' is not part of the build defined by settings file '%s'.", subDirectory, settingsFile));
-   }
+    }
 
     @Test
     public void canTargetRootProjectDirectoryFromSubDirectory() {
@@ -353,9 +353,9 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile settingsDir = testFile("gradle");
         TestFile settingsFile = settingsDir.file("settings.gradle");
         settingsFile.writelns(
-                "rootProject.projectDir = new File(settingsDir, '../root')",
-                "include 'sub'",
-                "project(':sub').projectDir = new File(settingsDir, '../sub')"
+            "rootProject.projectDir = new File(settingsDir, '../root')",
+            "include 'sub'",
+            "project(':sub').projectDir = new File(settingsDir, '../sub')"
         );
         getTestDirectory().createDir("sub").file("build.gradle").writelns("task thing");
 
@@ -367,11 +367,11 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile settingsDir = testFile("gradle");
         TestFile settingsFile = settingsDir.file("settings.gradle");
         settingsFile.writelns(
-                "rootProject.projectDir = new File(settingsDir, '../root')"
+            "rootProject.projectDir = new File(settingsDir, '../root')"
         );
         getTestDirectory().createDir("root").file("build.gradle").writelns("task thing");
 
         inTestDirectory().withArguments("-p", settingsDir.getAbsolutePath()).withTasks("thing").runWithFailure()
-                .assertHasDescription("Task 'thing' not found in root project 'gradle'.");
+            .assertHasDescription("Task 'thing' not found in root project 'gradle'.");
     }
 }
