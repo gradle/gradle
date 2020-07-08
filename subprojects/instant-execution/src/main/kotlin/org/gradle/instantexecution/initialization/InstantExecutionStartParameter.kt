@@ -50,6 +50,12 @@ class InstantExecutionStartParameter(
     val recreateCache: Boolean
         get() = startParameter.isConfigurationCacheRecreateCache
 
+    /**
+     * See [StartParameter.getProjectDir].
+     */
+    val projectDirectory: File?
+        get() = startParameter.projectDir
+
     val currentDirectory: File
         get() = startParameter.currentDir
 
