@@ -131,18 +131,17 @@ With this release, Gradle now supports that option on the `CompileOptions` of `J
 See the section on [cross compilation](userguide/building_java_projects.html#sec:java_cross_compilation) for details.
 Support on the javadoc tasks and other JVM language compilation will be added in future releases.
 
-## Credentials Provider API
+### Improved handling of user-provided credentials
 
-In the previous release we added two samples that demonstrated two common use cases where credentials are used in Gradle builds -
-artifact repositories requiring authentication and arbitrary external tools invoked by the Gradle build requiring credentials.
-Both samples aimed at guiding the users to our recommended practice of externalizing credentials from the build scripts and
-supplying them using `gradle.properties`.
+Gradle builds sometimes require users to supply credentials that are used by tasks. For example, credentials might be
+required to authenticate with an artifact repository in order to publish an artifact. It is a good practice to keep
+credentials externalized from the build script.
 
-In this release we are rolling out a new provider API for credentials that will make working with credentials easier by establishing
-a convention to supply credentials using `gradle.properties` and eliminating the previously demonstrated boilerplate code for
-validating credential presence.
+This release includes a new provider API for credentials that makes working with credentials easier by establishing
+a convention to supply credentials using `gradle.properties`. It also introduces fail-fast behavior when Gradle knows
+that the build will need credentials at some point and the credentials are missing.
 
-For more details on the new API see the [user manual](userguide/declaring_repositories.html#sec:handling_credentials) as well as 
+For more details on the new API, see the [user manual](userguide/declaring_repositories.html#sec:handling_credentials) as well as 
 updated downloadable samples that now make use of the new credentials provider API:
 
 - [Authenticating with a Maven repository for publishing](samples/sample_publishing_credentials.html)
