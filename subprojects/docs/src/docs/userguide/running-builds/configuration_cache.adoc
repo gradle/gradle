@@ -12,8 +12,6 @@
 The configuration cache is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, and the details described here may change.
 ====
 
-// TODO java serialization support
-
 [[config_cache:intro]]
 == Introduction
 
@@ -176,7 +174,7 @@ org.gradle.unsafe.configuration-cache.max-problems=5
 
 The configuration cache is automatically invalidated when inputs to the configuration phase change.
 However, certain inputs are not tracked yet, so you may have to manually invalidate the configuration cache when untracked inputs to the configuration phase change.
-This can happen if you <<configuration_cache#config_cache:usage:ignore_problems,ignored problems>>, or when your build uses a <<config_cache:not_yet_implemented:file_system_repositories,file system repository>> and dependencies in this repository have changed for example.
+This can happen if you <<configuration_cache#config_cache:usage:ignore_problems,ignored problems>>.
 See the <<configuration_cache#config_cache:requirements>> and <<configuration_cache#config_cache:not_yet_implemented>> sections below for more information.
 
 The configuration cache state is stored on disk in a directory named `.gradle/configuration-cache` in the root directory of the Gradle build in use.
@@ -274,13 +272,13 @@ link:{gradle-issues}13488[[.red]#✖#]:: <<xctest_plugin.adoc#xctest_plugin,XCTe
 
 a|
 [horizontal]
-link:{gradle-issues}13463[[.green]#✓#]:: <<application_plugin.adoc#application_plugin,Application>>
+link:{gradle-issues}13466[[.yellow]#⚠#]:: <<application_plugin.adoc#application_plugin,Application>>
 link:{gradle-issues}13466[[.yellow]#⚠#]:: <<war_plugin.adoc#war_plugin,WAR>>
-link:{gradle-issues}13467[[.green]#✓#]:: <<ear_plugin.adoc#ear_plugin,EAR>>
+link:{gradle-issues}13466[[.yellow]#⚠#]:: <<ear_plugin.adoc#ear_plugin,EAR>>
 link:{gradle-issues}13468[[.yellow]#⚠#]:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
 link:{gradle-issues}13469[[.red]#✖#]:: <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
 [.gray]#✖#:: <<maven_plugin.adoc#maven_plugin,Legacy Maven Plugin>>
-link:{gradle-issues}13464[[.green]#✓#]:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
+link:{gradle-issues}13466[[.yellow]#⚠#]:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
 link:{gradle-issues}13465[[.yellow]#⚠#]:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
 
 h| Code analysis
@@ -304,7 +302,7 @@ link:{gradle-issues}13483[[.red]#✖#]:: <<xcode_plugin.adoc#xcode_plugin,Xcode>
 a|
 [horizontal]
 link:{gradle-issues}13455[[.green]#✓#]:: <<base_plugin.adoc#base_plugin,Base>>
-link:{gradle-issues}13456[[.green]#✓#]:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
+link:{gradle-issues}13466[[.yellow]#⚠#]:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
 link:{gradle-issues}13470[[.red]#✖#]:: <<signing_plugin.adoc#signing_plugin,Signing>>
 link:{gradle-issues}13471[[.yellow]#⚠#]:: <<java_gradle_plugin.adoc#java_gradle_plugin,Plugin Development>>
 link:{gradle-issues}13472[[.red]#✖#]:: <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL Plugin Development>>
@@ -515,6 +513,9 @@ If problems with the configuration cache are found then Gradle will fail the bui
 
 In order to capture the state of the task graph to the configuration cache and reload it again in a later build, Gradle applies certain requirements to tasks and other build logic.
 Each of these requirements is treated as a configuration cache "problem" and fails the build if violations are present.
+
+For the most part these requirements are actually surfacing some undeclared inputs.
+In other words, using the configuration cache is an opt-in to more strictness, correctness and reliability for all builds.
 
 The following sections describe each of the requirements and how to change your build to fix the problems.
 
@@ -865,6 +866,15 @@ But it can't be shared between developers or CI machines.
 
 See link:{gradle-issues}13510[gradle/gradle#13510].
 
+[[config_cache:not_yet_implemented:normalization]]
+=== Custom input normalization
+
+Custom <<more_about_tasks#sec:configure_input_normalization, input normalization>> is not captured when using the configuration cache.
+If your build has configuration for input normalization, i.e. `normalization { }`, it will be ignored, no problem will be reported.
+Builds reusing the configuration cache might see build cache misses but will stay reliable.
+
+See link:{gradle-issues}13706[gradle/gradle#13706].
+
 [[config_cache:not_yet_implemented:composite_builds]]
 === Composite builds
 
@@ -881,24 +891,35 @@ With the configuration cache enabled, no problem will be reported and the build 
 
 See link:{gradle-issues}13506[gradle/gradle#13506].
 
-[[config_cache:not_yet_implemented:dependency_locking]]
-=== Dependency locking
+[[config_cache:not_yet_implemented:testkit_build_with_java_agent]]
+=== Using a Java agent with builds run using TestKit
 
-<<dependency_locking#dependency-locking, Locking dependency versions>> isn't supported yet.
-With the configuration cache enabled, no problem will be reported and dependency locks will be ignored.
+When running builds using <<test_kit#test_kit, TestKit>>, the configuration cache can interfere with Java agents, such as the Jacoco agent, that are applied to these builds.
 
-See link:{gradle-issues}13507[gradle/gradle#13507].
+[[config_cache:not_yet_implemented:java_serialization]]
+=== Java Object Serialization
 
-[[config_cache:not_yet_implemented:file_system_repositories]]
-=== File system repositories
+Gradle allows objects that support the link:https://docs.oracle.com/javase/8/docs/platform/serialization/spec/serialTOC.html[Java Object Serialization] protocol to be stored in the configuration cache.
 
-Repositories on local file systems are not supported yet.
-With the configuration cache enabled, no problem will be reported and changes to the filesystem in the repositories won't be detected.
+The implementation is currently limited to serializable classes that implement the `java.io.Serializable` interface
+and define one of the following combination of methods:
 
-This includes:
+- a `writeObject` method combined with a `readObject` method to control exactly which information to store;
+- a `writeObject` method with no corresponding `readObject`; `writeObject` must eventually call `ObjectOutputStream.defaultWriteObject`;
+- a `readObject` method with no corresponding `writeObject`; `readObject` must eventually call `ObjectInputStream.defaultReadObject`;
+- a `writeReplace` method to allow the class to nominate a replacement to be written;
+- a `readResolve` method to allow the class to nominate a replacement for the object just read;
 
-* <<declaring_repositories#sec:declaring_custom_repository,Maven or Ivy repositories>> with `file://` URLs,
-* <<declaring_repositories#sub:maven_local,`mavenLocal()`>>,
-* and <<declaring_repositories#sub:flat_dir_resolver,flat directory repositories>>.
+The following _Java Object Serialization_ features are **not** supported:
 
-See link:{gradle-issues}13509[gradle/gradle#13509].
+- serializable classes implementing the `java.io.Externalizable` interface; objects of such classes are discarded by the configuration cache during serialization and reported as problems;
+- the `serialPersistentFields` member to explicitly declare which fields are serializable; the member, if present, is ignored; the configuration cache considers all but `transient` fields serializable;
+- the following methods of `ObjectOutputStream` are not supported and will throw `UnsupportedOperationException`:
+** `reset()`, `writeFields()`, `putFields()`, `writeChars(String)`, `writeBytes(String)` and `writeUnshared(Any?)`.
+
+- the following methods of `ObjectInputStream` are not supported and will throw `UnsupportedOperationException`:
+** `readLine()`, `readFully(ByteArray)`, `readFully(ByteArray, Int, Int)`, `readUnshared()`, `readFields()`, `transferTo(OutputStream)` and `readAllBytes()`.
+- validations registered via `ObjectInputStream.registerValidation` are simply ignored;
+- the `readObjectNoData` method, if present, is never invoked;
+
+See link:{gradle-issues}13588[gradle/gradle#13588].

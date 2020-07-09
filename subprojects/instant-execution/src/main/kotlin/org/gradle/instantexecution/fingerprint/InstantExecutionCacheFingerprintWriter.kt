@@ -36,6 +36,7 @@ import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.runWriteOperation
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
 import java.io.File
 
@@ -44,9 +45,11 @@ internal
 class InstantExecutionCacheFingerprintWriter(
     private val host: Host,
     private val writeContext: DefaultWriteContext
-) : ValueSourceProviderFactory.Listener, TaskInputsListener, ScriptExecutionListener, UndeclaredBuildInputListener, ChangingValueDependencyResolutionListener {
+) : ValueSourceProviderFactory.Listener, TaskInputsListener, ScriptExecutionListener, UndeclaredBuildInputListener, ChangingValueDependencyResolutionListener, FileResourceListener {
 
     interface Host {
+
+        val gradleUserHomeDir: File
 
         val allInitScripts: List<File>
 
@@ -67,6 +70,9 @@ class InstantExecutionCacheFingerprintWriter(
     val capturedFiles: MutableSet<File>
 
     private
+    val inputFiles = mutableListOf<InputFile>()
+
+    private
     val undeclaredSystemProperties = mutableSetOf<String>()
 
     private
@@ -80,6 +86,12 @@ class InstantExecutionCacheFingerprintWriter(
                 initScripts.map(::inputFile)
             )
         )
+        write(
+            InstantExecutionCacheFingerprint.GradleEnvironment(
+                host.gradleUserHomeDir,
+                jvmFingerprint()
+            )
+        )
     }
 
     /**
@@ -90,6 +102,9 @@ class InstantExecutionCacheFingerprintWriter(
     fun close() {
         if (closestChangingValue != null) {
             write(closestChangingValue)
+        }
+        for (inputFile in inputFiles) {
+            write(inputFile)
         }
         write(null)
         writeContext.close()
@@ -115,6 +130,10 @@ class InstantExecutionCacheFingerprintWriter(
         if (closestChangingValue == null || closestChangingValue!!.expireAt > changingValue.expireAt) {
             closestChangingValue = changingValue
         }
+    }
+
+    override fun fileObserved(file: File) {
+        captureFile(file)
     }
 
     override fun systemPropertyRead(key: String) {
@@ -161,9 +180,10 @@ class InstantExecutionCacheFingerprintWriter(
 
     private
     fun captureFile(file: File) {
-        if (!capturedFiles.add(file))
+        if (!capturedFiles.add(file)) {
             return
-        write(inputFile(file))
+        }
+        inputFiles.add(inputFile(file))
     }
 
     private
@@ -197,3 +217,12 @@ class InstantExecutionCacheFingerprintWriter(
     fun isBuildSrcTask(task: TaskInternal) =
         task.taskIdentity.buildPath.path == BUILD_SRC_PROJECT_PATH
 }
+
+
+internal
+fun jvmFingerprint() = String.format(
+    "%s|%s|%s",
+    System.getProperty("java.vm.name"),
+    System.getProperty("java.vm.vendor"),
+    System.getProperty("java.vm.version")
+)

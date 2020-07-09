@@ -23,6 +23,7 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.resource.local.FileResourceListener;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -56,10 +57,12 @@ public class LockFileReaderWriter {
     private final Path lockFilesRoot;
     private final DomainObjectContext context;
     private final RegularFileProperty lockFile;
+    private final FileResourceListener listener;
 
-    public LockFileReaderWriter(FileResolver fileResolver, DomainObjectContext context, RegularFileProperty lockFile) {
+    public LockFileReaderWriter(FileResolver fileResolver, DomainObjectContext context, RegularFileProperty lockFile, FileResourceListener listener) {
         this.context = context;
         this.lockFile = lockFile;
+        this.listener = listener;
         Path resolve = null;
         if (fileResolver.canResolveRelativePath()) {
             resolve = fileResolver.resolve(DEPENDENCY_LOCKING_FOLDER).toPath();
@@ -99,6 +102,7 @@ public class LockFileReaderWriter {
         checkValidRoot(configurationName);
 
         Path lockFile = lockFilesRoot.resolve(decorate(configurationName) + FILE_SUFFIX);
+        listener.fileObserved(lockFile.toFile());
         if (Files.exists(lockFile)) {
             List<String> result;
             try {
@@ -153,6 +157,7 @@ public class LockFileReaderWriter {
         Path uniqueLockFile = getUniqueLockfilePath();
         List<String> emptyConfigurations = new ArrayList<>();
         Map<String, List<String>> uniqueLockState = new HashMap<>(10);
+        listener.fileObserved(uniqueLockFile.toFile());
         if (Files.exists(uniqueLockFile)) {
             try {
                 Files.lines(uniqueLockFile, CHARSET).filter(empty.or(comment).negate())

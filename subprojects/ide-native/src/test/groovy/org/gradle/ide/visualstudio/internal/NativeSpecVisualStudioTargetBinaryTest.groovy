@@ -23,6 +23,7 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
@@ -309,7 +310,7 @@ class NativeSpecVisualStudioTargetBinaryTest extends Specification {
         def sourceSet = Mock(LanguageSourceSet)
         def sourceDirs = Mock(TestSourceDirectorySet)
         1 * sourceSet.source >> sourceDirs
-        1 * sourceDirs.files >> allFiles
+        1 * sourceDirs.visitStructure(_) >> { FileCollectionStructureVisitor visitor -> visitor.visitCollection(null, allFiles) }
         return sourceSet
     }
 
@@ -318,7 +319,7 @@ class NativeSpecVisualStudioTargetBinaryTest extends Specification {
         def sourceSet = Mock(WindowsResourceSet)
         def sourceDirs = Mock(TestSourceDirectorySet)
         1 * sourceSet.source >> sourceDirs
-        1 * sourceDirs.files >> allFiles
+        1 * sourceDirs.visitStructure(_) >> { FileCollectionStructureVisitor visitor -> visitor.visitCollection(null, allFiles) }
         return sourceSet
     }
 
@@ -337,8 +338,12 @@ class NativeSpecVisualStudioTargetBinaryTest extends Specification {
     }
 
     interface TestExecutableBinary extends NativeExecutableBinarySpecInternal, ExtensionAware {}
+
     interface TestLibraryBinary extends SharedLibraryBinarySpecInternal, ExtensionAware {}
+
     interface TestStaticLibraryBinary extends StaticLibraryBinarySpecInternal, ExtensionAware {}
+
     interface TestFooBinary extends NativeBinarySpecInternal {}
+
     interface TestSourceDirectorySet extends SourceDirectorySet, FileCollectionInternal {}
 }

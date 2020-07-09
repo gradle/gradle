@@ -71,7 +71,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
     }
 
     @Override
-    public FileTree matching(final PatternFilterable patterns) {
+    public FileTreeInternal matching(final PatternFilterable patterns) {
         return new FilteredFileTree(this, () -> {
             if (patterns instanceof PatternSet) {
                 return (PatternSet) patterns;
@@ -104,8 +104,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
     }
 
     @Override
-    public FileTree getAsFileTree() {
+    public FileTreeInternal getAsFileTree() {
         return this;
     }
-
 }

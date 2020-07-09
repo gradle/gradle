@@ -236,7 +236,7 @@ class InstantExecutionHost internal constructor(
         fun applyAutoPluginRequestsTo(settingsInternal: SettingsInternal) {
             service<PluginRequestApplicator>().applyPlugins(
                 autoAppliedPluginRequestsFor(settingsInternal),
-                settingsInternal.buildscript as ScriptHandlerInternal?,
+                settingsInternal.buildscript as ScriptHandlerInternal,
                 settingsInternal.pluginManager,
                 settingsInternal.classLoaderScope
             )

@@ -22,7 +22,6 @@ import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
@@ -46,8 +45,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public abstract class AbstractFileCollection implements FileCollectionInternal {
     protected final Factory<PatternSet> patternSetFactory;
@@ -95,6 +96,49 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     @Override
+    public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
+        if (original == this) {
+            return supplier.get();
+        }
+        return this;
+    }
+
+    @Override
+    public Set<File> getFiles() {
+        // Use a JVM type here, rather than a Guava type, as some plugins serialize this return value and cannot deserialize the result
+        Set<File> files = new LinkedHashSet<>();
+        visitContents(new FileCollectionStructureVisitor() {
+            @Override
+            public void visitCollection(Source source, Iterable<File> contents) {
+                for (File content : contents) {
+                    files.add(content);
+                }
+            }
+
+            private void addTreeContents(FileTreeInternal fileTree) {
+                // TODO - add some convenient way to visit the files of the tree without collecting them into a set
+                files.addAll(fileTree.getFiles());
+            }
+
+            @Override
+            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                addTreeContents(fileTree);
+            }
+
+            @Override
+            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                addTreeContents(fileTree);
+            }
+
+            @Override
+            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                addTreeContents(fileTree);
+            }
+        });
+        return files;
+    }
+
+    @Override
     public File getSingleFile() throws IllegalStateException {
         Iterator<File> iterator = iterator();
         if (!iterator.hasNext()) {
@@ -124,7 +168,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileCollection plus(FileCollection collection) {
-        return new UnionFileCollection(this, collection);
+        return new UnionFileCollection(this, (FileCollectionInternal) collection);
     }
 
     @Override
@@ -243,8 +287,8 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     @Override
-    public FileTree getAsFileTree() {
-        return new FileCollectionBackFileTree(patternSetFactory, this);
+    public FileTreeInternal getAsFileTree() {
+        return new FileCollectionBackedFileTree(patternSetFactory, this);
     }
 
     @Override
@@ -253,7 +297,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     @Override
-    public FileCollection filter(final Spec<? super File> filterSpec) {
+    public FileCollectionInternal filter(final Spec<? super File> filterSpec) {
         return new FilteredFileCollection(this, filterSpec);
     }
 

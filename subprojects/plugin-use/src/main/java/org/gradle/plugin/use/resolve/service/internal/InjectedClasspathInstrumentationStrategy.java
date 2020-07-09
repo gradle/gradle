@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file.collections;
 
-/**
- * A file collection made up of other file collections. Generally, this is either a simple collection, or may be a factory for file collections.
- */
-public interface FileCollectionContainer {
-    /**
-     * Adds the contents of this container to the given context.
-     */
-    void visitContents(FileCollectionResolveContext context);
+package org.gradle.plugin.use.resolve.service.internal;
+
+import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+
+@ServiceScope(Scopes.BuildTree)
+public interface InjectedClasspathInstrumentationStrategy {
+    CachedClasspathTransformer.StandardTransform getTransform();
 }

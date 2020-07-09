@@ -475,6 +475,7 @@ class DefaultConfigurationSpec extends Specification {
                     _ * artifact.file >> it
                     visitor.visitArtifact(null, null, artifact)
                 }
+                visitor.endVisitCollection(null)
             }
         }
 

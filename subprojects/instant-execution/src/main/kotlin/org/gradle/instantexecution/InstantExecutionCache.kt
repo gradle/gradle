@@ -29,6 +29,7 @@ import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.file.FileAccessTimeJournal
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker
 import java.io.File
 
@@ -38,7 +39,8 @@ class InstantExecutionCache(
     private val cacheRepository: CacheRepository,
     private val cacheCleanupFactory: CleanupActionFactory,
     private val fileAccessTimeJournal: FileAccessTimeJournal,
-    private val startParameter: InstantExecutionStartParameter
+    private val startParameter: InstantExecutionStartParameter,
+    private val fileSystem: FileSystem
 ) : Stoppable {
 
     private
@@ -125,8 +127,16 @@ class InstantExecutionCache(
         withBaseCacheDirFor(cacheKey) { cacheDir ->
             // TODO GlobalCache require(!cacheDir.isDirectory)
             cacheDir.mkdirs()
+            fileSystem.chmod(cacheDir, 448) // octal 0700
             fileAccessTracker.markAccessed(cacheDir)
-            action(Layout(cacheDir.fingerprintFile, cacheDir.stateFile))
+            val layout = Layout(cacheDir.fingerprintFile, cacheDir.stateFile)
+            try {
+                action(layout)
+            } finally {
+                sequenceOf(layout.state, layout.fingerprint)
+                    .filter(File::isFile)
+                    .forEach { fileSystem.chmod(it, 384) } // octal 0600
+            }
         }
     }
 

@@ -207,11 +207,15 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
             if (alwaysEnabled || javaConvention == null || !javaConvention.getAutoTargetJvmDisabled()) {
                 JavaCompile javaCompile = compileTaskProvider.get();
                 int majorVersion;
-                int releaseOption = getReleaseOption(javaCompile.getOptions().getCompilerArgs());
-                if (releaseOption > 0) {
-                    majorVersion = releaseOption;
+                if (javaCompile.getOptions().getRelease().isPresent()) {
+                    majorVersion = javaCompile.getOptions().getRelease().get();
                 } else {
-                    majorVersion = Integer.parseInt(JavaVersion.toVersion(javaCompile.getTargetCompatibility()).getMajorVersion());
+                    int releaseFlag = getReleaseOption(javaCompile.getOptions().getCompilerArgs());
+                    if (releaseFlag != 0) {
+                        majorVersion = releaseFlag;
+                    } else {
+                        majorVersion = Integer.parseInt(JavaVersion.toVersion(javaCompile.getTargetCompatibility()).getMajorVersion());
+                    }
                 }
                 JavaEcosystemSupport.configureDefaultTargetPlatform(conf, majorVersion);
             }

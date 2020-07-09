@@ -24,7 +24,6 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.archive.TarFileTree;
 import org.gradle.api.internal.file.archive.ZipFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -152,19 +151,19 @@ public class DefaultFileOperations implements FileOperations {
     }
 
     @Override
-    public FileTree zipTree(Object zipPath) {
+    public FileTreeInternal zipTree(Object zipPath) {
         return new FileTreeAdapter(new ZipFileTree(file(zipPath), getExpandDir(), fileSystem, directoryFileTreeFactory, fileHasher), patternSetFactory);
     }
 
     @Override
-    public FileTree tarTree(Object tarPath) {
+    public FileTreeInternal tarTree(Object tarPath) {
         File tarFile = null;
         ReadableResourceInternal resource;
         if (tarPath instanceof ReadableResourceInternal) {
             resource = (ReadableResourceInternal) tarPath;
         } else if (tarPath instanceof ReadableResource) {
             // custom type
-            resource = new UnknownBackingFileReadableResource((ReadableResource)tarPath);
+            resource = new UnknownBackingFileReadableResource((ReadableResource) tarPath);
         } else {
             tarFile = file(tarPath);
             resource = new LocalResourceAdapter(new LocalFileStandInExternalResource(tarFile, fileSystem));

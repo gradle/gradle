@@ -186,7 +186,7 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         buildOperations.none(RealizeTaskBuildOperationType, not(withPath(':', ':foo')))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "registration and realization ops have correct paths"() {
         given:
         def createTasks = {

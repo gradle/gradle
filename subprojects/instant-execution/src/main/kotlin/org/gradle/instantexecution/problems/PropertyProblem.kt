@@ -28,8 +28,22 @@ data class PropertyProblem internal constructor(
     val trace: PropertyTrace,
     val message: StructuredMessage,
     val exception: Throwable? = null,
-    val documentationSection: String? = null
+    val documentationSection: DocumentationSection? = null
 )
+
+
+enum class DocumentationSection(val anchor: String) {
+    NotYetImplemented("config_cache:not_yet_implemented"),
+    NotYetImplementedCompositeBuilds("config_cache:not_yet_implemented:composite_builds"),
+    NotYetImplementedSourceDependencies("config_cache:not_yet_implemented:source_dependencies"),
+    NotYetImplementedJavaSerialization("config_cache:not_yet_implemented:java_serialization"),
+    NotYetImplementedTestKitJavaAgent("config_cache:not_yet_implemented:testkit_build_with_java_agent"),
+    RequirementsBuildListeners("config_cache:requirements:build_listeners"),
+    RequirementsDisallowedTypes("config_cache:requirements:disallowed_types"),
+    RequirementsTaskAccess("config_cache:requirements:task_access"),
+    RequirementsUndeclaredSysPropRead("config_cache:requirements:undeclared_sys_prop_read"),
+    RequirementsUseProjectDuringExecution("config_cache:requirements:use_project_during_execution")
+}
 
 
 data class StructuredMessage(val fragments: List<Fragment>) {

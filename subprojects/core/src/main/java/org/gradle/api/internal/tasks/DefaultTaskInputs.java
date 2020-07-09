@@ -24,7 +24,7 @@ import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor;
@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 @NonNullApi
 public class DefaultTaskInputs implements TaskInputsInternal {
@@ -226,13 +227,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
 
         @Override
-        public void visitContents(final FileCollectionResolveContext context) {
+        protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
             TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
                 @Override
                 public void visitInputFileProperty(final String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                     if (!TaskInputUnionFileCollection.this.skipWhenEmptyOnly || skipWhenEmpty) {
-                        FileCollection actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
-                        context.add(new PropertyFileCollection(task.toString(), propertyName, "input", actualValue));
+                        FileCollectionInternal actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
+                        visitor.accept(new PropertyFileCollection(task.toString(), propertyName, "input", actualValue));
                     }
                 }
             });

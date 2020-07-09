@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.testng;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.testing.TestClassLoaderFactory;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
@@ -27,12 +27,13 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
+import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
@@ -46,17 +47,22 @@ import java.util.concurrent.Callable;
 public class TestNGTestFramework implements TestFramework {
     private final TestNGOptions options;
     private final TestNGDetector detector;
-    private final Test testTask;
     private final DefaultTestFilter filter;
-    private final TestClassLoaderFactory classLoaderFactory;
+    private final ObjectFactory objects;
+    private final String testTaskPath;
+    private final FileCollection testTaskClasspath;
+    private final Factory<File> testTaskTemporaryDir;
+    private transient ClassLoader testClassLoader;
 
-    public TestNGTestFramework(final Test testTask, DefaultTestFilter filter, Instantiator instantiator, ClassLoaderCache classLoaderCache) {
-        this.testTask = testTask;
+    public TestNGTestFramework(final Test testTask, DefaultTestFilter filter, ObjectFactory objects) {
         this.filter = filter;
-        options = instantiator.newInstance(TestNGOptions.class, testTask.getProject().getProjectDir());
+        this.objects = objects;
+        this.testTaskPath = testTask.getPath();
+        this.testTaskClasspath = testTask.getClasspath();
+        this.testTaskTemporaryDir = testTask.getTemporaryDirFactory();
+        options = objects.newInstance(TestNGOptions.class, testTask.getProject().getProjectDir());
         conventionMapOutputDirectory(options, testTask.getReports().getHtml());
         detector = new TestNGDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
-        classLoaderFactory = new TestClassLoaderFactory(classLoaderCache, testTask);
     }
 
     private static void conventionMapOutputDirectory(TestNGOptions options, final DirectoryReport html) {
@@ -73,7 +79,7 @@ public class TestNGTestFramework implements TestFramework {
         verifyConfigFailurePolicy();
         verifyPreserveOrder();
         verifyGroupByInstances();
-        List<File> suiteFiles = options.getSuites(testTask.getTemporaryDir());
+        List<File> suiteFiles = options.getSuites(testTaskTemporaryDir.create());
         TestNGSpec spec = new TestNGSpec(options, filter);
         return new TestClassProcessorFactoryImpl(this.options.getOutputDirectory(), spec, suiteFiles);
     }
@@ -106,8 +112,16 @@ public class TestNGTestFramework implements TestFramework {
     }
 
     private Class<?> createTestNg() {
+        if (testClassLoader == null) {
+            TestClassLoaderFactory factory = objects.newInstance(
+                TestClassLoaderFactory.class,
+                testTaskPath,
+                testTaskClasspath
+            );
+            testClassLoader = factory.create();
+        }
         try {
-            return classLoaderFactory.create().loadClass("org.testng.TestNG");
+            return testClassLoader.loadClass("org.testng.TestNG");
         } catch (ClassNotFoundException e) {
             throw new GradleException("Could not load TestNG.", e);
         }

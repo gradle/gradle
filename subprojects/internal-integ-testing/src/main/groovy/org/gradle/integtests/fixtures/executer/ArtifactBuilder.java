@@ -18,11 +18,14 @@ package org.gradle.integtests.fixtures.executer;
 import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
+import java.util.Map;
 
 public interface ArtifactBuilder {
     TestFile sourceFile(String path);
 
     TestFile resourceFile(String path);
+
+    void manifestAttributes(Map<String, String> attributes);
 
     void buildJar(File jarFile);
 }

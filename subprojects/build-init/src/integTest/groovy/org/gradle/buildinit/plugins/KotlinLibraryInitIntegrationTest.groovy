@@ -38,7 +38,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id)
@@ -61,7 +61,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     def "creates sample source with package and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'kotlin-library', '--package', 'my.lib', '--dsl', scriptDsl.id)
@@ -84,7 +84,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     def "source generation is skipped when kotlin sources detected with #scriptDsl build scripts"() {
         setup:
         targetDir.file("src/main/kotlin/org/acme/SampleMain.kt") << """

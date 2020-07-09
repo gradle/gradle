@@ -18,7 +18,6 @@ package org.gradle.integtests.samples.java
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
@@ -140,7 +139,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("testing/testng-groups/groovy")
-    @ToBeFixedForInstantExecution
     def "can filter tests by TestNG group"() {
         given:
         executer.inDirectory(sample.dir)
@@ -218,7 +216,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("testing/testng-preserveorder/groovy")
-    @ToBeFixedForInstantExecution
     def "can use the preserveOrder option with TestNG tests"() {
         given:
         executer.inDirectory(sample.dir)
@@ -242,7 +239,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("testing/testng-groupbyinstances/groovy")
-    @ToBeFixedForInstantExecution
     def "can use the groupByInstances option with TestNG tests"() {
         given:
         executer.inDirectory(sample.dir)

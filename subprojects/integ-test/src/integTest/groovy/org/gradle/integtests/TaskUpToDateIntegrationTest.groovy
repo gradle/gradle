@@ -20,7 +20,6 @@ package org.gradle.integtests
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -67,7 +66,6 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3540")
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "hash set output files marks task up-to-date"() {
         buildFile << """
             class MyTask extends DefaultTask {

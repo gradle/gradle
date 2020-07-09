@@ -124,7 +124,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("- testCredentialsPassword")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":tasks")
     def "missing credentials declared as task inputs do not break tasks listing"() {
         when:
         buildFile << """

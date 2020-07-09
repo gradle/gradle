@@ -30,6 +30,8 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.util.BuildCommencedTimeProvider
 import org.gradle.util.GFileUtils
@@ -41,6 +43,7 @@ import java.io.OutputStream
 /**
  * Coordinates the writing and reading of the instant execution cache fingerprint.
  */
+@ServiceScope(Scopes.Build)
 internal
 class InstantExecutionCacheFingerprintController internal constructor(
     private val startParameter: InstantExecutionStartParameter,
@@ -148,6 +151,9 @@ class InstantExecutionCacheFingerprintController internal constructor(
     private
     inner class CacheFingerprintComponentHost :
         InstantExecutionCacheFingerprintWriter.Host, InstantExecutionCacheFingerprintChecker.Host {
+
+        override val gradleUserHomeDir: File
+            get() = startParameter.gradleUserHomeDir
 
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts

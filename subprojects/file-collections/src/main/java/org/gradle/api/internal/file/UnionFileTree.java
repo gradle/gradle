@@ -18,12 +18,12 @@ package org.gradle.api.internal.file;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.internal.Cast;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public class UnionFileTree extends CompositeFileTree {
     private final Set<FileTreeInternal> sourceTrees;
@@ -48,8 +48,10 @@ public class UnionFileTree extends CompositeFileTree {
     }
 
     @Override
-    public void visitContents(FileCollectionResolveContext context) {
-        context.addAll(sourceTrees);
+    protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
+        for (FileTreeInternal sourceTree : sourceTrees) {
+            visitor.accept(sourceTree);
+        }
     }
 
     public void addToUnion(FileCollection source) {

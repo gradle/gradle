@@ -19,10 +19,10 @@ package org.gradle.api.internal.file.collections;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.UnionFileCollection;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -35,12 +35,16 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.state.Managed;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link org.gradle.api.internal.file.FileResolver}.
@@ -55,6 +59,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     private final PathSet filesWrapper;
     private final String displayName;
     private final PathToFileResolver resolver;
+    private final TaskDependencyFactory dependencyFactory;
     private final PropertyHost host;
     private final DefaultTaskDependency buildDependency;
     private State state = State.Mutable;
@@ -66,6 +71,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         super(patternSetFactory);
         this.displayName = displayName;
         this.resolver = fileResolver;
+        this.dependencyFactory = dependencyFactory;
         this.host = host;
         filesWrapper = new PathSet();
         buildDependency = dependencyFactory.configurableDependency();
@@ -143,23 +149,37 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public void setFrom(Iterable<?> path) {
         if (assertMutable()) {
-            value = value.setFrom(this, resolver, path);
+            value = value.setFrom(this, resolver, patternSetFactory, dependencyFactory, host, path);
         }
     }
 
     @Override
     public void setFrom(Object... paths) {
         if (assertMutable()) {
-            value = value.setFrom(resolver, paths);
+            value = value.setFrom(resolver, patternSetFactory, paths);
         }
     }
 
     @Override
     public ConfigurableFileCollection from(Object... paths) {
         if (assertMutable()) {
-            value = value.plus(resolver, paths);
+            value = value.plus(resolver, patternSetFactory, paths);
         }
         return this;
+    }
+
+    @Override
+    public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
+        if (original == this) {
+            return supplier.get();
+        }
+        List<Object> newItems = value.replace(original, supplier);
+        if (newItems == null) {
+            return this;
+        }
+        DefaultConfigurableFileCollection newFiles = new DefaultConfigurableFileCollection(null, resolver, dependencyFactory, patternSetFactory, host);
+        newFiles.from(newItems);
+        return newFiles;
     }
 
     private boolean assertMutable() {
@@ -200,13 +220,33 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     private void calculateFinalizedValue() {
-        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(patternSetFactory);
-        value.visitContents(context);
-        value = new ResolvedItemsCollector(context.resolveAsFileCollections());
+        ImmutableList.Builder<FileCollectionInternal> builder = ImmutableList.builder();
+        value.visitContents(child -> child.visitStructure(new FileCollectionStructureVisitor() {
+            @Override
+            public void visitCollection(Source source, Iterable<File> contents) {
+                builder.add(new FileCollectionAdapter(new ListBackedFileSet(contents), patternSetFactory));
+            }
+
+            @Override
+            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                builder.add(fileTree);
+            }
+
+            @Override
+            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                builder.add(fileTree);
+            }
+
+            @Override
+            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                builder.add(fileTree);
+            }
+        }));
+        value = new ResolvedItemsCollector(builder.build());
     }
 
     @Override
-    public void visitContents(FileCollectionResolveContext context) {
+    protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
         if (disallowUnsafeRead && state != State.Final) {
             String reason = host.beforeRead(null);
             if (reason != null) {
@@ -221,7 +261,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             state = State.Final;
             disallowChanges = true;
         }
-        value.visitContents(context);
+        value.visitContents(visitor);
     }
 
     @Override
@@ -233,15 +273,18 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     private interface ValueCollector {
         void collectSource(Collection<Object> dest);
 
-        void visitContents(FileCollectionResolveContext context);
+        void visitContents(Consumer<FileCollectionInternal> visitor);
 
         boolean remove(Object source);
 
-        ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Iterable<?> path);
+        ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Iterable<?> path);
 
-        ValueCollector setFrom(PathToFileResolver resolver, Object[] paths);
+        ValueCollector setFrom(PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, Object[] paths);
 
-        ValueCollector plus(PathToFileResolver resolver, Object... paths);
+        ValueCollector plus(PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, Object... paths);
+
+        @Nullable
+        List<Object> replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier);
     }
 
     private static class EmptyCollector implements ValueCollector {
@@ -250,7 +293,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public void visitContents(FileCollectionResolveContext context) {
+        public void visitContents(Consumer<FileCollectionInternal> visitor) {
         }
 
         @Override
@@ -259,32 +302,41 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Iterable<?> path) {
-            return new UnresolvedItemsCollector(owner, resolver, path);
+        public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Iterable<?> path) {
+            return new UnresolvedItemsCollector(owner, resolver, patternSetFactory, taskDependencyFactory, propertyHost, path);
         }
 
         @Override
-        public ValueCollector setFrom(PathToFileResolver resolver, Object[] paths) {
-            return new UnresolvedItemsCollector(resolver, paths);
+        public ValueCollector setFrom(PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, Object[] paths) {
+            return new UnresolvedItemsCollector(resolver, patternSetFactory, paths);
         }
 
         @Override
-        public ValueCollector plus(PathToFileResolver resolver, Object... paths) {
-            return setFrom(resolver, paths);
+        public ValueCollector plus(PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, Object... paths) {
+            return setFrom(resolver, patternSetFactory, paths);
+        }
+
+        @Nullable
+        @Override
+        public List<Object> replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
+            return null;
         }
     }
 
     private static class UnresolvedItemsCollector implements ValueCollector {
         private final PathToFileResolver resolver;
+        private final Factory<PatternSet> patternSetFactory;
         private final Set<Object> items = new LinkedHashSet<>();
 
-        public UnresolvedItemsCollector(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Iterable<?> item) {
+        public UnresolvedItemsCollector(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Iterable<?> item) {
             this.resolver = resolver;
-            setFrom(owner, resolver, item);
+            this.patternSetFactory = patternSetFactory;
+            setFrom(owner, resolver, patternSetFactory, taskDependencyFactory, propertyHost, item);
         }
 
-        public UnresolvedItemsCollector(PathToFileResolver resolver, Object[] item) {
+        public UnresolvedItemsCollector(PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, Object[] item) {
             this.resolver = resolver;
+            this.patternSetFactory = patternSetFactory;
             Collections.addAll(items, item);
         }
 
@@ -294,8 +346,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public void visitContents(FileCollectionResolveContext context) {
-            UnpackingVisitor nested = new UnpackingVisitor(context, resolver);
+        public void visitContents(Consumer<FileCollectionInternal> visitor) {
+            UnpackingVisitor nested = new UnpackingVisitor(visitor, resolver, patternSetFactory);
             for (Object item : items) {
                 nested.add(item);
             }
@@ -307,37 +359,51 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Iterable<?> path) {
+        public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Iterable<?> path) {
             ImmutableSet<Object> oldItems = ImmutableSet.copyOf(items);
             items.clear();
-            if (path instanceof UnionFileCollection) {
-                // Unpack to deal with DSL syntax: collection += someFiles
-                Set<FileCollection> sources = ((UnionFileCollection) path).getSources();
-                for (FileCollection source : sources) {
-                    if (source != owner) {
-                        items.add(source);
-                    } else {
-                        // else collection.contents = a + collection + b -> replace collection with its old elements
-                        items.addAll(oldItems);
-                    }
-                }
-            } else {
-                items.add(path);
+            // Unpack to deal with DSL syntax: collection += someFiles
+            if (path instanceof FileCollectionInternal) {
+                path = ((FileCollectionInternal) path).replace(owner, () -> {
+                    DefaultConfigurableFileCollection oldFiles = new DefaultConfigurableFileCollection(null, resolver, taskDependencyFactory, patternSetFactory, propertyHost);
+                    oldFiles.from(oldItems);
+                    return oldFiles;
+                });
             }
+            items.add(path);
             return this;
         }
 
         @Override
-        public ValueCollector setFrom(PathToFileResolver resolver, Object[] paths) {
+        public ValueCollector setFrom(PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, Object[] paths) {
             items.clear();
             Collections.addAll(items, paths);
             return this;
         }
 
         @Override
-        public ValueCollector plus(PathToFileResolver resolver, Object... paths) {
+        public ValueCollector plus(PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, Object... paths) {
             Collections.addAll(items, paths);
             return this;
+        }
+
+        @Nullable
+        @Override
+        public List<Object> replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
+            for (Object item : items) {
+                if (item == original) {
+                    ImmutableList.Builder<Object> builder = ImmutableList.builderWithExpectedSize(items.size());
+                    for (Object candidate : items) {
+                        if (candidate instanceof FileCollectionInternal) {
+                            builder.add(((FileCollectionInternal) candidate).replace(original, supplier));
+                        } else {
+                            builder.add(candidate);
+                        }
+                    }
+                    return builder.build();
+                }
+            }
+            return null;
         }
     }
 
@@ -354,28 +420,36 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public void visitContents(FileCollectionResolveContext context) {
-            context.addAll(fileCollections);
+        public void visitContents(Consumer<FileCollectionInternal> visitor) {
+            for (FileCollectionInternal fileCollection : fileCollections) {
+                visitor.accept(fileCollection);
+            }
         }
 
         @Override
-        public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Iterable<?> path) {
+        public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Iterable<?> path) {
             throw new UnsupportedOperationException("Should not be called");
         }
 
         @Override
-        public ValueCollector setFrom(PathToFileResolver resolver, Object[] paths) {
+        public ValueCollector setFrom(PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, Object[] paths) {
             throw new UnsupportedOperationException("Should not be called");
         }
 
         @Override
-        public ValueCollector plus(PathToFileResolver resolver, Object... paths) {
+        public ValueCollector plus(PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, Object... paths) {
             throw new UnsupportedOperationException("Should not be called");
         }
 
         @Override
         public boolean remove(Object source) {
             throw new UnsupportedOperationException("Should not be called");
+        }
+
+        @Nullable
+        @Override
+        public List<Object> replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
+            return null;
         }
     }
 
@@ -422,7 +496,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         @Override
         public boolean add(Object o) {
             if (assertMutable() && !delegate().contains(o)) {
-                value = value.plus(resolver, o);
+                value = value.plus(resolver, patternSetFactory, o);
                 return true;
             } else {
                 return false;

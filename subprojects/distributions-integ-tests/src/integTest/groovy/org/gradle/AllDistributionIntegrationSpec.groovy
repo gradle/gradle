@@ -16,7 +16,6 @@
 
 package org.gradle
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Shared
 
@@ -29,7 +28,6 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
         "all"
     }
 
-    @ToBeFixedForInstantExecution
     def allZipContents() {
         given:
         TestFile contentsDir = unpackDistribution()

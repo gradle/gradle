@@ -19,17 +19,23 @@ package org.gradle.api.internal.file.collections
 import org.gradle.api.Task
 import org.gradle.api.file.DirectoryTree
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskOutputs
 import org.gradle.internal.file.PathToFileResolver
+import org.gradle.internal.Factory
+import org.gradle.api.Buildable
 import spock.lang.Specification
 
 import java.util.concurrent.Callable
+import java.util.function.Consumer
 
 class UnpackingVisitorTest extends Specification {
-    def context = Mock(FileCollectionResolveContext)
+    def context = Mock(Consumer)
     def resolver = Mock(PathToFileResolver)
-    def visitor = new UnpackingVisitor(context, resolver)
+    def patternSetFactory = Mock(Factory)
+    def visitor = new UnpackingVisitor(context, resolver, patternSetFactory)
 
     def "resolves null"() {
         when:
@@ -40,44 +46,57 @@ class UnpackingVisitorTest extends Specification {
     }
 
     def "resolves String"() {
+        def file = new File('some-file')
+
         when:
         visitor.add('path')
 
         then:
-        1 * context.add('path', resolver)
+        1 * resolver.resolve('path') >> file
+        1 * context.accept(_) >> { FileCollectionInternal collection ->
+            collection.files == [file] as Set
+        }
         0 * context._
     }
 
     def "resolves File"() {
-        def file = new File('path')
+        def file = new File('some-file')
+        def input = new File('path')
 
         when:
-        visitor.add(file)
+        visitor.add(input)
 
         then:
-        1 * context.add(file, resolver)
+        1 * resolver.resolve(input) >> file
+        1 * context.accept(_) >> { FileCollectionInternal collection ->
+            collection.files == [file] as Set
+        }
         0 * context._
     }
 
     def "resolves Path"() {
+        def file = new File('some-file')
         def path = new File('path').path
 
         when:
         visitor.add(path)
 
         then:
-        1 * context.add(path, resolver)
+        1 * resolver.resolve(path) >> file
+        1 * context.accept(_) >> { FileCollectionInternal collection ->
+            collection.files == [file] as Set
+        }
         0 * context._
     }
 
     def "recursively resolves return value of a Closure"() {
-        def fileCollection = Mock(FileCollection)
+        def fileCollection = Mock(FileCollectionInternal)
 
         when:
         visitor.add { fileCollection }
 
         then:
-        1 * context.add(fileCollection)
+        1 * context.accept(fileCollection)
         0 * context._
     }
 
@@ -90,7 +109,7 @@ class UnpackingVisitorTest extends Specification {
     }
 
     def "resolves tasks outputs to its output files"() {
-        def content = Mock(FileCollection)
+        def content = Mock(FileCollectionInternal)
         def outputs = Mock(TaskOutputs)
 
         when:
@@ -98,12 +117,12 @@ class UnpackingVisitorTest extends Specification {
 
         then:
         1 * outputs.files >> content
-        1 * context.add(content)
+        1 * context.accept(content)
         0 * context._
     }
 
     def "resolves task to its output files"() {
-        def content = Mock(FileCollection)
+        def content = Mock(FileCollectionInternal)
         def outputs = Mock(TaskOutputs)
         def task = Mock(Task)
 
@@ -113,12 +132,12 @@ class UnpackingVisitorTest extends Specification {
         then:
         1 * task.outputs >> outputs
         1 * outputs.files >> content
-        1 * context.add(content)
+        1 * context.accept(content)
         0 * context._
     }
 
     def "recursively resolves return value of a Callable"() {
-        def fileCollection = Mock(FileCollection)
+        def fileCollection = Mock(FileCollectionInternal)
         def callable = Mock(Callable)
 
         when:
@@ -126,7 +145,7 @@ class UnpackingVisitorTest extends Specification {
 
         then:
         1 * callable.call() >> fileCollection
-        1 * context.add(fileCollection)
+        1 * context.accept(fileCollection)
         0 * context._
     }
 
@@ -142,25 +161,43 @@ class UnpackingVisitorTest extends Specification {
     }
 
     def "resolves elements of Iterable"() {
-        def fileCollection = Mock(FileCollection)
-
+        def fileCollection = Mock(FileCollectionInternal)
 
         when:
         visitor.add([null, fileCollection])
 
         then:
-        1 * context.add(fileCollection)
+        1 * context.accept(fileCollection)
+        0 * context._
+    }
+
+    def "resolves elements of Buildable Iterable"() {
+        def element = Mock(BuildableIterable)
+        def task = Mock(Task)
+        def file = new File('some-file')
+
+        when:
+        visitor.add(element)
+
+        then:
+        _ * element.iterator() >> ['file'].iterator()
+        _ * element.buildDependencies >> Stub(TaskDependency)
+        1 * resolver.resolve('file') >> file
+        1 * context.accept(_) >> { FileCollectionInternal files ->
+            files.buildDependencies.getDependencies(null) == [task] as Set
+            files.files == [file] as Set
+        }
         0 * context._
     }
 
     def "resolves elements of array"() {
-        def fileCollection = Mock(FileCollection)
+        def fileCollection = Mock(FileCollectionInternal)
 
         when:
         visitor.add([null, fileCollection] as FileCollection[])
 
         then:
-        1 * context.add(fileCollection)
+        1 * context.accept(fileCollection)
         0 * context._
     }
 
@@ -171,46 +208,22 @@ class UnpackingVisitorTest extends Specification {
         visitor.add(provider)
 
         then:
-        1 * context.maybeAdd(provider) >> true
+        1 * context.accept({ it instanceof ProviderBackedFileCollection })
         0 * context._
     }
 
-    def "resolves value of Provider when Provider not handled by context"() {
-        def provider = Mock(ProviderInternal)
-
-        when:
-        visitor.add(provider)
-
-        then:
-        1 * context.maybeAdd(provider) >> false
-        1 * provider.get() >> "123"
-        1 * context.add("123", resolver)
-        0 * context._
-    }
-
-    def "fails when resolving Provider has no value"() {
-        def provider = Mock(ProviderInternal)
-        def failure = new IllegalStateException("No value")
-
-        when:
-        visitor.add(provider)
-
-        then:
-        def e = thrown(IllegalStateException)
-        e == failure
-        1 * context.maybeAdd(provider) >> false
-        1 * provider.get() >> { throw failure }
-        0 * context._
-    }
-
-    def "forwards DirectoryTree"() {
-        def tree = Mock(DirectoryTree)
+    def "wraps DirectoryTree"() {
+        def tree = Mock(TestDirectoryTree)
 
         when:
         visitor.add(tree)
 
         then:
-        1 * context.add(tree)
+        1 * context.accept({ it instanceof FileTreeAdapter })
         0 * _
     }
+
+    interface TestDirectoryTree extends DirectoryTree, MinimalFileTree {}
+
+    interface BuildableIterable extends Buildable, Iterable<String> {}
 }

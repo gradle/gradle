@@ -19,6 +19,7 @@ package org.gradle.instantexecution
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprintController
+import org.gradle.instantexecution.initialization.DefaultInjectedClasspathInstrumentationStrategy
 import org.gradle.instantexecution.initialization.DefaultInstantExecutionProblemsListener
 import org.gradle.instantexecution.initialization.InstantExecutionProblemsListener
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
@@ -44,6 +45,7 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(BuildTreeListenerManager::class.java)
             add(InstantExecutionStartParameter::class.java)
+            add(DefaultInjectedClasspathInstrumentationStrategy::class.java)
             add(InstantExecutionCacheKey::class.java)
             add(InstantExecutionReport::class.java)
             add(InstantExecutionProblems::class.java)

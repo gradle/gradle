@@ -243,7 +243,7 @@ This attribute expresses the _minimal version that a consumer must have in order
 When you apply the `java` or `java-library` plugins, Gradle will automatically associate this attribute to the outgoing variants.
 This means that all libraries published with Gradle automatically tell which target platform they use.
 
-By default, the `org.gradle.jvm.version` is set to the _target compatibility_ of the source set.
+By default, the `org.gradle.jvm.version` is set to the value of the <<building_java_projects#sec:java_cross_compilation,`release` property>> (or as fallback to the `targetCompatibility` value) of the main compilation task of the source set.
 
 While this attribute is automatically set, Gradle _will not_, by default, let you build a project for different JVMs.
 If you need to do this, then you will need to create additional variants following the <<#sec:variant-aware-sharing,instructions on variant-aware matching>>.

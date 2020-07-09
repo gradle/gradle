@@ -25,7 +25,7 @@ abstract class AbstractFunctionalTypeTest : AbstractUserTypeCodecTest() {
     protected
     fun <T : Any> assertDeferredEvaluationOf(deferred: T, force: T.() -> Any?) {
         Runtime.value = "before"
-        val value = roundtrip(deferred)
+        val value = configurationCacheRoundtripOf(deferred)
 
         Runtime.value = "after"
         assertThat(
@@ -37,7 +37,7 @@ abstract class AbstractFunctionalTypeTest : AbstractUserTypeCodecTest() {
     protected
     fun <T : Any> assertEagerEvaluationOf(eager: T, extract: T.() -> Any?) {
         Runtime.value = "before"
-        val value = roundtrip(eager)
+        val value = configurationCacheRoundtripOf(eager)
 
         Runtime.value = "after"
         assertThat(

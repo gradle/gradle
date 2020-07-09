@@ -119,7 +119,6 @@ project('b') {
         file('b/build/testproject-1.0.jar').assertIsCopyOf(module2.jarFile)
     }
 
-    @ToBeFixedForInstantExecution
     def 'dependency cache can be relocated'() {
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()

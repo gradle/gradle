@@ -45,11 +45,13 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":messaging"))
     implementation(project(":modelCore"))
+    implementation(project(":native"))
     implementation(project(":persistentCache"))
     implementation(project(":plugins"))
     implementation(project(":publish"))
     implementation(project(":resources"))
     implementation(project(":snapshots"))
+    implementation(project(":pluginUse"))
 
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     implementation(project(":workers"))

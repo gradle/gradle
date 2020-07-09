@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -55,6 +56,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -298,9 +300,21 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     private void configureCompileDefaults(final Project project, final JavaPluginConvention javaConvention) {
         project.getTasks().withType(AbstractCompile.class).configureEach(compile -> {
             ConventionMapping conventionMapping = compile.getConventionMapping();
-            conventionMapping.map("sourceCompatibility", () -> javaConvention.getSourceCompatibility().toString());
-            conventionMapping.map("targetCompatibility", () -> javaConvention.getTargetCompatibility().toString());
+            conventionMapping.map("sourceCompatibility", determineCompatibility(compile, javaConvention::getSourceCompatibility));
+            conventionMapping.map("targetCompatibility", determineCompatibility(compile, javaConvention::getTargetCompatibility));
         });
+    }
+
+    private Callable<Object> determineCompatibility(AbstractCompile compile, Supplier<JavaVersion> javaVersionSupplier) {
+        return () -> {
+            if (compile instanceof JavaCompile) {
+                JavaCompile javaCompile = (JavaCompile) compile;
+                if (javaCompile.getOptions().getRelease().isPresent()) {
+                    return JavaVersion.toVersion(javaCompile.getOptions().getRelease().get()).toString();
+                }
+            }
+            return javaVersionSupplier.get().toString();
+        };
     }
 
     private void configureJavaDoc(final Project project, final JavaPluginConvention convention) {

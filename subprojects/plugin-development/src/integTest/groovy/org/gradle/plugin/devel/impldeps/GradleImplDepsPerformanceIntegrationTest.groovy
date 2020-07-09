@@ -44,7 +44,7 @@ class GradleImplDepsPerformanceIntegrationTest extends BaseGradleImplDepsIntegra
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "TestKit JAR is generated in an acceptable time frame"() {
         buildFile << """
             configurations {

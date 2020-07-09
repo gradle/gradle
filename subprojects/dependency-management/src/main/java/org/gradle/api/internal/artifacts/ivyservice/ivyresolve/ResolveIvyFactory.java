@@ -35,7 +35,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCo
 import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
 import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.ArtifactType;
@@ -45,7 +44,6 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -69,7 +67,6 @@ public class ResolveIvyFactory {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final RepositoryDisabler repositoryBlacklister;
     private final VersionParser versionParser;
-    private final InstantiatorFactory instantiatorFactory;
 
     private final DependencyVerificationOverride dependencyVerificationOverride;
     private final ChangingValueDependencyResolutionListener listener;
@@ -82,7 +79,6 @@ public class ResolveIvyFactory {
                              ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                              RepositoryDisabler repositoryBlacklister,
                              VersionParser versionParser,
-                             InstantiatorFactory instantiatorFactory,
                              ChangingValueDependencyResolutionListener listener) {
         this.cacheProvider = cacheProvider;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
@@ -91,7 +87,6 @@ public class ResolveIvyFactory {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.repositoryBlacklister = repositoryBlacklister;
         this.versionParser = versionParser;
-        this.instantiatorFactory = instantiatorFactory;
         this.dependencyVerificationOverride = dependencyVerificationOverride;
         this.listener = listener;
     }
@@ -117,18 +112,14 @@ public class ResolveIvyFactory {
         for (ResolutionAwareRepository repository : repositories) {
             ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
 
-            Instantiator instantiator = instantiatorFactory.inject();
-            if (baseRepository instanceof ExternalResourceResolver) {
-                ExternalResourceResolver<?> resourceResolver = (ExternalResourceResolver<?>) baseRepository;
-                resourceResolver.setComponentResolvers(parentModuleResolver);
-                instantiator = resourceResolver.getComponentMetadataInstantiator();
-            }
+            baseRepository.setComponentResolvers(parentModuleResolver);
+            Instantiator instantiator = baseRepository.getComponentMetadataInstantiator();
             MetadataResolutionContext metadataResolutionContext = new DefaultMetadataResolutionContext(cachePolicy, instantiator);
             ComponentMetadataProcessor componentMetadataProcessor = metadataProcessor.createComponentMetadataProcessor(metadataResolutionContext);
 
             ModuleComponentRepository moduleComponentRepository = baseRepository;
             if (baseRepository.isLocal()) {
-                moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, cacheProvider.getInMemoryOnlyCaches(), cachePolicy, timeProvider, componentMetadataProcessor, listener);
+                moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, cacheProvider.getInMemoryOnlyCaches(), cachePolicy, timeProvider, componentMetadataProcessor, ChangingValueDependencyResolutionListener.NO_OP);
                 moduleComponentRepository = new LocalModuleComponentRepository(moduleComponentRepository);
             } else {
                 moduleComponentRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleComponentRepository);

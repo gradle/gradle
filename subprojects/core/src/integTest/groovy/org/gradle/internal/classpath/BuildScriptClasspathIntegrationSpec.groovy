@@ -18,7 +18,6 @@ package org.gradle.internal.classpath
 
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.test.fixtures.file.TestFile
@@ -44,7 +43,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     }
 
     @Unroll("jars on buildscript classpath can change (loopNumber: #loopNumber)")
-    @ToBeFixedForInstantExecution
     def "jars on buildscript classpath can change"() {
         given:
         buildFile << '''
@@ -164,7 +162,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         succeeds("checkUrlConnectionCaching")
     }
 
-    @ToBeFixedForInstantExecution
     def "jars with resources on buildscript classpath can change"() {
         given:
         buildFile << '''

@@ -267,20 +267,20 @@ class DefaultFileCollectionFactoryTest extends Specification {
     }
 
     def 'lazily queries contents of a resolving collection'() {
-        FileCollectionInternal fileCollection = Mock()
+        Callable<File> callable = Mock()
 
         when:
-        def collection = factory.resolving('test files', fileCollection)
+        def collection = factory.resolving('test files', callable)
 
         then:
-        0 * fileCollection._
+        0 * callable._
         collection.toString() == 'test files'
 
         when:
         def files = collection.files
 
         then:
-        1 * fileCollection.files >> { [tmpDir.file('abc')] as Set }
+        1 * callable.call() >> { [tmpDir.file('abc')] as Set }
         files == [tmpDir.file('abc')] as Set
     }
 

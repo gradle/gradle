@@ -26,6 +26,11 @@ import java.io.File
 internal
 sealed class InstantExecutionCacheFingerprint {
 
+    data class GradleEnvironment(
+        val gradleUserHomeDir: File,
+        val jvm: String
+    ) : InstantExecutionCacheFingerprint()
+
     data class InitScripts(
         val fingerprints: List<InputFile>
     ) : InstantExecutionCacheFingerprint()

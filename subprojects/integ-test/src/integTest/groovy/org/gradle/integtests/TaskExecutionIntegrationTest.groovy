@@ -145,7 +145,6 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "script under test captures the script class")
     def executesTaskActionsInCorrectEnvironment() {
         buildFile << """
     // An action attached to built-in task
@@ -161,11 +160,20 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     // An action implementation
     task c
-    c.doLast new Action<Task>() {
+    class DoLast implements Action<Task> {
         void execute(Task t) {
             assert Thread.currentThread().contextClassLoader == getClass().classLoader
         }
     }
+    c.doLast new DoLast()
+
+//  The following is NOT compatible with the configuration cache because anonymous inner classes
+//  in a groovy script always capture the script object reference:
+//    c.doLast new Action<Task>() {
+//        void execute(Task t) {
+//            assert Thread.currentThread().contextClassLoader == getClass().classLoader
+//        }
+//    }
 """
         expect:
         2.times {

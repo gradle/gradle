@@ -52,7 +52,7 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeInt
 
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "testkit jar generated eagerly")
     def "gradle testkit jar is generated only when requested"() {
         setup:
         testCode()

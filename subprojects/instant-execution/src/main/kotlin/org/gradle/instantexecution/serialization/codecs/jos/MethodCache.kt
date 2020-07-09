@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution.serialization.codecs
+package org.gradle.instantexecution.serialization.codecs.jos
 
 import org.gradle.internal.reflect.ClassInspector
 
@@ -42,12 +42,19 @@ class MethodCache(
 
 internal
 fun Class<*>.firstAccessibleMatchingMethodOrNull(predicate: Method.() -> Boolean): Method? =
-    firstMatchingMethodOrNull(predicate)
-        ?.apply { isAccessible = true }
+    allMethods().firstAccessibleMatchingMethodOrNull(predicate)
+
+
+internal
+fun Iterable<Method>.firstAccessibleMatchingMethodOrNull(predicate: Method.() -> Boolean): Method? =
+    find(predicate)?.apply { isAccessible = true }
 
 
 internal
 fun Class<*>.firstMatchingMethodOrNull(predicate: Method.() -> Boolean): Method? =
-    ClassInspector.inspect(this)
-        .allMethods
-        .find(predicate)
+    allMethods().find(predicate)
+
+
+internal
+fun Class<*>.allMethods() =
+    ClassInspector.inspect(this).allMethods

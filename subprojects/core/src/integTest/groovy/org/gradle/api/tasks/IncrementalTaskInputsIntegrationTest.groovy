@@ -79,7 +79,7 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
 
     @Unroll
     @Issue("https://github.com/gradle/gradle/issues/4166")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "task wrongly up-to-date")
     def "file in input dir appears in task inputs for #inputAnnotation"() {
         buildFile << """
             class MyTask extends DefaultTask {

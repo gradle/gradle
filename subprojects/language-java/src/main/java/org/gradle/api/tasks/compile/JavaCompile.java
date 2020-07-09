@@ -311,9 +311,12 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
             compileOptions.setSourcepath(getProjectLayout().files(sourcesRoots));
         }
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
-        spec.setTargetCompatibility(getTargetCompatibility());
-        spec.setSourceCompatibility(getSourceCompatibility());
-
+        if (compileOptions.getRelease().isPresent()) {
+            spec.setRelease(compileOptions.getRelease().get());
+        } else {
+            spec.setTargetCompatibility(getTargetCompatibility());
+            spec.setSourceCompatibility(getSourceCompatibility());
+        }
         spec.setCompileOptions(compileOptions);
         spec.setSourcesRoots(sourcesRoots);
         if (((JavaToolChainInternal) getToolChain()).getJavaVersion().compareTo(JavaVersion.VERSION_1_8) < 0) {

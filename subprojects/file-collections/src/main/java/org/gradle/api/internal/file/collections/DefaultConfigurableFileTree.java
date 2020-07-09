@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.CompositeFileTree;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -30,6 +31,7 @@ import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public class DefaultConfigurableFileTree extends CompositeFileTree implements ConfigurableFileTree {
     private Object dir;
@@ -146,9 +148,9 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     }
 
     @Override
-    public void visitContents(FileCollectionResolveContext context) {
+    protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
         File dir = getDir();
-        context.add(directoryFileTreeFactory.create(dir, patternSet));
+        visitor.accept(new FileTreeAdapter(directoryFileTreeFactory.create(dir, patternSet), patternSetFactory));
     }
 
     @Override

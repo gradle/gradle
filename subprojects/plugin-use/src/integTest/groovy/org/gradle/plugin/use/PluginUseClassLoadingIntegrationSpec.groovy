@@ -16,14 +16,12 @@
 
 package org.gradle.plugin.use
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
 @LeaksFileHandles
 class PluginUseClassLoadingIntegrationSpec extends AbstractPluginSpec {
 
-    @ToBeFixedForInstantExecution
     def "plugin classes are reused if possible"() {
         given:
         publishPlugin()
@@ -39,8 +37,10 @@ class PluginUseClassLoadingIntegrationSpec extends AbstractPluginSpec {
         buildScript """
             evaluationDependsOnChildren()
             task verify {
+                def p1PluginClass = project(":p1").pluginClass
+                def p2PluginClass = project(":p2").pluginClass
                 doLast {
-                    project(":p1").pluginClass.is(project(":p2").pluginClass)
+                    p1PluginClass.is(p2PluginClass)
                 }
             }
         """

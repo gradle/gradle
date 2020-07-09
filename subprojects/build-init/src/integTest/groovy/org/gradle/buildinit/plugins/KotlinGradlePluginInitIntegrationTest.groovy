@@ -36,7 +36,7 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
