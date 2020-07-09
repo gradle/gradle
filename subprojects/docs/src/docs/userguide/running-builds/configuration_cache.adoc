@@ -598,7 +598,7 @@ The hierarchical view of the object graph provided in the HTML reports for probl
 A task must not use any `Project` objects at execution time.
 This includes calling `Task.getProject()` while the task is running.
 
-Some cases can be fixed in the same way as the previous requirement.
+Some cases can be fixed in the same way as for <<configuration_cache#config_cache:requirements:disallowed_types, disallowed types>>.
 
 Often, similar things are available on both `Project` and `Task`.
 For example if you need a `Logger` in your task actions you should use `Task.logger` instead of `Project.logger`.
