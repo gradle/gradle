@@ -61,7 +61,7 @@ Build configuration inputs include:
 
 - Init scripts, settings scripts, build scripts.
 - System properties, Gradle properties and configuration files used during the configuration phase, accessed using value suppliers such as providers for properties, environment variables etc...
-- Build configuration inputs and source files for `buildSrc` projects.
+- `buildSrc` build configuration inputs and source files.
 
 [[config_cache:intro:performance_improvements]]
 === Performance improvements
@@ -81,7 +81,7 @@ Running `help` with the configuration cache enabled is a good first step:
 ❯ gradle --configuration-cache help
 include::{snippetsPath}/configurationCache/noProblem/tests/store.out[]
 ...
-BUILD SUCCESSFUL in 200ms
+BUILD SUCCESSFUL in 4s
 1 actionable task: 1 executed
 Configuration cache entry stored.
 ----
@@ -95,7 +95,7 @@ This will reuse the cached configuration:
 ❯ gradle --configuration-cache help
 include::{snippetsPath}/configurationCache/noProblem/tests/load.out[]
 ...
-BUILD SUCCESSFUL in 50ms
+BUILD SUCCESSFUL in 500ms
 1 actionable task: 1 executed
 Configuration cache entry reused.
 ----
@@ -254,9 +254,9 @@ h| Packaging and distribution
 
 a|
 [horizontal]
-link:{gradle-issues}13457[[.yellow]#⚠#]:: <<java_plugin.adoc#java_plugin,Java>>
-link:{gradle-issues}13458[[.yellow]#⚠#]:: <<java_library_plugin.adoc#java_library_plugin,Java Library>>
-link:{gradle-issues}13459[[.yellow]#⚠#]:: <<java_platform_plugin.adoc#java_platform_plugin,Java Platform>>
+link:{gradle-issues}13455[[.green]#✓#]:: <<java_plugin.adoc#java_plugin,Java>>
+link:{gradle-issues}13455[[.green]#✓#]:: <<java_library_plugin.adoc#java_library_plugin,Java Library>>
+link:{gradle-issues}13455[[.green]#✓#]:: <<java_platform_plugin.adoc#java_platform_plugin,Java Platform>>
 link:{gradle-issues}13460[[.yellow]#⚠#]:: <<groovy_plugin.adoc#groovy_plugin,Groovy>>
 link:{gradle-issues}13461[[.red]#✖#]:: <<scala_plugin.adoc#scala_plugin,Scala>>
 link:{gradle-issues}13462[[.yellow]#⚠#]:: <<antlr_plugin.adoc#antlr_plugin,ANTLR>>
@@ -272,14 +272,14 @@ link:{gradle-issues}13488[[.red]#✖#]:: <<xctest_plugin.adoc#xctest_plugin,XCTe
 
 a|
 [horizontal]
-link:{gradle-issues}13466[[.yellow]#⚠#]:: <<application_plugin.adoc#application_plugin,Application>>
-link:{gradle-issues}13466[[.yellow]#⚠#]:: <<war_plugin.adoc#war_plugin,WAR>>
-link:{gradle-issues}13466[[.yellow]#⚠#]:: <<ear_plugin.adoc#ear_plugin,EAR>>
+link:{gradle-issues}13455[[.green]#✓#]:: <<application_plugin.adoc#application_plugin,Application>>
+link:{gradle-issues}13455[[.green]#✓#]:: <<war_plugin.adoc#war_plugin,WAR>>
+link:{gradle-issues}13455[[.green]#✓#]:: <<ear_plugin.adoc#ear_plugin,EAR>>
 link:{gradle-issues}13468[[.yellow]#⚠#]:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
 link:{gradle-issues}13469[[.red]#✖#]:: <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
-[.gray]#✖#:: <<maven_plugin.adoc#maven_plugin,Legacy Maven Plugin>>
-link:{gradle-issues}13466[[.yellow]#⚠#]:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
-link:{gradle-issues}13465[[.yellow]#⚠#]:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
+[.gray]#🚫#:: <<maven_plugin.adoc#maven_plugin,Legacy Maven Plugin>>
+link:{gradle-issues}13455[[.green]#✓#]:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
+link:{gradle-issues}13455[[.green]#✓#]:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
 
 h| Code analysis
 h| IDE integration
@@ -304,7 +304,8 @@ a|
 link:{gradle-issues}13455[[.green]#✓#]:: <<base_plugin.adoc#base_plugin,Base>>
 link:{gradle-issues}13466[[.yellow]#⚠#]:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
 link:{gradle-issues}13470[[.red]#✖#]:: <<signing_plugin.adoc#signing_plugin,Signing>>
-link:{gradle-issues}13471[[.yellow]#⚠#]:: <<java_gradle_plugin.adoc#java_gradle_plugin,Plugin Development>>
+link:{gradle-issues}13455[[.green]#✓#]:: <<java_gradle_plugin.adoc#java_gradle_plugin,Java Plugin Development>>
+link:{gradle-issues}13472[[.red]#✖#]:: <<custom_plugins.adoc#sec:precompiled_plugins,Groovy DSL Plugin Development>>
 link:{gradle-issues}13472[[.red]#✖#]:: <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL Plugin Development>>
 link:{gradle-issues}13473[[.red]#✖#]:: <<project_report_plugin.adoc#project_report_plugin,Project Report Plugin>>
 
@@ -314,7 +315,7 @@ link:{gradle-issues}13473[[.red]#✖#]:: <<project_report_plugin.adoc#project_re
 [.green]#✓#:: Supported plugin
 [.yellow]#⚠#:: Partially supported plugin
 [.red]#✖#:: Unsupported plugin
-[.gray]#✖#:: Won't fix
+[.gray]#🚫#:: Won't fix
 
 [[config_cache:plugins:community]]
 === Community plugins
@@ -598,7 +599,7 @@ The hierarchical view of the object graph provided in the HTML reports for probl
 A task must not use any `Project` objects at execution time.
 This includes calling `Task.getProject()` while the task is running.
 
-Some cases can be fixed in the same way as the previous requirement.
+Some cases can be fixed in the same way as for <<configuration_cache#config_cache:requirements:disallowed_types, disallowed types>>.
 
 Often, similar things are available on both `Project` and `Task`.
 For example if you need a `Logger` in your task actions you should use `Task.logger` instead of `Project.logger`.

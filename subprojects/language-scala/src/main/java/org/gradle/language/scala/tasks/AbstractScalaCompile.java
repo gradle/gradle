@@ -138,9 +138,11 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         IncrementalCompileOptions incrementalOptions = scalaCompileOptions.getIncrementalOptions();
 
         File analysisFile = incrementalOptions.getAnalysisFile().getAsFile().get();
+        File classpathBackupDir = incrementalOptions.getClassfileBackupDir().getAsFile().get();
         Map<File, File> globalAnalysisMap = resolveAnalysisMappingsForOtherProjects();
         spec.setAnalysisMap(globalAnalysisMap);
         spec.setAnalysisFile(analysisFile);
+        spec.setClassfileBackupDir(classpathBackupDir);
 
         // If this Scala compile is published into a jar, generate a analysis mapping file
         if (incrementalOptions.getPublishedCode().isPresent()) {
@@ -148,6 +150,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("scala-incremental Analysis file: {}", analysisFile);
+                LOGGER.debug("scala-incremental Classfile backup dir: {}", classpathBackupDir);
                 LOGGER.debug("scala-incremental Published code: {}", publishedCode);
             }
             File analysisMapping = getAnalysisMappingFile().getAsFile().get();

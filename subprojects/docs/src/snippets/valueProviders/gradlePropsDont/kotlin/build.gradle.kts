@@ -1,1 +1,1 @@
-val enabled = project.property("some-property")
+val enabled = project.findProperty("some-property") != null
