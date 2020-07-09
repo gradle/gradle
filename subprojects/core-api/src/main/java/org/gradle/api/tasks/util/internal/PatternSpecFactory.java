@@ -27,7 +27,6 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -46,7 +45,6 @@ public class PatternSpecFactory {
     public static final PatternSpecFactory INSTANCE = new PatternSpecFactory();
     private final List<String> previousDefaultExcludes = Lists.newArrayList();
     private final Map<CaseSensitivity, Spec<FileTreeElement>> defaultExcludeSpecCache = new EnumMap<>(CaseSensitivity.class);
-    private List<String> excludesFromSettings;
 
     public Spec<FileTreeElement> createSpec(PatternSet patternSet) {
         return Specs.intersect(createIncludeSpec(patternSet), Specs.negate(createExcludeSpec(patternSet)));
@@ -82,18 +80,16 @@ public class PatternSpecFactory {
     }
 
     private synchronized Spec<FileTreeElement> getDefaultExcludeSpec(CaseSensitivity caseSensitivity) {
-        Spec<FileTreeElement> specs = defaultExcludeSpecCache.get(caseSensitivity);
         List<String> defaultExcludes = Arrays.asList(DirectoryScanner.getDefaultExcludes());
-
-        if (excludesFromSettings != null && !excludesFromSettings.equals(defaultExcludes)) {
-            reportChangedDefaultExcludes(excludesFromSettings, defaultExcludes);
-        }
-        if (specs == null || !previousDefaultExcludes.equals(defaultExcludes)) {
+        if (defaultExcludeSpecCache.isEmpty()) {
             updateDefaultExcludeSpecCache(defaultExcludes);
-            return defaultExcludeSpecCache.get(caseSensitivity);
+        }
+        if (!previousDefaultExcludes.equals(defaultExcludes)) {
+            reportChangedDefaultExcludes(previousDefaultExcludes, defaultExcludes);
+            updateDefaultExcludeSpecCache(defaultExcludes);
         }
 
-        return specs;
+        return defaultExcludeSpecCache.get(caseSensitivity);
     }
 
     private void reportChangedDefaultExcludes(List<String> excludesFromSettings, List<String> newDefaultExcludes) {
@@ -110,8 +106,10 @@ public class PatternSpecFactory {
             .nagUser();
     }
 
-    public synchronized void setDefaultExcludesFromSettings(@Nullable List<String> excludesFromSettings) {
-        this.excludesFromSettings = excludesFromSettings;
+    public synchronized void setDefaultExcludesFromSettings(List<String> excludesFromSettings) {
+        if (!previousDefaultExcludes.equals(excludesFromSettings)) {
+            updateDefaultExcludeSpecCache(excludesFromSettings);
+        }
     }
 
     private void updateDefaultExcludeSpecCache(List<String> defaultExcludes) {

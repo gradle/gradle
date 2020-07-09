@@ -201,7 +201,9 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 @Override
                 public void settingsEvaluated(Settings settings) {
                     super.settingsEvaluated(settings);
-                    patternSpecFactory.setDefaultExcludesFromSettings(Arrays.asList(DirectoryScanner.getDefaultExcludes()));
+                    List<String> defaultExcludes = Arrays.asList(DirectoryScanner.getDefaultExcludes());
+                    patternSpecFactory.setDefaultExcludesFromSettings(defaultExcludes);
+                    PatternSpecFactory.INSTANCE.setDefaultExcludesFromSettings(defaultExcludes);
                 }
             });
             listenerManager.addListener(new RootBuildLifecycleListener() {
@@ -209,7 +211,9 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 public void afterStart(GradleInternal gradle) {
                     // Reset default excludes for each build
                     DirectoryScanner.resetDefaultExcludes();
-                    patternSpecFactory.setDefaultExcludesFromSettings(null);
+                    List<String> defaultExcludes = Arrays.asList(DirectoryScanner.getDefaultExcludes());
+                    patternSpecFactory.setDefaultExcludesFromSettings(defaultExcludes);
+                    PatternSpecFactory.INSTANCE.setDefaultExcludesFromSettings(defaultExcludes);
                 }
 
                 @Override
