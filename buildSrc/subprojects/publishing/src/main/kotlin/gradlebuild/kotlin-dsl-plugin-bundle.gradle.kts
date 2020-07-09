@@ -110,18 +110,10 @@ afterEvaluate {
     }
 
     // For local consumption by tests - this should be unified with publish-public-libraries if possible
-    configurations.create("localLibsRepositoryElements") {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("gradle-local-repository"))
-            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EMBEDDED))
+    jvm.createOutgoingElements("localLibsRepositoryElements") {
+        providesAttributes {
+            library("gradle-local-repository")
         }
-        isCanBeResolved = false
-        isCanBeConsumed = true
-        isVisible = false
-        outgoing.artifact(localRepository) {
-            builtBy(publishPluginsToTestRepository)
-        }
+        artifact(publishPluginsToTestRepository.map { localRepository.get() })
     }
 }

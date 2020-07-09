@@ -52,6 +52,7 @@ import java.util.jar.Attributes
  */
 plugins {
     id("gradlebuild.module-identity")
+    `java-base`
 }
 
 // Name of the Jar a Gradle distributions project produces as part of the distribution.
@@ -67,27 +68,59 @@ normalization {
 }
 
 // Configurations to define dependencies
-val coreRuntimeOnly by bucket()
-coreRuntimeOnly.description = "To define dependencies to the Gradle modules that make up the core of the distributions (lib/*.jar)"
-val pluginsRuntimeOnly by bucket()
-pluginsRuntimeOnly.description = "To define dependencies to the Gradle modules that represent additional plugins packaged in the distributions (lib/plugins/*.jar)"
+val coreRuntimeOnly = jvm.utilities.registerDependencyBucket("coreRuntimeOnly", "To define dependencies to the Gradle modules that make up the core of the distributions (lib/*.jar)")
+val pluginsRuntimeOnly = jvm.utilities.registerDependencyBucket("pluginsRuntimeOnly", "To define dependencies to the Gradle modules that represent additional plugins packaged in the distributions (lib/plugins/*.jar)")
 
-coreRuntimeOnly.withDependencies {
+coreRuntimeOnly.get().withDependencies {
     // use 'withDependencies' to not attempt to find platform project during script compilation
     add(project.dependencies.create(dependencies.platform(project(":distributionsDependencies"))))
 }
 
 // Configurations to resolve dependencies
-val runtimeClasspath by libraryResolver(listOf(coreRuntimeOnly, pluginsRuntimeOnly))
-runtimeClasspath.description = "Resolves to all Jars that need to be in the distribution including all transitive dependencies"
-val coreRuntimeClasspath by libraryResolver(listOf(coreRuntimeOnly))
-coreRuntimeClasspath.description = "Resolves to all Jars, including transitives, that make up the core of the distribution (needed to decide if a Jar goes into 'plugins' or not)"
-val gradleScriptPath by startScriptResolver(":launcher")
-gradleScriptPath.description = "Resolves to the Gradle start scripts (bin/*) - automatically adds dependency to the :launcher project"
-val sourcesPath by sourcesResolver(listOf(coreRuntimeOnly, pluginsRuntimeOnly))
-sourcesPath.description = "Resolves the source code of all Gradle modules Jars (required for the All distribution)"
-val docsPath by docsResolver(":docs")
-docsPath.description = "Resolves to the complete Gradle documentation - automatically adds dependency to the :docs project"
+val runtimeClasspath = jvm.createResolvableConfiguration("runtimeClasspath") {
+    withDescription("Resolves to all Jars that need to be in the distribution including all transitive dependencies")
+    extendsFrom(coreRuntimeOnly)
+    extendsFrom(pluginsRuntimeOnly)
+    requiresAttributes {
+        library().asJar()
+    }
+}
+val coreRuntimeClasspath = jvm.createResolvableConfiguration("coreRuntimeClasspath") {
+    withDescription("Resolves to all Jars, including transitives, that make up the core of the distribution (needed to decide if a Jar goes into 'plugins' or not)")
+    extendsFrom(coreRuntimeOnly)
+    requiresAttributes {
+        library().asJar()
+    }
+}
+
+val gradleScriptPath = jvm.createResolvableConfiguration("gradleScriptPath") {
+    withDescription("Resolves to the Gradle start scripts (bin/*) - automatically adds dependency to the :launcher project")
+    requiresAttributes {
+        library("start-scripts")
+    }
+}
+gradleScriptPath.withDependencies {
+    add(project.dependencies.create(project(":launcher")))
+}
+
+val sourcesPath = jvm.createResolvableConfiguration("sourcesPath") {
+    withDescription("Resolves the source code of all Gradle modules Jars (required for the All distribution)")
+    extendsFrom(coreRuntimeOnly)
+    extendsFrom(pluginsRuntimeOnly)
+    requiresAttributes {
+        documentation("gradle-source-folders")
+    }
+}
+
+val docsPath = jvm.createResolvableConfiguration("docsPath") {
+    withDescription("Resolves to the complete Gradle documentation - automatically adds dependency to the :docs project")
+    requiresAttributes {
+        documentation("gradle-documentation")
+    }
+}
+docsPath.withDependencies {
+    add(project.dependencies.create(project(":docs")))
+}
 
 // Tasks to generate metadata about the distribution that is required at runtime
 
@@ -147,11 +180,30 @@ val runtimeApiInfoJar by tasks.registering(Jar::class) {
 }
 
 // A standard Java runtime variant for embedded integration testing
-consumableVariant("runtime", LibraryElements.JAR, Bundling.EXTERNAL, listOf(coreRuntimeOnly, pluginsRuntimeOnly), runtimeApiInfoJar)
+jvm.createOutgoingElements("runtime") {
+    extendsFrom(coreRuntimeOnly)
+    extendsFrom(pluginsRuntimeOnly)
+    providesAttributes {
+        library().asJar()
+    }
+    artifact(runtimeApiInfoJar)
+}
 // To make all source code of a distribution accessible transitively
-consumableSourcesVariant("transitiveSources", listOf(coreRuntimeOnly, pluginsRuntimeOnly))
+jvm.createOutgoingElements("transitiveSourcesElements") {
+    extendsFrom(coreRuntimeOnly)
+    extendsFrom(pluginsRuntimeOnly)
+    providesAttributes {
+        documentation("gradle-source-folders")
+    }
+}
 // A platform variant without 'runtime-api-info' artifact such that distributions can depend on each other
-consumablePlatformVariant("runtimePlatform", listOf(coreRuntimeOnly, pluginsRuntimeOnly))
+jvm.createOutgoingElements("runtimePlatform") {
+    extendsFrom(coreRuntimeOnly)
+    extendsFrom(pluginsRuntimeOnly)
+    providesAttributes {
+        platform()
+    }
+}
 
 // A lifecycle task to build all the distribution zips for publishing
 val buildDists by tasks.registering
@@ -204,9 +256,19 @@ fun configureDistribution(name: String, distributionSpec: CopySpec, buildDistLif
     }
 
     // A 'installation' variant providing a folder where the distribution is present in the final format for forked integration testing
-    consumableVariant("${name}Installation", "gradle-$name-installation", Bundling.EMBEDDED, emptyList(), installation)
+    jvm.createOutgoingElements("${name}Installation") {
+        providesAttributes {
+            library("gradle-$name-installation")
+        }
+        artifact(installation)
+    }
     // A variant providing the zipped distribution as additional input for tests that test the final distribution or require a distribution as test data
-    consumableVariant("${name}DistributionZip", "gradle-$name-distribution-zip", Bundling.EMBEDDED, emptyList(), distributionZip)
+    jvm.createOutgoingElements("${name}DistributionZip") {
+        providesAttributes {
+            library("gradle-$name-distribution-zip")
+        }
+        artifact(distributionZip)
+    }
 }
 
 fun generatedBinFileFor(name: String) =
@@ -217,104 +279,3 @@ fun generatedTxtFileFor(name: String) =
 
 fun generatedPropertiesFileFor(name: String) =
     layout.buildDirectory.file("generated-resources/$name/$name.properties")
-
-fun bucket() =
-    configurations.creating {
-        isCanBeResolved = false
-        isCanBeConsumed = false
-        isVisible = false
-    }
-
-fun libraryResolver(extends: List<Configuration>) =
-    configurations.creating {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
-        }
-        isCanBeResolved = true
-        isCanBeConsumed = false
-        isVisible = false
-        extends.forEach { extendsFrom(it) }
-    }
-
-fun startScriptResolver(defaultDependency: String) =
-    configurations.creating {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named("start-scripts"))
-        }
-        isCanBeResolved = true
-        isCanBeConsumed = false
-        isVisible = false
-        withDependencies {
-            add(project.dependencies.create(project(defaultDependency)))
-        }
-    }
-
-fun sourcesResolver(extends: List<Configuration>) =
-    configurations.creating {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-source-folders"))
-        }
-        isCanBeResolved = true
-        isCanBeConsumed = false
-        isVisible = false
-        extends.forEach { extendsFrom(it) }
-    }
-
-fun docsResolver(defaultDependency: String) =
-    configurations.creating {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-documentation"))
-        }
-        isCanBeResolved = true
-        isCanBeConsumed = false
-        isVisible = false
-        withDependencies {
-            add(project.dependencies.create(project(defaultDependency)))
-        }
-    }
-
-fun consumableVariant(name: String, elements: String, bundling: String, extends: List<Configuration>, artifact: Any) =
-    configurations.create("${name}Elements") {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(elements))
-            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(bundling))
-        }
-        isCanBeResolved = false
-        isCanBeConsumed = true
-        isVisible = false
-        extends.forEach { extendsFrom(it) }
-        outgoing.artifact(artifact)
-    }
-
-fun consumableSourcesVariant(name: String, extends: List<Configuration>) =
-    configurations.create("${name}Elements") {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-source-folders"))
-        }
-        isCanBeResolved = false
-        isCanBeConsumed = true
-        isVisible = false
-        extends.forEach { extendsFrom(it) }
-    }
-
-fun consumablePlatformVariant(name: String, extends: List<Configuration>) =
-    configurations.create("${name}Elements") {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.REGULAR_PLATFORM))
-        }
-        isCanBeResolved = false
-        isCanBeConsumed = true
-        isVisible = false
-        extends.forEach { extendsFrom(it) }
-    }

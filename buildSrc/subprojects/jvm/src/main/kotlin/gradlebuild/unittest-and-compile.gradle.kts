@@ -65,23 +65,18 @@ fun configureSourcesVariant() {
         withSourcesJar()
     }
     val implementation by configurations
+    val main = sourceSets.main.get()
 
-    @Suppress("unused_variable")
-    val transitiveSourcesElements by configurations.creating {
-        isCanBeResolved = false
-        isCanBeConsumed = true
+    jvm.createOutgoingElements("transitiveSourcesElements") {
         extendsFrom(implementation)
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-source-folders"))
+        providesAttributes {
+            documentation("gradle-source-folders")
         }
-        val main = sourceSets.main.get()
         main.java.srcDirs.forEach {
-            outgoing.artifact(it)
+            artifact(it)
         }
         main.groovy.srcDirs.forEach {
-            outgoing.artifact(it)
+            artifact(it)
         }
     }
 }

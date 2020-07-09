@@ -88,11 +88,11 @@ fun Project.registerTransforms(shadedJarExtension: ShadedJarExtension) {
     }
 }
 
-fun createConfigurationToShade() = configurations.create("jarsToShade") {
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
-        isCanBeResolved = true
-        isCanBeConsumed = false
+fun createConfigurationToShade() = jvm.createResolvableConfiguration("jarsToShade") {
+        requiresAttributes {
+            library().asJar().withExternalDependencies()
+        }
+    }.apply {
         withDependencies {
             this.add(project.dependencies.create(project))
             this.add(project.dependencies.create(project.dependencies.platform(project(":distributionsDependencies"))))
@@ -132,27 +132,15 @@ fun addInstallShadedJarTask(shadedJarTask: TaskProvider<ShadedJar>) {
 
 fun addShadedJarVariant(shadedJarTask: TaskProvider<ShadedJar>) {
     val implementation by configurations
-    val shadedImplementation by configurations.creating {
-        isCanBeResolved = false
-        isCanBeConsumed = false
-    }
-    implementation.extendsFrom(shadedImplementation)
+    val shadedImplementation = jvm.utilities.registerDependencyBucket("shadedImplementation", "Explicit dependencies of the shaded Jar (which are NOT packaged in the Jar)")
+    implementation.extendsFrom(shadedImplementation.get())
 
-    val shadedRuntimeElements by configurations.creating {
-        isCanBeResolved = false
-        isCanBeConsumed = true
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
-            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.SHADOWED))
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
+    val shadedRuntimeElements = jvm.createOutgoingElements("shadedRuntimeElements") {
+        providesAttributes {
+            library().asJar().withShadowedDependencies().withTargetJvmVersion(8)
         }
         extendsFrom(shadedImplementation)
-        outgoing.artifact(shadedJarTask) {
-            name = moduleIdentity.baseName.get()
-            type = "jar"
-        }
+        artifact(shadedJarTask)
     }
 
     // publish only the shaded variant
@@ -168,22 +156,18 @@ fun addShadedJarVariant(shadedJarTask: TaskProvider<ShadedJar>) {
 
 fun configureShadedSourcesJarVariant() {
     val implementation by configurations
-    val sourcesPath by configurations.creating {
-        isCanBeResolved = true
-        isCanBeConsumed = false
+    val sourcesPath = jvm.createResolvableConfiguration("sourcesPath") {
         extendsFrom(implementation)
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-source-folders"))
+        requiresAttributes {
+            documentation("gradle-source-folders")
         }
     }
     tasks.named<Jar>("sourcesJar") {
         from(sourcesPath.incoming.artifactView { lenient(true) }.files)
     }
     val sourcesElements by configurations
-    sourcesElements.attributes {
-        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.SHADOWED))
+    jvm.utilities.configureAttributes(sourcesElements) {
+        withShadowedDependencies()
     }
 }
 

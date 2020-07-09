@@ -6,21 +6,13 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-val integTestRuntimeResources: Configuration by configurations.creating {
-    isCanBeResolved = false
-    isCanBeConsumed = false
-}
-val integTestRuntimeResourcesClasspath: Configuration by configurations.creating {
-    extendsFrom(integTestRuntimeResources)
-    isCanBeResolved = true
-    isCanBeConsumed = false
-    attributes {
-        // play test apps MUST be found as exploded directory
-        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements::class.java, LibraryElements.RESOURCES))
+val integTestRuntimeResourcesClasspath = jvm.createResolvableConfiguration("integTestRuntimeResourcesClasspath") {
+    usingDependencyBucket("integTestRuntimeResources")
+    requiresAttributes {
+        library(LibraryElements.RESOURCES)
     }
-    isTransitive = false
 }
+integTestRuntimeResourcesClasspath.isTransitive = false
 
 dependencies {
     implementation(project(":baseServices"))
@@ -86,7 +78,7 @@ dependencies {
     testRuntimeOnly(project(":distributionsCore")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestRuntimeResources(testFixtures(project(":platformPlay")))
+    "integTestRuntimeResources"(testFixtures(project(":platformPlay")))
 }
 
 strictCompile {

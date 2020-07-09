@@ -22,12 +22,10 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.DocsType;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.JvmPluginExtension;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Exec;
 import org.gradle.api.tasks.PathSensitivity;
@@ -62,6 +60,7 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
     }
 
     private void applyConventions(Project project, TaskContainer tasks, ObjectFactory objects, ProjectLayout layout, GradleDocumentationExtension extension) {
+        JvmPluginExtension jvm = project.getExtensions().getByType(JvmPluginExtension.class);
 
         TaskProvider<Sync> stageDocs = tasks.register("stageDocs", Sync.class, task -> {
             // release notes goes in the root of the docs
@@ -91,16 +90,10 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         extension.getRenderedDocumentation().from(stageDocs);
 
         Configuration runtimeClasspath = project.getConfigurations().getByName("runtimeClasspath");
-        Configuration sourcesPath = project.getConfigurations().create("sourcesPath");
-        sourcesPath.attributes(a -> {
-            a.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME));
-            a.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.DOCUMENTATION));
-            a.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, "gradle-source-folders"));
+        Configuration sourcesPath = jvm.createResolvableConfiguration("sourcesPath", r -> {
+            r.extendsFrom(runtimeClasspath);
+            r.requiresAttributes(a -> a.documentation("gradle-source-folders"));
         });
-        sourcesPath.setCanBeConsumed(false);
-        sourcesPath.setCanBeResolved(true);
-        sourcesPath.setVisible(false);
-        sourcesPath.extendsFrom(runtimeClasspath);
 
         extension.getClasspath().from(runtimeClasspath);
         extension.getDocumentedSource().from(sourcesPath.getIncoming().artifactView(v -> v.lenient(true)).getFiles().getAsFileTree().matching(f -> {
