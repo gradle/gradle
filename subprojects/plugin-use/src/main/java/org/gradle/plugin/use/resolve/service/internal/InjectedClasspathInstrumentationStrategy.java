@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.test.fixtures.file.TestFile;
+package org.gradle.plugin.use.resolve.service.internal;
 
-import java.io.File;
-import java.util.Map;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-public interface ArtifactBuilder {
-    TestFile sourceFile(String path);
-
-    TestFile resourceFile(String path);
-
-    void manifestAttributes(Map<String, String> attributes);
-
-    void buildJar(File jarFile);
+@ServiceScope(Scopes.BuildTree)
+public interface InjectedClasspathInstrumentationStrategy {
+    CachedClasspathTransformer.StandardTransform getTransform();
 }
