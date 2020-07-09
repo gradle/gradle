@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.scala;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Internal;
@@ -51,8 +52,11 @@ public class IncrementalCompileOptions {
     /**
      * Returns the path to the directory where previously generated class files are backed up during the next, incremental compilation.
      * If the compilation fails, class files are restored from the backup.
+     *
+     * @since 6.6
      */
     @LocalState
+    @Incubating
     public RegularFileProperty getClassfileBackupDir() {
         return classfileBackupDir;
     }
