@@ -61,7 +61,7 @@ Build configuration inputs include:
 
 - Init scripts, settings scripts, build scripts.
 - System properties, Gradle properties and configuration files used during the configuration phase, accessed using value suppliers such as providers for properties, environment variables etc...
-- Build configuration inputs and source files for `buildSrc` projects.
+- `buildSrc` build configuration inputs and source files.
 
 [[config_cache:intro:performance_improvements]]
 === Performance improvements
