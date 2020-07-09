@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,7 +45,7 @@ import java.util.Map;
 public class PatternSpecFactory {
     public static final PatternSpecFactory INSTANCE = new PatternSpecFactory();
     private final List<String> previousDefaultExcludes = Lists.newArrayList();
-    private final Map<Boolean, Spec<FileTreeElement>> defaultExcludeSpecs = new HashMap<>(2);
+    private final Map<CaseSensitivity, Spec<FileTreeElement>> defaultExcludeSpecCache = new EnumMap<>(CaseSensitivity.class);
     private List<String> excludesFromSettings;
 
     public Spec<FileTreeElement> createSpec(PatternSet patternSet) {
@@ -71,8 +71,7 @@ public class PatternSpecFactory {
             allExcludeSpecs.add(createSpec(patternSet.getExcludes(), false, patternSet.isCaseSensitive()));
         }
 
-        allExcludeSpecs.add(getDefaultExcludeSpec(patternSet.isCaseSensitive()));
-
+        allExcludeSpecs.add(getDefaultExcludeSpec(CaseSensitivity.forCaseSensitive(patternSet.isCaseSensitive())));
         allExcludeSpecs.addAll(patternSet.getExcludeSpecs());
 
         if (allExcludeSpecs.isEmpty()) {
@@ -82,17 +81,16 @@ public class PatternSpecFactory {
         }
     }
 
-    private synchronized Spec<FileTreeElement> getDefaultExcludeSpec(boolean caseSensitive) {
-        Spec<FileTreeElement> specs = defaultExcludeSpecs.get(caseSensitive);
+    private synchronized Spec<FileTreeElement> getDefaultExcludeSpec(CaseSensitivity caseSensitivity) {
+        Spec<FileTreeElement> specs = defaultExcludeSpecCache.get(caseSensitivity);
         List<String> defaultExcludes = Arrays.asList(DirectoryScanner.getDefaultExcludes());
 
         if (excludesFromSettings != null && !excludesFromSettings.equals(defaultExcludes)) {
             reportChangedDefaultExcludes(excludesFromSettings, defaultExcludes);
         }
-        if (specs == null) {
-            specs = updateDefaultExcludeCache(defaultExcludes, caseSensitive);
-        } else if (!previousDefaultExcludes.equals(defaultExcludes)) {
-            specs = updateDefaultExcludeCache(defaultExcludes, caseSensitive);
+        if (specs == null || !previousDefaultExcludes.equals(defaultExcludes)) {
+            updateDefaultExcludeSpecCache(defaultExcludes);
+            return defaultExcludeSpecCache.get(caseSensitivity);
         }
 
         return specs;
@@ -116,12 +114,12 @@ public class PatternSpecFactory {
         this.excludesFromSettings = excludesFromSettings;
     }
 
-    private Spec<FileTreeElement> updateDefaultExcludeCache(List<String> defaultExcludes, boolean caseSensitive) {
+    private void updateDefaultExcludeSpecCache(List<String> defaultExcludes) {
         previousDefaultExcludes.clear();
         previousDefaultExcludes.addAll(defaultExcludes);
-        defaultExcludeSpecs.put(true, createSpec(defaultExcludes, false, true));
-        defaultExcludeSpecs.put(false, createSpec(defaultExcludes, false, false));
-        return defaultExcludeSpecs.get(caseSensitive);
+        for (CaseSensitivity caseSensitivity : CaseSensitivity.values()) {
+            defaultExcludeSpecCache.put(caseSensitivity, createSpec(defaultExcludes, false, caseSensitivity.isCaseSensitive()));
+        }
     }
 
     protected Spec<FileTreeElement> createSpec(Collection<String> patterns, boolean include, boolean caseSensitive) {
@@ -132,5 +130,26 @@ public class PatternSpecFactory {
         PatternMatcher matcher = PatternMatcherFactory.getPatternsMatcher(include, caseSensitive, patterns);
 
         return new RelativePathSpec(matcher);
+    }
+
+    private enum CaseSensitivity {
+        CASE_SENSITIVE(true),
+        CASE_INSENSITIVE(false);
+
+        CaseSensitivity(boolean caseSensitive) {
+            this.caseSensitive = caseSensitive;
+        }
+
+        public static CaseSensitivity forCaseSensitive(boolean caseSensitive) {
+            return caseSensitive
+                ? CASE_SENSITIVE
+                : CASE_INSENSITIVE;
+        }
+
+        private final boolean caseSensitive;
+
+        public boolean isCaseSensitive() {
+            return caseSensitive;
+        }
     }
 }
