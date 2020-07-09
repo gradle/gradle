@@ -60,10 +60,10 @@ open class InstantExecutionProblemsException : InstantExecutionException {
     object Documentation {
 
         val ignoreProblems: String
-            get() = DocumentationRegistry().getDocumentationFor("configuration_cache", "ignore_problems")
+            get() = DocumentationRegistry().getDocumentationFor("configuration_cache", "config_cache:usage:ignore_problems")
 
         val maxProblems: String
-            get() = DocumentationRegistry().getDocumentationFor("configuration_cache", "max_problems")
+            get() = DocumentationRegistry().getDocumentationFor("configuration_cache", "config_cache:usage:max_problems")
     }
 
     protected
