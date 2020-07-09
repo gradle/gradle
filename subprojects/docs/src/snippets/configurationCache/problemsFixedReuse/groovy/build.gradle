@@ -21,8 +21,6 @@ abstract class MyCopyTask extends DefaultTask {
 tasks.register('someTask', MyCopyTask) {
     def projectDir = layout.projectDirectory
     source = projectDir.dir('source')
-    destination = providers.systemProperty('someDestination').map { path -> // <1>
-        projectDir.dir(path)
-    }
+    destination = projectDir.dir(providers.systemProperty('someDestination')) // <1>
 }
 // end::fixed-reuse[]
