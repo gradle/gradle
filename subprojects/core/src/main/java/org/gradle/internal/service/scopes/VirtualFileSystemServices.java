@@ -95,7 +95,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -201,7 +200,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 @Override
                 public void settingsEvaluated(Settings settings) {
                     super.settingsEvaluated(settings);
-                    List<String> defaultExcludes = Arrays.asList(DirectoryScanner.getDefaultExcludes());
+                    String[] defaultExcludes = DirectoryScanner.getDefaultExcludes();
                     patternSpecFactory.setDefaultExcludesFromSettings(defaultExcludes);
                     PatternSpecFactory.INSTANCE.setDefaultExcludesFromSettings(defaultExcludes);
                 }
@@ -211,7 +210,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 public void afterStart(GradleInternal gradle) {
                     // Reset default excludes for each build
                     DirectoryScanner.resetDefaultExcludes();
-                    List<String> defaultExcludes = Arrays.asList(DirectoryScanner.getDefaultExcludes());
+                    String[] defaultExcludes = DirectoryScanner.getDefaultExcludes();
                     patternSpecFactory.setDefaultExcludesFromSettings(defaultExcludes);
                     PatternSpecFactory.INSTANCE.setDefaultExcludesFromSettings(defaultExcludes);
                 }

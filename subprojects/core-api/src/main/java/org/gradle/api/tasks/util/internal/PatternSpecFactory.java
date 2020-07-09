@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.util.internal;
 
-import com.google.common.collect.Lists;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.RelativePathSpec;
@@ -43,7 +42,7 @@ import java.util.Map;
  */
 public class PatternSpecFactory {
     public static final PatternSpecFactory INSTANCE = new PatternSpecFactory();
-    private final List<String> previousDefaultExcludes = Lists.newArrayList();
+    private String[] previousDefaultExcludes;
     private final Map<CaseSensitivity, Spec<FileTreeElement>> defaultExcludeSpecCache = new EnumMap<>(CaseSensitivity.class);
 
     public Spec<FileTreeElement> createSpec(PatternSet patternSet) {
@@ -80,11 +79,11 @@ public class PatternSpecFactory {
     }
 
     private synchronized Spec<FileTreeElement> getDefaultExcludeSpec(CaseSensitivity caseSensitivity) {
-        List<String> defaultExcludes = Arrays.asList(DirectoryScanner.getDefaultExcludes());
+        String[] defaultExcludes = DirectoryScanner.getDefaultExcludes();
         if (defaultExcludeSpecCache.isEmpty()) {
             updateDefaultExcludeSpecCache(defaultExcludes);
         }
-        if (!previousDefaultExcludes.equals(defaultExcludes)) {
+        if (!Arrays.equals(previousDefaultExcludes, defaultExcludes)) {
             reportChangedDefaultExcludes(previousDefaultExcludes, defaultExcludes);
             updateDefaultExcludeSpecCache(defaultExcludes);
         }
@@ -92,10 +91,10 @@ public class PatternSpecFactory {
         return defaultExcludeSpecCache.get(caseSensitivity);
     }
 
-    private void reportChangedDefaultExcludes(List<String> excludesFromSettings, List<String> newDefaultExcludes) {
-        List<String> sortedExcludesFromSettings = new ArrayList<>(excludesFromSettings);
+    private void reportChangedDefaultExcludes(String[] excludesFromSettings, String[] newDefaultExcludes) {
+        List<String> sortedExcludesFromSettings = Arrays.asList(excludesFromSettings);
         sortedExcludesFromSettings.sort(Comparator.naturalOrder());
-        List<String> sortedNewExcludes = new ArrayList<>(newDefaultExcludes);
+        List<String> sortedNewExcludes = Arrays.asList(newDefaultExcludes);
         sortedNewExcludes.sort(Comparator.naturalOrder());
         DeprecationLogger
             .deprecateIndirectUsage("Changing default excludes during the build")
@@ -106,17 +105,17 @@ public class PatternSpecFactory {
             .nagUser();
     }
 
-    public synchronized void setDefaultExcludesFromSettings(List<String> excludesFromSettings) {
-        if (!previousDefaultExcludes.equals(excludesFromSettings)) {
+    public synchronized void setDefaultExcludesFromSettings(String[] excludesFromSettings) {
+        if (!Arrays.equals(previousDefaultExcludes, excludesFromSettings)) {
             updateDefaultExcludeSpecCache(excludesFromSettings);
         }
     }
 
-    private void updateDefaultExcludeSpecCache(List<String> defaultExcludes) {
-        previousDefaultExcludes.clear();
-        previousDefaultExcludes.addAll(defaultExcludes);
+    private void updateDefaultExcludeSpecCache(String[] defaultExcludes) {
+        previousDefaultExcludes = defaultExcludes;
+        List<String> patterns = Arrays.asList(defaultExcludes);
         for (CaseSensitivity caseSensitivity : CaseSensitivity.values()) {
-            defaultExcludeSpecCache.put(caseSensitivity, createSpec(defaultExcludes, false, caseSensitivity.isCaseSensitive()));
+            defaultExcludeSpecCache.put(caseSensitivity, createSpec(patterns, false, caseSensitivity.isCaseSensitive()));
         }
     }
 
