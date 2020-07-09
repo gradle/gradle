@@ -188,11 +188,10 @@ public abstract class AvailableJavaHomes {
             NativeServices nativeServices = NativeServicesTestFixture.getInstance();
             FileCanonicalizer fileCanonicalizer = nativeServices.get(FileCanonicalizer.class);
             jvms = new ArrayList<>();
-            jvms.addAll(new DevInfrastructureJvmLocator(fileCanonicalizer).findJvms());
             InstalledJvmLocator installedJvmLocator = new InstalledJvmLocator(OperatingSystem.current(), Jvm.current(), nativeServices.get(WindowsRegistry.class), nativeServices.get(SystemInfo.class), fileCanonicalizer);
             jvms.addAll(installedJvmLocator.findJvms());
             if (OperatingSystem.current().isLinux()) {
-                jvms.addAll(new BaseDirJvmLocator(fileCanonicalizer, new File("/opt")).findJvms());
+                jvms.addAll(new BaseDirJvmLocator(fileCanonicalizer, new File("/opt/jdk")).findJvms());
             }
             if (!OperatingSystem.current().isWindows()) {
                 jvms.addAll(new SdkManJvmLocator(fileCanonicalizer).findJvms());
@@ -208,36 +207,9 @@ public abstract class AvailableJavaHomes {
         return jvms;
     }
 
-    private static class DevInfrastructureJvmLocator {
-        final FileCanonicalizer fileCanonicalizer;
-
-        private DevInfrastructureJvmLocator(FileCanonicalizer fileCanonicalizer) {
-            this.fileCanonicalizer = fileCanonicalizer;
-        }
-
-        public List<JvmInstallation> findJvms() {
-            List<JvmInstallation> jvms = new ArrayList<>();
-            if (OperatingSystem.current().isLinux()) {
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_5, "1.5.0", new File("/opt/jdk/sun-jdk-5"), true, JvmInstallation.Arch.i386);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_6, "1.6.0", new File("/opt/jdk/sun-jdk-6"), true, JvmInstallation.Arch.x86_64);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_6, "1.6.0", new File("/opt/jdk/ibm-jdk-6"), true, JvmInstallation.Arch.x86_64);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_7, "1.7.0", new File("/opt/jdk/oracle-jdk-7"), true, JvmInstallation.Arch.x86_64);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_8, "1.8.0", new File("/opt/jdk/oracle-jdk-8"), true, JvmInstallation.Arch.x86_64);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_9, "1.9.0", new File("/opt/jdk/oracle-jdk-9"), true, JvmInstallation.Arch.x86_64);
-            }
-            return CollectionUtils.filter(jvms, element -> element.getJavaHome().isDirectory());
-        }
-
-        private List<JvmInstallation> addJvm(List<JvmInstallation> jvms, JavaVersion javaVersion, String versionString, File javaHome, boolean jdk, JvmInstallation.Arch arch) {
-            if (javaHome.exists()) {
-                jvms.add(new JvmInstallation(javaVersion, versionString, fileCanonicalizer.canonicalize(javaHome), jdk, arch));
-            }
-            return jvms;
-        }
-    }
-
     private static class BaseDirJvmLocator {
-        private static final Pattern JDK_DIR = Pattern.compile("jdk(\\d+\\.\\d+\\.\\d+(_\\d+)?)");
+        // open-jdk-14 oracle-jdk-8 open-jdk-14-ea
+        private static final Pattern JDK_DIR = Pattern.compile("jdk-(\\d+)");
         private final FileCanonicalizer fileCanonicalizer;
         private final File baseDir;
 
@@ -251,7 +223,7 @@ public abstract class AvailableJavaHomes {
             List<JvmInstallation> jvms = new ArrayList<>();
             for (File file : baseDir.listFiles()) {
                 Matcher matcher = JDK_DIR.matcher(file.getName());
-                if (!matcher.matches()) {
+                if (!matcher.find()) {
                     continue;
                 }
                 File javaHome = fileCanonicalizer.canonicalize(file);
