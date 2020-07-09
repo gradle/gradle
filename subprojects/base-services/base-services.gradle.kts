@@ -29,8 +29,8 @@ dependencies {
 
     integTestDistributionRuntimeOnly(project(":distributionsCore"))
 
-    jmh("org.bouncycastle:bcprov-jdk15on:1.61")
-    jmh("com.google.guava:guava:27.1-android")
+    jmh(libs.bouncycastleProvider)
+    jmh(libs.guava)
 }
 
 jmh.include = listOf("HashingAlgorithmsBenchmark")

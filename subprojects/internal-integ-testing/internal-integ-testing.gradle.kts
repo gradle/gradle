@@ -78,7 +78,7 @@ dependencies {
     implementation(libs.jcifs)
     implementation(libs.jansi)
     implementation(libs.ansiControlSequenceUtil)
-    implementation("org.apache.mina:mina-core")
+    implementation(libs.mina)
     implementation(libs.sampleCheck) {
         exclude(module = "groovy-all")
         exclude(module = "slf4j-simple")

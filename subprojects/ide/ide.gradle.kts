@@ -57,7 +57,7 @@ dependencies {
 
     testImplementation(project(":dependencyManagement"))
     testImplementation(libs.xmlunit)
-    testImplementation("nl.jqno.equalsverifier:equalsverifier:2.1.6")
+    testImplementation(libs.equalsverifier)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependencyManagement")))
 

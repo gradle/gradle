@@ -38,9 +38,9 @@ dependencies {
     jmhImplementation(platform(project(":distributionsDependencies")))
     jmhImplementation(libs.ant)
     jmhImplementation(libs.commonsCompress)
-    jmhImplementation("io.airlift:aircompressor:0.8")
-    jmhImplementation("org.iq80.snappy:snappy:0.4")
-    jmhImplementation("org.kamranzafar:jtar:2.3")
+    jmhImplementation(libs.aircompressor)
+    jmhImplementation(libs.snappy)
+    jmhImplementation(libs.jtar)
 
     testImplementation(project(":modelCore"))
     testImplementation(project(":fileCollections"))

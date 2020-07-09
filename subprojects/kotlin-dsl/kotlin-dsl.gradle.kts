@@ -88,8 +88,8 @@ dependencies {
     testImplementation(libs.jacksonKotlin)
 
     testImplementation(libs.archunit)
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.3")
-    testImplementation("org.awaitility:awaitility-kotlin:3.1.6")
+    testImplementation(libs.kotlinCoroutines)
+    testImplementation(libs.awaitility)
 
     integTestImplementation(project(":languageGroovy"))
     integTestImplementation(project(":languageGroovy")) {

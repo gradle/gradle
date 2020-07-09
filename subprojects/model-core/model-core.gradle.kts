@@ -28,7 +28,7 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":snapshots"))
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:${libs.kotlinVersion}")
+    implementation(libs.futureKotlin("stdlib"))
     implementation(libs.inject)
     implementation(libs.groovy)
     implementation(libs.slf4jApi)

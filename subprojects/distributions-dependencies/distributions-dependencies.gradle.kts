@@ -142,19 +142,28 @@ dependencies {
         api(libs.xmlApis)               { version { strictly("1.4.01"); because("2.0.x has a POM with relocation Gradle does not handle well") }}
 
         // test only
+        api(libs.aircompressor)         { version { strictly("0.8") }}
         api(libs.archunit)              { version { strictly(archunitVersion) }}
         api(libs.archunitJunit4)        { version { strictly(archunitVersion) }}
+        api(libs.awaitility)            { version { strictly("3.1.6") }}
         api(libs.bytebuddy)             { version { strictly("1.8.21") }}
         api(libs.cglib)                 { version { strictly("3.2.6") }}
+        api(libs.equalsverifier)        { version { strictly("2.1.6") }}
+        api(libs.flightrecorder)        { version { strictly("7.0.0-alpha01") }}
+        api(libs.guice)                 { version { strictly("2.0") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}
         api(libs.jacksonKotlin)         { version { strictly("2.9.2") }}
         api(libs.jetty)                 { version { strictly("6.1.26") }}
         api(libs.jsoup)                 { version { strictly("1.11.3") }}
+        api(libs.jtar)                  { version { strictly("2.3") }}
+        api(libs.kotlinCoroutines)      { version { strictly("1.3.3") }}
+        api(libs.kotlinCoroutinesDebug) { version { strictly("1.3.3") }}
         api(libs.littleproxy)           { version { strictly("1.1.3"); because("latest officially released version is incompatible with Guava >= 20") }}
         api(libs.mina)                  { version { strictly("2.0.17") }}
         api(libs.mockitoKotlin)         { version { strictly("1.6.0") }}
         api(libs.mockitoKotlin2)        { version { strictly("2.1.0") }}
         api(libs.sampleCheck)           { version { strictly("0.12.6") }}
+        api(libs.snappy)                { version { strictly("0.4") }}
         api(libs.spock)                 { version { strictly("1.3-groovy-2.5") }}
         api(libs.sshdCore)              { version { strictly(sshdVersion) }}
         api(libs.sshdScp)               { version { strictly(sshdVersion) }}

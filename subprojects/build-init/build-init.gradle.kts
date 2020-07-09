@@ -39,9 +39,9 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.inject)
-    implementation("org.codehaus.plexus:plexus-container-default")
-    implementation("org.apache.maven:maven-compat")
-    implementation("org.apache.maven:maven-plugin-api")
+    implementation(libs.plexusContainer)
+    implementation(libs.maven3Compat)
+    implementation(libs.maven3PluginApi)
 
     testImplementation(project(":cli"))
     testImplementation(project(":baseServicesGroovy"))

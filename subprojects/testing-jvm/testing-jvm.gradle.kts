@@ -52,7 +52,7 @@ dependencies {
     implementation(libs.bsh)
 
     testImplementation(project(":baseServicesGroovy"))
-    testImplementation("com.google.inject:guice:2.0") {
+    testImplementation(libs.guice) {
         because("This is for TestNG")
     }
     testImplementation(testFixtures(project(":core")))

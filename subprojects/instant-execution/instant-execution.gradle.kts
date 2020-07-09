@@ -69,7 +69,7 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(libs.mockitoKotlin2)
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.3.3")
+    testImplementation(libs.kotlinCoroutinesDebug)
 
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":toolingApi"))
