@@ -22,7 +22,7 @@ tasks.register<MyCopyTask>("someTask") {
     val projectDir = layout.projectDirectory
     source.set(projectDir.dir("source"))
     destination.set(projectDir.dir(
-        providers.systemProperty("someDestination").forUseAtConfigurationTime().get() // <2>
+        providers.systemProperty("someDestination").forUseAtConfigurationTime().get() // <3>
     ))
 }
 // end::fixed[]
