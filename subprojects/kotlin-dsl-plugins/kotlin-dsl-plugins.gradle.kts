@@ -61,8 +61,8 @@ dependencies {
     compileOnly(project(":pluginDevelopment"))
     compileOnly(project(":kotlinDsl"))
 
-    compileOnly(library("slf4j_api"))
-    compileOnly(library("inject"))
+    compileOnly(libs.slf4jApi)
+    compileOnly(libs.inject)
 
     implementation(libs.futureKotlin("stdlib-jdk8"))
     implementation(libs.futureKotlin("gradle-plugin"))
@@ -78,8 +78,8 @@ dependencies {
     integTestImplementation(project(":kotlinDsl"))
     integTestImplementation(project(":internalTesting"))
     integTestImplementation(project(":kotlinDslTestFixtures"))
-    integTestImplementation(library("slf4j_api"))
-    integTestImplementation(testLibrary("mockito_kotlin"))
+    integTestImplementation(libs.slf4jApi)
+    integTestImplementation(libs.mockitoKotlin)
 
     integTestDistributionRuntimeOnly(project(":distributionsBasics")) {
         because("KotlinDslPluginTest tests against TestKit")

@@ -25,6 +25,7 @@ import gradlebuild.integrationtests.createTestTask
 plugins {
     java
     id("gradlebuild.module-identity")
+    id("gradlebuild.dependency-modules")
 }
 
 val sourceSet = addSourceSet(TestType.CROSSVERSION)

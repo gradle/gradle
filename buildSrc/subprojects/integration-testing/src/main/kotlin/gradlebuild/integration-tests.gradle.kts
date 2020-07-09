@@ -25,6 +25,7 @@ import gradlebuild.integrationtests.includeCategories
 
 plugins {
     java
+    id("gradlebuild.dependency-modules")
 }
 
 val sourceSet = addSourceSet(TestType.INTEGRATION)

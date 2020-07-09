@@ -16,9 +16,9 @@
 
 package gradlebuild.integrationtests
 
-import library
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.integrationtests.tasks.IntegrationTest
+import gradlebuild.modules.extension.ExternalModulesExtension
 
 import org.gradle.api.Action
 import org.gradle.api.Project
@@ -46,6 +46,7 @@ enum class TestType(val prefix: String, val executers: List<String>) {
 fun Project.addDependenciesAndConfigurations(prefix: String) {
     configurations {
         getByName("${prefix}TestImplementation") { extendsFrom(configurations["testImplementation"]) }
+        val platformImplementation = findByName("platformImplementation")
 
         val distributionRuntimeOnly = bucket("${prefix}TestDistributionRuntimeOnly", "Declare the distribution that is required to run tests")
         val localRepository = bucket("${prefix}TestLocalRepository", "Declare a local repository required as input data for the tests (e.g. :toolingApi)")
@@ -55,7 +56,18 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
         val docsDistribution = bucket("${prefix}TestDocsDistribution", "Declare a docs distribution to be used by tests - useful for testing the final distribution that is published")
         val srcDistribution = bucket("${prefix}TestSrcDistribution", "Declare a src distribution to be used by tests - useful for testing the final distribution that is published")
 
-        getByName("${prefix}TestRuntimeClasspath") { extendsFrom(distributionRuntimeOnly) }
+        getByName("${prefix}TestRuntimeClasspath") {
+            extendsFrom(distributionRuntimeOnly)
+            if (platformImplementation != null) {
+                extendsFrom(platformImplementation)
+            }
+        }
+        if (platformImplementation != null) {
+            getByName("${prefix}TestCompileClasspath") {
+                extendsFrom(getByName("platformImplementation"))
+            }
+        }
+
         resolver("${prefix}TestDistributionRuntimeClasspath", "gradle-bin-installation", distributionRuntimeOnly)
         resolver("${prefix}TestFullDistributionRuntimeClasspath", "gradle-bin-installation")
         resolver("${prefix}TestLocalRepositoryPath", "gradle-local-repository", localRepository)
@@ -66,9 +78,9 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
         resolver("${prefix}TestSrcDistributionPath", "gradle-src-distribution-zip", srcDistribution)
     }
 
-    if (name != "test") {
-        dependencies {
-            "${prefix}TestRuntimeOnly"(library("junit5_vintage"))
+    dependencies {
+        "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junit5Vintage)
+        if (name != "test") { // do not attempt to find projects during script compilation
             "${prefix}TestImplementation"(project(":internalIntegTesting"))
             "${prefix}TestFullDistributionRuntimeClasspath"(project(":distributionsFull"))
         }

@@ -46,10 +46,10 @@ dependencies {
     implementation(project(":buildCache"))
     implementation(project(":toolingApi"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("inject"))
+    implementation(libs.groovy)
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.inject)
 
     implementation(libs.futureKotlin("scripting-common")) {
         isTransitive = false
@@ -82,21 +82,21 @@ dependencies {
     }
     testImplementation(project(":plugins"))
     testImplementation(project(":versionControl"))
-    testImplementation(library("ant"))
-    testImplementation(library("asm"))
-    testImplementation(testLibrary("mockito_kotlin"))
-    testImplementation(testLibrary("jackson_kotlin"))
+    testImplementation(libs.ant)
+    testImplementation(libs.asm)
+    testImplementation(libs.mockitoKotlin)
+    testImplementation(libs.jacksonKotlin)
 
-    testImplementation(testLibrary("archunit"))
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.3")
-    testImplementation("org.awaitility:awaitility-kotlin:3.1.6")
+    testImplementation(libs.archunit)
+    testImplementation(libs.kotlinCoroutines)
+    testImplementation(libs.awaitility)
 
     integTestImplementation(project(":languageGroovy"))
     integTestImplementation(project(":languageGroovy")) {
         because("ClassBytesRepositoryTest makes use of Groovydoc task.")
     }
     integTestImplementation(project(":internalTesting"))
-    integTestImplementation(testLibrary("mockito_kotlin"))
+    integTestImplementation(libs.mockitoKotlin)
 
     testRuntimeOnly(project(":distributionsNative")) {
         because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt) and BuildType from platform-native is used in ProjectAccessorsClassPathTest.")

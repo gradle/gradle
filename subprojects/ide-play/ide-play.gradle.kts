@@ -48,8 +48,8 @@ dependencies {
     implementation(project(":platformJvm"))
     implementation(project(":platformPlay"))
 
-    implementation(library("groovy"))
-    implementation(library("guava"))
+    implementation(libs.groovy)
+    implementation(libs.guava)
 
     integTestImplementation(testFixtures(project(":platformPlay")))
     integTestImplementation(testFixtures(project(":ide")))

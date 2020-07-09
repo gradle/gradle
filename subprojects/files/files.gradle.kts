@@ -24,8 +24,8 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     implementation(project(":baseAnnotations"))
-    implementation(library("guava")) { version { require(libraryVersion("guava")) } }
-    implementation(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
+    implementation(libs.guava)
+    implementation(libs.slf4jApi)
 
     testImplementation(project(":native"))
     testImplementation(project(":baseServices")) {

@@ -15,10 +15,6 @@
  */
 package gradlebuild
 
-import library
-import libraries
-import testLibrary
-
 import gradlebuild.basics.accessors.groovy
 
 import org.gradle.api.plugins.internal.JvmPluginsHelper
@@ -37,6 +33,7 @@ import org.gradle.plugins.ide.idea.model.IdeaModel
 plugins {
     `java-library`
     `java-test-fixtures`
+    id("gradlebuild.dependency-modules")
 }
 
 // The below mimics what the java-library plugin does, but creating a library of test fixtures instead.
@@ -57,20 +54,20 @@ val testFixturesApiElements by configurations
 // Required due to: https://github.com/gradle/gradle/issues/13278
 testFixturesRuntimeElements.extendsFrom(testFixturesRuntimeOnly)
 
-if (!libraries.isEmpty()) { // we cannot access library() when compiling this script - https://github.com/gradle/gradle-private/issues/3098
-    dependencies {
+dependencies {
+    if (project.name != "test") { // do not attempt to find projects during script compilation
         testFixturesApi(project(":internalTesting"))
         // platform
         testFixturesImplementation(platform(project(":distributionsDependencies")))
-        // add a set of default dependencies for fixture implementation
-        testFixturesImplementation(library("junit"))
-        testFixturesImplementation(library("groovy"))
-        testFixturesImplementation(testLibrary("spock"))
-        testFixturesRuntimeOnly(testLibrary("bytebuddy"))
-        testFixturesRuntimeOnly(testLibrary("cglib"))
     }
-}
 
+    // add a set of default dependencies for fixture implementation
+    testFixturesImplementation(libs.junit)
+    testFixturesImplementation(libs.groovy)
+    testFixturesImplementation(libs.spock)
+    testFixturesRuntimeOnly(libs.bytebuddy)
+    testFixturesRuntimeOnly(libs.cglib)
+}
 
 // Add an outgoing variant allowing to select the exploded resources directory
 // as this is required at least by one project (idePlay)

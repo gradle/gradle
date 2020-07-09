@@ -30,7 +30,7 @@ shadedJar {
 }
 
 dependencies {
-    shadedImplementation(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
+    shadedImplementation(libs.slf4jApi)
 
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
@@ -40,7 +40,7 @@ dependencies {
     implementation(project(":wrapper"))
     implementation(project(":persistentCache"))
 
-    implementation(library("guava"))
+    implementation(libs.guava)
 
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":core"))
@@ -48,16 +48,16 @@ dependencies {
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":baseServicesGroovy"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("commons_io"))
-    testFixturesImplementation(library("slf4j_api"))
+    testFixturesImplementation(libs.commonsIo)
+    testFixturesImplementation(libs.slf4jApi)
 
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":persistentCache"))
 
     crossVersionTestImplementation(project(":jvmServices"))
-    crossVersionTestImplementation(testLibrary("jetty"))
-    crossVersionTestImplementation(library("commons_io"))
-    crossVersionTestRuntimeOnly(testLibrary("cglib")) {
+    crossVersionTestImplementation(libs.jetty)
+    crossVersionTestImplementation(libs.commonsIo)
+    crossVersionTestRuntimeOnly(libs.cglib) {
         because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
     }
 

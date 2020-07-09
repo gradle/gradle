@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradlebuild.basics.googleApisJs
+
 plugins {
     id("gradlebuild.internal.java")
 }
@@ -29,7 +31,7 @@ dependencies {
     reports("jquery:jquery.min:3.4.1@js")
     reports("flot:flot:0.8.1:min@js")
 
-    api(library("gradleProfiler")) {
+    api(libs.gradleProfiler) {
         because("Consumers need to instantiate BuildMutators")
     }
 
@@ -48,20 +50,25 @@ dependencies {
     implementation(project(":wrapper"))
     implementation(project(":internalIntegTesting"))
 
-    implementation(library("junit"))
-    implementation(testLibrary("spock"))
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("joda"))
-    implementation(library("jatl"))
-    implementation(library("commons_httpclient"))
-    implementation(library("jsch"))
-    implementation(library("commons_math"))
-    implementation(library("jcl_to_slf4j"))
-    implementation("org.gradle.org.openjdk.jmc:flightrecorder:7.0.0-alpha01")
-    implementation("org.gradle.ci.health:tagging:0.63")
-    implementation(testLibrary("mina"))
-    implementation(testLibrary("jetty"))
+    implementation(libs.junit)
+    implementation(libs.spock)
+    implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
+    implementation(libs.guava)
+    implementation(libs.groovy)
+    implementation(libs.jacksonAnnotations)
+    implementation(libs.jacksonCore)
+    implementation(libs.jacksonDatabind)
+    implementation(libs.slf4jApi)
+    implementation(libs.joda)
+    implementation(libs.jatl)
+    implementation(libs.commonsHttpclient)
+    implementation(libs.jsch)
+    implementation(libs.commonsMath)
+    implementation(libs.jclToSlf4j)
+    implementation(libs.flightrecorder)
+    implementation(libs.mina)
+    implementation(libs.jetty)
     implementation(testFixtures(project(":core")))
     implementation(testFixtures(project(":toolingApi")))
 

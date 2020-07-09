@@ -16,7 +16,7 @@ dependencies {
     api(libs.futureKotlin("script-runtime"))
     api(libs.futureKotlin("daemon-embeddable"))
 
-    runtimeOnly(library("trove4j"))
+    runtimeOnly(libs.trove4j)
 }
 
 val kotlinCompilerEmbeddable by configurations.creating
@@ -42,7 +42,7 @@ tasks {
         originalFiles.from(kotlinCompilerEmbeddable)
         dependencies.from(configurations.detachedConfiguration(
             project.dependencies.project(":distributionsDependencies"),
-            project.dependencies.create(library("jansi"))
+            project.dependencies.create(libs.jansi)
         ))
         dependenciesIncludes.set(mapOf(
             "jansi-" to listOf("META-INF/native/**", "org/fusesource/jansi/internal/CLibrary*.class")

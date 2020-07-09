@@ -15,9 +15,6 @@
  */
 package gradlebuild
 
-import libraries
-import library
-import testLibrary
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.tasks.ClasspathManifest
@@ -31,6 +28,7 @@ import java.util.jar.Attributes
 plugins {
     groovy
     id("gradlebuild.module-identity")
+    id("gradlebuild.dependency-modules")
     id("gradlebuild.available-java-installations")
     id("org.gradle.test-retry")
 }
@@ -113,36 +111,26 @@ fun configureClasspathManifestGeneration() {
 }
 
 fun addDependencies() {
-    if (libraries.isEmpty()) {
-        return
-    }
-    val platformProject = ":distributionsDependencies"
     dependencies {
-        val implementation = configurations.getByName("implementation")
-        val compileOnly = configurations.getByName("compileOnly")
-        val testImplementation = configurations.getByName("testImplementation")
-        val testCompileOnly = configurations.getByName("testCompileOnly")
-        val testRuntimeOnly = configurations.getByName("testRuntimeOnly")
-        testImplementation(platform(project(platformProject)))
-        testCompileOnly(library("junit"))
-        testRuntimeOnly(library("junit5_vintage"))
-        testImplementation(library("groovy"))
-        testImplementation(testLibrary("spock"))
-        testRuntimeOnly(testLibrary("bytebuddy"))
-        testRuntimeOnly(library("objenesis"))
+        testCompileOnly(libs.junit)
+        testRuntimeOnly(libs.junit5Vintage)
+        testImplementation(libs.groovy)
+        testImplementation(libs.spock)
+        testRuntimeOnly(libs.bytebuddy)
+        testRuntimeOnly(libs.objenesis)
 
-        compileOnly(platform(project(platformProject)))
-
-        implementation.withDependencies {
-            if (!isPublishedIndependently()) {
-                "implementation"(platform(project(platformProject)))
-            }
+        // use a separate configuration for the platform dependency that does not get published as part of 'apiElements' or 'runtimeElements'
+        val platformImplementation by configurations.creating
+        configurations["compileClasspath"].extendsFrom(platformImplementation)
+        configurations["runtimeClasspath"].extendsFrom(platformImplementation)
+        configurations["testCompileClasspath"].extendsFrom(platformImplementation)
+        configurations["testRuntimeClasspath"].extendsFrom(platformImplementation)
+        platformImplementation.withDependencies {
+            // use 'withDependencies' to not attempt to find platform project during script compilation
+            add(project.dependencies.create(platform(project(":distributionsDependencies"))))
         }
     }
 }
-
-fun isPublishedIndependently() = name != "toolingApi" &&
-    (pluginManager.hasPlugin("gradlebuild.portalplugin.kotlin") || pluginManager.hasPlugin("gradlebuild.publish-public-libraries"))
 
 fun addCompileAllTask() {
     tasks.register("compileAll") {

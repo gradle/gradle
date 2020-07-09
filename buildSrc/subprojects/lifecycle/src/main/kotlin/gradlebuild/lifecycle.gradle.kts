@@ -60,7 +60,6 @@ val forceRealizeDependencyManagementTest = "forceRealizeDependencyManagementTest
 
 setupTimeoutMonitorOnCI()
 setupGlobalState()
-sharedDependencyConfigs()
 
 subprojects.filter { it.name !in ignoredSubprojects }.forEach { it.registerLifecycleTasks() }
 
@@ -135,12 +134,6 @@ fun setupGlobalState() {
     if (needsToUseTestVersionsAll()) {
         globalProperty("testVersions" to "all")
     }
-}
-
-fun sharedDependencyConfigs() {
-    // TODO https://github.com/gradle/gradle-private/issues/3098 - remove this cross project configuration by declaring dependency coordinates as fields in a Kotlin object and the versions in the platform directly
-    apply(from = "gradle/dependencies.gradle")
-    apply(from = "gradle/test-dependencies.gradle")
 }
 
 fun needsToUseTestVersionsPartial() = isRequestedTask(platformTest)

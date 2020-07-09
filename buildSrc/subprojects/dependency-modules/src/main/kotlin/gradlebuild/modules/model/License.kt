@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-    id("gradlebuild.distribution.api-java")
-    id("gradlebuild.publish-public-libraries")
+
+package gradlebuild.modules.model
+
+
+enum class License(val displayName: String) {
+    Apache2("Apache 2.0"),
+    BSD3("3-Clause BSD"),
+    BSDStyle("BSD-style"),
+    CDDL("CDDL"),
+    EDL("Eclipse Distribution License 1.0"),
+    EPL("Eclipse Public License 1.0"),
+    LGPL21("LGPL 2.1"),
+    MIT("MIT"),
+    MPL2("Mozilla Public License 2.0")
 }
-
-description = "Common shared annotations"
-
-gradlebuildJava.usedInWorkers()
-
-dependencies {
-    api(libs.jsr305)
-}
-

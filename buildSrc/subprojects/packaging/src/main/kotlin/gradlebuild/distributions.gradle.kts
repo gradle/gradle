@@ -72,6 +72,11 @@ coreRuntimeOnly.description = "To define dependencies to the Gradle modules that
 val pluginsRuntimeOnly by bucket()
 pluginsRuntimeOnly.description = "To define dependencies to the Gradle modules that represent additional plugins packaged in the distributions (lib/plugins/*.jar)"
 
+coreRuntimeOnly.withDependencies {
+    // use 'withDependencies' to not attempt to find platform project during script compilation
+    add(project.dependencies.create(dependencies.platform(project(":distributionsDependencies"))))
+}
+
 // Configurations to resolve dependencies
 val runtimeClasspath by libraryResolver(listOf(coreRuntimeOnly, pluginsRuntimeOnly))
 runtimeClasspath.description = "Resolves to all Jars that need to be in the distribution including all transitive dependencies"

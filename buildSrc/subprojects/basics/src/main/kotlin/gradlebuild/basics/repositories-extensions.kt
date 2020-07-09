@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-    id("gradlebuild.distribution.api-java")
-    id("gradlebuild.publish-public-libraries")
+
+package gradlebuild.basics
+
+import org.gradle.api.artifacts.dsl.RepositoryHandler
+
+
+fun RepositoryHandler.googleApisJs() {
+    ivy {
+        name = "googleApisJs"
+        setUrl("https://ajax.googleapis.com/ajax/libs")
+        patternLayout {
+            artifact("[organization]/[revision]/[module].[ext]")
+            ivy("[organization]/[revision]/[module].xml")
+        }
+        metadataSources {
+            artifact()
+        }
+    }
 }
-
-description = "Common shared annotations"
-
-gradlebuildJava.usedInWorkers()
-
-dependencies {
-    api(libs.jsr305)
-}
-

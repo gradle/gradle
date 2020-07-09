@@ -1,3 +1,5 @@
+import gradlebuild.basics.googleApisJs
+
 plugins {
     id("gradlebuild.distribution.api-java")
 }
@@ -16,16 +18,16 @@ dependencies {
     implementation(project(":modelCore"))
     implementation(project(":core"))
 
-    implementation(library("groovy"))
-    implementation(library("guava"))
-    implementation(library("inject"))
-    implementation(library("jatl"))
+    implementation(libs.groovy)
+    implementation(libs.guava)
+    implementation(libs.inject)
+    implementation(libs.jatl)
 
     implementationResources("jquery:jquery.min:3.4.1@js")
 
     testImplementation(project(":processServices"))
     testImplementation(project(":baseServicesGroovy"))
-    testImplementation(testLibrary("jsoup"))
+    testImplementation(libs.jsoup)
     testImplementation(testFixtures(project(":core")))
 
     testRuntimeOnly(project(":distributionsCore")) {

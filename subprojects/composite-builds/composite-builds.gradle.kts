@@ -29,8 +29,8 @@ dependencies {
     implementation(project(":dependencyManagement"))
     implementation(project(":pluginUse"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
 
     testImplementation(testFixtures(project(":dependencyManagement")))
 

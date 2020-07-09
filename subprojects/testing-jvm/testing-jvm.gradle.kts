@@ -40,19 +40,19 @@ dependencies {
     implementation(project(":languageJava"))
     implementation(project(":testingBase"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("groovy"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("commons_io"))
-    implementation(library("asm"))
-    implementation(library("junit"))
-    implementation(library("testng"))
-    implementation(library("inject"))
-    implementation(library("bsh"))
+    implementation(libs.slf4jApi)
+    implementation(libs.groovy)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
+    implementation(libs.asm)
+    implementation(libs.junit)
+    implementation(libs.testng)
+    implementation(libs.inject)
+    implementation(libs.bsh)
 
     testImplementation(project(":baseServicesGroovy"))
-    testImplementation("com.google.inject:guice:2.0") {
+    testImplementation(libs.guice) {
         because("This is for TestNG")
     }
     testImplementation(testFixtures(project(":core")))

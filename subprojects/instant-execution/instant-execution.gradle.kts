@@ -60,16 +60,16 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":buildOption"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
+    implementation(libs.groovy)
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
 
     implementation(libs.futureKotlin("stdlib-jdk8"))
     implementation(libs.futureKotlin("reflect"))
 
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testLibrary("mockito_kotlin2"))
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.3.3")
+    testImplementation(libs.mockitoKotlin2)
+    testImplementation(libs.kotlinCoroutinesDebug)
 
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":toolingApi"))
@@ -77,9 +77,9 @@ dependencies {
     integTestImplementation(project(":testKit"))
     integTestImplementation(project(":launcher"))
 
-    integTestImplementation(library("guava"))
-    integTestImplementation(library("ant"))
-    integTestImplementation(library("inject"))
+    integTestImplementation(libs.guava)
+    integTestImplementation(libs.ant)
+    integTestImplementation(libs.inject)
     integTestImplementation(testFixtures(project(":dependencyManagement")))
     integTestImplementation(testFixtures(project(":jacoco")))
 

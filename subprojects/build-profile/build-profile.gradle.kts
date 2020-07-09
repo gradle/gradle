@@ -27,11 +27,11 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":buildOption"))
 
-    implementation(library("guava"))
+    implementation(libs.guava)
 
     testImplementation(project(":internalTesting"))
 
-    integTestImplementation(testLibrary("jsoup"))
+    integTestImplementation(libs.jsoup)
 
     integTestDistributionRuntimeOnly(project(":distributionsFull"))
 }
