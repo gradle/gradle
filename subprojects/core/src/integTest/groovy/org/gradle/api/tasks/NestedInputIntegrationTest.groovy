@@ -596,7 +596,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                 }
             }
 
-            def inputString = providers.gradleProperty('input').forUseAtConfigurationTime().orNull ?: 'input'
+            def inputString = providers.gradleProperty('input').forUseAtConfigurationTime().getOrElse('input')
 
             task myTask(type: TaskWithNestedIterable) {
                 outputFile = file('build/output.txt')
