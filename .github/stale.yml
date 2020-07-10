@@ -29,7 +29,7 @@ pulls:
 issues:
   # TODO: We'll only match very few issues to ensure the bot works as expected
   # Once working, we're going to reduce the stale window incrementally
-  daysUntilStale: 1000
+  daysUntilStale: 600
 
   # Number of days of inactivity before an Issue with the stale label is closed.
   # Set to false to disable. If disabled, issues still need to be closed manually, but will remain marked as stale.
