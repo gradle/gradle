@@ -26,11 +26,13 @@ import org.gradle.util.TestPrecondition
 
 import java.nio.file.Paths
 
+import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpdater.ReportedFileEventPath.ABSOLUTE_PATH
+
 class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
 
     @Override
     FileWatcherUpdater createUpdater(FileWatcher watcher) {
-        new HierarchicalFileWatcherUpdater(watcher)
+        new HierarchicalFileWatcherUpdater(watcher, ABSOLUTE_PATH)
     }
 
     def "does not watch project root directory if no snapshot is inside"() {

@@ -41,6 +41,7 @@ import spock.lang.Unroll
 @Unroll
 class FileSystemWatchingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, FileSystemWatchingFixture {
     private static final String INCUBATING_MESSAGE = "Watching the file system is an incubating feature"
+    private static final String UNABLE_TO_WATCH_MESSAGE = "Unable to watch the file system for changes."
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
@@ -792,6 +793,102 @@ class FileSystemWatchingIntegrationTest extends AbstractIntegrationSpec implemen
         "symlinked file"                | "symlinkedFile"                | "actualFile"     | 'file("symlinkedFile")' | "actualFile"
         "symlinked directory"           | "symlinkedDir"                 | "actualDir"      | 'dir("symlinkedDir")'   | "actualDir/file.txt"
         "symlink in a directory"        | "dirWithSymlink/symlinkInside" | "fileInside.txt" | 'dir("dirWithSymlink")' | "fileInside.txt"
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "file system watching works the project dir is symlinked"() {
+        def actualProjectDir = file("parent/projectDir")
+        def symlink = file("symlinkedParent")
+        symlink.createLink(file("parent"))
+
+        def fileToChange = actualProjectDir.file("actualFile")
+        fileToChange.createFile()
+
+        actualProjectDir.file("build.gradle") << """
+            task myTask {
+                def outputFile = file("build/output.txt")
+                inputs.file("actualFile")
+                outputs.file(outputFile)
+
+                doLast {
+                    outputFile.text = "Hello world"
+                }
+            }
+        """
+        actualProjectDir.file("settings.gradle").createFile()
+        executer.beforeExecute {
+            // Use `new File` here to avoid canonicalization of the path
+            def symlinkedProjectDir = new File(symlink, "projectDir")
+            assert !symlinkedProjectDir.absolutePath.startsWith(actualProjectDir.absolutePath)
+            inDirectory(symlinkedProjectDir)
+        }
+
+        when:
+        withWatchFs().run "myTask"
+        then:
+        executedAndNotSkipped ":myTask"
+
+        when:
+        withWatchFs().run "myTask"
+        then:
+        skipped(":myTask")
+
+        when:
+        file(fileToChange).text = "changed"
+        waitForChangesToBePickedUp()
+        withWatchFs().run "myTask"
+        then:
+        executedAndNotSkipped ":myTask"
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "disable file system watching when trying to watch symlinked directory"() {
+        def actualDir = file("parent/inputDir")
+        def symlink = file("symlinkedParent")
+        symlink.createLink(file("parent"))
+        def projectDir = file("projectDir")
+
+        def fileToChange = actualDir.file("actualFile")
+        fileToChange.createFile()
+
+        projectDir.file("build.gradle") << """
+            task myTask {
+                def outputFile = file("build/output.txt")
+                inputs.file("../symlinkedParent/inputDir/actualFile")
+                outputs.file(outputFile)
+
+                doLast {
+                    outputFile.text = "Hello world"
+                }
+            }
+        """
+        projectDir.file("settings.gradle").createFile()
+        executer.beforeExecute {
+            inDirectory(projectDir)
+        }
+
+        when:
+        withWatchFs().run "myTask"
+        then:
+        executedAndNotSkipped ":myTask"
+        if (OperatingSystem.current().macOsX) {
+            outputContains(UNABLE_TO_WATCH_MESSAGE)
+            outputContains("Unable to watch '${new File(symlink, "inputDir").absolutePath}' since itself or one of its parent is a symbolic link (canonical path: '${actualDir.absolutePath}')")
+        } else {
+            outputDoesNotContain(UNABLE_TO_WATCH_MESSAGE)
+        }
+
+        when:
+        withWatchFs().run "myTask"
+        then:
+        skipped(":myTask")
+
+        when:
+        file(fileToChange).text = "changed"
+        waitForChangesToBePickedUp()
+        withWatchFs().run "myTask"
+        then:
+        executedAndNotSkipped ":myTask"
     }
 
     @Unroll

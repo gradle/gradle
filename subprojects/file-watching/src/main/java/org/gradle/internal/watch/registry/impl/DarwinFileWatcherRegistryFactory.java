@@ -26,6 +26,8 @@ import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpdater.ReportedFileEventPath.CANONICAL_PATH;
+
 public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<OsxFileEventFunctions> {
 
     public DarwinFileWatcherRegistryFactory() throws NativeIntegrationUnavailableException {
@@ -42,6 +44,6 @@ public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistr
 
     @Override
     protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher) {
-        return new HierarchicalFileWatcherUpdater(watcher);
+        return new HierarchicalFileWatcherUpdater(watcher, CANONICAL_PATH);
     }
 }

@@ -22,11 +22,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import net.rubygrapefruit.platform.file.FileWatcher;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
@@ -69,9 +71,11 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private final Set<Path> watchedRootProjectDirectoriesFromPreviousBuild = new HashSet<>();
 
     private final FileWatcher watcher;
+    private final ReportedFileEventPath reportedFileEventPath;
 
-    public HierarchicalFileWatcherUpdater(FileWatcher watcher) {
+    public HierarchicalFileWatcherUpdater(FileWatcher watcher, ReportedFileEventPath reportedFileEventPath) {
         this.watcher = watcher;
+        this.reportedFileEventPath = reportedFileEventPath;
     }
 
     @Override
@@ -146,11 +150,31 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         if (!hierarchiesToStartWatching.isEmpty()) {
             watcher.startWatching(hierarchiesToStartWatching.stream()
                 .map(Path::toFile)
+                .peek(this::validateLocationToWatch)
                 .collect(Collectors.toList())
             );
             watchedHierarchies.addAll(hierarchiesToStartWatching);
         }
         LOGGER.info("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
+    }
+
+    private void validateLocationToWatch(File location) {
+        if (reportedFileEventPath == ReportedFileEventPath.ABSOLUTE_PATH) {
+            return;
+        }
+        try {
+            String canonicalPath = location.getCanonicalPath();
+            String absolutePath = location.getAbsolutePath();
+            if (!canonicalPath.equals(absolutePath)) {
+                throw new WatchingNotSupportedException(String.format(
+                    "Unable to watch '%s' since itself or one of its parent is a symbolic link (canonical path: '%s')",
+                    absolutePath,
+                    canonicalPath
+                ));
+            }
+        } catch (IOException e) {
+            throw new WatchingNotSupportedException("Unable to watch '%s' since its canonical path can't be resolved: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -176,5 +200,10 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             })
             .forEach(hierarchies::add);
         return hierarchies;
+    }
+
+    public enum ReportedFileEventPath {
+        CANONICAL_PATH,
+        ABSOLUTE_PATH
     }
 }
