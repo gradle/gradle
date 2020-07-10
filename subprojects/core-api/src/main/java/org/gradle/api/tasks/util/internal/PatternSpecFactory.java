@@ -82,8 +82,7 @@ public class PatternSpecFactory {
         String[] defaultExcludes = DirectoryScanner.getDefaultExcludes();
         if (defaultExcludeSpecCache.isEmpty()) {
             updateDefaultExcludeSpecCache(defaultExcludes);
-        }
-        if (!Arrays.equals(previousDefaultExcludes, defaultExcludes)) {
+        } else if (!Arrays.equals(previousDefaultExcludes, defaultExcludes)) {
             reportChangedDefaultExcludes(previousDefaultExcludes, defaultExcludes);
             updateDefaultExcludeSpecCache(defaultExcludes);
         }
