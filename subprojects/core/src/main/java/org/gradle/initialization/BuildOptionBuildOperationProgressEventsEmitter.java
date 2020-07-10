@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.configurationcache.options.ConfigurationCacheSettingsFinalizedProgressDetails;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.watch.options.FileSystemWatchingSettingsFinalizedProgressDetails;
 
 import javax.inject.Inject;
 
@@ -37,6 +38,12 @@ public class BuildOptionBuildOperationProgressEventsEmitter {
             @Override
             public boolean isEnabled() {
                 return startParameterInternal.isConfigurationCache();
+            }
+        });
+        eventEmitter.emitNowForCurrent(new FileSystemWatchingSettingsFinalizedProgressDetails() {
+            @Override
+            public boolean isEnabled() {
+                return startParameterInternal.isWatchFileSystem();
             }
         });
     }
