@@ -26,6 +26,7 @@ import org.gradle.api.file.FileContents;
 import org.gradle.api.file.RegularFile;
 
 import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 
 /**
  * A factory for creating instances of {@link Provider}.
@@ -232,4 +233,24 @@ public interface ProviderFactory {
      */
     @Incubating
     <T extends Credentials> Provider<T> credentials(Class<T> credentialsType, Provider<String> identity);
+
+    /**
+     * Returns a provider which value will be computed by combining a provider value with another
+     * provider value using the supplied combiner function.
+     *
+     * If the supplied providers represents a task or the output of a task, the resulting provider
+     * will carry the dependency information.
+     *
+     * @param left the first provider to combine with
+     * @param right the second provider to combine with
+     * @param combiner the combiner of values
+     * @param <A> the type of the first provider
+     * @param <B> the type of the second provider
+     * @param <R> the type of the result of the combiner
+     * @return a combined provider
+     *
+     * @since 6.6
+     */
+    @Incubating
+    <A, B, R> Provider<R> zip(Provider<A> first, Provider<B> second, BiFunction<A, B, R> combiner);
 }
