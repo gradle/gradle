@@ -24,7 +24,6 @@ import gradlebuild.jvm.extension.UnitTestAndCompileExtension
 import org.gradle.internal.os.OperatingSystem
 import java.util.concurrent.Callable
 import java.util.jar.Attributes
-import gradlebuild.performance.tasks.PerformanceTest
 
 plugins {
     groovy
@@ -198,7 +197,9 @@ fun configureTests() {
         configureJvmForTest()
         addOsAsInputs()
 
-        if (BuildEnvironment.isCiServer && this !is PerformanceTest) {
+        val testName = name
+
+        if (BuildEnvironment.isCiServer && !this.javaClass.simpleName.endsWith("PerformanceTest")) {
             retry {
                 maxRetries.set(1)
                 maxFailures.set(10)
@@ -208,10 +209,10 @@ fun configureTests() {
             }
         }
 
-        if (System.getProperty("enableTestDistribution")?.toBoolean() ?: false) {
+        if (project.providers.systemProperty("enableTestDistribution").forUseAtConfigurationTime().orNull?.toBoolean() == true) {
             distribution {
                 maxLocalExecutors.set(0)
-                maxRemoteExecutors.set(20)
+                maxRemoteExecutors.set(if ("test" == testName) 5 else 20)
                 enabled.set(true)
                 when {
                     OperatingSystem.current().isLinux -> requirements.set(listOf("os=linux"))

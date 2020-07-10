@@ -214,16 +214,7 @@ data class Stage(val stageName: StageName, val specificBuilds: List<SpecificBuil
     val id = stageName.id
 }
 
-data class TestCoverage(val uuid: Int,
-                        val testType: TestType,
-                        val os: Os,
-                        val testJvmVersion: JvmVersion,
-                        val vendor: JvmVendor = JvmVendor.oracle,
-                        val buildJvmVersion: JvmVersion = JvmVersion.java11,
-                        val expectedBucketNumber: Int = 50,
-                        val withoutDependencies: Boolean = false,
-                        val testDistribution: Boolean = false
-) {
+data class TestCoverage(val uuid: Int, val testType: TestType, val os: Os, val testJvmVersion: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle, val buildJvmVersion: JvmVersion = JvmVersion.java11, val expectedBucketNumber: Int = 50, val withoutDependencies: Boolean = false, val testDistribution: Boolean = false) {
 
     constructor(uuid: Int, testType: TestType, os: Os, testJvm: JvmCategory, buildJvmVersion: JvmVersion = JvmVersion.java11, expectedBucketNumber: Int = 50, withoutDependencies: Boolean = false, testDistribution: Boolean = false) :
         this(uuid, testType, os, testJvm.version, testJvm.vendor, buildJvmVersion, expectedBucketNumber, withoutDependencies, testDistribution)

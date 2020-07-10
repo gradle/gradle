@@ -46,8 +46,8 @@ class FunctionalTest(
             listOf(""""-PtestJavaHome=%${testCoverage.os}.${testCoverage.testJvmVersion}.${testCoverage.vendor}.64bit%"""") +
                 buildScanTags.map { buildScanTag(it) } +
                 buildScanValues.map { buildScanCustomValue(it.key, it.value) } +
-                if(testCoverage.testDistribution) "-DenableTestDistribution=true" else "" +
-                extraParameters
+                if (testCoverage.testDistribution) "-DenableTestDistribution=true" else "" +
+                    extraParameters
             ).filter { it.isNotBlank() }.joinToString(separator = " "),
         timeout = testCoverage.testType.timeout,
         extraSteps = extraBuildSteps,
@@ -69,7 +69,7 @@ class FunctionalTest(
             }
         }
 
-        if(testCoverage.testDistribution) {
+        if (testCoverage.testDistribution) {
             param("maxParallelForks", "16")
         }
     }
