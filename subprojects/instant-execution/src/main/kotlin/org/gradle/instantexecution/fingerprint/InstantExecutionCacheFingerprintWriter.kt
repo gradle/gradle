@@ -70,9 +70,6 @@ class InstantExecutionCacheFingerprintWriter(
     val capturedFiles: MutableSet<File>
 
     private
-    val inputFiles = mutableListOf<InputFile>()
-
-    private
     val undeclaredSystemProperties = mutableSetOf<String>()
 
     private
@@ -102,9 +99,6 @@ class InstantExecutionCacheFingerprintWriter(
     fun close() {
         if (closestChangingValue != null) {
             write(closestChangingValue)
-        }
-        for (inputFile in inputFiles) {
-            write(inputFile)
         }
         write(null)
         writeContext.close()
@@ -183,7 +177,7 @@ class InstantExecutionCacheFingerprintWriter(
         if (!capturedFiles.add(file)) {
             return
         }
-        inputFiles.add(inputFile(file))
+        write(inputFile(file))
     }
 
     private
