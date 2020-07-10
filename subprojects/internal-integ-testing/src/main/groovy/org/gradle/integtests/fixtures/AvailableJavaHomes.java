@@ -209,7 +209,7 @@ public abstract class AvailableJavaHomes {
 
     private static class BaseDirJvmLocator {
         // open-jdk-14 oracle-jdk-8 open-jdk-14-ea
-        private static final Pattern JDK_DIR = Pattern.compile("jdk-(\\d+)");
+        private static final Pattern JDK_DIR = Pattern.compile("jdk-?(\\d+)");
         private final FileCanonicalizer fileCanonicalizer;
         private final File baseDir;
 
