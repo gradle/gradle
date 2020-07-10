@@ -16,6 +16,7 @@
 
 package org.gradle.internal.vfs.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Interner;
 import com.google.common.util.concurrent.Striped;
 import org.gradle.internal.file.FileMetadata;
@@ -34,6 +35,8 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
 import org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Optional;
@@ -44,17 +47,23 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultVirtualFileSystem.class);
+
     private final AtomicSnapshotHierarchyReference root;
     private final Stat stat;
     private final SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator;
-    private final DirectorySnapshotter directorySnapshotter;
+    private final Interner<String> stringInterner;
+    private ImmutableList<String> defaultExcludes;
+    private DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
     private final StripedProducerGuard<String> producingSnapshots = new StripedProducerGuard<>();
 
     public DefaultVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, CaseSensitivity caseSensitivity, SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator, String... defaultExcludes) {
+        this.stringInterner = stringInterner;
         this.stat = stat;
         this.updateFunctionDecorator = updateFunctionDecorator;
-        this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, defaultExcludes);
+        this.defaultExcludes = ImmutableList.copyOf(defaultExcludes);
+        this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, this.defaultExcludes);
         this.hasher = hasher;
         this.root = new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
     }
@@ -204,6 +213,16 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
             } finally {
                 lock.unlock();
             }
+        }
+    }
+
+    public void updateDefaultExcludes(String... newDefaultExcludesArgs) {
+        ImmutableList<String> newDefaultExcludes = ImmutableList.copyOf(newDefaultExcludesArgs);
+        if (!defaultExcludes.equals(newDefaultExcludes)) {
+            LOGGER.debug("Default excludes changes from {} to {}", defaultExcludes, newDefaultExcludes);
+            defaultExcludes = newDefaultExcludes;
+            directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, newDefaultExcludes);
+            invalidateAll();
         }
     }
 }

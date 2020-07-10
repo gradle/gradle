@@ -271,24 +271,3 @@ tasks.register<Zip>("archiveDistAssets") {
     from("distResources", webAssetPatterns)
 }
 // end::shared-copy-patterns[]
-
-// tag::change-default-exclusions[]
-tasks.register<Copy>("forcedCopy") {
-    into("$buildDir/inPlaceApp")
-    from("src/main/webapp")
-
-    doFirst {
-        ant.withGroovyBuilder {
-            "defaultexcludes"("remove" to "**/.git")
-            "defaultexcludes"("remove" to "**/.git/**")
-            "defaultexcludes"("remove" to "**/*~")
-        }
-    }
-
-    doLast {
-        ant.withGroovyBuilder {
-            "defaultexcludes"("default" to true)
-        }
-    }
-}
-// end::change-default-exclusions[]
