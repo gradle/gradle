@@ -447,7 +447,15 @@ include::sample[dir="snippets/files/copy/groovy",files="settings.gradle[tags=cha
 include::sample[dir="snippets/files/copy/kotlin",files="settings.gradle.kts[tags=change-default-exclusions]"]
 ====
 
+[NOTE]
+====
+Currently, Gradle's default excludes are configured via Ant's `DirectoryScanner` class.
+====
+
+[NOTE]
+====
 Gradle does not support changing default excludes during the execution phase.
+====
 
 You can do many of the same things with file trees that you can with file collections:
 
