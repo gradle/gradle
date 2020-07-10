@@ -34,8 +34,9 @@ public class ReadOnlyModuleMetadataCache extends PersistentModuleMetadataCache {
     }
 
     @Override
-    protected void store(ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetadata) {
+    protected CachedMetadata store(ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetadata) {
         operationShouldNotHaveBeenCalled();
+        return cachedMetadata;
     }
 
     @Override

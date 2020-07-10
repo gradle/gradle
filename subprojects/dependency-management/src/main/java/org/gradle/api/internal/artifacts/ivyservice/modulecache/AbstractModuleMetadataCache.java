@@ -52,8 +52,7 @@ public abstract class AbstractModuleMetadataCache implements ModuleMetadataCache
         final ModuleComponentAtRepositoryKey key = createKey(repository, id);
         ModuleMetadataCacheEntry entry = createEntry(metadata);
         DefaultCachedMetadata cachedMetaData = new DefaultCachedMetadata(entry, metadata, timeProvider);
-        store(key, entry, cachedMetaData);
-        return cachedMetaData;
+        return store(key, entry, cachedMetaData);
     }
 
     protected ModuleComponentAtRepositoryKey createKey(ModuleComponentRepository repository, ModuleComponentIdentifier id) {
@@ -64,7 +63,7 @@ public abstract class AbstractModuleMetadataCache implements ModuleMetadataCache
         return ModuleMetadataCacheEntry.forMetaData(metaData, timeProvider.getCurrentTime());
     }
 
-    protected abstract void store(ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetaData);
+    protected abstract CachedMetadata store(ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetaData);
 
     protected abstract CachedMetadata get(ModuleComponentAtRepositoryKey key);
 }
