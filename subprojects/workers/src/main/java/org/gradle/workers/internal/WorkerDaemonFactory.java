@@ -18,6 +18,8 @@ package org.gradle.workers.internal;
 
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.workers.IsolationMode;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -26,6 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Controls the lifecycle of the worker daemon and provides access to it.
  */
 @ThreadSafe
+@ServiceScope(Scopes.BuildTree)
 public class WorkerDaemonFactory implements WorkerFactory {
     private final WorkerDaemonClientsManager clientsManager;
     private final BuildOperationExecutor buildOperationExecutor;

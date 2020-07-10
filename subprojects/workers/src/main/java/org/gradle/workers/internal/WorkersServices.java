@@ -62,6 +62,15 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
         registration.add(IsolatedClassloaderWorkerFactory.class);
     }
 
+    @Override
+    public void registerBuildTreeServices(ServiceRegistration registration) {
+        registration.addProvider(new Object() {
+            WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationExecutor buildOperationExecutor) {
+                return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationExecutor);
+            }
+        });
+    }
+
     private static class BuildSessionScopeServices {
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
             return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
@@ -135,8 +144,5 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
             return workerExecutor;
         }
 
-        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationExecutor buildOperationExecutor) {
-            return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationExecutor);
-        }
     }
 }
