@@ -80,6 +80,7 @@ import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -89,6 +90,7 @@ import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.time.Clock;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
@@ -148,8 +150,20 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return CurrentBuildOperationRef.instance();
     }
 
-    BuildOperationListenerManager createBuildOperationService() {
+    BuildOperationListenerManager createBuildOperationListenerManager() {
         return new DefaultBuildOperationListenerManager();
+    }
+
+    BuildOperationProgressEventEmitter createBuildOperationProgressEventEmitter(
+        Clock clock,
+        CurrentBuildOperationRef currentBuildOperationRef,
+        BuildOperationListenerManager listenerManager
+    ) {
+        return new BuildOperationProgressEventEmitter(
+            clock,
+            currentBuildOperationRef,
+            listenerManager.getBroadcaster()
+        );
     }
 
     GradleBuildEnvironment createGradleBuildEnvironment() {

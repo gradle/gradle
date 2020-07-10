@@ -153,7 +153,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     IncludedBuildControllers createIncludedBuildControllers(GradleInternal gradle, IncludedBuildControllers sharedControllers) {
-        if (gradle.getParent() == null) {
+        if (gradle.isRootBuild()) {
             return sharedControllers;
         } else {
             return IncludedBuildControllers.EMPTY;

@@ -39,7 +39,7 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
     @Shared
     def fallbackOperationId = Mock(OperationIdentifier)
 
-    LoggingBuildOperationProgressBroadcaster bridge = new LoggingBuildOperationProgressBroadcaster(outputEventListenerManager, buildOperationListener)
+    LoggingBuildOperationProgressBroadcaster bridge = new LoggingBuildOperationProgressBroadcaster(outputEventListenerManager, buildOperationListener, progressEventEmitter)
 
     def setup() {
         bridge.rootBuildOperation = fallbackOperationId
@@ -83,7 +83,7 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
 
     def "registers / unregisters itself as output listener"() {
         when:
-        def loggingBuildOperationNotificationBridge = new LoggingBuildOperationProgressBroadcaster(outputEventListenerManager, buildOperationListener)
+        def loggingBuildOperationNotificationBridge = new LoggingBuildOperationProgressBroadcaster(outputEventListenerManager, buildOperationListener, progressEventEmitter)
 
         then:
         outputEventListenerManager.setListener(loggingBuildOperationNotificationBridge)

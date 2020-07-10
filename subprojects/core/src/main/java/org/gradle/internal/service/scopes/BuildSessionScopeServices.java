@@ -63,8 +63,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationListenerManager;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.scopeids.PersistentScopeIdLoader;
@@ -183,14 +182,9 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     DeprecatedUsageBuildOperationProgressBroadcaster createDeprecatedUsageBuildOperationProgressBroadcaster(
         Clock clock,
-        BuildOperationListenerManager buildOperationListenerManager,
-        CurrentBuildOperationRef currentBuildOperationRef
+        BuildOperationProgressEventEmitter progressEventEmitter
     ) {
-        return new DeprecatedUsageBuildOperationProgressBroadcaster(
-            clock,
-            buildOperationListenerManager.getBroadcaster(),
-            currentBuildOperationRef
-        );
+        return new DeprecatedUsageBuildOperationProgressBroadcaster(clock, progressEventEmitter);
     }
 
     CrossBuildFileHashCacheWrapper createCrossBuildChecksumCache(CacheScopeMapping cacheScopeMapping, ProjectCacheDir projectCacheDir, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {

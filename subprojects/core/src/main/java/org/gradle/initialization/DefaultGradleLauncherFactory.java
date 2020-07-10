@@ -42,6 +42,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction;
@@ -152,7 +153,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             settingsPreparer,
             taskExecutionPreparer,
             gradle.getServices().get(InstantExecution.class),
-            gradle.getServices().get(BuildSourceBuilder.class));
+            gradle.getServices().get(BuildSourceBuilder.class),
+            new BuildOptionBuildOperationProgressEventsEmitter(
+                gradle.getServices().get(BuildOperationProgressEventEmitter.class)
+            )
+        );
         nestedBuildFactory.setParent(gradleLauncher);
         nestedBuildFactory.setBuildCancellationToken(buildTreeScopeServices.get(BuildCancellationToken.class));
         return gradleLauncher;

@@ -17,8 +17,7 @@
 package org.gradle.internal.featurelifecycle;
 
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
-import org.gradle.internal.operations.BuildOperationListener;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.time.Clock;
@@ -26,22 +25,23 @@ import org.gradle.internal.time.Clock;
 public class DeprecatedUsageBuildOperationProgressBroadcaster {
 
     private final Clock clock;
-    private final BuildOperationListener listener;
+    private final BuildOperationProgressEventEmitter progressEventEmitter;
 
-    private final CurrentBuildOperationRef currentBuildOperationRef;
-
-    public DeprecatedUsageBuildOperationProgressBroadcaster(Clock clock, BuildOperationListener listener, CurrentBuildOperationRef currentBuildOperationRef) {
+    public DeprecatedUsageBuildOperationProgressBroadcaster(Clock clock, BuildOperationProgressEventEmitter progressEventEmitter) {
         this.clock = clock;
-        this.listener = listener;
-        this.currentBuildOperationRef = currentBuildOperationRef;
+        this.progressEventEmitter = progressEventEmitter;
     }
 
     void progress(DeprecatedFeatureUsage feature) {
-        OperationIdentifier id = currentBuildOperationRef.getId();
+        OperationIdentifier id = progressEventEmitter.getCurrentOperationIdentifier();
         if (id != null) {
-            listener.progress(id,
-                new OperationProgressEvent(clock.getCurrentTime(),
-                    new DefaultDeprecatedUsageProgressDetails(feature)));
+            progressEventEmitter.emit(
+                id,
+                new OperationProgressEvent(
+                    clock.getCurrentTime(),
+                    new DefaultDeprecatedUsageProgressDetails(feature)
+                )
+            );
         }
 
     }
