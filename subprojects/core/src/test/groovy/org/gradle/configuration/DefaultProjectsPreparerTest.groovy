@@ -15,8 +15,9 @@
  */
 package org.gradle.configuration
 
-import org.gradle.StartParameter
+
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.ProjectConfigurer
 import org.gradle.initialization.BuildLoader
@@ -26,7 +27,7 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import spock.lang.Specification
 
 class DefaultProjectsPreparerTest extends Specification {
-    def startParameter = Mock(StartParameter)
+    def startParameter = Mock(StartParameterInternal)
     def gradle = Mock(GradleInternal)
     def rootProject = Mock(ProjectInternal)
     def projectConfigurer = Mock(ProjectConfigurer)
