@@ -36,6 +36,11 @@ class BuildOperationTreeFixture extends BuildOperationTreeQueries {
     }
 
     @Override
+    List<BuildOperationRecord> getRoots() {
+        operations.roots
+    }
+
+    @Override
     @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> BuildOperationRecord root(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
         def detailsType = BuildOperationTypes.detailsType(type)

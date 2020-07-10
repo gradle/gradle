@@ -43,6 +43,11 @@ class BuildOperationsFixture extends BuildOperationTreeQueries {
     }
 
     @Override
+    List<BuildOperationRecord> getRoots() {
+        tree.roots
+    }
+
+    @Override
     @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> BuildOperationRecord root(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
         return tree.root(type, predicate)

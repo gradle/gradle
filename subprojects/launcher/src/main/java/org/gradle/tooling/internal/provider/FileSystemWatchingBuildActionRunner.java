@@ -37,7 +37,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     @Override
     public Result run(BuildAction action, BuildController buildController) {
         GradleInternal gradle = buildController.getGradle();
-        StartParameterInternal startParameter = (StartParameterInternal) gradle.getStartParameter();
+        StartParameterInternal startParameter = gradle.getStartParameter();
         WatchingAwareVirtualFileSystem virtualFileSystem = gradle.getServices().get(WatchingAwareVirtualFileSystem.class);
 
         boolean watchFileSystem = startParameter.isWatchFileSystem();

@@ -231,7 +231,7 @@ class DefaultProjectTest extends Specification {
 
         build.getProjectEvaluationBroadcaster() >> Stub(ProjectEvaluationListener)
         build.getParent() >> null
-        build.getIdentityPath() >> Path.ROOT
+        build.isRootBuild() >> true
         build.getIdentityPath() >> Path.ROOT
 
         serviceRegistryMock.get((Type) ObjectFactory) >> Stub(ObjectFactory)
