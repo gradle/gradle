@@ -233,6 +233,12 @@ Since version 9, the Java compiler can be configured to produce bytecode for an 
 Gradle now supports this link:{groovyDslPath}/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:release[release] flag on `CompileOptions` directly for Java compilation.
 This option takes precedence over the properties described below.
 
+.Setting Java release flag
+====
+include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=java-release-flag]"]
+include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=java-release-flag]"]
+====
+
 Historical options for the Java compiler remain available:
 
 `sourceCompatibility`::
