@@ -113,9 +113,11 @@ abstract class BuildOperationTreeQueries {
     @SuppressWarnings("GrMethodMayBeStatic")
     List<BuildOperationRecord> search(BuildOperationRecord parent, Spec<? super BuildOperationRecord> predicate = Specs.SATISFIES_ALL) {
         def matches = []
-        walk(parent) {
-            if (predicate.isSatisfiedBy(it)) {
-                matches << it
+        parent.children.each {
+            walk(it) {
+                if (predicate.isSatisfiedBy(it)) {
+                    matches << it
+                }
             }
         }
         matches
