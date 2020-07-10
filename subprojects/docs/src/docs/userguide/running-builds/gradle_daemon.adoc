@@ -219,7 +219,7 @@ Gradle uses operating system features for watching the file system.
 It supports the feature on these operating systems:
 
 - Windows 10,
-- Linux (Ubuntu 16.04 or later),
+- Linux (Ubuntu 16.04 or later, CentOS 8 or later, Red Hat Enterprise Linux 8 or later, Amazon Linux 2),
 - macOS 10.14 (Mojave) or later.
 
 Watching the file system is an experimental feature and is disabled by default.
