@@ -18,10 +18,14 @@ package org.gradle.internal.watch.options
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.FileSystemWatchingFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
+import spock.lang.IgnoreIf
 
-class FileSystemWatchingSettingsFinalizedBuildOperationIntegTest extends AbstractIntegrationSpec {
+@IgnoreIf({ GradleContextualExecuter.watchFs })
+class FileSystemWatchingSettingsFinalizedBuildOperationIntegTest extends AbstractIntegrationSpec implements FileSystemWatchingFixture {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
@@ -39,7 +43,7 @@ class FileSystemWatchingSettingsFinalizedBuildOperationIntegTest extends Abstrac
         file("build.gradle") << "task t"
 
         when:
-        succeeds("t", "--no-watch-fs")
+        withoutWatchFs().succeeds("t")
 
         then:
         events().enabled == [false]
@@ -51,7 +55,7 @@ class FileSystemWatchingSettingsFinalizedBuildOperationIntegTest extends Abstrac
         file("build.gradle") << "task t"
 
         when:
-        succeeds("t", "--watch-fs")
+        withWatchFs().succeeds("t")
 
         then:
         events().enabled == [true]
