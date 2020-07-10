@@ -38,33 +38,35 @@ public class BuildOperationProgressEventEmitter {
         this.listener = listener;
     }
 
-    public long getCurrentTime() {
-        return clock.getCurrentTime();
-    }
-
-    @Nullable
-    public OperationIdentifier getCurrentOperationIdentifier() {
-        return current.getId();
-    }
-
-    public void emitForCurrent(OperationProgressEvent event) {
-        OperationIdentifier currentOperationIdentifier = getCurrentOperationIdentifier();
-        if (currentOperationIdentifier == null) {
-            throw new IllegalStateException("No current build operation");
-        } else {
-            emit(currentOperationIdentifier, event);
-        }
-    }
-
-    public void emitNowForCurrent(Object details) {
-        emitForCurrent(new OperationProgressEvent(clock.getCurrentTime(), details));
-    }
-
-    public void emit(OperationIdentifier operationIdentifier, OperationProgressEvent event) {
+    public void emit(OperationIdentifier operationIdentifier, long timestamp, @Nullable Object details) {
         // Explicit check in case of unsafe CurrentBuildOperationRef usage
         if (operationIdentifier == null) {
             throw new IllegalArgumentException("operationIdentifier is null");
         }
-        listener.progress(operationIdentifier, event);
+        listener.progress(operationIdentifier, new OperationProgressEvent(timestamp, details));
+    }
+
+    public void emitNowIfCurrent(Object details) {
+        emitIfCurrent(clock.getCurrentTime(), details);
+    }
+
+    public void emitIfCurrent(long time, Object details) {
+        OperationIdentifier currentOperationIdentifier = current.getId();
+        if (currentOperationIdentifier != null) {
+            emit(currentOperationIdentifier, time, details);
+        }
+    }
+
+    public void emitNowForCurrent(Object details) {
+        emitForCurrent(clock.getCurrentTime(), details);
+    }
+
+    private void emitForCurrent(long time, Object details) {
+        OperationIdentifier currentOperationIdentifier = current.getId();
+        if (currentOperationIdentifier == null) {
+            throw new IllegalStateException("No current build operation");
+        } else {
+            emit(currentOperationIdentifier, time, details);
+        }
     }
 }

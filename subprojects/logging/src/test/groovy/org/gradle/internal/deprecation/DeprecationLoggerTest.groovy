@@ -18,10 +18,10 @@ package org.gradle.internal.deprecation
 
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.Factory
-import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.GradleVersion
 import org.junit.Rule
@@ -34,7 +34,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     def setup() {
-        DeprecationLogger.init(Mock(UsageLocationReporter), WarningMode.All, Mock(DeprecatedUsageBuildOperationProgressBroadcaster))
+        DeprecationLogger.init(Mock(UsageLocationReporter), WarningMode.All, Mock(BuildOperationProgressEventEmitter))
     }
 
     def cleanup() {

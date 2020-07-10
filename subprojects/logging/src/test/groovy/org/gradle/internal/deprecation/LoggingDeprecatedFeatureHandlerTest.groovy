@@ -18,7 +18,6 @@ package org.gradle.internal.deprecation
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 import org.gradle.internal.featurelifecycle.FeatureUsage
 import org.gradle.internal.featurelifecycle.FeatureUsageTest
@@ -52,9 +51,9 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final Clock clock = Mock(Clock)
     final BuildOperationListener buildOperationListener = Mock()
     final CurrentBuildOperationRef currentBuildOperationRef = new CurrentBuildOperationRef()
-    final DeprecatedUsageBuildOperationProgressBroadcaster progressBroadcaster = new DeprecatedUsageBuildOperationProgressBroadcaster(clock, new BuildOperationProgressEventEmitter(
-        currentBuildOperationRef, buildOperationListener
-    ))
+    final BuildOperationProgressEventEmitter progressBroadcaster = new BuildOperationProgressEventEmitter(
+        clock, currentBuildOperationRef, buildOperationListener
+    )
 
     def setup() {
         handler.init(locationReporter, WarningMode.All, progressBroadcaster)

@@ -29,7 +29,6 @@ import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.operations.OperationProgressEvent;
 
 /**
  * Emits build operation progress for events that represent logging.
@@ -103,7 +102,8 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
     private void emit(CategorisedOutputEvent event, OperationIdentifier buildOperationId) {
         progressEventEmitter.emit(
             buildOperationId,
-            new OperationProgressEvent(event.getTimestamp(), event)
+            event.getTimestamp(),
+            event
         );
     }
 
