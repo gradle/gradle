@@ -29,9 +29,9 @@ internal
 fun <R> runToCompletion(block: suspend () -> R): R {
     var completion: Result<R>? = null
     block.startCoroutine(
-            Continuation(EmptyCoroutineContext) {
-                completion = it
-            }
+        Continuation(EmptyCoroutineContext) {
+            completion = it
+        }
     )
     return completion.let {
         require(it != null) {
