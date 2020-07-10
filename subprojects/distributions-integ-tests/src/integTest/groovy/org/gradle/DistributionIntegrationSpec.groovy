@@ -69,6 +69,10 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         coreLibJarsCount + packagedPluginsJarCount + thirdPartyLibJarsCount
     }
 
+    def setup() {
+        executer.requireOwnGradleUserHomeDir().requireIsolatedDaemons()
+    }
+
     def "no duplicate entries"() {
         given:
         def entriesByPath = zipEntries.findAll { !it.name.contains('/META-INF/services/') }.groupBy { it.name }
