@@ -86,7 +86,7 @@ class FunctionalTest(
 fun getTestTaskName(testCoverage: TestCoverage, stage: Stage, subprojects: List<String>): String {
     val testTaskName = "${testCoverage.testType.name}Test"
     return if (testCoverage.testDistribution && stage.omitsSlowProjects) {
-        return "$testTaskName -x ${slowSubprojects.joinToString(" ") { "$it:$testTaskName" }}"
+        return "$testTaskName ${slowSubprojects.joinToString(" ") { "-x $it:$testTaskName" }}"
     } else if (subprojects.isEmpty()) {
         testTaskName
     } else {
