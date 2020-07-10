@@ -16,7 +16,12 @@
 
 package org.gradle.api;
 
+import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
+import org.gradle.api.internal.TaskInputsInternal;
+import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -26,6 +31,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.extensibility.NoConventionMapping;
+import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
 import java.time.Duration;
@@ -249,5 +255,55 @@ public class DefaultTask extends org.gradle.api.internal.AbstractTask implements
     @Override
     public void usesService(Provider<? extends BuildService<?>> service) {
         super.usesService(service);
+    }
+
+    @Override
+    public TaskStateInternal getState() {
+        return super.getState();
+    }
+
+    @Override
+    public TaskDependencyInternal getTaskDependencies() {
+        return super.getTaskDependencies();
+    }
+
+    @Override
+    public void onlyIf(Closure onlyIfClosure) {
+        super.onlyIf(onlyIfClosure);
+    }
+
+    @Override
+    public void setOnlyIf(Closure onlyIfClosure) {
+        super.setOnlyIf(onlyIfClosure);
+    }
+
+    @Override
+    public LoggingManagerInternal getLogging() {
+        return super.getLogging();
+    }
+
+    @Override
+    public TaskInputsInternal getInputs() {
+        return super.getInputs();
+    }
+
+    @Override
+    public TaskOutputsInternal getOutputs() {
+        return super.getOutputs();
+    }
+
+    @Override
+    public Task doFirst(Closure action) {
+        return super.doFirst(action);
+    }
+
+    @Override
+    public Task doLast(Closure action) {
+        return super.doLast(action);
+    }
+
+    @Override
+    public Task configure(Closure closure) {
+        return super.configure(closure);
     }
 }
