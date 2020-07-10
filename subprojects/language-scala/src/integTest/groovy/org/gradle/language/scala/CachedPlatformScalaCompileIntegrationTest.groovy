@@ -48,7 +48,6 @@ class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileInt
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "joint Java and Scala compilation cannot be cached due to overlapping outputs"() {
         given:
         buildScript """
