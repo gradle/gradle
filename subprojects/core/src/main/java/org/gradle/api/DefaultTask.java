@@ -31,7 +31,6 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.extensibility.NoConventionMapping;
-import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
 import java.time.Duration;
@@ -278,7 +277,7 @@ public class DefaultTask extends org.gradle.api.internal.AbstractTask implements
     }
 
     @Override
-    public LoggingManagerInternal getLogging() {
+    public org.gradle.logging.LoggingManagerInternal getLogging() {
         return super.getLogging();
     }
 
