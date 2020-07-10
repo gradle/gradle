@@ -43,7 +43,7 @@ public class BuildOperationProgressEventEmitter {
         if (operationIdentifier == null) {
             throw new IllegalArgumentException("operationIdentifier is null");
         }
-        listener.progress(operationIdentifier, new OperationProgressEvent(timestamp, details));
+        doEmit(operationIdentifier, timestamp, details);
     }
 
     public void emitNowIfCurrent(Object details) {
@@ -53,7 +53,7 @@ public class BuildOperationProgressEventEmitter {
     public void emitIfCurrent(long time, Object details) {
         OperationIdentifier currentOperationIdentifier = current.getId();
         if (currentOperationIdentifier != null) {
-            emit(currentOperationIdentifier, time, details);
+            doEmit(currentOperationIdentifier, time, details);
         }
     }
 
@@ -66,7 +66,11 @@ public class BuildOperationProgressEventEmitter {
         if (currentOperationIdentifier == null) {
             throw new IllegalStateException("No current build operation");
         } else {
-            emit(currentOperationIdentifier, time, details);
+            doEmit(currentOperationIdentifier, time, details);
         }
+    }
+
+    private void doEmit(OperationIdentifier operationIdentifier, long timestamp, @Nullable Object details) {
+        listener.progress(operationIdentifier, new OperationProgressEvent(timestamp, details));
     }
 }
