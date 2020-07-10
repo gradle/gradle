@@ -23,6 +23,10 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Shared String version = buildContext.distZipVersion.version
 
+    def setup() {
+        executer.requireOwnGradleUserHomeDir().requireIsolatedDaemons()
+    }
+
     @Override
     String getDistributionLabel() {
         "all"
