@@ -20,6 +20,10 @@ import org.gradle.test.fixtures.file.TestFile
 
 class BinDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
+    def setup() {
+        executer.requireOwnGradleUserHomeDir().requireIsolatedDaemons()
+    }
+
     @Override
     String getDistributionLabel() {
         "bin"
