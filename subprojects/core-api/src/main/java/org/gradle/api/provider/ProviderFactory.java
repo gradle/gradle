@@ -241,8 +241,8 @@ public interface ProviderFactory {
      * If the supplied providers represents a task or the output of a task, the resulting provider
      * will carry the dependency information.
      *
-     * @param left the first provider to combine with
-     * @param right the second provider to combine with
+     * @param first the first provider to combine with
+     * @param second the second provider to combine with
      * @param combiner the combiner of values
      * @param <A> the type of the first provider
      * @param <B> the type of the second provider
