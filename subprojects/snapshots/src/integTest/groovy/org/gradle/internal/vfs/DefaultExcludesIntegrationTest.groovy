@@ -139,7 +139,7 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         executer.expectDocumentedDeprecationWarning("Changing default excludes during the build has been deprecated. " +
             "This is scheduled to be removed in Gradle 7.0. " +
             "Default excludes changed from ${defaultExcludesFromSettings} to ${defaultExcludesInTask}. " +
-            "Configure default excludes in settings instead. " +
+            "Configure default excludes in the settings script instead. " +
             "See https://docs.gradle.org/current/userguide/working_with_files.html#sec:change_ant_excludes for more details.")
         run "copyTask"
         then:

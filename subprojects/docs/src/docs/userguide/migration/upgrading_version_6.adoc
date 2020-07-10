@@ -47,7 +47,7 @@ See the <<working_with_files.adoc#sec:file_trees,user manual>> for more informat
 Sometimes, Ant's default excludes prove problematic, for example when you want to include the `.gitignore` in an archive file.
 
 Changing Gradle's default excludes during the execution phase can lead to correctness problems with up-to-date checks, and is deprecated.
-You are only allowed to change Gradle's default excludes in settings, see the <<working_with_files.adoc#sec:change_ant_excludes,user manual>> for an example.
+You are only allowed to change Gradle's default excludes in the settings script, see the <<working_with_files.adoc#sec:change_default_excludes,user manual>> for an example.
 
 [[changes_6.6]]
 == Upgrading from 6.5

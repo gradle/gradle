@@ -438,10 +438,10 @@ You can see more examples of supported patterns in the API docs for link:{javado
 
 By default, `fileTree()` returns a `FileTree` instance that applies some default exclude patterns for convenience — the same defaults as Ant in fact. For the complete default exclude list, see http://ant.apache.org/manual/dirtasks.html#defaultexcludes[the Ant manual].
 
-[[sec:change_ant_excludes]]
-If those default excludes prove problematic, you can workaround the issue by changing the default excludes in settings:
+[[sec:change_default_excludes]]
+If those default excludes prove problematic, you can workaround the issue by changing the default excludes in the settings script:
 
-.Changing default excludes in settings
+.Changing default excludes in the settings script
 ====
 include::sample[dir="snippets/files/copy/groovy",files="settings.gradle[tags=change-default-exclusions]"]
 include::sample[dir="snippets/files/copy/kotlin",files="settings.gradle.kts[tags=change-default-exclusions]"]
