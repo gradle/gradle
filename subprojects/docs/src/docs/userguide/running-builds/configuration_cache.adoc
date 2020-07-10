@@ -71,6 +71,9 @@ Apart from skipping the configuration phase, the configuration cache provides so
 - All tasks run in parallel by default.
 - Dependency resolution is cached.
 
+=== See the impact
+image::configuration-cache-effect.gif[]
+
 [[config_cache:usage]]
 == Using the configuration cache
 

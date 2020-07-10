@@ -1,9 +1,8 @@
-
 The Gradle team is excited to announce Gradle @version@.
 
 This release introduces a major performance optimization as an experimental opt-in. [Configuration caching](#configuration-caching) allows Gradle to skip the configuration phase of the build and start executing tasks as soon as possible. 
 
-Other improvements in this release include [Java compilation --release flag support](#javacompile-release), [conventions for handling user-provided credentials](#credentials) and a number of smaller changes and [bug fixes](#fixed-issues). 
+Other improvements in this release include [conventions for handling user-provided credentials](#credentials), [support for Java compilation --release flag](#javacompile-release),  and a number of other improvements and [bug fixes](#fixed-issues). 
 
 We would like to thank the following community contributors to this release of Gradle:
 
@@ -29,8 +28,6 @@ See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@b
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
-
 ## Performance improvements
 
 Fast feedback for local incremental builds is crucial for developer productivity. This is especially true when your IDE uses Gradle to build and run tests for your project, which IntelliJ IDEA does by default. This scenario has been the primary focus of performance improvements since Gradle 6.5 and will continue for the next several Gradle releases.
@@ -40,7 +37,9 @@ Fast feedback for local incremental builds is crucial for developer productivity
 
 Before running any task, Gradle needs to run the [configuration phase](userguide/build_lifecycle.html#build_lifecycle). Currently, this is done on every build invocation and can incur a noticeable overhead, especially in large projects.
 
-The configuration cache significantly improves build performance by caching the result of the configuration phase and reusing it for subsequent builds. Using the configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed.
+The configuration cache significantly improves build performance by caching the result of the configuration phase and reusing it for subsequent builds. Using the configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed as you can see below.
+
+<img src="userguide/img/configuration-cache-effect.gif">
 
 Additionally, Gradle is able to optimize task execution when configuration caching is enabled and execute more tasks in parallel by default.
 
@@ -55,9 +54,9 @@ You can enable this experimental feature by supplying the parameter `--configura
 
 Learn more about this new feature and its impact in the [Configuration Cache](userguide/configuration_cache.html) documentation.
 
-### Stability improvements for file-system watching
+### Stability improvements of file-system watching
 
-Gradle 6.5 introduced an [experimental opt-in](https://docs.gradle.org/6.5/release-notes.html#file-watching) that improves performance of local incremental builds by watching for file-system changes.
+Gradle 6.5 introduced an [experimental opt-in](https://docs.gradle.org/6.5/release-notes.html#file-watching) that improves the performance of local incremental builds by watching for file-system changes.
 
 This release brings a number of stability improvements for file-system watching when used with composite builds or large projects on Windows and macOS. Gradle will now report better errors when you enable file-system watching on unsupported systems. 
 
@@ -78,7 +77,7 @@ normalization {
 }
 ```
 
-This improves the likelihood of build cache hits when any zip file on the classpath is regenerated and only differs by unimportant values or comments.  The most common case where this sort of normalization can be useful is with jar files, but it can be applied to any zip file on the classpath--such as aar, war, or apk files.
+This improves the likelihood of build cache hits when any ZIP file on the classpath is regenerated and only differs by unimportant values or comments.  The most common case where this sort of normalization can be useful is with JAR files, but it can be applied to any ZIP file on the classpath--such as AAR, WAR, or APK files.
 
 See the [user manual](userguide/more_about_tasks.html#sec:meta_inf_normalization) for further information.  Note that this API is incubating and will likely change in future releases as support is expanded for normalizing properties files outside of the `META-INF` directory.
 
@@ -87,9 +86,9 @@ See the [user manual](userguide/more_about_tasks.html#sec:meta_inf_normalization
 <a name="credentials"></a>
 ### Conventions for handling user-provided credentials
 
-Gradle builds sometimes require users to supply credentials that are used by tasks. For example, credentials might be required to authenticate with an artifact repository in order to publish an artifact. It's a good practice to keep credentials outside the build script.
+Builds sometimes require users to supply credentials. For example, credentials might be required to authenticate with an artifact repository in order to publish an artifact. It's a good practice to keep credentials outside the build script.
 
-This release includes a new API for credentials that makes working with credentials easier by establishing a convention to supply credentials using `gradle.properties`. It also introduces fail-fast behavior when Gradle knows that the build will need credentials at some point and the credentials are missing.
+This release includes a new API for credentials that makes working with credentials easier by establishing a convention to supply credentials using Gradle properties that can be provided to the build as command-line arguments, environment variables, or as values in a `gradle.properties` file. It also introduces fail-fast behavior when Gradle knows that the build will need credentials at some point and the credentials are missing.
 
 Starting from this release, you can easily externalize credentials used for authentication to an artifact repository:
 
@@ -113,7 +112,7 @@ You can also use the new [provider API](javadoc/org/gradle/api/provider/Provider
 ```groovy
 tasks.register('login', Exec) {
     def loginProvider = 
-providers.credentials(PasswordCredentials, 'login')
+        providers.credentials(PasswordCredentials, 'login')
     inputs.property('credentials', loginProvider)
     doFirst {
        PasswordCredentials loginCredentials = loginProvider.get()
@@ -122,16 +121,41 @@ providers.credentials(PasswordCredentials, 'login')
 }
 ```
 
-The credentials for above will be searched for with the names `loginUsername` and `loginPassword`.
+The credentials for the above will be searched for in Gradle properties with the names `loginUsername` and `loginPassword`.
 
 See the updated [sample](samples/sample_publishing_credentials.html) for more details.
+
+<a name="javacompile-release"></a>
+### Support for the `--release` flag in Java compilation
+
+Java 9 introduced cross compilation support with the `--release` flag on the Java compiler.
+This option tells the compiler to produce bytecode for an earlier version of Java and guarantees that the code does not use any APIs from later versions.
+
+In previous Gradle versions, it could be achieved through the use of `compilerArgs` and making sure that `sourceCompatibility` and `targetCompatibility` are not set:
+
+```groovy
+compileJava {
+  options.compilerArgs.addAll(['--release', '7'])
+}
+```
+
+With this release, Gradle makes this use case easier by supporting the `--release` flag for Java compilation directly on the `CompileOptions` of `JavaCompile` tasks:
+
+```groovy
+compileJava {
+  options.release = 7
+}
+```
+
+See the section on [cross compilation](userguide/building_java_projects.html#sec:java_cross_compilation) for details.
 
 ## Dependency management improvements
 
 ### Reproducible Gradle Module Metadata 
 
 [Gradle Module Metadata](userguide/publishing_gradle_module_metadata.html) is a format used to serialize the Gradle component model, similar to but more powerful than Maven’s POM. 
-By default, the Gradle Module Metadata file contains a build identifier field which defaults to a unique ID generated during build execution. This behaviour can now be disabled at the publication level, allowing users to opt-in for a reproducible Gradle Module Metadata file. This enables downstream tasks to consider it up-to-date.
+
+By default, the Gradle Module Metadata file contains a build identifier field which defaults to a unique ID generated during build execution. This behaviour can now be disabled at the publication level, allowing users to opt-in for a reproducible Gradle Module Metadata file. This enables downstream tasks to consider it up-to-date and result in faster builds.
 
 ```groovy
 main(MavenPublication) {
@@ -144,25 +168,16 @@ See the documentation for more information on [Gradle Module Metadata generation
 
 ### Variant-aware dependency substitution rules
 
-Previously, it wasn't possible for Gradle to substitute a dependency which uses a classifier with a dependency without a classifier, nor was it possible to substitute a dependency _without_ classifier with a classified dependency.
-Similarly, dependencies with attributes (typically "platform" dependencies) or capabilities (typically "test fixtures" dependencies) could not be substituted.
+It’s a common problem in dependency management that the same dependency can appear in a dependency graph but with different attributes. For example, you want to only use the “fat jar” with repackaged dependencies, but the regular jar is pulled in transitively.  The far jar may be published under a "fat jar" classifier, while the regular jar has no classifier. 
 
-Gradle now supports substitution of dependencies with classifiers, attributes or capabilities.
+Previously, it wasn't possible for Gradle to [substitute a dependency](userguide/resolution_rules.html#sec:dependency_substitution_rules) using a classifier with a dependency without a classifier, nor was it possible to substitute a dependency _without_ classifier with a dependency with a classifier.
+
+Similarly, other attributes (typically "platform" dependencies) or [capabilities](userguide/component_capabilities.html#capabilities_as_first_level_concept) could not be used when describing dependency substitutions.
+
+Gradle now supports declaring substitutions based on classifiers, attributes, or capabilities.
 Gradle's dependency substitution API has been enriched to cover those cases.
 
 See the documentation on [variant-aware substitution](userguide/resolution_rules.html#sec:variant_aware_substitutions) for details.
-
-<a name="javacompile-release"></a>
-### Support for the `--release` flag in Java compilation
-
-Java 9 introduced cross compilation support with the `--release` flag on the Java compiler.
-This option tells the compiler to produce bytecode for an earlier version of Java combined with the guarantee that the code does not use any APIs from later versions.
-
-With this release, Gradle now supports the `--release` option for Java compilation on the `CompileOptions` of `JavaCompile` tasks.
-
-See the section on [cross compilation](userguide/building_java_projects.html#sec:java_cross_compilation) for details.
-
-Support for this flag on the Javadoc tasks and other JVM language compilation will be added in future releases.
 
 ## Improvements for plugin authors
 
@@ -176,8 +191,25 @@ The new `ArchiveOperations` service has [zipTree()](javadoc/org/gradle/api/file/
 
 See the [user manual](userguide/custom_gradle_types.html#service_injection) for how to inject services and the [`ArchiveOperations`](javadoc/org/gradle/api/file/ArchiveOperations.html) API documentation for more details and examples.
 
+### Combining two providers
+
+When using [Lazy Properties](userguide/lazy_configuration.html), it’s common to compute a value by combining the values of two providers. In previous Gradle releases, it wasn’t possible to do this without eagerly reading one of the provider values or losing dependency information. Gradle 6.6 introduces a `zip` method which lets you provide the combined value lazily.:
+
+```groovy
+def hello = objects.property(String).convention("Hello")
+def world = objects.property(String).convention("World")
+def helloWorld = hello.zip(world) { left, right -> "${left}, ${right}!".toString() }
+// ...
+hello.set("Bonjour")
+world.set("le monde")
+println(helloWorld.get()) // prints “Bonjour, le monde!”
+```
+
+Refer to the [API documentation](javadoc/org/gradle/api/provider/Provider.html#zip-org.gradle.api.provider.Provider-java.util.function.BiFunction-) for details.
+
 ## Promoted features
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
+
+Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
@@ -198,3 +230,4 @@ If you find a problem with this release, please file a bug on [GitHub Issues](ht
 If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
 
 We hope you will build happiness with Gradle, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).
+
