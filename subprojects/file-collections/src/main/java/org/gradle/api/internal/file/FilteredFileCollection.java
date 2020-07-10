@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class FilteredFileCollection extends AbstractFileCollection {
     private final AbstractFileCollection collection;
@@ -34,6 +35,15 @@ public class FilteredFileCollection extends AbstractFileCollection {
         super(collection.patternSetFactory);
         this.collection = collection;
         this.filterSpec = filterSpec;
+    }
+
+    @Override
+    public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
+        AbstractFileCollection newCollection = (AbstractFileCollection) collection.replace(original, supplier);
+        if (newCollection == collection) {
+            return this;
+        }
+        return new FilteredFileCollection(newCollection, filterSpec);
     }
 
     public AbstractFileCollection getCollection() {

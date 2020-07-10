@@ -145,9 +145,9 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
 
     @Issue("https://github.com/gradle/gradle/issues/12832")
     def "can use += convenience in Groovy DSL to add elements to file collection when property has legacy setter"() {
-        taskTypeWithInputFileCollection()
+        taskTypeLogsInputFileCollectionContent()
         buildFile << """
-            class LegacyTask extends InputFilesTask {
+            class LegacyTask extends ShowFilesTask {
                 void setInFiles(def c) {
                     inFiles.from = c
                 }
@@ -158,7 +158,6 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
             task merge(type: LegacyTask) {
                 inFiles += files1
                 inFiles += files2
-                outFile = file("merge.txt")
             }
         """
         file('a.txt').text = 'a'
@@ -168,14 +167,14 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         run("merge")
 
         then:
-        file("merge.txt").text == 'a,b'
+        outputContains("result = [a.txt, b.txt]")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12832")
     def "can compose and filter a file collection that includes the collection it replaces"() {
-        taskTypeWithInputFileCollection()
+        taskTypeLogsInputFileCollectionContent()
         buildFile << """
-            class LegacyTask extends InputFilesTask {
+            class LegacyTask extends ShowFilesTask {
                 void setInFiles(def c) {
                     inFiles.from = c
                 }
@@ -186,17 +185,48 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
             task merge(type: LegacyTask) {
                 inFiles = files1
                 inFiles = files(inFiles, files2).filter { f -> f.name.endsWith('.txt') }
-                outFile = file("merge.txt")
             }
         """
         file('a.txt').text = 'a'
+        file('a.bin').text = 'ignore-me'
         file('b.txt').text = 'b'
+        file('b.bin').text = 'ignore-me'
 
         when:
         run("merge")
 
         then:
-        file("merge.txt").text == 'a,b'
+        outputContains("result = [a.txt, b.txt]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13745")
+    def "can compose and filter a file collection to rearrange its elements"() {
+        taskTypeLogsInputFileCollectionContent()
+        buildFile << """
+            class LegacyTask extends ShowFilesTask {
+                void setInFiles(def c) {
+                    inFiles.from = c
+                }
+            }
+
+            def files1 = files('a.txt', 'a.bin')
+            def files2 = files('b.txt', 'b.bin')
+            task merge(type: LegacyTask) {
+                inFiles = files1
+                def sum = inFiles.plus(files2)
+                inFiles = sum.filter { f -> f.name.endsWith('.txt') } + sum.filter { f -> f.name.endsWith('.bin') }
+            }
+        """
+        file('a.txt').text = 'a1'
+        file('a.bin').text = 'a2'
+        file('b.txt').text = 'b1'
+        file('b.bin').text = 'b2'
+
+        when:
+        run("merge")
+
+        then:
+        outputContains("result = [a.txt, b.txt, a.bin, b.bin]")
     }
 
     def "can subtract the elements of another file collection"() {

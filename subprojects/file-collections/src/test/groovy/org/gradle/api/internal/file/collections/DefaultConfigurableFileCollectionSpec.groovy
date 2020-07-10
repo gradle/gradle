@@ -481,8 +481,12 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         def fileCollectionMock = Mock(FileCollectionInternal)
         def file = new File("some-file")
 
+        when:
         collection.from("file")
         collection.from(fileCollectionMock)
+
+        then:
+        1 * fileCollectionMock.replace(_, _) >> fileCollectionMock
 
         when:
         collection.visitStructure(visitor)

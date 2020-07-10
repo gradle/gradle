@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeintegration.services.FileSystems;
@@ -29,7 +32,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class FileCollectionBackedFileTree extends CompositeFileTree {
+public class FileCollectionBackedFileTree extends AbstractFileTree {
     private final AbstractFileCollection collection;
 
     public FileCollectionBackedFileTree(Factory<PatternSet> patternSetFactory, AbstractFileCollection collection) {
@@ -42,17 +45,26 @@ public class FileCollectionBackedFileTree extends CompositeFileTree {
     }
 
     @Override
-    protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-        collection.visitStructure(new FileCollectionStructureVisitor() {
-            final Set<File> seen = new HashSet<>();
+    public FileTreeInternal matching(PatternFilterable patterns) {
+        return new FilteredFileTree(this, patternSetFactory, () -> {
+            PatternSet patternSet = patternSetFactory.create();
+            patternSet.copyFrom(patterns);
+            return patternSet;
+        });
+    }
 
+    @Override
+    public FileTree visit(FileVisitor visitor) {
+        visitContentsAsFileTrees(child -> child.visit(visitor));
+        return this;
+    }
+
+    @Override
+    public void visitContentsAsFileTrees(Consumer<FileTreeInternal> visitor) {
+        visitContents(new FileCollectionStructureVisitor() {
             @Override
             public void visitCollection(Source source, Iterable<File> contents) {
-                for (File file : contents) {
-                    if (seen.add(file)) {
-                        visitor.accept(new FileTreeAdapter(new DirectoryFileTree(file, patternSetFactory.create(), FileSystems.getDefault()), patternSetFactory));
-                    }
-                }
+                throw new UnsupportedOperationException("Should not be called");
             }
 
             @Override
@@ -68,6 +80,38 @@ public class FileCollectionBackedFileTree extends CompositeFileTree {
             @Override
             public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                 visitor.accept(fileTree);
+            }
+        });
+    }
+
+    @Override
+    protected void visitContents(FileCollectionStructureVisitor visitor) {
+        collection.visitStructure(new FileCollectionStructureVisitor() {
+            final Set<File> seen = new HashSet<>();
+
+            @Override
+            public void visitCollection(Source source, Iterable<File> contents) {
+                PatternSet patterns = patternSetFactory.create();
+                for (File file : contents) {
+                    if (seen.add(file)) {
+                        new FileTreeAdapter(new DirectoryFileTree(file, patterns, FileSystems.getDefault()), patternSetFactory).visitStructure(visitor);
+                    }
+                }
+            }
+
+            @Override
+            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                visitor.visitGenericFileTree(fileTree, sourceTree);
+            }
+
+            @Override
+            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                visitor.visitFileTree(root, patterns, fileTree);
+            }
+
+            @Override
+            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                visitor.visitFileTreeBackedByFile(file, fileTree, sourceTree);
             }
         });
     }
