@@ -18,8 +18,11 @@ package org.gradle.internal.configurationcache.options
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
+import spock.lang.IgnoreIf
 
+@IgnoreIf({ GradleContextualExecuter.instant })
 class ConfigurationCacheSettingsFinalizedBuildOperationIntegTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
