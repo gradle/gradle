@@ -17,10 +17,8 @@
 package org.gradle
 
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
 import spock.lang.Shared
 
-@Ignore
 class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Shared String version = buildContext.distZipVersion.version
