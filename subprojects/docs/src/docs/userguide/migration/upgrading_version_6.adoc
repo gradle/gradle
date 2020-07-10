@@ -40,13 +40,13 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Deprecations
 
-==== Changing default excludes during task execution
+==== Changing default excludes during the execution phase
 
 Gradle's file trees apply some default exclude patterns for convenience — the same defaults as Ant in fact.
 See the <<working_with_files.adoc#sec:file_trees,user manual>> for more information.
 Sometimes, Ant's default excludes prove problematic, for example when you want to include the `.gitignore` in an archive file.
 
-Changing Gradle's default excludes during task execution can lead to correctness problems with up-to-date checks, and is deprecated.
+Changing Gradle's default excludes during the execution phase can lead to correctness problems with up-to-date checks, and is deprecated.
 You are only allowed to change Gradle's default excludes in settings, see the <<working_with_files.adoc#sec:change_ant_excludes,user manual>> for an example.
 
 [[changes_6.6]]
