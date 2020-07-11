@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
 
 import java.util.concurrent.Callable
+import java.util.function.Consumer
 import java.util.function.Supplier
 
 class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
@@ -591,11 +592,18 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         e.message == 'The value for <display> is final and cannot be changed.'
 
         when:
-        collection.setFrom(['some', 'more'])
+        collection.setFrom()
 
         then:
         def e2 = thrown(IllegalStateException)
         e2.message == 'The value for <display> is final and cannot be changed.'
+
+        when:
+        collection.setFrom(['some', 'more'])
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for <display> is final and cannot be changed.'
     }
 
     def cannotMutateFromSetWhenFinalized() {
@@ -1015,6 +1023,73 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         files as List == [file]
     }
 
+    def "can visit structure and children after finalized from paths"() {
+        given:
+        def file1 = new File('one')
+        def file2 = new File('two')
+        _ * fileResolver.resolve(file1) >> file1
+        _ * fileResolver.resolve(file2) >> file2
+
+        collection.from(file1, file2)
+        collection.finalizeValue()
+
+        def structureVisitor = Mock(FileCollectionStructureVisitor)
+        def childVisitor = Mock(Consumer)
+
+        when:
+        collection.visitStructure(structureVisitor)
+
+        then:
+        1 * structureVisitor.startVisit(_, collection) >> true
+        1 * structureVisitor.startVisit(_, _) >> { source, files ->
+            assert files.toList() == [file1]
+            true
+        }
+        1 * structureVisitor.visitCollection(_, _) >> { source, files ->
+            assert files.toList() == [file1]
+        }
+        1 * structureVisitor.startVisit(_, _) >> { source, files ->
+            assert files.toList() == [file2]
+            true
+        }
+        1 * structureVisitor.visitCollection(_, _) >> { source, files ->
+            assert files.toList() == [file2]
+        }
+        0 * structureVisitor._
+
+        when:
+        collection.visitChildren(childVisitor)
+
+        then:
+        2 * childVisitor.accept(_)
+        0 * childVisitor._
+    }
+
+    def "visiting structure and children does nothing when empty after finalization"() {
+        given:
+        def files1 = Mock(FileCollectionInternal)
+        def files2 = Mock(FileCollectionInternal)
+
+        collection.from(files1, files2)
+        collection.finalizeValue()
+
+        def structureVisitor = Mock(FileCollectionStructureVisitor)
+        def childVisitor = Mock(Consumer)
+
+        when:
+        collection.visitStructure(structureVisitor)
+
+        then:
+        1 * structureVisitor.startVisit(_, collection) >> true
+        0 * structureVisitor._
+
+        when:
+        collection.visitChildren(childVisitor)
+
+        then:
+        0 * childVisitor._
+    }
+
     def cannotSpecifyPathsWhenQueriedAfterFinalizeOnRead() {
         given:
         collection.from('a')
@@ -1052,6 +1127,13 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         then:
         def e = thrown(IllegalStateException)
         e.message == 'The value for <display> is final and cannot be changed.'
+
+        when:
+        collection.from()
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <display> is final and cannot be changed.'
     }
 
     def cannotMutateFromSetWhenQueriedAfterFinalizeOnRead() {

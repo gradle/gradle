@@ -155,14 +155,14 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public void setFrom(Object... paths) {
-        if (assertMutable()) {
+        if (assertMutable() && paths.length > 0) {
             value = value.setFrom(this, resolver, patternSetFactory, dependencyFactory, host, paths);
         }
     }
 
     @Override
     public ConfigurableFileCollection from(Object... paths) {
-        if (assertMutable()) {
+        if (assertMutable() && paths.length > 0) {
             value = value.plus(this, resolver, patternSetFactory, dependencyFactory, host, paths);
         }
         return this;
@@ -224,7 +224,10 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         value.visitContents(child -> child.visitStructure(new FileCollectionStructureVisitor() {
             @Override
             public void visitCollection(Source source, Iterable<File> contents) {
-                builder.add(new FileCollectionAdapter(new ListBackedFileSet(contents), patternSetFactory));
+                ImmutableSet<File> files = ImmutableSet.copyOf(contents);
+                if (!files.isEmpty()) {
+                    builder.add(new FileCollectionAdapter(new ListBackedFileSet(files), patternSetFactory));
+                }
             }
 
             @Override
@@ -360,7 +363,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
         @Override
         public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Iterable<?> path) {
-            ImmutableSet<Object> oldItems = ImmutableSet.copyOf(items);
+            ImmutableList<Object> oldItems = ImmutableList.copyOf(items);
             items.clear();
             addItem(owner, resolver, patternSetFactory, taskDependencyFactory, propertyHost, path, oldItems);
             return this;
@@ -368,7 +371,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
         @Override
         public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Object[] paths) {
-            ImmutableSet<Object> oldItems = ImmutableSet.copyOf(items);
+            ImmutableList<Object> oldItems = ImmutableList.copyOf(items);
             items.clear();
             for (Object path : paths) {
                 addItem(owner, resolver, patternSetFactory, taskDependencyFactory, propertyHost, path, oldItems);
@@ -378,17 +381,21 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
         @Override
         public ValueCollector plus(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Object... paths) {
-            ImmutableSet<Object> oldItems = ImmutableSet.copyOf(items);
+            ImmutableList<Object> oldItems = ImmutableList.copyOf(items);
             for (Object path : paths) {
                 addItem(owner, resolver, patternSetFactory, taskDependencyFactory, propertyHost, path, oldItems);
             }
             return this;
         }
 
-        private void addItem(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Object path, ImmutableSet<Object> oldItems) {
+        private void addItem(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Object path, ImmutableList<Object> oldItems) {
             // Unpack to deal with DSL syntax: collection += someFiles
             if (path instanceof FileCollectionInternal) {
                 path = ((FileCollectionInternal) path).replace(owner, () -> {
+                    // Should use FileCollectionFactory here, and it can take care of simplifying the tree. For example, ths returned collection does not need to be mutable
+                    if (oldItems.size() == 1 && oldItems.get(0) instanceof FileCollectionInternal) {
+                        return (FileCollectionInternal) oldItems.get(0);
+                    }
                     DefaultConfigurableFileCollection oldFiles = new DefaultConfigurableFileCollection(null, resolver, taskDependencyFactory, patternSetFactory, propertyHost);
                     oldFiles.from(oldItems);
                     return oldFiles;

@@ -27,12 +27,8 @@ import java.util.Set;
 public class ListBackedFileSet implements MinimalFileSet {
     private final ImmutableSet<File> files;
 
-    public ListBackedFileSet(File... files) {
-        this.files = ImmutableSet.copyOf(files);
-    }
-
-    public ListBackedFileSet(Iterable<File> files) {
-        this.files = ImmutableSet.copyOf(files);
+    public ListBackedFileSet(ImmutableSet<File> files) {
+        this.files = files;
     }
 
     @Override

@@ -28,7 +28,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public class FilteredFileCollection extends AbstractFileCollection {
-    private final AbstractFileCollection collection;
+    private final FileCollectionInternal collection;
     private final Spec<? super File> filterSpec;
 
     public FilteredFileCollection(AbstractFileCollection collection, Spec<? super File> filterSpec) {
@@ -46,7 +46,7 @@ public class FilteredFileCollection extends AbstractFileCollection {
         return new FilteredFileCollection(newCollection, filterSpec);
     }
 
-    public AbstractFileCollection getCollection() {
+    public FileCollectionInternal getCollection() {
         return collection;
     }
 
