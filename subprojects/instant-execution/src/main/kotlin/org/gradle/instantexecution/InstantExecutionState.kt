@@ -132,7 +132,7 @@ class InstantExecutionState(
         }
 
     private
-    suspend fun DefaultWriteContext.writeChildBuilds(gradle: GradleInternal) {
+    fun DefaultWriteContext.writeChildBuilds(gradle: GradleInternal) {
         if (gradle.includedBuilds.isNotEmpty()) {
             logNotImplemented(
                 feature = "included builds",
