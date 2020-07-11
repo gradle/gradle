@@ -48,9 +48,11 @@ class DefaultWriteContext(
     override val logger: Logger,
 
     private
-    val problemsListener: ProblemsListener
+    val problemsListener: ProblemsListener,
 
-) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, Encoder by encoder, AutoCloseable {
+    override var recursionScope: RecursiveFunctionScope<Any?, Unit>? = null
+
+) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, RecursiveContext<Any?, Unit>, Encoder by encoder, AutoCloseable {
 
     override val sharedIdentities = WriteIdentities()
 
@@ -77,6 +79,15 @@ class DefaultWriteContext(
         get() = getIsolate()
 
     override suspend fun write(value: Any?) {
+        val recurScope = this.recursionScope
+        if (recurScope != null) {
+            recurScope.recur(value)
+        } else {
+            applyFunctionTo(value)
+        }
+    }
+
+    override suspend fun applyFunctionTo(value: Any?) {
         getCodec().run {
             encode(value)
         }
@@ -176,9 +187,11 @@ class DefaultReadContext(
     override val logger: Logger,
 
     private
-    val problemsListener: ProblemsListener
+    val problemsListener: ProblemsListener,
 
-) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder {
+    override var recursionScope: RecursiveFunctionScope<Any?, Any?>? = null
+
+) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, RecursiveContext<Any?, Any?>, Decoder by decoder {
 
     override val sharedIdentities = ReadIdentities()
 
@@ -206,11 +219,19 @@ class DefaultReadContext(
         this.projectProvider = projectProvider
     }
 
-    override var immediateMode: Boolean = false
-
-    override suspend fun read(): Any? = getCodec().run {
-        decode()
+    override suspend fun read(): Any? {
+        val recur = this.recursionScope
+        return if (recur != null) {
+            recur.recur(null)
+        } else {
+            applyFunctionTo(null)
+        }
     }
+
+    override suspend fun applyFunctionTo(value: Any?): Any? =
+        getCodec().run {
+            decode()
+        }
 
     override val isolate: ReadIsolate
         get() = getIsolate()

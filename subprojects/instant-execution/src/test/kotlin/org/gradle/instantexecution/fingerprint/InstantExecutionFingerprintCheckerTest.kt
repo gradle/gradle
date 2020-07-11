@@ -371,10 +371,6 @@ class InstantExecutionFingerprintCheckerTest {
         override fun getProject(path: String): ProjectInternal =
             undefined()
 
-        override var immediateMode: Boolean
-            get() = undefined()
-            set(_) {}
-
         override fun readClass(): Class<*> =
             undefined()
 

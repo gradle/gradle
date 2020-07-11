@@ -114,13 +114,13 @@ abstract class AbstractUserTypeCodecTest {
             }
         }
 
-    private
+    internal
     inline fun <R> MutableIsolateContext.withIsolateMock(codec: Codec<Any?>, block: () -> R): R =
         withIsolate(IsolateOwner.OwnerGradle(mock()), codec) {
             block()
         }
 
-    private
+    internal
     fun writeContextFor(encoder: Encoder, codec: Codec<Any?>, problemHandler: ProblemsListener) =
         DefaultWriteContext(
             codec = codec,

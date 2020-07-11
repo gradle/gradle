@@ -24,16 +24,7 @@ import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.Serializer
-
 import java.io.File
-
-import java.util.ArrayDeque
-
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
-import kotlin.coroutines.startCoroutine
-import kotlin.coroutines.suspendCoroutine
 
 
 internal
@@ -76,86 +67,6 @@ inline fun <reified T> ReadContext.ownerService() =
 internal
 fun <T> ReadContext.ownerService(serviceType: Class<T>) =
     isolate.owner.service(serviceType)
-
-
-internal
-fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
-
-    val encodeStack = ArrayDeque<EncodeFrame<T>>()
-
-    val decodeStack = ArrayDeque<DecodeFrame<T?>>()
-
-    override suspend fun WriteContext.encode(value: T) {
-        when {
-            encodeStack.isEmpty() -> {
-                encodeStack.push(EncodeFrame(value, null))
-                encodeLoop(coroutineContext)
-            }
-            else -> suspendCoroutine<Unit> { k ->
-                encodeStack.push(EncodeFrame(value, k))
-            }
-        }
-    }
-
-    override suspend fun ReadContext.decode(): T? =
-        when {
-            immediateMode -> {
-                codec.run { decode() }
-            }
-            decodeStack.isEmpty() -> {
-                decodeStack.push(DecodeFrame(null))
-                decodeLoop(coroutineContext)
-            }
-            else -> suspendCoroutine { k ->
-                decodeStack.push(DecodeFrame(k))
-            }
-        }
-
-    private
-    fun WriteContext.encodeLoop(coroutineContext: CoroutineContext) {
-        do {
-            suspend {
-                codec.run {
-                    encode(encodeStack.peek().value)
-                }
-            }.startCoroutine(
-                Continuation(coroutineContext) {
-                    when (val k = encodeStack.pop().k) {
-                        null -> it.getOrThrow()
-                        else -> k.resumeWith(it)
-                    }
-                }
-            )
-        } while (encodeStack.isNotEmpty())
-    }
-
-    private
-    fun ReadContext.decodeLoop(coroutineContext: CoroutineContext): T? {
-        var result: T? = null
-        do {
-            suspend {
-                codec.run { decode() }
-            }.startCoroutine(
-                Continuation(coroutineContext) {
-                    when (val k = decodeStack.pop().k) {
-                        null -> result = it.getOrThrow()
-                        else -> k.resumeWith(it)
-                    }
-                }
-            )
-        } while (decodeStack.isNotEmpty())
-        return result
-    }
-}
-
-
-@Suppress("experimental_feature_warning")
-private
-inline class DecodeFrame<T>(val k: Continuation<T>?)
-
-
-private
-data class EncodeFrame<T>(val value: T, val k: Continuation<Unit>?)
 
 
 private
