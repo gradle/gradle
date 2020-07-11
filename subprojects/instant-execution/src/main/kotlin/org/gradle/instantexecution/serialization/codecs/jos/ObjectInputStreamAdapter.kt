@@ -16,12 +16,12 @@
 
 package org.gradle.instantexecution.serialization.codecs.jos
 
-import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
 import org.gradle.instantexecution.serialization.readDouble
 import org.gradle.instantexecution.serialization.readFloat
 import org.gradle.instantexecution.serialization.readShort
+import org.gradle.instantexecution.serialization.runReadOperation
 import java.io.InputStream
 import java.io.ObjectInputStream
 import java.io.ObjectInputValidation
@@ -42,14 +42,14 @@ class ObjectInputStreamAdapter(
 
 ) : ObjectInputStream() {
 
-    override fun defaultReadObject() = runToCompletion {
-        beanStateReader.run {
-            readContext.readStateOf(bean)
+    override fun defaultReadObject() = beanStateReader.run {
+        readContext.runReadOperation {
+            readStateOf(bean)
         }
     }
 
-    override fun readObjectOverride(): Any? = runToCompletion {
-        readContext.read()
+    override fun readObjectOverride(): Any? = readContext.runReadOperation {
+        read()
     }
 
     override fun readInt(): Int = readContext.readInt()

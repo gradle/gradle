@@ -24,7 +24,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
-import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.serialization.Codec
@@ -37,6 +36,8 @@ import org.gradle.instantexecution.serialization.WriteIdentities
 import org.gradle.instantexecution.serialization.WriteIsolate
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
 import org.gradle.instantexecution.serialization.beans.BeanStateWriter
+import org.gradle.instantexecution.serialization.runReadOperation
+import org.gradle.instantexecution.serialization.runWriteOperation
 import org.gradle.internal.Try
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.Decoder
@@ -227,7 +228,7 @@ class InstantExecutionFingerprintCheckerTest {
             write(null)
         }
 
-        return readContext.readToCompletion {
+        return readContext.runReadOperation {
             InstantExecutionCacheFingerprintChecker(host).run {
                 checkFingerprint()
             }
@@ -242,7 +243,7 @@ class InstantExecutionFingerprintCheckerTest {
     private
     fun recordWritingOf(writeOperation: suspend WriteContext.() -> Unit): PlaybackReadContext =
         RecordingWriteContext().apply {
-            runToCompletion { writeOperation() }
+            runWriteOperation(writeOperation)
         }.toReadContext()
 
     /**
@@ -346,9 +347,6 @@ class InstantExecutionFingerprintCheckerTest {
 
         private
         val reader = values.iterator()
-
-        fun <T> readToCompletion(readOperation: suspend ReadContext.() -> T): T =
-            runToCompletion { readOperation() }
 
         override fun readSmallInt(): Int = next()
 
