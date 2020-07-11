@@ -38,12 +38,11 @@ internal
 val linkedListCodec: Codec<LinkedList<Any?>> = collectionCodec { LinkedList<Any?>() }
 
 
+/**
+ * Decodes HashSet instances as LinkedHashSet to preserve original iteration order.
+ */
 internal
-val hashSetCodec: Codec<HashSet<Any?>> = collectionCodec { HashSet<Any?>(it) }
-
-
-internal
-val linkedHashSetCodec: Codec<LinkedHashSet<Any?>> = collectionCodec { LinkedHashSet<Any?>(it) }
+val hashSetCodec: Codec<HashSet<Any?>> = collectionCodec { LinkedHashSet<Any?>(it) }
 
 
 internal
