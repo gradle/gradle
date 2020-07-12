@@ -85,7 +85,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
 
     private void fireDeprecatedUsageBuildOperationProgress(DeprecatedFeatureUsage usage) {
         if (progressEventEmitter != null) {
-            progressEventEmitter.emitNowIfCurrent(new DefaultDeprecatedUsageProgressDetails(usage));
+            progressEventEmitter.emitNowForCurrentOrRootOperationIfWithin(new DefaultDeprecatedUsageProgressDetails(usage));
         }
     }
 

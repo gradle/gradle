@@ -52,7 +52,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final BuildOperationListener buildOperationListener = Mock()
     final CurrentBuildOperationRef currentBuildOperationRef = new CurrentBuildOperationRef()
     final BuildOperationProgressEventEmitter progressBroadcaster = new BuildOperationProgressEventEmitter(
-        clock, currentBuildOperationRef, buildOperationListener
+            clock, buildOperationListener, currentBuildOperationRef
     )
 
     def setup() {

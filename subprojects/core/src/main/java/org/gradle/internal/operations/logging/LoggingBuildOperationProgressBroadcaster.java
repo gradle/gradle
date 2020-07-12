@@ -16,19 +16,17 @@
 
 package org.gradle.internal.operations.logging;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.logging.events.CategorisedOutputEvent;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
+
+import javax.annotation.Nullable;
 
 /**
  * Emits build operation progress for events that represent logging.
@@ -62,9 +60,6 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
     private final OutputEventListenerManager outputEventListenerManager;
     private final BuildOperationProgressEventEmitter progressEventEmitter;
 
-    @VisibleForTesting
-    OperationIdentifier rootBuildOperation;
-
     public LoggingBuildOperationProgressBroadcaster(OutputEventListenerManager outputEventListenerManager, BuildOperationProgressEventEmitter progressEventEmitter) {
         this.outputEventListenerManager = outputEventListenerManager;
         this.progressEventEmitter = progressEventEmitter;
@@ -73,38 +68,36 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
 
     @Override
     public void onOutput(OutputEvent event) {
-        if (event instanceof RenderableOutputEvent) {
-            RenderableOutputEvent renderableOutputEvent = (RenderableOutputEvent) event;
-            OperationIdentifier operationIdentifier = renderableOutputEvent.getBuildOperationId();
-            if (operationIdentifier == null) {
-                if (rootBuildOperation == null) {
-                    return;
-                }
-                operationIdentifier = rootBuildOperation;
-            }
-
-            if (renderableOutputEvent instanceof StyledTextOutputEvent || renderableOutputEvent instanceof LogEvent) {
-                emit(renderableOutputEvent, operationIdentifier);
-            }
+        if (event instanceof StyledTextOutputEvent) {
+            onOutputOf((StyledTextOutputEvent) event);
+        } else if (event instanceof LogEvent) {
+            onOutputOf((LogEvent) event);
         } else if (event instanceof ProgressStartEvent) {
-            ProgressStartEvent progressStartEvent = (ProgressStartEvent) event;
-            if (progressStartEvent.getLoggingHeader() == null) {
-                return; // If the event has no logging header, it doesn't manifest as console output.
-            }
-            OperationIdentifier operationIdentifier = progressStartEvent.getBuildOperationId();
-            if (operationIdentifier == null && rootBuildOperation != null) {
-                operationIdentifier = rootBuildOperation;
-            }
-            emit(progressStartEvent, operationIdentifier);
+            onOutputOf((ProgressStartEvent) event);
         }
     }
 
-    private void emit(CategorisedOutputEvent event, OperationIdentifier buildOperationId) {
-        progressEventEmitter.emit(
-            buildOperationId,
-            event.getTimestamp(),
-            event
-        );
+    private void onOutputOf(StyledTextOutputEvent event) {
+        doEmit(event.getTimestamp(), event, event.getBuildOperationId());
+    }
+
+    private void onOutputOf(LogEvent event) {
+        doEmit(event.getTimestamp(), event, event.getBuildOperationId());
+    }
+
+    private void onOutputOf(ProgressStartEvent event) {
+        if (event.getLoggingHeader() != null) {
+            // if the event has no logging header, it doesn't manifest as console output.
+            doEmit(event.getTimestamp(), event, event.getBuildOperationId());
+        }
+    }
+
+    private void doEmit(long timestamp, Object event, @Nullable OperationIdentifier buildOperationId) {
+        if (buildOperationId == null) {
+            progressEventEmitter.emitForCurrentOrRootOperationIfWithin(timestamp, event);
+        } else {
+            progressEventEmitter.emit(buildOperationId, timestamp, event);
+        }
     }
 
     @Override
@@ -112,7 +105,4 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
         outputEventListenerManager.removeListener(this);
     }
 
-    public void rootBuildOperationStarted() {
-        rootBuildOperation = CurrentBuildOperationRef.instance().getId();
-    }
 }

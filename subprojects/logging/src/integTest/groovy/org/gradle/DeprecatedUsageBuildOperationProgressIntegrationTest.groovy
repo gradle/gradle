@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
+import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.internal.operations.trace.BuildOperationRecord
 
 class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractIntegrationSpec {
 
@@ -70,10 +72,19 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
                 }
             }
 
+            task t3 {
+                doLast {
+                    def latch = new java.util.concurrent.CountDownLatch(1)
+                    Thread.start {
+                        org.gradle.internal.deprecation.DeprecationLogger.deprecate('manual thread').willBeRemovedInGradle7().undocumented().nagUser();
+                    }
+                }
+            }
+
         """
         and:
         executer.noDeprecationChecks()
-        succeeds 't', 't2', '-I', 'init.gradle'
+        succeeds 't', 't2', 't3', '-I', 'init.gradle'
 
         then:
         def initDeprecation = operations.only("Apply initialization script 'init.gradle' to build").progress.find { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
@@ -153,6 +164,11 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         typedTaskDeprecation2.details.stackTrace[0].fileName.endsWith('build.gradle')
         typedTaskDeprecation2.details.stackTrace[0].lineNumber == 29
         typedTaskDeprecation2.details.stackTrace[0].methodName == 'someAction'
+
+        def rootOpDeprecations = operations.roots[0].progress.findAll { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
+        rootOpDeprecations.size() == 1
+        def manualThread = rootOpDeprecations.first()
+        manualThread.details.summary == 'manual thread has been deprecated.'
     }
 
     def "emits deprecation warnings as build operation progress events for buildSrc builds"() {

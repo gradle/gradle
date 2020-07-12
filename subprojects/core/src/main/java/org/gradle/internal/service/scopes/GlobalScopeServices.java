@@ -83,6 +83,7 @@ import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
+import org.gradle.internal.operations.RootBuildOperationRef;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -150,19 +151,25 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return CurrentBuildOperationRef.instance();
     }
 
+    RootBuildOperationRef createRootBuildOperationRef(CurrentBuildOperationRef currentBuildOperationRef) {
+        return new RootBuildOperationRef(currentBuildOperationRef);
+    }
+
     BuildOperationListenerManager createBuildOperationListenerManager() {
         return new DefaultBuildOperationListenerManager();
     }
 
     BuildOperationProgressEventEmitter createBuildOperationProgressEventEmitter(
         Clock clock,
+        BuildOperationListenerManager listenerManager,
         CurrentBuildOperationRef currentBuildOperationRef,
-        BuildOperationListenerManager listenerManager
+        RootBuildOperationRef rootBuildOperationRef
     ) {
         return new BuildOperationProgressEventEmitter(
             clock,
+            listenerManager.getBroadcaster(),
             currentBuildOperationRef,
-            listenerManager.getBroadcaster()
+            rootBuildOperationRef
         );
     }
 

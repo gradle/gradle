@@ -29,13 +29,20 @@ import javax.annotation.Nullable;
 public class BuildOperationProgressEventEmitter {
 
     private final Clock clock;
-    private final CurrentBuildOperationRef current;
     private final BuildOperationListener listener;
+    private final CurrentBuildOperationRef current;
+    private final RootBuildOperationRef root;
 
-    public BuildOperationProgressEventEmitter(Clock clock, CurrentBuildOperationRef current, BuildOperationListener listener) {
+    public BuildOperationProgressEventEmitter(
+        Clock clock,
+        BuildOperationListener listener,
+        CurrentBuildOperationRef current,
+        RootBuildOperationRef root
+    ) {
         this.clock = clock;
-        this.current = current;
         this.listener = listener;
+        this.current = current;
+        this.root = root;
     }
 
     public void emit(OperationIdentifier operationIdentifier, long timestamp, @Nullable Object details) {
@@ -46,28 +53,36 @@ public class BuildOperationProgressEventEmitter {
         doEmit(operationIdentifier, timestamp, details);
     }
 
-    public void emitNowIfCurrent(Object details) {
-        emitIfCurrent(clock.getCurrentTime(), details);
-    }
-
-    public void emitIfCurrent(long time, Object details) {
-        OperationIdentifier currentOperationIdentifier = current.getId();
-        if (currentOperationIdentifier != null) {
-            doEmit(currentOperationIdentifier, time, details);
+    public void emitForCurrentOrRootOperationIfWithin(long time, Object details) {
+        OperationIdentifier id = currentOrRootOperationId();
+        if (id == null) {
+            return;
         }
+
+        doEmit(id, time, details);
     }
 
-    public void emitNowForCurrent(Object details) {
-        emitForCurrent(clock.getCurrentTime(), details);
+    public void emitNowForCurrentOrRootOperationIfWithin(Object details) {
+        emitForCurrentOrRootOperationIfWithin(clock.getCurrentTime(), details);
     }
 
-    private void emitForCurrent(long time, Object details) {
+    public void emitNowForCurrentOperation(Object details) {
+        emitForCurrentOperation(clock.getCurrentTime(), details);
+    }
+
+    private void emitForCurrentOperation(long time, Object details) {
         OperationIdentifier currentOperationIdentifier = current.getId();
         if (currentOperationIdentifier == null) {
             throw new IllegalStateException("No current build operation");
         } else {
             doEmit(currentOperationIdentifier, time, details);
         }
+    }
+
+    @Nullable
+    private OperationIdentifier currentOrRootOperationId() {
+        OperationIdentifier id = current.getId();
+        return id == null ? root.maybeGetId() : id;
     }
 
     private void doEmit(OperationIdentifier operationIdentifier, long timestamp, @Nullable Object details) {

@@ -21,9 +21,6 @@ import java.util.Collection;
 
 public interface IncludedBuildControllers {
     IncludedBuildControllers EMPTY = new IncludedBuildControllers() {
-        @Override
-        public void rootBuildOperationStarted() {
-        }
 
         @Override
         public void populateTaskGraphs() {
@@ -46,12 +43,6 @@ public interface IncludedBuildControllers {
             throw new UnsupportedOperationException();
         }
     };
-
-    /**
-     * Notify the controllers that the root build operation has started.
-     * Should be using something like {@link org.gradle.initialization.RootBuildLifecycleListener} however, this is currently called outside the root build operation.
-     */
-    void rootBuildOperationStarted();
 
     void populateTaskGraphs();
 

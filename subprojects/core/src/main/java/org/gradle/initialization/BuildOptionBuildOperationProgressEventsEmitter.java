@@ -34,13 +34,13 @@ public class BuildOptionBuildOperationProgressEventsEmitter {
 
     @SuppressWarnings({"Anonymous2MethodRef", "Convert2Lambda"})
     public void emit(StartParameterInternal startParameterInternal) {
-        eventEmitter.emitNowForCurrent(new ConfigurationCacheSettingsFinalizedProgressDetails() {
+        eventEmitter.emitNowForCurrentOperation(new ConfigurationCacheSettingsFinalizedProgressDetails() {
             @Override
             public boolean isEnabled() {
                 return startParameterInternal.isConfigurationCache();
             }
         });
-        eventEmitter.emitNowForCurrent(new FileSystemWatchingSettingsFinalizedProgressDetails() {
+        eventEmitter.emitNowForCurrentOperation(new FileSystemWatchingSettingsFinalizedProgressDetails() {
             @Override
             public boolean isEnabled() {
                 return startParameterInternal.isWatchFileSystem();

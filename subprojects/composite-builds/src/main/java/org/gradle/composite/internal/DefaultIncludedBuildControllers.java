@@ -27,6 +27,7 @@ import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.RootBuildOperationRef;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 
 import java.util.Collection;
@@ -36,18 +37,14 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     private final Map<BuildIdentifier, IncludedBuildController> buildControllers = Maps.newHashMap();
     private final ManagedExecutor executorService;
     private final ResourceLockCoordinationService coordinationService;
+    private final RootBuildOperationRef rootBuildOperationRef;
     private final BuildStateRegistry buildRegistry;
-    private BuildOperationRef rootBuildOperation;
 
-    DefaultIncludedBuildControllers(ExecutorFactory executorFactory, BuildStateRegistry buildRegistry, ResourceLockCoordinationService coordinationService) {
+    DefaultIncludedBuildControllers(ExecutorFactory executorFactory, BuildStateRegistry buildRegistry, ResourceLockCoordinationService coordinationService, RootBuildOperationRef rootBuildOperationRef) {
         this.buildRegistry = buildRegistry;
         this.executorService = executorFactory.create("included builds");
         this.coordinationService = coordinationService;
-    }
-
-    @Override
-    public void rootBuildOperationStarted() {
-        rootBuildOperation = CurrentBuildOperationRef.instance().get();
+        this.rootBuildOperationRef = rootBuildOperationRef;
     }
 
     @Override
@@ -60,7 +57,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
         IncludedBuildState build = buildRegistry.getIncludedBuild(buildId);
         DefaultIncludedBuildController newBuildController = new DefaultIncludedBuildController(build, coordinationService);
         buildControllers.put(buildId, newBuildController);
-        executorService.submit(new BuildOpRunnable(newBuildController, rootBuildOperation));
+        executorService.submit(new BuildOpRunnable(newBuildController, rootBuildOperationRef.get()));
         return newBuildController;
     }
 

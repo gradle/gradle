@@ -32,18 +32,10 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
 
     def outputEventListenerManager = Mock(OutputEventListenerManager)
     def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
-
     @Shared
     def testOperationId = Mock(OperationIdentifier)
 
-    @Shared
-    def fallbackOperationId = Mock(OperationIdentifier)
-
     LoggingBuildOperationProgressBroadcaster bridge = new LoggingBuildOperationProgressBroadcaster(outputEventListenerManager, buildOperationProgressEventEmitter)
-
-    def setup() {
-        bridge.rootBuildOperation = fallbackOperationId
-    }
 
     @Unroll
     def "forwards #eventType with operationId"() {
@@ -51,23 +43,22 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
         bridge.onOutput(eventWithBuildOperationId)
 
         then:
-        1 * buildOperationProgressEventEmitter.emit(_, _, _) >> { OperationIdentifier operationIdentifier, long timestamp, Object details ->
-            assert operationIdentifier == testOperationId
+        1 * buildOperationProgressEventEmitter.emit(_, _, _) >> { OperationIdentifier operationId, long timestamp, Object details ->
+            assert operationId == testOperationId
             assert details == eventWithBuildOperationId
         }
 
 
         when:
-        bridge.onOutput(eventWithFallbackBuildOperationId)
+        bridge.onOutput(eventWithNoBuildOperationId)
 
         then:
-        1 * buildOperationProgressEventEmitter.emit(_, _, _) >> { OperationIdentifier operationIdentifier, long timestamp, Object details ->
-            assert operationIdentifier == fallbackOperationId
-            assert details == eventWithFallbackBuildOperationId
+        1 * buildOperationProgressEventEmitter.emitForCurrentOrRootOperationIfWithin(_, _) >> { long timestamp, Object details ->
+            assert details == eventWithNoBuildOperationId
         }
 
         where:
-        eventType             | eventWithBuildOperationId                                              | eventWithFallbackBuildOperationId
+        eventType             | eventWithBuildOperationId                                              | eventWithNoBuildOperationId
         LogEvent              | new LogEvent(0, 'c', LogLevel.INFO, 'm', null, testOperationId)        | new LogEvent(0, 'c', LogLevel.INFO, 'm', null, null)
         StyledTextOutputEvent | new StyledTextOutputEvent(0, 'c', LogLevel.INFO, testOperationId, 'm') | new StyledTextOutputEvent(0, 'c', LogLevel.INFO, null, 'm')
         ProgressStartEvent    | progressStartEvent(testOperationId)                                    | progressStartEvent(null)
@@ -78,7 +69,7 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
         bridge.onOutput(progressStartEvent(testOperationId, null))
 
         then:
-        0 * buildOperationProgressEventEmitter.emit(_, _, _)
+        0 * buildOperationProgressEventEmitter._
     }
 
     def "registers / unregisters itself as output listener"() {
@@ -96,7 +87,7 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
         outputEventListenerManager.removeListener(loggingBuildOperationNotificationBridge)
     }
 
-    private ProgressStartEvent progressStartEvent(OperationIdentifier operationId, String header = 'header') {
+    static ProgressStartEvent progressStartEvent(OperationIdentifier operationId, String header = 'header') {
         new ProgressStartEvent(null, null, 0, 'c', 'd', header, 's', 0, false, operationId, BuildOperationCategory.UNCATEGORIZED)
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -24,15 +23,18 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
+import org.gradle.internal.operations.RootBuildOperationRef;
+import org.gradle.internal.service.ServiceRegistry;
 
 /**
  * An {@link BuildActionRunner} that wraps all work in a build operation.
  */
 public class RunAsBuildOperationBuildActionRunner implements BuildActionRunner {
     private final BuildActionRunner delegate;
-    private static final RunBuildBuildOperationType.Details DETAILS = new RunBuildBuildOperationType.Details() {};
-    private static final RunBuildBuildOperationType.Result RESULT = new RunBuildBuildOperationType.Result() {};
+    private static final RunBuildBuildOperationType.Details DETAILS = new RunBuildBuildOperationType.Details() {
+    };
+    private static final RunBuildBuildOperationType.Result RESULT = new RunBuildBuildOperationType.Result() {
+    };
 
     public RunAsBuildOperationBuildActionRunner(BuildActionRunner delegate) {
         this.delegate = delegate;
@@ -40,18 +42,23 @@ public class RunAsBuildOperationBuildActionRunner implements BuildActionRunner {
 
     @Override
     public Result run(final BuildAction action, final BuildController buildController) {
-        BuildOperationExecutor buildOperationExecutor = buildController.getGradle().getServices().get(BuildOperationExecutor.class);
+        ServiceRegistry services = buildController.getGradle().getServices();
+        BuildOperationExecutor buildOperationExecutor = services.get(BuildOperationExecutor.class);
         return buildOperationExecutor.call(new CallableBuildOperation<Result>() {
             @Override
             public Result call(BuildOperationContext context) {
-                buildController.getGradle().getServices().get(IncludedBuildControllers.class).rootBuildOperationStarted();
-                buildController.getGradle().getServices().get(LoggingBuildOperationProgressBroadcaster.class).rootBuildOperationStarted();
-                Result result = delegate.run(action, buildController);
-                context.setResult(RESULT);
-                if (result.getBuildFailure() != null) {
-                    context.failed(result.getBuildFailure());
+                RootBuildOperationRef rootBuildOperationRef = services.get(RootBuildOperationRef.class);
+                rootBuildOperationRef.setFromCurrent();
+                try {
+                    Result result = delegate.run(action, buildController);
+                    context.setResult(RESULT);
+                    if (result.getBuildFailure() != null) {
+                        context.failed(result.getBuildFailure());
+                    }
+                    return result;
+                } finally {
+                    rootBuildOperationRef.clear();
                 }
-                return result;
             }
 
             @Override
