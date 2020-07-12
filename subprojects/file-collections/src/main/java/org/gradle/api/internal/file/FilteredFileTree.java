@@ -19,16 +19,17 @@ package org.gradle.api.internal.file;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class FilteredFileTree extends CompositeFileTree implements FileCollectionInternal.Source {
-    private final CompositeFileTree tree;
+    private final FileTreeInternal tree;
     private final Supplier<? extends PatternSet> patternSupplier;
 
-    public FilteredFileTree(CompositeFileTree tree, Supplier<? extends PatternSet> patternSupplier) {
-        super(tree.patternSetFactory);
+    public FilteredFileTree(FileTreeInternal tree, Factory<PatternSet> patternSetFactory, Supplier<? extends PatternSet> patternSupplier) {
+        super(patternSetFactory);
         this.tree = tree;
         this.patternSupplier = patternSupplier;
     }
@@ -38,7 +39,7 @@ public class FilteredFileTree extends CompositeFileTree implements FileCollectio
         return tree.getDisplayName();
     }
 
-    public CompositeFileTree getTree() {
+    public FileTreeInternal getTree() {
         return tree;
     }
 
@@ -53,7 +54,7 @@ public class FilteredFileTree extends CompositeFileTree implements FileCollectio
     protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
         // For backwards compatibility, need to calculate the patterns on each query
         PatternFilterable patterns = getPatterns();
-        tree.visitChildren(child -> visitor.accept(((FileTreeInternal) child).matching(patterns)));
+        tree.visitContentsAsFileTrees(child -> visitor.accept(child.matching(patterns)));
     }
 
     @Override

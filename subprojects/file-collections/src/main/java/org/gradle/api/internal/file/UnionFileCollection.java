@@ -47,20 +47,18 @@ public class UnionFileCollection extends CompositeFileCollection {
 
     @Override
     public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
-        for (FileCollectionInternal files : source) {
-            if (files == original) {
-                ImmutableSet.Builder<FileCollectionInternal> newSource = ImmutableSet.builderWithExpectedSize(source.size());
-                for (FileCollectionInternal candidate : source) {
-                    if (candidate == original) {
-                        newSource.add(supplier.get());
-                    } else {
-                        newSource.add(candidate);
-                    }
-                }
-                return new UnionFileCollection(newSource.build());
-            }
+        ImmutableSet.Builder<FileCollectionInternal> newSource = ImmutableSet.builderWithExpectedSize(source.size());
+        boolean hasChanges = false;
+        for (FileCollectionInternal candidate : source) {
+            FileCollectionInternal newCollection = candidate.replace(original, supplier);
+            hasChanges |= newCollection != candidate;
+            newSource.add(newCollection);
         }
-        return this;
+        if (hasChanges) {
+            return new UnionFileCollection(newSource.build());
+        } else {
+            return this;
+        }
     }
 
     @Override

@@ -142,8 +142,8 @@ class CompositeFileCollectionTest extends Specification {
     def "getAsFiletrees() returns union of file trees"() {
         def dir1 = tmpDir.createDir("dir1")
         def dir2 = tmpDir.createDir("dir2")
-        def source1 = Mock(AbstractFileTree)
-        def source2 = Mock(AbstractFileTree)
+        def source1 = Mock(FileTreeInternal)
+        def source2 = Mock(FileTreeInternal)
         def collection = new TestCompositeFileCollection(source1, source2)
 
         when:
@@ -154,10 +154,10 @@ class CompositeFileCollectionTest extends Specification {
         trees[0].dir == dir1
         trees[1].dir == dir2
 
-        1 * source1.visitContents(_) >> { FileCollectionStructureVisitor visitor ->
+        1 * source1.visitStructure(_) >> { FileCollectionStructureVisitor visitor ->
             visitor.visitFileTree(dir1, Stub(PatternSet), source1)
         }
-        1 * source2.visitContents(_) >> { FileCollectionStructureVisitor visitor ->
+        1 * source2.visitStructure(_) >> { FileCollectionStructureVisitor visitor ->
             visitor.visitFileTree(dir2, Stub(PatternSet), source2)
         }
         0 * _
@@ -175,10 +175,9 @@ class CompositeFileCollectionTest extends Specification {
         0 * _
 
         when:
-        fileTree.getSourceCollections()
+        fileTree.visitContentsAsFileTrees({})
 
         then:
-        fileTree instanceof CompositeFileTree
         1 * source1.visitStructure(_) >> { FileCollectionStructureVisitor visitor -> visitor.visitCollection(null, []) }
         1 * source2.visitStructure(_) >> { FileCollectionStructureVisitor visitor -> visitor.visitCollection(null, []) }
         0 * _
@@ -200,17 +199,16 @@ class CompositeFileCollectionTest extends Specification {
         0 * _
 
         when:
-        fileTree.getSourceCollections()
+        fileTree.visitContentsAsFileTrees({})
 
         then:
-        fileTree instanceof CompositeFileTree
         1 * source1.visitStructure(_) >> { FileCollectionStructureVisitor visitor -> visitor.visitCollection(null, [dir1]) }
         1 * source2.visitStructure(_) >> { FileCollectionStructureVisitor visitor -> visitor.visitCollection(null, [dir2]) }
         0 * _
 
         when:
         collection.sourceCollections.add(source3)
-        fileTree.getSourceCollections()
+        fileTree.visitContentsAsFileTrees({})
 
         then:
         1 * source1.visitStructure(_) >> { FileCollectionStructureVisitor visitor -> visitor.visitCollection(null, [dir1]) }

@@ -258,6 +258,10 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         }
 
         @Override
+        public void visitContentsAsFileTrees(Consumer<FileTreeInternal> visitor) {
+        }
+
+        @Override
         protected void visitContents(FileCollectionStructureVisitor visitor) {
         }
     }

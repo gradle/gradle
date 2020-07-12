@@ -88,9 +88,10 @@ class UnionFileCollectionTest extends Specification {
     }
 
     def "can replace one of the source collections"() {
-        def source1 = Stub(FileCollectionInternal)
-        def source2 = Stub(FileCollectionInternal)
-        def source3 = Stub(FileCollectionInternal)
+        def source1 = Mock(FileCollectionInternal)
+        def source2 = Mock(FileCollectionInternal)
+        def source3 = Mock(FileCollectionInternal)
+        def source4 = Mock(FileCollectionInternal)
 
         def collection = new UnionFileCollection(source1, source2)
 
@@ -98,13 +99,19 @@ class UnionFileCollectionTest extends Specification {
         def replaced = collection.replace(source3, {})
 
         then:
+        1 * source1.replace(source3, _) >> source1
+        1 * source2.replace(source3, _) >> source2
+
         replaced.is(collection)
 
         when:
-        def replaced2 = collection.replace(source2, { source3 })
+        def replaced2 = collection.replace(source3, {})
 
         then:
+        1 * source1.replace(source3, _) >> source1
+        1 * source2.replace(source3, _) >> source4
+
         replaced2 != collection
-        replaced2.sourceCollections == [source1, source3]
+        replaced2.sourceCollections == [source1, source4]
     }
 }
