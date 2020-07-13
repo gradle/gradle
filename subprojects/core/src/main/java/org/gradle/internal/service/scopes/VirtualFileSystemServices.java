@@ -78,7 +78,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -253,9 +252,10 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             RecentlyCapturedSnapshots recentlyCapturedSnapshots,
             DocumentationRegistry documentationRegistry,
             NativeCapabilities nativeCapabilities,
-            DelegatingDiffCapturingUpdateFunctionDecorator updateFunctionDecorator
+            DelegatingDiffCapturingUpdateFunctionDecorator updateFunctionDecorator,
+            ListenerManager listenerManager
         ) {
-            return determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities)
+            FileSystemWatchingHandler watchingHandler = determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities)
                 .<FileSystemWatchingHandler>map(watcherRegistryFactory -> new DefaultFileSystemWatchingHandler(
                     watcherRegistryFactory,
                     virtualFileSystem,
@@ -265,12 +265,10 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     recentlyCapturedSnapshots
                 ))
                 .orElse(new WatchingNotSupportedFileSystemWatchingHandler(virtualFileSystem));
-        }
-
-        void configure(ServiceRegistry serviceRegistry, FileSystemWatchingHandler watchingHandler, ListenerManager listenerManager) {
             listenerManager.addListener((BuildAddedListener) buildState ->
                 watchingHandler.buildRootDirectoryAdded(buildState.getBuildRootDir())
             );
+            return watchingHandler;
         }
 
         private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(OperatingSystem operatingSystem, NativeCapabilities nativeCapabilities) {

@@ -45,6 +45,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
+import org.gradle.internal.watch.vfs.FileSystemWatchingHandler;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -77,6 +78,9 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
 
     @Override
     public BuildActionResult execute(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry buildSessionScopeServices) {
+        // Ensure that file system watching is enabled
+        // TODO: Use the handler later on to do things with continuous build
+        buildSessionScopeServices.get(FileSystemWatchingHandler.class);
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
         if (actionParameters.isContinuous()) {
             DefaultContinuousExecutionGate alwaysOpenExecutionGate = new DefaultContinuousExecutionGate();
