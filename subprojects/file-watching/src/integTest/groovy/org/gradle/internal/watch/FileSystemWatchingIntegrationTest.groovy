@@ -796,7 +796,7 @@ class FileSystemWatchingIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     @Requires(TestPrecondition.SYMLINKS)
-    def "file system watching works the project dir is symlinked"() {
+    def "file system watching works when the project dir is symlinked"() {
         def actualProjectDir = file("parent/projectDir")
         def symlink = file("symlinkedParent")
         symlink.createLink(file("parent"))
