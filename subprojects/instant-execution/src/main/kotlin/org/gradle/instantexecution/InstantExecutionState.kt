@@ -154,7 +154,7 @@ class InstantExecutionState(
     }
 
     private
-    suspend fun DefaultReadContext.readChildBuilds() {
+    fun DefaultReadContext.readChildBuilds() {
         if (readBoolean()) {
             logNotImplemented(
                 feature = "included builds",
