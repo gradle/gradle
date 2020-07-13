@@ -155,7 +155,7 @@ See the section on [cross compilation](userguide/building_java_projects.html#sec
 
 [Gradle Module Metadata](userguide/publishing_gradle_module_metadata.html) is a format used to serialize the Gradle component model, similar to but more powerful than Maven’s POM. 
 
-By default, the Gradle Module Metadata file contains a build identifier field which defaults to a unique ID generated during build execution. This behaviour can now be disabled at the publication level, allowing users to opt-in for a reproducible Gradle Module Metadata file. This enables downstream tasks to consider it up-to-date and result in faster builds.
+By default, the Gradle Module Metadata file contains a build identifier field which defaults to a unique ID generated during build execution. This behaviour can now be disabled at the publication level, allowing users to opt-in for a reproducible Gradle Module Metadata file. This enables downstream tasks to consider it up-to-date, resulting in faster and reproducible builds.
 
 ```groovy
 main(MavenPublication) {
