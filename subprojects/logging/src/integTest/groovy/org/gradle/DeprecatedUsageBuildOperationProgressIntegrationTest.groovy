@@ -75,7 +75,9 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
                     def latch = new java.util.concurrent.CountDownLatch(1)
                     Thread.start {
                         org.gradle.internal.deprecation.DeprecationLogger.deprecate('manual thread').willBeRemovedInGradle7().undocumented().nagUser();
+                        latch.countDown()
                     }
+                    latch.await()
                 }
             }
 
