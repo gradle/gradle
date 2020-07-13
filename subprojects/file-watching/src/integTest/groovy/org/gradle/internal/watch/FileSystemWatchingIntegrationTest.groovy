@@ -819,7 +819,7 @@ class FileSystemWatchingIntegrationTest extends AbstractIntegrationSpec implemen
         executer.beforeExecute {
             // Use `new File` here to avoid canonicalization of the path
             def symlinkedProjectDir = new File(symlink, "projectDir")
-            assert !symlinkedProjectDir.absolutePath.startsWith(actualProjectDir.absolutePath)
+            assert symlinkedProjectDir.absolutePath != actualProjectDir.absolutePath
             inDirectory(symlinkedProjectDir)
         }
 
