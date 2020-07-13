@@ -62,6 +62,7 @@ class ModuleResolveState implements CandidateModule {
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
     final ResolveOptimizations resolveOptimizations;
+    private final boolean rootModule;
     private SelectorStateResolver<ComponentState> selectorStateResolver;
     private final PendingDependencies pendingDependencies;
     private ComponentState selected;
@@ -81,7 +82,7 @@ class ModuleResolveState implements CandidateModule {
                        Comparator<Version> versionComparator,
                        VersionParser versionParser,
                        SelectorStateResolver<ComponentState> selectorStateResolver,
-                       ResolveOptimizations resolveOptimizations) {
+                       ResolveOptimizations resolveOptimizations, boolean rootModule) {
         this.idGenerator = idGenerator;
         this.id = id;
         this.metaDataResolver = metaDataResolver;
@@ -89,6 +90,7 @@ class ModuleResolveState implements CandidateModule {
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
         this.resolveOptimizations = resolveOptimizations;
+        this.rootModule = rootModule;
         this.pendingDependencies = new PendingDependencies(id);
         this.selectorStateResolver = selectorStateResolver;
         selectors = new ModuleSelectors<SelectorState>(versionComparator);
@@ -400,7 +402,7 @@ class ModuleResolveState implements CandidateModule {
             // Never update selection for a replaced module
             return;
         }
-        if (selectors.checkDeferSelection()) {
+        if (!rootModule && selectors.checkDeferSelection()) {
             // Selection deferred as we know another selector will be added soon
             return;
         }
