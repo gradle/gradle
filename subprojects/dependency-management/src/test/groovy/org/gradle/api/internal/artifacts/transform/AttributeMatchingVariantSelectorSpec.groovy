@@ -343,8 +343,8 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         3 * attributeMatcher.isMatching(requestedAttributes, requestedAttributes) >>> [false, false, true]
     }
 
-    static ConsumerVariantMatchResult match(ImmutableAttributes output, Transformation trn, int depth) {
-        def result = new ConsumerVariantMatchResult(2)
+    static MutableConsumerVariantMatchResult match(ImmutableAttributes output, Transformation trn, int depth) {
+        def result = new MutableConsumerVariantMatchResult(2)
         result.matched(output, trn, depth)
         result
     }

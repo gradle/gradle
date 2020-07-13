@@ -108,11 +108,11 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             }
         }
 
-        List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates = new ArrayList<>();
+        List<Pair<ResolvedVariant, MutableConsumerVariantMatchResult.ConsumerVariant>> candidates = new ArrayList<>();
         for (ResolvedVariant variant : producer.getVariants()) {
             AttributeContainerInternal variantAttributes = variant.getAttributes().asImmutable();
             ConsumerVariantMatchResult matchResult = consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, componentRequested);
-            for (ConsumerVariantMatchResult.ConsumerVariant consumerVariant : matchResult.getMatches()) {
+            for (MutableConsumerVariantMatchResult.ConsumerVariant consumerVariant : matchResult.getMatches()) {
                 candidates.add(Pair.of(variant, consumerVariant));
             }
         }
@@ -120,7 +120,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             candidates = tryDisambiguate(matcher, candidates, componentRequested, explanationBuilder);
         }
         if (candidates.size() == 1) {
-            Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
+            Pair<ResolvedVariant, MutableConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
             ResolvedArtifactSet artifacts = result.getLeft().getArtifacts();
             ImmutableAttributes attributes = result.getRight().attributes.asImmutable();
             Transformation transformation = result.getRight().transformation;
@@ -137,7 +137,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         throw new NoMatchingVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, producer.getVariants(), matcher, DescriberSelector.selectDescriber(componentRequested, schema));
     }
 
-    private List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> tryDisambiguate(AttributeMatcher matcher, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates, ImmutableAttributes componentRequested, AttributeMatchingExplanationBuilder explanationBuilder) {
+    private List<Pair<ResolvedVariant, MutableConsumerVariantMatchResult.ConsumerVariant>> tryDisambiguate(AttributeMatcher matcher, List<Pair<ResolvedVariant, MutableConsumerVariantMatchResult.ConsumerVariant>> candidates, ImmutableAttributes componentRequested, AttributeMatchingExplanationBuilder explanationBuilder) {
         candidates = disambiguateWithSchema(matcher, candidates, componentRequested, explanationBuilder);
 
         if (candidates.size() == 1) {
@@ -151,7 +151,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
                 .orElse(candidates);
         }
 
-        List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> shortestTransforms = Lists.newArrayListWithExpectedSize(candidates.size());
+        List<Pair<ResolvedVariant, MutableConsumerVariantMatchResult.ConsumerVariant>> shortestTransforms = Lists.newArrayListWithExpectedSize(candidates.size());
         candidates.sort(Comparator.comparingInt(candidate -> candidate.right.depth));
 
         // Need to remember if a further element was matched by an earlier one, no need to consider it then
@@ -162,7 +162,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
                 continue;
             }
             boolean candidateIsDifferent = true;
-            Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> current = candidates.get(i);
+            Pair<ResolvedVariant, MutableConsumerVariantMatchResult.ConsumerVariant> current = candidates.get(i);
             for (int j = i + 1; j < candidates.size(); j++) {
                 if (hasBetterMatch[j]) {
                     continue;
@@ -186,7 +186,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         return shortestTransforms;
     }
 
-    private List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> disambiguateWithSchema(AttributeMatcher matcher, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates, ImmutableAttributes componentRequested, AttributeMatchingExplanationBuilder explanationBuilder) {
+    private List<Pair<ResolvedVariant, MutableConsumerVariantMatchResult.ConsumerVariant>> disambiguateWithSchema(AttributeMatcher matcher, List<Pair<ResolvedVariant, MutableConsumerVariantMatchResult.ConsumerVariant>> candidates, ImmutableAttributes componentRequested, AttributeMatchingExplanationBuilder explanationBuilder) {
         List<AttributeContainerInternal> candidateAttributes = candidates.stream().map(pair -> pair.getRight().attributes).collect(Collectors.toList());
         List<AttributeContainerInternal> matches = matcher.matches(candidateAttributes, componentRequested, explanationBuilder);
         if (matches.size() == 1) {
@@ -199,9 +199,9 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         return candidates;
     }
 
-    private Optional<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> compareCandidates(AttributeMatcher matcher,
-                                                                                                          Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> firstCandidate,
-                                                                                                          Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> secondCandidate) {
+    private Optional<Pair<ResolvedVariant, MutableConsumerVariantMatchResult.ConsumerVariant>> compareCandidates(AttributeMatcher matcher,
+                                                                                                                 Pair<ResolvedVariant, MutableConsumerVariantMatchResult.ConsumerVariant> firstCandidate,
+                                                                                                                 Pair<ResolvedVariant, MutableConsumerVariantMatchResult.ConsumerVariant> secondCandidate) {
 
         if (matcher.isMatching(firstCandidate.right.attributes, secondCandidate.right.attributes) || matcher.isMatching(secondCandidate.right.attributes, firstCandidate.right.attributes)) {
             if (firstCandidate.right.depth >= secondCandidate.right.depth) {

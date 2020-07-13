@@ -15,25 +15,27 @@
  */
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-
 import java.util.Collection;
+import java.util.Collections;
 
-public interface ConsumerVariantMatchResult {
+class SingleMatchConsumerVariantMatchResult implements ConsumerVariantMatchResult {
+    private final Collection<ConsumerVariant> consumerVariants;
 
-    boolean hasMatches();
+    private SingleMatchConsumerVariantMatchResult(ConsumerVariant consumerVariant) {
+        this.consumerVariants = Collections.singletonList(consumerVariant);
+    }
 
-    Collection<ConsumerVariant> getMatches();
+    static ConsumerVariantMatchResult of(ConsumerVariant consumerVariant) {
+        return new SingleMatchConsumerVariantMatchResult(consumerVariant);
+    }
 
-    class ConsumerVariant {
-        final AttributeContainerInternal attributes;
-        final Transformation transformation;
-        final int depth;
+    @Override
+    public boolean hasMatches() {
+        return true;
+    }
 
-        public ConsumerVariant(AttributeContainerInternal attributes, Transformation transformation, int depth) {
-            this.attributes = attributes;
-            this.transformation = transformation;
-            this.depth = depth;
-        }
+    @Override
+    public Collection<ConsumerVariant> getMatches() {
+        return consumerVariants;
     }
 }
