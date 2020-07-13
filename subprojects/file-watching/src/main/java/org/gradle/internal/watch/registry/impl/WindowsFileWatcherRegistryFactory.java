@@ -25,7 +25,7 @@ import org.gradle.internal.watch.registry.FileWatcherUpdater;
 
 import java.util.concurrent.BlockingQueue;
 
-import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpdater.ReportedFileEventPath.ABSOLUTE_PATH;
+import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpdater.FileSystemLocationToWatchValidator.NO_VALIDATION;
 
 public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<WindowsFileEventFunctions> {
     private static final int BUFFER_SIZE = 128 * 1024;
@@ -43,6 +43,6 @@ public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegist
 
     @Override
     protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher) {
-        return new HierarchicalFileWatcherUpdater(watcher, ABSOLUTE_PATH);
+        return new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION);
     }
 }
