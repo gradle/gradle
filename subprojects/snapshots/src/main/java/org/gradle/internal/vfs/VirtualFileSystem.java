@@ -69,4 +69,8 @@ public interface VirtualFileSystem {
      * Updates the cached state at the location with the snapshot.
      */
     void updateWithKnownSnapshot(CompleteFileSystemLocationSnapshot snapshot);
+
+    interface RecentlyCreatedSnapshotsListener {
+        void snapshotsCreated(Iterable<String> locations);
+    }
 }

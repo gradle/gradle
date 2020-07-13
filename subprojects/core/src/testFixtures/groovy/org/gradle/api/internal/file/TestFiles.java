@@ -191,7 +191,7 @@ public class TestFiles {
     }
 
     public static VirtualFileSystem virtualFileSystem() {
-        return new DefaultVirtualFileSystem(fileHasher(), new StringInterner(), fileSystem(), fileSystem().isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE, SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP);
+        return new DefaultVirtualFileSystem(fileHasher(), new StringInterner(), fileSystem(), fileSystem().isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE, SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP, locations -> {});
     }
 
     public static FileCollectionFactory fileCollectionFactory() {

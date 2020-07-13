@@ -20,8 +20,6 @@ import com.google.common.collect.EnumMultiset;
 import com.google.common.collect.Multiset;
 import net.rubygrapefruit.platform.internal.jni.InotifyInstanceLimitTooLowException;
 import net.rubygrapefruit.platform.internal.jni.InotifyWatchesLimitTooLowException;
-import org.gradle.internal.file.DefaultFileHierarchySet;
-import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
@@ -44,7 +42,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -59,9 +56,9 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
 
     private final FileWatcherRegistryFactory watcherRegistryFactory;
     private final DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator;
-    private final AtomicReference<FileHierarchySet> producedByCurrentBuild = new AtomicReference<>(DefaultFileHierarchySet.of());
     private final Predicate<String> watchFilter;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
+    private final RecentlyCapturedSnapshots recentlyCapturedSnapshots;
     private final Set<File> rootProjectDirectoriesForWatching = new HashSet<>();
 
     private FileWatcherRegistry watchRegistry;
@@ -80,13 +77,15 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         AbstractVirtualFileSystem delegate,
         DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator,
         Predicate<String> watchFilter,
-        DaemonDocumentationIndex daemonDocumentationIndex
+        DaemonDocumentationIndex daemonDocumentationIndex,
+        RecentlyCapturedSnapshots recentlyCapturedSnapshots
     ) {
         super(delegate);
         this.watcherRegistryFactory = watcherRegistryFactory;
         this.delegatingUpdateFunctionDecorator = delegatingUpdateFunctionDecorator;
         this.watchFilter = watchFilter;
         this.daemonDocumentationIndex = daemonDocumentationIndex;
+        this.recentlyCapturedSnapshots = recentlyCapturedSnapshots;
     }
 
     @Override
@@ -97,7 +96,6 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                 SnapshotHierarchy newRoot = handleWatcherRegistryEvents(currentRoot, "since last build");
                 newRoot = startWatching(newRoot);
                 printStatistics(newRoot, "retained", "since last build");
-                producedByCurrentBuild.set(DefaultFileHierarchySet.of());
                 buildRunning = true;
                 return newRoot;
             } else {
@@ -141,7 +139,6 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
             }
             getRoot().update(currentRoot -> {
                 buildRunning = false;
-                producedByCurrentBuild.set(DefaultFileHierarchySet.of());
                 SnapshotHierarchy newRoot = removeSymbolicLinks(currentRoot);
                 newRoot = handleWatcherRegistryEvents(newRoot, "for current build");
                 if (watchRegistry != null) {
@@ -184,7 +181,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                     try {
                         LOGGER.debug("Handling VFS change {} {}", type, path);
                         String absolutePath = path.toString();
-                        if (!(buildRunning && producedByCurrentBuild.get().contains(absolutePath))) {
+                        if (!(buildRunning && recentlyCapturedSnapshots.isProducedByCurrentBuild(absolutePath))) {
                             getRoot().update(root -> {
                                 SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener(watchFilter);
                                 SnapshotHierarchy newRoot = root.invalidate(absolutePath, diffListener);
@@ -331,20 +328,6 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     }
 
     @Override
-    public void update(Iterable<String> locations, Runnable action) {
-        if (buildRunning) {
-            producedByCurrentBuild.updateAndGet(currentValue -> {
-                FileHierarchySet newValue = currentValue;
-                for (String location : locations) {
-                    newValue = newValue.plus(new File(location));
-                }
-                return newValue;
-            });
-        }
-        super.update(locations, action);
-    }
-
-    @Override
     public void close() {
         getRoot().update(currentRoot -> {
             closeUnderLock();
@@ -353,7 +336,6 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     }
 
     private void closeUnderLock() {
-        producedByCurrentBuild.set(DefaultFileHierarchySet.of());
         if (watchRegistry != null) {
             try {
                 watchRegistry.close();

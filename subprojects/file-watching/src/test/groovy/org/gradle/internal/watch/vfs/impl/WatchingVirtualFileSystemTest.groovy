@@ -37,12 +37,14 @@ class WatchingVirtualFileSystemTest extends Specification {
     def rootHierarchy = Mock(SnapshotHierarchy)
     def rootReference = new AtomicSnapshotHierarchyReference(rootHierarchy)
     def daemonDocumentationIndex = Mock(DaemonDocumentationIndex)
+    def recentlyCapturedSnapshots = Mock(RecentlyCapturedSnapshots)
     def watchingVirtualFileSystem = new WatchingVirtualFileSystem(
         watcherRegistryFactory,
         delegate,
         capturingUpdateFunctionDecorator,
         { -> true },
-        daemonDocumentationIndex
+        daemonDocumentationIndex,
+        recentlyCapturedSnapshots
     )
     def snapshotHierarchy = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
 

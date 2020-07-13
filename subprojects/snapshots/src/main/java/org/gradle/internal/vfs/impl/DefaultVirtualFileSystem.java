@@ -53,15 +53,24 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
     private final Stat stat;
     private final SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator;
     private final Interner<String> stringInterner;
+    private final RecentlyCreatedSnapshotsListener recentlyCreatedSnapshotsListener;
     private ImmutableList<String> defaultExcludes;
     private DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
     private final StripedProducerGuard<String> producingSnapshots = new StripedProducerGuard<>();
 
-    public DefaultVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, CaseSensitivity caseSensitivity, SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator, String... defaultExcludes) {
+    public DefaultVirtualFileSystem(
+        FileHasher hasher,
+        Interner<String> stringInterner,
+        Stat stat, CaseSensitivity caseSensitivity,
+        SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator,
+        RecentlyCreatedSnapshotsListener recentlyCreatedSnapshotsListener,
+        String... defaultExcludes
+    ) {
         this.stringInterner = stringInterner;
         this.stat = stat;
         this.updateFunctionDecorator = updateFunctionDecorator;
+        this.recentlyCreatedSnapshotsListener = recentlyCreatedSnapshotsListener;
         this.defaultExcludes = ImmutableList.copyOf(defaultExcludes);
         this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, this.defaultExcludes);
         this.hasher = hasher;
@@ -178,6 +187,7 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
 
     @Override
     public void update(Iterable<String> locations, Runnable action) {
+        recentlyCreatedSnapshotsListener.snapshotsCreated(locations);
         root.update(root -> {
             SnapshotHierarchy result = root;
             for (String location : locations) {
