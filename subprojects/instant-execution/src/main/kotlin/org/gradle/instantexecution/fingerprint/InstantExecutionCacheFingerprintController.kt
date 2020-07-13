@@ -27,6 +27,7 @@ import org.gradle.instantexecution.extensions.serviceOf
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.ReadContext
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
@@ -54,10 +55,10 @@ class InstantExecutionCacheFingerprintController internal constructor(
     private val buildCommencedTimeProvider: BuildCommencedTimeProvider,
     private val listenerManager: ListenerManager,
     private val buildTreeListenerManager: BuildTreeListenerManager
-) {
+) : Stoppable {
 
     private
-    open class WritingState {
+    abstract class WritingState {
 
         open fun start(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState =
             illegalStateFor("start")
@@ -67,6 +68,8 @@ class InstantExecutionCacheFingerprintController internal constructor(
 
         open fun commit(fingerprintFile: File): WritingState =
             illegalStateFor("commit")
+
+        abstract fun dispose(): WritingState
 
         private
         fun illegalStateFor(operation: String): Nothing = throw IllegalStateException(
@@ -85,6 +88,9 @@ class InstantExecutionCacheFingerprintController internal constructor(
             addListener(fingerprintWriter)
             return Writing(fingerprintWriter, outputStream)
         }
+
+        override fun dispose(): WritingState =
+            this
     }
 
     private
@@ -97,6 +103,9 @@ class InstantExecutionCacheFingerprintController internal constructor(
             fingerprintWriter.stopCollectingValueSources()
             return Written(fingerprintWriter, outputStream)
         }
+
+        override fun dispose() =
+            stop().dispose()
     }
 
     private
@@ -105,11 +114,16 @@ class InstantExecutionCacheFingerprintController internal constructor(
         private val outputStream: ByteArrayOutputStream
     ) : WritingState() {
         override fun commit(fingerprintFile: File): WritingState {
-            removeListener(fingerprintWriter)
-            fingerprintWriter.close()
+            dispose()
             fingerprintFile
                 .outputStream()
                 .use(outputStream::writeTo)
+            return Idle()
+        }
+
+        override fun dispose(): WritingState {
+            removeListener(fingerprintWriter)
+            fingerprintWriter.close()
             return Idle()
         }
     }
@@ -127,6 +141,10 @@ class InstantExecutionCacheFingerprintController internal constructor(
 
     fun commitFingerprintTo(fingerprintFile: File) {
         writingState = writingState.commit(fingerprintFile)
+    }
+
+    override fun stop() {
+        writingState = writingState.dispose()
     }
 
     suspend fun ReadContext.checkFingerprint(): InvalidationReason? =
