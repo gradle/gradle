@@ -142,14 +142,23 @@ class DefaultRecursionScope(
         COROUTINE_SUSPENDED
     }
 
-        while (true) {
     fun runCallLoop(): Any? {
+        var iteration = 0
+        while (true) {
+            val k = this.k
             val result = this.result
-            val k = this.k // null means done
-                ?: return result.getOrThrow() // done -- final result
+            if (k == null) {
+                return result.getOrThrow()  // done -- final result
+            }
+            iteration += 1
+            if (iteration > 1_000_000) {
+                throw IllegalStateException("Too many iterations! Are we stuck? {value: $value, k: $k, result: $result}")
+            }
             // ~startCoroutineUninterceptedOrReturn
             val r = try {
                 function(value, k)
+            } catch (e: InterruptedException) {
+                throw e
             } catch (e: Throwable) {
                 k.resumeWithException(e)
                 continue
