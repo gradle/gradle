@@ -48,11 +48,9 @@ class DefaultWriteContext(
     override val logger: Logger,
 
     private
-    val problemsListener: ProblemsListener,
+    val problemsListener: ProblemsListener
 
-    override var recursionScope: RecursiveFunctionScope<Any?, Unit>? = null
-
-) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, RecursiveContext<Any?, Unit>, Encoder by encoder, AutoCloseable {
+) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, Encoder by encoder, AutoCloseable {
 
     override val sharedIdentities = WriteIdentities()
 
@@ -187,11 +185,9 @@ class DefaultReadContext(
     override val logger: Logger,
 
     private
-    val problemsListener: ProblemsListener,
+    val problemsListener: ProblemsListener
 
-    override var recursionScope: RecursiveFunctionScope<Any?, Any?>? = null
-
-) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, RecursiveContext<Any?, Any?>, Decoder by decoder {
+) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, RecursiveContext, Decoder by decoder {
 
     override val sharedIdentities = ReadIdentities()
 
@@ -315,7 +311,7 @@ typealias ProjectProvider = (String) -> ProjectInternal
 
 
 internal
-abstract class AbstractIsolateContext<T>(codec: Codec<Any?>) : MutableIsolateContext {
+abstract class AbstractIsolateContext<T>(codec: Codec<Any?>) : MutableIsolateContext, RecursiveContext {
 
     private
     var currentIsolate: T? = null
@@ -324,6 +320,8 @@ abstract class AbstractIsolateContext<T>(codec: Codec<Any?>) : MutableIsolateCon
     var currentCodec = codec
 
     var trace: PropertyTrace = PropertyTrace.Gradle
+
+    override var recursionScope: RecursionScope? = null
 
     protected
     abstract fun newIsolate(owner: IsolateOwner): T

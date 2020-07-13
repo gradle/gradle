@@ -51,20 +51,21 @@ fun <T : WriteContext, R> T.runWriteOperation(writeOperation: suspend T.() -> R)
 private
 fun <T, R> T.runRecursiveOperation(recursiveOperation: suspend T.() -> R): R {
     when (this) {
-        is RecursiveContext<*, *> -> {
-            val recursiveContext = this as RecursiveContext<Any?, Any?>
-            val function: RecursiveFunction<Any?, Any?> = { value ->
+        is RecursiveContext -> {
+            val recursiveContext = this as RecursiveContext
+            val function: RecursiveFunction = { value ->
                 recursiveContext.applyFunctionTo(value)
             }
-            val scope = DefaultRecursiveFunctionScope<Any?, Any?>(function, null)
+            val scope = DefaultRecursionScope(function, null)
             val previous = recursiveContext.recursionScope
             try {
                 recursiveContext.recursionScope = scope
                 val operation = recursiveOperation as Function2<T, Continuation<Any?>, Any?>
-                return when (val result = operation.invoke(this, scope)) {
-                    COROUTINE_SUSPENDED -> scope.runCallLoop() as R
-                    else -> result as R
+                val result = operation.invoke(this, scope)
+                if (result !== COROUTINE_SUSPENDED) {
+                    return result as R
                 }
+                return scope.runCallLoop() as R
             } finally {
                 recursiveContext.recursionScope = previous
             }
@@ -80,22 +81,22 @@ fun <T, R> T.runRecursiveOperation(recursiveOperation: suspend T.() -> R): R {
 
 
 internal
-interface RecursiveContext<T, R> {
+interface RecursiveContext {
 
-    var recursionScope: RecursiveFunctionScope<T, R>?
+    var recursionScope: RecursionScope?
 
-    suspend fun applyFunctionTo(value: T): R
+    suspend fun applyFunctionTo(value: Any?): Any?
 }
 
 
 internal
-sealed class RecursiveFunctionScope<T, R> {
-    abstract suspend fun recur(value: T): R
+sealed class RecursionScope {
+    abstract suspend fun recur(value: Any?): Any?
 }
 
 
 private
-typealias RecursiveFunction<T, R> = suspend (T) -> R
+typealias RecursiveFunction = suspend (Any?) -> Any?
 
 
 private
@@ -107,10 +108,10 @@ val UNDEFINED_RESULT = Result.success(COROUTINE_SUSPENDED)
 
 
 private
-class DefaultRecursiveFunctionScope<T, R>(
-    recursiveFunction: RecursiveFunction<T, R>,
-    value: T
-) : RecursiveFunctionScope<T, R>(), Continuation<R> {
+class DefaultRecursionScope(
+    recursiveFunction: RecursiveFunction,
+    value: Any?
+) : RecursionScope(), Continuation<Any?> {
 
     private
     var function: UndecoratedRecursiveFunction = recursiveFunction as UndecoratedRecursiveFunction
@@ -121,7 +122,7 @@ class DefaultRecursiveFunctionScope<T, R>(
 
     // Continuation of the current call
     private
-    var k: Continuation<Any?>? = this as Continuation<Any?>
+    var k: Continuation<Any?>? = this
 
     // Completion result (completion of the whole call stack)
     private
@@ -130,22 +131,22 @@ class DefaultRecursiveFunctionScope<T, R>(
     override val context: CoroutineContext
         get() = EmptyCoroutineContext
 
-    override fun resumeWith(result: Result<R>) {
+    override fun resumeWith(result: Result<Any?>) {
         this.k = null
         this.result = result
     }
 
-    override suspend fun recur(value: T): R = suspendCoroutineUninterceptedOrReturn { k ->
-        this.k = k as Continuation<Any?>
+    override suspend fun recur(value: Any?): Any? = suspendCoroutineUninterceptedOrReturn { k ->
+        this.k = k
         this.value = value
         COROUTINE_SUSPENDED
     }
 
-    fun runCallLoop(): R {
         while (true) {
+    fun runCallLoop(): Any? {
             val result = this.result
             val k = this.k // null means done
-                ?: return (result as Result<R>).getOrThrow() // done -- final result
+                ?: return result.getOrThrow() // done -- final result
             // ~startCoroutineUninterceptedOrReturn
             val r = try {
                 function(value, k)
@@ -154,7 +155,7 @@ class DefaultRecursiveFunctionScope<T, R>(
                 continue
             }
             if (r !== COROUTINE_SUSPENDED)
-                k.resume(r as R)
+                k.resume(r)
         }
     }
 }
