@@ -164,6 +164,8 @@ class DefaultInstantExecution internal constructor(
                     invalidateInstantExecutionState(layout)
                     problems.failingBuildDueToSerializationError()
                     throw error
+                } finally {
+                    cacheFingerprintController.stop()
                 }
             }
         }
