@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
-import org.gradle.internal.operations.RunnableBuildOperation
-import org.gradle.internal.operations.trace.BuildOperationRecord
 
 class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractIntegrationSpec {
 
