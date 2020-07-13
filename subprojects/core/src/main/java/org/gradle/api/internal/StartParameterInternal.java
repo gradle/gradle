@@ -18,11 +18,9 @@ package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.io.File;
 
-@UsedByScanPlugin
 public class StartParameterInternal extends StartParameter {
     private boolean watchFileSystem;
 
@@ -78,7 +76,6 @@ public class StartParameterInternal extends StartParameter {
         super.searchUpwards = searchUpwards;
     }
 
-    @UsedByScanPlugin
     public boolean isWatchFileSystem() {
         return watchFileSystem;
     }
@@ -87,7 +84,6 @@ public class StartParameterInternal extends StartParameter {
         this.watchFileSystem = watchFileSystem;
     }
 
-    @UsedByScanPlugin
     public boolean isConfigurationCache() {
         return configurationCache;
     }

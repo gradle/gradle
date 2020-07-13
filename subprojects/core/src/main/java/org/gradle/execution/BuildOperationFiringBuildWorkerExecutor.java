@@ -64,7 +64,7 @@ public class BuildOperationFiringBuildWorkerExecutor implements BuildWorkExecuto
         @Override
         public BuildOperationDescriptor.Builder description() {
             BuildOperationDescriptor.Builder builder = BuildOperationDescriptor.displayName(gradle.contextualize("Run tasks"));
-            if (gradle.getParent() == null) {
+            if (gradle.isRootBuild()) {
                 builder.operationType(BuildOperationCategory.RUN_WORK_ROOT_BUILD);
                 long buildStartTime = gradle.getServices().get(BuildRequestMetaData.class).getStartTime();
                 builder.details(new RunRootBuildWorkBuildOperationType.Details(buildStartTime));

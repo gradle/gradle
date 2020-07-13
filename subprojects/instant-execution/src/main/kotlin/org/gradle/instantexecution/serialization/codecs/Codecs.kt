@@ -268,7 +268,6 @@ class Codecs(
         bind(ImmutableListCodec)
 
         // Only serialize certain Set implementations for now, as some custom types extend Set (eg DomainObjectContainer)
-        bind(linkedHashSetCodec)
         bind(hashSetCodec)
         bind(treeSetCodec)
         bind(ImmutableSetCodec)

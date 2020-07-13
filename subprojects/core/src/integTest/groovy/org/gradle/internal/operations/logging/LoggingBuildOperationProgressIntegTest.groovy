@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.logging.events.LogEvent
+import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
 import org.gradle.internal.logging.events.operations.ProgressStartBuildOperationProgressDetails
 import org.gradle.internal.logging.events.operations.StyledTextBuildOperationProgressDetails
@@ -426,7 +427,11 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         succeeds 'build'
 
         then:
-        def progressOutputEvents = operations.all(Pattern.compile('.*')).collect { it.progress }.flatten()
+        def progressOutputEvents = operations.all(Pattern.compile('.*'))
+            .collect { it.progress }
+            .flatten()
+            .with { it as List<BuildOperationRecord.Progress> }
+            .findAll { OutputEvent.isAssignableFrom(it.detailsType) }
         // Watching the file system is an incubating feature.
         // Spent 18 ms registering watches for file system events
         // Virtual file system retained information about 0 files, 0 directories and 0 missing files since last build

@@ -27,6 +27,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 
 import java.io.File;
+import java.util.function.Consumer;
 
 /**
  * Adapts a {@link MinimalFileTree} into a full {@link FileTree} implementation.
@@ -85,6 +86,11 @@ public class FileTreeAdapter extends AbstractFileTree {
     public FileTree visit(FileVisitor visitor) {
         tree.visit(visitor);
         return this;
+    }
+
+    @Override
+    public void visitContentsAsFileTrees(Consumer<FileTreeInternal> visitor) {
+        visitor.accept(this);
     }
 
     @Override

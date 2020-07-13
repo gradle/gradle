@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.collections;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryTree;
@@ -101,7 +102,7 @@ public class UnpackingVisitor {
     }
 
     private void visitSingleFile(Object element) {
-        visitor.accept(new FileCollectionAdapter(new ListBackedFileSet(resolver.resolve(element)), patternSetFactory));
+        visitor.accept(new FileCollectionAdapter(new ListBackedFileSet(ImmutableSet.of(resolver.resolve(element))), patternSetFactory));
     }
 
     private static class BuildableElementFileCollection extends CompositeFileCollection {

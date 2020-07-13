@@ -51,6 +51,8 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     GradleInternal getRoot();
 
+    boolean isRootBuild();
+
     /**
      * Returns the {@link BuildState} that manages the state of this instance.
      */
@@ -149,5 +151,8 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
      * @throws IllegalStateException if called more than once
      */
     void setBaseProjectClassLoaderScope(ClassLoaderScope classLoaderScope);
+
+    @Override
+    StartParameterInternal getStartParameter();
 
 }

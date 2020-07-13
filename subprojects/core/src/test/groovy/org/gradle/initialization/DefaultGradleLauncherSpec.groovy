@@ -69,7 +69,7 @@ class DefaultGradleLauncherSpec extends Specification {
     DefaultGradleLauncher launcher() {
         return new DefaultGradleLauncher(gradleMock, buildConfigurerMock, exceptionAnalyserMock, buildBroadcaster,
             buildCompletionListener, buildFinishedListener, buildExecuter, buildServices, [otherService], includedBuildControllers,
-            settingsPreparerMock, taskExecutionPreparerMock, instantExecution, buildSourceBuilder)
+            settingsPreparerMock, taskExecutionPreparerMock, instantExecution, buildSourceBuilder, Mock(BuildOptionBuildOperationProgressEventsEmitter))
     }
 
     void testRunTasks() {

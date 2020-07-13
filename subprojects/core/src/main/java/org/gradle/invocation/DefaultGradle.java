@@ -33,6 +33,7 @@ import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -125,7 +126,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public String contextualize(String description) {
-        if (getParent() == null) {
+        if (isRootBuild()) {
             return description;
         } else {
             Path contextPath = getIdentityPath();
@@ -141,11 +142,17 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public GradleInternal getRoot() {
-        GradleInternal root = this;
-        while (root.getParent() != null) {
-            root = root.getParent();
+        GradleInternal parent = getParent();
+        if (parent == null) {
+            return this;
+        } else {
+            return parent.getRoot();
         }
-        return root;
+    }
+
+    @Override
+    public boolean isRootBuild() {
+        return parent == null;
     }
 
     @Override
@@ -170,8 +177,8 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     @Override
-    public StartParameter getStartParameter() {
-        return startParameter;
+    public StartParameterInternal getStartParameter() {
+        return (StartParameterInternal) startParameter;
     }
 
     @Override

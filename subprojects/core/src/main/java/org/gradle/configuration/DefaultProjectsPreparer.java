@@ -52,7 +52,7 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
 
         buildLoader.load(gradle.getSettings(), gradle);
 
-        if (gradle.getParent() == null) {
+        if (gradle.isRootBuild()) {
             buildRegistry.beforeConfigureRootBuild();
         }
         if (gradle.getStartParameter().isConfigureOnDemand()) {
