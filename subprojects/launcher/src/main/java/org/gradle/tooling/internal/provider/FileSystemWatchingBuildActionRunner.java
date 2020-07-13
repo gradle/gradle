@@ -25,7 +25,7 @@ import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.vfs.VirtualFileSystem;
-import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.FileSystemWatchingHandler;
 import org.gradle.util.IncubationLogger;
 
 public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
@@ -39,7 +39,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     public Result run(BuildAction action, BuildController buildController) {
         GradleInternal gradle = buildController.getGradle();
         StartParameterInternal startParameter = gradle.getStartParameter();
-        WatchingAwareVirtualFileSystem watchHandler = gradle.getServices().get(WatchingAwareVirtualFileSystem.class);
+        FileSystemWatchingHandler watchingHandler = gradle.getServices().get(FileSystemWatchingHandler.class);
         VirtualFileSystem virtualFileSystem = gradle.getServices().get(VirtualFileSystem.class);
 
         boolean watchFileSystem = startParameter.isWatchFileSystem();
@@ -49,11 +49,11 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             IncubationLogger.incubatingFeatureUsed("Watching the file system");
             dropVirtualFileSystemIfRequested(startParameter, virtualFileSystem);
         }
-        watchHandler.afterBuildStarted(watchFileSystem);
+        watchingHandler.afterBuildStarted(watchFileSystem);
         try {
             return delegate.run(action, buildController);
         } finally {
-            watchHandler.beforeBuildFinished(watchFileSystem);
+            watchingHandler.beforeBuildFinished(watchFileSystem);
         }
     }
 

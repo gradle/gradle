@@ -23,21 +23,21 @@ import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.vfs.VirtualFileSystem
-import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem
+import org.gradle.internal.watch.vfs.FileSystemWatchingHandler
 import spock.lang.Specification
 import spock.lang.Unroll
 
 @Unroll
 class FileSystemWatchingBuildActionRunnerTest extends Specification {
 
-    def watchingHandler = Mock(WatchingAwareVirtualFileSystem)
+    def watchingHandler = Mock(FileSystemWatchingHandler)
     def virtualFileSystem = Mock(VirtualFileSystem)
     def startParameter = Mock(StartParameterInternal)
     def buildController = Stub(BuildController) {
         getGradle() >> Stub(GradleInternal) {
             getStartParameter() >> startParameter
             getServices() >> Stub(ServiceRegistry) {
-                get(WatchingAwareVirtualFileSystem) >> watchingHandler
+                get(FileSystemWatchingHandler) >> watchingHandler
                 get(VirtualFileSystem) >> virtualFileSystem
             }
         }

@@ -32,7 +32,7 @@ import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.DaemonDocumentationIndex;
-import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.FileSystemWatchingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,12 +45,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-/**
- * A {@link org.gradle.internal.vfs.VirtualFileSystem} which uses watches to maintain
- * its contents.
- */
-public class WatchingVirtualFileSystem implements WatchingAwareVirtualFileSystem, Closeable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(WatchingVirtualFileSystem.class);
+public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandler, Closeable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileSystemWatchingHandler.class);
     private static final String FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD = "Unable to watch the file system for changes";
     private static final String FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD = "Gradle was unable to watch the file system for changes";
 
@@ -73,7 +69,7 @@ public class WatchingVirtualFileSystem implements WatchingAwareVirtualFileSystem
 
     private volatile boolean buildRunning;
 
-    public WatchingVirtualFileSystem(
+    public DefaultFileSystemWatchingHandler(
         FileWatcherRegistryFactory watcherRegistryFactory,
         AbstractVirtualFileSystem virtualFileSystem,
         DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator,

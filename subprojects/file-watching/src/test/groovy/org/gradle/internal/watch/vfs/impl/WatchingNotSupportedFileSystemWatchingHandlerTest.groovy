@@ -19,23 +19,23 @@ package org.gradle.internal.watch.vfs.impl
 import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem
 import spock.lang.Specification
 
-class NonWatchingVirtualFileSystemTest extends Specification {
+class WatchingNotSupportedFileSystemWatchingHandlerTest extends Specification {
 
-    def delegate = Mock(AbstractVirtualFileSystem)
-    def nonWatchingVirtualFileSystem = new NonWatchingVirtualFileSystem(delegate)
+    def virtualFileSystem = Mock(AbstractVirtualFileSystem)
+    def watchingNotSupportedHandler = new WatchingNotSupportedFileSystemWatchingHandler(virtualFileSystem)
 
     def "invalidates the virtual file system before and after the build"() {
 
         when:
-        nonWatchingVirtualFileSystem.afterBuildStarted(retentionEnabled)
+        watchingNotSupportedHandler.afterBuildStarted(retentionEnabled)
         then:
-        1 * delegate.invalidateAll()
+        1 * virtualFileSystem.invalidateAll()
         0 * _
 
         when:
-        nonWatchingVirtualFileSystem.beforeBuildFinished(retentionEnabled)
+        watchingNotSupportedHandler.beforeBuildFinished(retentionEnabled)
         then:
-        1 * delegate.invalidateAll()
+        1 * virtualFileSystem.invalidateAll()
         0 * _
 
         where:

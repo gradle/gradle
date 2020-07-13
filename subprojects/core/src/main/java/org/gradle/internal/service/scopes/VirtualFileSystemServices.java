@@ -88,11 +88,11 @@ import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.DarwinFileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.LinuxFileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.WindowsFileWatcherRegistryFactory;
-import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.FileSystemWatchingHandler;
+import org.gradle.internal.watch.vfs.impl.DefaultFileSystemWatchingHandler;
 import org.gradle.internal.watch.vfs.impl.DelegatingDiffCapturingUpdateFunctionDecorator;
-import org.gradle.internal.watch.vfs.impl.NonWatchingVirtualFileSystem;
 import org.gradle.internal.watch.vfs.impl.RecentlyCapturedSnapshots;
-import org.gradle.internal.watch.vfs.impl.WatchingVirtualFileSystem;
+import org.gradle.internal.watch.vfs.impl.WatchingNotSupportedFileSystemWatchingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -247,7 +247,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return virtualFileSystem;
         }
 
-        WatchingAwareVirtualFileSystem createWatching(
+        FileSystemWatchingHandler createFileSystemWatchingHandler(
             WatchFilter watchFilter,
             AbstractVirtualFileSystem virtualFileSystem,
             RecentlyCapturedSnapshots recentlyCapturedSnapshots,
@@ -256,7 +256,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             DelegatingDiffCapturingUpdateFunctionDecorator updateFunctionDecorator
         ) {
             return determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities)
-                .<WatchingAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
+                .<FileSystemWatchingHandler>map(watcherRegistryFactory -> new DefaultFileSystemWatchingHandler(
                     watcherRegistryFactory,
                     virtualFileSystem,
                     updateFunctionDecorator,
@@ -264,10 +264,10 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId),
                     recentlyCapturedSnapshots
                 ))
-                .orElse(new NonWatchingVirtualFileSystem(virtualFileSystem));
+                .orElse(new WatchingNotSupportedFileSystemWatchingHandler(virtualFileSystem));
         }
 
-        void configure(ServiceRegistry serviceRegistry, WatchingAwareVirtualFileSystem watchingHandler, ListenerManager listenerManager) {
+        void configure(ServiceRegistry serviceRegistry, FileSystemWatchingHandler watchingHandler, ListenerManager listenerManager) {
             listenerManager.addListener((BuildAddedListener) buildState ->
                 watchingHandler.buildRootDirectoryAdded(buildState.getBuildRootDir())
             );

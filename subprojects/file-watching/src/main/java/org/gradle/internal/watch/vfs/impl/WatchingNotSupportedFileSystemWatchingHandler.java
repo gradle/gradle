@@ -17,7 +17,7 @@
 package org.gradle.internal.watch.vfs.impl;
 
 import org.gradle.internal.vfs.VirtualFileSystem;
-import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.FileSystemWatchingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,12 +26,12 @@ import java.io.File;
 /**
  * A {@link org.gradle.internal.vfs.VirtualFileSystem} which is not able to register any watches.
  */
-public class NonWatchingVirtualFileSystem implements WatchingAwareVirtualFileSystem {
+public class WatchingNotSupportedFileSystemWatchingHandler implements FileSystemWatchingHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(NonWatchingVirtualFileSystem.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WatchingNotSupportedFileSystemWatchingHandler.class);
     private final VirtualFileSystem virtualFileSystem;
 
-    public NonWatchingVirtualFileSystem(VirtualFileSystem virtualFileSystem) {
+    public WatchingNotSupportedFileSystemWatchingHandler(VirtualFileSystem virtualFileSystem) {
         this.virtualFileSystem = virtualFileSystem;
     }
 
