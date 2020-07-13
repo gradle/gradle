@@ -39,8 +39,8 @@ public class RecentlyCapturedSnapshots implements VirtualFileSystem.RecentlyCrea
         }
     }
 
-    public boolean isProducedByCurrentBuild(String location) {
-        return producedByCurrentBuild.get().contains(location);
+    public boolean canBeInvalidatedByFileSystemEvents(String location) {
+        return !producedByCurrentBuild.get().contains(location);
     }
 
     public void buildStarted() {

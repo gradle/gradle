@@ -67,8 +67,6 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
         }
     };
 
-    private volatile boolean buildRunning;
-
     public DefaultFileSystemWatchingHandler(
         FileWatcherRegistryFactory watcherRegistryFactory,
         AbstractVirtualFileSystem virtualFileSystem,
@@ -93,7 +91,6 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
                 SnapshotHierarchy newRoot = handleWatcherRegistryEvents(currentRoot, "since last build");
                 newRoot = startWatching(newRoot);
                 printStatistics(newRoot, "retained", "since last build");
-                buildRunning = true;
                 return newRoot;
             } else {
                 return stopWatchingAndInvalidateHierarchy(currentRoot);
@@ -135,7 +132,6 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
                 reasonForNotWatchingFiles = null;
             }
             virtualFileSystem.getRoot().update(currentRoot -> {
-                buildRunning = false;
                 SnapshotHierarchy newRoot = removeSymbolicLinks(currentRoot);
                 newRoot = handleWatcherRegistryEvents(newRoot, "for current build");
                 if (watchRegistry != null) {
@@ -178,7 +174,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
                     try {
                         LOGGER.debug("Handling VFS change {} {}", type, path);
                         String absolutePath = path.toString();
-                        if (!(buildRunning && recentlyCapturedSnapshots.isProducedByCurrentBuild(absolutePath))) {
+                        if (recentlyCapturedSnapshots.canBeInvalidatedByFileSystemEvents(absolutePath)) {
                             virtualFileSystem.getRoot().update(root -> {
                                 SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener(watchFilter);
                                 SnapshotHierarchy newRoot = root.invalidate(absolutePath, diffListener);
