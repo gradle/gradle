@@ -24,6 +24,7 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
+import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem;
 import org.gradle.util.IncubationLogger;
 
@@ -38,7 +39,8 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     public Result run(BuildAction action, BuildController buildController) {
         GradleInternal gradle = buildController.getGradle();
         StartParameterInternal startParameter = gradle.getStartParameter();
-        WatchingAwareVirtualFileSystem virtualFileSystem = gradle.getServices().get(WatchingAwareVirtualFileSystem.class);
+        WatchingAwareVirtualFileSystem watchHandler = gradle.getServices().get(WatchingAwareVirtualFileSystem.class);
+        VirtualFileSystem virtualFileSystem = gradle.getServices().get(VirtualFileSystem.class);
 
         boolean watchFileSystem = startParameter.isWatchFileSystem();
 
@@ -47,15 +49,15 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             IncubationLogger.incubatingFeatureUsed("Watching the file system");
             dropVirtualFileSystemIfRequested(startParameter, virtualFileSystem);
         }
-        virtualFileSystem.afterBuildStarted(watchFileSystem);
+        watchHandler.afterBuildStarted(watchFileSystem);
         try {
             return delegate.run(action, buildController);
         } finally {
-            virtualFileSystem.beforeBuildFinished(watchFileSystem);
+            watchHandler.beforeBuildFinished(watchFileSystem);
         }
     }
 
-    private static void dropVirtualFileSystemIfRequested(StartParameterInternal startParameter, WatchingAwareVirtualFileSystem virtualFileSystem) {
+    private static void dropVirtualFileSystemIfRequested(StartParameterInternal startParameter, VirtualFileSystem virtualFileSystem) {
         if (VirtualFileSystemServices.isDropVfs(startParameter)) {
             virtualFileSystem.invalidateAll();
         }

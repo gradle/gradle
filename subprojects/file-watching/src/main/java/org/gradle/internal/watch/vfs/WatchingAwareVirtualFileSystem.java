@@ -24,7 +24,7 @@ import java.io.File;
  * A {@link VirtualFileSystem} that can be instructed to try to maintain its
  * contents by watching the file system.
  */
-public interface WatchingAwareVirtualFileSystem extends VirtualFileSystem {
+public interface WatchingAwareVirtualFileSystem {
 
     /**
      * Called when the build is started.

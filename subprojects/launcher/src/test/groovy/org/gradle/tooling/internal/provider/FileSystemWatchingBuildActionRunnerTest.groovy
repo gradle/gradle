@@ -22,6 +22,7 @@ import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -29,13 +30,15 @@ import spock.lang.Unroll
 @Unroll
 class FileSystemWatchingBuildActionRunnerTest extends Specification {
 
-    def virtualFileSystem = Mock(WatchingAwareVirtualFileSystem)
+    def watchingHandler = Mock(WatchingAwareVirtualFileSystem)
+    def virtualFileSystem = Mock(VirtualFileSystem)
     def startParameter = Mock(StartParameterInternal)
     def buildController = Stub(BuildController) {
         getGradle() >> Stub(GradleInternal) {
             getStartParameter() >> startParameter
             getServices() >> Stub(ServiceRegistry) {
-                get(WatchingAwareVirtualFileSystem) >> virtualFileSystem
+                get(WatchingAwareVirtualFileSystem) >> watchingHandler
+                get(VirtualFileSystem) >> virtualFileSystem
             }
         }
     }
@@ -51,13 +54,13 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         when:
         runner.run(buildAction, buildController)
         then:
-        1 * virtualFileSystem.afterBuildStarted(watchFsEnabled)
+        1 * watchingHandler.afterBuildStarted(watchFsEnabled)
 
         then:
         1 * delegate.run(buildAction, buildController)
 
         then:
-        1 * virtualFileSystem.beforeBuildFinished(watchFsEnabled)
+        1 * watchingHandler.beforeBuildFinished(watchFsEnabled)
 
         where:
         watchFsEnabled << [true, false]

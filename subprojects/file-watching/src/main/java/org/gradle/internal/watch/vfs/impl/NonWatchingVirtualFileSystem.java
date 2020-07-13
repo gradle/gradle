@@ -16,7 +16,7 @@
 
 package org.gradle.internal.watch.vfs.impl;
 
-import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
+import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,12 +26,13 @@ import java.io.File;
 /**
  * A {@link org.gradle.internal.vfs.VirtualFileSystem} which is not able to register any watches.
  */
-public class NonWatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSystem implements WatchingAwareVirtualFileSystem {
+public class NonWatchingVirtualFileSystem implements WatchingAwareVirtualFileSystem {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NonWatchingVirtualFileSystem.class);
+    private final VirtualFileSystem virtualFileSystem;
 
-    public NonWatchingVirtualFileSystem(AbstractVirtualFileSystem delegate) {
-        super(delegate);
+    public NonWatchingVirtualFileSystem(VirtualFileSystem virtualFileSystem) {
+        this.virtualFileSystem = virtualFileSystem;
     }
 
     @Override
@@ -39,7 +40,7 @@ public class NonWatchingVirtualFileSystem extends AbstractDelegatingVirtualFileS
         if (watchingEnabled) {
             LOGGER.warn("Watching the file system is not supported on this operating system.");
         }
-        invalidateAll();
+        virtualFileSystem.invalidateAll();
     }
 
     @Override
@@ -48,6 +49,6 @@ public class NonWatchingVirtualFileSystem extends AbstractDelegatingVirtualFileS
 
     @Override
     public void beforeBuildFinished(boolean watchingEnabled) {
-        invalidateAll();
+        virtualFileSystem.invalidateAll();
     }
 }

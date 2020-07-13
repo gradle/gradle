@@ -49,12 +49,13 @@ import java.util.function.Predicate;
  * A {@link org.gradle.internal.vfs.VirtualFileSystem} which uses watches to maintain
  * its contents.
  */
-public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSystem implements WatchingAwareVirtualFileSystem, Closeable {
+public class WatchingVirtualFileSystem implements WatchingAwareVirtualFileSystem, Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchingVirtualFileSystem.class);
     private static final String FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD = "Unable to watch the file system for changes";
     private static final String FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD = "Gradle was unable to watch the file system for changes";
 
     private final FileWatcherRegistryFactory watcherRegistryFactory;
+    private final AbstractVirtualFileSystem virtualFileSystem;
     private final DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator;
     private final Predicate<String> watchFilter;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
@@ -74,14 +75,14 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
 
     public WatchingVirtualFileSystem(
         FileWatcherRegistryFactory watcherRegistryFactory,
-        AbstractVirtualFileSystem delegate,
+        AbstractVirtualFileSystem virtualFileSystem,
         DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator,
         Predicate<String> watchFilter,
         DaemonDocumentationIndex daemonDocumentationIndex,
         RecentlyCapturedSnapshots recentlyCapturedSnapshots
     ) {
-        super(delegate);
         this.watcherRegistryFactory = watcherRegistryFactory;
+        this.virtualFileSystem = virtualFileSystem;
         this.delegatingUpdateFunctionDecorator = delegatingUpdateFunctionDecorator;
         this.watchFilter = watchFilter;
         this.daemonDocumentationIndex = daemonDocumentationIndex;
@@ -91,7 +92,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     @Override
     public void afterBuildStarted(boolean watchingEnabled) {
         reasonForNotWatchingFiles = null;
-        getRoot().update(currentRoot -> {
+        virtualFileSystem.getRoot().update(currentRoot -> {
             if (watchingEnabled) {
                 SnapshotHierarchy newRoot = handleWatcherRegistryEvents(currentRoot, "since last build");
                 newRoot = startWatching(newRoot);
@@ -109,7 +110,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     }
 
     private void updateWatchRegistry(Consumer<FileWatcherRegistry> updateFunction, Runnable noWatchRegistry) {
-        getRoot().update(currentRoot -> {
+        virtualFileSystem.getRoot().update(currentRoot -> {
             if (watchRegistry == null) {
                 noWatchRegistry.run();
                 return currentRoot;
@@ -137,7 +138,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                 logWatchingError(reasonForNotWatchingFiles, FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD);
                 reasonForNotWatchingFiles = null;
             }
-            getRoot().update(currentRoot -> {
+            virtualFileSystem.getRoot().update(currentRoot -> {
                 buildRunning = false;
                 SnapshotHierarchy newRoot = removeSymbolicLinks(currentRoot);
                 newRoot = handleWatcherRegistryEvents(newRoot, "for current build");
@@ -148,7 +149,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                 return newRoot;
             });
         } else {
-            invalidateAll();
+            virtualFileSystem.invalidateAll();
         }
     }
 
@@ -182,7 +183,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                         LOGGER.debug("Handling VFS change {} {}", type, path);
                         String absolutePath = path.toString();
                         if (!(buildRunning && recentlyCapturedSnapshots.isProducedByCurrentBuild(absolutePath))) {
-                            getRoot().update(root -> {
+                            virtualFileSystem.getRoot().update(root -> {
                                 SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener(watchFilter);
                                 SnapshotHierarchy newRoot = root.invalidate(absolutePath, diffListener);
                                 return withWatcherChangeErrorHandling(
@@ -248,7 +249,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
      * the parts that have been changed since calling {@link #startWatching(SnapshotHierarchy)}}.
      */
     private void stopWatchingAndInvalidateHierarchy() {
-        getRoot().update(this::stopWatchingAndInvalidateHierarchy);
+        virtualFileSystem.getRoot().update(this::stopWatchingAndInvalidateHierarchy);
     }
 
     private SnapshotHierarchy stopWatchingAndInvalidateHierarchy(SnapshotHierarchy currentRoot) {
@@ -329,7 +330,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
 
     @Override
     public void close() {
-        getRoot().update(currentRoot -> {
+        virtualFileSystem.getRoot().update(currentRoot -> {
             closeUnderLock();
             return currentRoot.empty();
         });
