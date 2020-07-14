@@ -21,6 +21,7 @@ import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -30,6 +31,8 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
+import org.gradle.initialization.GradlePropertiesController
+import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.ClassDirectoryBinarySpec
 import org.gradle.jvm.toolchain.JavaInstallationRegistry
 import org.gradle.language.base.ProjectSourceSet
@@ -202,6 +205,25 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         def customClasses = project.tasks['customClasses']
         TaskDependencyMatchers.dependsOn('someTask', 'processCustomResources', 'compileCustomJava').matches(customClasses)
     }
+
+    void "wires toolchain for sourceset if toolchain is configured"() {
+        given:
+        // workaround for https://github.com/gradle/gradle/issues/13122
+        ((DefaultProject) project).getServices().get(GradlePropertiesController.class).loadGradlePropertiesFrom(new File(project.projectDir, "gradle.properties"));
+
+        def someJdk = Jvm.current()
+        project.pluginManager.apply(JavaBasePlugin)
+        project.java.toolchain.languageVersion = someJdk.javaVersion
+
+        when:
+        project.sourceSets.create('custom')
+
+        then:
+        def compileTask = project.tasks.named("compileCustomJava", JavaCompile).get()
+        def configuredToolchain = compileTask.javaCompiler.get().javaToolchain
+        configuredToolchain.displayName == someJdk.javaHome.absolutePath
+    }
+
 
     void tasksReflectChangesToSourceSetConfiguration() {
         def classesDir = project.file('target/classes')

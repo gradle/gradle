@@ -39,7 +39,9 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
                 void apply(Project project) {
                     project.tasks.withType(JavaCompile) {
-                        javaCompiler = getQueryService().findMatchingToolchain(new DefaultToolchainSpec(JavaVersion.${someJdk.javaVersion.name()})).map({it.javaCompiler.get()})
+                        def filter = project.objects.newInstance(DefaultToolchainSpec)
+                        filter.languageVersion = JavaVersion.${someJdk.javaVersion.name()}
+                        javaCompiler = getQueryService().findMatchingToolchain(filter).map({it.javaCompiler.get()})
                     }
                 }
             }
@@ -73,7 +75,9 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
                 void apply(Project project) {
                     project.tasks.withType(JavaCompile) {
-                        javaCompiler = getQueryService().findMatchingToolchain(new DefaultToolchainSpec(JavaVersion.current())).map({it.javaCompiler.get()})
+                        def filter = project.objects.newInstance(DefaultToolchainSpec)
+                        filter.languageVersion = JavaVersion.current()
+                        javaCompiler = getQueryService().findMatchingToolchain(filter).map({it.javaCompiler.get()})
                     }
                 }
             }
@@ -91,6 +95,31 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
         then:
         outputContains("Compiling with toolchain '${Jvm.current().javaHome.absolutePath}'.")
+        javaClassFile("Foo.class").exists()
+    }
+
+    def "can set explicit toolchain used by JavaCompile"() {
+        def someJdk = AvailableJavaHomes.getDifferentJdk()
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaVersion.toVersion(${someJdk.javaVersion.majorVersion})
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        result = executer
+            .withArguments("-Porg.gradle.java.installations.paths=" + someJdk.javaHome.absolutePath, "--info")
+            .withTasks("compileJava")
+            .run()
+
+        then:
+        outputContains("Compiling with toolchain '${someJdk.javaHome.absolutePath}'.")
         javaClassFile("Foo.class").exists()
     }
 

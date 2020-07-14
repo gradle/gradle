@@ -31,12 +31,14 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.JvmEcosystemUtilities;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
@@ -48,7 +50,11 @@ import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationRegistry;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.JavaToolchain;
+import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
@@ -94,15 +100,18 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     private final ObjectFactory objectFactory;
     private final JavaInstallationRegistry javaInstallationRegistry;
+    private final JavaToolchainQueryService toolchainQueryService;
     private final boolean javaClasspathPackaging;
     private final JvmPluginServices jvmPluginServices;
 
     @Inject
     public JavaBasePlugin(ObjectFactory objectFactory,
                           JavaInstallationRegistry javaInstallationRegistry,
-                          JvmEcosystemUtilities jvmPluginServices) {
+                          JvmEcosystemUtilities jvmPluginServices,
+                          JavaToolchainQueryService toolchainQueryService) {
         this.objectFactory = objectFactory;
         this.javaInstallationRegistry = javaInstallationRegistry;
+        this.toolchainQueryService = toolchainQueryService;
         this.javaClasspathPackaging = Boolean.getBoolean(COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY);
         this.jvmPluginServices = (JvmPluginServices) jvmPluginServices;
     }
@@ -182,7 +191,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             compileTask.getOptions().getHeaderOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(generatedHeadersDir));
             JavaPluginExtension javaPluginExtension = target.getExtensions().getByType(JavaPluginExtension.class);
             compileTask.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
+            compileTask.getJavaCompiler().convention(toolchainCompiler(javaPluginExtension.getToolchain()));
         });
+    }
+
+    private Provider<JavaCompiler> toolchainCompiler(JavaToolchainSpec filter) {
+        return toolchainQueryService.findMatchingToolchain(filter).map(JavaToolchain::getJavaCompiler).getOrElse(Providers.notDefined());
     }
 
     private void createProcessResourcesTask(final SourceSet sourceSet, final SourceDirectorySet resourceSet, final Project target) {
