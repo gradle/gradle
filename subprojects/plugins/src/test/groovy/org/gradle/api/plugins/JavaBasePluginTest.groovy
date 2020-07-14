@@ -208,12 +208,11 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
     void "wires toolchain for sourceset if toolchain is configured"() {
         given:
-        // workaround for https://github.com/gradle/gradle/issues/13122
-        ((DefaultProject) project).getServices().get(GradlePropertiesController.class).loadGradlePropertiesFrom(new File(project.projectDir, "gradle.properties"));
-
         def someJdk = Jvm.current()
         project.pluginManager.apply(JavaBasePlugin)
         project.java.toolchain.languageVersion = someJdk.javaVersion
+        // workaround for https://github.com/gradle/gradle/issues/13122
+        ((DefaultProject) project).getServices().get(GradlePropertiesController.class).loadGradlePropertiesFrom(project.projectDir);
 
         when:
         project.sourceSets.create('custom')
