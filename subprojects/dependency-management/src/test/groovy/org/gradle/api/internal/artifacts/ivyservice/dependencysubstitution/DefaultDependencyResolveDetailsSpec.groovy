@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 
-
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.model.IvyArtifactName
@@ -187,7 +187,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
     }
 
     private static def newDependencyResolveDetails(String group, String name, String version, String reason = null, List<IvyArtifactName> artifacts = []) {
-        return new DefaultDependencyResolveDetails(new DefaultDependencySubstitution(newComponentSelector(group, name, version), artifacts), newVersionSelector(group, name, version))
+        return new DefaultDependencyResolveDetails(new DefaultDependencySubstitution(DependencyManagementTestUtil.componentSelectionDescriptorFactory(), newComponentSelector(group, name, version), artifacts), newVersionSelector(group, name, version))
     }
 
     private static ModuleComponentSelector newComponentSelector(String group, String module, String version) {

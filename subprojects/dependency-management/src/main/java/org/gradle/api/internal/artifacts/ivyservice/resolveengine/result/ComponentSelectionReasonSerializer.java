@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.internal.Describables;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -30,6 +29,12 @@ import java.util.List;
 
 @NotThreadSafe
 public class ComponentSelectionReasonSerializer implements Serializer<ComponentSelectionReason> {
+
+    private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
+
+    public ComponentSelectionReasonSerializer(ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
+        this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
+    }
 
     @Override
     public ComponentSelectionReason read(Decoder decoder) throws IOException {
@@ -45,9 +50,9 @@ public class ComponentSelectionReasonSerializer implements Serializer<ComponentS
             String desc = readDescriptionText(decoder);
             String defaultReason = cause.getDefaultReason();
             if (desc.equals(defaultReason)) {
-                descriptors[i] = new DefaultComponentSelectionDescriptor(cause);
+                descriptors[i] = componentSelectionDescriptorFactory.newDescriptor(cause);
             } else {
-                descriptors[i] = new DefaultComponentSelectionDescriptor(cause, Describables.of(desc));
+                descriptors[i] = componentSelectionDescriptorFactory.newDescriptor(cause, desc);
             }
 
         }

@@ -66,6 +66,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalCompone
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
@@ -621,7 +622,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        AttributeContainerSerializer attributeContainerSerializer,
                                                        BuildState currentBuild,
                                                        TransformationNodeRegistry transformationNodeRegistry,
-                                                       DependencyVerificationOverride dependencyVerificationOverride) {
+                                                       DependencyVerificationOverride dependencyVerificationOverride,
+                                                       ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                             new DefaultConfigurationResolver(
@@ -647,7 +649,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                     attributeContainerSerializer,
                                     currentBuild.getBuildIdentifier(),
                                     new AttributeDesugaring(attributesFactory),
-                                    dependencyVerificationOverride),
+                                    dependencyVerificationOverride,
+                                componentSelectionDescriptorFactory),
                             componentIdentifierFactory,
                             moduleIdentifierFactory,
                             currentBuild.getBuildIdentifier()));

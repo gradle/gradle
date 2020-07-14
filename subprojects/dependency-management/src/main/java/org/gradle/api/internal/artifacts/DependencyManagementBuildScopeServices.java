@@ -87,6 +87,8 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublica
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CachingComponentSelectionDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DesugaredAttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
@@ -503,6 +505,10 @@ class DependencyManagementBuildScopeServices {
         );
     }
 
+    ComponentSelectionDescriptorFactory createComponentSelectionDescriptorFactory() {
+        return new CachingComponentSelectionDescriptorFactory();
+    }
+
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 VersionComparator versionComparator,
@@ -515,7 +521,8 @@ class DependencyManagementBuildScopeServices {
                                                                 VersionSelectorScheme versionSelectorScheme,
                                                                 VersionParser versionParser,
                                                                 ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
-                                                                InstantiatorFactory instantiatorFactory) {
+                                                                InstantiatorFactory instantiatorFactory,
+                                                                ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
             resolverFactories,
@@ -529,7 +536,8 @@ class DependencyManagementBuildScopeServices {
             versionSelectorScheme,
             versionParser,
             componentMetadataSupplierRuleExecutor,
-            instantiatorFactory);
+            instantiatorFactory,
+            componentSelectionDescriptorFactory);
     }
 
     ProjectPublicationRegistry createProjectPublicationRegistry() {
