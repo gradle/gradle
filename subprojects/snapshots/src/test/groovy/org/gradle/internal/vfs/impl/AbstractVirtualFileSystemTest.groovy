@@ -25,6 +25,7 @@ import org.gradle.internal.file.FileType
 import org.gradle.internal.file.Stat
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
@@ -53,7 +54,7 @@ abstract class AbstractVirtualFileSystemTest extends Specification {
         fileHasher,
         new StringInterner(),
         stat,
-        CASE_SENSITIVE,
+        new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(CASE_SENSITIVE)),
         SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP,
         recentlyCreatedSnapshotsListener
     )

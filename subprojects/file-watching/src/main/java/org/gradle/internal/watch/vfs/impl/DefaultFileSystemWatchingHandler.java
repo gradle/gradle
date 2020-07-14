@@ -22,11 +22,11 @@ import net.rubygrapefruit.platform.internal.jni.InotifyInstanceLimitTooLowExcept
 import net.rubygrapefruit.platform.internal.jni.InotifyWatchesLimitTooLowException;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
-import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
 import org.gradle.internal.vfs.impl.SnapshotCollectingDiffListener;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
@@ -51,7 +51,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
     private static final String FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD = "Gradle was unable to watch the file system for changes";
 
     private final FileWatcherRegistryFactory watcherRegistryFactory;
-    private final AbstractVirtualFileSystem virtualFileSystem;
+    private final AtomicSnapshotHierarchyReference snapshotHierarchyReference;
     private final DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator;
     private final Predicate<String> watchFilter;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
@@ -69,14 +69,14 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
 
     public DefaultFileSystemWatchingHandler(
         FileWatcherRegistryFactory watcherRegistryFactory,
-        AbstractVirtualFileSystem virtualFileSystem,
+        AtomicSnapshotHierarchyReference snapshotHierarchyReference,
         DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator,
         Predicate<String> watchFilter,
         DaemonDocumentationIndex daemonDocumentationIndex,
         RecentlyCapturedSnapshots recentlyCapturedSnapshots
     ) {
         this.watcherRegistryFactory = watcherRegistryFactory;
-        this.virtualFileSystem = virtualFileSystem;
+        this.snapshotHierarchyReference = snapshotHierarchyReference;
         this.delegatingUpdateFunctionDecorator = delegatingUpdateFunctionDecorator;
         this.watchFilter = watchFilter;
         this.daemonDocumentationIndex = daemonDocumentationIndex;
@@ -86,7 +86,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
     @Override
     public void afterBuildStarted(boolean watchingEnabled) {
         reasonForNotWatchingFiles = null;
-        virtualFileSystem.getRoot().update(currentRoot -> {
+        snapshotHierarchyReference.update(currentRoot -> {
             if (watchingEnabled) {
                 SnapshotHierarchy newRoot = handleWatcherRegistryEvents(currentRoot, "since last build");
                 newRoot = startWatching(newRoot);
@@ -103,7 +103,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
     }
 
     private void updateWatchRegistry(Consumer<FileWatcherRegistry> updateFunction, Runnable noWatchRegistry) {
-        virtualFileSystem.getRoot().update(currentRoot -> {
+        snapshotHierarchyReference.update(currentRoot -> {
             if (watchRegistry == null) {
                 noWatchRegistry.run();
                 return currentRoot;
@@ -131,7 +131,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
                 logWatchingError(reasonForNotWatchingFiles, FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD);
                 reasonForNotWatchingFiles = null;
             }
-            virtualFileSystem.getRoot().update(currentRoot -> {
+            snapshotHierarchyReference.update(currentRoot -> {
                 SnapshotHierarchy newRoot = removeSymbolicLinks(currentRoot);
                 newRoot = handleWatcherRegistryEvents(newRoot, "for current build");
                 if (watchRegistry != null) {
@@ -141,7 +141,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
                 return newRoot;
             });
         } else {
-            virtualFileSystem.invalidateAll();
+            snapshotHierarchyReference.update(SnapshotHierarchy::empty);
         }
     }
 
@@ -175,7 +175,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
                         LOGGER.debug("Handling VFS change {} {}", type, path);
                         String absolutePath = path.toString();
                         if (recentlyCapturedSnapshots.canBeInvalidatedByFileSystemEvents(absolutePath)) {
-                            virtualFileSystem.getRoot().update(root -> {
+                            snapshotHierarchyReference.update(root -> {
                                 SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener(watchFilter);
                                 SnapshotHierarchy newRoot = root.invalidate(absolutePath, diffListener);
                                 return withWatcherChangeErrorHandling(
@@ -241,7 +241,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
      * the parts that have been changed since calling {@link #startWatching(SnapshotHierarchy)}}.
      */
     private void stopWatchingAndInvalidateHierarchy() {
-        virtualFileSystem.getRoot().update(this::stopWatchingAndInvalidateHierarchy);
+        snapshotHierarchyReference.update(this::stopWatchingAndInvalidateHierarchy);
     }
 
     private SnapshotHierarchy stopWatchingAndInvalidateHierarchy(SnapshotHierarchy currentRoot) {
@@ -322,7 +322,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
 
     @Override
     public void close() {
-        virtualFileSystem.getRoot().update(currentRoot -> {
+        snapshotHierarchyReference.update(currentRoot -> {
             closeUnderLock();
             return currentRoot.empty();
         });

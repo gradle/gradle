@@ -78,10 +78,12 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
+import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
-import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
+import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.DarwinFileWatcherRegistryFactory;
@@ -201,9 +203,14 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new DelegatingDiffCapturingUpdateFunctionDecorator(watchFilter);
         }
 
-        AbstractVirtualFileSystem createVirtualFileSystem(
+        AtomicSnapshotHierarchyReference createSnapshotHierarchyReference(FileSystem fileSystem) {
+            CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
+            return new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
+        }
+
+        VirtualFileSystem createVirtualFileSystem(
             FileHasher hasher,
-            FileSystem fileSystem,
+            AtomicSnapshotHierarchyReference snapshotHierarchyReference,
             Stat stat,
             SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator diffCapturingUpdateFunctionDecorator,
             StringInterner stringInterner,
@@ -215,7 +222,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 hasher,
                 stringInterner,
                 stat,
-                fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
+                snapshotHierarchyReference,
                 diffCapturingUpdateFunctionDecorator,
                 recentlyCreatedSnapshotsListener,
                 DirectoryScanner.getDefaultExcludes()
@@ -248,7 +255,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
         FileSystemWatchingHandler createFileSystemWatchingHandler(
             WatchFilter watchFilter,
-            AbstractVirtualFileSystem virtualFileSystem,
+            AtomicSnapshotHierarchyReference snapshotHierarchyReference,
             RecentlyCapturedSnapshots recentlyCapturedSnapshots,
             DocumentationRegistry documentationRegistry,
             NativeCapabilities nativeCapabilities,
@@ -258,13 +265,13 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             FileSystemWatchingHandler watchingHandler = determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities)
                 .<FileSystemWatchingHandler>map(watcherRegistryFactory -> new DefaultFileSystemWatchingHandler(
                     watcherRegistryFactory,
-                    virtualFileSystem,
+                    snapshotHierarchyReference,
                     updateFunctionDecorator,
                     watchFilter,
                     sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId),
                     recentlyCapturedSnapshots
                 ))
-                .orElse(new WatchingNotSupportedFileSystemWatchingHandler(virtualFileSystem));
+                .orElse(new WatchingNotSupportedFileSystemWatchingHandler(snapshotHierarchyReference));
             listenerManager.addListener((BuildAddedListener) buildState ->
                 watchingHandler.buildRootDirectoryAdded(buildState.getBuildRootDir())
             );
@@ -344,11 +351,12 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             VirtualFileSystem gradleUserHomeVirtualFileSystem
         ) {
             StartParameterInternal startParameterInternal = (StartParameterInternal) startParameter;
+            AtomicSnapshotHierarchyReference snapshotHierarchyReference = new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE));
             DefaultVirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(
                 hasher,
                 stringInterner,
                 stat,
-                fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
+                snapshotHierarchyReference,
                 SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP,
                 locations -> {},
                 DirectoryScanner.getDefaultExcludes()

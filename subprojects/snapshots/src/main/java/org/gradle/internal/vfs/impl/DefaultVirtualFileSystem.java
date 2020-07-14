@@ -26,7 +26,6 @@ import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
-import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
@@ -35,6 +34,7 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
 import org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter;
+import org.gradle.internal.vfs.VirtualFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,10 +46,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
+public class DefaultVirtualFileSystem implements VirtualFileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultVirtualFileSystem.class);
 
-    private final AtomicSnapshotHierarchyReference root;
+    private final AtomicSnapshotHierarchyReference snapshotHierarchyReference;
     private final Stat stat;
     private final SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator;
     private final Interner<String> stringInterner;
@@ -62,7 +62,8 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
     public DefaultVirtualFileSystem(
         FileHasher hasher,
         Interner<String> stringInterner,
-        Stat stat, CaseSensitivity caseSensitivity,
+        Stat stat,
+        AtomicSnapshotHierarchyReference snapshotHierarchyReference,
         SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator,
         RecentlyCreatedSnapshotsListener recentlyCreatedSnapshotsListener,
         String... defaultExcludes
@@ -74,7 +75,7 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
         this.defaultExcludes = ImmutableList.copyOf(defaultExcludes);
         this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, this.defaultExcludes);
         this.hasher = hasher;
-        this.root = new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
+        this.snapshotHierarchyReference = snapshotHierarchyReference;
     }
 
     @Override
@@ -84,7 +85,7 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
 
     @Override
     public <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor) {
-        return root.get().getMetadata(location)
+        return snapshotHierarchyReference.get().getMetadata(location)
             .<Optional<HashCode>>flatMap(snapshot -> {
                 if (snapshot.getType() != FileType.RegularFile) {
                     return Optional.of(Optional.empty());
@@ -104,7 +105,7 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
                     return Optional.empty();
                 }
                 HashCode hash = producingSnapshots.guardByKey(location,
-                    () -> root.get().getSnapshot(location)
+                    () -> snapshotHierarchyReference.get().getSnapshot(location)
                         .orElseGet(() -> {
                             HashCode hashCode = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
                             RegularFileSnapshot snapshot = new RegularFileSnapshot(location, file.getName(), hashCode, fileMetadata);
@@ -125,11 +126,11 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
         if (filter.isEmpty()) {
             visitor.accept(readLocation(location));
         } else {
-            FileSystemSnapshot filteredSnapshot = root.get().getSnapshot(location)
+            FileSystemSnapshot filteredSnapshot = snapshotHierarchyReference.get().getSnapshot(location)
                 .filter(CompleteFileSystemLocationSnapshot.class::isInstance)
                 .map(snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot))
                 .orElseGet(() -> producingSnapshots.guardByKey(location,
-                    () -> root.get().getSnapshot(location)
+                    () -> snapshotHierarchyReference.get().getSnapshot(location)
                         .map(snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot))
                         .orElseGet(() -> {
                             AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
@@ -170,25 +171,20 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
     }
 
     private void updateRoot(SnapshotHierarchy.DiffCapturingUpdateFunction updateFunction) {
-        root.update(updateFunctionDecorator.decorate(updateFunction));
-    }
-
-    @Override
-    public AtomicSnapshotHierarchyReference getRoot() {
-        return root;
+        snapshotHierarchyReference.update(updateFunctionDecorator.decorate(updateFunction));
     }
 
     private CompleteFileSystemLocationSnapshot readLocation(String location) {
-        return root.get().getSnapshot(location)
+        return snapshotHierarchyReference.get().getSnapshot(location)
             .orElseGet(() -> producingSnapshots.guardByKey(location,
-                () -> root.get().getSnapshot(location).orElseGet(() -> snapshot(location)))
+                () -> snapshotHierarchyReference.get().getSnapshot(location).orElseGet(() -> snapshot(location)))
             );
     }
 
     @Override
     public void update(Iterable<String> locations, Runnable action) {
         recentlyCreatedSnapshotsListener.snapshotsCreated(locations);
-        root.update(root -> {
+        snapshotHierarchyReference.update(root -> {
             SnapshotHierarchy result = root;
             for (String location : locations) {
                 result = updateFunctionDecorator.decorate((currentRoot, changeListener) -> currentRoot.invalidate(location, changeListener)).updateRoot(result);
