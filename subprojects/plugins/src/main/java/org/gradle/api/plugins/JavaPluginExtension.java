@@ -120,9 +120,19 @@ public interface JavaPluginExtension {
     @Incubating
     ModularitySpec getModularity();
 
+    /**
+     * Configure the toolchain requirements for tasks that require a tool from the toolchain (e.g. {@link org.gradle.api.tasks.compile.JavaCompile}.
+     *
+     * @since 6.7
+     */
     @Incubating
     JavaToolchainSpec getToolchain();
 
+    /**
+     * Configure the toolchain requirements for tasks that require a tool from the toolchain (e.g. {@link org.gradle.api.tasks.compile.JavaCompile}.
+     *
+     * @since 6.7
+     */
     @Incubating
     JavaToolchainSpec toolchain(Action<? super JavaToolchainSpec> action);
 
