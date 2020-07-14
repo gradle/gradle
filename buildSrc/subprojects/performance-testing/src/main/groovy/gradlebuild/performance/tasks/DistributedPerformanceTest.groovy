@@ -333,6 +333,9 @@ abstract class DistributedPerformanceTest extends PerformanceTest {
     @TypeChecked(TypeCheckingMode.SKIP)
     private Map httpPost(Map params) {
         try {
+            // https://youtrack.jetbrains.com/issue/TW-49672
+            HttpResponseDecorator response = client.get(uri: "${teamCityUrl}authenticationTest.html?csrf")
+            params.put("headers", ['X-TC-CSRF-Token': response.data])
             return client.post(params).data
         } catch (HttpResponseException ex) {
             println("Get response ${ex.response.status}\n${ex.response.data}")
