@@ -580,7 +580,7 @@ tasks.named("docsTest") { task ->
         // Do not execute JaCoCo tests on JDK >= 15 until JaCoCo we use starts supporting newer JDKs
         if (buildJvms.testJvm.get().javaVersion.isCompatibleWith(JavaVersion.VERSION_15)) {
             excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.jvm-multi-project-with-code-coverage_*_testTask.sample'
-            excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-testing-jacoco-applicationª_*_jacocoApp.sample'
+            excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-testing-jacoco-application_*_jacocoApp.sample'
         }
 
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.android-application_*.sample' // has build deprecations
