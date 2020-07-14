@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal;
+package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Describable;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.provider.Property;
 
 public interface JavaToolchainSpec extends Describable {
 
-    JavaVersion getLanguageVersion();
+    Property<JavaVersion> getLanguageVersion();
 
 }
