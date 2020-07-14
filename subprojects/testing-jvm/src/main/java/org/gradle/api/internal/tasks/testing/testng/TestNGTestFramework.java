@@ -54,11 +54,11 @@ public class TestNGTestFramework implements TestFramework {
     private final Factory<File> testTaskTemporaryDir;
     private transient ClassLoader testClassLoader;
 
-    public TestNGTestFramework(final Test testTask, DefaultTestFilter filter, ObjectFactory objects) {
+    public TestNGTestFramework(final Test testTask, FileCollection classpath, DefaultTestFilter filter, ObjectFactory objects) {
         this.filter = filter;
         this.objects = objects;
         this.testTaskPath = testTask.getPath();
-        this.testTaskClasspath = testTask.getClasspath();
+        this.testTaskClasspath = classpath;
         this.testTaskTemporaryDir = testTask.getTemporaryDirFactory();
         options = objects.newInstance(TestNGOptions.class, testTask.getProject().getProjectDir());
         conventionMapOutputDirectory(options, testTask.getReports().getHtml());
