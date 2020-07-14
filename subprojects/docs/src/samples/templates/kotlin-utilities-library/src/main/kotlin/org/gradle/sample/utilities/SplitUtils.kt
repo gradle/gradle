@@ -33,7 +33,7 @@ class SplitUtils {
         }
 
         private fun isTokenValid(token: String): Boolean {
-            return !token.isEmpty()
+            return token.length > 0
         }
     }
 }
