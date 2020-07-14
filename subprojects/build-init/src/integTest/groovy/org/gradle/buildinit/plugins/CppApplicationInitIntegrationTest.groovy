@@ -20,7 +20,6 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
-import spock.lang.Unroll
 
 class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 

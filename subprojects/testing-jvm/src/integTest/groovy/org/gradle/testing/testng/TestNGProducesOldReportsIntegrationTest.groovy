@@ -26,17 +26,17 @@ public class TestNGProducesOldReportsIntegrationTest extends AbstractIntegration
     def "always produces the new xml reports"() {
         given:
         file("src/test/java/org/MixedMethodsTest.java") << """package org;
-import org.testng.*;
-import org.testng.annotations.*;
-import static org.testng.Assert.*;
+            import org.testng.*;
+            import org.testng.annotations.*;
+            import static org.testng.Assert.*;
 
-public class MixedMethodsTest {
-    @Test public void passing() {
-    }
-    @Test public void failing() {
-        fail("failing!");
-    }
-}
+            public class MixedMethodsTest {
+                @Test public void passing() {
+                }
+                @Test public void failing() {
+                    fail("failing!");
+                }
+            }
 """
         def buildFile = file('build.gradle')
         buildFile << """
@@ -60,11 +60,11 @@ test {
     "can generate the old xml reports"() {
         given:
         file("src/test/java/org/SomeTest.java") << """package org;
-import org.testng.annotations.*;
+            import org.testng.annotations.*;
 
-public class SomeTest {
-    @Test public void passing() {}
-}
+            public class SomeTest {
+                @Test public void passing() {}
+            }
 """
         def buildFile = file('build.gradle')
         buildFile << """

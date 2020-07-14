@@ -15,12 +15,14 @@
  */
 package gradlebuild
 
+import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.BuildEnvironment
-import gradlebuild.basics.extension.vendorAndMajorVersion
 import gradlebuild.basics.tasks.ClasspathManifest
+import gradlebuild.basics.extension.vendorAndMajorVersion
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
 import org.gradle.internal.os.OperatingSystem
+import java.util.concurrent.Callable
 import java.util.jar.Attributes
 import com.gradle.enterprise.gradleplugin.testdistribution.TestDistributionPlugin
 

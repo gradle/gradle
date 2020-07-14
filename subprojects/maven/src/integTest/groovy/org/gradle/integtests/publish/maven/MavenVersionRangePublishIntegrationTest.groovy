@@ -19,7 +19,6 @@ package org.gradle.integtests.publish.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import spock.lang.Issue
-import spock.lang.Unroll
 
 @UnsupportedWithInstantExecution(because = "legacy maven plugin")
 class MavenVersionRangePublishIntegrationTest extends AbstractIntegrationSpec {
