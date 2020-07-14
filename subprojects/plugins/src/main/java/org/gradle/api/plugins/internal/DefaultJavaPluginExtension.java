@@ -32,8 +32,11 @@ import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.Actions;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.jvm.DefaultModularitySpec;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 
 import java.util.regex.Pattern;
 
@@ -53,6 +56,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final Project project;
     private final ModularitySpec modularity;
     private final JvmPluginServices jvmPluginServices;
+    private JavaToolchainSpec toolchain;
 
     public DefaultJavaPluginExtension(JavaPluginConvention convention,
                                       Project project,
@@ -61,8 +65,9 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         this.objectFactory = project.getObjects();
         this.components = project.getComponents();
         this.project = project;
-        this.modularity = project.getObjects().newInstance(DefaultModularitySpec.class);
+        this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         this.jvmPluginServices = jvmPluginServices;
+        this.toolchain = objectFactory.newInstance(DefaultToolchainSpec.class);
     }
 
     @Override
@@ -120,6 +125,17 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     @Override
     public ModularitySpec getModularity() {
         return modularity;
+    }
+
+    @Override
+    public JavaToolchainSpec getToolchain() {
+        return toolchain(Actions.doNothing());
+    }
+
+    @Override
+    public JavaToolchainSpec toolchain(Action<? super JavaToolchainSpec> action) {
+        action.execute(toolchain);
+        return toolchain;
     }
 
     private static String validateFeatureName(String name) {
