@@ -46,7 +46,7 @@ class FunctionalTest(
             listOf(""""-PtestJavaHome=%${testCoverage.os}.${testCoverage.testJvmVersion}.${testCoverage.vendor}.64bit%"""") +
                 buildScanTags.map { buildScanTag(it) } +
                 buildScanValues.map { buildScanCustomValue(it.key, it.value) } +
-                if (testCoverage.testDistribution) "-DenableTestDistribution=true" else "" +
+                if (testCoverage.testDistribution) "-DenableTestDistribution=true -Dscan.tag.test-distribution" else "" +
                     extraParameters
             ).filter { it.isNotBlank() }.joinToString(separator = " "),
         timeout = testCoverage.testType.timeout,
