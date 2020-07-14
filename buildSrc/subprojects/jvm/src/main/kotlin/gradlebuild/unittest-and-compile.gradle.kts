@@ -15,14 +15,12 @@
  */
 package gradlebuild
 
-import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.BuildEnvironment
-import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.extension.vendorAndMajorVersion
+import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
 import org.gradle.internal.os.OperatingSystem
-import java.util.concurrent.Callable
 import java.util.jar.Attributes
 import com.gradle.enterprise.gradleplugin.testdistribution.TestDistributionPlugin
 
@@ -117,7 +115,6 @@ fun addDependencies() {
         testRuntimeOnly(libs.junit5Vintage)
         testImplementation(libs.groovy)
         testImplementation(libs.spock)
-        testRuntimeOnly(libs.spock_unroll)
         testRuntimeOnly(libs.bytebuddy)
         testRuntimeOnly(libs.objenesis)
 
