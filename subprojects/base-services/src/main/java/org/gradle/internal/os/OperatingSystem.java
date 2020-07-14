@@ -209,7 +209,7 @@ public abstract class OperatingSystem {
 
         @Override
         public String getExecutableName(String executablePath) {
-            return withExtension(executablePath, ".exe");
+            return withExtension(executablePath, ".exe", ".bat");
         }
 
         @Override

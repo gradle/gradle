@@ -173,10 +173,27 @@ public class FileUtils {
      * @return the transformed path
      */
     public static String withExtension(String filePath, String extension) {
-        if (filePath.toLowerCase().endsWith(extension)) {
+        return withExtension(filePath, extension, new String[0]);
+    }
+
+    public static String withExtension(String filePath, String extension, String... alternativeExts) {
+        if (endsWithOneOf(filePath.toLowerCase(), extension, alternativeExts)) {
             return filePath;
         }
         return removeExtension(filePath) + extension;
+    }
+
+    private static boolean endsWithOneOf(String filePathLC, String extension, String... alternativeExts) {
+        if (filePathLC.endsWith(extension)) {
+            return true;
+        } else {
+            for (String altExt : alternativeExts) {
+                if (filePathLC.endsWith(altExt)) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     /**

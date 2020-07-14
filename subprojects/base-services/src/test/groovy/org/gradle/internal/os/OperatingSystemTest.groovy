@@ -94,7 +94,7 @@ class OperatingSystemTest extends Specification {
         os.getExecutableName("a.exe") == "a.exe"
         os.getExecutableName("a.EXE") == "a.EXE"
         os.getExecutableName("a") == "a.exe"
-        os.getExecutableName("a.bat") == "a.exe"
+        os.getExecutableName("a.bat") == "a.bat"
         os.getExecutableName("a.b/c") == "a.b/c.exe"
         os.getExecutableName("a.b\\c") == "a.b\\c.exe"
     }
