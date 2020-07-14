@@ -23,6 +23,7 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
@@ -304,5 +305,10 @@ public class DefaultTask extends org.gradle.api.internal.AbstractTask implements
     @Override
     public Task configure(Closure closure) {
         return super.configure(closure);
+    }
+
+    @Override
+    public ExtensionContainer getExtensions() {
+        return super.getExtensions();
     }
 }
