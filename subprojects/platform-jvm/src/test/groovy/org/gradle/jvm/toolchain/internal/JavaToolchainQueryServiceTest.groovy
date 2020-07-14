@@ -21,6 +21,7 @@ import org.gradle.api.file.Directory
 import org.gradle.api.internal.file.FileFactory
 import org.gradle.jvm.toolchain.JavaInstallation
 import org.gradle.jvm.toolchain.JavaInstallationRegistry
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -36,7 +37,8 @@ class JavaToolchainQueryServiceTest extends Specification {
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory)
 
         when:
-        def filter = new DefaultToolchainSpec(versionToFind)
+        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        filter.languageVersion.set(versionToFind)
         def toolchain = queryService.findMatchingToolchain(filter).get()
 
         then:
@@ -56,13 +58,28 @@ class JavaToolchainQueryServiceTest extends Specification {
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory)
 
         when:
-        def filter = new DefaultToolchainSpec(JavaVersion.VERSION_12)
+        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        filter.languageVersion.set(JavaVersion.VERSION_12)
         def toolchain = queryService.findMatchingToolchain(filter)
         toolchain.get()
 
         then:
         def e = thrown(NoToolchainAvailableException)
         e.message == "No compatible toolchains found for request filter: {languageVersion=12}"
+    }
+
+    def "returns no toolchain if filter is not configured"() {
+        given:
+        def registry = createInstallationRegistry(["8", "9", "10"])
+        def toolchainFactory = newToolchainFactory()
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory)
+
+        when:
+        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def toolchain = queryService.findMatchingToolchain(filter)
+
+        then:
+        !toolchain.isPresent()
     }
 
     private JavaToolchainFactory newToolchainFactory() {
