@@ -21,7 +21,6 @@ import org.gradle.integtests.resolve.transform.ArtifactTransformTestFixture
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstantExecutionIntegrationTest implements ArtifactTransformTestFixture {
@@ -1050,7 +1049,6 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         // TODO - stops on first failure, should collect all failures
     }
 
-    @Ignore("wip")
     def 'transform action is re-executed when input artifact changes'() {
         given:
         buildKotlinFile '''
