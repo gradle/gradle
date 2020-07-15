@@ -20,9 +20,11 @@ package org.gradle.api.tasks.compile
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
+import spock.lang.IgnoreIf
 
 class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest {
 
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "can manually set java compiler via toolchain on java compile task"() {
         def someJdk = AvailableJavaHomes.getDifferentJdk()
         buildFile << """
