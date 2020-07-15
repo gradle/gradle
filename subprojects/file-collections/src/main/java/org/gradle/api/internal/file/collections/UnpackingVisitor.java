@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryTree;
+import org.gradle.api.internal.file.AbstractOpaqueFileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -32,7 +33,9 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.DeferredUtil;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.nio.file.Path;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class UnpackingVisitor {
@@ -102,7 +105,33 @@ public class UnpackingVisitor {
     }
 
     private void visitSingleFile(Object element) {
-        visitor.accept(new FileCollectionAdapter(new ListBackedFileSet(ImmutableSet.of(resolver.resolve(element))), patternSetFactory));
+        visitor.accept(new SingleFileResolvingFileCollection(element, resolver, patternSetFactory));
+    }
+
+    private static class SingleFileResolvingFileCollection extends AbstractOpaqueFileCollection {
+        private Object element;
+        private final PathToFileResolver resolver;
+        private File resolved;
+
+        public SingleFileResolvingFileCollection(Object element, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory) {
+            super(patternSetFactory);
+            this.element = element;
+            this.resolver = resolver;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "file collection";
+        }
+
+        @Override
+        protected Set<File> getIntrinsicFiles() {
+            if (resolved == null) {
+                resolved = resolver.resolve(element);
+                element = null;
+            }
+            return ImmutableSet.of(resolved);
+        }
     }
 
     private static class BuildableElementFileCollection extends CompositeFileCollection {
