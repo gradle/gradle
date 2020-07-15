@@ -18,8 +18,6 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.internal.Factory;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.internal.JavaCompilerFactory;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -31,7 +29,6 @@ import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import javax.tools.JavaCompiler;
 
-@ServiceScope(Scopes.BuildTree)
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final WorkerDirectoryProvider workingDirProvider;
     private final WorkerDaemonFactory workerDaemonFactory;
