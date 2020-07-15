@@ -35,7 +35,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
-import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
