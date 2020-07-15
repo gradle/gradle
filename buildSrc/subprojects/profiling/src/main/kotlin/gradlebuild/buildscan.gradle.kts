@@ -52,6 +52,7 @@ if (isCiServer) {
 fun Project.publishOnFailuresInCleanupBuilds() {
     if (gradle.startParameter.taskNames in tasksWithBuildScansOnFailure) {
         buildScan {
+            println("Disable publishAlways() for ${gradle.startParameter.taskNames}")
             publishOnFailure()
         }
     }

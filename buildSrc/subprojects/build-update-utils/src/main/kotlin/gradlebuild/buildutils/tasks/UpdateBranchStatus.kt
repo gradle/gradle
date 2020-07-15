@@ -39,6 +39,7 @@ abstract class UpdateBranchStatus : DefaultTask() {
 
     private
     fun publishBranchStatus(branch: String) {
+        println("Publishing branch status of $branch")
         project.execAndGetStdout("git", "push", "origin", "$branch:green-$branch")
     }
 
