@@ -57,7 +57,7 @@ test {
         new JUnitXmlTestExecutionResult(file(".")).hasJUnitXmlResults()
     }
 
-    "can generate the old xml reports"() {
+    def "can generate the old xml reports"() {
         given:
         file("src/test/java/org/SomeTest.java") << """package org;
             import org.testng.annotations.*;

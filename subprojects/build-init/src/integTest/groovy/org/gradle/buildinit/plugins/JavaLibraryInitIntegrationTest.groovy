@@ -38,7 +38,6 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(GROOVY).assertGradleFilesGenerated()
     }
 
-    @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-library', '--dsl', scriptDsl.id)
@@ -62,7 +61,6 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
     def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:

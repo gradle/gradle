@@ -888,7 +888,6 @@ class FileSystemWatchingIntegrationTest extends AbstractIntegrationSpec implemen
         executedAndNotSkipped ":myTask"
     }
 
-    @Unroll
     def "detects when a task removes the build directory #buildDir"() {
         buildFile << """
             apply plugin: 'base'

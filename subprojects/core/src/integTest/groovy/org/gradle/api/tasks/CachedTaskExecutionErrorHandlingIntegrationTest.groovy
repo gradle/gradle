@@ -87,7 +87,6 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         }
     }
 
-    @Unroll
     def "remote cache #failEvent error stack trace is printed when requested (#showStacktrace)"() {
         // Need to do it like this because stacktraces are always enabled for integration tests
         settingsFile << """

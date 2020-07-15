@@ -19,6 +19,7 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 
 class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
@@ -106,7 +107,6 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "creates sample source using junit-jupiter instead of junit with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-application', '--test-framework', 'junit-jupiter', '--dsl', scriptDsl.id)
@@ -162,7 +162,6 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         [scriptDsl, testFramework] << [ScriptDslFixture.SCRIPT_DSLS, [BuildInitTestFramework.JUNIT, BuildInitTestFramework.TESTNG]].combinations()
     }
 
-    @Unroll
     @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
     def "creates sample source with package and spock and #scriptDsl build scripts"() {
         when:
@@ -191,7 +190,6 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "source generation is skipped when java sources detected with #scriptDsl build scripts"() {
         setup:
         targetDir.file("src/main/java/org/acme/SampleMain.java") << """

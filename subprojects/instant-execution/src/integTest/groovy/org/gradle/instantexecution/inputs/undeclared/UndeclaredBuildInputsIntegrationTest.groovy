@@ -20,6 +20,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
 import spock.lang.Issue
+import spock.lang.Unroll
+
 class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
     def "reports build logic reading a system property set #mechanism.description via the Java API"() {
         buildFile << """
@@ -44,7 +46,6 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13569")
-    @Unroll
     def "reports build logic reading system properties using GString parameters - #expression"() {
         buildFile << """
             def ci = "ci"
