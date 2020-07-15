@@ -415,7 +415,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     private void configureTest(Project project, JavaPluginExtension javaPluginExtension, JavaPluginConvention pluginConvention) {
         project.getTasks().withType(Test.class).configureEach(test -> {
             test.getConventionMapping().map("testClassesDirs", () -> sourceSetOf(pluginConvention, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
-            test.setClasspath(sourceSetOf(pluginConvention, SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath());
+            test.getConventionMapping().map("classpath", () -> sourceSetOf(pluginConvention, SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath());
             test.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
         });
 
