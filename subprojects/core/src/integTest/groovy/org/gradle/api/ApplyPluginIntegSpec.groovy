@@ -99,7 +99,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
                                     .withProjectDir(projectDir)
                                     .withGradleUserHomeDir(userHome)
                                     .build()
-                    project.apply(plugin: 'base')
+                    project.apply(plugin: 'groovy')
                     project.evaluate()
                 }
             }
