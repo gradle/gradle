@@ -340,7 +340,18 @@ class EdgeState implements DependencyGraphEdge {
         if (selectorFailure != null) {
             return selectorFailure;
         }
-        return getSelectedComponent().getMetadataResolveFailure();
+        ComponentState selectedComponent = getSelectedComponent();
+        if (selectedComponent == null) {
+            ModuleSelectors<SelectorState> selectors = selector.getTargetModule().getSelectors();
+            for (SelectorState state : selectors) {
+                selectorFailure = state.getFailure();
+                if (selectorFailure != null) {
+                    return selectorFailure;
+                }
+            }
+            throw new IllegalStateException("Expected to find a selector with a failure but none was found");
+        }
+        return selectedComponent.getMetadataResolveFailure();
     }
 
     @Override
