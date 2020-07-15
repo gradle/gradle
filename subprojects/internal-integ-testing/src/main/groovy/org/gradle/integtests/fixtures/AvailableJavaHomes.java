@@ -188,11 +188,11 @@ public abstract class AvailableJavaHomes {
             NativeServices nativeServices = NativeServicesTestFixture.getInstance();
             FileCanonicalizer fileCanonicalizer = nativeServices.get(FileCanonicalizer.class);
             jvms = new ArrayList<>();
-            InstalledJvmLocator installedJvmLocator = new InstalledJvmLocator(OperatingSystem.current(), Jvm.current(), nativeServices.get(WindowsRegistry.class), nativeServices.get(SystemInfo.class), fileCanonicalizer);
             jvms.addAll(new DevInfrastructureJvmLocator(fileCanonicalizer).findJvms());
+            InstalledJvmLocator installedJvmLocator = new InstalledJvmLocator(OperatingSystem.current(), Jvm.current(), nativeServices.get(WindowsRegistry.class), nativeServices.get(SystemInfo.class), fileCanonicalizer);
             jvms.addAll(installedJvmLocator.findJvms());
             if (OperatingSystem.current().isLinux()) {
-                jvms.addAll(new BaseDirJvmLocator(fileCanonicalizer, new File("/opt/jdk")).findJvms());
+                jvms.addAll(new BaseDirJvmLocator(fileCanonicalizer, new File("/opt")).findJvms());
             }
             if (!OperatingSystem.current().isWindows()) {
                 jvms.addAll(new SdkManJvmLocator(fileCanonicalizer).findJvms());
@@ -237,8 +237,7 @@ public abstract class AvailableJavaHomes {
     }
 
     private static class BaseDirJvmLocator {
-        // open-jdk-14 oracle-jdk-8 open-jdk-14-ea
-        private static final Pattern JDK_DIR = Pattern.compile("jdk-?(\\d+)");
+        private static final Pattern JDK_DIR = Pattern.compile("jdk(\\d+\\.\\d+\\.\\d+(_\\d+)?)");
         private final FileCanonicalizer fileCanonicalizer;
         private final File baseDir;
 
@@ -252,7 +251,7 @@ public abstract class AvailableJavaHomes {
             List<JvmInstallation> jvms = new ArrayList<>();
             for (File file : baseDir.listFiles()) {
                 Matcher matcher = JDK_DIR.matcher(file.getName());
-                if (!matcher.find()) {
+                if (!matcher.matches()) {
                     continue;
                 }
                 File javaHome = fileCanonicalizer.canonicalize(file);
