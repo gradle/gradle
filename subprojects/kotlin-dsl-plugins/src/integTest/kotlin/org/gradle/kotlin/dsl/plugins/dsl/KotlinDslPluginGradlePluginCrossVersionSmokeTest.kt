@@ -17,13 +17,11 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForFileSystemWatching
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.util.TestPrecondition
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
@@ -32,10 +30,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 
-@ToBeFixedForFileSystemWatching(
-    because = "https://github.com/gradle/gradle/issues/12184",
-    failsOnlyIf = TestPrecondition.WINDOWS
-)
 @RunWith(Parameterized::class)
 class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
 

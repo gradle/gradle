@@ -175,7 +175,7 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
             }
 
             private boolean isRoot(GradleInternal gradle) {
-                return gradle.getParent() == null;
+                return gradle.isRootBuild();
             }
 
             private BuildCacheController doCreateBuildCacheController(ServiceRegistry serviceRegistry, BuildCacheConfigurationInternal buildCacheConfiguration, BuildOperationExecutor buildOperationExecutor, InstantiatorFactory instantiatorFactory, GradleInternal gradle) {

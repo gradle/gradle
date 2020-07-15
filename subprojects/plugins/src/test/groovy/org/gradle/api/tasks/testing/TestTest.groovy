@@ -19,13 +19,12 @@ package org.gradle.api.tasks.testing
 import org.apache.commons.io.FileUtils
 import org.gradle.api.Action
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileTree
 import org.gradle.api.internal.ConventionTask
-import org.gradle.api.internal.file.CompositeFileTree
+import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.FileCollectionStructureVisitor
+import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext
-import org.gradle.api.internal.file.collections.DirectoryFileTree
-import org.gradle.api.internal.file.collections.FileTreeAdapter
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.tasks.testing.TestExecuter
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec
 import org.gradle.api.internal.tasks.testing.TestFramework
@@ -36,6 +35,7 @@ import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.api.internal.tasks.testing.report.TestReporter
 import org.gradle.api.tasks.AbstractConventionTaskTest
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.process.internal.worker.WorkerProcessBuilder
@@ -121,6 +121,7 @@ class TestTest extends AbstractConventionTaskTest {
     }
 
     /* TODO(pepper): WTF?!? This test wasn't ever doing shit. Fuck this! */
+
     def "execute with test failures and ignore failures"() {
         given:
         configureTask()
@@ -229,9 +230,9 @@ class TestTest extends AbstractConventionTaskTest {
         test.setTestNameIncludePatterns([TEST_PATTERN_2])
 
         then:
-        test.includes == [ TEST_PATTERN_1 ] as Set
-        test.excludes == [ TEST_PATTERN_1 ] as Set
-        test.filter.commandLineIncludePatterns == [ TEST_PATTERN_2] as Set
+        test.includes == [TEST_PATTERN_1] as Set
+        test.excludes == [TEST_PATTERN_1] as Set
+        test.filter.commandLineIncludePatterns == [TEST_PATTERN_2] as Set
     }
 
     def "--tests is combined with filter.includeTestsMatching"() {
@@ -245,12 +246,12 @@ class TestTest extends AbstractConventionTaskTest {
         test.includes.empty
         test.excludes.empty
         test.filter.includePatterns == [TEST_PATTERN_1] as Set
-        test.filter.commandLineIncludePatterns == [ TEST_PATTERN_2] as Set
+        test.filter.commandLineIncludePatterns == [TEST_PATTERN_2] as Set
     }
 
     def "--tests is combined with filter.includePatterns"() {
         given:
-        test.filter.includePatterns = [ TEST_PATTERN_1 ]
+        test.filter.includePatterns = [TEST_PATTERN_1]
 
         when:
         test.setTestNameIncludePatterns([TEST_PATTERN_2])
@@ -259,7 +260,7 @@ class TestTest extends AbstractConventionTaskTest {
         test.includes.empty
         test.excludes.empty
         test.filter.includePatterns == [TEST_PATTERN_1] as Set
-        test.filter.commandLineIncludePatterns == [ TEST_PATTERN_2] as Set
+        test.filter.commandLineIncludePatterns == [TEST_PATTERN_2] as Set
     }
 
     def "jvm arg providers are added to java fork options"() {
@@ -277,19 +278,30 @@ class TestTest extends AbstractConventionTaskTest {
         javaForkOptions.getJvmArgs() == ['First', 'Second']
     }
 
-    private void assertIsDirectoryTree(FileTree classFiles, Set<String> includes, Set<String> excludes) {
-        assert classFiles instanceof CompositeFileTree
-        def files = (CompositeFileTree) classFiles
-        def context = new DefaultFileCollectionResolveContext(TestFiles.patternSetFactory)
-        files.visitContents(context)
-        List<? extends FileTree> contents = context.resolveAsFileTrees()
-        FileTreeAdapter adapter = (FileTreeAdapter) contents.get(0)
-        assert adapter.getTree() instanceof DirectoryFileTree
-        def directoryFileTree = (DirectoryFileTree) adapter.getTree()
+    private void assertIsDirectoryTree(FileTreeInternal classFiles, Set<String> includes, Set<String> excludes) {
+        classFiles.visitStructure(new FileCollectionStructureVisitor() {
+            @Override
+            void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+                throw new IllegalArgumentException()
+            }
 
-        assert directoryFileTree.getDir() == classesDir
-        assert directoryFileTree.getPatterns().getIncludes() == includes
-        assert directoryFileTree.getPatterns().getExcludes() == excludes
+            @Override
+            void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                throw new IllegalArgumentException()
+            }
+
+            @Override
+            void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                assert root == classesDir
+                assert patterns.getIncludes() == includes
+                assert patterns.getExcludes() == excludes
+            }
+
+            @Override
+            void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                throw new IllegalArgumentException()
+            }
+        })
     }
 
     private void configureTask() {

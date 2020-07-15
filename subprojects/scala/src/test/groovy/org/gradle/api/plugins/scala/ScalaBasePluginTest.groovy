@@ -97,6 +97,7 @@ class ScalaBasePluginTest {
         project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
 
         assertThat(task.scalaCompileOptions.incrementalOptions.analysisFile.get().asFile, equalTo(new File("$project.buildDir/tmp/scala/compilerAnalysis/compileCustomScala.analysis")))
+        assertThat(task.scalaCompileOptions.incrementalOptions.classfileBackupDir.get().asFile, equalTo(new File("$project.buildDir/tmp/scala/classfileBackup/compileCustomScala.bak")))
         assertThat(task.scalaCompileOptions.incrementalOptions.publishedCode.get().asFile, equalTo(project.tasks['customJar'].archivePath))
         assertThat(task.analysisMappingFile.get().asFile, equalTo(new File("$project.buildDir/tmp/scala/compilerAnalysis/compileCustomScala.mapping")))
     }
@@ -107,10 +108,12 @@ class ScalaBasePluginTest {
         project.tasks.create('customJar', Jar)
         ScalaCompile task = project.tasks['compileCustomScala']
         task.scalaCompileOptions.incrementalOptions.analysisFile.set(project.file("my/file"))
+        task.scalaCompileOptions.incrementalOptions.classfileBackupDir.set(project.file("my/classes.bak"))
         task.scalaCompileOptions.incrementalOptions.publishedCode.set(project.file("my/published/code.jar"))
         project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
 
         assertThat(task.scalaCompileOptions.incrementalOptions.analysisFile.get().asFile, equalTo(project.file("my/file")))
+        assertThat(task.scalaCompileOptions.incrementalOptions.classfileBackupDir.get().asFile, equalTo(project.file("my/classes.bak")))
         assertThat(task.scalaCompileOptions.incrementalOptions.publishedCode.get().asFile, equalTo(project.file("my/published/code.jar")))
     }
 

@@ -17,7 +17,6 @@
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -1098,7 +1097,6 @@ dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
         outputs.recompiledClasses("A", "B", "E", "package-info")
     }
 
-    @ToBeFixedForInstantExecution(because = "A not recompiled")
     def "recompiles all dependents when no jar analysis is present"() {
         given:
         source """class A {

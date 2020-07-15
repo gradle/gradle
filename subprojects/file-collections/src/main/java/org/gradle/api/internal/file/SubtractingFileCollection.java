@@ -23,7 +23,7 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class SubtractingFileCollection extends AbstractFileCollection {
+public class SubtractingFileCollection extends AbstractOpaqueFileCollection {
     private final AbstractFileCollection left;
     private final FileCollection right;
 
@@ -52,7 +52,7 @@ public class SubtractingFileCollection extends AbstractFileCollection {
     }
 
     @Override
-    public Set<File> getFiles() {
+    protected Set<File> getIntrinsicFiles() {
         Set<File> files = new LinkedHashSet<File>(left.getFiles());
         files.removeAll(right.getFiles());
         return files;

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`api-java`
-    gradlebuild.`publish-public-libraries`
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.publish-public-libraries")
 }
 
 description = "Common shared annotations"
@@ -23,6 +23,6 @@ description = "Common shared annotations"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    api(library("jsr305")) { version { require(libraryVersion("jsr305")) } }
+    api(libs.jsr305)
 }
 

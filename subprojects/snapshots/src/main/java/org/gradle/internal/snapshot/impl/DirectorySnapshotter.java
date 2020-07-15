@@ -45,6 +45,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.List;
@@ -60,7 +61,7 @@ public class DirectorySnapshotter {
     private final Interner<String> stringInterner;
     private final DefaultExcludes defaultExcludes;
 
-    public DirectorySnapshotter(FileHasher hasher, Interner<String> stringInterner, String... defaultExcludes) {
+    public DirectorySnapshotter(FileHasher hasher, Interner<String> stringInterner, Collection<String> defaultExcludes) {
         this.hasher = hasher;
         this.stringInterner = stringInterner;
         this.defaultExcludes = new DefaultExcludes(defaultExcludes);
@@ -103,7 +104,7 @@ public class DirectorySnapshotter {
         private final ImmutableSet<String> excludedDirNames;
         private final Predicate<String> excludedFileNameSpec;
 
-        public DefaultExcludes(String[] defaultExcludes) {
+        public DefaultExcludes(Collection<String> defaultExcludes) {
             final List<String> excludeFiles = Lists.newArrayList();
             final List<String> excludeDirs = Lists.newArrayList();
             final List<Predicate<String>> excludeFileSpecs = Lists.newArrayList();

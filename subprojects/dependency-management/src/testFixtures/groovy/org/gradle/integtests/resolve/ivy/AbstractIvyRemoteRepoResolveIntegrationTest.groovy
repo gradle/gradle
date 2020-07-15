@@ -34,7 +34,8 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         requireOwnGradleUserHomeDir()
     }
 
-    @Rule ProgressLoggingFixture progressLogger = new ProgressLoggingFixture(executer, temporaryFolder)
+    @Rule
+    ProgressLoggingFixture progressLogger = new ProgressLoggingFixture(executer, temporaryFolder)
 
     void "can resolve dependencies from a remote Ivy repository with #layout layout"() {
         given:
@@ -68,10 +69,10 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         file('libs').assertHasDescendants 'projectA-1.2.jar'
 
         where:
-        layout     | m2Compatible | ivyFilePattern             | artifactFilePattern
-        'gradle'   | false        | 'ivy-[revision].xml'       | '[artifact]-[revision](.[ext])'
-        'maven'    | true         | 'ivy-[revision].xml'       | '[artifact]-[revision](.[ext])'
-        'ivy'      | false        | '[type]s/[artifact].[ext]' | '[type]s/[artifact].[ext]'
+        layout   | m2Compatible | ivyFilePattern             | artifactFilePattern
+        'gradle' | false        | 'ivy-[revision].xml'       | '[artifact]-[revision](.[ext])'
+        'maven'  | true         | 'ivy-[revision].xml'       | '[artifact]-[revision](.[ext])'
+        'ivy'    | false        | '[type]s/[artifact].[ext]' | '[type]s/[artifact].[ext]'
     }
 
     void "can resolve dependencies from a remote Ivy repository with pattern layout and m2compatible: #m2Compatible"() {
@@ -388,7 +389,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         """
         def moduleA = server.remoteIvyRepo.module('org', 'projectA', '1.2')
         moduleA.dependsOn(organisation: 'org', module: 'projectB', revision: '1.5', revConstraint: 'latest.integration')
-                .publish()
+            .publish()
 
         def moduleB15 = server.remoteIvyRepo.module('org', 'projectB', '1.5')
         moduleB15.publish()

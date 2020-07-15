@@ -58,7 +58,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "maven-publish plugin")
     def "can request non-core plugin already applied to parent project"() {
 
         given:
@@ -87,7 +87,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "maven-publish plugin")
     def "can request non-core plugin already applied to grand-parent project"() {
 
         given:
@@ -118,7 +118,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a:b'")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "maven-publish plugin")
     def "can request non-core plugin already requested on parent project but not applied"() {
 
         given:
@@ -147,7 +147,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "maven-publish plugin")
     def "can request non-core plugin already on the classpath when a plugin resolution strategy sets a version"() {
 
         given:
@@ -194,7 +194,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         succeeds "test"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "maven-publish plugin")
     def "cannot request plugin version of plugin already requested on parent project"() {
 
         given:

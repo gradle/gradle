@@ -18,12 +18,12 @@ package org.gradle.integtests.resolve.caching
 
 import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import spock.lang.Issue
+
 /**
  * We are using Ivy here, but the strategy is the same for any kind of repository.
  */
@@ -132,7 +132,6 @@ task retrieve(type: Sync) {
         module.publishWithChangedContent()
     }
 
-    @ToBeFixedForInstantExecution
     def "etags are used to determine changed"() {
         given:
         server.etags = HttpServer.EtagStrategy.RAW_SHA1_HEX
@@ -151,7 +150,6 @@ task retrieve(type: Sync) {
         changedResolve()
     }
 
-    @ToBeFixedForInstantExecution
     def "last modified and content length are used to determine changed"() {
         given:
         server.etags = null
@@ -169,7 +167,6 @@ task retrieve(type: Sync) {
         changedResolve()
     }
 
-    @ToBeFixedForInstantExecution
     def "checksum is used when last modified and content length can't be used"() {
         given:
         server.etags = null
@@ -188,7 +185,6 @@ task retrieve(type: Sync) {
         changedResolve()
     }
 
-    @ToBeFixedForInstantExecution
     def "no need for sha1 request if we get it in the metadata"() {
         given:
         server.sendSha1Header = true
@@ -206,7 +202,6 @@ task retrieve(type: Sync) {
         changedResolve()
     }
 
-    @ToBeFixedForInstantExecution
     def "no need for sha1 request if we know the etag is sha1"() {
         given:
         server.etags = HttpServer.EtagStrategy.NEXUS_ENCODED_SHA1
@@ -225,7 +220,6 @@ task retrieve(type: Sync) {
     }
 
     @Issue("GRADLE-2781")
-    @ToBeFixedForInstantExecution
     def "no leading zeros in sha1 checksums supported"() {
         given:
         def sha1 = new File("${module.jarFile.absolutePath}.sha1")

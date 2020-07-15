@@ -224,7 +224,22 @@ include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=ja
 
 That's also how you can change the verbosity of the compiler, disable debug output in the byte code and configure where the compiler can find annotation processors.
 
-Two common options for the Java compiler are defined at the project level:
+[[sec:java_cross_compilation]]
+=== Targeting a specific Java version
+
+By default, Gradle will compile Java code to the language level of the JVM running Gradle.
+
+Since version 9, the Java compiler can be configured to produce bytecode for an older Java version while making sure the code does not use any APIs from a more recent version.
+Gradle now supports this link:{groovyDslPath}/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:release[release] flag on `CompileOptions` directly for Java compilation.
+This option takes precedence over the properties described below.
+
+.Setting Java release flag
+====
+include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=java-release-flag]"]
+include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=java-release-flag]"]
+====
+
+Historical options for the Java compiler remain available:
 
 `sourceCompatibility`::
 Defines which language version of Java your source files should be treated as.
@@ -232,14 +247,19 @@ Defines which language version of Java your source files should be treated as.
 `targetCompatibility`::
 Defines the minimum JVM version your code should run on, i.e. it determines the version of byte code the compiler generates.
 
-If you need or want more than one compilation task for any reason, you can either <<#sec:custom_java_source_sets,create a new source set>> or simply define a new task of type link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]. We look at setting up a new source set next.
+These options can be set per link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] task, or on the `java { }` extension for all compile tasks, using properties with the same names.
 
-[[sec:java_cross_compilation]]
-=== Compiling and testing Java 6/7
+However these options do not protect against the use of APIs introduced in later Java versions.
+
+==== Compiling and testing Java 6/7
 
 Gradle can only run on Java version 8 or higher.
-
 Gradle still supports compiling, testing, generating Javadoc and executing applications for Java 6 and Java 7. Java 5 is not supported.
+
+[NOTE]
+====
+If using Java 9+, leveraging the `release` flag might be an easier solution, see above.
+====
 
 To use Java 6 or Java 7, the following tasks need to be configured:
 
@@ -249,7 +269,7 @@ To use Java 6 or Java 7, the following tasks need to be configured:
 
 The following sample shows how the `build.gradle` needs to be adjusted. In order to be able to make the build machine-independent, the location of the old Java home and target version should be configured in `GRADLE_USER_HOME/gradle.properties` footnote:[For more details on `gradle.properties` see <<build_environment.adoc#sec:gradle_configuration_properties,Gradle configuration properties>> ] in the user's home directory on each developer machine, as shown in the example.
 
-=== Example: Configure Java 7 build
+==== Example: Configure Java 7 build
 [source,properties]
 .gradle.properties
 ----
@@ -264,7 +284,10 @@ include::sample[dir="snippets/java/crossCompilation/kotlin",files="build.gradle.
 [[sec:custom_java_source_sets]]
 === Compiling independent sources separately
 
-Most projects have at least two independent sets of sources: the production code and the test code. Gradle already makes this scenario part of its Java convention, but what if you have other sets of sources? One of the most common scenarios is when you have separate integration tests of some form or other. In that case, a custom source set may be just what you need.
+Most projects have at least two independent sets of sources: the production code and the test code.
+Gradle already makes this scenario part of its Java convention, but what if you have other sets of sources?
+One of the most common scenarios is when you have separate integration tests of some form or other.
+In that case, a custom source set may be just what you need.
 
 You can see a complete example for setting up integration tests in the <<java_testing.adoc#sec:configuring_java_integration_tests,Java testing chapter>>. You can set up other source sets that fulfil different roles in the same way. The question then becomes: when should you define a custom source set?
 

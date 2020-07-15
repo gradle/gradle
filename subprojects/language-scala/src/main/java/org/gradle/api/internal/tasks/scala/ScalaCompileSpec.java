@@ -29,6 +29,10 @@ public interface ScalaCompileSpec extends JvmLanguageCompileSpec {
 
     void setScalaCompilerPlugins(Iterable<File> plugins);
 
+    File getClassfileBackupDir();
+
+    void setClassfileBackupDir(File classfileBackupDir);
+
     File getAnalysisFile();
 
     void setAnalysisFile(File analysisFile);

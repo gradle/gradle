@@ -50,6 +50,7 @@ import org.gradle.plugin.use.internal.PluginDependencyResolutionServices;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginResolverFactory;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
+import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathPluginResolver;
 
 import java.util.List;
@@ -101,8 +102,9 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
         }
 
         InjectedClasspathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector,
-                                                                              InjectedPluginClasspath injectedPluginClasspath, CachedClasspathTransformer classpathTransformer) {
-            return new InjectedClasspathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), classpathTransformer, pluginInspector, injectedPluginClasspath.getClasspath());
+                                                                              InjectedPluginClasspath injectedPluginClasspath, CachedClasspathTransformer classpathTransformer,
+                                                                              InjectedClasspathInstrumentationStrategy instrumentationStrategy) {
+            return new InjectedClasspathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), classpathTransformer, pluginInspector, injectedPluginClasspath.getClasspath(), instrumentationStrategy);
         }
 
         PluginResolutionStrategyInternal createPluginResolutionStrategy(Instantiator instantiator, ListenerManager listenerManager) {

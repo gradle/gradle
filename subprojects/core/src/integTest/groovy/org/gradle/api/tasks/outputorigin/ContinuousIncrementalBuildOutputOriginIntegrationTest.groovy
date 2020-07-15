@@ -58,7 +58,7 @@ class ContinuousIncrementalBuildOutputOriginIntegrationTest extends AbstractCont
         afterExecute*.execute(executer)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "build ID doesn't change")
     def "new ID is assigned for each execution"() {
         given:
         def i1 = file("i1")

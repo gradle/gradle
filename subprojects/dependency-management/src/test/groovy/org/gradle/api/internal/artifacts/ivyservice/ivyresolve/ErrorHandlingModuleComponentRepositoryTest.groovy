@@ -48,7 +48,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
     private static final String REPOSITORY_ID = 'abc'
     def delegate = Mock(ModuleComponentRepositoryAccess)
-    def repositoryBlacklister = Mock(RepositoryBlacklister)
+    def repositoryBlacklister = Mock(RepositoryDisabler)
 
     @Shared
     def runtimeError = new RuntimeException('Something went wrong')
@@ -92,8 +92,8 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         def result = Mock(BuildableModuleVersionListingResolveResult)
         dependency.getSelector() >> DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'b'), DefaultImmutableVersionConstraint.of('1.0'))
 
-        when: 'repo is not blacklisted'
-        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
+        when: 'repo is not disabled'
+        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> false
         access.listModuleVersions(dependency, result)
 
         then: 'work is delegated'
@@ -103,12 +103,12 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         effectiveRetries * delegate.listModuleVersions(dependency, result) >> { throw exception }
         access.listModuleVersions(dependency, result)
 
-        then: 'resolution fails and repo is blacklisted'
-        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        then: 'resolution fails and repo is disabled'
+        1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
         1 * result.failed(_ as ModuleVersionResolveException)
 
-        when: 'repo is already blacklisted'
-        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
+        when: 'repo is already disabled'
+        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
         access.listModuleVersions(dependency, result)
 
         then: 'resolution fails directly'
@@ -128,8 +128,8 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         def requestMetaData = Mock(ComponentOverrideMetadata)
         def result = Mock(BuildableModuleComponentMetaDataResolveResult)
 
-        when: 'repo is not blacklisted'
-        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
+        when: 'repo is not disabled'
+        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> false
         access.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result)
 
         then: 'work is delegated'
@@ -139,12 +139,12 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         effectiveRetries * delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result) >> { throw exception }
         access.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result)
 
-        then: 'resolution fails and repo is blacklisted'
-        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        then: 'resolution fails and repo is disabled'
+        1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
         1 * result.failed(_ as ModuleVersionResolveException)
 
-        when: 'repo is already blacklisted'
-        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
+        when: 'repo is already disabled'
+        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
         access.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result)
 
         then: 'resolution fails directly'
@@ -166,8 +166,8 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         def result = Mock(BuildableArtifactSetResolveResult)
         component.getId() >> componentId
 
-        when: 'repo is not blacklisted'
-        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
+        when: 'repo is not disabled'
+        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> false
         access.resolveArtifactsWithType(component, artifactType, result)
 
         then: 'work is delegated'
@@ -177,12 +177,12 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         effectiveRetries * delegate.resolveArtifactsWithType(component, artifactType, result) >> { throw exception }
         access.resolveArtifactsWithType(component, artifactType, result)
 
-        then: 'resolution fails and repo is blacklisted'
-        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        then: 'resolution fails and repo is disabled'
+        1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
         1 * result.failed(_ as ArtifactResolveException)
 
-        when: 'repo is already blacklisted'
-        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
+        when: 'repo is already disabled'
+        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
         access.resolveArtifactsWithType(component, artifactType, result)
 
         then: 'resolution fails directly'
@@ -204,8 +204,8 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         def result = Mock(BuildableComponentArtifactsResolveResult)
         component.getId() >> componentId
 
-        when: 'repo is not blacklisted'
-        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
+        when: 'repo is not disabled'
+        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> false
         access.resolveArtifacts(component, variant, result)
 
         then: 'work is delegated'
@@ -215,12 +215,12 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         effectiveRetries * delegate.resolveArtifacts(component, variant, result) >> { throw exception }
         access.resolveArtifacts(component, variant, result)
 
-        then: 'resolution fails and repo is blacklisted'
-        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        then: 'resolution fails and repo is disabled'
+        1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
         1 * result.failed(_ as ArtifactResolveException)
 
-        when: 'repo is already blacklisted'
-        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
+        when: 'repo is already disabled'
+        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
         access.resolveArtifacts(component, variant, result)
 
         then: 'resolution fails directly'
@@ -242,8 +242,8 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         def result = Mock(BuildableArtifactResolveResult)
         artifact.getId() >> artifactId
 
-        when: 'repo is not blacklisted'
-        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
+        when: 'repo is not disabled'
+        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> false
         access.resolveArtifact(artifact, moduleSources, result)
 
         then: 'work is delegated'
@@ -253,12 +253,12 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         effectiveRetries * delegate.resolveArtifact(artifact, moduleSources, result) >> { throw exception }
         access.resolveArtifact(artifact, moduleSources, result)
 
-        then: 'resolution fails and repo is blacklisted'
-        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        then: 'resolution fails and repo is disabled'
+        1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
         1 * result.failed(_ as ArtifactResolveException)
 
-        when: 'repo is already blacklisted'
-        repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
+        when: 'repo is already disabled'
+        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
         access.resolveArtifact(artifact, moduleSources, result)
 
         then: 'resolution fails directly'

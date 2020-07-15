@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -29,13 +29,13 @@ dependencies {
     implementation(project(":workers"))
     implementation(project(":dependencyManagement")) // Required by JavaScriptExtension#getGoogleApisRepository()
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("commons_io"))
-    implementation(library("inject"))
-    implementation(library("rhino"))
-    implementation(library("gson")) // used by JsHint.coordinates
-    implementation(library("simple")) // used by http package in envjs.coordinates
+    implementation(libs.groovy)
+    implementation(libs.slf4jApi)
+    implementation(libs.commonsIo)
+    implementation(libs.inject)
+    implementation(libs.rhino)
+    implementation(libs.gson) // used by JsHint.coordinates
+    implementation(libs.simple) // used by http package in envjs.coordinates
 
     testImplementation(testFixtures(project(":core")))
 

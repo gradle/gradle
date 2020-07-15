@@ -140,7 +140,6 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         scopeIds.userIds.unique().size() == 1
     }
 
-    @ToBeFixedForInstantExecution
     def "changing gradle user home changes user id"() {
         when:
         file("build.gradle") << ""

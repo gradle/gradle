@@ -72,32 +72,25 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                           GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
                                           FileSystemChangeWaiterFactory fileSystemChangeWaiterFactory
         ) {
-            return new SetupLoggingActionExecuter(
-                new SessionFailureReportingActionExecuter(
-                    new StartParamsValidatingActionExecuter(
-                        new GradleThreadBuildActionExecuter(
-                            new SessionScopeBuildActionExecuter(
-                                new SubscribableBuildActionExecuter(
-                                    new ContinuousBuildActionExecuter(
-                                        new BuildTreeScopeBuildActionExecuter(
-                                            new InProcessBuildActionExecuter(
-                                                new RunAsBuildOperationBuildActionRunner(
-                                                    new BuildCompletionNotifyingBuildActionRunner(
-                                                        new ValidatingBuildActionRunner(
-                                                            new BuildOutcomeReportingBuildActionRunner(
-                                                                new ChainingBuildActionRunner(buildActionRunners),
-                                                                styledTextOutputFactory)))))),
-                                        fileSystemChangeWaiterFactory,
-                                        inputsListeners,
-                                        styledTextOutputFactory,
-                                        executorFactory),
-                                    listenerManager,
-                                    buildOperationListenerManager,
-                                    registrations),
-                                userHomeServiceRegistry))),
-                    styledTextOutputFactory,
-                    Time.clock()),
-                loggingManager);
+            // @formatter:off
+            return
+                new SetupLoggingActionExecuter(loggingManager,
+                new SessionFailureReportingActionExecuter(styledTextOutputFactory, Time.clock(),
+                new StartParamsValidatingActionExecuter(
+                new GradleThreadBuildActionExecuter(
+                new SessionScopeBuildActionExecuter(userHomeServiceRegistry,
+                new SubscribableBuildActionExecuter(listenerManager, buildOperationListenerManager, registrations,
+                new ContinuousBuildActionExecuter(fileSystemChangeWaiterFactory, inputsListeners, styledTextOutputFactory, executorFactory,
+                new BuildTreeScopeBuildActionExecuter(
+                new InProcessBuildActionExecuter(
+                new RunAsBuildOperationBuildActionRunner(
+                new BuildCompletionNotifyingBuildActionRunner(
+                new FileSystemWatchingBuildActionRunner(
+                new ValidatingBuildActionRunner(
+                new BuildOutcomeReportingBuildActionRunner(styledTextOutputFactory,
+                new ChainingBuildActionRunner(buildActionRunners
+            )))))))))))))));
+            // @formatter:on
         }
 
         FileSystemChangeWaiterFactory createFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory) {

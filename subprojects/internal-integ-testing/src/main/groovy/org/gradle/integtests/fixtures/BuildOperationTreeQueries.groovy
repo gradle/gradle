@@ -28,6 +28,8 @@ import java.util.regex.Pattern
 
 abstract class BuildOperationTreeQueries {
 
+    abstract List<BuildOperationRecord> getRoots()
+
     abstract <T extends BuildOperationType<?, ?>> BuildOperationRecord root(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll())
 
     abstract <T extends BuildOperationType<?, ?>> BuildOperationRecord first(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll())
@@ -111,17 +113,23 @@ abstract class BuildOperationTreeQueries {
     @SuppressWarnings("GrMethodMayBeStatic")
     List<BuildOperationRecord> search(BuildOperationRecord parent, Spec<? super BuildOperationRecord> predicate = Specs.SATISFIES_ALL) {
         def matches = []
-        walk(parent) {
-            if (predicate.isSatisfiedBy(it)) {
-                matches << it
+        parent.children.each {
+            walk(it) {
+                if (predicate.isSatisfiedBy(it)) {
+                    matches << it
+                }
             }
         }
         matches
     }
 
+    void walk(Action<? super BuildOperationRecord> action) {
+        roots.each { walk(it, action) }
+    }
+
     @SuppressWarnings("GrMethodMayBeStatic")
     void walk(BuildOperationRecord parent, Action<? super BuildOperationRecord> action) {
-        def search = new ConcurrentLinkedQueue<BuildOperationRecord>(parent.children)
+        def search = new ConcurrentLinkedQueue<BuildOperationRecord>([parent])
 
         def operation = search.poll()
         while (operation != null) {

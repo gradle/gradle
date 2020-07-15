@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import build.kotlinVersion
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -29,18 +28,18 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":snapshots"))
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
-    implementation(library("inject"))
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("asm"))
+    implementation(libs.futureKotlin("stdlib"))
+    implementation(libs.inject)
+    implementation(libs.groovy)
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.asm)
 
     testFixturesApi(testFixtures(project(":diagnostics")))
     testFixturesApi(testFixtures(project(":core")))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("guava"))
+    testFixturesImplementation(libs.guava)
 
     testImplementation(project(":processServices"))
     testImplementation(project(":fileCollections"))

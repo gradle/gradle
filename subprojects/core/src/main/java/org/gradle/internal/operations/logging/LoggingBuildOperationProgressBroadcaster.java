@@ -26,10 +26,9 @@ import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
-import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.operations.OperationProgressEvent;
 
 /**
  * Emits build operation progress for events that represent logging.
@@ -61,14 +60,14 @@ import org.gradle.internal.operations.OperationProgressEvent;
 public class LoggingBuildOperationProgressBroadcaster implements Stoppable, OutputEventListener {
 
     private final OutputEventListenerManager outputEventListenerManager;
-    private final BuildOperationListener buildOperationListener;
+    private final BuildOperationProgressEventEmitter progressEventEmitter;
 
     @VisibleForTesting
     OperationIdentifier rootBuildOperation;
 
-    public LoggingBuildOperationProgressBroadcaster(OutputEventListenerManager outputEventListenerManager, BuildOperationListener buildOperationListener) {
+    public LoggingBuildOperationProgressBroadcaster(OutputEventListenerManager outputEventListenerManager, BuildOperationProgressEventEmitter progressEventEmitter) {
         this.outputEventListenerManager = outputEventListenerManager;
-        this.buildOperationListener = buildOperationListener;
+        this.progressEventEmitter = progressEventEmitter;
         outputEventListenerManager.setListener(this);
     }
 
@@ -101,9 +100,10 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
     }
 
     private void emit(CategorisedOutputEvent event, OperationIdentifier buildOperationId) {
-        buildOperationListener.progress(
+        progressEventEmitter.emit(
             buildOperationId,
-            new OperationProgressEvent(event.getTimestamp(), event)
+            event.getTimestamp(),
+            event
         );
     }
 

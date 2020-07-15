@@ -1,4 +1,4 @@
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
 /*
  * Copyright 2012 the original author or authors.
  *
@@ -15,7 +15,7 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -32,25 +32,25 @@ dependencies {
     implementation(project(":baseServicesGroovy"))
     implementation(project(":buildOption"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("groovy"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("inject"))
-    implementation(library("jatl"))
+    implementation(libs.slf4jApi)
+    implementation(libs.groovy)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.inject)
+    implementation(libs.jatl)
 
     testImplementation(project(":processServices"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependencyManagement")))
     testImplementation(testFixtures(project(":logging")))
 
-    integTestImplementation(testLibrary("jsoup"))
-    integTestImplementation(testLibrary("jetty"))
+    integTestImplementation(libs.jsoup)
+    integTestImplementation(libs.jetty)
 
     testFixturesApi(testFixtures(project(":platformNative")))
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("guava"))
+    testFixturesImplementation(libs.guava)
 
     testRuntimeOnly(project(":distributionsCore")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

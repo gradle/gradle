@@ -1,5 +1,5 @@
 plugins {
-    gradlebuild.distribution.`implementation-java`
+    id("gradlebuild.distribution.implementation-java")
 }
 
 dependencies {
@@ -22,9 +22,9 @@ dependencies {
     implementation(project(":toolingApi"))
     implementation(project(":buildEvents"))
 
-    implementation(library("groovy")) // for 'Closure'
-    implementation(library("guava"))
-    implementation(library("commons_io"))
+    implementation(libs.groovy) // for 'Closure'
+    implementation(libs.guava)
+    implementation(libs.commonsIo)
 
     testImplementation(project(":fileCollections"))
 }

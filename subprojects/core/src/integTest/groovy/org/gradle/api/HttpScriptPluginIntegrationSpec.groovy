@@ -131,7 +131,6 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         succeeds()
     }
 
-
     @Issue("https://github.com/gradle/gradle/issues/2891")
     def "can apply script with URI containing a query string"() {
         when:
@@ -179,7 +178,7 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         succeeds()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "remote scripts skipped")
     def "does not cache URIs with query parts"() {
         when:
         def queryString = 'p=foo;a=blob_plain;f=bar;hb=foo/bar/foo'
@@ -314,7 +313,7 @@ task check {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "remote scripts skipped")
     def "can recover from failure to download cached #source resource by running with --offline"() {
         given:
         def scriptFile = file("script.gradle")
@@ -359,7 +358,7 @@ task check {
         "initscript"  | "init.gradle"     | "init-script-plugin.gradle"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "test expects script evaluation")
     def "will only request resource once for build invocation"() {
         given:
         def scriptName = "script-once.gradle"
@@ -395,7 +394,7 @@ task check {
         output.count('loaded external script') == 4
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "test expects script evaluation")
     def "will refresh cached value on subsequent build invocation"() {
         given:
         def scriptName = "script-cached.gradle"

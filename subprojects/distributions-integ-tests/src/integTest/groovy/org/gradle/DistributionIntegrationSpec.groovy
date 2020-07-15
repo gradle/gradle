@@ -142,7 +142,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     protected void checkMinimalContents(TestFile contentsDir) {
         // Check it can be executed
-        executer.inDirectory(contentsDir).usingExecutable('bin/gradle').withTaskList().run()
+        executer.inDirectory(contentsDir).usingExecutable('bin/gradle').withTasks("help").run()
 
         // Scripts
         contentsDir.file('bin/gradle').assertIsFile()

@@ -1,6 +1,6 @@
 
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -16,17 +16,17 @@ dependencies {
     implementation(project(":platformBase"))
     implementation(project(":platformJvm"))
 
-    implementation(library("groovy")) // for 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
-    implementation(library("guava"))
-    implementation(library("inject"))
+    implementation(libs.groovy) // for 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
+    implementation(libs.guava)
+    implementation(libs.inject)
 
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
     testImplementation(project(":snapshots"))
     testImplementation(testFixtures(project(":core")))
 
-    testFixturesImplementation(library("commons_lang"))
-    testFixturesImplementation(library("guava"))
+    testFixturesImplementation(libs.commonsLang)
+    testFixturesImplementation(libs.guava)
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(testFixtures(project(":core")))
 

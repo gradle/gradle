@@ -23,6 +23,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
+import org.gradle.test.fixtures.ResettableExpectations;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
-class ChainingHttpHandler implements HttpHandler {
+class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
     private final int timeoutMs;
     private final AtomicInteger counter;
     private final List<TrackingHttpHandler> handlers = new CopyOnWriteArrayList<TrackingHttpHandler>();
@@ -67,10 +68,7 @@ class ChainingHttpHandler implements HttpHandler {
     }
 
     public void waitForCompletion() {
-        for (TrackingHttpHandler handler : handlers) {
-            handler.cancelBlockedRequests();
-        }
-
+        cancelBlockedRequests();
         waitForRequestsToFinish();
 
         lock.lock();
@@ -91,6 +89,26 @@ class ChainingHttpHandler implements HttpHandler {
             }
         } finally {
             lock.unlock();
+        }
+    }
+
+    @Override
+    public void resetExpectations() {
+        cancelBlockedRequests();
+        waitForRequestsToFinish();
+        lock.lock();
+        try {
+            outcomes.clear();
+            handlers.clear();
+            completed = true;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void cancelBlockedRequests() {
+        for (TrackingHttpHandler handler : handlers) {
+            handler.cancelBlockedRequests();
         }
     }
 

@@ -25,8 +25,11 @@ final class JacocoCoverage {
 
     private static final String[] ALL = [JacocoPlugin.DEFAULT_JACOCO_VERSION, '0.7.1.201405082137', '0.7.6.201602180812', '0.8.3'].asImmutable()
 
+    // Release notes: https://www.jacoco.org/jacoco/trunk/doc/changes.html
     static List<String> getSupportedVersionsByJdk() {
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_15)) {
+            return filter(JacocoVersion.SUPPORTS_JDK_15)
+        } else if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
             return filter(JacocoVersion.SUPPORTS_JDK_14)
         } else if (JavaVersion.current().isJava9Compatible()) {
             return filter(JacocoVersion.SUPPORTS_JDK_9)
@@ -42,6 +45,7 @@ final class JacocoCoverage {
         static final SUPPORTS_JDK_8 = new JacocoVersion(0, 7, 0)
         static final SUPPORTS_JDK_9 = new JacocoVersion(0, 7, 8)
         static final SUPPORTS_JDK_14 = new JacocoVersion(0, 8, 5)
+        static final SUPPORTS_JDK_15 = new JacocoVersion(0, 8, 6)
 
         private final int major
         private final int minor

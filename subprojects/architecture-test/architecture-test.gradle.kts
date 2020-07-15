@@ -1,16 +1,16 @@
-import org.gradle.gradlebuild.PublicApi
+import gradlebuild.basics.PublicApi
 
 plugins {
-    gradlebuild.internal.java
-    gradlebuild.`binary-compatibility`
+    id("gradlebuild.internal.java")
+    id("gradlebuild.binary-compatibility")
 }
 
 dependencies {
     testImplementation(project(":baseServices"))
     testImplementation(project(":modelCore"))
 
-    testImplementation(testLibrary("archunit_junit4"))
-    testImplementation(library("guava"))
+    testImplementation(libs.archunitJunit4)
+    testImplementation(libs.guava)
 
     testRuntimeOnly(project(":distributionsFull"))
 }

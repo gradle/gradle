@@ -17,18 +17,18 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 import spock.lang.Issue
 
+@UnsupportedWithInstantExecution(because = "legacy maven plugin")
 class MavenSettingsPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
 
     @Issue("GRADLE-2681")
-    @ToBeFixedForInstantExecution
     def "gradle ignores maven mirror configuration for uploading archives"() {
         given:
 

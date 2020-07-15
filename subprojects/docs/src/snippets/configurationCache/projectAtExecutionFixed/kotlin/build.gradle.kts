@@ -1,6 +1,8 @@
+// tag::task-type[]
+// tag::ad-hoc-task[]
 import javax.inject.Inject
 
-// tag::task-type[]
+// end::ad-hoc-task[]
 abstract class SomeTask : DefaultTask() {
 
     @get:Inject abstract val fs: FileSystemOperations // <1>

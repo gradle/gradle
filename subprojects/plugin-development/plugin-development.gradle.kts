@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
+import gradlebuild.cleanup.WhenNotEmpty
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -45,19 +45,19 @@ dependencies {
     implementation(project(":modelGroovy"))
     implementation(project(":resources"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("groovy"))
-    implementation(library("commons_io"))
-    implementation(library("guava"))
-    implementation(library("inject"))
-    implementation(library("asm"))
+    implementation(libs.slf4jApi)
+    implementation(libs.groovy)
+    implementation(libs.commonsIo)
+    implementation(libs.guava)
+    implementation(libs.inject)
+    implementation(libs.asm)
 
     testImplementation(project(":fileCollections"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
 
     integTestImplementation(project(":baseServicesGroovy"))
-    integTestImplementation(library("jetbrains_annotations"))
+    integTestImplementation(libs.jetbrainsAnnotations)
 
     integTestLocalRepository(project(":toolingApi")) {
         because("Required by GradleImplDepsCompatibilityIntegrationTest")

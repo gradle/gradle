@@ -79,7 +79,7 @@ public class GradleEnterprisePluginManager {
      * It's only here as a kind of safeguard or fallback.
      */
     public void registerMissingPluginWarning(GradleInternal gradle) {
-        if (gradle.getParent() == null) {
+        if (gradle.isRootBuild()) {
             StartParameter startParameter = gradle.getStartParameter();
             boolean requested = !startParameter.isNoBuildScan() && startParameter.isBuildScan();
             if (requested) {

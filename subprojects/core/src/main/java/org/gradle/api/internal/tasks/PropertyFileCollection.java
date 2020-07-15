@@ -16,18 +16,19 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.FileCollectionInternal;
+
+import java.util.function.Consumer;
 
 public class PropertyFileCollection extends CompositeFileCollection {
     private final String ownerDisplayName;
     private final String type;
     private final String propertyName;
-    private final FileCollection files;
+    private final FileCollectionInternal files;
     private String displayName;
 
-    public PropertyFileCollection(String ownerDisplayName, String propertyName, String type, FileCollection files) {
+    public PropertyFileCollection(String ownerDisplayName, String propertyName, String type, FileCollectionInternal files) {
         this.ownerDisplayName = ownerDisplayName;
         this.type = type;
         this.propertyName = propertyName;
@@ -43,7 +44,7 @@ public class PropertyFileCollection extends CompositeFileCollection {
     }
 
     @Override
-    public void visitContents(FileCollectionResolveContext context) {
-        context.add(files);
+    protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
+        visitor.accept(files);
     }
 }

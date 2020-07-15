@@ -84,7 +84,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4166")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "task wrongly up-to-date")
     def "file in input dir appears in task inputs for #inputAnnotation"() {
         buildFile << """
             abstract class MyTask extends DefaultTask {
@@ -279,7 +279,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         succeeds("myTask")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "task wrongly up-to-date")
     def "empty providers can be queried for incremental changes"() {
         file("buildSrc").deleteDir()
         buildFile.text = """

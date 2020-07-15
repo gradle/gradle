@@ -41,6 +41,8 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.BuildRequestMetaData
+import org.gradle.instantexecution.problems.DocumentationSection.NotYetImplementedJavaSerialization
+import org.gradle.instantexecution.serialization.codecs.jos.JavaObjectSerializationCodec
 import org.gradle.instantexecution.serialization.codecs.transform.ChainedTransformationNodeCodec
 import org.gradle.instantexecution.serialization.codecs.transform.DefaultTransformerCodec
 import org.gradle.instantexecution.serialization.codecs.transform.InitialTransformationNodeCodec
@@ -191,9 +193,8 @@ class Codecs(
         bind(ProxyCodec)
 
         // Java serialization integration
-        bind(unsupported<Externalizable>())
-        bind(SerializableWriteObjectCodec())
-        bind(SerializableWriteReplaceCodec())
+        bind(unsupported<Externalizable>(NotYetImplementedJavaSerialization))
+        bind(JavaObjectSerializationCodec())
 
         // This protects the BeanCodec against StackOverflowErrors but
         // we can still get them for the other codecs, for instance,
@@ -267,7 +268,6 @@ class Codecs(
         bind(ImmutableListCodec)
 
         // Only serialize certain Set implementations for now, as some custom types extend Set (eg DomainObjectContainer)
-        bind(linkedHashSetCodec)
         bind(hashSetCodec)
         bind(treeSetCodec)
         bind(ImmutableSetCodec)

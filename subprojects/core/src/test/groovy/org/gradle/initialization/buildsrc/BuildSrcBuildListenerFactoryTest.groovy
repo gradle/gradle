@@ -16,10 +16,11 @@
 
 package org.gradle.initialization.buildsrc
 
-import org.gradle.StartParameter
+
 import org.gradle.api.Action
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.component.BuildableJavaComponent
 import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.api.internal.project.ProjectInternal
@@ -29,7 +30,7 @@ import spock.lang.Specification
 
 class BuildSrcBuildListenerFactoryTest extends Specification {
 
-    def startParameter = Mock(StartParameter)
+    def startParameter = Mock(StartParameterInternal)
     def projectState = Mock(ProjectState) {
         withMutableState(_) >> { args ->
             args[0].create()

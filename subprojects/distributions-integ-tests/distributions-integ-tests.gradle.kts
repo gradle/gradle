@@ -1,5 +1,5 @@
 plugins {
-    gradlebuild.internal.java
+    id("gradlebuild.internal.java")
 }
 
 dependencies {
@@ -7,9 +7,9 @@ dependencies {
     integTestImplementation(project(":baseServices"))
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":coreApi"))
-    integTestImplementation(library("guava"))
-    integTestImplementation(library("commons_io"))
-    integTestImplementation(library("ant"))
+    integTestImplementation(libs.guava)
+    integTestImplementation(libs.commonsIo)
+    integTestImplementation(libs.ant)
 
     integTestBinDistribution(project(":distributionsFull"))
     integTestAllDistribution(project(":distributionsFull"))
@@ -20,6 +20,6 @@ dependencies {
 }
 
 tasks.forkingIntegTest.configure {
-    systemProperty("gradleBuildBranch", gitInfo.gradleBuildBranch.get())
-    systemProperty("gradleBuildCommitId", gitInfo.gradleBuildCommitId.get())
+    systemProperty("gradleBuildBranch", moduleIdentity.gradleBuildBranch.get())
+    systemProperty("gradleBuildCommitId", moduleIdentity.gradleBuildCommitId.get())
 }

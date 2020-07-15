@@ -35,5 +35,9 @@ abstract class BasePromotionBuildType(vcsRoot: GitVcsRoot, cleanCheckout: Boolea
         requirements {
             requiresOs(Os.linux)
         }
+
+        params {
+            param("env.GE_GRADLE_ORG_GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
+        }
     }
 }

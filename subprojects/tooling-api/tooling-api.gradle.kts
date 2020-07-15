@@ -13,29 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import org.gradle.build.BuildReceipt
-import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.distribution.`api-java`
-    gradlebuild.`publish-public-libraries`
-    gradlebuild.`shaded-jar`
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.publish-public-libraries")
+    id("gradlebuild.shaded-jar")
 }
-
-val buildReceipt: Provider<RegularFile> = rootProject.tasks.named<BuildReceipt>("createBuildReceipt").map { layout.file(provider { it.receiptFile }).get() }
 
 shadedJar {
     shadedConfiguration.exclude(mapOf("group" to "org.slf4j", "module" to "slf4j-api"))
     keepPackages.set(listOf("org.gradle.tooling"))
     unshadedPackages.set(listOf("org.gradle", "org.slf4j", "sun.misc"))
     ignoredPackages.set(setOf("org.gradle.tooling.provider.model"))
-    buildReceiptFile.set(buildReceipt)
 }
 
 dependencies {
-    shadedImplementation(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
+    shadedImplementation(libs.slf4jApi)
 
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
@@ -45,7 +40,7 @@ dependencies {
     implementation(project(":wrapper"))
     implementation(project(":persistentCache"))
 
-    implementation(library("guava"))
+    implementation(libs.guava)
 
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":core"))
@@ -53,16 +48,16 @@ dependencies {
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":baseServicesGroovy"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("commons_io"))
-    testFixturesImplementation(library("slf4j_api"))
+    testFixturesImplementation(libs.commonsIo)
+    testFixturesImplementation(libs.slf4jApi)
 
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":persistentCache"))
 
     crossVersionTestImplementation(project(":jvmServices"))
-    crossVersionTestImplementation(testLibrary("jetty"))
-    crossVersionTestImplementation(library("commons_io"))
-    crossVersionTestRuntimeOnly(testLibrary("cglib")) {
+    crossVersionTestImplementation(libs.jetty)
+    crossVersionTestImplementation(libs.commonsIo)
+    crossVersionTestRuntimeOnly(libs.cglib) {
         because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
     }
 

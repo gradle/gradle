@@ -893,7 +893,6 @@ dependencies {
 
     }
 
-    @ToBeFixedForInstantExecution
     def "versions are listed once only per resolve"() {
         given:
         useRepository ivyHttpRepo
@@ -1221,7 +1220,6 @@ dependencies {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "finds best matching version in local and remote repository with #order"() {
         given:
         def fileRepo = ivyRepo("fileRepo")

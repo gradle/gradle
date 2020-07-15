@@ -69,9 +69,11 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private final Set<Path> watchedRootProjectDirectoriesFromPreviousBuild = new HashSet<>();
 
     private final FileWatcher watcher;
+    private final FileSystemLocationToWatchValidator locationToWatchValidator;
 
-    public HierarchicalFileWatcherUpdater(FileWatcher watcher) {
+    public HierarchicalFileWatcherUpdater(FileWatcher watcher, FileSystemLocationToWatchValidator locationToWatchValidator) {
         this.watcher = watcher;
+        this.locationToWatchValidator = locationToWatchValidator;
     }
 
     @Override
@@ -90,6 +92,7 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         watchedRootProjectDirectoriesFromPreviousBuild.retainAll(watchedHierarchies);
         knownRootProjectDirectoriesFromCurrentBuild.clear();
         determineAndUpdateWatchedHierarchies();
+        LOGGER.warn("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
     }
 
     @Override
@@ -145,6 +148,7 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         if (!hierarchiesToStartWatching.isEmpty()) {
             watcher.startWatching(hierarchiesToStartWatching.stream()
                 .map(Path::toFile)
+                .peek(locationToWatchValidator::validateLocationToWatch)
                 .collect(Collectors.toList())
             );
             watchedHierarchies.addAll(hierarchiesToStartWatching);
@@ -175,5 +179,11 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             })
             .forEach(hierarchies::add);
         return hierarchies;
+    }
+
+    public interface FileSystemLocationToWatchValidator {
+        FileSystemLocationToWatchValidator NO_VALIDATION = location -> {};
+
+        void validateLocationToWatch(File location);
     }
 }

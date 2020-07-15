@@ -1,9 +1,9 @@
-import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
-import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
+import gradlebuild.basics.BuildEnvironment
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
+import gradlebuild.integrationtests.tasks.IntegrationTest
 
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 val integTestRuntimeResources: Configuration by configurations.creating {
@@ -48,17 +48,17 @@ dependencies {
     implementation(project(":diagnostics"))
     implementation(project(":reporting"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("inject"))
+    implementation(libs.groovy)
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.inject)
 
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
     testImplementation(project(":baseServicesGroovy"))
 
-    integTestImplementation(library("ant"))
+    integTestImplementation(libs.ant)
     integTestRuntimeOnly(project(":compositeBuilds"))
     integTestRuntimeOnly(project(":idePlay"))
     integTestRuntimeOnly(project(":testingJunitPlatform"))
@@ -71,9 +71,9 @@ dependencies {
     testFixturesApi(testFixtures(project(":languageJvm")))
     testFixturesApi(project(":internalIntegTesting"))
     testFixturesImplementation(project(":processServices"))
-    testFixturesImplementation(library("commons_io"))
-    testFixturesImplementation(library("commons_httpclient"))
-    testFixturesImplementation(library("slf4j_api"))
+    testFixturesImplementation(libs.commonsIo)
+    testFixturesImplementation(libs.commonsHttpclient)
+    testFixturesImplementation(libs.slf4jApi)
     testFixturesApi(testFixtures(project(":languageScala")))
     testFixturesApi(testFixtures(project(":languageJava")))
 

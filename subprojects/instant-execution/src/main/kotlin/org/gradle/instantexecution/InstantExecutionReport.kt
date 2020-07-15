@@ -146,7 +146,7 @@ class InstantExecutionReport(
                     mapOf(
                         "trace" to traceListOf(problem),
                         "message" to problem.message.fragments,
-                        "documentationLink" to problem.documentationSection?.let { documentationRegistry.getDocumentationFor("configuration_cache", it) },
+                        "documentationLink" to problem.documentationSection?.let { documentationRegistry.getDocumentationFor("configuration_cache", it.anchor) },
                         "error" to stackTraceStringOf(problem)
                     )
                 )

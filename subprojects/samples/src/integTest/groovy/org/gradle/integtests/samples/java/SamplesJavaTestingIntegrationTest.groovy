@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
@@ -27,6 +29,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    @Requires(TestPrecondition.JDK9_OR_LATER)
     @UsesSample("java/basic/groovy")
     def "can execute simple Java tests"() {
         given:
@@ -255,6 +258,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         xmlResults.testcase.@name*.text() == ["test1", "test2", "test1", "test2"]
     }
 
+    @Requires(TestPrecondition.JDK9_OR_LATER)
     @UsesSample("java/basic/groovy")
     def "can run simple Java integration tests"() {
         given:
@@ -272,6 +276,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
             1)
     }
 
+    @Requires(TestPrecondition.JDK9_OR_LATER)
     @UsesSample("java/basic/groovy")
     def "can skip the tests with an `onlyIf` condition"() {
         given:

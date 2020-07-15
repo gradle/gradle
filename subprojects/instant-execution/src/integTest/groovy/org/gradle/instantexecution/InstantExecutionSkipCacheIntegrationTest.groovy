@@ -16,10 +16,13 @@
 
 package org.gradle.instantexecution
 
+import spock.lang.Unroll
+
 
 class InstantExecutionSkipCacheIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    def "skip reading cached state on --refresh-dependencies"() {
+    @Unroll
+    def "skip reading cached state on #commandLine"() {
 
         def instantExecution = newInstantExecutionFixture()
 
@@ -65,11 +68,13 @@ class InstantExecutionSkipCacheIntegrationTest extends AbstractInstantExecutionI
         instantExecution.assertStateLoaded()
 
         when:
-        instantRun "myTask", "--refresh-dependencies"
+        def commandLineArgs = commandLine.split("\\s+")
+        executer.withArguments(commandLineArgs)
+        instantRun "myTask"
 
         then:
         outputContains("bar")
-        outputContains("Calculating task graph as configuration cache cannot be reused due to --refresh-dependencies")
+        outputContains("Calculating task graph as configuration cache cannot be reused due to ${commandLineArgs.first()}")
         instantExecution.assertStateStored()
 
         when:
@@ -78,5 +83,11 @@ class InstantExecutionSkipCacheIntegrationTest extends AbstractInstantExecutionI
         then:
         outputContains("bar")
         instantExecution.assertStateLoaded()
+
+        where:
+        commandLine              | _
+        "--refresh-dependencies" | _
+        "--write-locks"          | _
+        "--update-locks thing:*" | _
     }
 }

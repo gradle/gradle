@@ -1,5 +1,6 @@
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.jmh")
 }
 
 description = "This project contains various native operating system integration utilities"
@@ -11,11 +12,11 @@ dependencies {
 
     implementation(project(":baseServices"))
 
-    implementation(library("nativePlatform"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_io"))
-    implementation(library("jansi"))
+    implementation(libs.nativePlatform)
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.commonsIo)
+    implementation(libs.jansi)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))

@@ -35,6 +35,7 @@ import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationReportingC
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
+import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.DefaultSourceFileClassNameConverter;
@@ -93,7 +94,7 @@ import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAcce
  * </pre>
  */
 @CacheableTask
-public class JavaCompile extends AbstractCompile {
+public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private final CompileOptions compileOptions;
     private JavaToolChain toolChain;
     private final FileCollection stableSources = getProject().files((Callable<Object[]>) () -> new Object[]{getSource(), getSources()});
@@ -310,9 +311,12 @@ public class JavaCompile extends AbstractCompile {
             compileOptions.setSourcepath(getProjectLayout().files(sourcesRoots));
         }
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
-        spec.setTargetCompatibility(getTargetCompatibility());
-        spec.setSourceCompatibility(getSourceCompatibility());
-
+        if (compileOptions.getRelease().isPresent()) {
+            spec.setRelease(compileOptions.getRelease().get());
+        } else {
+            spec.setTargetCompatibility(getTargetCompatibility());
+            spec.setSourceCompatibility(getSourceCompatibility());
+        }
         spec.setCompileOptions(compileOptions);
         spec.setSourcesRoots(sourcesRoots);
         if (((JavaToolChainInternal) getToolChain()).getJavaVersion().compareTo(JavaVersion.VERSION_1_8) < 0) {

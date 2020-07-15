@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -41,12 +41,12 @@ dependencies {
     implementation(project(":toolingApi"))
     implementation(project(":versionControl"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("commons_io"))
-    implementation(library("inject"))
+    implementation(libs.groovy)
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
+    implementation(libs.inject)
 
     testFixturesApi(project(":baseServices")) {
         because("Test fixtures export the Named class")
@@ -70,9 +70,9 @@ dependencies {
 
     integTestImplementation(project(":native"))
     integTestImplementation(project(":resources"))
-    integTestImplementation(library("nativePlatform"))
-    integTestImplementation(library("ant"))
-    integTestImplementation(library("jgit"))
+    integTestImplementation(libs.nativePlatform)
+    integTestImplementation(libs.ant)
+    integTestImplementation(libs.jgit)
 
     testRuntimeOnly(project(":distributionsCore")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

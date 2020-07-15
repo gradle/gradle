@@ -17,18 +17,19 @@
 package org.gradle.api.file;
 
 import org.gradle.api.internal.file.CompositeFileCollection;
-import org.gradle.api.internal.file.TestFiles;
-import org.gradle.api.internal.file.UnionFileCollection;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
-import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
+import org.gradle.api.tasks.util.PatternSet;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class FileCollectionMatchers {
     @Factory
@@ -37,8 +38,8 @@ public class FileCollectionMatchers {
             @Override
             public boolean matches(Object o) {
                 FileCollection actual = (FileCollection) o;
-                List<? extends FileCollection> actualCollections = unpack(actual);
-                List<? extends FileCollection> expectedCollections = unpack(expected);
+                List<Object> actualCollections = unpack(actual);
+                List<Object> expectedCollections = unpack(expected);
                 boolean equals = actualCollections.equals(expectedCollections);
                 if (!equals) {
                     System.out.println("expected: " + expectedCollections);
@@ -47,20 +48,34 @@ public class FileCollectionMatchers {
                 return equals;
             }
 
-            private List<? extends FileCollection> unpack(FileCollection expected) {
-                if (expected instanceof UnionFileCollection) {
-                    UnionFileCollection collection = (UnionFileCollection) expected;
-                    return new ArrayList<FileCollection>(collection.getSources());
-                }
-                if (expected instanceof DefaultConfigurableFileCollection) {
-                    DefaultConfigurableFileCollection collection = (DefaultConfigurableFileCollection) expected;
-                    return new ArrayList<FileCollection>((Set) collection.getFrom());
-                }
-                if (expected instanceof CompositeFileCollection) {
-                    CompositeFileCollection collection = (CompositeFileCollection) expected;
-                    DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(TestFiles.getPatternSetFactory());
-                    collection.visitContents(context);
-                    return context.resolveAsFileCollections();
+            private List<Object> unpack(FileCollection expected) {
+                if (expected instanceof FileCollectionInternal) {
+                    FileCollectionInternal collection = (CompositeFileCollection) expected;
+                    List<Object> collections = new ArrayList<>();
+                    collection.visitStructure(new FileCollectionStructureVisitor() {
+                        @Override
+                        public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+                            for (File content : contents) {
+                                collections.add(content);
+                            }
+                        }
+
+                        @Override
+                        public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                            collections.add(fileTree);
+                        }
+
+                        @Override
+                        public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                            collections.add(fileTree);
+                        }
+
+                        @Override
+                        public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                            collections.add(fileTree);
+                        }
+                    });
+                    return collections;
                 }
                 throw new RuntimeException("Cannot get children of " + expected);
             }

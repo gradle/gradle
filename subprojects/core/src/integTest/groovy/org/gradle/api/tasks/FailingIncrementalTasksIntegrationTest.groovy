@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 @Unroll
@@ -54,37 +53,47 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         //this exposes an issue we used to have with in-memory cache.
     }
 
-    @ToBeFixedForInstantExecution
     def "incremental task after previous failure #description"() {
         file("src/input.txt") << "input"
         buildFile << """
-            class IncrementalTask extends DefaultTask {
+            import javax.inject.Inject
+
+            abstract class IncrementalTask extends DefaultTask {
+
+                @Inject
+                abstract ProviderFactory getProviders()
+
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @InputDirectory File sourceDir
                 @OutputDirectory File destinationDir
-                
+
                 @TaskAction
                 void process(IncrementalTaskInputs inputs) {
-                    project.file("\$destinationDir/output.txt").text = "output"
-                    if (project.hasProperty("modifyOutputs")) {
-                        switch (project.property("modifyOutputs")) {
+                    def outputTxt = layout.projectDirectory.file("\$destinationDir/output.txt").asFile
+                    outputTxt.text = "output"
+                    def modifyOutputs = providers.gradleProperty('modifyOutputs').orNull
+                    if (modifyOutputs) {
+                        switch (modifyOutputs) {
                             case "add":
-                                project.file("\$destinationDir/output-\${System.currentTimeMillis()}.txt").text = "output"
+                                layout.projectDirectory.file("\$destinationDir/output-\${System.currentTimeMillis()}.txt").asFile.text = "output"
                                 break
                             case "change":
-                                project.file("\$destinationDir/output.txt").text = "changed output -- \${System.currentTimeMillis()}"
+                                outputTxt.text = "changed output -- \${System.currentTimeMillis()}"
                                 break
                             case "remove":
-                                project.delete("\$destinationDir/output.txt")
+                                outputTxt.delete()
                                 break
                         }
                     }
 
-                    if (project.hasProperty("expectIncremental")) {
-                        def expectIncremental = Boolean.parseBoolean(project.property("expectIncremental"))
-                        assert inputs.incremental == expectIncremental
+                    def expectIncremental = providers.gradleProperty('expectIncremental')
+                    if (expectIncremental.isPresent()) {
+                        assert inputs.incremental == expectIncremental.map { Boolean.parseBoolean(it) }.get()
                     }
 
-                    if (project.hasProperty("fail")) {
+                    if (providers.gradleProperty('fail').isPresent()) {
                         throw new RuntimeException("Failure")
                     }
                 }

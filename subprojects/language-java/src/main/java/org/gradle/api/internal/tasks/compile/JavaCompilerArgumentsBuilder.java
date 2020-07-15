@@ -111,6 +111,10 @@ public class JavaCompilerArgumentsBuilder {
                 throw new InvalidUserDataException("Cannot specify -J flags via `CompileOptions.compilerArgs`. " +
                     "Use the `CompileOptions.forkOptions.jvmArgs` property instead.");
             }
+
+            if ("--release".equals(arg) && spec.getRelease() != null) {
+                throw new InvalidUserDataException("Cannot specify --release via `CompileOptions.compilerArgs` when using `JavaCompile.release`.");
+            }
         }
     }
 
@@ -135,9 +139,13 @@ public class JavaCompilerArgumentsBuilder {
         if (!includeMainOptions) {
             return;
         }
-
+        Integer release = spec.getRelease();
         final MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
-        if (!releaseOptionIsSet(compilerArgs)) {
+
+        if (release != null) {
+            args.add("--release");
+            args.add(release.toString());
+        } else if (!releaseOptionIsSet(compilerArgs)) {
             String sourceCompatibility = spec.getSourceCompatibility();
             if (sourceCompatibility != null) {
                 args.add("-source");

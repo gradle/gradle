@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class MavenFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    @ToBeFixedForInstantExecution
     void "can resolve snapshots uncached from local Maven repository"() {
         given:
         def moduleA = mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT')
@@ -57,7 +56,6 @@ task retrieve(type: Sync) {
         buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
     }
 
-    @ToBeFixedForInstantExecution
     void "does not cache artifacts and metadata from local Maven repository"() {
         given:
         def moduleA = mavenRepo().module('group', 'projectA', '1.2')

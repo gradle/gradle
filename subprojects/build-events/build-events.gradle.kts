@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -25,8 +25,8 @@ dependencies {
     implementation(project(":modelCore"))
     implementation(project(":toolingApi"))
 
-    implementation(library("jsr305"))
-    implementation(library("guava"))
+    implementation(libs.jsr305)
+    implementation(libs.guava)
 
     testImplementation(project(":internalTesting"))
     testImplementation(project(":modelCore"))

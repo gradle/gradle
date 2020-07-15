@@ -18,7 +18,10 @@ package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 
+@IgnoreIf({ GradleContextualExecuter.embedded })
 class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
     def "installation registry empty without environment setup"() {

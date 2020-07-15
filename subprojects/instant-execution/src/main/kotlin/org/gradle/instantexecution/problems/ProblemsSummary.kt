@@ -57,7 +57,7 @@ fun buildConsoleSummary(cacheAction: String, problems: List<PropertyProblem>, re
 private
 fun uniquePropertyProblems(problems: List<PropertyProblem>): Set<UniquePropertyProblem> =
     problems.sortedBy { it.trace.sequence.toList().reversed().joinToString(".") }
-        .groupBy { UniquePropertyProblem(propertyDescriptionFor(it.trace), it.message, it.documentationSection) }
+        .groupBy { UniquePropertyProblem(propertyDescriptionFor(it.trace), it.message, it.documentationSection?.anchor) }
         .keys
 
 

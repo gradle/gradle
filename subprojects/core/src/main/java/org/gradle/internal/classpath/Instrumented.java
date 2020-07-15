@@ -141,6 +141,13 @@ public class Instrumented {
         return obj;
     }
 
+    private static String convertToString(Object arg) {
+        if (arg instanceof CharSequence) {
+            return ((CharSequence) arg).toString();
+        }
+        return (String) arg;
+    }
+
     public interface Listener {
         /**
          * @param consumer The name of the class that is reading the property value
@@ -432,7 +439,7 @@ public class Instrumented {
         @Override
         public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
             if (receiver.equals(System.class)) {
-                return systemProperty(arg1.toString(), arg2.toString(), array.owner.getName());
+                return systemProperty(arg1.toString(), convertToString(arg2), array.owner.getName());
             } else {
                 return super.call(receiver, arg1, arg2);
             }

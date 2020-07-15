@@ -83,16 +83,18 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         skipped ":foo"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "task wrongly up-to-date")
     def "task is loaded from cache when returning to already cached state after failure"() {
         buildFile << """
             task foo {
                 inputs.property("change", project.hasProperty("change"))
-                outputs.file("out.txt")
+                def outTxt = file('out.txt')
+                outputs.file(outTxt)
                 outputs.cacheIf { true }
+                def fail = providers.gradleProperty('fail')
                 doLast {
-                    project.file("out.txt") << "xxx"
-                    if (project.hasProperty("fail")) {
+                    outTxt << "xxx"
+                    if (fail.isPresent()) {
                         throw new RuntimeException("Boo!")
                     }
                 }

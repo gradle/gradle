@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -29,8 +29,8 @@ dependencies {
     implementation(project(":dependencyManagement"))
     implementation(project(":pluginUse"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
 
     testImplementation(testFixtures(project(":dependencyManagement")))
 

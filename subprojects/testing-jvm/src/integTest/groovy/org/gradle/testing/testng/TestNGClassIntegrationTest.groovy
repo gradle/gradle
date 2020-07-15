@@ -22,7 +22,6 @@ import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
 import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.testing.fixture.TestNGCoverage
 
 import static org.gradle.testing.fixture.TestNGCoverage.FIXED_ICLASS_LISTENER
@@ -90,10 +89,10 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
 
         file("src/test/java/org/company/SystemOutTest.java") << """
             package org.company;
-    
+
             import org.testng.Assert;
             import org.testng.annotations.Test;
-    
+
             public class SystemOutTest {
                 @Test
                 public void testOut() {
@@ -137,15 +136,14 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
         containsEvent(FINISHED, DefaultTestSuiteDescriptor, 'TestSuite > FullTest')
     }
 
-    @ToBeFixedForInstantExecution(because = "build failed with multiple exceptions")
     def "synthesized events for broken configuration methods reference test class descriptors"() {
         given:
         file("src/test/java/org/company/TestWithBrokenSetupMethod.java") << """
             package org.company;
-    
+
             import org.testng.Assert;
             import org.testng.annotations.*;
-    
+
             public class TestWithBrokenSetupMethod {
                 @BeforeMethod
                 public void broken() {

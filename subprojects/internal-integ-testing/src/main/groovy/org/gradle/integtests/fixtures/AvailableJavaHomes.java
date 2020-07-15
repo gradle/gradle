@@ -190,6 +190,7 @@ public abstract class AvailableJavaHomes {
             jvms = new ArrayList<>();
             jvms.addAll(new DevInfrastructureJvmLocator(fileCanonicalizer).findJvms());
             InstalledJvmLocator installedJvmLocator = new InstalledJvmLocator(OperatingSystem.current(), Jvm.current(), nativeServices.get(WindowsRegistry.class), nativeServices.get(SystemInfo.class), fileCanonicalizer);
+            jvms.addAll(new DevInfrastructureJvmLocator(fileCanonicalizer).findJvms());
             jvms.addAll(installedJvmLocator.findJvms());
             if (OperatingSystem.current().isLinux()) {
                 jvms.addAll(new BaseDirJvmLocator(fileCanonicalizer, new File("/opt")).findJvms());

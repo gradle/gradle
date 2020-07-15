@@ -73,17 +73,13 @@ class PerformanceTestBuildTypeTest {
                 "-s",
                 "--daemon",
                 "",
-                "-I",
-                "\"%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts\"",
                 "-Dorg.gradle.internal.tasks.createops",
                 "-Porg.gradle.performance.buildTypeId=Gradle_Check_IndividualPerformanceScenarioWorkersLinux",
                 "-Porg.gradle.performance.workerTestTaskName=fullPerformanceTest",
                 "-Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id%",
                 "-PgithubToken=%github.ci.oauth.token%",
                 "\"-Dscan.tag.PerformanceTest\"",
-                "--build-cache",
                 "\"-Dgradle.cache.remote.url=%gradle.cache.remote.url%\"",
-                "\"-Dgradle.cache.remote.url.us=%gradle.cache.remote.url.us%\"",
                 "\"-Dgradle.cache.remote.username=%gradle.cache.remote.username%\"",
                 "\"-Dgradle.cache.remote.password=%gradle.cache.remote.password%\""
         )

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`api-java`
-    gradlebuild.`publish-public-libraries`
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.publish-public-libraries")
 }
 
 description = "Common shared classes without external dependencies"
@@ -25,5 +25,5 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     implementation(project(":baseAnnotations"))
-    implementation(library("guava")) { version { require(libraryVersion("guava")) } }
+    implementation(libs.guava)
 }

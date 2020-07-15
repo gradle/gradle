@@ -24,6 +24,8 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.PatternFilterable
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 class AbstractFileTreeTest extends Specification {
     def isEmptyWhenVisitsNoFiles() {
         def tree = new TestFileTree([])
@@ -130,8 +132,13 @@ class AbstractFileTreeTest extends Specification {
         }
 
         @Override
-        FileTree matching(PatternFilterable patterns) {
+        FileTreeInternal matching(PatternFilterable patterns) {
             return new FilteredTestFileTree(patterns: patterns)
+        }
+
+        @Override
+        void visitContentsAsFileTrees(Consumer<FileTreeInternal> visitor) {
+            visitor.accept(this)
         }
 
         FileTree visit(FileVisitor visitor) {

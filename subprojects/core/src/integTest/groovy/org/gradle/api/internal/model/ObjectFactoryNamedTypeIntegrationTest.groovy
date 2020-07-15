@@ -102,7 +102,7 @@ class ObjectFactoryNamedTypeIntegrationTest extends AbstractIntegrationSpec {
         outputContains("thing1: thing1")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "ClassNotFoundException: Thing\$Impl")
     def "named instance can be used as task input property"() {
         buildFile << """
             interface Thing extends Named { }
@@ -120,7 +120,7 @@ class ObjectFactoryNamedTypeIntegrationTest extends AbstractIntegrationSpec {
             }
             
             task a(type: ThingTask) {
-                thing = objects.named(Thing, System.getProperty("name") ?: "a")
+                thing = objects.named(Thing, providers.systemProperty('name').forUseAtConfigurationTime().getOrElse('a'))
                 outputFile = layout.projectDirectory.file("out.txt")
             }
 """

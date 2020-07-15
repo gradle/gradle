@@ -18,7 +18,7 @@
  * Groovy specific adaptations to the model management.
  */
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -27,8 +27,8 @@ dependencies {
     implementation(project(":modelCore"))
     implementation(project(":baseServicesGroovy"))
 
-    implementation(library("groovy"))
-    implementation(library("guava"))
+    implementation(libs.groovy)
+    implementation(libs.guava)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":modelCore")))

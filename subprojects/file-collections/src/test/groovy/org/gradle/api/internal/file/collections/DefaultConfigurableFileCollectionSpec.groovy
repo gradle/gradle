@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file.collections
 
 import org.gradle.api.Task
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionSpec
@@ -30,6 +29,8 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
 
 import java.util.concurrent.Callable
+import java.util.function.Consumer
+import java.util.function.Supplier
 
 class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
@@ -240,14 +241,15 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         files as List == [file1, file2]
     }
 
-    def canUseAFileCollectionToSpecifyTheContentsOfTheCollection() {
+    def canUseAFileCollectionWithChangingContentsToSpecifyTheContentsOfTheCollection() {
         given:
         def file1 = new File("1")
         def file2 = new File("2")
-        def src = Mock(FileCollectionInternal)
+        def src = Mock(MinimalFileSet)
+        def srcCollection = TestFiles.fileCollectionFactory().create(src)
 
         when:
-        collection.from(src)
+        collection.from(srcCollection)
         def files = collection.files
 
         then:
@@ -386,23 +388,6 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         0 * _
     }
 
-    def resolveAddsEachSourceObjectAndBuildDependencies() {
-        given:
-        def resolveContext = Mock(FileCollectionResolveContext)
-        def fileCollectionMock = Mock(FileCollection)
-
-        collection.from("file")
-        collection.from(fileCollectionMock)
-
-        when:
-        collection.visitContents(resolveContext)
-
-        then:
-        1 * resolveContext.add("file", fileResolver)
-        1 * resolveContext.add(fileCollectionMock)
-        0 * resolveContext._
-    }
-
     def canGetAndSetTaskDependencies() {
         given:
         def task = Mock(Task)
@@ -469,7 +454,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         filteredFileTreeDependencies == [task] as Set<? extends Task>
     }
 
-    def "can visit contents when collection contains paths"() {
+    def "can visit structure when collection contains paths"() {
         def visitor = Mock(FileCollectionStructureVisitor)
         def one = testDir.file('one')
         def two = testDir.file('two')
@@ -489,6 +474,31 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         1 * visitor.startVisit(FileCollectionInternal.OTHER, { it as List == [two] }) >> true
         1 * visitor.visitCollection(FileCollectionInternal.OTHER, { it as List == [two] })
         0 * _
+    }
+
+    def "can visit structure when collection contains paths and collections"() {
+        given:
+        def visitor = Mock(FileCollectionStructureVisitor)
+        def fileCollectionMock = Mock(FileCollectionInternal)
+        def file = new File("some-file")
+
+        when:
+        collection.from("file")
+        collection.from(fileCollectionMock)
+
+        then:
+        1 * fileCollectionMock.replace(_, _) >> fileCollectionMock
+
+        when:
+        collection.visitStructure(visitor)
+
+        then:
+        1 * visitor.startVisit(_, collection) >> true
+        1 * fileResolver.resolve("file") >> file
+        1 * visitor.startVisit(_, _) >> true
+        1 * visitor.visitCollection(_, { it.toList() == [file] })
+        1 * fileCollectionMock.visitStructure(visitor)
+        0 * visitor._
     }
 
     def resolvesPathToFileWhenFinalized() {
@@ -582,11 +592,18 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         e.message == 'The value for <display> is final and cannot be changed.'
 
         when:
-        collection.setFrom(['some', 'more'])
+        collection.setFrom()
 
         then:
         def e2 = thrown(IllegalStateException)
         e2.message == 'The value for <display> is final and cannot be changed.'
+
+        when:
+        collection.setFrom(['some', 'more'])
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for <display> is final and cannot be changed.'
     }
 
     def cannotMutateFromSetWhenFinalized() {
@@ -1006,6 +1023,73 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         files as List == [file]
     }
 
+    def "can visit structure and children after finalized from paths"() {
+        given:
+        def file1 = new File('one')
+        def file2 = new File('two')
+        _ * fileResolver.resolve(file1) >> file1
+        _ * fileResolver.resolve(file2) >> file2
+
+        collection.from(file1, file2)
+        collection.finalizeValue()
+
+        def structureVisitor = Mock(FileCollectionStructureVisitor)
+        def childVisitor = Mock(Consumer)
+
+        when:
+        collection.visitStructure(structureVisitor)
+
+        then:
+        1 * structureVisitor.startVisit(_, collection) >> true
+        1 * structureVisitor.startVisit(_, _) >> { source, files ->
+            assert files.toList() == [file1]
+            true
+        }
+        1 * structureVisitor.visitCollection(_, _) >> { source, files ->
+            assert files.toList() == [file1]
+        }
+        1 * structureVisitor.startVisit(_, _) >> { source, files ->
+            assert files.toList() == [file2]
+            true
+        }
+        1 * structureVisitor.visitCollection(_, _) >> { source, files ->
+            assert files.toList() == [file2]
+        }
+        0 * structureVisitor._
+
+        when:
+        collection.visitChildren(childVisitor)
+
+        then:
+        2 * childVisitor.accept(_)
+        0 * childVisitor._
+    }
+
+    def "visiting structure and children does nothing when empty after finalization"() {
+        given:
+        def files1 = Mock(FileCollectionInternal)
+        def files2 = Mock(FileCollectionInternal)
+
+        collection.from(files1, files2)
+        collection.finalizeValue()
+
+        def structureVisitor = Mock(FileCollectionStructureVisitor)
+        def childVisitor = Mock(Consumer)
+
+        when:
+        collection.visitStructure(structureVisitor)
+
+        then:
+        1 * structureVisitor.startVisit(_, collection) >> true
+        0 * structureVisitor._
+
+        when:
+        collection.visitChildren(childVisitor)
+
+        then:
+        0 * childVisitor._
+    }
+
     def cannotSpecifyPathsWhenQueriedAfterFinalizeOnRead() {
         given:
         collection.from('a')
@@ -1043,6 +1127,13 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         then:
         def e = thrown(IllegalStateException)
         e.message == 'The value for <display> is final and cannot be changed.'
+
+        when:
+        collection.from()
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <display> is final and cannot be changed.'
     }
 
     def cannotMutateFromSetWhenQueriedAfterFinalizeOnRead() {
@@ -1429,5 +1520,43 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         result == [file] as Set
+    }
+
+    def "can replace one of the elements of an empty collection"() {
+        expect:
+        def replaced = collection.replace(Stub(FileCollectionInternal), {})
+        replaced.is(collection)
+    }
+
+    def "can replace one of the elements of a mutable collection"() {
+        def collection1 = Mock(FileCollectionInternal)
+        def collection2 = Mock(FileCollectionInternal)
+        def replaced1 = Stub(FileCollectionInternal)
+        def supplier = Stub(Supplier)
+
+        collection.from(collection1, collection2)
+
+        when:
+        def replaced = collection.replace(collection1, supplier)
+
+        then:
+        replaced != collection
+        replaced.sourceCollections == [replaced1, collection2]
+
+        1 * collection1.replace(collection1, supplier) >> replaced1
+        1 * collection2.replace(collection1, supplier) >> collection2
+        0 * _
+    }
+
+    def "can replace one of the elements of a finalized collection"() {
+        def collection1 = Stub(FileCollectionInternal)
+        def collection2 = Stub(FileCollectionInternal)
+
+        collection.from(collection1, collection2)
+        collection.finalizeValue()
+
+        expect:
+        def replaced = collection.replace(collection1, {})
+        replaced.is(collection)
     }
 }
