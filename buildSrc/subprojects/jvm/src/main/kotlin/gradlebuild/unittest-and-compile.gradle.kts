@@ -24,6 +24,7 @@ import gradlebuild.jvm.extension.UnitTestAndCompileExtension
 import org.gradle.internal.os.OperatingSystem
 import java.util.concurrent.Callable
 import java.util.jar.Attributes
+import com.gradle.enterprise.gradleplugin.testdistribution.TestDistributionPlugin
 
 plugins {
     groovy
@@ -31,7 +32,6 @@ plugins {
     id("gradlebuild.dependency-modules")
     id("gradlebuild.available-java-installations")
     id("org.gradle.test-retry")
-    id("com.gradle.enterprise.test-distribution")
 }
 
 extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", java)
@@ -178,6 +178,8 @@ fun Test.addOsAsInputs() {
     inputs.property("operatingSystem", "${OperatingSystem.current().name} ${System.getProperty("os.arch")}")
 }
 
+fun Project.testDistributionEnabled() = providers.systemProperty("enableTestDistribution").forUseAtConfigurationTime().orNull?.toBoolean() == true
+
 fun configureTests() {
     normalization {
         runtimeClasspath {
@@ -185,6 +187,11 @@ fun configureTests() {
             ignore("org/gradle/build-receipt.properties")
         }
     }
+
+    if (project.testDistributionEnabled()) {
+        plugins.apply(TestDistributionPlugin::class.java)
+    }
+
     tasks.withType<Test>().configureEach {
         maxParallelForks = project.maxParallelForks
 
@@ -209,7 +216,7 @@ fun configureTests() {
             }
         }
 
-        if (project.providers.systemProperty("enableTestDistribution").forUseAtConfigurationTime().orNull?.toBoolean() == true) {
+        if (project.testDistributionEnabled()) {
             distribution {
                 maxLocalExecutors.set(0)
                 maxRemoteExecutors.set(if ("test" == testName) 5 else 20)
