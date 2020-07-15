@@ -63,7 +63,10 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         apply(plugin = "groovy")
         plugins.apply(AvailableJavaInstallationsPlugin::class.java)
         plugins.apply(TestRetryPlugin::class.java)
-        plugins.apply(TestDistributionPlugin::class.java)
+
+        if (project.testDistributionEnabled()) {
+            plugins.apply(TestDistributionPlugin::class.java)
+        }
 
         val extension = extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", this)
 
@@ -232,6 +235,9 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     }
 
     private
+    fun Project.testDistributionEnabled() = providers.systemProperty("enableTestDistribution").forUseAtConfigurationTime().orNull?.toBoolean() == true
+
+    private
     fun Project.configureTests() {
         normalization {
             runtimeClasspath {
@@ -262,7 +268,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             }
 
             val testName = name
-            if (project.providers.systemProperty("enableTestDistribution").forUseAtConfigurationTime().orNull?.toBoolean() == true) {
+            if (project.testDistributionEnabled()) {
                 distribution {
                     maxLocalExecutors.set(0)
                     maxRemoteExecutors.set(if ("test" == testName) 5 else 20)
