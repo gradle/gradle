@@ -170,11 +170,12 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
         buildFile << """
             task run {
                 dependsOn jar
+                def processOperations = project.processOperations
                 doLast {
-                    project.javaexec {
-                        modularity.inferModulePath.set(true)
-                        classpath = files(jar) + configurations.runtimeClasspath
-                        mainModule.set('consumer')
+                    processOperations.javaexec { action ->
+                        action.modularity.inferModulePath.set(true)
+                        action.classpath = files(jar) + configurations.runtimeClasspath
+                        action.mainModule.set('consumer')
                     }
                 }
             }
@@ -199,12 +200,13 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
         buildFile << """
             task run {
                 dependsOn jar
+                def processOperations = project.processOperations
                 doLast {
-                    project.javaexec {
-                        modularity.inferModulePath.set(true)
-                        classpath = files(jar) + configurations.runtimeClasspath
-                        mainModule.set('consumer')
-                        mainClass.set('consumer.MainModule')
+                    processOperations.javaexec { action ->
+                        action.modularity.inferModulePath.set(true)
+                        action.classpath = files(jar) + configurations.runtimeClasspath
+                        action.mainModule.set('consumer')
+                        action.mainClass.set('consumer.MainModule')
                     }
                 }
             }
