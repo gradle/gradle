@@ -85,8 +85,14 @@ public class OutputFilterUtil {
      * Decide whether an entry should be considered to be part of the output. See class Javadoc for definition of what is considered output.
      */
     private static boolean isOutputEntry(Map<String, FileSystemLocationFingerprint> afterPreviousExecutionFingerprints, Map<String, CompleteFileSystemLocationSnapshot> beforeExecutionSnapshots, CompleteFileSystemLocationSnapshot afterExecutionSnapshot, Boolean isRoot) {
-        if (isRoot && afterExecutionSnapshot.getType() == FileType.Missing) {
-            return false;
+        if (isRoot) {
+            FileType afterExecutionSnapshotType = afterExecutionSnapshot.getType();
+            if (afterExecutionSnapshotType == FileType.Missing) {
+                return false;
+            }
+            if (afterExecutionSnapshotType == FileType.Directory) {
+                return true;
+            }
         }
         CompleteFileSystemLocationSnapshot beforeSnapshot = beforeExecutionSnapshots.get(afterExecutionSnapshot.getAbsolutePath());
         // Was it created during execution?
