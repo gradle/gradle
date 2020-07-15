@@ -10,6 +10,7 @@ dependencies {
     implementation("org.ow2.asm:asm-commons")
     implementation("com.google.code.gson:gson")
     implementation("org.gradle:test-retry-gradle-plugin")
+    implementation("com.gradle.enterprise:test-distribution-gradle-plugin:1.0.3-rc-1")
 
     implementation("com.thoughtworks.qdox:qdox") {
         because("ParameterNamesIndex")

@@ -572,6 +572,8 @@ tasks.named("docsTest") { task ->
 
     // // TODO (donat) investigate ignored snippets
     filter {
+        // workaround for https://github.com/gradle/dotcom/issues/5958
+        failOnNoMatchingTests = false
         // Do not execute Java Module tests on JVM < 9
         if (!buildJvms.testJvm.get().javaVersion.java9Compatible) {
             excludeTestsMatching "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.java-modules-*.sample"
