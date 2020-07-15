@@ -181,10 +181,10 @@ Joe!""")
         buildFile << """
             apply plugin: 'java'
             import org.gradle.external.javadoc.internal.JavadocOptionFileWriterContext;
-
+            
             class CustomJavadocOptionFileOption implements JavadocOptionFileOption<String> {
                 private String value = "foo"
-
+                
                 public String getValue() {
                     return value
                 }
@@ -203,7 +203,7 @@ Joe!""")
                     writerContext.newLine()
                 }
             }
-
+            
             javadoc {
                 options {
                     addOption(new CustomJavadocOptionFileOption())
@@ -220,7 +220,7 @@ Joe!""")
     def "can use various multi-value options"() {
         buildFile << """
             apply plugin: 'java'
-
+            
             javadoc {
                 options {
                     addMultilineStringsOption("addMultilineStringsOption").setValue([
@@ -251,7 +251,7 @@ Joe!""")
 
         file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addStringsOption 'a b c'"""))
 
-        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultilineMultiValueOption
+        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultilineMultiValueOption 
 'a' 
 -addMultilineMultiValueOption 
 'b' 'c' """))
@@ -273,7 +273,7 @@ Joe!""")
     def "can pass offline links"() {
         buildFile << """
             apply plugin: 'java'
-
+            
             javadoc {
                 options {
                     linksOffline 'https://docs.oracle.com/javase/8/docs/api/', 'gradle/javadocs/jdk'
