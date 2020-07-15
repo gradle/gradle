@@ -61,6 +61,7 @@ dependencies {
     implementation(project(":buildEvents"))
     implementation(project(":native"))
     implementation(project(":buildOption"))
+    implementation(project(":platformJvm"))
 
     implementation(libs.groovy)
     implementation(libs.slf4jApi)

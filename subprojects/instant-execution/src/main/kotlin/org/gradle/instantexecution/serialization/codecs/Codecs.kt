@@ -79,6 +79,7 @@ import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.state.ManagedFactoryRegistry
+import org.gradle.jvm.toolchain.internal.JavaCompilerFactory
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -188,6 +189,7 @@ class Codecs(
         bind(ownerServiceCodec<ListenerManager>())
         bind(ownerServiceCodec<TemporaryFileProvider>())
         bind(ownerServiceCodec<OutputChangeListener>())
+        bind(ownerServiceCodec<JavaCompilerFactory>())
         bind(ServicesCodec())
 
         bind(ProxyCodec)
