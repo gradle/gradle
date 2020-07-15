@@ -11,11 +11,13 @@
 	<classpathentry kind="src" path="/common">
 		<attributes>
 			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+			<attribute name="without_test_code" value="true"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="/api" >
 		<attributes>
 			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+			<attribute name="without_test_code" value="true"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry sourcepath="@CACHE_DIR@/log4j/log4j/1.2.17/@SHA1@/log4j-1.2.17-sources.jar" kind="lib" path="@CACHE_DIR@/log4j/log4j/1.2.17/@SHA1@/log4j-1.2.17.jar">

@@ -40,6 +40,7 @@ public class ProjectDependencyBuilder {
         if (asJavaModule) {
             dependency.getEntryAttributes().put(EclipsePluginConstants.MODULE_ATTRIBUTE_KEY, EclipsePluginConstants.MODULE_ATTRIBUTE_VALUE);
         }
+        dependency.getEntryAttributes().put(EclipsePluginConstants.WITHOUT_TEST_CODE_ATTRIBUTE_KEY, EclipsePluginConstants.WITHOUT_TEST_CODE_ATTRIBUTE_VALUE);
         return dependency;
     }
 
