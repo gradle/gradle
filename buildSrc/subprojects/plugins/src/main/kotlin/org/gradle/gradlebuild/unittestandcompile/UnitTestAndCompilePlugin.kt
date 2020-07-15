@@ -54,6 +54,7 @@ import testLibrary
 import java.util.concurrent.Callable
 import java.util.jar.Attributes
 import org.gradle.testing.PerformanceTest
+import com.gradle.enterprise.gradleplugin.testdistribution.TestDistributionPlugin
 
 
 @Suppress("unused")
@@ -62,6 +63,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         apply(plugin = "groovy")
         plugins.apply(AvailableJavaInstallationsPlugin::class.java)
         plugins.apply(TestRetryPlugin::class.java)
+        plugins.apply(TestDistributionPlugin::class.java)
 
         val extension = extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", this)
 
