@@ -14,6 +14,7 @@ dependencies {
     implementation("org.ow2.asm:asm-commons:7.1")
     implementation("com.google.code.gson:gson:2.7")
     implementation("org.gradle:test-retry-gradle-plugin:1.1.6")
+    implementation("com.gradle.enterprise:test-distribution-gradle-plugin:1.0.3-rc-1")
 
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.6.2")
     testImplementation("junit:junit:4.13")

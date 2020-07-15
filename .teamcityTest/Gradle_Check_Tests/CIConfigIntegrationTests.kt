@@ -81,7 +81,7 @@ class CIConfigIntegrationTests {
                 }
 
                 stage.functionalTests.forEach { testCoverage ->
-                    functionalTestCount += gradleBuildBucketProvider.createFunctionalTestsFor(stage, testCoverage).size
+                    functionalTestCount += if (testCoverage.testDistribution) 1 else gradleBuildBucketProvider.createFunctionalTestsFor(stage, testCoverage).size
                     if (testCoverage.testType == TestType.soak) {
                         functionalTestCount++
                     }

@@ -38,7 +38,7 @@ data class CIBuildModel(
             specificBuilds = listOf(
                 SpecificBuild.CompileAll, SpecificBuild.SanityCheck),
             functionalTests = listOf(
-                TestCoverage(1, TestType.quick, Os.linux, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)), omitsSlowProjects = true),
+                TestCoverage(1, TestType.quick, Os.linux, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)), omitsSlowProjects = true, testDistribution = true),
         Stage(StageNames.QUICK_FEEDBACK,
             functionalTests = listOf(
                 TestCoverage(2, TestType.quick, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor)),
@@ -164,7 +164,15 @@ data class Stage(val stageName: StageName, val specificBuilds: List<SpecificBuil
     val id = stageName.id
 }
 
+<<<<<<< HEAD
 data class TestCoverage(val uuid: Int, val testType: TestType, val os: Os, val testJvmVersion: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle, val buildJvmVersion: JvmVersion = JvmVersion.java11, val expectedBucketNumber: Int = 50, val withoutDependencies: Boolean = false) {
+=======
+data class TestCoverage(val uuid: Int, val testType: TestType, val os: Os, val testJvmVersion: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle, val buildJvmVersion: JvmVersion = JvmVersion.java11, val expectedBucketNumber: Int = 50, val withoutDependencies: Boolean = false, val testDistribution: Boolean = false) {
+
+    constructor(uuid: Int, testType: TestType, os: Os, testJvm: JvmCategory, buildJvmVersion: JvmVersion = JvmVersion.java11, expectedBucketNumber: Int = 50, withoutDependencies: Boolean = false, testDistribution: Boolean = false) :
+        this(uuid, testType, os, testJvm.version, testJvm.vendor, buildJvmVersion, expectedBucketNumber, withoutDependencies, testDistribution)
+
+>>>>>>> dab6eafc521... Set up test distribution for QuickFeedbackLinux (#13734)
     fun asId(model: CIBuildModel): String {
         return "${model.projectPrefix}$testCoveragePrefix"
     }
