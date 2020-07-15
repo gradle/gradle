@@ -117,6 +117,7 @@ fun addDependencies() {
         testRuntimeOnly(libs.junit5Vintage)
         testImplementation(libs.groovy)
         testImplementation(libs.spock)
+        testRuntimeOnly(libs.spockGlobalUnroll)
         testRuntimeOnly(libs.bytebuddy)
         testRuntimeOnly(libs.objenesis)
 

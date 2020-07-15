@@ -164,8 +164,9 @@ dependencies {
         api(libs.mockitoKotlin2)        { version { strictly("2.1.0") }}
         api(libs.sampleCheck)           { version { strictly("0.12.6") }}
         api(libs.snappy)                { version { strictly("0.4") }}
-        api(libs.spock)                 { version { strictly("1.3-groovy-2.5") }}
-        api(libs.sshdCore)              { version { strictly(sshdVersion) }}
+        api(libs.spock) { version { strictly("1.3-groovy-2.5") } }
+        api(libs.spockGlobalUnroll) { version { strictly("0.5.1") } }
+        api(libs.sshdCore) { version { strictly(sshdVersion) } }
         api(libs.sshdScp)               { version { strictly(sshdVersion) }}
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}
         api(libs.testcontainersSpock)   { version { strictly("1.12.5") }}

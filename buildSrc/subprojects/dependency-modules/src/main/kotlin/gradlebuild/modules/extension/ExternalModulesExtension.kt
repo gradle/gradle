@@ -147,6 +147,7 @@ abstract class ExternalModulesExtension {
     val sampleCheck = "org.gradle:sample-check"
     val snappy = "org.iq80.snappy:snappy"
     val spock = "org.spockframework:spock-core"
+    val spockGlobalUnroll = "info.solidsoft.spock:spock-global-unroll"
     val sshdCore = "org.apache.sshd:sshd-core"
     val sshdScp = "org.apache.sshd:sshd-scp"
     val sshdSftp = "org.apache.sshd:sshd-sftp"
