@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent
@@ -51,7 +52,8 @@ class StreamingResolutionResultBuilderTest extends Specification {
         new DummyStore(),
         moduleIdentifierFactory,
         new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
-        new AttributeDesugaring(AttributeTestUtil.attributesFactory())
+        new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
+        DependencyManagementTestUtil.componentSelectionDescriptorFactory()
     )
 
     def "result can be read multiple times"() {

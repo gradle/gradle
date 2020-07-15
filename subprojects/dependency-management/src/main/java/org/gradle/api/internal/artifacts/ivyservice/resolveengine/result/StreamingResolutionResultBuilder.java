@@ -77,10 +77,11 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                                             Store<ResolvedComponentResult> cache,
                                             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                             AttributeContainerSerializer attributeContainerSerializer,
-                                            AttributeDesugaring desugaring) {
+                                            AttributeDesugaring desugaring,
+                                            ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
         ResolvedVariantResultSerializer resolvedVariantResultSerializer = new ResolvedVariantResultSerializer(attributeContainerSerializer);
-        this.dependencyResultSerializer = new DependencyResultSerializer(resolvedVariantResultSerializer);
-        this.componentResultSerializer = new ComponentResultSerializer(moduleIdentifierFactory, resolvedVariantResultSerializer);
+        this.dependencyResultSerializer = new DependencyResultSerializer(resolvedVariantResultSerializer, componentSelectionDescriptorFactory);
+        this.componentResultSerializer = new ComponentResultSerializer(moduleIdentifierFactory, resolvedVariantResultSerializer, componentSelectionDescriptorFactory);
         this.store = store;
         this.cache = cache;
         this.componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);

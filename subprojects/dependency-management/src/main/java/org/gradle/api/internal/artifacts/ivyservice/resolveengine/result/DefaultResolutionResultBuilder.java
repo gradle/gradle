@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultResolutionResultBuilder {
+    private static final DefaultComponentSelectionDescriptor DEPENDENCY_LOCKING = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT, Describables.of("Dependency locking"));
     private final Map<Long, DefaultResolvedComponentResult> modules = new HashMap<>();
     private final CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
     private AttributeContainer requestedAttributes;
@@ -103,7 +104,7 @@ public class DefaultResolutionResultBuilder {
             ModuleVersionSelector failureSelector = failure.getSelector();
             ModuleComponentSelector failureComponentSelector = DefaultModuleComponentSelector.newSelector(failureSelector.getModule(), failureSelector.getVersion());
             root.addDependency(dependencyResultFactory.createUnresolvedDependency(failureComponentSelector, root, true,
-                    ComponentSelectionReasons.of(new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT, Describables.of("Dependency locking"))),
+                    ComponentSelectionReasons.of(DEPENDENCY_LOCKING),
                 new ModuleVersionResolveException(failureComponentSelector, () -> "Dependency lock state out of date", failure.getProblem())));
         }
     }

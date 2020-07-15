@@ -31,10 +31,11 @@ import java.util.Map;
 public class DependencyResultSerializer {
     private final static byte SUCCESSFUL = 0;
     private final static byte FAILED = 1;
-    private final ComponentSelectionReasonSerializer componentSelectionReasonSerializer = new ComponentSelectionReasonSerializer();
+    private final ComponentSelectionReasonSerializer componentSelectionReasonSerializer;
     private final ResolvedVariantResultSerializer resolvedVariantResultSerializer;
 
-    public DependencyResultSerializer(ResolvedVariantResultSerializer resolvedVariantResultSerializer) {
+    public DependencyResultSerializer(ResolvedVariantResultSerializer resolvedVariantResultSerializer, ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
+        this.componentSelectionReasonSerializer = new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory);
         this.resolvedVariantResultSerializer = resolvedVariantResultSerializer;
     }
 

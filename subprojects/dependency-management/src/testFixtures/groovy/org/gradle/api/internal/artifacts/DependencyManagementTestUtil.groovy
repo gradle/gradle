@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts
 
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant
@@ -38,5 +39,9 @@ class DependencyManagementTestUtil {
 
     static PlatformSupport platformSupport() {
         return new PlatformSupport(TestUtil.objectInstantiator())
+    }
+
+    static ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory() {
+        return new TestComponentDescriptorFactory()
     }
 }

@@ -50,6 +50,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.FileDependencyCollectingGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.StreamingResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
@@ -91,6 +92,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final BuildIdentifier currentBuild;
     private final AttributeDesugaring attributeDesugaring;
     private final DependencyVerificationOverride dependencyVerificationOverride;
+    private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
 
     public DefaultConfigurationResolver(ArtifactDependencyResolver resolver, RepositoryHandler repositories,
                                         GlobalDependencyResolutionRules metadataHandler,
@@ -104,7 +106,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
                                         ComponentSelectorConverter componentSelectorConverter,
                                         AttributeContainerSerializer attributeContainerSerializer,
                                         BuildIdentifier currentBuild, AttributeDesugaring attributeDesugaring,
-                                        DependencyVerificationOverride dependencyVerificationOverride) {
+                                        DependencyVerificationOverride dependencyVerificationOverride,
+                                        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
         this.resolver = resolver;
         this.repositories = repositories;
         this.metadataHandler = metadataHandler;
@@ -120,6 +123,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.currentBuild = currentBuild;
         this.attributeDesugaring = attributeDesugaring;
         this.dependencyVerificationOverride = dependencyVerificationOverride;
+        this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
     }
 
     @Override
@@ -146,7 +150,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         BinaryStore newModelStore = stores.nextBinaryStore();
         Store<ResolvedComponentResult> newModelCache = stores.newModelCache();
-        StreamingResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache, moduleIdentifierFactory, attributeContainerSerializer, attributeDesugaring);
+        StreamingResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache, moduleIdentifierFactory, attributeContainerSerializer, attributeDesugaring, componentSelectionDescriptorFactory);
 
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild);
 
