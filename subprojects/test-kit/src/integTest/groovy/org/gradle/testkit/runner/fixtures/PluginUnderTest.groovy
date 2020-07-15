@@ -84,11 +84,16 @@ class PluginUnderTest {
     PluginUnderTest build() {
         writeSourceFiles()
         writeBuildScript()
-        new GradleContextualExecuter(new UnderDevelopmentGradleDistribution(), testDirectoryProvider, IntegrationTestBuildContext.INSTANCE)
-            .usingProjectDirectory(projectDir)
-            .withArguments('classes')
-            .withWarningMode(null)
-            .run()
+        def executer = new GradleContextualExecuter(new UnderDevelopmentGradleDistribution(), testDirectoryProvider, IntegrationTestBuildContext.INSTANCE)
+        try {
+            executer
+                .usingProjectDirectory(projectDir)
+                .withArguments('classes')
+                .withWarningMode(null)
+                .run()
+        } finally {
+            executer.stop()
+        }
         this
     }
 
