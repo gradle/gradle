@@ -18,9 +18,8 @@ package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import spock.lang.IgnoreIf
+import org.gradle.internal.jvm.Jvm
 
-@IgnoreIf({ GradleContextualExecuter.embedded })
 class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
     def "installation registry has only current vm without environment setup"() {
