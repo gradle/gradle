@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -37,6 +38,14 @@ public class FilteredFileTree extends CompositeFileTree implements FileCollectio
     @Override
     public String getDisplayName() {
         return tree.getDisplayName();
+    }
+
+    @Override
+    protected void appendContents(TreeFormatter formatter) {
+        formatter.node("backing tree");
+        formatter.startChildren();
+        tree.describeContents(formatter);
+        formatter.endChildren();
     }
 
     public FileTreeInternal getTree() {

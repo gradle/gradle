@@ -27,6 +27,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -69,6 +70,15 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     @Override
     public String getDisplayName() {
         return outputDirectories.toString();
+    }
+
+    @Override
+    protected void appendContents(TreeFormatter formatter) {
+        formatter.node("source set: " + outputDirectories.toString());
+        formatter.node("output directories");
+        formatter.startChildren();
+        ((FileCollectionInternal) outputDirectories).describeContents(formatter);
+        formatter.endChildren();
     }
 
     @Override

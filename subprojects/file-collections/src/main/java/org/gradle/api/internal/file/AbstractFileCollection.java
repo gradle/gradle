@@ -39,6 +39,7 @@ import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -72,6 +73,21 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public String toString() {
         return getDisplayName();
+    }
+
+    /**
+     * This is final - override {@link #appendContents(TreeFormatter)}  instead.
+     */
+    @Override
+    public final TreeFormatter describeContents(TreeFormatter formatter) {
+        formatter.node("collection type: ").appendType(getClass()).append(" (id: ").append(String.valueOf(System.identityHashCode(this))).append(")");
+        formatter.startChildren();
+        appendContents(formatter);
+        formatter.endChildren();
+        return formatter;
+    }
+
+    protected void appendContents(TreeFormatter formatter) {
     }
 
     // This is final - override {@link TaskDependencyContainer#visitDependencies} to provide the dependencies instead.
