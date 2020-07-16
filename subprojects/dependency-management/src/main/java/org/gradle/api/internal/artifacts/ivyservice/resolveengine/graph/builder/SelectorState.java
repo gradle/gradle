@@ -203,15 +203,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         }
     }
 
-    @Override
-    public void failed(ModuleVersionResolveException failure) {
-        this.failure = failure;
-        BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
-        idResolveResult.failed(failure);
-        this.requireResult = idResolveResult;
-        this.preferResult = idResolveResult;
-    }
-
     private boolean requiresResolve(@Nullable ComponentIdResolveResult previousResult, @Nullable VersionSelector allRejects) {
         this.reusable = false;
         // If we've never resolved, must resolve

@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.ResolvedVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.model.IvyArtifactName
-import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.result.ComponentIdResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult
 
@@ -57,11 +56,6 @@ class TestProjectSelectorState implements ResolvableSelectorState {
     @Override
     ComponentIdResolveResult resolvePrefer(VersionSelector allRejects) {
         return null
-    }
-
-    @Override
-    void failed(ModuleVersionResolveException failure) {
-        throw new UnsupportedOperationException("To be implemented")
     }
 
     @Override

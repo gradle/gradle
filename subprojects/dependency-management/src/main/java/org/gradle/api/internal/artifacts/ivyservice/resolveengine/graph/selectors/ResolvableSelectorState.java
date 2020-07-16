@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
 import javax.annotation.Nullable;
@@ -49,13 +48,6 @@ public interface ResolvableSelectorState {
      */
     @Nullable
     ComponentIdResolveResult resolvePrefer(VersionSelector allRejects);
-
-    /**
-     * Marks the selector as resolved with the passed in failure.
-     *
-     * @param failure the failure to record
-     */
-    void failed(ModuleVersionResolveException failure);
 
     /**
      * Mark the selector as resolved.
