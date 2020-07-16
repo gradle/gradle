@@ -38,7 +38,7 @@ data class CIBuildModel(
             specificBuilds = listOf(
                 SpecificBuild.CompileAll, SpecificBuild.SanityCheck),
             functionalTests = listOf(
-                TestCoverage(1, TestType.quick, Os.linux, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor, testDistribution = true)), omitsSlowProjects = true),
+                TestCoverage(1, TestType.quick, Os.linux, JvmCategory.MAX_VERSION, testDistribution = false)), omitsSlowProjects = true),
         Stage(StageNames.QUICK_FEEDBACK,
             functionalTests = listOf(
                 TestCoverage(2, TestType.quick, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor)),
