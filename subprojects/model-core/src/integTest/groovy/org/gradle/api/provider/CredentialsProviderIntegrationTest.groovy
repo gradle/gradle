@@ -19,6 +19,11 @@ package org.gradle.api.provider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.hamcrest.CoreMatchers
+import spock.lang.IgnoreIf
+import spock.lang.Issue
+import spock.lang.Unroll
 
 class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
@@ -198,6 +203,42 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("The following Gradle properties are missing for 'testCredentials' credentials:")
         failure.assertHasErrorOutput("- testCredentialsUsername")
         failure.assertHasErrorOutput("- testCredentialsPassword")
+    }
+
+    @Unroll
+    @Issue("https://github.com/gradle/gradle/issues/13770")
+    @IgnoreIf({ GradleContextualExecuter.parallel })
+    def "missing credentials error messages can be assembled in parallel execution (#credentialsType)"() {
+        def buildScript = """
+            tasks.register('executionCredentials') {
+                def providers = project.providers
+                doLast {
+                    providers.credentials($credentialsType, 'test').get()
+                }
+            }
+        """
+        file('submodule1/build.gradle') << buildScript
+        file('submodule2/build.gradle') << buildScript
+        settingsFile << """
+            rootProject.name="test"
+            include("submodule1", "submodule2")
+        """
+        buildFile << ""
+
+        expect:
+        for (int i = 0; i < 10; i++) {
+            args '--parallel'
+            fails 'executionCredentials'
+
+            failure.assertNotOutput("ConcurrentModificationException")
+            failure.assertThatCause(CoreMatchers.equalTo(errorMessage))
+            failure.assertHasFailures(2)
+        }
+
+        where:
+        credentialsType       | errorMessage
+        'AwsCredentials'      | "The following Gradle properties are missing for 'test' credentials:\n  - testAccessKey\n  - testSecretKey"
+        'PasswordCredentials' | "The following Gradle properties are missing for 'test' credentials:\n  - testUsername\n  - testPassword"
     }
 
     @UnsupportedWithInstantExecution(because = "test checks behavior with and without configuration cache")
