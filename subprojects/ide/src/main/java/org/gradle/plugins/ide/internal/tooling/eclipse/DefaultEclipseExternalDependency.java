@@ -28,31 +28,20 @@ public class DefaultEclipseExternalDependency extends DefaultEclipseDependency i
     private final File javadoc;
     private final File source;
 
-    private final boolean isUnresolved;
-    private final String attemptedSelector;
-
     private final ModuleVersionIdentifier identifier;
     private final GradleModuleVersion moduleVersion;
 
-    public DefaultEclipseExternalDependency(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
-        super(exported, attributes, accessRules);
-        this.file = file;
-        this.javadoc = javadoc;
-        this.source = source;
-        this.identifier = identifier;
-        this.moduleVersion = (identifier == null)? null : new DefaultGradleModuleVersion(identifier);
-        this.isUnresolved = false;
-        this.attemptedSelector = null;
-    }
+    private final boolean resolved;
+    private final String attemptedSelector;
 
-    public DefaultEclipseExternalDependency(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, boolean unresolved, String attemptedSelector, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
+    private DefaultEclipseExternalDependency(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules, boolean resolved, String attemptedSelector) {
         super(exported, attributes, accessRules);
         this.file = file;
         this.javadoc = javadoc;
         this.source = source;
         this.identifier = identifier;
         this.moduleVersion = (identifier == null)? null : new DefaultGradleModuleVersion(identifier);
-        this.isUnresolved = unresolved;
+        this.resolved = resolved;
         this.attemptedSelector = attemptedSelector;
     }
 
@@ -68,10 +57,6 @@ public class DefaultEclipseExternalDependency extends DefaultEclipseDependency i
         return source;
     }
 
-    public boolean isUnresolved() {
-        return isUnresolved;
-    }
-
     public ModuleVersionIdentifier getModuleVersionIdentifier() {
         return identifier;
     }
@@ -80,7 +65,20 @@ public class DefaultEclipseExternalDependency extends DefaultEclipseDependency i
         return moduleVersion;
     }
 
+    public boolean isResolved() {
+        return resolved;
+    }
+
     public String getAttemptedSelector() {
         return attemptedSelector;
     }
+
+    public static DefaultEclipseExternalDependency createResolved(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
+        return new DefaultEclipseExternalDependency(file, javadoc, source, identifier, exported, attributes, accessRules, true, null);
+    }
+
+    public static DefaultEclipseExternalDependency createUnresolved(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules, String attemptedSelector) {
+        return new DefaultEclipseExternalDependency(file, javadoc, source, identifier, exported, attributes, accessRules, false, attemptedSelector);
+    }
+
 }

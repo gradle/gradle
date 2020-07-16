@@ -14,32 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.eclipse.model;
+package org.gradle.tooling.internal.consumer.converters;
 
-import org.gradle.api.Incubating;
+import org.gradle.tooling.model.eclipse.EclipseExternalDependency;
 
 /**
- * A library that turned out to be unresolved.
- *
- * @since 6.7
+ * This is used for compatibility with clients <6.7
  */
-@Incubating
-public class UnresolvedLibrary extends Library {
+public class EclipseExternalDependencyUnresolvedMixin {
 
-    private String attemptedSelector;
-
-    public UnresolvedLibrary(FileReference library) {
-        super(library);
+    public EclipseExternalDependencyUnresolvedMixin(EclipseExternalDependency dependency) {
     }
 
-    /**
-     * The attempted selector reported by the related UnresolvedDependencyResult
-     */
+    public boolean isResolved() {
+        return false;
+    }
+
     public String getAttemptedSelector() {
-        return attemptedSelector;
-    }
-
-    public void setAttemptedSelector(String attemptedSelector) {
-        this.attemptedSelector = attemptedSelector;
+        return null;
     }
 }

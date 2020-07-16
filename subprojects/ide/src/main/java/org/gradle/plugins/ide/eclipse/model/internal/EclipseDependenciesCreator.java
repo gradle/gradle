@@ -132,23 +132,23 @@ public class EclipseDependenciesCreator {
             File javaDocFile = javaDoc.isEmpty() ? null : javaDoc.iterator().next().getFile();
             ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
             ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier.getModuleIdentifier(), componentIdentifier.getVersion());
-            modules.add(createLibraryEntry(artifact.getFile(), sourceFile, javaDocFile, classpath, moduleVersionIdentifier, pathToSourceSets, testDependency, asJavaModule, false));
+            modules.add(createLibraryEntry(artifact.getFile(), sourceFile, javaDocFile, classpath, moduleVersionIdentifier, pathToSourceSets, testDependency, asJavaModule));
         }
 
         @Override
         public void visitFileDependency(ResolvedArtifactResult artifact, boolean testDependency) {
-            files.add(createLibraryEntry(artifact.getFile(), null, null, classpath, null, pathToSourceSets, testDependency, false, false));
+            files.add(createLibraryEntry(artifact.getFile(), null, null, classpath, null, pathToSourceSets, testDependency, false));
         }
 
         @Override
         public void visitGradleApiDependency(ResolvedArtifactResult artifact, File sources, boolean testConfiguration) {
-            files.add(createLibraryEntry(artifact.getFile(), sources, null, classpath, null, pathToSourceSets, testConfiguration, false, false));
+            files.add(createLibraryEntry(artifact.getFile(), sources, null, classpath, null, pathToSourceSets, testConfiguration, false));
         }
 
         @Override
         public void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency) {
             File unresolvedFile = unresolvedIdeDependencyHandler.asFile(unresolvedDependency, project.getProjectDir());
-            UnresolvedLibrary unresolvedLib = (UnresolvedLibrary) createLibraryEntry(unresolvedFile, null, null, classpath, null, pathToSourceSets, false, false, true);
+            UnresolvedLibrary unresolvedLib = (UnresolvedLibrary) createUnresolvedLibraryEntry(unresolvedFile, classpath, pathToSourceSets, false, false);
             unresolvedLib.setAttemptedSelector(unresolvedDependency.getAttempted().getDisplayName());
             files.add(unresolvedLib);
             unresolvedIdeDependencyHandler.log(unresolvedDependency);
@@ -204,15 +204,29 @@ public class EclipseDependenciesCreator {
             return result.build();
         }
 
-        private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath classpath, ModuleVersionIdentifier id, Multimap<String, String> pathToSourceSets, boolean testDependency, boolean asJavaModule, boolean isUnresolved) {
+        private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath classpath, ModuleVersionIdentifier id, Multimap<String, String> pathToSourceSets, boolean testDependency, boolean asJavaModule) {
+            return createLibraryEntry(binary, source, javadoc, classpath, id, pathToSourceSets, testDependency, asJavaModule, true);
+        }
+
+        private AbstractLibrary createUnresolvedLibraryEntry(File binary, EclipseClasspath classpath, Multimap<String, String> pathToSourceSets, boolean testDependency, boolean asJavaModule) {
+            return createLibraryEntry(binary, null, null, classpath, null, pathToSourceSets, testDependency, asJavaModule, false);
+        }
+
+        private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath classpath, ModuleVersionIdentifier id, Multimap<String, String> pathToSourceSets, boolean testDependency, boolean asJavaModule, boolean resolved) {
             FileReferenceFactory referenceFactory = classpath.getFileReferenceFactory();
 
             FileReference binaryRef = referenceFactory.fromFile(binary);
             FileReference sourceRef = referenceFactory.fromFile(source);
             FileReference javadocRef = referenceFactory.fromFile(javadoc);
 
-            final AbstractLibrary out = binaryRef.isRelativeToPathVariable() ?
-                new Variable(binaryRef) : (isUnresolved ? new UnresolvedLibrary(binaryRef) : new Library(binaryRef));
+            final AbstractLibrary out;
+            if (binaryRef.isRelativeToPathVariable()) {
+                out = new Variable(binaryRef);
+            } else if (resolved) {
+                out = new Library(binaryRef);
+            } else {
+                out = new UnresolvedLibrary(binaryRef);
+            }
 
             out.setJavadocPath(javadocRef);
             out.setSourcePath(sourceRef);

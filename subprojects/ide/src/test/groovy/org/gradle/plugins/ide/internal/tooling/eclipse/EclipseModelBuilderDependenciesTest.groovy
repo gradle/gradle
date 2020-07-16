@@ -94,7 +94,6 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
             implementation "inexistent:dependency:10.0"
             implementation "fakegroup:test:1.0"
             implementation "notreal:depen dency:s p a c e s"
-
         }
     }
 
@@ -187,7 +186,6 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
         eclipseChild3.classpath[0].source.name == 'customJar-sources.jar'
         eclipseChild3.classpath[0].javadoc.name == 'customJar-javadoc.jar'
     }
-
 
     private def createEclipseModelBuilder() {
         def gradleProjectBuilder = new GradleProjectBuilder()
