@@ -225,7 +225,6 @@ class PerformanceTestPlugin : Plugin<Project> {
         objects.newInstance(DefaultPerformanceReporter::class).also {
             it.projectName = name
             it.reportGeneratorClass = "org.gradle.performance.results.report.DefaultReportGenerator"
-            it.githubToken = stringPropertyOrEmpty("githubToken")
             it.commitId = the<ModuleIdentityExtension>().gradleBuildCommitId.get()
         }
 

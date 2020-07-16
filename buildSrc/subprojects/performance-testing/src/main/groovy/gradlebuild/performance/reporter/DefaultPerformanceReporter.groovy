@@ -40,8 +40,6 @@ class DefaultPerformanceReporter implements PerformanceReporter {
 
     String projectName
 
-    String githubToken
-
     String commitId
 
     @Inject
@@ -69,7 +67,6 @@ class DefaultPerformanceReporter implements PerformanceReporter {
                 spec.systemProperty("gradleBuildBranch", performanceTest.branchName)
                 spec.systemProperty("gradleBuildCommitId", commitId)
 
-                spec.systemProperty("githubToken", githubToken)
                 spec.setClasspath(performanceTest.classpath)
 
                 spec.ignoreExitValue = true
