@@ -413,9 +413,9 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         def dependencies = collection.buildDependencies.getDependencies(null)
 
         then:
-        _ * fileResolver.resolve("f") >> new File("f")
-        _ * taskResolver.resolveTask("c") >> task
-        dependencies == [task] as Set<? extends Task>
+        dependencies.toList() == [task]
+        1 * taskResolver.resolveTask("c") >> task
+        0 * _
     }
 
     def taskDependenciesContainsUnionOfDependenciesOfNestedFileCollectionsPlusOwnDependencies() {
@@ -428,13 +428,13 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.from(fileCollectionMock)
         collection.from("f")
         collection.builtBy("b")
-        def dependencies = collection.getBuildDependencies().getDependencies(null)
+        def dependencies = collection.buildDependencies.getDependencies(null)
 
         then:
-        _ * fileResolver.resolve("f") >> new File("f")
-        _ * fileCollectionMock.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(taskA) }
-        _ * taskResolver.resolveTask("b") >> taskB
-        dependencies == [taskA, taskB] as Set<? extends Task>
+        dependencies.toList() == [taskA, taskB]
+        1 * fileCollectionMock.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(taskA) }
+        1 * taskResolver.resolveTask("b") >> taskB
+        0 * _
     }
 
     def hasSpecifiedDependenciesWhenEmpty() {
@@ -443,15 +443,27 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.builtBy("task")
 
         when:
-        def dependencies = collection.getBuildDependencies().getDependencies(null)
-        def fileTreeDependencies = collection.getAsFileTree().getBuildDependencies().getDependencies(null)
-        def filteredFileTreeDependencies = collection.getAsFileTree().matching({}).getBuildDependencies().getDependencies(null)
+        def dependencies = collection.buildDependencies.getDependencies(null)
+        def fileTreeDependencies = collection.getAsFileTree().buildDependencies.getDependencies(null)
+        def filteredFileTreeDependencies = collection.getAsFileTree().matching({}).buildDependencies.getDependencies(null)
 
         then:
-        _ * taskResolver.resolveTask("task") >> task
-        dependencies == [task] as Set<? extends Task>
-        fileTreeDependencies == [task] as Set<? extends Task>
-        filteredFileTreeDependencies == [task] as Set<? extends Task>
+        dependencies.toList() == [task]
+        fileTreeDependencies.toList() == [task]
+        filteredFileTreeDependencies.toList() == [task]
+        3 * taskResolver.resolveTask("task") >> task
+        0 * _
+    }
+
+    def "does not resolve paths when visiting dependencies"() {
+        given:
+        collection.from('ignore')
+
+        when:
+        collection.buildDependencies.getDependencies(null)
+
+        then:
+        0 * _
     }
 
     def "can visit structure when collection contains paths"() {

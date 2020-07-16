@@ -61,7 +61,6 @@ class ProviderBackedFileCollectionTest extends Specification {
         then:
         1 * provider.producer >> ValueSupplier.ValueProducer.unknown()
         1 * provider.get() >> 'ignore'
-        1 * resolver.resolve('ignore') >> new File('ignore')
         result.empty
     }
 

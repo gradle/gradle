@@ -32,11 +32,13 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.AbstractSet;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -139,6 +141,27 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public String getDisplayName() {
         return displayName == null ? "file collection" : displayName;
+    }
+
+    @Override
+    protected void appendContents(TreeFormatter formatter) {
+        if (displayName != null) {
+            formatter.node("display name: " + displayName);
+        }
+        List<Object> paths = new ArrayList<>();
+        value.collectSource(paths);
+        if (!paths.isEmpty()) {
+            formatter.node("contents");
+            formatter.startChildren();
+            for (Object path : paths) {
+                if (path instanceof FileCollectionInternal) {
+                    ((FileCollectionInternal) path).describeContents(formatter);
+                } else {
+                    formatter.node(path.toString());
+                }
+            }
+            formatter.endChildren();
+        }
     }
 
     @Override

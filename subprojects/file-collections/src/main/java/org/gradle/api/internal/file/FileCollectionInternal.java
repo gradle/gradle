@@ -20,6 +20,7 @@ package org.gradle.api.internal.file;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.io.File;
 import java.util.function.Supplier;
@@ -44,6 +45,11 @@ public interface FileCollectionInternal extends FileCollection, TaskDependencyCo
      * <p>The implementation should call the most specific methods on {@link FileCollectionStructureVisitor} that it is able to.</p>
      */
     void visitStructure(FileCollectionStructureVisitor visitor);
+
+    /**
+     * Appends diagnostic information about the contents of this collection to the given formatter.
+     */
+    TreeFormatter describeContents(TreeFormatter formatter);
 
     /**
      * Some representation of a source of files.

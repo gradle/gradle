@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
@@ -38,6 +39,14 @@ public class FileCollectionBackedFileTree extends AbstractFileTree {
     public FileCollectionBackedFileTree(Factory<PatternSet> patternSetFactory, AbstractFileCollection collection) {
         super(patternSetFactory);
         this.collection = collection;
+    }
+
+    @Override
+    protected void appendContents(TreeFormatter formatter) {
+        formatter.node("backing collection");
+        formatter.startChildren();
+        collection.describeContents(formatter);
+        formatter.endChildren();
     }
 
     public AbstractFileCollection getCollection() {

@@ -17,6 +17,7 @@ package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.Set;
 import java.util.function.Consumer;
@@ -39,6 +40,16 @@ public class UnionFileCollection extends CompositeFileCollection {
     @Override
     public String getDisplayName() {
         return "file collection";
+    }
+
+    @Override
+    protected void appendContents(TreeFormatter formatter) {
+        formatter.node("source");
+        formatter.startChildren();
+        for (FileCollectionInternal files : source) {
+            files.describeContents(formatter);
+        }
+        formatter.endChildren();
     }
 
     public Set<? extends FileCollection> getSources() {
