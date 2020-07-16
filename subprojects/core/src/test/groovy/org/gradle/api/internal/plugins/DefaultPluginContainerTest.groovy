@@ -103,6 +103,27 @@ class DefaultPluginContainerTest extends Specification {
         !container.hasPlugin(plugin2Class)
     }
 
+    def "offers plugin management via injectable plugin type "() {
+        when:
+        def basePluginClass = classLoader.parseClass("""
+        import org.gradle.api.Plugin
+        import org.gradle.api.Project
+        class TestPlugin1 implements Plugin<Project> {
+          void apply(Project project) {}
+          @javax.inject.Inject
+          public org.gradle.internal.reflect.Instantiator getter() {
+            throw new NullPointerException();
+          }
+        }
+    """)
+        def p = container.apply(basePluginClass)
+
+        then:
+        container.hasPlugin(basePluginClass)
+        container.getPlugin(basePluginClass) == p
+        container.findPlugin(basePluginClass) == p
+    }
+
     def "does not find plugin by unknown id"() {
         expect:
         !container.hasPlugin("x")
