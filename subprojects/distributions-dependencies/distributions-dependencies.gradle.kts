@@ -118,7 +118,7 @@ dependencies {
         api(libs.maven3WagonHttpShared) { version { strictly(mavenWagonVersion) }}
         api(libs.maven3WagonProviderApi) { version { strictly(mavenWagonVersion) }}
         api(libs.minlog)                { version { strictly("1.2") }}
-        api(libs.nativePlatform)        { version { strictly("0.22-milestone-4") }}
+        api(libs.nativePlatform)        { version { strictly("0.22-snapshot-20200715094808+0000") }}
         api(libs.nekohtml)              { version { strictly("1.9.22") }}
         api(libs.objenesis)             { version { strictly("2.6") }}
         api(libs.plexusCipher)          { version { strictly("1.7") }}

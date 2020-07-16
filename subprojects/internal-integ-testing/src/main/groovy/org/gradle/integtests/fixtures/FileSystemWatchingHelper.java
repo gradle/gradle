@@ -22,7 +22,7 @@ import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_D
 
 public class FileSystemWatchingHelper {
 
-    private static final int WAIT_FOR_CHANGES_PICKED_UP_MILLIS = 80;
+    private static final int WAIT_FOR_CHANGES_PICKED_UP_MILLIS = 120;
 
     public static void waitForChangesToBePickedUp() throws InterruptedException {
         Thread.sleep(WAIT_FOR_CHANGES_PICKED_UP_MILLIS);
