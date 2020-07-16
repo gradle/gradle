@@ -40,7 +40,7 @@ abstract class UpdateBranchStatus : DefaultTask() {
     private
     fun publishBranchStatus(branch: String) {
         println("Publishing branch status of $branch")
-        project.execAndGetStdout("git", "push", "origin", "$branch:green-$branch")
+        project.execAndGetStdout("git", "push", "https://bot-teamcity:${project.property("githubToken")}@github.com/gradle/gradle.git", "$branch:green-$branch")
     }
 
     private
