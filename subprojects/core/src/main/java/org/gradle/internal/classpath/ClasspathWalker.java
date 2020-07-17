@@ -17,9 +17,10 @@
 package org.gradle.internal.classpath;
 
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
+import org.gradle.api.internal.file.archive.impl.FileZipInput;
+import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
@@ -45,8 +46,10 @@ public class ClasspathWalker {
 
     /**
      * Visits the entries of the given classpath element.
+     *
+     * @throws FileException On failure to open a Jar file.
      */
-    public void visit(File root, ClasspathEntryVisitor visitor) throws IOException {
+    public void visit(File root, ClasspathEntryVisitor visitor) throws IOException, FileException {
         FileMetadata fileMetadata = stat.stat(root);
         if (fileMetadata.getType() == FileType.RegularFile) {
             visitJarContents(root, visitor);
