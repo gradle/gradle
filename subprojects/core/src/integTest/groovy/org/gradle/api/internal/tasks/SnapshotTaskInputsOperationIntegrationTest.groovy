@@ -56,7 +56,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
     def "task output caching key is exposed when scan plugin is applied"() {
         given:
         settingsFile << """
-            services.get($GradleEnterprisePluginManager.name).registerAdapter([buildFinished: {}, isConfigurationCacheCompatible: { false }] as $GradleEnterprisePluginAdapter.name)
+            services.get($GradleEnterprisePluginManager.name).registerAdapter([buildFinished: {}, shouldSaveToConfigurationCache: { false }] as $GradleEnterprisePluginAdapter.name)
         """
 
         buildFile << customTaskCode('foo', 'bar')

@@ -854,12 +854,8 @@ Support for these features will be added in later Gradle releases.
 [[config_cache:not_yet_implemented:build_scan]]
 === Build scan support
 
-When it comes to link:https://gradle.com/build-scans/[build scans], only the `--scan` command line option is supported for now.
-
-The build scan plugin is currently ignored when applied via an init script or build script, as is any configuration done via the build scan extension (server location, accept license, tags, etc).
-This means that scans will be published to the public `scans.gradle.com` instance by default.
-
-See link:{gradle-issues}13511[gradle/gradle#13511].
+Build scan functionality with configuration caching enabled requires Gradle Enterprise plugin version 3.4 or later.
+When using an earlier version, build scan publishing will be automatically disabled when configuration caching is used.
 
 [[config_cache:not_yet_implemented:sharing]]
 === Sharing the configuration cache

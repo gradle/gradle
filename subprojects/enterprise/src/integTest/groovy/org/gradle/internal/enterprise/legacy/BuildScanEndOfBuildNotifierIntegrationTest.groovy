@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.internal.scan.eob.BuildScanEndOfBuildNotifier
 import spock.lang.Issue
 
+@UnsupportedWithInstantExecution(because = "legacy plugin is incompatible")
 class BuildScanEndOfBuildNotifierIntegrationTest extends AbstractIntegrationSpec {
 
     def scanPlugin = new GradleEnterprisePluginLegacyContactPointFixture(testDirectory, mavenRepo, createExecuter())

@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -725,19 +724,9 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     fun `given extension with inaccessible type, its accessor is typed Any`() {
 
         withFile("init.gradle", """
-            initscript {
-                repositories {
-                    gradlePluginPortal()
-                }
-                dependencies {
-                    classpath "${AutoAppliedGradleEnterprisePlugin.GROUP}:${AutoAppliedGradleEnterprisePlugin.NAME}:${AutoAppliedGradleEnterprisePlugin.VERSION}"
-                }
-            }
-            beforeSettings {
-                it.apply plugin: initscript.classLoader.loadClass("com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin")
-                it.gradleEnterprise.buildScan {
-
-                }
+            class TestExtension {}
+            rootProject {
+                it.extensions.create("testExtension", TestExtension)
             }
         """)
 
@@ -745,13 +734,13 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             inline fun <reified T> typeOf(t: T) = T::class.simpleName
 
-            buildScan {
-                println("Type of `buildScan` receiver is " + typeOf(this@buildScan))
+            testExtension {
+                println("Type of `testExtension` receiver is " + typeOf(this@testExtension))
             }
         """)
 
         val result = build("help", "-I", "init.gradle")
-        assertThat(result.output, containsString("Type of `buildScan` receiver is Any"))
+        assertThat(result.output, containsString("Type of `testExtension` receiver is Any"))
     }
 
     @Test
