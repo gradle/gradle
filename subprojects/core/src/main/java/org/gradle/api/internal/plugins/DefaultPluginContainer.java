@@ -20,7 +20,7 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.GeneratedSubclass;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.UnknownPluginException;
@@ -112,10 +112,7 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     @Override
     public <P extends Plugin> P findPlugin(Class<P> type) {
         for (Plugin plugin : this) {
-            Class<?> pluginType = plugin.getClass();
-            if (plugin instanceof GeneratedSubclass) {
-                pluginType = ((GeneratedSubclass) plugin).publicType();
-            }
+            Class<?> pluginType = GeneratedSubclasses.unpackType(plugin);
             if (pluginType.equals(type)) {
                 return type.cast(plugin);
             }
