@@ -469,7 +469,7 @@ Don't stop at the first build failure and <<configuration_cache#config_cache:usa
 If a build fails, use the HTML report to reason about the reported problems related to the failure.
 Continue running more useful tasks.
 +
-This will give you a good overview of the nature of problems your build and plugins are facing.
+This will give you a good overview of the nature of the problems your build and plugins are facing.
 Remember that when turning problems into warnings you might need to <<configuration_cache#config_cache:usage:invalidate, manually invalidating the cache>> in case of troubles.
 
 Step back and fix problems iteratively::
@@ -502,7 +502,7 @@ You'll probably want to do this as an opt-in first.
 +
 If needed, turn problems into warnings and set the maximum number of allowed problems in your build `gradle.properties` file.
 Keep the configuration cache disabled by default.
-Let your team know that they can opt-in by, for example, enabling the configuration cache on their IDE run configurations for the supported workflow.
+Let your team know they can opt-in by, for example, enabling the configuration cache on their IDE run configurations for the supported workflow.
 +
 Later on, when more workflows are working, you can flip this around.
 Enable the configuration cache by default, configure CI to disable it, and if required communicate the unsupported workflow(s) for which the configuration cache needs to be disabled.
