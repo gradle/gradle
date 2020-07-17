@@ -18,7 +18,6 @@ package gradlebuild.performance
 
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.kotlindsl.selectStringProperties
-import gradlebuild.basics.kotlindsl.stringPropertyOrEmpty
 import gradlebuild.basics.kotlindsl.stringPropertyOrNull
 import gradlebuild.identity.extension.ModuleIdentityExtension
 import gradlebuild.performance.tasks.BuildCommitDistribution
