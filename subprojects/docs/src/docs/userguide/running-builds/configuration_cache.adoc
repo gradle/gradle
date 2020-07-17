@@ -361,7 +361,10 @@ include::{snippetsPath}/configurationCache/problemsGroovy/tests/store.out[]
 Configuration cache entry stored.
 ----
 
-Details can be found in the linked HTML report.
+Details can be found in the linked HTML report:
+
+image::configuration-cache/problems-report.png[]
+
 The report displays the set of problems twice.
 First grouped by problem message, then grouped by task.
 The former allows you to quickly see what classes of problems your build is facing.
