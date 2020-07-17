@@ -80,7 +80,7 @@ abstract class AbstractSmokeTest extends Specification {
         static spotbugs = "4.2.0"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
-        static docker = "6.4.0"
+        static docker = "6.6.0"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.tomcat
         static tomcat = "2.5"
