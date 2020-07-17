@@ -35,8 +35,10 @@ public class FileZipInput implements ZipInput {
 
     /**
      * Creates a stream of the entries in the given zip file. Caller is responsible for closing the return value.
+     *
+     * @throws FileException on failure to open the Zip
      */
-    public static ZipInput create(File file) {
+    public static ZipInput create(File file) throws FileException {
         if (isZipFileSafeToUse()) {
             return new FileZipInput(file);
         } else {

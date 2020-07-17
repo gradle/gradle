@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
@@ -269,6 +270,21 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         oldCacheDirs.each {
             it.assertDoesNotExist()
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13816")
+    def "classpath can contain badly formed jar"() {
+        given:
+        file("broken.jar") << "not a jar"
+        buildFile << """
+            buildscript { dependencies { classpath files("broken.jar") } }
+        """
+
+        when:
+        succeeds()
+
+        then:
+        noExceptionThrown()
     }
 
     void notInJarCache(String filename) {
