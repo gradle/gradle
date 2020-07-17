@@ -51,7 +51,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
     private static final String FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD = "Gradle was unable to watch the file system for changes";
 
     private final FileWatcherRegistryFactory watcherRegistryFactory;
-    private final AtomicSnapshotHierarchyReference snapshotHierarchyReference;
+    private final AtomicSnapshotHierarchyReference root;
     private final DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator;
     private final Predicate<String> watchFilter;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
@@ -69,14 +69,14 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
 
     public DefaultFileSystemWatchingHandler(
         FileWatcherRegistryFactory watcherRegistryFactory,
-        AtomicSnapshotHierarchyReference snapshotHierarchyReference,
+        AtomicSnapshotHierarchyReference root,
         DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator,
         Predicate<String> watchFilter,
         DaemonDocumentationIndex daemonDocumentationIndex,
         LocationsUpdatedByCurrentBuild locationsUpdatedByCurrentBuild
     ) {
         this.watcherRegistryFactory = watcherRegistryFactory;
-        this.snapshotHierarchyReference = snapshotHierarchyReference;
+        this.root = root;
         this.delegatingUpdateFunctionDecorator = delegatingUpdateFunctionDecorator;
         this.watchFilter = watchFilter;
         this.daemonDocumentationIndex = daemonDocumentationIndex;
@@ -86,7 +86,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
     @Override
     public void afterBuildStarted(boolean watchingEnabled) {
         reasonForNotWatchingFiles = null;
-        snapshotHierarchyReference.update(currentRoot -> {
+        root.update(currentRoot -> {
             if (watchingEnabled) {
                 SnapshotHierarchy newRoot = handleWatcherRegistryEvents(currentRoot, "since last build");
                 newRoot = startWatching(newRoot);
@@ -103,7 +103,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
     }
 
     private void updateWatchRegistry(Consumer<FileWatcherRegistry> updateFunction, Runnable noWatchRegistry) {
-        snapshotHierarchyReference.update(currentRoot -> {
+        root.update(currentRoot -> {
             if (watchRegistry == null) {
                 noWatchRegistry.run();
                 return currentRoot;
@@ -131,7 +131,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
                 logWatchingError(reasonForNotWatchingFiles, FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD);
                 reasonForNotWatchingFiles = null;
             }
-            snapshotHierarchyReference.update(currentRoot -> {
+            root.update(currentRoot -> {
                 SnapshotHierarchy newRoot = removeSymbolicLinks(currentRoot);
                 newRoot = handleWatcherRegistryEvents(newRoot, "for current build");
                 if (watchRegistry != null) {
@@ -141,7 +141,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
                 return newRoot;
             });
         } else {
-            snapshotHierarchyReference.update(SnapshotHierarchy::empty);
+            root.update(SnapshotHierarchy::empty);
         }
     }
 
@@ -175,7 +175,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
                         LOGGER.debug("Handling VFS change {} {}", type, path);
                         String absolutePath = path.toString();
                         if (!locationsUpdatedByCurrentBuild.wasLocationUpdated(absolutePath)) {
-                            snapshotHierarchyReference.update(root -> {
+                            root.update(root -> {
                                 SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener(watchFilter);
                                 SnapshotHierarchy newRoot = root.invalidate(absolutePath, diffListener);
                                 return withWatcherChangeErrorHandling(
@@ -241,7 +241,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
      * the parts that have been changed since calling {@link #startWatching(SnapshotHierarchy)}}.
      */
     private void stopWatchingAndInvalidateHierarchy() {
-        snapshotHierarchyReference.update(this::stopWatchingAndInvalidateHierarchy);
+        root.update(this::stopWatchingAndInvalidateHierarchy);
     }
 
     private SnapshotHierarchy stopWatchingAndInvalidateHierarchy(SnapshotHierarchy currentRoot) {
@@ -322,7 +322,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
 
     @Override
     public void close() {
-        snapshotHierarchyReference.update(currentRoot -> {
+        root.update(currentRoot -> {
             closeUnderLock();
             return currentRoot.empty();
         });

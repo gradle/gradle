@@ -49,7 +49,7 @@ import java.util.function.Supplier;
 public class DefaultVirtualFileSystem implements VirtualFileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultVirtualFileSystem.class);
 
-    private final AtomicSnapshotHierarchyReference snapshotHierarchyReference;
+    private final AtomicSnapshotHierarchyReference root;
     private final Stat stat;
     private final SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator;
     private final Interner<String> stringInterner;
@@ -63,7 +63,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         FileHasher hasher,
         Interner<String> stringInterner,
         Stat stat,
-        AtomicSnapshotHierarchyReference snapshotHierarchyReference,
+        AtomicSnapshotHierarchyReference root,
         SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator,
         UpdateListener updateListener,
         String... defaultExcludes
@@ -75,7 +75,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         this.defaultExcludes = ImmutableList.copyOf(defaultExcludes);
         this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, this.defaultExcludes);
         this.hasher = hasher;
-        this.snapshotHierarchyReference = snapshotHierarchyReference;
+        this.root = root;
     }
 
     @Override
@@ -85,7 +85,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
 
     @Override
     public <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor) {
-        return snapshotHierarchyReference.get().getMetadata(location)
+        return root.get().getMetadata(location)
             .<Optional<HashCode>>flatMap(snapshot -> {
                 if (snapshot.getType() != FileType.RegularFile) {
                     return Optional.of(Optional.empty());
@@ -105,7 +105,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
                     return Optional.empty();
                 }
                 HashCode hash = producingSnapshots.guardByKey(location,
-                    () -> snapshotHierarchyReference.get().getSnapshot(location)
+                    () -> root.get().getSnapshot(location)
                         .orElseGet(() -> {
                             HashCode hashCode = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
                             RegularFileSnapshot snapshot = new RegularFileSnapshot(location, file.getName(), hashCode, fileMetadata);
@@ -126,11 +126,11 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         if (filter.isEmpty()) {
             visitor.accept(readLocation(location));
         } else {
-            FileSystemSnapshot filteredSnapshot = snapshotHierarchyReference.get().getSnapshot(location)
+            FileSystemSnapshot filteredSnapshot = root.get().getSnapshot(location)
                 .filter(CompleteFileSystemLocationSnapshot.class::isInstance)
                 .map(snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot))
                 .orElseGet(() -> producingSnapshots.guardByKey(location,
-                    () -> snapshotHierarchyReference.get().getSnapshot(location)
+                    () -> root.get().getSnapshot(location)
                         .map(snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot))
                         .orElseGet(() -> {
                             AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
@@ -171,20 +171,20 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     private void updateRoot(SnapshotHierarchy.DiffCapturingUpdateFunction updateFunction) {
-        snapshotHierarchyReference.update(updateFunctionDecorator.decorate(updateFunction));
+        root.update(updateFunctionDecorator.decorate(updateFunction));
     }
 
     private CompleteFileSystemLocationSnapshot readLocation(String location) {
-        return snapshotHierarchyReference.get().getSnapshot(location)
+        return root.get().getSnapshot(location)
             .orElseGet(() -> producingSnapshots.guardByKey(location,
-                () -> snapshotHierarchyReference.get().getSnapshot(location).orElseGet(() -> snapshot(location)))
+                () -> root.get().getSnapshot(location).orElseGet(() -> snapshot(location)))
             );
     }
 
     @Override
     public void update(Iterable<String> locations, Runnable action) {
         updateListener.locationsUpdated(locations);
-        snapshotHierarchyReference.update(root -> {
+        root.update(root -> {
             SnapshotHierarchy result = root;
             for (String location : locations) {
                 result = updateFunctionDecorator.decorate((currentRoot, changeListener) -> currentRoot.invalidate(location, changeListener)).updateRoot(result);

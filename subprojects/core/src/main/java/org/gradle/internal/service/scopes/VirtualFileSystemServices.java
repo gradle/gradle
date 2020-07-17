@@ -204,14 +204,14 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new DelegatingDiffCapturingUpdateFunctionDecorator(watchFilter);
         }
 
-        AtomicSnapshotHierarchyReference createSnapshotHierarchyReference(FileSystem fileSystem) {
+        AtomicSnapshotHierarchyReference createRoot(FileSystem fileSystem) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             return new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
         }
 
         VirtualFileSystem createVirtualFileSystem(
             FileHasher hasher,
-            AtomicSnapshotHierarchyReference snapshotHierarchyReference,
+            AtomicSnapshotHierarchyReference root,
             Stat stat,
             SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator diffCapturingUpdateFunctionDecorator,
             StringInterner stringInterner,
@@ -223,7 +223,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 hasher,
                 stringInterner,
                 stat,
-                snapshotHierarchyReference,
+                root,
                 diffCapturingUpdateFunctionDecorator,
                 updateListener,
                 DirectoryScanner.getDefaultExcludes()
@@ -256,7 +256,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
         FileSystemWatchingHandler createFileSystemWatchingHandler(
             WatchFilter watchFilter,
-            AtomicSnapshotHierarchyReference snapshotHierarchyReference,
+            AtomicSnapshotHierarchyReference root,
             LocationsUpdatedByCurrentBuild locationsUpdatedByCurrentBuild,
             DocumentationRegistry documentationRegistry,
             NativeCapabilities nativeCapabilities,
@@ -266,13 +266,13 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             FileSystemWatchingHandler watchingHandler = determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities)
                 .<FileSystemWatchingHandler>map(watcherRegistryFactory -> new DefaultFileSystemWatchingHandler(
                     watcherRegistryFactory,
-                    snapshotHierarchyReference,
+                    root,
                     updateFunctionDecorator,
                     watchFilter,
                     sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId),
                     locationsUpdatedByCurrentBuild
                 ))
-                .orElse(new WatchingNotSupportedFileSystemWatchingHandler(snapshotHierarchyReference));
+                .orElse(new WatchingNotSupportedFileSystemWatchingHandler(root));
             listenerManager.addListener((BuildAddedListener) buildState ->
                 watchingHandler.buildRootDirectoryAdded(buildState.getBuildRootDir())
             );

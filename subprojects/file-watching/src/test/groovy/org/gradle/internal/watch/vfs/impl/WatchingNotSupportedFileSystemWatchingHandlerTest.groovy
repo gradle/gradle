@@ -27,21 +27,21 @@ class WatchingNotSupportedFileSystemWatchingHandlerTest extends Specification {
     def nonEmptySnapshotHierarchy = Stub(SnapshotHierarchy) {
         empty() >> emptySnapshotHierarchy
     }
-    def snapshotHierarchyReference = new AtomicSnapshotHierarchyReference(nonEmptySnapshotHierarchy)
-    def watchingNotSupportedHandler = new WatchingNotSupportedFileSystemWatchingHandler(snapshotHierarchyReference)
+    def root = new AtomicSnapshotHierarchyReference(nonEmptySnapshotHierarchy)
+    def watchingNotSupportedHandler = new WatchingNotSupportedFileSystemWatchingHandler(root)
 
     def "invalidates the virtual file system before and after the build"() {
 
         when:
         watchingNotSupportedHandler.afterBuildStarted(retentionEnabled)
         then:
-        snapshotHierarchyReference.get() == emptySnapshotHierarchy
+        root.get() == emptySnapshotHierarchy
 
         when:
-        snapshotHierarchyReference.update { nonEmptySnapshotHierarchy }
+        root.update { nonEmptySnapshotHierarchy }
         watchingNotSupportedHandler.beforeBuildFinished(retentionEnabled)
         then:
-        snapshotHierarchyReference.get() == emptySnapshotHierarchy
+        root.get() == emptySnapshotHierarchy
 
         where:
         retentionEnabled << [true, false]

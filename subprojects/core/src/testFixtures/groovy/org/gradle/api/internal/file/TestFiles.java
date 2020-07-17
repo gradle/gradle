@@ -195,8 +195,15 @@ public class TestFiles {
 
     public static VirtualFileSystem virtualFileSystem() {
         CaseSensitivity caseSensitivity = fileSystem().isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
-        AtomicSnapshotHierarchyReference snapshotHierarchyReference = new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
-        return new DefaultVirtualFileSystem(fileHasher(), new StringInterner(), fileSystem(), snapshotHierarchyReference, SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP, locations -> {});
+        AtomicSnapshotHierarchyReference root = new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
+        return new DefaultVirtualFileSystem(
+            fileHasher(),
+            new StringInterner(),
+            fileSystem(),
+            root,
+            SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP,
+            locations -> {}
+        );
     }
 
     public static FileCollectionFactory fileCollectionFactory() {
@@ -235,6 +242,7 @@ public class TestFiles {
         return execFactory(baseDir);
     }
 
+    @SuppressWarnings("deprecation")
     public static Factory<PatternSet> getPatternSetFactory() {
         return PatternSets.getNonCachingPatternSetFactory();
     }
