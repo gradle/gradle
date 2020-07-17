@@ -20,7 +20,7 @@ import javax.annotation.Nullable;
 
 public interface GradleEnterprisePluginAdapter {
 
-    boolean isConfigurationCacheCompatible();
+    boolean shouldSaveToConfigurationCache();
 
     void onLoadFromConfigurationCache();
 

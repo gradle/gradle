@@ -69,6 +69,7 @@ class GradleEnterprisePluginCheckInFixture {
             plugins { id "$id" version "$runtimeVersion" }
         """
     }
+
     void publishDummyPlugin(GradleExecuter executer) {
         executer.beforeExecute {
             publishDummyPluginNow()
@@ -108,7 +109,18 @@ class GradleEnterprisePluginCheckInFixture {
                         println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.userId = \$buildState.userId"
                         println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.daemonScanInfo.numberOfBuilds = \${buildState.daemonScanInfo?.numberOfBuilds}"
 
+
                         new $GradleEnterprisePluginService.name() {
+
+                            Externalizable nonSerializable = new Externalizable() {
+                                void writeExternal(ObjectOutput out) {
+                                    throw new IOException("can't be serialized")
+                                }
+
+                                void readExternal(ObjectInput input) throws IOException, ClassNotFoundException {
+                                    throw new IOException("can't be serialized")
+                                }
+                            }
 
                             $GradleEnterprisePluginConfig.name _config = config
                             $GradleEnterprisePluginRequiredServices.name _requiredServices = requiredServices

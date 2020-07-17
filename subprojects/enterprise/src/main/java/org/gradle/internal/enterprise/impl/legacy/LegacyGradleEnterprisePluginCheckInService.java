@@ -189,7 +189,7 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
 
     private class Adapter implements GradleEnterprisePluginAdapter {
         @Override
-        public boolean isConfigurationCacheCompatible() {
+        public boolean shouldSaveToConfigurationCache() {
             return false;
         }
 
