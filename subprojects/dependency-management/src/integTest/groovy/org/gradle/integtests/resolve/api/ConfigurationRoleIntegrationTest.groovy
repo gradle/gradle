@@ -19,11 +19,13 @@ package org.gradle.integtests.resolve.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
+import spock.lang.Unroll
 
 @RunWith(FluidDependenciesResolveRunner)
 class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
 
-    def "cannot resolve a configuration with role #role at execution time"() {
+    @Unroll("cannot resolve a configuration with role #role at execution time")
+    def "cannot resolve a configuration which is for publishing only at execution time"() {
         given:
         buildFile << """
 
@@ -57,7 +59,8 @@ class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    def "cannot resolve a configuration with role #role at configuration time"() {
+    @Unroll("cannot resolve a configuration with role #role at configuration time")
+    def "cannot resolve a configuration which is for publishing only at configuration time"() {
         given:
         buildFile << """
 
@@ -88,7 +91,8 @@ class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    def "cannot resolve a configuration with role #role using #method"() {
+    @Unroll("cannot resolve a configuration with role #role using #method")
+    def "cannot resolve a configuration which is for publishing only"() {
         given:
         buildFile << """
 
@@ -122,7 +126,8 @@ class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
         ].combinations()
     }
 
-    def "cannot add a dependency on a configuration role #role not meant to be consumed or published"() {
+    @Unroll("cannot add a dependency on a configuration role #role")
+    def "cannot add a dependency on a configuration not meant to be consumed or published"() {
         given:
         file('settings.gradle') << 'include "a", "b"'
         buildFile << """
@@ -160,7 +165,8 @@ class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
         'bucket'                | 'canBeResolved = false; canBeConsumed = false'
     }
 
-    def "cannot depend on default configuration if it's not consumable (#role)"() {
+    @Unroll("cannot depend on default configuration if it's not consumable (#role)")
+    def "cannot depend on default configuration if it's not consumable"() {
         given:
         file('settings.gradle') << 'include "a", "b"'
         buildFile << """
