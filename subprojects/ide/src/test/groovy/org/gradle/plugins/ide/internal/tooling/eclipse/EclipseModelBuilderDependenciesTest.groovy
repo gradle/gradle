@@ -120,7 +120,7 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
 
         then:
         DefaultEclipseProject eclipseChild4 = eclipseModel.children.find { it.name == 'child4' }
-        def unresolvedRefs = eclipseChild4.classpath.findAll { it.isUnresolved() }
+        def unresolvedRefs = eclipseChild4.classpath.findAll { !it.resolved }
         unresolvedRefs.size == 2
         unresolvedRefs.stream().allMatch { ref -> ref.file.name.contains("unresolved dependency") }
     }
