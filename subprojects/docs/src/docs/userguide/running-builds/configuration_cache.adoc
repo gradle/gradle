@@ -481,21 +481,24 @@ Use the HTML report and this documentation to help you in this journey.
 Start with problems reported when _storing_ the configuration cache.
 Once fixed, you can rely on a valid cached configuration phase and move on to fixing problems reported when _loading_ the configuration cache if any.
 
+Report encountered issues::
+If you face a problem with a <<configuration_cache#config_cache:not_yet_implemented, Gradle feature>> or with a <<configuration_cache#config_cache:plugins:core, Gradle core plugin>> that is not covered by this documentation, please report an issue on link:https://github.com/gradle/gradle/issues/new/choose[`gradle/gradle`].
++
+If you face a problem with a community Gradle plugin, see if it is already listed at link:{gradle-issues}13490[gradle/gradle#13490] and consider reporting the issue to the plugin's issue tracker.
++
+A good way to report such issues is by providing information such as:
++
+* a link to this very documentation,
+* the plugin version you tried,
+* the custom configuration of the plugin if any, or ideally a reproducer build,
+* a description of what fails, for example problems with a given task
+* a copy of the build failure,
+* the self-contained `configuration-cache-report.html` file.
+
 Test, test, test::
 Consider adding tests for your build logic.
 See the below section on <<configuration_cache#config_cache:testing, testing your build logic>> for the configuration cache.
 This will help you while iterating on the required changes and prevent future regressions.
-
-Report problems with community plugins::
-When you stumble upon a problem in a community Gradle plugin, see if it is already listed at link:{gradle-issues}13490[gradle/gradle#13490].
-+
-If not, please consider reporting the issue to the plugin's issue tracker.
-A good way to report such problems to community plugin authors is by providing:
-+
-* a link to this very documentation,
-* steps to reproduce, e.g. plugin version, configuration and which of the plugin's tasks you ran,
-* a copy of the console problem report, or ideally the HTML problem report you got, so the plugin author can easily reason about the problems,
-* ideally a reproducer build, so the plugin author can easily reproduce the problems.
 
 Roll it out to your team::
 Once you have your developer workflow working, for example running tests from the IDE, you can consider enabling it for your team.
