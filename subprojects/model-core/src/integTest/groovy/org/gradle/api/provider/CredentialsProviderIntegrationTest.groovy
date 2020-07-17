@@ -219,20 +219,22 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         """
         file('submodule1/build.gradle') << buildScript
         file('submodule2/build.gradle') << buildScript
+        file('submodule3/build.gradle') << buildScript
+        file('submodule4/build.gradle') << buildScript
         settingsFile << """
             rootProject.name="test"
-            include("submodule1", "submodule2")
+            include("submodule1", "submodule2", "submodule3", "submodule4")
         """
         buildFile << ""
 
         expect:
         for (int i = 0; i < 10; i++) {
-            args '--parallel'
+            args '--parallel', '--continue'
             fails 'executionCredentials'
 
             failure.assertNotOutput("ConcurrentModificationException")
             failure.assertThatCause(CoreMatchers.equalTo(errorMessage))
-            failure.assertHasFailures(2)
+            failure.assertHasFailures(4)
         }
 
         where:
