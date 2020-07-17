@@ -86,12 +86,14 @@ public class OutputFilterUtil {
      */
     private static boolean isOutputEntry(Map<String, FileSystemLocationFingerprint> afterPreviousExecutionFingerprints, Map<String, CompleteFileSystemLocationSnapshot> beforeExecutionSnapshots, CompleteFileSystemLocationSnapshot afterExecutionSnapshot, Boolean isRoot) {
         if (isRoot) {
-            FileType afterExecutionSnapshotType = afterExecutionSnapshot.getType();
-            if (afterExecutionSnapshotType == FileType.Missing) {
-                return false;
-            }
-            if (afterExecutionSnapshotType == FileType.Directory) {
-                return true;
+            switch (afterExecutionSnapshot.getType()) {
+                case Missing:
+                    return false;
+                case Directory:
+                    return true;
+                default:
+                    // continue
+                    break;
             }
         }
         CompleteFileSystemLocationSnapshot beforeSnapshot = beforeExecutionSnapshots.get(afterExecutionSnapshot.getAbsolutePath());
