@@ -26,6 +26,7 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileManager;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -70,6 +71,9 @@ class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
     // We need to filter classes which actually _have_ sources
     // see https://github.com/gradle/gradle/issues/13767
     private static Set<String> namesOfElementsWithSource(Set<? extends Element> orig) {
+        if (orig == null || orig.isEmpty()) {
+            return Collections.emptySet();
+        }
         return ElementUtils.getTopLevelTypeNames(orig.stream()
             .filter(Symbol.ClassSymbol.class::isInstance)
             .map(Symbol.ClassSymbol.class::cast)

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.processing
 
+import com.sun.tools.javac.code.Symbol
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
@@ -23,10 +24,11 @@ import spock.lang.Specification
 
 import javax.annotation.processing.Processor
 import javax.annotation.processing.RoundEnvironment
-import javax.lang.model.element.Name
 import javax.lang.model.element.TypeElement
+import javax.tools.JavaFileObject
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
+import com.sun.tools.javac.util.Name
 
 class AggregatingProcessorTest extends Specification {
 
@@ -78,6 +80,23 @@ class AggregatingProcessorTest extends Specification {
         result.getAggregatedTypes() == ["A", "B"] as Set
     }
 
+    def "ignores aggregated types which have no source"() {
+        given:
+        delegate.getSupportedAnnotationTypes() >> annotationTypes.collect { it.getQualifiedName().toString() }
+        roundEnvironment = Stub(RoundEnvironment) {
+            getRootElements() >> ([type("A"), type("B"), type("C")] as Set)
+            getElementsAnnotatedWith(_ as TypeElement) >> { TypeElement annotationType ->
+                [type("A"), type("B", false), type("C")] as Set
+            }
+        }
+
+        when:
+        processor.process(annotationTypes, roundEnvironment)
+
+        then:
+        result.getAggregatedTypes() == ["A", "C"] as Set
+    }
+
     def "aggregating processors do not work with source retention annotations"() {
         given:
         def sourceRetentionAnnotation = annotation("Broken", RetentionPolicy.SOURCE)
@@ -105,13 +124,21 @@ class AggregatingProcessorTest extends Specification {
         }
     }
 
-    TypeElement type(String name) {
-        Stub(TypeElement) {
+    TypeElement type(String name, boolean withSource = true) {
+        def stub = Stub(Symbol.ClassSymbol) {
             getEnclosingElement() >> null
-            getQualifiedName() >> Stub(Name) {
-                toString() >> name
+            getQualifiedName() >> {
+                Stub(Name) {
+                    toString() >> name
+                }
             }
         }
+        if (withSource) {
+            stub.sourcefile = Stub(JavaFileObject)
+        }
+        stub
     }
+
+
 
 }
