@@ -38,7 +38,8 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     private final BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar;
 
     private GradleEnterprisePluginServiceFactory pluginServiceFactory;
-    private GradleEnterprisePluginService pluginService;
+
+    private transient GradleEnterprisePluginService pluginService;
 
     public DefaultGradleEnterprisePluginAdapter(
         GradleEnterprisePluginConfig config,
@@ -62,7 +63,6 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
 
     @Override
     public boolean shouldSaveToConfigurationCache() {
-        pluginService = null;
         return true;
     }
 
