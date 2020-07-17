@@ -209,7 +209,9 @@ samples {
     // iterate through each snippets and record their names and locations
     FileFilter directoriesOnly = { it.directory }
     def topLevelDirs = file('src/snippets').listFiles(directoriesOnly)
-    def snippetDirs = topLevelDirs*.listFiles(directoriesOnly).flatten()
+    def snippetDirs = topLevelDirs*.listFiles(directoriesOnly).flatten().grep {
+        new File(it, "kotlin").exists() || new File(it, "groovy").exists()
+    }
 
     snippetDirs.each { File snippetDir ->
         String snippetName = snippetDir.name
@@ -221,7 +223,7 @@ samples {
             readmeFile = file("src/snippets/default-readme.adoc")
             sampleDirectory = snippetDir
             promoted = false
-        }
+        }            
     }
 
     publishedSamples {
