@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
@@ -201,7 +202,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @UnsupportedWithInstantExecution(because = "test checks behavior with and without configuration cache")
-    def "credentials are not cached"() {
+    def "credential values are not cached between executions"() {
         given:
         buildFile << """
             def firstTask = tasks.register('firstTask') {
@@ -225,5 +226,39 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         args '--configuration-cache'
         fails 'finalTask'
         failure.assertHasDescription("Credentials required for this build could not be resolved.")
+    }
+
+    @NotYetImplemented
+    @UnsupportedWithInstantExecution(because = "test checks behavior with configuration cache")
+    def "credential values are not stored in configuration cache`"() {
+        given:
+        buildFile << """
+            def firstTask = tasks.register('firstTask') {
+            }
+
+            def taskWithCredentials = tasks.register('taskWithCredentials', TaskWithCredentials) {
+                dependsOn(firstTask)
+                credentials.set(providers.credentials(PasswordCredentials, 'testCredentials'))
+            }
+
+            tasks.register('finalTask') {
+                dependsOn(taskWithCredentials)
+            }
+        """
+
+        when:
+        args '-PtestCredentialsUsername=user-value', '-PtestCredentialsPassword=password-value', '--configuration-cache'
+
+        then:
+        succeeds 'finalTask'
+        def configurationCacheDirs = file('.gradle/configuration-cache/').listFiles().findAll { it.isDirectory() }
+        configurationCacheDirs.size() == 1
+        def configurationCacheFiles = configurationCacheDirs[0].listFiles()
+        configurationCacheFiles.size() == 2
+        configurationCacheFiles.each {
+            def content = it.getText()
+            assert !content.contains('user-value')
+            assert !content.contains('password-value')
+        }
     }
 }
