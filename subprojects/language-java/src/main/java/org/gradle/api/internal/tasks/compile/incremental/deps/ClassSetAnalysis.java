@@ -18,16 +18,15 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 
-import java.util.ArrayList;
+import java.util.ArrayDeque;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -140,37 +139,40 @@ public class ClassSetAnalysis {
                                          Set<GeneratedResource> resultResources,
                                          Iterable<String> privateDependentClasses,
                                          Iterable<String> accessibleDependentClasses) {
-        List<String> remainingAccessibleDependentClasses = Lists.newArrayList(accessibleDependentClasses);
-        List<String> remainingPrivateDependentClasses = Lists.newArrayList(privateDependentClasses);
-        while (remainingAccessibleDependentClasses != null) {
 
-            for (String d : remainingPrivateDependentClasses) {
-                if (!visitedClasses.add(d)) {
-                    continue;
-                }
-                privateResultClasses.add(d);
-                DependentsSet currentDependents = getDependents(d);
-                if (!currentDependents.isDependencyToAll()) {
-                    resultResources.addAll(currentDependents.getDependentResources());
-                }
+        for (String privateDependentClass : privateDependentClasses) {
+            if (!visitedClasses.add(privateDependentClass)) {
+                continue;
             }
-            remainingPrivateDependentClasses.clear();
+            privateResultClasses.add(privateDependentClass);
+            DependentsSet currentDependents = getDependents(privateDependentClass);
+            if (!currentDependents.isDependencyToAll()) {
+                resultResources.addAll(currentDependents.getDependentResources());
+            }
+        }
 
-            ArrayList<String> remainingAccessibleDependentClassesCopy = Lists.newArrayList(remainingAccessibleDependentClasses);
-            remainingAccessibleDependentClasses = null;
-            for (String d : remainingAccessibleDependentClassesCopy) {
-                if (!visitedClasses.add(d)) {
-                    continue;
-                }
-                accessibleResultClasses.add(d);
-                DependentsSet currentDependents = getDependents(d);
-                if (!currentDependents.isDependencyToAll()) {
-                    resultResources.addAll(currentDependents.getDependentResources());
-                    if (remainingAccessibleDependentClasses == null) {
-                        remainingAccessibleDependentClasses = Lists.newArrayList();
-                    }
-                    remainingAccessibleDependentClasses.addAll(currentDependents.getAccessibleDependentClasses());
-                }
+        processTransitiveDependentClasses(visitedClasses, accessibleResultClasses, resultResources, accessibleDependentClasses);
+    }
+
+    private void processTransitiveDependentClasses(Set<String> visitedClasses,
+                                                   Set<String> accessibleResultClasses,
+                                                   Set<GeneratedResource> resultResources,
+                                                   Iterable<String> accessibleDependentClasses) {
+        Deque<String> remainingAccessibleDependentClasses = new ArrayDeque<>();
+        for (String accessibleDependentClass : accessibleDependentClasses) {
+            remainingAccessibleDependentClasses.add(accessibleDependentClass);
+        }
+
+        while (!remainingAccessibleDependentClasses.isEmpty()) {
+            String accessibleDependentClass = remainingAccessibleDependentClasses.pop();
+            if (!visitedClasses.add(accessibleDependentClass)) {
+                continue;
+            }
+            accessibleResultClasses.add(accessibleDependentClass);
+            DependentsSet currentDependents = getDependents(accessibleDependentClass);
+            if (!currentDependents.isDependencyToAll()) {
+                resultResources.addAll(currentDependents.getDependentResources());
+                remainingAccessibleDependentClasses.addAll(currentDependents.getAccessibleDependentClasses());
             }
         }
     }
