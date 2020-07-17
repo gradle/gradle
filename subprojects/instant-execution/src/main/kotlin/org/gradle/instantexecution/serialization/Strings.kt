@@ -46,10 +46,12 @@ class ReadStrings {
     fun readString(decoder: Decoder): String = decoder.run {
         when (val index = readSmallInt()) {
             0 -> readString().also { strings.add(it) }
-            else -> strings[index - 1]
+            else -> strings[index]
         }
     }
 
+    // the collection is initialized with an empty string to avoid
+    // one subtraction per decoded string
     private
-    val strings = mutableListOf<String>()
+    val strings = mutableListOf<String>("")
 }
