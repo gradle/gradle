@@ -242,9 +242,8 @@ data class TestCoverage(val uuid: Int, val testType: TestType, val os: Os, val t
         return shortenedSubprojectName.replace(Regex("[aeiou]"), "")
     }
 
-    fun asName(): String {
-        return "Test Coverage - ${testType.name.capitalize()} ${testJvmVersion.name.capitalize()} ${vendor.name.capitalize()} ${os.name.capitalize()}"
-    }
+    fun asName(): String =
+        "Test Coverage - ${testType.name.capitalize()} ${testJvmVersion.name.capitalize()} ${vendor.name.capitalize()} ${os.name.capitalize()}${if (withoutDependencies) " without dependencies" else ""}"
 
     val isQuick: Boolean = withoutDependencies || testType == TestType.quick
 }
