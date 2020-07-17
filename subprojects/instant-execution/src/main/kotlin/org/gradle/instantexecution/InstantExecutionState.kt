@@ -220,7 +220,7 @@ class InstantExecutionState(
         val manager = service<GradleEnterprisePluginManager>()
         val adapter = manager.adapter
         val writtenAdapter = if (adapter == null) null else {
-            if (adapter.isConfigurationCacheCompatible) adapter else null
+            if (adapter.shouldSaveToConfigurationCache()) adapter else null
         }
         write(writtenAdapter)
     }
@@ -229,9 +229,9 @@ class InstantExecutionState(
     suspend fun DefaultReadContext.readGradleEnterprisePluginManager() {
         val adapter = read() as GradleEnterprisePluginAdapter?
         if (adapter != null) {
+            adapter.onLoadFromConfigurationCache()
             val manager = service<GradleEnterprisePluginManager>()
             manager.registerAdapter(adapter)
-            adapter.onLoadFromConfigurationCache()
         }
     }
 

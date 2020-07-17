@@ -61,7 +61,8 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     }
 
     @Override
-    public boolean isConfigurationCacheCompatible() {
+    public boolean shouldSaveToConfigurationCache() {
+        pluginService = null;
         return true;
     }
 
@@ -86,7 +87,6 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     private void createPluginService() {
         pluginService = pluginServiceFactory.create(config, requiredServices, buildState);
         pluginServiceRef.set(pluginService);
-
         buildOperationNotificationListenerRegistrar.register(pluginService.getBuildOperationNotificationListener());
     }
 
