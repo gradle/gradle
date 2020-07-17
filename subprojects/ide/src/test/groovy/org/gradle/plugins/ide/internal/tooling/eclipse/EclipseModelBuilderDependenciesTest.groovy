@@ -111,7 +111,7 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
         eclipseChild2.classpath.collect { it.file.name } == ["test-1.0.jar"]
     }
 
-    def "unresolved dependencies are marked as such"(){
+    def "unresolved dependencies are marked as such"() {
         setup:
         def modelBuilder = createEclipseModelBuilder()
 
@@ -122,7 +122,7 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
         DefaultEclipseProject eclipseChild4 = eclipseModel.children.find { it.name == 'child4' }
         def unresolvedRefs = eclipseChild4.classpath.findAll { it.isUnresolved() }
         unresolvedRefs.size == 2
-        unresolvedRefs.stream().allMatch {ur -> (ur.file.name.contains("unresolved dependency")) }
+        unresolvedRefs.stream().allMatch { ref -> ref.file.name.contains("unresolved dependency") }
     }
 
     def "project dependencies are mapped to eclipse model with supplied runtime"() {
