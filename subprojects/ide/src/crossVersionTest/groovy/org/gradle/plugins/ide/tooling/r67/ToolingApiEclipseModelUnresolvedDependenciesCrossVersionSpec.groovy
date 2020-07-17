@@ -57,9 +57,9 @@ class ToolingApiEclipseModelUnresolvedDependenciesCrossVersionSpec extends Tooli
 
         then:
         allDependencies.size() == 2
-        !allDependencies[0].resolved
+        allDependencies[0].resolved
         allDependencies[0].attemptedSelector == null
-        !allDependencies[1].resolved
+        allDependencies[1].resolved
         allDependencies[1].attemptedSelector == null
     }
 

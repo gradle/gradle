@@ -27,7 +27,7 @@ public class EclipseExternalDependencyUnresolvedMixin {
     }
 
     public boolean isResolved() {
-        return false;
+        return true;
     }
 
     public String getAttemptedSelector() {
