@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
@@ -722,6 +723,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @UnsupportedWithInstantExecution(because = "version of enterprise plugin is incompatible")
     fun `given extension with inaccessible type, its accessor is typed Any`() {
 
         withFile("init.gradle", """
