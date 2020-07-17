@@ -28,8 +28,8 @@ class WriteStrings {
             if (id != null) {
                 writeSmallInt(id)
             } else {
-                val newId = strings.size
-                writeSmallInt(-1)
+                val newId = strings.size + 1
+                writeSmallInt(0)
                 writeString(string)
                 strings[string] = newId
             }
@@ -45,8 +45,8 @@ class ReadStrings {
 
     fun readString(decoder: Decoder): String = decoder.run {
         when (val index = readSmallInt()) {
-            -1 -> readString().also { strings.add(it) }
-            else -> strings[index]
+            0 -> readString().also { strings.add(it) }
+            else -> strings[index - 1]
         }
     }
 
