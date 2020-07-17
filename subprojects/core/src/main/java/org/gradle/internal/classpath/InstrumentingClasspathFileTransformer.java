@@ -18,6 +18,7 @@ package org.gradle.internal.classpath;
 
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
+import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -26,16 +27,20 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
     private static final Attributes.Name DIGEST_ATTRIBUTE = new Attributes.Name("SHA1-Digest");
 
     private final ClasspathWalker classpathWalker;
@@ -68,7 +73,18 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     }
 
     private void transform(File source, File dest) {
-        classpathBuilder.jar(dest, builder -> classpathWalker.visit(source, entry -> {
+        classpathBuilder.jar(dest, builder -> {
+            try {
+                visitEntries(source, builder);
+            } catch (FileException e) {
+                // Badly formed archive, so discard the contents and produce an empty JAR
+                LOGGER.debug("Malformed archive '{}'. Discarding contents.", source.getName(), e);
+            }
+        });
+    }
+
+    private void visitEntries(File source, ClasspathBuilder.EntryBuilder builder) throws IOException, FileException {
+        classpathWalker.visit(source, entry -> {
             if (entry.getName().endsWith(".class")) {
                 ClassReader reader = new ClassReader(entry.getContent());
                 ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
@@ -97,6 +113,6 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
                 // Else, copy resource
                 builder.put(entry.getName(), entry.getContent());
             }
-        }));
+        });
     }
 }
