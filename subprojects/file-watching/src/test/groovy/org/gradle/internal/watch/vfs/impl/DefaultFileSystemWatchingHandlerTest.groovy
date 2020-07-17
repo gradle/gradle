@@ -38,14 +38,14 @@ class DefaultFileSystemWatchingHandlerTest extends Specification {
     }
     def snapshotHierarchyReference = new AtomicSnapshotHierarchyReference(nonEmptySnapshotHierarchy)
     def daemonDocumentationIndex = Mock(DaemonDocumentationIndex)
-    def recentlyCapturedSnapshots = Mock(RecentlyCapturedSnapshots)
+    def locationsUpdatedByCurrentBuild = Mock(LocationsUpdatedByCurrentBuild)
     def watchingHandler = new DefaultFileSystemWatchingHandler(
         watcherRegistryFactory,
         snapshotHierarchyReference,
         capturingUpdateFunctionDecorator,
         { -> true },
         daemonDocumentationIndex,
-        recentlyCapturedSnapshots
+        locationsUpdatedByCurrentBuild
     )
 
     def "invalidates the virtual file system before and after the build when watching is disabled"() {

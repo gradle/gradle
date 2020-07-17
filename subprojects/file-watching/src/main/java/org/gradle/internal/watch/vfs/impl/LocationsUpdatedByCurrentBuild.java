@@ -23,11 +23,12 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class RecentlyCapturedSnapshots implements VirtualFileSystem.RecentlyCreatedSnapshotsListener {
+public class LocationsUpdatedByCurrentBuild implements VirtualFileSystem.UpdateListener {
     private final AtomicReference<FileHierarchySet> producedByCurrentBuild = new AtomicReference<>(DefaultFileHierarchySet.of());
     private volatile boolean buildRunning;
 
-    public void snapshotsCreated(Iterable<String> locations) {
+    @Override
+    public void locationsUpdated(Iterable<String> locations) {
         if (buildRunning) {
             producedByCurrentBuild.updateAndGet(currentValue -> {
                 FileHierarchySet newValue = currentValue;
@@ -39,8 +40,8 @@ public class RecentlyCapturedSnapshots implements VirtualFileSystem.RecentlyCrea
         }
     }
 
-    public boolean canBeInvalidatedByFileSystemEvents(String location) {
-        return !producedByCurrentBuild.get().contains(location);
+    public boolean wasLocationUpdated(String location) {
+        return producedByCurrentBuild.get().contains(location);
     }
 
     public void buildStarted() {

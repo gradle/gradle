@@ -55,7 +55,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
     private final DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator;
     private final Predicate<String> watchFilter;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
-    private final RecentlyCapturedSnapshots recentlyCapturedSnapshots;
+    private final LocationsUpdatedByCurrentBuild locationsUpdatedByCurrentBuild;
     private final Set<File> rootProjectDirectoriesForWatching = new HashSet<>();
 
     private FileWatcherRegistry watchRegistry;
@@ -73,14 +73,14 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
         DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator,
         Predicate<String> watchFilter,
         DaemonDocumentationIndex daemonDocumentationIndex,
-        RecentlyCapturedSnapshots recentlyCapturedSnapshots
+        LocationsUpdatedByCurrentBuild locationsUpdatedByCurrentBuild
     ) {
         this.watcherRegistryFactory = watcherRegistryFactory;
         this.snapshotHierarchyReference = snapshotHierarchyReference;
         this.delegatingUpdateFunctionDecorator = delegatingUpdateFunctionDecorator;
         this.watchFilter = watchFilter;
         this.daemonDocumentationIndex = daemonDocumentationIndex;
-        this.recentlyCapturedSnapshots = recentlyCapturedSnapshots;
+        this.locationsUpdatedByCurrentBuild = locationsUpdatedByCurrentBuild;
     }
 
     @Override
@@ -174,7 +174,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
                     try {
                         LOGGER.debug("Handling VFS change {} {}", type, path);
                         String absolutePath = path.toString();
-                        if (recentlyCapturedSnapshots.canBeInvalidatedByFileSystemEvents(absolutePath)) {
+                        if (!locationsUpdatedByCurrentBuild.wasLocationUpdated(absolutePath)) {
                             snapshotHierarchyReference.update(root -> {
                                 SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener(watchFilter);
                                 SnapshotHierarchy newRoot = root.invalidate(absolutePath, diffListener);

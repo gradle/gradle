@@ -92,7 +92,7 @@ import org.gradle.internal.watch.registry.impl.WindowsFileWatcherRegistryFactory
 import org.gradle.internal.watch.vfs.FileSystemWatchingHandler;
 import org.gradle.internal.watch.vfs.impl.DefaultFileSystemWatchingHandler;
 import org.gradle.internal.watch.vfs.impl.DelegatingDiffCapturingUpdateFunctionDecorator;
-import org.gradle.internal.watch.vfs.impl.RecentlyCapturedSnapshots;
+import org.gradle.internal.watch.vfs.impl.LocationsUpdatedByCurrentBuild;
 import org.gradle.internal.watch.vfs.impl.WatchingNotSupportedFileSystemWatchingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -177,20 +177,20 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return fileHasher;
         }
 
-        RecentlyCapturedSnapshots createRecentlyCapturedSnapshots(ListenerManager listenerManager) {
-            RecentlyCapturedSnapshots recentlyCapturedSnapshots = new RecentlyCapturedSnapshots();
+        LocationsUpdatedByCurrentBuild createLocationsUpdatedByCurrentBuild(ListenerManager listenerManager) {
+            LocationsUpdatedByCurrentBuild locationsUpdatedByCurrentBuild = new LocationsUpdatedByCurrentBuild();
             listenerManager.addListener(new RootBuildLifecycleListener() {
                 @Override
                 public void afterStart(GradleInternal gradle) {
-                    recentlyCapturedSnapshots.buildStarted();
+                    locationsUpdatedByCurrentBuild.buildStarted();
                 }
 
                 @Override
                 public void beforeComplete(GradleInternal gradle) {
-                    recentlyCapturedSnapshots.buildFinished();
+                    locationsUpdatedByCurrentBuild.buildFinished();
                 }
             });
-            return recentlyCapturedSnapshots;
+            return locationsUpdatedByCurrentBuild;
         }
 
         WatchFilter createWatchFilter(GlobalCacheLocations globalCacheLocations) {
@@ -216,7 +216,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             StringInterner stringInterner,
             ListenerManager listenerManager,
             PatternSpecFactory patternSpecFactory,
-            VirtualFileSystem.RecentlyCreatedSnapshotsListener recentlyCreatedSnapshotsListener
+            VirtualFileSystem.UpdateListener updateListener
         ) {
             DefaultVirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(
                 hasher,
@@ -224,7 +224,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 stat,
                 snapshotHierarchyReference,
                 diffCapturingUpdateFunctionDecorator,
-                recentlyCreatedSnapshotsListener,
+                updateListener,
                 DirectoryScanner.getDefaultExcludes()
             );
             listenerManager.addListener(new DefaultExcludesBuildListener(virtualFileSystem) {
@@ -256,7 +256,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         FileSystemWatchingHandler createFileSystemWatchingHandler(
             WatchFilter watchFilter,
             AtomicSnapshotHierarchyReference snapshotHierarchyReference,
-            RecentlyCapturedSnapshots recentlyCapturedSnapshots,
+            LocationsUpdatedByCurrentBuild locationsUpdatedByCurrentBuild,
             DocumentationRegistry documentationRegistry,
             NativeCapabilities nativeCapabilities,
             DelegatingDiffCapturingUpdateFunctionDecorator updateFunctionDecorator,
@@ -269,7 +269,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     updateFunctionDecorator,
                     watchFilter,
                     sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId),
-                    recentlyCapturedSnapshots
+                    locationsUpdatedByCurrentBuild
                 ))
                 .orElse(new WatchingNotSupportedFileSystemWatchingHandler(snapshotHierarchyReference));
             listenerManager.addListener((BuildAddedListener) buildState ->

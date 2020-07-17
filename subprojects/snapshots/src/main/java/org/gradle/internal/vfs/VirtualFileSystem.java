@@ -70,7 +70,7 @@ public interface VirtualFileSystem {
      */
     void updateWithKnownSnapshot(CompleteFileSystemLocationSnapshot snapshot);
 
-    interface RecentlyCreatedSnapshotsListener {
-        void snapshotsCreated(Iterable<String> locations);
+    interface UpdateListener {
+        void locationsUpdated(Iterable<String> locations);
     }
 }

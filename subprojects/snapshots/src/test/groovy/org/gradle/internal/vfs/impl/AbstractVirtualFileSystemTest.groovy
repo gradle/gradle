@@ -49,14 +49,14 @@ abstract class AbstractVirtualFileSystemTest extends Specification {
 
     def fileHasher = new AllowingHasher(TestFiles.fileHasher())
     def stat = new AllowingStat(TestFiles.fileSystem())
-    def recentlyCreatedSnapshotsListener = Mock(VirtualFileSystem.RecentlyCreatedSnapshotsListener)
+    def updateListener = Mock(VirtualFileSystem.UpdateListener)
     def vfs = new DefaultVirtualFileSystem(
         fileHasher,
         new StringInterner(),
         stat,
         new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(CASE_SENSITIVE)),
         SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP,
-        recentlyCreatedSnapshotsListener
+        updateListener
     )
 
     void allowFileSystemAccess(boolean allow) {

@@ -53,7 +53,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     private final Stat stat;
     private final SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator;
     private final Interner<String> stringInterner;
-    private final RecentlyCreatedSnapshotsListener recentlyCreatedSnapshotsListener;
+    private final UpdateListener updateListener;
     private ImmutableList<String> defaultExcludes;
     private DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
@@ -65,13 +65,13 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         Stat stat,
         AtomicSnapshotHierarchyReference snapshotHierarchyReference,
         SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator,
-        RecentlyCreatedSnapshotsListener recentlyCreatedSnapshotsListener,
+        UpdateListener updateListener,
         String... defaultExcludes
     ) {
         this.stringInterner = stringInterner;
         this.stat = stat;
         this.updateFunctionDecorator = updateFunctionDecorator;
-        this.recentlyCreatedSnapshotsListener = recentlyCreatedSnapshotsListener;
+        this.updateListener = updateListener;
         this.defaultExcludes = ImmutableList.copyOf(defaultExcludes);
         this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, this.defaultExcludes);
         this.hasher = hasher;
@@ -183,7 +183,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
 
     @Override
     public void update(Iterable<String> locations, Runnable action) {
-        recentlyCreatedSnapshotsListener.snapshotsCreated(locations);
+        updateListener.locationsUpdated(locations);
         snapshotHierarchyReference.update(root -> {
             SnapshotHierarchy result = root;
             for (String location : locations) {
