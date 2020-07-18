@@ -132,7 +132,7 @@ class InstantExecutionState(
         }
 
     private
-    suspend fun DefaultWriteContext.writeChildBuilds(gradle: GradleInternal) {
+    fun DefaultWriteContext.writeChildBuilds(gradle: GradleInternal) {
         if (gradle.includedBuilds.isNotEmpty()) {
             logNotImplemented(
                 feature = "included builds",
@@ -154,7 +154,7 @@ class InstantExecutionState(
     }
 
     private
-    suspend fun DefaultReadContext.readChildBuilds() {
+    fun DefaultReadContext.readChildBuilds() {
         if (readBoolean()) {
             logNotImplemented(
                 feature = "included builds",

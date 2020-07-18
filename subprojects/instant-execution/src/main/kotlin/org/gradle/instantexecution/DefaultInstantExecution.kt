@@ -22,7 +22,6 @@ import org.gradle.api.logging.Logging
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.InstantExecutionCache.CheckedFingerprint
-import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.extensions.unsafeLazy
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprintController
 import org.gradle.instantexecution.fingerprint.InvalidationReason
@@ -34,6 +33,7 @@ import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.codecs.Codecs
+import org.gradle.instantexecution.serialization.runReadOperation
 import org.gradle.instantexecution.serialization.runWriteOperation
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.internal.Factory
@@ -280,9 +280,7 @@ class DefaultInstantExecution internal constructor(
         KryoBackedDecoder(file.inputStream()).use { decoder ->
             readContextFor(decoder).run {
                 initClassLoader(javaClass.classLoader)
-                runToCompletion {
-                    readOperation()
-                }
+                runReadOperation(readOperation)
             }
         }
 
