@@ -26,7 +26,7 @@ In other words, the configuration cache caches the output of the configuration p
 
 [IMPORTANT]
 ====
-This feature is currently *experimental* and not enabled by default.
+This feature is currently *_highly experimental_* and not enabled by default.
 
 Not all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> are supported.
 Your build and the plugins you depend on might require changes to fulfil the <<configuration_cache#config_cache:requirements, requirements>>.
@@ -71,8 +71,10 @@ Apart from skipping the configuration phase, the configuration cache provides so
 - All tasks run in parallel by default.
 - Dependency resolution is cached.
 
-=== See the impact
-image::configuration-cache-effect.gif[]
+[[config_cache:in_action]]
+=== Configuration caching in action
+
+image::configuration-cache/running-help.gif[]
 
 [[config_cache:usage]]
 == Using the configuration cache
@@ -221,6 +223,12 @@ In this case, leave the `Templates > Gradle` configuration untouched and edit ea
 
 Combining these two ways you can enable globally and disable for certain run configurations, or the opposite.
 
+[TIP]
+====
+You can use the link:https://github.com/JetBrains/gradle-idea-ext-plugin[gradle-idea-ext-plugin] to configure IntelliJ run configurations from your build.
+This is a good way to enable the configuration cache only for the IDE.
+====
+
 [[config_cache:ide:eclipse]]
 === Eclipse IDEs
 
@@ -353,7 +361,10 @@ include::{snippetsPath}/configurationCache/problemsGroovy/tests/store.out[]
 Configuration cache entry stored.
 ----
 
-Details can be found in the linked HTML report.
+Details can be found in the linked HTML report:
+
+image::configuration-cache/problems-report.png[]
+
 The report displays the set of problems twice.
 First grouped by problem message, then grouped by task.
 The former allows you to quickly see what classes of problems your build is facing.
@@ -459,11 +470,11 @@ For example, running tests after making some changes to the source code.
 When working on a plugin, progressively target the contributed or configured tasks.
 
 Explore by turning problems into warnings::
-Don't stop at the first build failure and <<configuration_cache#config_cache:usage:ignore_problems, turn problems into warnings>> to discover how your build or plugin behave.
-Use the HTML report to reason about the reported problems, read about them in the <<configuration_cache#config_cache:requirements, requirements>> and <<configuration_cache#config_cache:not_yet_implemented, not yet implemented>> sections below.
-Continue running more tasks.
+Don't stop at the first build failure and <<configuration_cache#config_cache:usage:ignore_problems, turn problems into warnings>> to discover how your build and plugins behave.
+If a build fails, use the HTML report to reason about the reported problems related to the failure.
+Continue running more useful tasks.
 +
-This will give you a good overview of what problems your build or plugin is facing.
+This will give you a good overview of the nature of the problems your build and plugins are facing.
 Remember that when turning problems into warnings you might need to <<configuration_cache#config_cache:usage:invalidate, manually invalidating the cache>> in case of troubles.
 
 Step back and fix problems iteratively::
@@ -473,21 +484,36 @@ Use the HTML report and this documentation to help you in this journey.
 Start with problems reported when _storing_ the configuration cache.
 Once fixed, you can rely on a valid cached configuration phase and move on to fixing problems reported when _loading_ the configuration cache if any.
 
+Report encountered issues::
+If you face a problem with a <<configuration_cache#config_cache:not_yet_implemented, Gradle feature>> or with a <<configuration_cache#config_cache:plugins:core, Gradle core plugin>> that is not covered by this documentation, please report an issue on link:https://github.com/gradle/gradle/issues/new/choose[`gradle/gradle`].
++
+If you face a problem with a community Gradle plugin, see if it is already listed at link:{gradle-issues}13490[gradle/gradle#13490] and consider reporting the issue to the plugin's issue tracker.
++
+A good way to report such issues is by providing information such as:
++
+* a link to this very documentation,
+* the plugin version you tried,
+* the custom configuration of the plugin if any, or ideally a reproducer build,
+* a description of what fails, for example problems with a given task
+* a copy of the build failure,
+* the self-contained `configuration-cache-report.html` file.
+
 Test, test, test::
 Consider adding tests for your build logic.
 See the below section on <<configuration_cache#config_cache:testing, testing your build logic>> for the configuration cache.
 This will help you while iterating on the required changes and prevent future regressions.
 
-Report problems with community plugins::
-When you stumble upon a problem in a community Gradle plugin, see if it is already listed at link:{gradle-issues}13490[gradle/gradle#13490].
+Roll it out to your team::
+Once you have your developer workflow working, for example running tests from the IDE, you can consider enabling it for your team.
+A faster turnaround when changing code and running tests could be worth it.
+You'll probably want to do this as an opt-in first.
 +
-If not, please consider reporting the issue to the plugin's issue tracker.
-A good way to report such problems to community plugin authors is by providing:
+If needed, turn problems into warnings and set the maximum number of allowed problems in your build `gradle.properties` file.
+Keep the configuration cache disabled by default.
+Let your team know they can opt-in by, for example, enabling the configuration cache on their IDE run configurations for the supported workflow.
 +
-* a link to this very documentation,
-* steps to reproduce, e.g. plugin version, configuration and which of the plugin's tasks you ran,
-* a copy of the console problem report, or ideally the HTML problem report you got, so the plugin author can easily reason about the problems,
-* ideally a reproducer build, so the plugin author can easily reproduce the problems.
+Later on, when more workflows are working, you can flip this around.
+Enable the configuration cache by default, configure CI to disable it, and if required communicate the unsupported workflow(s) for which the configuration cache needs to be disabled.
 
 [[config_cache:testing]]
 == Testing your build logic
