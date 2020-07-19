@@ -24,6 +24,8 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.decodePreservingSharedIdentity
+import org.gradle.instantexecution.serialization.encodePreservingSharedIdentityOf
 import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 
@@ -35,22 +37,26 @@ class TransformationStepCodec(
 ) : Codec<TransformationStep> {
 
     override suspend fun WriteContext.encode(value: TransformationStep) {
-        val project = value.owningProject ?: throw UnsupportedOperationException("Transformation must have an owning project to be encoded.")
-        writeString(project.path)
-        write(value.transformer)
+        encodePreservingSharedIdentityOf(value) {
+            val project = value.owningProject ?: throw UnsupportedOperationException("Transformation must have an owning project to be encoded.")
+            writeString(project.path)
+            write(value.transformer)
+        }
     }
 
     override suspend fun ReadContext.decode(): TransformationStep {
-        val path = readString()
-        val transformer = readNonNull<Transformer>()
-        val project = getProject(path)
-        val services = project.services
-        return TransformationStep(
-            transformer,
-            services[TransformerInvocationFactory::class.java],
-            services[DomainObjectContext::class.java],
-            projectStateRegistry,
-            fingerprinterRegistry
-        )
+        return decodePreservingSharedIdentity {
+            val path = readString()
+            val transformer = readNonNull<Transformer>()
+            val project = getProject(path)
+            val services = project.services
+            TransformationStep(
+                transformer,
+                services[TransformerInvocationFactory::class.java],
+                services[DomainObjectContext::class.java],
+                projectStateRegistry,
+                fingerprinterRegistry
+            )
+        }
     }
 }
