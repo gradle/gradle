@@ -151,7 +151,7 @@ fun BaseGradleBuildType.killProcessStepIfNecessary(stepName: String, os: Os = Os
                 name = stepName
                 executionMode = BuildStep.ExecutionMode.ALWAYS
                 tasks = "killExistingProcessesStartedByGradle"
-                gradleParams = buildToolParametersString(daemon)
+                gradleParams = buildToolParametersString(daemon) + " -DpublishStrategy=publishOnFailure" // https://github.com/gradle/gradle-enterprise-conventions-plugin/pull/8
             }
         }
     }
