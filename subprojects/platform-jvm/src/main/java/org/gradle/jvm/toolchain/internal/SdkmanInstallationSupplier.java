@@ -28,27 +28,17 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toSet;
 
-public class SdkmanInstallationSupplier implements InstallationSupplier {
-
-    private final ProviderFactory factory;
+public class SdkmanInstallationSupplier extends AutoDetectingInstallationSupplier {
 
     @Inject
     public SdkmanInstallationSupplier(ProviderFactory factory) {
-        this.factory = factory;
+        super(factory);
     }
 
     @Override
-    public Set<InstallationLocation> get() {
-        if (isAutoDetectionEnabled()) {
-            final Provider<String> candidatesDir = factory.environmentVariable("SDKMAN_CANDIDATES_DIR").forUseAtConfigurationTime();
-            return candidatesDir.map(findJavaCandidates()).getOrElse(Collections.emptySet());
-        }
-        return Collections.emptySet();
-    }
-
-    private boolean isAutoDetectionEnabled() {
-        final Provider<String> autoDetectionEnabled = factory.gradleProperty("org.gradle.java.installations.auto-detect").forUseAtConfigurationTime();
-        return Boolean.parseBoolean(autoDetectionEnabled.getOrElse("true"));
+    protected Set<InstallationLocation> findCandidates() {
+        final Provider<String> candidatesDir = getEnvironmentProperty("SDKMAN_CANDIDATES_DIR");
+        return candidatesDir.map(findJavaCandidates()).getOrElse(Collections.emptySet());
     }
 
     private Transformer<Set<InstallationLocation>, String> findJavaCandidates() {
