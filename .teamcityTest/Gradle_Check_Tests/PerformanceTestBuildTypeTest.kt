@@ -77,7 +77,6 @@ class PerformanceTestBuildTypeTest {
                 "-Porg.gradle.performance.buildTypeId=Gradle_Check_IndividualPerformanceScenarioWorkersLinux",
                 "-Porg.gradle.performance.workerTestTaskName=fullPerformanceTest",
                 "-Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id%",
-                "-PgithubToken=%github.ci.oauth.token%",
                 "\"-Dscan.tag.PerformanceTest\"",
                 "\"-Dgradle.cache.remote.url=%gradle.cache.remote.url%\"",
                 "\"-Dgradle.cache.remote.username=%gradle.cache.remote.username%\"",

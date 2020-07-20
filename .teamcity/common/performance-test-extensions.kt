@@ -49,7 +49,7 @@ fun performanceTestCommandLine(task: String, baselines: String, extraParameters:
 )
 
 fun distributedPerformanceTestParameters(workerId: String = "Gradle_Check_IndividualPerformanceScenarioWorkersLinux") = listOf(
-        "-Porg.gradle.performance.buildTypeId=$workerId -Porg.gradle.performance.workerTestTaskName=fullPerformanceTest -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
+        "-Porg.gradle.performance.buildTypeId=$workerId -Porg.gradle.performance.workerTestTaskName=fullPerformanceTest -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id%"
 )
 
 val individualPerformanceTestArtifactRules = """
