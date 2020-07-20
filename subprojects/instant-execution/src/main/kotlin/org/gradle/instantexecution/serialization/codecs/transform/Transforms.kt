@@ -71,9 +71,13 @@ object TransformDependenciesCodec : Codec<TransformDependencies> {
 }
 
 
-class TransformationSpec(val steps: List<TransformationStep>, val dependencies: List<TransformDependencies>) {
+class TransformationSpec(val transformation: Transformation, val dependencies: List<TransformDependencies>) {
     fun files(initialSubject: TransformationSubject): List<File> {
         var subject = initialSubject
+        val steps = mutableListOf<TransformationStep>()
+        transformation.visitTransformationSteps {
+            steps.add(it)
+        }
         for (i in steps.indices) {
             val step = steps[i]
             val dependencies = dependencies[i].recreate()
@@ -85,13 +89,11 @@ class TransformationSpec(val steps: List<TransformationStep>, val dependencies: 
 
 
 fun unpackTransformation(transformation: Transformation, dependenciesResolver: ExecutionGraphDependenciesResolver): TransformationSpec {
-    val steps = mutableListOf<TransformationStep>()
     val dependencies = mutableListOf<TransformDependencies>()
     transformation.visitTransformationSteps {
-        steps.add(it)
         dependencies.add(transformDependencies(it.transformer, dependenciesResolver))
     }
-    return TransformationSpec(steps, dependencies)
+    return TransformationSpec(transformation, dependencies)
 }
 
 
