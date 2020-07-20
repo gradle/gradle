@@ -26,7 +26,6 @@ import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
-import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
@@ -35,6 +34,7 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
 import org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter;
+import org.gradle.internal.vfs.VirtualFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,26 +46,36 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
+public class DefaultVirtualFileSystem implements VirtualFileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultVirtualFileSystem.class);
 
     private final AtomicSnapshotHierarchyReference root;
     private final Stat stat;
     private final SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator;
     private final Interner<String> stringInterner;
+    private final UpdateListener updateListener;
     private ImmutableList<String> defaultExcludes;
     private DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
     private final StripedProducerGuard<String> producingSnapshots = new StripedProducerGuard<>();
 
-    public DefaultVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, CaseSensitivity caseSensitivity, SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator, String... defaultExcludes) {
+    public DefaultVirtualFileSystem(
+        FileHasher hasher,
+        Interner<String> stringInterner,
+        Stat stat,
+        AtomicSnapshotHierarchyReference root,
+        SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator,
+        UpdateListener updateListener,
+        String... defaultExcludes
+    ) {
         this.stringInterner = stringInterner;
         this.stat = stat;
         this.updateFunctionDecorator = updateFunctionDecorator;
+        this.updateListener = updateListener;
         this.defaultExcludes = ImmutableList.copyOf(defaultExcludes);
         this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, this.defaultExcludes);
         this.hasher = hasher;
-        this.root = new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
+        this.root = root;
     }
 
     @Override
@@ -164,11 +174,6 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
         root.update(updateFunctionDecorator.decorate(updateFunction));
     }
 
-    @Override
-    public AtomicSnapshotHierarchyReference getRoot() {
-        return root;
-    }
-
     private CompleteFileSystemLocationSnapshot readLocation(String location) {
         return root.get().getSnapshot(location)
             .orElseGet(() -> producingSnapshots.guardByKey(location,
@@ -178,6 +183,7 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
 
     @Override
     public void update(Iterable<String> locations, Runnable action) {
+        updateListener.locationsUpdated(locations);
         root.update(root -> {
             SnapshotHierarchy result = root;
             for (String location : locations) {

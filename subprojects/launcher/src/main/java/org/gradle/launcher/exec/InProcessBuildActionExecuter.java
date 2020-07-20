@@ -16,16 +16,15 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
-import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.watch.vfs.FileSystemWatchingHandler;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
@@ -43,19 +42,20 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
 
         buildOperationNotificationValve.start();
         try {
+            // This statement ensures the creation of the FileSystemWatchingHandler.
+            // We need to enforce the creation of it, so that the BuildAddedListener is registered early enough by the creation method.
+            // If not, it won't receive the addition of the root build, which happens here..
+            contextServices.get(FileSystemWatchingHandler.class);
             RootBuildState rootBuild = buildRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
-            return rootBuild.run(new Transformer<BuildActionResult, BuildController>() {
-                @Override
-                public BuildActionResult transform(BuildController buildController) {
-                    BuildActionRunner.Result result = buildActionRunner.run(action, buildController);
-                    if (result.getBuildFailure() == null) {
-                        return BuildActionResult.of(payloadSerializer.serialize(result.getClientResult()));
-                    }
-                    if (buildRequestContext.getCancellationToken().isCancellationRequested()) {
-                        return BuildActionResult.cancelled(payloadSerializer.serialize(result.getBuildFailure()));
-                    }
-                    return BuildActionResult.failed(payloadSerializer.serialize(result.getClientFailure()));
+            return rootBuild.run(buildController -> {
+                BuildActionRunner.Result result = buildActionRunner.run(action, buildController);
+                if (result.getBuildFailure() == null) {
+                    return BuildActionResult.of(payloadSerializer.serialize(result.getClientResult()));
                 }
+                if (buildRequestContext.getCancellationToken().isCancellationRequested()) {
+                    return BuildActionResult.cancelled(payloadSerializer.serialize(result.getBuildFailure()));
+                }
+                return BuildActionResult.failed(payloadSerializer.serialize(result.getClientFailure()));
             });
         } finally {
             buildOperationNotificationValve.stop();

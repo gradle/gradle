@@ -16,22 +16,24 @@
 
 package org.gradle.internal.watch.vfs.impl;
 
-import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
-import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem;
+import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.watch.vfs.FileSystemWatchingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
 /**
- * A {@link org.gradle.internal.vfs.VirtualFileSystem} which is not able to register any watches.
+ * A {@link FileSystemWatchingHandler} which is not able to register any watches.
  */
-public class NonWatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSystem implements WatchingAwareVirtualFileSystem {
+public class WatchingNotSupportedFileSystemWatchingHandler implements FileSystemWatchingHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(NonWatchingVirtualFileSystem.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WatchingNotSupportedFileSystemWatchingHandler.class);
+    private final AtomicSnapshotHierarchyReference snapshotHierarchyReference;
 
-    public NonWatchingVirtualFileSystem(AbstractVirtualFileSystem delegate) {
-        super(delegate);
+    public WatchingNotSupportedFileSystemWatchingHandler(AtomicSnapshotHierarchyReference snapshotHierarchyReference) {
+        this.snapshotHierarchyReference = snapshotHierarchyReference;
     }
 
     @Override
@@ -39,7 +41,7 @@ public class NonWatchingVirtualFileSystem extends AbstractDelegatingVirtualFileS
         if (watchingEnabled) {
             LOGGER.warn("Watching the file system is not supported on this operating system.");
         }
-        invalidateAll();
+        snapshotHierarchyReference.update(SnapshotHierarchy::empty);
     }
 
     @Override
@@ -48,6 +50,6 @@ public class NonWatchingVirtualFileSystem extends AbstractDelegatingVirtualFileS
 
     @Override
     public void beforeBuildFinished(boolean watchingEnabled) {
-        invalidateAll();
+        snapshotHierarchyReference.update(SnapshotHierarchy::empty);
     }
 }
