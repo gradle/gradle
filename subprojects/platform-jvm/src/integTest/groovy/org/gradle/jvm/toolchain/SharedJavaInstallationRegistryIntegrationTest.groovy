@@ -43,7 +43,10 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
         """
 
         when:
-        succeeds("show")
+        result = executer
+            .withArgument("-Porg.gradle.java.installations.auto-detect=false")
+            .withTasks("show")
+            .run()
 
         then:
         def currentVm = Jvm.current().getJavaHome().getAbsolutePath()
