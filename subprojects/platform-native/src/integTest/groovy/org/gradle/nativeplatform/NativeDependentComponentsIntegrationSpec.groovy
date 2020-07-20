@@ -18,6 +18,8 @@ package org.gradle.nativeplatform
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
+import spock.lang.Unroll
+
 class NativeDependentComponentsIntegrationSpec extends AbstractInstalledToolChainIntegrationSpec {
 
     def helloWorldApp = new ExeWithLibraryUsingLibraryHelloWorldApp()
@@ -53,6 +55,7 @@ class NativeDependentComponentsIntegrationSpec extends AbstractInstalledToolChai
         helloWorldApp.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
     }
 
+    @Unroll
     def "creates #taskPrefix dependents tasks"() {
         when:
         succeeds 'tasks'
@@ -73,6 +76,7 @@ class NativeDependentComponentsIntegrationSpec extends AbstractInstalledToolChai
         'build'    | _
     }
 
+    @Unroll
     def "#task triggers expected tasks only"() {
         when:
         succeeds task
