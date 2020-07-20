@@ -25,7 +25,7 @@ import spock.lang.Specification
 class CredentialsProviderFactoryTest extends Specification {
 
     def providerFactory = Mock(ProviderFactory)
-    def factory = new CredentialsProviderFactory(providerFactory)
+    def factory = new CredentialsProviderFactory(providerFactory, null)
 
     def "does not allow non-letters and non-digits for identity"() {
         when:

@@ -16,7 +16,7 @@
 
 package org.gradle.api.provider
 
-import groovy.transform.NotYetImplemented
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
@@ -265,15 +265,24 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         args '-PtestCredentialsUsername=user', '-PtestCredentialsPassword=secret', '--configuration-cache'
         succeeds 'finalTask'
 
+        def configurationCacheDirs = file('.gradle/configuration-cache/').listFiles().findAll { it.isDirectory() }
+        configurationCacheDirs.size() == 1
+        def configurationCacheFiles = configurationCacheDirs[0].listFiles()
+        configurationCacheFiles.size() == 2
+        configurationCacheFiles.each {
+            println it.name
+            def content = it.getText()
+            println(content)
+        }
+
         then:
         args '--configuration-cache'
         fails 'finalTask'
         failure.assertHasDescription("Credentials required for this build could not be resolved.")
     }
 
-    @NotYetImplemented
     @UnsupportedWithInstantExecution(because = "test checks behavior with configuration cache")
-    def "credential values are not stored in configuration cache`"() {
+    def "credential values are not stored in configuration cache"() {
         given:
         buildFile << """
             def firstTask = tasks.register('firstTask') {
@@ -299,6 +308,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         def configurationCacheFiles = configurationCacheDirs[0].listFiles()
         configurationCacheFiles.size() == 2
         configurationCacheFiles.each {
+            println it.name
             def content = it.getText()
             assert !content.contains('user-value')
             assert !content.contains('password-value')

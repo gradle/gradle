@@ -21,6 +21,7 @@ import org.gradle.api.credentials.Credentials;
 import org.gradle.api.file.FileContents;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource;
 import org.gradle.api.internal.provider.sources.FileBytesValueSource;
 import org.gradle.api.internal.provider.sources.FileTextValueSource;
@@ -45,12 +46,12 @@ public class DefaultProviderFactory implements ProviderFactory {
     private final ValueSourceProviderFactory valueSourceProviderFactory;
 
     public DefaultProviderFactory() {
-        this(null, null);
+        this(null, null, null);
     }
 
-    public DefaultProviderFactory(@Nullable ValueSourceProviderFactory valueSourceProviderFactory, @Nullable ListenerManager listenerManager) {
+    public DefaultProviderFactory(@Nullable ValueSourceProviderFactory valueSourceProviderFactory, @Nullable ListenerManager listenerManager, @Nullable GradleProperties gradleProperties) {
         this.valueSourceProviderFactory = valueSourceProviderFactory;
-        this.credentialsProviderFactory = new CredentialsProviderFactory(this);
+        this.credentialsProviderFactory = new CredentialsProviderFactory(this, gradleProperties);
         if (listenerManager != null) {
             listenerManager.addListener(credentialsProviderFactory);
         }
