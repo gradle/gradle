@@ -151,9 +151,17 @@ fun Task.attachedReportLocations() = when (this) {
     else -> emptyList()
 }
 
+fun File.isEmptyDirectory() = list()?.isEmpty() == true
+
 fun prepareReportForCiPublishing(report: File, projectName: String) {
     if (report.exists()) {
         if (report.isDirectory) {
+            report.listFiles()?.forEach {
+                if (it.isEmptyDirectory()) {
+                    // Remove empty directories to avoid it appearing in the result zip
+                    it.delete()
+                }
+            }
             val destFile = rootProject.layout.buildDirectory.file("report-$projectName-${report.name}.zip").get().asFile
             ant.withGroovyBuilder {
                 "zip"("destFile" to destFile) {
