@@ -23,6 +23,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.Sets;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -39,21 +40,22 @@ public class SharedJavaInstallationRegistry {
     private final Supplier<Set<File>> finalizedInstallations = Suppliers.memoize(this::mapToDirectories);
     private final AtomicBoolean finalized = new AtomicBoolean();
     private final Logger logger;
+    private final FileCanonicalizer canonicalizer;
 
     @Inject
-    public SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers) {
-        this(suppliers, Logging.getLogger(SharedJavaInstallationRegistry.class));
-
+    public SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers, FileCanonicalizer canonicalizer) {
+        this(suppliers, canonicalizer, Logging.getLogger(SharedJavaInstallationRegistry.class));
     }
 
-    private SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers, Logger logger) {
+    private SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers, FileCanonicalizer canonicalizer, Logger logger) {
         this.suppliers.addAll(suppliers);
+        this.canonicalizer = canonicalizer;
         this.logger = logger;
     }
 
     @VisibleForTesting
-    static SharedJavaInstallationRegistry withLogger(Logger logger) {
-        return new SharedJavaInstallationRegistry(Collections.emptyList(), logger);
+    static SharedJavaInstallationRegistry withLogger(FileCanonicalizer canonicalizer, Logger logger) {
+        return new SharedJavaInstallationRegistry(Collections.emptyList(), canonicalizer, logger);
     }
 
     void add(InstallationSupplier provider) {
@@ -76,6 +78,7 @@ public class SharedJavaInstallationRegistry {
             .flatMap(Set::stream)
             .filter(this::installationExists)
             .map(InstallationLocation::getLocation)
+            .map(canonicalizer::canonicalize)
             .collect(Collectors.toSet());
     }
 
