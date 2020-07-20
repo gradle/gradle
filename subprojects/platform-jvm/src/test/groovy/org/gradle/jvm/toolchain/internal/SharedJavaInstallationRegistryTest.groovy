@@ -22,8 +22,9 @@ import spock.lang.Unroll
 
 class SharedJavaInstallationRegistryTest extends Specification {
 
-    def registry = new SharedJavaInstallationRegistry(Collections.emptyList())
-    def tempFolder = createTempDir();
+    def canonicalizer = { File it -> it.canonicalFile }
+    def registry = new SharedJavaInstallationRegistry(Collections.emptyList(), canonicalizer)
+    def tempFolder = createTempDir()
 
     def "registry keeps track of newly added installations"() {
         when:
@@ -42,19 +43,32 @@ class SharedJavaInstallationRegistryTest extends Specification {
         registry.listInstallations() == [tempFolder] as Set
     }
 
+    def "duplicates are detected using canonical form"() {
+        given:
+        registry.add(forDirectory(tempFolder))
+        registry.add(forDirectory(new File(tempFolder, "/.")))
+
+        when:
+        def installations = registry.listInstallations()
+
+        then:
+        installations == [tempFolder] as Set
+    }
+
     def "can be initialized with suppliers"() {
         given:
         def tmpDir2 = createTempDir()
         def tmpDir3 = createTempDir()
 
         when:
-        def registry = new SharedJavaInstallationRegistry([forDirectory(tmpDir2), forDirectory(tmpDir3)]);
+        def registry = new SharedJavaInstallationRegistry([forDirectory(tmpDir2), forDirectory(tmpDir3)], canonicalizer)
         registry.add(forDirectory(tempFolder))
 
         then:
         registry.listInstallations().containsAll(tempFolder, tmpDir2, tmpDir2)
     }
 
+    @SuppressWarnings('GroovyAccessibility')
     def "registry cannot be mutated after finalizing"() {
         given:
         registry.add(forDirectory(tempFolder))
@@ -88,8 +102,8 @@ class SharedJavaInstallationRegistryTest extends Specification {
         registry.add(forDirectory(tempFolder))
 
         when:
-        def installations = registry.listInstallations();
-        def installations2 = registry.listInstallations();
+        def installations = registry.listInstallations()
+        def installations2 = registry.listInstallations()
 
         then:
         installations.is(installations2)
@@ -103,7 +117,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
         file.isDirectory() >> directory
         file.absolutePath >> path
         def logger = Mock(Logger)
-        def registry = SharedJavaInstallationRegistry.withLogger(logger)
+        def registry = SharedJavaInstallationRegistry.withLogger(canonicalizer, logger)
         registry.add(forDirectory(file))
 
         when:
@@ -120,14 +134,12 @@ class SharedJavaInstallationRegistryTest extends Specification {
     }
 
     InstallationSupplier forDirectory(File directory) {
-        {
-            it -> Collections.singleton(new InstallationLocation(directory, "testSource"))
-        }
+        { it -> Collections.singleton(new InstallationLocation(directory, "testSource")) }
     }
 
-    def File createTempDir() {
+    File createTempDir() {
         def file = File.createTempDir()
         file.deleteOnExit()
-        file
+        file.canonicalFile
     }
 }
