@@ -22,6 +22,7 @@ import spock.lang.IgnoreIf
 
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.NONE
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.REQUESTED
+import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.SUPPRESSED
 
 // Note: most of the other tests are structure to implicitly also exercise configuration caching
 // This tests some specific aspects, and serves as an early smoke test.
@@ -93,6 +94,29 @@ class GradleEnterprisePluginConfigurationCachingIntegrationTest extends Abstract
         then:
         plugin.notApplied(output)
         plugin.assertBuildScanRequest(output, REQUESTED)
+    }
+
+    def "does not consider scan arg part of key and provides value to service"() {
+        when:
+        succeeds "t", "--configuration-cache"
+
+        then:
+        plugin.appliedOnce(output)
+        plugin.assertBuildScanRequest(output, NONE)
+
+        when:
+        succeeds "t", "--configuration-cache", "--scan"
+
+        then:
+        plugin.notApplied(output)
+        plugin.assertBuildScanRequest(output, REQUESTED)
+
+        when:
+        succeeds "t", "--configuration-cache", "--no-scan"
+
+        then:
+        plugin.notApplied(output)
+        plugin.assertBuildScanRequest(output, SUPPRESSED)
     }
 
 }
