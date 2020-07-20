@@ -22,6 +22,7 @@ import com.google.common.collect.Sets;
 import com.google.common.io.CharSource;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import junit.framework.AssertionFailedError;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
@@ -64,6 +65,7 @@ import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.MalformedInputException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -98,6 +100,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private static final JvmVersionDetector JVM_VERSION_DETECTOR = GLOBAL_SERVICES.get(JvmVersionDetector.class);
 
     protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = Sets.newHashSet();
+    private static final String COULD_NOT_CANCEL_WATCH_POINT_MESSAGE = "Couldn't cancel watch point";
 
     // TODO - don't use statics to communicate between the test runner and executer
     public static void propagateSystemProperty(String name) {
@@ -871,6 +874,21 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         if (checkDaemonCrash) {
             analyzers.forEach(DaemonLogsAnalyzer::assertNoCrashedDaemon);
         }
+        analyzers.forEach(analyzer -> analyzer.getAllDaemons().forEach(daemon -> {
+            try {
+                if (daemon.logContains(COULD_NOT_CANCEL_WATCH_POINT_MESSAGE)) {
+                    throw new AssertionFailedError(String.format(
+                        "Daemon log contains a file watching error message. Path to daemon log: %s",
+                        daemon.getLogFile().getAbsolutePath()
+                    ));
+                }
+            } catch (java.io.UncheckedIOException e) {
+                // Ignore MalformedInputException when the file system encoding has been changed for the test.
+                if (!(e.getCause() instanceof MalformedInputException)) {
+                    throw e;
+                }
+            }
+        }));
     }
 
     private void assertVisitedExecutionResults() {
@@ -1252,7 +1270,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                         // Deprecation warning is expected
                         i++;
                         i = skipStackTrace(lines, i);
-                    } else if (line.contains("Couldn't cancel watch point")) {
+                    } else if (line.contains(COULD_NOT_CANCEL_WATCH_POINT_MESSAGE)) {
                         throw new AssertionError(String.format("%s line %d contains a file watching error message: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
                     } else if (line.matches(".*\\s+deprecated.*")) {
                         if (checkDeprecations && expectedGenericDeprecationWarnings <= 0) {

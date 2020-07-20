@@ -36,7 +36,7 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
     DaemonLogsAnalyzer(File daemonBaseDir, String version = GradleVersion.current().version) {
         this.version = version
         this.daemonBaseDir = daemonBaseDir
-        daemonLogsDir = new File(daemonBaseDir, version)
+        this.daemonLogsDir = new File(daemonBaseDir, version)
         def services = ServiceRegistryBuilder.builder()
             .parent(LoggingServiceRegistry.newEmbeddableLogging())
             .parent(NativeServicesTestFixture.getInstance())
