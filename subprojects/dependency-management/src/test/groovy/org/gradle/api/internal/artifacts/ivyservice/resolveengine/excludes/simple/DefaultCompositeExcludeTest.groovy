@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simp
 
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ArtifactExclude
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupExclude
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupSetExclude
@@ -137,8 +136,8 @@ class DefaultCompositeExcludeTest extends Specification {
         FACTORY.allOf((0..(1 + random.nextInt(3))).collect { next() } as Set<ExcludeSpec>)
     }
 
-    ArtifactExclude nextArtifact() {
-        FACTORY.artifact(randomModuleId(), randomArtifactName())
+    ExcludeSpec nextArtifact() {
+        FACTORY.ivyPatternExclude(randomModuleId(), randomArtifactName(), "*")
     }
 
     private String randomGroupName() {

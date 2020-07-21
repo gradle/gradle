@@ -24,23 +24,23 @@ public class DefaultArtifactTransforms implements ArtifactTransforms {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
-    private final TransformationNodeRegistry transformationNodeRegistry;
+    private final TransformedVariantFactory transformedVariantFactory;
 
     public DefaultArtifactTransforms(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributesSchemaInternal schema,
         ImmutableAttributesFactory attributesFactory,
-        TransformationNodeRegistry transformationNodeRegistry
+        TransformedVariantFactory transformedVariantFactory
     ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
-        this.transformationNodeRegistry = transformationNodeRegistry;
+        this.transformedVariantFactory = transformedVariantFactory;
     }
 
     @Override
     public VariantSelector variantSelector(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver) {
-        return new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, schema, attributesFactory, transformationNodeRegistry, consumerAttributes.asImmutable(), allowNoMatchingVariants, dependenciesResolver);
+        return new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, schema, attributesFactory, transformedVariantFactory, consumerAttributes.asImmutable(), allowNoMatchingVariants, dependenciesResolver);
     }
 
 }

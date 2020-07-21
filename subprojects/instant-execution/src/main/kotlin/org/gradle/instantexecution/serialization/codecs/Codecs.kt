@@ -22,6 +22,7 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
+import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileFactory
@@ -51,6 +52,7 @@ import org.gradle.instantexecution.serialization.codecs.transform.TransformDepen
 import org.gradle.instantexecution.serialization.codecs.transform.TransformationChainCodec
 import org.gradle.instantexecution.serialization.codecs.transform.TransformationNodeReferenceCodec
 import org.gradle.instantexecution.serialization.codecs.transform.TransformationStepCodec
+import org.gradle.instantexecution.serialization.codecs.transform.TransformedExternalArtifactSetCodec
 import org.gradle.instantexecution.serialization.ownerServiceCodec
 import org.gradle.instantexecution.serialization.reentrant
 import org.gradle.instantexecution.serialization.unsupported
@@ -110,6 +112,7 @@ class Codecs(
     actionScheme: ArtifactTransformActionScheme,
     attributesFactory: ImmutableAttributesFactory,
     transformListener: ArtifactTransformListener,
+    transformationNodeRegistry: TransformationNodeRegistry,
     valueSourceProviderFactory: ValueSourceProviderFactory,
     patternSetFactory: Factory<PatternSet>,
     fileOperations: FileOperations,
@@ -150,6 +153,7 @@ class Codecs(
         bind(ResolvableArtifactCodec)
         bind(TransformDependenciesCodec)
         bind(PublishArtifactLocalArtifactMetadataCodec)
+        bind(TransformedExternalArtifactSetCodec(transformationNodeRegistry))
 
         bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, instantiator))
         bind(DestinationRootCopySpecCodec(fileResolver))

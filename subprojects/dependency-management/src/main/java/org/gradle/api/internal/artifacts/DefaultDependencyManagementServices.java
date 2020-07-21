@@ -82,6 +82,7 @@ import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterSch
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformationRegistrationFactory;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
 import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesResolver;
@@ -92,6 +93,7 @@ import org.gradle.api.internal.artifacts.transform.Transformation;
 import org.gradle.api.internal.artifacts.transform.TransformationNode;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry;
 import org.gradle.api.internal.artifacts.transform.TransformationRegistrationFactory;
+import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.TransformerInvocationFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
@@ -361,6 +363,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             this.domainObjectContext = domainObjectContext;
         }
 
+        void configure(ServiceRegistration registration) {
+            registration.add(DefaultTransformedVariantFactory.class);
+        }
+
         AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport) {
             DefaultAttributesSchema attributesSchema = instantiatorFactory.decorateLenient().newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher(), instantiatorFactory, isolatableFactory);
             platformSupport.configureSchema(attributesSchema);
@@ -621,7 +627,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ComponentSelectorConverter componentSelectorConverter,
                                                        AttributeContainerSerializer attributeContainerSerializer,
                                                        BuildState currentBuild,
-                                                       TransformationNodeRegistry transformationNodeRegistry,
+                                                       TransformedVariantFactory transformedVariantFactory,
                                                        DependencyVerificationOverride dependencyVerificationOverride,
                                                        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
             return new ErrorHandlingConfigurationResolver(
@@ -640,7 +646,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                     attributesFactory),
                                             attributesSchema,
                                             attributesFactory,
-                                            transformationNodeRegistry
+                                            transformedVariantFactory
                                     ),
                                     moduleIdentifierFactory,
                                     buildOperationExecutor,
