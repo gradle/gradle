@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.io.CharSource;
 import groovy.lang.Closure;
@@ -73,6 +74,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
@@ -121,6 +124,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     protected final IntegrationTestBuildContext buildContext;
 
     private final Set<File> isolatedDaemonBaseDirs = new HashSet<>();
+    private final Set<File> daemonCrashLogsBeforeTest;
     private final Set<GradleHandle> running = new HashSet<>();
     private final List<ExecutionResult> results = new ArrayList<>();
     private final List<String> args = new ArrayList<>();
@@ -196,10 +200,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         this.distribution = distribution;
         this.testDirectoryProvider = testDirectoryProvider;
         this.gradleVersion = gradleVersion;
-        logger = Logging.getLogger(getClass());
+        this.logger = Logging.getLogger(getClass());
         this.buildContext = buildContext;
-        gradleUserHomeDir = buildContext.getGradleUserHomeDir();
-        daemonBaseDir = buildContext.getDaemonBaseDir();
+        this.gradleUserHomeDir = buildContext.getGradleUserHomeDir();
+        this.daemonBaseDir = buildContext.getDaemonBaseDir();
+        this.daemonCrashLogsBeforeTest = ImmutableSet.copyOf(DaemonLogsAnalyzer.findCrashLogs(daemonBaseDir));
     }
 
     protected Logger getLogger() {
@@ -374,6 +379,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
         if (requireDaemon) {
             executer.requireDaemon();
+        }
+        if (!checkDaemonCrash) {
+            executer.noDaemonCrashChecks();
         }
 
         executer.startBuildProcessInDebugger(debug);
@@ -843,6 +851,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     public void cleanup() {
         stopRunningBuilds();
         cleanupIsolatedDaemons();
+        checkForDaemonCrashesInSharedLocations();
         assertVisitedExecutionResults();
     }
 
@@ -870,6 +879,25 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         if (checkDaemonCrash) {
             analyzers.forEach(DaemonLogsAnalyzer::assertNoCrashedDaemon);
+        }
+    }
+
+    private void checkForDaemonCrashesInSharedLocations() {
+        checkForDaemonCrashes(getWorkingDir(), it -> true);
+        checkForDaemonCrashes(buildContext.getDaemonBaseDir(), crashLog -> !daemonCrashLogsBeforeTest.contains(crashLog));
+    }
+
+    private void checkForDaemonCrashes(File dirToSearch, Predicate<File> crashLogFilter) {
+        if (checkDaemonCrash) {
+            List<File> crashLogs = DaemonLogsAnalyzer.findCrashLogs(dirToSearch).stream()
+                .filter(crashLogFilter)
+                .collect(Collectors.toList());
+            if (!crashLogs.isEmpty()) {
+                throw new AssertionError(String.format(
+                    "Found crash logs: '%s'",
+                    crashLogs.stream().map(File::getAbsolutePath).collect(joining("', '"))
+                ));
+            }
         }
     }
 
@@ -1114,6 +1142,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private void afterBuildCleanup(ExecutionResult result) {
         afterExecute.execute(this);
         results.add(result);
+        checkForDaemonCrashes(getWorkingDir(), it -> true);
     }
 
     protected GradleHandle createGradleHandle() {
