@@ -39,7 +39,7 @@ Before running any task, Gradle needs to run the [configuration phase](userguide
 
 The configuration cache significantly improves build performance by caching the result of the configuration phase and reusing it for subsequent builds. Using the configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed as you can see below.
 
-<img src="userguide/img/configuration-cache-effect.gif">
+<img src="userguide/img/configuration-cache/running-help.gif">
 
 Additionally, Gradle is able to optimize task execution when configuration caching is enabled and execute more tasks in parallel by default.
 
