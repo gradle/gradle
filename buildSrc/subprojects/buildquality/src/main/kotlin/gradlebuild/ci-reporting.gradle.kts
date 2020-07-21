@@ -24,6 +24,12 @@ import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.performance.tasks.DistributedPerformanceTest
 import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
+import java.io.FileOutputStream
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 /**
  * When run from a Continuous Integration environment, we only want to archive a subset of reports, mostly for
@@ -95,13 +101,13 @@ fun prepareReportsForCiPublishing(failedTasks: List<Task>, executedTasks: List<T
 
 fun Project.tmpTestFiles() =
     layout.buildDirectory.dir("tmp/test files").get().asFile.listFiles()?.filter {
-        var nonEmpty = false
-        project.fileTree(it).visit {
-            if (!isDirectory) {
-                nonEmpty = true
-            }
+        Files.walk(it.toPath()).use { paths ->
+            paths
+                .filter { it -> !Files.isDirectory(it) }
+                .findAny()
+                .isPresent
+
         }
-        nonEmpty
     }?.map {
         it to name
     } ?: emptyList()
@@ -157,16 +163,19 @@ fun File.isEmptyDirectory() = list()?.isEmpty() == true
 fun prepareReportForCiPublishing(report: File, projectName: String) {
     if (report.exists()) {
         if (report.isDirectory) {
-            report.listFiles()?.forEach {
-                if (it.isEmptyDirectory()) {
-                    // Remove empty directories to avoid it appearing in the result zip
-                    it.delete()
-                }
-            }
             val destFile = rootProject.layout.buildDirectory.file("report-$projectName-${report.name}.zip").get().asFile
-            ant.withGroovyBuilder {
-                "zip"("destFile" to destFile) {
-                    "fileset"("dir" to report)
+            destFile.parentFile.mkdirs()
+            ZipOutputStream(FileOutputStream(destFile), StandardCharsets.UTF_8).use { zipOutput ->
+                val reportPath = report.toPath()
+                Files.walk(reportPath).use { paths ->
+                    paths
+                        .filter { Files.isRegularFile(it, LinkOption.NOFOLLOW_LINKS) }
+                        .forEach { path ->
+                            val zipEntry = ZipEntry(reportPath.relativize(path).toString())
+                            zipOutput.putNextEntry(zipEntry)
+                            Files.copy(path, zipOutput)
+                            zipOutput.closeEntry()
+                        }
                 }
             }
         } else {
