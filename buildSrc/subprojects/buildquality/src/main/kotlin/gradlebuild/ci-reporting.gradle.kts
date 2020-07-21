@@ -66,6 +66,7 @@ fun getCleanUpPolicy(childProjectName: String) = childProjects[childProjectName]
 
 fun verifyTestFilesCleanup(failedTasks: List<Task>, tmpTestFiles: List<Pair<File, String>>) {
     if (failedTasks.any { it is Test }) {
+        println("Leftover files: ${tmpTestFiles}")
         return
     }
 
