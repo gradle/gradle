@@ -26,7 +26,6 @@ import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.CrossVersionResultsStore
-import org.gradle.performance.results.SlackReporter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -44,7 +43,6 @@ import spock.lang.Specification
 class AbstractCrossVersionGradleInternalPerformanceTest extends Specification {
 
     private static def resultStore = new CrossVersionResultsStore()
-    private static def reporter = SlackReporter.wrap(resultStore)
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider(getClass())
@@ -60,7 +58,7 @@ class AbstractCrossVersionGradleInternalPerformanceTest extends Specification {
         runner = new GradleInternalCrossVersionPerformanceTestRunner(
             new GradleInternalBuildExperimentRunner(new GradleSessionProvider(buildContext)),
             resultStore,
-            reporter,
+            resultStore,
             new ReleasedVersionDistributions(buildContext),
             buildContext
         )
@@ -77,7 +75,6 @@ class AbstractCrossVersionGradleInternalPerformanceTest extends Specification {
         // TODO - find a better way to cleanup
         System.addShutdownHook {
             resultStore.close()
-            reporter.close()
         }
     }
 }
