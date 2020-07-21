@@ -17,13 +17,13 @@ package gradlebuild
 
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.classycle.tasks.Classycle
-import gradlebuild.cleanup.extension.TestFileCleanUpExtension
 import gradlebuild.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.extension.TestFileCleanUpExtension
+import gradlebuild.docs.FindBrokenInternalLinks
 import gradlebuild.integrationtests.tasks.DistributionTest
+import gradlebuild.performance.tasks.DistributedPerformanceTest
 import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
-import gradlebuild.docs.FindBrokenInternalLinks
-import gradlebuild.performance.tasks.DistributedPerformanceTest
 
 /**
  * When run from a Continuous Integration environment, we only want to archive a subset of reports, mostly for
@@ -66,7 +66,7 @@ fun getCleanUpPolicy(childProjectName: String) = childProjects[childProjectName]
 
 fun verifyTestFilesCleanup(failedTasks: List<Task>, tmpTestFiles: List<Pair<File, String>>) {
     if (failedTasks.any { it is Test }) {
-        println("Leftover files: ${tmpTestFiles}")
+        println("Leftover files: $tmpTestFiles")
         return
     }
 
