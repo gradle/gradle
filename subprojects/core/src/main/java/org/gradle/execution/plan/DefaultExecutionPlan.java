@@ -28,8 +28,11 @@ import org.gradle.api.BuildCancelledException;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.provider.CredentialsProviderFactory;
+import org.gradle.api.internal.provider.MissingValueException;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Pair;
@@ -51,12 +54,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A reusable implementation of ExecutionPlan. The {@link #addEntryTasks(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these methods.
@@ -512,7 +517,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             return null;
         }
 
-        for (Iterator<Node> iterator = dependenciesWhichRequireMonitoring.iterator(); iterator.hasNext();) {
+        for (Iterator<Node> iterator = dependenciesWhichRequireMonitoring.iterator(); iterator.hasNext(); ) {
             Node node = iterator.next();
             if (node.isComplete()) {
                 LOGGER.debug("Monitored node {} completed", node);
@@ -891,6 +896,27 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     @Override
     public int size() {
         return nodeMapping.getNumberOfPublicNodes();
+    }
+
+    @Override
+    public void ensureCredentialsAreAvailable() {
+        Set<String> missingProviderErrors = new HashSet<>();
+        for (Node node : executionQueue) {
+            if (node instanceof ActionNode) {
+                ActionNode actionNode = (ActionNode) node;
+                if (actionNode.getAction() instanceof CredentialsProviderFactory.ResolveCredentialsWorkNodeAction) {
+                    try {
+                        actionNode.getAction().run(null);
+                    } catch (MissingValueException e) {
+                        missingProviderErrors.add(e.getMessage());
+                    }
+                }
+            }
+        }
+        if (!missingProviderErrors.isEmpty()) {
+            throw new ProjectConfigurationException("Credentials required for this build could not be resolved.",
+                missingProviderErrors.stream().map(MissingValueException::new).collect(Collectors.toList()));
+        }
     }
 
     private static class GraphEdge {

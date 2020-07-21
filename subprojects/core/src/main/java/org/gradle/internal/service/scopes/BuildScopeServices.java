@@ -337,7 +337,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         ListenerManager listenerManager,
         GradleProperties gradleProperties
     ) {
-        return instantiator.newInstance(DefaultProviderFactory.class, valueSourceProviderFactory, listenerManager, gradleProperties);
+        return instantiator.newInstance(DefaultProviderFactory.class, valueSourceProviderFactory);
     }
 
     protected ActorFactory createActorFactory() {

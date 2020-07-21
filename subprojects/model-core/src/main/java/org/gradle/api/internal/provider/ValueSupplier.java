@@ -19,6 +19,8 @@ package org.gradle.api.internal.provider;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 
@@ -95,6 +97,10 @@ public interface ValueSupplier {
         static ValueProducer taskState(Task task) {
             return new TaskProducer(task, false);
         }
+
+        static ValueProducer nodeAction(WorkNodeAction action) {
+            return new WorkNodeActionProducer(action);
+        }
     }
 
     class ExternalValueProducer implements ValueProducer {
@@ -110,6 +116,29 @@ public interface ValueSupplier {
 
         @Override
         public void visitProducerTasks(Action<? super Task> visitor) {
+        }
+    }
+
+    class WorkNodeActionProducer implements ValueProducer {
+        private final WorkNodeAction action;
+
+        public WorkNodeActionProducer(WorkNodeAction action) {
+            this.action = action;
+        }
+
+        @Override
+        public boolean isKnown() {
+            return true;
+        }
+
+        @Override
+        public boolean isProducesDifferentValueOverTime() {
+            return true;
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            ((TaskDependencyResolveContext)visitor).add(action);
         }
     }
 

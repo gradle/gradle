@@ -16,20 +16,22 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.ProjectConfigurationException;
+import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.credentials.PasswordCredentials;
-import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.api.internal.provider.sources.GradlePropertyValueSource;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
+import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
 import org.gradle.internal.credentials.DefaultPasswordCredentials;
@@ -40,55 +42,30 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
-public class CredentialsProviderFactory implements TaskExecutionGraphListener {
+public class CredentialsProviderFactory {
 
     private final ProviderFactory providerFactory;
-    private final GradleProperties gradleProperties;
 
-    private final Map<String, Provider<PasswordCredentials>> passwordProviders = new ConcurrentHashMap<>();
-    private final Map<String, Provider<AwsCredentials>> awsProviders = new ConcurrentHashMap<>();
-
-    private final Map<String, InterceptingProvider<?>> requiredByExecution = new ConcurrentHashMap<>();
-
-    private final Set<String> missingProviderErrors = ConcurrentHashMap.newKeySet();
-
-    public CredentialsProviderFactory(ProviderFactory providerFactory, GradleProperties gradleProperties) {
+    public CredentialsProviderFactory(ProviderFactory providerFactory) {
         this.providerFactory = providerFactory;
-        this.gradleProperties = gradleProperties;
     }
 
-    @SuppressWarnings("unchecked")
     public <T extends Credentials> Provider<T> provide(Class<T> credentialsType, String identity) {
         validateIdentity(identity);
 
-        if (PasswordCredentials.class.isAssignableFrom(credentialsType)) {
-            return (Provider<T>) passwordProviders.computeIfAbsent(identity, this::passwordCredentialsProvider);
-        }
-        if (AwsCredentials.class.isAssignableFrom(credentialsType)) {
-            return (Provider<T>) awsProviders.computeIfAbsent(identity, this::awsCredentialsProvider);
-        }
-
-        throw new IllegalArgumentException(String.format("Unsupported credentials type: %s", credentialsType));
+        return provide(credentialsType, providerFactory.provider(() -> identity));
     }
 
     public <T extends Credentials> Provider<T> provide(Class<T> credentialsType, Provider<String> identity) {
-        return new DefaultProvider<>(() -> provide(credentialsType, identity.get()).getOrNull());
-    }
-
-    @Override
-    public void graphPopulated(TaskExecutionGraph graph) {
-        requiredByExecution.values().forEach(p -> {
-            p.assertRequiredPropertiesPresent(gradleProperties);
-        });
-        if (!missingProviderErrors.isEmpty()) {
-            throw new ProjectConfigurationException("Credentials required for this build could not be resolved.",
-                missingProviderErrors.stream().map(MissingValueException::new).collect(Collectors.toList()));
+        if (PasswordCredentials.class.isAssignableFrom(credentialsType)) {
+            return Cast.uncheckedCast(passwordCredentialsProvider(identity));
         }
+        if (AwsCredentials.class.isAssignableFrom(credentialsType)) {
+            return Cast.uncheckedCast(awsCredentialsProvider(identity));
+        }
+
+        throw new IllegalArgumentException(String.format("Unsupported credentials type: %s", credentialsType));
     }
 
     private static void validateIdentity(@Nullable String identity) {
@@ -97,34 +74,20 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
         }
     }
 
-    private Provider<PasswordCredentials> passwordCredentialsProvider(String identity) {
-        String usernameProperty = identity + "Username";
-        String passwordProperty = identity + "Password";
+    private Provider<PasswordCredentials> passwordCredentialsProvider(Provider<String> identity) {
         Provider<PasswordCredentials> provider = providerFactory.of(
             PasswordCredentialsValueSource.class,
-            spec -> {
-                spec.getParameters().getIdentity().set(identity);
-                spec.getParameters().getUsernameProperty().set(usernameProperty);
-                spec.getParameters().getPasswordProperty().set(passwordProperty);
-            }
+            spec -> spec.getParameters().getPropertyName().set(identity)
         );
-        return new InterceptingProvider<>(provider, identity, Arrays.asList(usernameProperty, passwordProperty));
+        return new InterceptingProvider<>(provider);
     }
 
-    private Provider<AwsCredentials> awsCredentialsProvider(String identity) {
-        String accessKeyProperty = identity + "AccessKey";
-        String secretKeyProperty = identity + "SecretKey";
-        String sessionTokenProperty = identity + "SessionToken";
+    private Provider<AwsCredentials> awsCredentialsProvider(Provider<String> identity) {
         Provider<AwsCredentials> provider = providerFactory.of(
             AwsCredentialsValueSource.class,
-            spec -> {
-                spec.getParameters().getIdentity().set(identity);
-                spec.getParameters().getAccessKeyProperty().set(accessKeyProperty);
-                spec.getParameters().getSecretKeyProperty().set(secretKeyProperty);
-                spec.getParameters().getSessionTokenProperty().set(sessionTokenProperty);
-            }
+            spec -> spec.getParameters().getIdentity().set(identity)
         );
-        return new InterceptingProvider<>(provider, identity, Arrays.asList(accessKeyProperty, secretKeyProperty));
+        return new InterceptingProvider<>(provider);
     }
 
     @Nullable
@@ -155,29 +118,17 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
         }
     }
 
-    private class InterceptingProvider<T> implements ProviderInternal<T> {
+    private static class InterceptingProvider<T extends Credentials> implements ProviderInternal<T> {
 
         private final ProviderInternal<T> delegate;
-        private final String identity;
-        private final List<String> requiredProperties;
 
-        public InterceptingProvider(Provider<T> delegate, String identity, List<String> requiredProperties) {
-            this.delegate = (ProviderInternal<T>) delegate.forUseAtConfigurationTime();
-            this.identity = identity;
-            this.requiredProperties = requiredProperties;
-        }
-
-        void assertRequiredPropertiesPresent(GradleProperties gradleProperties) {
-            String error = CredentialsProviderFactory.getMissingPropertiesError(identity, requiredProperties, gradleProperties);
-            if (error != null) {
-                missingProviderErrors.add(error);
-            }
+        public InterceptingProvider(Provider<T> delegate) {
+            this.delegate = (ProviderInternal<T>) delegate;
         }
 
         @Override
         public ValueProducer getProducer() {
-            requiredByExecution.putIfAbsent(identity, this);
-            return delegate.getProducer();
+            return delegate.getProducer().plus(ValueProducer.nodeAction(new ResolveCredentialsWorkNodeAction(this)));
         }
 
         @Override
@@ -254,30 +205,44 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
 
         @Override
         public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-            //return ExecutionTimeValue.changingValue(delegate);
             return delegate.calculateExecutionTimeValue();
         }
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            requiredByExecution.putIfAbsent(identity, this);
+            context.add(new ResolveCredentialsWorkNodeAction(delegate));
             delegate.visitDependencies(context);
+        }
+    }
+
+    public static class ResolveCredentialsWorkNodeAction implements WorkNodeAction {
+        private final Provider<?> provider;
+
+        public ResolveCredentialsWorkNodeAction(Provider<?> provider) {
+            this.provider = provider;
+        }
+
+        public Provider<?> getProvider() {
+            return provider;
+        }
+
+        @Nullable
+        @Override
+        public Project getProject() {
+            return null;
+        }
+
+        @Override
+        public void run(NodeExecutionContext context) {
+            provider.get();
         }
     }
 
 }
 
-abstract class PasswordCredentialsValueSource implements ValueSource<PasswordCredentials, PasswordCredentialsValueSource.Parameters> {
+abstract class PasswordCredentialsValueSource implements ValueSource<PasswordCredentials, GradlePropertyValueSource.Parameters> {
 
     private final GradleProperties gradleProperties;
-
-    public interface Parameters extends ValueSourceParameters {
-        Property<String> getIdentity();
-
-        Property<String> getUsernameProperty();
-
-        Property<String> getPasswordProperty();
-    }
 
     @Inject
     public PasswordCredentialsValueSource(GradleProperties gradleProperties) {
@@ -287,9 +252,10 @@ abstract class PasswordCredentialsValueSource implements ValueSource<PasswordCre
     @Nullable
     @Override
     public PasswordCredentials obtain() {
-        String usernamePropertyName = getParameters().getUsernameProperty().get();
-        String passwordPropertyName = getParameters().getPasswordProperty().get();
-        CredentialsProviderFactory.assertRequiredValuesPresent(getParameters().getIdentity().get(), Arrays.asList(usernamePropertyName, passwordPropertyName), gradleProperties);
+        String identity = getParameters().getPropertyName().get();
+        String usernamePropertyName = identity + "Username";
+        String passwordPropertyName = identity + "Password";
+        CredentialsProviderFactory.assertRequiredValuesPresent(identity, Arrays.asList(usernamePropertyName, passwordPropertyName), gradleProperties);
 
         String usernameValue = gradleProperties.find(usernamePropertyName);
         String passwordValue = gradleProperties.find(passwordPropertyName);
@@ -304,12 +270,6 @@ abstract class AwsCredentialsValueSource implements ValueSource<AwsCredentials, 
 
     public interface Parameters extends ValueSourceParameters {
         Property<String> getIdentity();
-
-        Property<String> getAccessKeyProperty();
-
-        Property<String> getSecretKeyProperty();
-
-        Property<String> getSessionTokenProperty();
     }
 
     @Inject
@@ -320,13 +280,15 @@ abstract class AwsCredentialsValueSource implements ValueSource<AwsCredentials, 
     @Nullable
     @Override
     public AwsCredentials obtain() {
-        String accessKeyPropertyName = getParameters().getAccessKeyProperty().get();
-        String secretKeyPropertyName = getParameters().getSecretKeyProperty().get();
+        String identity = getParameters().getIdentity().get();
+        String accessKeyPropertyName = identity + "AccessKey";
+        String secretKeyPropertyName = identity + "SecretKey";
+        String sessionTokenPropertyName = identity + "SessionToken";
         CredentialsProviderFactory.assertRequiredValuesPresent(getParameters().getIdentity().get(), Arrays.asList(accessKeyPropertyName, secretKeyPropertyName), gradleProperties);
 
         String accessKey = gradleProperties.find(accessKeyPropertyName);
         String secretKey = gradleProperties.find(secretKeyPropertyName);
-        String sessionToken = gradleProperties.find(getParameters().getSessionTokenProperty().get());
+        String sessionToken = gradleProperties.find(sessionTokenPropertyName);
 
         AwsCredentials credentials = new DefaultAwsCredentials();
         credentials.setAccessKey(accessKey);

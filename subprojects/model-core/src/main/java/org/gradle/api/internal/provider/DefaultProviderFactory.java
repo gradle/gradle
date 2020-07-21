@@ -46,15 +46,12 @@ public class DefaultProviderFactory implements ProviderFactory {
     private final ValueSourceProviderFactory valueSourceProviderFactory;
 
     public DefaultProviderFactory() {
-        this(null, null, null);
+        this(null);
     }
 
-    public DefaultProviderFactory(@Nullable ValueSourceProviderFactory valueSourceProviderFactory, @Nullable ListenerManager listenerManager, @Nullable GradleProperties gradleProperties) {
+    public DefaultProviderFactory(@Nullable ValueSourceProviderFactory valueSourceProviderFactory) {
         this.valueSourceProviderFactory = valueSourceProviderFactory;
-        this.credentialsProviderFactory = new CredentialsProviderFactory(this, gradleProperties);
-        if (listenerManager != null) {
-            listenerManager.addListener(credentialsProviderFactory);
-        }
+        this.credentialsProviderFactory = new CredentialsProviderFactory(this);
     }
 
     @Override
