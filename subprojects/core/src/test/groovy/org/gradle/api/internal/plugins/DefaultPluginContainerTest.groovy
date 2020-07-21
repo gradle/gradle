@@ -67,14 +67,14 @@ class DefaultPluginContainerTest extends Specification {
 
     def "offers plugin management via plugin id"() {
         when:
-        def p = container.apply(plugin1Class)
+        def plugin = container.apply(plugin1Class)
 
         then:
-        p.is(container.apply("plugin"))
-        p.is(container.apply(plugin1Class))
+        plugin.is(container.apply("plugin"))
+        plugin.is(container.apply(plugin1Class))
 
-        p.is(container.findPlugin(plugin1Class))
-        p.is(container.findPlugin("plugin"))
+        plugin.is(container.findPlugin(plugin1Class))
+        plugin.is(container.findPlugin("plugin"))
 
         !container.findPlugin(UnknownPlugin)
         !container.findPlugin("unknown")
@@ -92,14 +92,14 @@ class DefaultPluginContainerTest extends Specification {
 
     def "offers plugin management via plugin type"() {
         when:
-        def p = container.apply(plugin1Class)
+        def plugin = container.apply(plugin1Class)
 
         then:
-        p.is(container.apply(plugin1Class))
-        p.is(container.findPlugin(plugin1Class))
+        plugin.is(container.apply(plugin1Class))
+        plugin.is(container.findPlugin(plugin1Class))
         container.hasPlugin(plugin1Class)
 
-        !p.is(container.findPlugin(plugin2Class))
+        !plugin.is(container.findPlugin(plugin2Class))
         !container.hasPlugin(plugin2Class)
     }
 
