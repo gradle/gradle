@@ -3,7 +3,6 @@ package projects
 import Gradle_Check.model.GradleBuildBucketProvider
 import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.projectFeatures.VersionedSettings
 import jetbrains.buildServer.configs.kotlin.v2019_2.projectFeatures.versionedSettings
