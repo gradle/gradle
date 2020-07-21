@@ -111,17 +111,17 @@ class DefaultPluginContainerTest extends Specification {
         class TestPlugin1 implements Plugin<Project> {
           void apply(Project project) {}
           @javax.inject.Inject
-          public org.gradle.internal.reflect.Instantiator getter() {
-            throw new NullPointerException();
+          public org.gradle.internal.reflect.Instantiator getInstantiator() {
+            throw UnsupportedOperationException();
           }
         }
     """)
-        def p = container.apply(basePluginClass)
+        def plugin = container.apply(basePluginClass)
 
         then:
         container.hasPlugin(basePluginClass)
-        container.getPlugin(basePluginClass) == p
-        container.findPlugin(basePluginClass) == p
+        container.getPlugin(basePluginClass) == plugin
+        container.findPlugin(basePluginClass) == plugin
     }
 
     def "does not find plugin by unknown id"() {
