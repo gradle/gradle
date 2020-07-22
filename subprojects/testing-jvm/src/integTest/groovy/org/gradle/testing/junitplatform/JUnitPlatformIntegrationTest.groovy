@@ -414,7 +414,7 @@ public class StaticInnerTest {
     }
 
     @Unroll
-    @Issue("https://github.com/junit-team/junit5/issues/2028 and https://github.com/junit-team/junit5/issues/12073")
+    @Issue("https://github.com/junit-team/junit5/issues/2028 and https://github.com/gradle/gradle/issues/12073")
     def 'properly fails when engine fails during discovery #scenario'() {
         given:
         createSimpleJupiterTest()
