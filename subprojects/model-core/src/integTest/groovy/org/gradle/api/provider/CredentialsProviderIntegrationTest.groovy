@@ -265,16 +265,6 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         args '-PtestCredentialsUsername=user', '-PtestCredentialsPassword=secret', '--configuration-cache'
         succeeds 'finalTask'
 
-        def configurationCacheDirs = file('.gradle/configuration-cache/').listFiles().findAll { it.isDirectory() }
-        configurationCacheDirs.size() == 1
-        def configurationCacheFiles = configurationCacheDirs[0].listFiles()
-        configurationCacheFiles.size() == 2
-        configurationCacheFiles.each {
-            println it.name
-            def content = it.getText()
-            println(content)
-        }
-
         then:
         args '--configuration-cache'
         fails 'finalTask'
