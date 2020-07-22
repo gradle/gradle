@@ -17,6 +17,7 @@
 package org.gradle.internal.watch
 
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import spock.lang.IgnoreIf
 
@@ -71,10 +72,10 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
             apply plugin: "java"
         """
         executer.expectDocumentedDeprecationWarning(
-            "Using the system property org.gradle.unsafe.vfs.retention to enable watching the file system has been deprecated. " +
-                "This is scheduled to be removed in Gradle 7.0. " +
-                "Use the gradle property org.gradle.unsafe.watch-fs instead. " +
-                "See https://docs.gradle.org/current/userguide/gradle_daemon.html for more details."
+                "Using the system property org.gradle.unsafe.vfs.retention to enable watching the file system has been deprecated. " +
+                        "This is scheduled to be removed in Gradle 7.0. " +
+                        "Use the gradle property org.gradle.unsafe.watch-fs instead. " +
+                        "See https://docs.gradle.org/current/userguide/gradle_daemon.html for more details."
         )
 
         expect:
