@@ -24,6 +24,7 @@ import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.instantexecution.InstantExecutionCacheAction
 import org.gradle.instantexecution.InstantExecutionCacheAction.LOAD
 import org.gradle.instantexecution.InstantExecutionCacheAction.STORE
+import org.gradle.instantexecution.InstantExecutionCacheKey
 import org.gradle.instantexecution.InstantExecutionProblemsException
 import org.gradle.instantexecution.InstantExecutionReport
 import org.gradle.instantexecution.TooManyInstantExecutionProblemsException
@@ -32,6 +33,7 @@ import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 
 
@@ -47,6 +49,9 @@ class InstantExecutionProblems(
 
     private
     val report: InstantExecutionReport,
+
+    private
+    val cacheKey: InstantExecutionCacheKey,
 
     private
     val listenerManager: ListenerManager
@@ -125,17 +130,18 @@ class InstantExecutionProblems(
                 return
             }
             val cacheActionText = requireNotNull(cacheAction).summaryText()
-            report.writeReportFiles(cacheActionText, problems)
+            val outputDirectory = outputDirectoryFor(result.gradle?.rootProject?.buildDir ?: startParameter.rootDirectory)
+            val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, problems)
             when {
                 isFailOnProblems -> {
                     // TODO - always include this as a build failure; currently it is disabled when a serialization problem happens
-                    throw newProblemsException(cacheActionText)
+                    throw newProblemsException(cacheActionText, htmlReportFile)
                 }
                 problems.size > startParameter.maxProblems -> {
-                    throw newTooManyProblemsException(cacheActionText)
+                    throw newTooManyProblemsException(cacheActionText, htmlReportFile)
                 }
                 else -> {
-                    report.logConsoleSummary(cacheActionText, problems)
+                    logger.warn(report.consoleSummaryFor(cacheActionText, problems, htmlReportFile))
                 }
             }
         }
@@ -148,22 +154,31 @@ class InstantExecutionProblems(
             }
 
         private
-        fun newProblemsException(cacheActionText: String) =
+        fun newProblemsException(cacheActionText: String, htmlReportFile: File) =
             InstantExecutionProblemsException(
                 problems.causes(),
                 cacheActionText,
                 problems,
-                report.htmlReportFile
+                htmlReportFile
             )
 
         private
-        fun newTooManyProblemsException(cacheActionText: String) =
+        fun newTooManyProblemsException(cacheActionText: String, htmlReportFile: File) =
             TooManyInstantExecutionProblemsException(
                 problems.causes(),
                 cacheActionText,
                 problems,
-                report.htmlReportFile
+                htmlReportFile
             )
+
+        private
+        fun outputDirectoryFor(buildDir: File): File =
+            buildDir.resolve("reports/configuration-cache/$cacheKey").let { base ->
+                if (!base.exists()) base
+                else generateSequence(1) { it + 1 }
+                    .map { base.resolveSibling("${base.name}-$it") }
+                    .first { !it.exists() }
+            }
     }
 
     private
@@ -187,13 +202,13 @@ class InstantExecutionProblems(
         val problemCount: String
             get() = if (problems.size == 1) "1 problem"
             else "${problems.size} problems"
-
-        private
-        fun log(msg: String, vararg args: Any = emptyArray()) {
-            logger.warn(msg, *args)
-        }
-
-        private
-        val logger = Logging.getLogger(InstantExecutionProblems::class.java)
     }
+
+    private
+    fun log(msg: String, vararg args: Any = emptyArray()) {
+        logger.warn(msg, *args)
+    }
+
+    private
+    val logger = Logging.getLogger(InstantExecutionProblems::class.java)
 }
