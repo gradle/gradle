@@ -222,14 +222,6 @@ public class CredentialsProviderFactory {
             this.provider = provider;
         }
 
-        public ResolveCredentialsWorkNodeAction() {
-            this.provider = null;
-        }
-
-        public Provider<?> getProvider() {
-            return provider;
-        }
-
         @Nullable
         @Override
         public Project getProject() {
@@ -238,7 +230,6 @@ public class CredentialsProviderFactory {
 
         @Override
         public void run(NodeExecutionContext context) {
-            System.out.println("Context: " + context);
             provider.get();
         }
     }

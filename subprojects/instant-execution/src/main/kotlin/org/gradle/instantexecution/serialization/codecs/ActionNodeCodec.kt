@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.api.internal.provider.CredentialsProviderFactory
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.WorkNodeAction
-import org.gradle.api.provider.Provider
 import org.gradle.execution.plan.ActionNode
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
@@ -40,10 +39,9 @@ internal class ActionNodeCodec(
             return
         } else if (value.action is CredentialsProviderFactory.ResolveCredentialsWorkNodeAction) {
             val action = value.action as CredentialsProviderFactory.ResolveCredentialsWorkNodeAction
-            val provider = action.provider
             writeByte(0)
             withCodec(userTypesCodec) {
-                write(provider)
+                write(action)
             }
         } else {
             logNotImplemented(value.action.javaClass)
@@ -53,10 +51,10 @@ internal class ActionNodeCodec(
     override suspend fun ReadContext.decode(): ActionNode? {
         when (readByte()) {
             0.toByte() -> {
-                val provider = withCodec(userTypesCodec) {
-                    readNonNull<Provider<Any>>()
+                val action = withCodec(userTypesCodec) {
+                    readNonNull<CredentialsProviderFactory.ResolveCredentialsWorkNodeAction>()
                 }
-                return ActionNode(CredentialsProviderFactory.ResolveCredentialsWorkNodeAction(provider))
+                return ActionNode(action)
             }
             else -> return ActionNode(object : WorkNodeAction {
                 override fun run(context: NodeExecutionContext) {
