@@ -33,18 +33,9 @@ public class WorkNodeDependencyResolver implements DependencyResolver {
         }
 
         WorkNodeAction action = (WorkNodeAction) node;
-        ActionNode actionNode = actionNodeFor(action);
+        ActionNode actionNode = nodesForAction.computeIfAbsent(action, ActionNode::new);
         resolveAction.execute(actionNode);
         return true;
-    }
-
-    private ActionNode actionNodeFor(WorkNodeAction action) {
-        ActionNode actionNode = nodesForAction.get(action);
-        if (actionNode == null) {
-            actionNode = new ActionNode(action);
-            nodesForAction.put(action, actionNode);
-        }
-        return actionNode;
     }
 
     @Override

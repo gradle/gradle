@@ -33,6 +33,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.provider.CredentialsProviderFactory;
 import org.gradle.api.internal.provider.MissingValueException;
+import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Pair;
@@ -73,6 +74,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Set<Node> entryNodes = new LinkedHashSet<>();
     private final NodeMapping nodeMapping = new NodeMapping();
     private final List<Node> executionQueue = Lists.newLinkedList();
+    private final List<WorkNodeAction> credentialsResolvers = new ArrayList<>();
     private final Set<ResourceLock> projectLocks = Sets.newHashSet();
     private final FailureCollector failureCollector = new FailureCollector();
     private final TaskNodeFactory taskNodeFactory;
@@ -331,9 +333,16 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
         executionQueue.clear();
         dependencyResolver.clear();
-        Iterables.addAll(executionQueue, nodeMapping);
-        for (Node node : executionQueue) {
+        for (Node node : nodeMapping) {
+            executionQueue.add(node);
             maybeNodesReady |= node.updateAllDependenciesComplete() && node.isReady();
+            if (node instanceof ActionNode) {
+                ActionNode actionNode = (ActionNode) node;
+                WorkNodeAction action = actionNode.getAction();
+                if (action instanceof CredentialsProviderFactory.ResolveCredentialsWorkNodeAction) {
+                    credentialsResolvers.add(action);
+                }
+            }
         }
         this.dependenciesWhichRequireMonitoring.addAll(dependenciesWhichRequireMonitoring);
     }
@@ -517,7 +526,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             return null;
         }
 
-        for (Iterator<Node> iterator = dependenciesWhichRequireMonitoring.iterator(); iterator.hasNext();) {
+        for (Iterator<Node> iterator = dependenciesWhichRequireMonitoring.iterator(); iterator.hasNext(); ) {
             Node node = iterator.next();
             if (node.isComplete()) {
                 LOGGER.debug("Monitored node {} completed", node);
@@ -901,18 +910,13 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     @Override
     public void ensureCredentialsAreAvailable() {
         Set<String> missingProviderErrors = new HashSet<>();
-        for (Node node : executionQueue) {
-            if (node instanceof ActionNode) {
-                ActionNode actionNode = (ActionNode) node;
-                if (actionNode.getAction() instanceof CredentialsProviderFactory.ResolveCredentialsWorkNodeAction) {
-                    try {
-                        actionNode.getAction().run(null);
-                    } catch (MissingValueException e) {
-                        missingProviderErrors.add(e.getMessage());
-                    }
-                }
+        credentialsResolvers.forEach(resolver -> {
+            try {
+                resolver.run(null);
+            } catch (MissingValueException e) {
+                missingProviderErrors.add(e.getMessage());
             }
-        }
+        });
         if (!missingProviderErrors.isEmpty()) {
             throw new ProjectConfigurationException("Credentials required for this build could not be resolved.",
                 missingProviderErrors.stream().map(MissingValueException::new).collect(Collectors.toList()));
