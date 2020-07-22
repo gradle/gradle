@@ -24,21 +24,24 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
-    @ToBeFixedForInstantExecution(because = "2 more files retained")
-    def "detects input file change just before the task is executed"() {
+    def setup() {
         executer.requireDaemon()
         server.start()
-
-        def inputFile = file("input.txt")
         buildFile << """
-            def inputFile = file("input.txt")
-            def outputFile = file("build/output.txt")
-
             task waitForUserChanges {
                 doLast {
                     ${server.callFromBuild("userInput")}
                 }
             }
+        """
+    }
+
+    @ToBeFixedForInstantExecution(because = "2 more files retained")
+    def "detects input file change just before the task is executed"() {
+        def inputFile = file("input.txt")
+        buildFile << """
+            def inputFile = file("input.txt")
+            def outputFile = file("build/output.txt")
 
             task consumer {
                 inputs.file(inputFile)
@@ -68,14 +71,11 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         then:
         executedAndNotSkipped(":consumer")
         receivedFileSystemEventsInCurrentBuild >= 1
-        retainedFilesInCurrentBuild == 10 // 8 build script class files + 2 task files
+        retainedFilesInCurrentBuild == 7 // 5 build script class files + 2 task files
     }
 
     @ToBeFixedForInstantExecution(because = "2 more files retained")
     def "detects input file change after the task has been executed"() {
-        executer.requireDaemon()
-        server.start()
-
         def inputFile = file("input.txt")
         def outputFile = file("build/output.txt")
         buildFile << """
@@ -90,11 +90,8 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
                 }
             }
 
-            task waitForUserChanges {
+            waitForUserChanges {
                 dependsOn(consumer)
-                doLast {
-                    ${server.callFromBuild("userInput")}
-                }
             }
         """
 
@@ -107,7 +104,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         then:
         executedAndNotSkipped(":consumer")
         outputFile.text == "initial"
-        retainedFilesInCurrentBuild == 9 // 8 script classes + 1 task file
+        retainedFilesInCurrentBuild == 7 // 6 script classes + 1 task file
 
         when:
         runWithRetentionAndDoChangesWhen("waitForUserChanges", "userInput") {
@@ -118,7 +115,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         executedAndNotSkipped(":consumer")
         outputFile.text == "changed"
         receivedFileSystemEventsInCurrentBuild >= 1
-        retainedFilesInCurrentBuild == 9 // 8 script classes + 1 task file
+        retainedFilesInCurrentBuild == 7 // 6 script classes + 1 task file
 
         when:
         server.expect("userInput")
@@ -126,7 +123,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         then:
         executedAndNotSkipped(":consumer")
         outputFile.text == "changedAgain"
-        retainedFilesInCurrentBuild == 10 // 8 script classes + 2 task files
+        retainedFilesInCurrentBuild == 8 // 6 script classes + 2 task files
     }
 
     private void runWithRetentionAndDoChangesWhen(String task, String expectedCall, Closure action) {
