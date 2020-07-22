@@ -119,4 +119,24 @@ class GradleEnterprisePluginConfigurationCachingIntegrationTest extends Abstract
         plugin.assertBuildScanRequest(output, SUPPRESSED)
     }
 
+    def "exposes correct start parameter"() {
+        given:
+        buildFile << """
+            def serviceRef = gradle.serviceRef
+            t.doLast {
+                println "offline: " + serviceRef.get()._buildState.startParameter.offline
+            }
+        """
+        when:
+        succeeds "t", "--configuration-cache"
+
+        then:
+        output.contains("offline: false")
+
+        when:
+        succeeds "t", "--configuration-cache", "--offline"
+
+        then:
+        output.contains("offline: true")
+    }
 }
