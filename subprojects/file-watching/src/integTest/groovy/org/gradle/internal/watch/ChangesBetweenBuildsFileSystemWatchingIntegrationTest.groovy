@@ -68,7 +68,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         outputContains "Hello from modified task!"
     }
 
-    def "Groovy build script changes get recognized"() {
+    def "Groovy build script changes are recognized"() {
         when:
         buildFile.text = """
             println "Hello from the build!"
@@ -86,7 +86,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         outputContains "Hello from the modified build!"
     }
 
-    def "Kotlin build script changes get recognized"() {
+    def "Kotlin build script changes are recognized"() {
         when:
         buildKotlinFile.text = """
             println("Hello from the build!")
@@ -104,7 +104,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         outputContains "Hello from the modified build!"
     }
 
-    def "settings script changes get recognized"() {
+    def "settings script changes are recognized"() {
         when:
         settingsFile.text = """
             println "Hello from settings!"
