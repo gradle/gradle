@@ -198,7 +198,9 @@ When using [Lazy Properties](userguide/lazy_configuration.html), it’s common t
 ```groovy
 def hello = objects.property(String).convention("Hello")
 def world = objects.property(String).convention("World")
-def helloWorld = hello.zip(world) { left, right -> "${left}, ${right}!".toString() }
+def helloWorld = hello.zip(world) { left, right ->
+   "${left}, ${right}!".toString()
+}
 // ...
 hello.set("Bonjour")
 world.set("le monde")
