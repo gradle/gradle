@@ -68,10 +68,7 @@ class InstantExecutionCacheFingerprintWriter(
     var ignoreValueSources = false
 
     private
-    val capturedFiles: MutableSet<File>
-
-    private
-    val inputFiles = mutableListOf<InputFile>()
+    val capturedFiles = newConcurrentHashSet<File>()
 
     private
     val undeclaredSystemProperties = newConcurrentHashSet<String>()
@@ -81,7 +78,7 @@ class InstantExecutionCacheFingerprintWriter(
 
     init {
         val initScripts = host.allInitScripts
-        capturedFiles = newConcurrentHashSet(initScripts)
+        capturedFiles.addAll(initScripts)
         write(
             InstantExecutionCacheFingerprint.InitScripts(
                 initScripts.map(::inputFile)
@@ -107,11 +104,6 @@ class InstantExecutionCacheFingerprintWriter(
             synchronized(this) {
                 if (closestChangingValue != null) {
                     unsafeWrite(closestChangingValue)
-                }
-            }
-            synchronized(inputFiles) {
-                for (inputFile in inputFiles) {
-                    unsafeWrite(inputFile)
                 }
             }
             unsafeWrite(null)
@@ -194,10 +186,7 @@ class InstantExecutionCacheFingerprintWriter(
         if (!capturedFiles.add(file)) {
             return
         }
-        val inputFile = inputFile(file)
-        synchronized(inputFiles) {
-            inputFiles.add(inputFile)
-        }
+        write(inputFile(file))
     }
 
     private
