@@ -17,13 +17,11 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Project;
-import org.gradle.api.Transformer;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -31,7 +29,6 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.internal.Cast;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
 import org.gradle.internal.credentials.DefaultPasswordCredentials;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -72,7 +69,7 @@ public class CredentialsProviderFactory {
         return new InterceptingProvider<>(provider);
     }
 
-    private static class InterceptingProvider<T extends Credentials> implements ProviderInternal<T> {
+    private static class InterceptingProvider<T extends Credentials> extends AbstractMinimalProvider<T> {
 
         private final ProviderInternal<T> delegate;
 
@@ -85,11 +82,6 @@ public class CredentialsProviderFactory {
             return delegate.getProducer().plus(ValueProducer.nodeAction(new ResolveCredentialsWorkNodeAction(this)));
         }
 
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            return delegate.calculatePresence(consumer);
-        }
-
         @Nullable
         @Override
         public Class<T> getType() {
@@ -97,68 +89,20 @@ public class CredentialsProviderFactory {
         }
 
         @Override
-        public T get() {
-            return delegate.get();
-        }
-
-        @Nullable
-        @Override
-        public T getOrNull() {
-            return delegate.getOrNull();
-        }
-
-        @Override
-        public T getOrElse(T defaultValue) {
-            return delegate.getOrElse(defaultValue);
-        }
-
-        @Override
-        public <S> ProviderInternal<S> map(Transformer<? extends S, ? super T> transformer) {
-            return delegate.map(transformer);
-        }
-
-        @Override
-        public <S> Provider<S> flatMap(Transformer<? extends Provider<? extends S>, ? super T> transformer) {
-            return delegate.flatMap(transformer);
-        }
-
-        @Override
-        public boolean isPresent() {
-            try {
-                return delegate.isPresent();
-            } catch (MissingValueException e) {
-                return false;
-            }
-        }
-
-        @Override
-        public Provider<T> orElse(T value) {
-            return delegate.orElse(value);
-        }
-
-        @Override
-        public Provider<T> orElse(Provider<? extends T> provider) {
-            return delegate.orElse(provider);
-        }
-
-        @Override
-        public Provider<T> forUseAtConfigurationTime() {
-            return delegate.forUseAtConfigurationTime();
-        }
-
-        @Override
-        public Value<? extends T> calculateValue(ValueConsumer consumer) {
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
             return delegate.calculateValue(consumer);
         }
 
         @Override
-        public ProviderInternal<T> asSupplier(DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer) {
-            return this;
-        }
-
-        @Override
-        public ProviderInternal<T> withFinalValue(ValueConsumer consumer) {
-            return delegate.withFinalValue(consumer);
+        public boolean calculatePresence(ValueConsumer consumer) {
+            try {
+                return super.calculatePresence(consumer);
+            } catch (MissingValueException e) {
+                if (consumer == ValueConsumer.IgnoreUnsafeRead) {
+                    return false;
+                }
+                throw e;
+            }
         }
 
         @Override
@@ -166,11 +110,6 @@ public class CredentialsProviderFactory {
             return delegate.calculateExecutionTimeValue();
         }
 
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            context.add(new ResolveCredentialsWorkNodeAction(this));
-            delegate.visitDependencies(context);
-        }
     }
 
     public static class ResolveCredentialsWorkNodeAction implements WorkNodeAction {
