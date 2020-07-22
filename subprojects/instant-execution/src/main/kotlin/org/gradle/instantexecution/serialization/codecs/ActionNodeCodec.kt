@@ -37,21 +37,23 @@ class ActionNodeCodec(
     override suspend fun WriteContext.encode(value: ActionNode) {
         if (value.action is DefaultConfiguration.ResolveGraphAction) {
             // Can ignore
+            writeByte(0)
             return
         } else if (value.action is CredentialsProviderFactory.ResolveCredentialsWorkNodeAction) {
             val action = value.action as CredentialsProviderFactory.ResolveCredentialsWorkNodeAction
-            writeByte(0)
+            writeByte(1)
             withCodec(userTypesCodec) {
                 write(action)
             }
         } else {
+            writeByte(0)
             logNotImplemented(value.action.javaClass)
         }
     }
 
     override suspend fun ReadContext.decode(): ActionNode? {
         when (readByte()) {
-            0.toByte() -> {
+            1.toByte() -> {
                 val action = withCodec(userTypesCodec) {
                     readNonNull<CredentialsProviderFactory.ResolveCredentialsWorkNodeAction>()
                 }
