@@ -28,15 +28,40 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         executer.requireDaemon()
         server.start()
         buildFile << """
+            import org.gradle.internal.file.FileType
+            import org.gradle.internal.snapshot.*
+
             task waitForUserChanges {
                 doLast {
                     ${server.callFromBuild("userInput")}
                 }
             }
+
+            gradle.buildFinished {
+                def projectRoot = project.projectDir.absolutePath
+                def root = gradle.services.get(AtomicSnapshotHierarchyReference)
+                int filesInVfs = 0
+                root.get().visitSnapshotRoots { snapshot ->
+                    snapshot.accept(new FileSystemSnapshotVisitor() {
+                        @Override
+                        void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
+                            if (fileSnapshot.type == FileType.RegularFile && fileSnapshot.absolutePath.startsWith(projectRoot)) {
+                                filesInVfs++
+                            }
+                        }
+
+                        @Override
+                        boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) { return true }
+                        @Override
+                        void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {}
+                    })
+                }
+                println("Project files in VFS: \$filesInVfs")
+            }
         """
     }
 
-    @ToBeFixedForInstantExecution(because = "2 more files retained")
+    @ToBeFixedForInstantExecution(because = "Cannot use buildFinished listener")
     def "detects input file change just before the task is executed"() {
         def inputFile = file("input.txt")
         buildFile << """
@@ -61,7 +86,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         then:
         executedAndNotSkipped(":consumer")
         // TODO: sometimes, the changes from the same build are picked up
-        retainedFilesInCurrentBuild >= 1
+        projectFilesInVfs >= 1
 
         when:
         runWithRetentionAndDoChangesWhen("consumer", "userInput") {
@@ -71,10 +96,10 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         then:
         executedAndNotSkipped(":consumer")
         receivedFileSystemEventsInCurrentBuild >= 1
-        retainedFilesInCurrentBuild == 7 // 5 build script class files + 2 task files
+        projectFilesInVfs == 2
     }
 
-    @ToBeFixedForInstantExecution(because = "2 more files retained")
+    @ToBeFixedForInstantExecution(because = "Cannot use buildFinished listener")
     def "detects input file change after the task has been executed"() {
         def inputFile = file("input.txt")
         def outputFile = file("build/output.txt")
@@ -90,9 +115,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
                 }
             }
 
-            waitForUserChanges {
-                dependsOn(consumer)
-            }
+            waitForUserChanges.dependsOn(consumer)
         """
 
         when:
@@ -104,7 +127,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         then:
         executedAndNotSkipped(":consumer")
         outputFile.text == "initial"
-        retainedFilesInCurrentBuild == 7 // 6 script classes + 1 task file
+        projectFilesInVfs == 1
 
         when:
         runWithRetentionAndDoChangesWhen("waitForUserChanges", "userInput") {
@@ -115,7 +138,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         executedAndNotSkipped(":consumer")
         outputFile.text == "changed"
         receivedFileSystemEventsInCurrentBuild >= 1
-        retainedFilesInCurrentBuild == 7 // 6 script classes + 1 task file
+        projectFilesInVfs == 1
 
         when:
         server.expect("userInput")
@@ -123,7 +146,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         then:
         executedAndNotSkipped(":consumer")
         outputFile.text == "changedAgain"
-        retainedFilesInCurrentBuild == 8 // 6 script classes + 2 task files
+        projectFilesInVfs == 2
     }
 
     private void runWithRetentionAndDoChangesWhen(String task, String expectedCall, Closure action) {
@@ -133,5 +156,12 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         action()
         userInput.releaseAll()
         result = handle.waitForFinish()
+    }
+
+    int getProjectFilesInVfs() {
+        def retainedInformation = result.getOutputLineThatContains("Project files in VFS: ")
+        def numberMatcher = retainedInformation =~ /Project files in VFS: (\d+)/
+        return numberMatcher[0][1] as int
+
     }
 }
