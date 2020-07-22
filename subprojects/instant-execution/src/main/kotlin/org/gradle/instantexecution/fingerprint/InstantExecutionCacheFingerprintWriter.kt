@@ -63,6 +63,7 @@ class InstantExecutionCacheFingerprintWriter(
         ): HashCode
     }
 
+    @Volatile
     private
     var ignoreValueSources = false
 
@@ -73,7 +74,7 @@ class InstantExecutionCacheFingerprintWriter(
     val inputFiles = mutableListOf<InputFile>()
 
     private
-    val undeclaredSystemProperties = mutableSetOf<String>()
+    val undeclaredSystemProperties = newConcurrentHashSet<String>()
 
     private
     var closestChangingValue: InstantExecutionCacheFingerprint.ChangingDependencyResolutionValue? = null
@@ -100,14 +101,22 @@ class InstantExecutionCacheFingerprintWriter(
      * **MUST ALWAYS BE CALLED**
      */
     fun close() {
-        if (closestChangingValue != null) {
-            write(closestChangingValue)
+        // we synchronize access to all resources used by callbacks
+        // in case there was still an event being dispatched at closing time.
+        synchronized(writeContext) {
+            synchronized(this) {
+                if (closestChangingValue != null) {
+                    unsafeWrite(closestChangingValue)
+                }
+            }
+            synchronized(inputFiles) {
+                for (inputFile in inputFiles) {
+                    unsafeWrite(inputFile)
+                }
+            }
+            unsafeWrite(null)
+            writeContext.close()
         }
-        for (inputFile in inputFiles) {
-            write(inputFile)
-        }
-        write(null)
-        writeContext.close()
     }
 
     fun stopCollectingValueSources() {
@@ -127,8 +136,10 @@ class InstantExecutionCacheFingerprintWriter(
 
     private
     fun onChangingValue(changingValue: InstantExecutionCacheFingerprint.ChangingDependencyResolutionValue) {
-        if (closestChangingValue == null || closestChangingValue!!.expireAt > changingValue.expireAt) {
-            closestChangingValue = changingValue
+        synchronized(this) {
+            if (closestChangingValue == null || closestChangingValue!!.expireAt > changingValue.expireAt) {
+                closestChangingValue = changingValue
+            }
         }
     }
 
@@ -183,7 +194,10 @@ class InstantExecutionCacheFingerprintWriter(
         if (!capturedFiles.add(file)) {
             return
         }
-        inputFiles.add(inputFile(file))
+        val inputFile = inputFile(file)
+        synchronized(inputFiles) {
+            inputFiles.add(inputFile)
+        }
     }
 
     private
@@ -207,9 +221,14 @@ class InstantExecutionCacheFingerprintWriter(
     private
     fun write(value: InstantExecutionCacheFingerprint?) {
         synchronized(writeContext) {
-            writeContext.runWriteOperation {
-                write(value)
-            }
+            unsafeWrite(value)
+        }
+    }
+
+    private
+    fun unsafeWrite(value: InstantExecutionCacheFingerprint?) {
+        writeContext.runWriteOperation {
+            write(value)
         }
     }
 
