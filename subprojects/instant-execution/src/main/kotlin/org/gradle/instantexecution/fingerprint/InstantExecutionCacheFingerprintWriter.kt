@@ -63,6 +63,7 @@ class InstantExecutionCacheFingerprintWriter(
         ): HashCode
     }
 
+    @Volatile
     private
     var ignoreValueSources = false
 
