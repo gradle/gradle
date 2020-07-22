@@ -207,6 +207,26 @@ println(helloWorld.get()) // prints “Bonjour, le monde!”
 
 Refer to the [API documentation](javadoc/org/gradle/api/provider/Provider.html#zip-org.gradle.api.provider.Provider-java.util.function.BiFunction-) for details.
 
+## Security 
+
+### Removed debug logging of environment variables
+
+Debug level logging may expose sensitive information in the build log output, for example in CI server logs.
+For this reason, Gradle displays a prominent warning when using debug level logging since version 6.4.
+One example of this risk is leaking secret values such as credentials stored in environmental variables.
+
+Previously, when debug level was enabled, Gradle used to log all environment variables when starting a process such as a test, Gradle daemon, or when using `Project.exec`.
+In practice, this means most of the builds logged environment variables on debug level.
+
+As an additional security precaution, Gradle no longer logs environment variables when starting processes starting with this version.
+
+Note that many CI servers, like Jenkins and Teamcity, mask secrets in the captured logs.
+Still, we recommend limiting the usage of debug level logging to environments which do not capture the log output, like your local machine.
+[Build scans](https://scans.gradle.com/) never capture the debug log as part of the console log even when you enabled debug logging.
+
+As an additional measure, you may want to limit the environment variables passed to the test task or other forked processes by explicitly using `ProcessForkOptions.setEnvironment()`.
+This way the forked processes themselves cannot leak secrets from the environment, since they don't have them available anymore. 
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
