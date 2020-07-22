@@ -210,7 +210,7 @@ public class CredentialsProviderFactory {
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            context.add(new ResolveCredentialsWorkNodeAction(delegate));
+            context.add(new ResolveCredentialsWorkNodeAction(this));
             delegate.visitDependencies(context);
         }
     }
@@ -220,6 +220,10 @@ public class CredentialsProviderFactory {
 
         public ResolveCredentialsWorkNodeAction(Provider<?> provider) {
             this.provider = provider;
+        }
+
+        public ResolveCredentialsWorkNodeAction() {
+            this.provider = null;
         }
 
         public Provider<?> getProvider() {
@@ -234,6 +238,7 @@ public class CredentialsProviderFactory {
 
         @Override
         public void run(NodeExecutionContext context) {
+            System.out.println("Context: " + context);
             provider.get();
         }
     }
