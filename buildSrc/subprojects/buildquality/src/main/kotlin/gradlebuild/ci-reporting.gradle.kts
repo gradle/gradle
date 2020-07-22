@@ -101,13 +101,7 @@ fun prepareReportsForCiPublishing(failedTasks: List<Task>, executedTasks: List<T
 
 fun Project.tmpTestFiles() =
     layout.buildDirectory.dir("tmp/test files").get().asFile.listFiles()?.filter {
-        Files.walk(it.toPath()).use { paths ->
-            paths
-                .filter { it -> !Files.isDirectory(it) }
-                .findAny()
-                .isPresent
-
-        }
+        Files.walk(it.toPath()).use { paths -> !paths.allMatch(Files::isDirectory) }
     }?.map {
         it to name
     } ?: emptyList()
@@ -158,26 +152,28 @@ fun Task.attachedReportLocations() = when (this) {
     else -> emptyList()
 }
 
-fun File.isEmptyDirectory() = list()?.isEmpty() == true
+fun zip(destZip: File, srcDir: File) {
+    destZip.parentFile.mkdirs()
+    ZipOutputStream(FileOutputStream(destZip), StandardCharsets.UTF_8).use { zipOutput ->
+        val srcPath = srcDir.toPath()
+        Files.walk(srcPath).use { paths ->
+            paths
+                .filter { Files.isRegularFile(it, LinkOption.NOFOLLOW_LINKS) }
+                .forEach { path ->
+                    val zipEntry = ZipEntry(srcPath.relativize(path).toString())
+                    zipOutput.putNextEntry(zipEntry)
+                    Files.copy(path, zipOutput)
+                    zipOutput.closeEntry()
+                }
+        }
+    }
+}
 
 fun prepareReportForCiPublishing(report: File, projectName: String) {
     if (report.exists()) {
         if (report.isDirectory) {
             val destFile = rootProject.layout.buildDirectory.file("report-$projectName-${report.name}.zip").get().asFile
-            destFile.parentFile.mkdirs()
-            ZipOutputStream(FileOutputStream(destFile), StandardCharsets.UTF_8).use { zipOutput ->
-                val reportPath = report.toPath()
-                Files.walk(reportPath).use { paths ->
-                    paths
-                        .filter { Files.isRegularFile(it, LinkOption.NOFOLLOW_LINKS) }
-                        .forEach { path ->
-                            val zipEntry = ZipEntry(reportPath.relativize(path).toString())
-                            zipOutput.putNextEntry(zipEntry)
-                            Files.copy(path, zipOutput)
-                            zipOutput.closeEntry()
-                        }
-                }
-            }
+            zip(destFile, report)
         } else {
             copy {
                 from(report)
