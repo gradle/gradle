@@ -30,7 +30,8 @@ import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withCodec
 
 
-internal class ActionNodeCodec(
+internal
+class ActionNodeCodec(
     private val userTypesCodec: Codec<Any?>
 ) : Codec<ActionNode> {
     override suspend fun WriteContext.encode(value: ActionNode) {

@@ -122,7 +122,7 @@ public interface ValueSupplier {
     class WorkNodeActionProducer implements ValueProducer {
         private final WorkNodeAction action;
 
-        public WorkNodeActionProducer(WorkNodeAction action) {
+        WorkNodeActionProducer(WorkNodeAction action) {
             this.action = action;
         }
 

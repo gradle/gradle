@@ -22,7 +22,6 @@ import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.api.internal.provider.sources.GradlePropertyValueSource;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
@@ -40,7 +39,6 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class CredentialsProviderFactory {
@@ -52,70 +50,26 @@ public class CredentialsProviderFactory {
     }
 
     public <T extends Credentials> Provider<T> provide(Class<T> credentialsType, String identity) {
-        validateIdentity(identity);
-
         return provide(credentialsType, providerFactory.provider(() -> identity));
     }
 
     public <T extends Credentials> Provider<T> provide(Class<T> credentialsType, Provider<String> identity) {
         if (PasswordCredentials.class.isAssignableFrom(credentialsType)) {
-            return Cast.uncheckedCast(passwordCredentialsProvider(identity));
+            return Cast.uncheckedCast(credentialsProvider(identity, PasswordCredentialsValueSource.class));
         }
         if (AwsCredentials.class.isAssignableFrom(credentialsType)) {
-            return Cast.uncheckedCast(awsCredentialsProvider(identity));
+            return Cast.uncheckedCast(credentialsProvider(identity, AwsCredentialsValueSource.class));
         }
 
         throw new IllegalArgumentException(String.format("Unsupported credentials type: %s", credentialsType));
     }
 
-    private static void validateIdentity(@Nullable String identity) {
-        if (identity == null || identity.isEmpty() || !identity.chars().allMatch(Character::isLetterOrDigit)) {
-            throw new IllegalArgumentException("Identity may contain only letters and digits, received: " + identity);
-        }
-    }
-
-    private Provider<PasswordCredentials> passwordCredentialsProvider(Provider<String> identity) {
-        Provider<PasswordCredentials> provider = providerFactory.of(
-            PasswordCredentialsValueSource.class,
-            spec -> spec.getParameters().getPropertyName().set(identity)
-        );
-        return new InterceptingProvider<>(provider);
-    }
-
-    private Provider<AwsCredentials> awsCredentialsProvider(Provider<String> identity) {
-        Provider<AwsCredentials> provider = providerFactory.of(
-            AwsCredentialsValueSource.class,
+    private <T extends Credentials> Provider<T> credentialsProvider(Provider<String> identity, Class<? extends CredentialsValueSource<T>> valueSourceClass) {
+        Provider<T> provider = providerFactory.of(
+            valueSourceClass,
             spec -> spec.getParameters().getIdentity().set(identity)
         );
         return new InterceptingProvider<>(provider);
-    }
-
-    @Nullable
-    static String getMissingPropertiesError(String identity, List<String> requiredProperties, GradleProperties gradleProperties) {
-        List<String> missingProperties = new ArrayList<>();
-        for (String property : requiredProperties) {
-            if (gradleProperties.find(property) == null) {
-                missingProperties.add(property);
-            }
-        }
-        if (missingProperties.isEmpty()) {
-            return null;
-        }
-        TreeFormatter errorBuilder = new TreeFormatter();
-        errorBuilder.node("The following Gradle properties are missing for '").append(identity).append("' credentials");
-        errorBuilder.startChildren();
-        for (String missingProperty : missingProperties) {
-            errorBuilder.node(missingProperty);
-        }
-        errorBuilder.endChildren();
-        return errorBuilder.toString();
-    }
-
-    static void assertRequiredValuesPresent(String identity, List<String> requiredProperties, GradleProperties gradleProperties) {
-        String missingPropertiesError = getMissingPropertiesError(identity, requiredProperties, gradleProperties);
-        if (missingPropertiesError != null) {
-            throw new MissingValueException(missingPropertiesError);
-        }
     }
 
     private static class InterceptingProvider<T extends Credentials> implements ProviderInternal<T> {
@@ -170,7 +124,11 @@ public class CredentialsProviderFactory {
 
         @Override
         public boolean isPresent() {
-            return delegate.isPresent();
+            try {
+                return delegate.isPresent();
+            } catch (MissingValueException e) {
+                return false;
+            }
         }
 
         @Override
@@ -233,58 +191,89 @@ public class CredentialsProviderFactory {
             provider.get();
         }
     }
-
 }
 
-abstract class PasswordCredentialsValueSource implements ValueSource<PasswordCredentials, GradlePropertyValueSource.Parameters> {
-
-    private final GradleProperties gradleProperties;
-
-    @Inject
-    public PasswordCredentialsValueSource(GradleProperties gradleProperties) {
-        this.gradleProperties = gradleProperties;
-    }
-
-    @Nullable
-    @Override
-    public PasswordCredentials obtain() {
-        String identity = getParameters().getPropertyName().get();
-        String usernamePropertyName = identity + "Username";
-        String passwordPropertyName = identity + "Password";
-        CredentialsProviderFactory.assertRequiredValuesPresent(identity, Arrays.asList(usernamePropertyName, passwordPropertyName), gradleProperties);
-
-        String usernameValue = gradleProperties.find(usernamePropertyName);
-        String passwordValue = gradleProperties.find(passwordPropertyName);
-        return new DefaultPasswordCredentials(usernameValue, passwordValue);
-    }
-
-}
-
-abstract class AwsCredentialsValueSource implements ValueSource<AwsCredentials, AwsCredentialsValueSource.Parameters> {
-
-    private final GradleProperties gradleProperties;
+abstract class CredentialsValueSource<T extends Credentials> implements ValueSource<T, CredentialsValueSource.Parameters> {
 
     public interface Parameters extends ValueSourceParameters {
         Property<String> getIdentity();
     }
 
+    private final List<String> missingProperties = new ArrayList<>();
+
     @Inject
-    public AwsCredentialsValueSource(GradleProperties gradleProperties) {
-        this.gradleProperties = gradleProperties;
+    protected abstract GradleProperties getGradleProperties();
+
+    String getValidatedIdentity() {
+        String identity = getParameters().getIdentity().getOrNull();
+        if (identity == null || identity.isEmpty() || !identity.chars().allMatch(Character::isLetterOrDigit)) {
+            throw new IllegalArgumentException("Identity may contain only letters and digits, received: " + identity);
+        }
+        return identity;
+    }
+
+    void assertRequiredValuesPresent() {
+        String identity = getParameters().getIdentity().get();
+        if (!missingProperties.isEmpty()) {
+            TreeFormatter errorBuilder = new TreeFormatter();
+            errorBuilder.node("The following Gradle properties are missing for '").append(identity).append("' credentials");
+            errorBuilder.startChildren();
+            for (String missingProperty : missingProperties) {
+                errorBuilder.node(missingProperty);
+            }
+            errorBuilder.endChildren();
+            throw new MissingValueException(errorBuilder.toString());
+        }
+    }
+
+    @Nullable
+    String getProperty(String propertyName) {
+        return getGradleProperties().find(propertyName);
+    }
+
+    @Nullable
+    String getRequiredProperty(String propertyName) {
+        String propertyValue = getProperty(propertyName);
+        if (propertyValue == null) {
+            missingProperties.add(propertyName);
+        }
+        return propertyValue;
+    }
+
+}
+
+abstract class PasswordCredentialsValueSource extends CredentialsValueSource<PasswordCredentials> {
+
+    public PasswordCredentialsValueSource() {
+    }
+
+    @Nullable
+    @Override
+    public PasswordCredentials obtain() {
+        String identity = getValidatedIdentity();
+
+        String usernameValue = getRequiredProperty(identity + "Username");
+        String passwordValue = getRequiredProperty(identity + "Password");
+        assertRequiredValuesPresent();
+
+        return new DefaultPasswordCredentials(usernameValue, passwordValue);
+    }
+}
+
+abstract class AwsCredentialsValueSource extends CredentialsValueSource<AwsCredentials> {
+
+    public AwsCredentialsValueSource() {
     }
 
     @Nullable
     @Override
     public AwsCredentials obtain() {
-        String identity = getParameters().getIdentity().get();
-        String accessKeyPropertyName = identity + "AccessKey";
-        String secretKeyPropertyName = identity + "SecretKey";
-        String sessionTokenPropertyName = identity + "SessionToken";
-        CredentialsProviderFactory.assertRequiredValuesPresent(getParameters().getIdentity().get(), Arrays.asList(accessKeyPropertyName, secretKeyPropertyName), gradleProperties);
+        String identity = getValidatedIdentity();
 
-        String accessKey = gradleProperties.find(accessKeyPropertyName);
-        String secretKey = gradleProperties.find(secretKeyPropertyName);
-        String sessionToken = gradleProperties.find(sessionTokenPropertyName);
+        String accessKey = getRequiredProperty(identity + "AccessKey");
+        String secretKey = getRequiredProperty(identity + "SecretKey");
+        String sessionToken = getProperty(identity + "SessionToken");
+        assertRequiredValuesPresent();
 
         AwsCredentials credentials = new DefaultAwsCredentials();
         credentials.setAccessKey(accessKey);
@@ -292,6 +281,4 @@ abstract class AwsCredentialsValueSource implements ValueSource<AwsCredentials, 
         credentials.setSessionToken(sessionToken);
         return credentials;
     }
-
 }
-

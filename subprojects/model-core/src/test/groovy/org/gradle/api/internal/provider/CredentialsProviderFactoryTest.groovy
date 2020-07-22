@@ -16,20 +16,18 @@
 
 package org.gradle.api.internal.provider
 
-import org.gradle.api.ProjectConfigurationException
+
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.credentials.PasswordCredentials
-import org.gradle.api.provider.ProviderFactory
-import spock.lang.Specification
 
-class CredentialsProviderFactoryTest extends Specification {
+class CredentialsProviderFactoryTest extends ValueSourceBasedSpec {
 
-    def providerFactory = Mock(ProviderFactory)
-    def factory = new CredentialsProviderFactory(providerFactory, null)
+    def providerFactory = new DefaultProviderFactory(valueSourceProviderFactory)
+    def factory = new CredentialsProviderFactory(providerFactory)
 
     def "does not allow non-letters and non-digits for identity"() {
         when:
-        factory.provide(PasswordCredentials, (String) identity)
+        factory.provide(PasswordCredentials, (String) identity).get()
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -41,9 +39,6 @@ class CredentialsProviderFactoryTest extends Specification {
 
     def "describes missing properties"() {
         given:
-        providerFactory.gradleProperty('myServiceUsername') >> Providers.notDefined()
-        providerFactory.gradleProperty('myServicePassword') >> Providers.notDefined()
-
         def provider = factory.provide(PasswordCredentials, 'myService')
 
         when:
@@ -58,8 +53,6 @@ class CredentialsProviderFactoryTest extends Specification {
 
     def "does not throw on presence check when credentials are missing"() {
         given:
-        providerFactory.gradleProperty('myServiceUsername') >> Providers.notDefined()
-        providerFactory.gradleProperty('myServicePassword') >> Providers.notDefined()
         def provider = factory.provide(PasswordCredentials, 'myService')
 
         when:
@@ -72,8 +65,7 @@ class CredentialsProviderFactoryTest extends Specification {
 
     def "describes single missing property"() {
         given:
-        providerFactory.gradleProperty('myServiceUsername') >> Providers.notDefined()
-        providerFactory.gradleProperty('myServicePassword') >> new DefaultProvider<>({ 'secret' })
+        gradleProperties.find('myServicePassword') >> 'secret'
         def provider = factory.provide(PasswordCredentials, 'myService')
 
         when:
@@ -88,8 +80,8 @@ class CredentialsProviderFactoryTest extends Specification {
 
     def "evaluates username and password credentials provider"() {
         given:
-        providerFactory.gradleProperty('myServiceUsername') >> new DefaultProvider<>({ 'admin' })
-        providerFactory.gradleProperty('myServicePassword') >> new DefaultProvider<>({ 'secret' })
+        gradleProperties.find('myServiceUsername') >> 'admin'
+        gradleProperties.find('myServicePassword') >> 'secret'
         def provider = factory.provide(PasswordCredentials, 'myService')
 
         when:
@@ -101,26 +93,10 @@ class CredentialsProviderFactoryTest extends Specification {
         credentials['password'] == 'secret'
     }
 
-    def "reuses a provider with same identity"() {
-        expect:
-        factory.provide(PasswordCredentials, 'id') == factory.provide(PasswordCredentials, 'id')
-    }
-
-    def "creates distinct providers for different identities"() {
-        expect:
-        factory.provide(PasswordCredentials, 'id') != factory.provide(PasswordCredentials, 'id2')
-    }
-
-    def "allows same identity for different credential types"() {
-        expect:
-        factory.provide(PasswordCredentials, 'id') != factory.provide(AwsCredentials, 'id')
-    }
-
     def "does not require sessionToken for aws provider"() {
         given:
-        providerFactory.gradleProperty('idAccessKey') >> new DefaultProvider<>({ 'access' })
-        providerFactory.gradleProperty('idSecretKey') >> new DefaultProvider<>({ 'secret' })
-        providerFactory.gradleProperty('idSessionToken') >> Providers.notDefined()
+        gradleProperties.find('idAccessKey') >> 'access'
+        gradleProperties.find('idSecretKey') >> 'secret'
         def provider = factory.provide(AwsCredentials, "id")
 
         when:
@@ -134,9 +110,9 @@ class CredentialsProviderFactoryTest extends Specification {
 
     def "allows setting sessionToken for aws provider"() {
         given:
-        providerFactory.gradleProperty('idAccessKey') >> new DefaultProvider<>({ 'access' })
-        providerFactory.gradleProperty('idSecretKey') >> new DefaultProvider<>({ 'secret' })
-        providerFactory.gradleProperty('idSessionToken') >> new DefaultProvider<>({ 'token' })
+        gradleProperties.find('idAccessKey') >> 'access'
+        gradleProperties.find('idSecretKey') >> 'secret'
+        gradleProperties.find('idSessionToken') >> 'token'
         def provider = factory.provide(AwsCredentials, "id")
 
         when:
@@ -148,27 +124,4 @@ class CredentialsProviderFactoryTest extends Specification {
         credentials.sessionToken == 'token'
     }
 
-    def "collects multiple missing credentials failures when presence is checked"() {
-        given:
-        providerFactory.gradleProperty('cloudServiceAccessKey') >> Providers.notDefined()
-        providerFactory.gradleProperty('cloudServiceSecretKey') >> Providers.notDefined()
-        providerFactory.gradleProperty('cloudServiceSessionToken') >> Providers.notDefined()
-        providerFactory.gradleProperty('myServiceUsername') >> Providers.notDefined()
-        providerFactory.gradleProperty('myServicePassword') >> Providers.notDefined()
-        def awsProvider = factory.provide(AwsCredentials, "cloudService")
-        def passwordProvider = factory.provide(PasswordCredentials, "myService")
-
-        when:
-        awsProvider.isPresent()
-        awsProvider.isPresent()
-        passwordProvider.isPresent()
-
-        and:
-        factory.graphPopulated(null)
-
-        then:
-        def e = thrown(ProjectConfigurationException)
-        e.message == 'Credentials required for this build could not be resolved.'
-        e.causes.size() == 2
-    }
 }

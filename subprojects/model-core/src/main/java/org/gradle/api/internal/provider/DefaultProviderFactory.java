@@ -21,7 +21,6 @@ import org.gradle.api.credentials.Credentials;
 import org.gradle.api.file.FileContents;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource;
 import org.gradle.api.internal.provider.sources.FileBytesValueSource;
 import org.gradle.api.internal.provider.sources.FileTextValueSource;
@@ -32,7 +31,6 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.api.provider.ValueSourceSpec;
-import org.gradle.internal.event.ListenerManager;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
