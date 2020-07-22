@@ -17,13 +17,19 @@ package gradlebuild
 
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.classycle.tasks.Classycle
-import gradlebuild.cleanup.extension.TestFileCleanUpExtension
 import gradlebuild.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.extension.TestFileCleanUpExtension
+import gradlebuild.docs.FindBrokenInternalLinks
 import gradlebuild.integrationtests.tasks.DistributionTest
+import gradlebuild.performance.tasks.DistributedPerformanceTest
 import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
-import gradlebuild.docs.FindBrokenInternalLinks
-import gradlebuild.performance.tasks.DistributedPerformanceTest
+import java.io.FileOutputStream
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 /**
  * When run from a Continuous Integration environment, we only want to archive a subset of reports, mostly for
@@ -66,6 +72,7 @@ fun getCleanUpPolicy(childProjectName: String) = childProjects[childProjectName]
 
 fun verifyTestFilesCleanup(failedTasks: List<Task>, tmpTestFiles: List<Pair<File, String>>) {
     if (failedTasks.any { it is Test }) {
+        println("Leftover files: $tmpTestFiles")
         return
     }
 
@@ -94,13 +101,7 @@ fun prepareReportsForCiPublishing(failedTasks: List<Task>, executedTasks: List<T
 
 fun Project.tmpTestFiles() =
     layout.buildDirectory.dir("tmp/test files").get().asFile.listFiles()?.filter {
-        var nonEmpty = false
-        project.fileTree(it).visit {
-            if (!isDirectory) {
-                nonEmpty = true
-            }
-        }
-        nonEmpty
+        Files.walk(it.toPath()).use { paths -> !paths.allMatch(Files::isDirectory) }
     }?.map {
         it to name
     } ?: emptyList()
@@ -151,15 +152,28 @@ fun Task.attachedReportLocations() = when (this) {
     else -> emptyList()
 }
 
+fun zip(destZip: File, srcDir: File) {
+    destZip.parentFile.mkdirs()
+    ZipOutputStream(FileOutputStream(destZip), StandardCharsets.UTF_8).use { zipOutput ->
+        val srcPath = srcDir.toPath()
+        Files.walk(srcPath).use { paths ->
+            paths
+                .filter { Files.isRegularFile(it, LinkOption.NOFOLLOW_LINKS) }
+                .forEach { path ->
+                    val zipEntry = ZipEntry(srcPath.relativize(path).toString())
+                    zipOutput.putNextEntry(zipEntry)
+                    Files.copy(path, zipOutput)
+                    zipOutput.closeEntry()
+                }
+        }
+    }
+}
+
 fun prepareReportForCiPublishing(report: File, projectName: String) {
     if (report.exists()) {
         if (report.isDirectory) {
             val destFile = rootProject.layout.buildDirectory.file("report-$projectName-${report.name}.zip").get().asFile
-            ant.withGroovyBuilder {
-                "zip"("destFile" to destFile) {
-                    "fileset"("dir" to report)
-                }
-            }
+            zip(destFile, report)
         } else {
             copy {
                 from(report)

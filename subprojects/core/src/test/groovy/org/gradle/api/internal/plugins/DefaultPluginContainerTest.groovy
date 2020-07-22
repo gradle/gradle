@@ -67,14 +67,14 @@ class DefaultPluginContainerTest extends Specification {
 
     def "offers plugin management via plugin id"() {
         when:
-        def p = container.apply(plugin1Class)
+        def plugin = container.apply(plugin1Class)
 
         then:
-        p.is(container.apply("plugin"))
-        p.is(container.apply(plugin1Class))
+        plugin.is(container.apply("plugin"))
+        plugin.is(container.apply(plugin1Class))
 
-        p.is(container.findPlugin(plugin1Class))
-        p.is(container.findPlugin("plugin"))
+        plugin.is(container.findPlugin(plugin1Class))
+        plugin.is(container.findPlugin("plugin"))
 
         !container.findPlugin(UnknownPlugin)
         !container.findPlugin("unknown")
@@ -92,15 +92,36 @@ class DefaultPluginContainerTest extends Specification {
 
     def "offers plugin management via plugin type"() {
         when:
-        def p = container.apply(plugin1Class)
+        def plugin = container.apply(plugin1Class)
 
         then:
-        p.is(container.apply(plugin1Class))
-        p.is(container.findPlugin(plugin1Class))
+        plugin.is(container.apply(plugin1Class))
+        plugin.is(container.findPlugin(plugin1Class))
         container.hasPlugin(plugin1Class)
 
-        !p.is(container.findPlugin(plugin2Class))
+        !plugin.is(container.findPlugin(plugin2Class))
         !container.hasPlugin(plugin2Class)
+    }
+
+    def "offers plugin management via injectable plugin type "() {
+        when:
+        def basePluginClass = classLoader.parseClass("""
+        import org.gradle.api.Plugin
+        import org.gradle.api.Project
+        class TestPlugin1 implements Plugin<Project> {
+          void apply(Project project) {}
+          @javax.inject.Inject
+          public org.gradle.internal.reflect.Instantiator getInstantiator() {
+            throw UnsupportedOperationException();
+          }
+        }
+    """)
+        def plugin = container.apply(basePluginClass)
+
+        then:
+        container.hasPlugin(basePluginClass)
+        container.getPlugin(basePluginClass) == plugin
+        container.findPlugin(basePluginClass) == plugin
     }
 
     def "does not find plugin by unknown id"() {

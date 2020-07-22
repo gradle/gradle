@@ -119,4 +119,31 @@ class GradleEnterprisePluginConfigurationCachingIntegrationTest extends Abstract
         plugin.assertBuildScanRequest(output, SUPPRESSED)
     }
 
+    def "can use input handler when from cache"() {
+        given:
+        buildFile << """
+            def serviceRef = gradle.serviceRef
+            task read {
+                doLast {
+                    def response =  serviceRef.get()._requiredServices.userInputHandler.askYesNoQuestion("there?")
+                    println "response: \$response"
+                }
+            }
+        """
+
+        when:
+        executer.withForceInteractive(true).withStdIn("yes\n")
+        succeeds "read", "--configuration-cache"
+
+        then:
+        output.contains("response: true")
+
+        when:
+        executer.withForceInteractive(true).withStdIn("no\n")
+        succeeds "read", "--configuration-cache"
+
+        then:
+        output.contains("response: false")
+    }
+
 }
