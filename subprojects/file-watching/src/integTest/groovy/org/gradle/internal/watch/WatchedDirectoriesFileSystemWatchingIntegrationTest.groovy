@@ -27,6 +27,7 @@ import org.gradle.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
+@Unroll
 class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
 
     def "watches the project directory"() {
@@ -175,7 +176,6 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
 
     }
 
-    @Unroll
     def "detects when a task removes the build directory #buildDir"() {
         buildFile << """
             apply plugin: 'base'
@@ -249,19 +249,70 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         succeeds "help"
     }
 
+    def "watches the roots of #repositoryType file repositories"() {
+        using(m2)
+        def repo = this."${repositoryType}"("repo")
+        def moduleA = repo.module('group', 'projectA', '9.1')
+        moduleA.publish()
+
+        def projectDir = file("project")
+        projectDir.file("build.gradle") << """
+            configurations { implementation }
+            repositories { ${repositoryType} { url "${repo.uri}" } }
+            dependencies { implementation 'group:projectA:9.1' }
+
+            task retrieve(type: Sync) {
+                from configurations.implementation
+                into 'build'
+            }
+        """
+        executer.beforeExecute { inDirectory(projectDir) }
+
+        when:
+        withWatchFs().run "retrieve", "--info"
+        then:
+        assertWatchedHierarchies([projectDir, moduleA."${artifactFileMethod}".parentFile])
+
+        where:
+        repositoryType | artifactFileMethod
+        "maven"        | "artifactFile"
+        "mavenLocal"   | "artifactFile"
+        "ivy"          | "jarFile"
+    }
+
     void assertWatchedRootDirectories(List<Set<File>> expectedWatchedRootDirectories) {
-        if (OperatingSystem.current().linux) {
+        if (!hierarchicalWatcher) {
             // There is no info logging for non-hierarchical watchers
             return
         }
         assert determineWatchedBuildRootDirectories(output) == expectedWatchedRootDirectories
     }
 
+    void assertWatchedHierarchies(Iterable<File> expected) {
+        if (!hierarchicalWatcher) {
+            // No hierarchies to expect
+            return
+        }
+        def watchedHierarchies = output.readLines()
+            .find { it.contains("Watched directory hierarchies: [") }
+            .with { line ->
+                def matcher = line =~ /Watched directory hierarchies: \[(.*)]/
+                String directories = matcher[0][1]
+                return directories.split(', ').collect { new File(it) } as Set
+            }
+
+        assert watchedHierarchies == (expected as Set)
+    }
+
+    private static boolean isHierarchicalWatcher() {
+        !OperatingSystem.current().linux
+    }
+
     private static List<Set<File>> determineWatchedBuildRootDirectories(String output) {
         output.readLines()
             .findAll { it.contains("] as root project directories") }
             .collect { line ->
-                def matcher = line =~ /Now considering watching \[(.*)\] as root project directories/
+                def matcher = line =~ /Now considering watching \[(.*)] as root project directories/
                 String directories = matcher[0][1]
                 return directories.split(', ').collect { new File(it) } as Set
             }
