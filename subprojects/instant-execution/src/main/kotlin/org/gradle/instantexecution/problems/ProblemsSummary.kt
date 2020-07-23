@@ -55,32 +55,49 @@ fun buildConsoleSummary(cacheAction: String, problems: List<PropertyProblem>, re
 
 
 private
-fun uniquePropertyProblems(problems: List<PropertyProblem>): Set<UniquePropertyProblem> =
-    problems.sortedBy { it.trace.sequence.toList().reversed().joinToString(".") }
-        .groupBy { UniquePropertyProblem(propertyDescriptionFor(it.trace), it.message, it.documentationSection?.anchor) }
-        .keys
+fun uniquePropertyProblems(problems: List<PropertyProblem>): Collection<UniquePropertyProblem> =
+    problems
+        .sortedBy(::uniquePropertyProblemSortingKey)
+        .groupBy { problem ->
+            UniquePropertyProblem(
+                propertyDescriptionFor(problem.trace),
+                problem.message,
+                problem.documentationSection?.anchor
+            )
+        }.keys
+
+
+private
+fun uniquePropertyProblemSortingKey(problem: PropertyProblem) =
+    StringBuilder().run {
+        problem.trace.sequence.toList().asReversed().forEach { trace ->
+            trace.run {
+                appendStringOf(trace)
+            }
+        }
+        toString()
+    }
 
 
 private
 fun buildSummaryHeader(
     cacheAction: String,
     totalProblemCount: Int,
-    uniquePropertyProblems: Set<UniquePropertyProblem>
-): String {
-    val result = StringBuilder()
-    result.append(totalProblemCount)
-    result.append(if (totalProblemCount == 1) " problem was found " else " problems were found ")
-    result.append(cacheAction)
-    result.append(" the configuration cache")
+    uniquePropertyProblems: Collection<UniquePropertyProblem>
+): String = StringBuilder().run {
+    append(totalProblemCount)
+    append(if (totalProblemCount == 1) " problem was found " else " problems were found ")
+    append(cacheAction)
+    append(" the configuration cache")
     val uniqueProblemCount = uniquePropertyProblems.size
     if (totalProblemCount != uniquePropertyProblems.size) {
-        result.append(", ")
-        result.append(uniqueProblemCount)
-        result.append(" of which ")
-        result.append(if (uniqueProblemCount == 1) "seems unique" else "seem unique")
+        append(", ")
+        append(uniqueProblemCount)
+        append(" of which ")
+        append(if (uniqueProblemCount == 1) "seems unique" else "seem unique")
     }
-    result.append(".")
-    return result.toString()
+    append(".")
+    toString()
 }
 
 

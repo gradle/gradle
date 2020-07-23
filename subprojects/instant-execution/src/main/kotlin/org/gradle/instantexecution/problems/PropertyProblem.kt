@@ -124,13 +124,19 @@ sealed class PropertyTrace {
     ) : PropertyTrace()
 
     override fun toString(): String =
-        StringBuilder().apply {
-            sequence.forEach {
-                appendStringOf(it)
+        StringBuilder().run {
+            // limit length of generated string to around 512 characters
+            sequence.forEach { trace ->
+                if (length >= 512) {
+                    append("...")
+                    return toString()
+                }
+                appendStringOf(trace)
             }
-        }.toString()
+            toString()
+        }
 
-    private
+    internal
     fun StringBuilder.appendStringOf(trace: PropertyTrace) {
         when (trace) {
             is Gradle -> {
@@ -193,12 +199,16 @@ sealed class PropertyTrace {
 
 fun UserCodeApplicationContext.location(consumer: String?): PropertyTrace {
     val currentApplication = current()
-    return if (currentApplication != null) {
-        PropertyTrace.BuildLogic(currentApplication.displayName)
-    } else if (consumer != null) {
-        PropertyTrace.BuildLogicClass(consumer)
-    } else {
-        PropertyTrace.Unknown
+    return when {
+        currentApplication != null -> {
+            PropertyTrace.BuildLogic(currentApplication.displayName)
+        }
+        consumer != null -> {
+            PropertyTrace.BuildLogicClass(consumer)
+        }
+        else -> {
+            PropertyTrace.Unknown
+        }
     }
 }
 
