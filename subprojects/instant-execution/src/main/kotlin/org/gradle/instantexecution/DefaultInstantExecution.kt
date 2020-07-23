@@ -27,6 +27,7 @@ import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprintC
 import org.gradle.instantexecution.fingerprint.InvalidationReason
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.problems.InstantExecutionProblems
+import org.gradle.instantexecution.serialization.BeanStateReaders
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
@@ -305,11 +306,15 @@ class DefaultInstantExecution internal constructor(
     ) = DefaultReadContext(
         codecs().userTypesCodec,
         decoder,
-        service(),
-        beanConstructors,
+        beanStateReaders,
         logger,
         problems
     )
+
+    private
+    val beanStateReaders by lazy {
+        BeanStateReaders(service(), beanConstructors)
+    }
 
     private
     fun codecs(): Codecs =

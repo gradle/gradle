@@ -170,6 +170,22 @@ interface ScopeLookup {
 
 
 internal
+class BeanStateReaders(
+    private val instantiatorFactory: InstantiatorFactory,
+    private val constructors: BeanConstructors
+) {
+
+    fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
+        cache.computeIfAbsent(beanType) { type ->
+            BeanPropertyReader(type, constructors, instantiatorFactory)
+        }
+
+    private
+    val cache = hashMapOf<Class<*>, BeanStateReader>()
+}
+
+
+internal
 class DefaultReadContext(
     codec: Codec<Any?>,
 
@@ -177,10 +193,7 @@ class DefaultReadContext(
     val decoder: Decoder,
 
     private
-    val instantiatorFactory: InstantiatorFactory,
-
-    private
-    val constructors: BeanConstructors,
+    val beanStateReaders: BeanStateReaders,
 
     override val logger: Logger,
 
@@ -191,8 +204,6 @@ class DefaultReadContext(
 
     override val sharedIdentities = ReadIdentities()
 
-    private
-    val beanStateReaders = hashMapOf<Class<*>, BeanStateReader>()
 
     private
     val classes = ReadIdentities()
@@ -233,7 +244,7 @@ class DefaultReadContext(
         get() = getIsolate()
 
     override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
-        beanStateReaders.computeIfAbsent(beanType) { type -> BeanPropertyReader(type, constructors, instantiatorFactory) }
+        beanStateReaders.beanStateReaderFor(beanType)
 
     override fun readClass(): Class<*> {
         val id = readSmallInt()

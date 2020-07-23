@@ -21,6 +21,7 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.problems.ProblemsListener
 import org.gradle.instantexecution.problems.PropertyProblem
+import org.gradle.instantexecution.serialization.BeanStateReaders
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
@@ -135,8 +136,10 @@ abstract class AbstractUserTypeCodecTest {
         DefaultReadContext(
             codec = codec,
             decoder = KryoBackedDecoder(inputStream),
-            instantiatorFactory = TestUtil.instantiatorFactory(),
-            constructors = BeanConstructors(TestCrossBuildInMemoryCacheFactory()),
+            beanStateReaders = BeanStateReaders(
+                instantiatorFactory = TestUtil.instantiatorFactory(),
+                constructors = BeanConstructors(TestCrossBuildInMemoryCacheFactory())
+            ),
             logger = mock(),
             problemsListener = mock()
         )
