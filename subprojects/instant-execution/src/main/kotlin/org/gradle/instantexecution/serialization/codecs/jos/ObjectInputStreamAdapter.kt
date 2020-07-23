@@ -42,15 +42,22 @@ class ObjectInputStreamAdapter(
 
 ) : ObjectInputStream() {
 
-    override fun defaultReadObject() = beanStateReader.run {
-        readContext.runReadOperation {
-            readStateOf(bean)
+    override fun defaultReadObject() {
+        runReadOperation {
+            beanStateReader.run {
+                readStateOf(bean)
+            }
         }
     }
 
-    override fun readObjectOverride(): Any? = readContext.runReadOperation {
-        read()
-    }
+    override fun readObjectOverride(): Any? =
+        runReadOperation {
+            read()
+        }
+
+    private
+    fun runReadOperation(operation: suspend ReadContext.() -> Any?): Any? =
+        readContext.runReadOperation(operation)
 
     override fun readInt(): Int = readContext.readInt()
 
