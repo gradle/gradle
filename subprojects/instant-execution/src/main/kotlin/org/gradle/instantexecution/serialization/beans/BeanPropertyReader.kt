@@ -93,9 +93,6 @@ class BeanPropertyReader(
 }
 
 
-/**
- * Reads a sequence of properties written with [writingProperties].
- */
 suspend fun ReadContext.readPropertyValue(kind: PropertyKind, name: String, action: (Any?) -> Unit) {
     withPropertyTrace(kind, name) {
         val value =
@@ -103,6 +100,8 @@ suspend fun ReadContext.readPropertyValue(kind: PropertyKind, name: String, acti
                 read().also {
                     logPropertyInfo("deserialize", it)
                 }
+            } catch (passThrough: InterruptedException) {
+                throw passThrough
             } catch (passThrough: IOException) {
                 throw passThrough
             } catch (passThrough: GradleException) {

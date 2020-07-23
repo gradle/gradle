@@ -69,6 +69,8 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
     withPropertyTrace(kind, name) {
         try {
             write(value)
+        } catch (passThrough: InterruptedException) {
+            throw passThrough
         } catch (passThrough: IOException) {
             throw passThrough
         } catch (passThrough: InstantExecutionProblemsException) {
