@@ -129,8 +129,8 @@ class ExceptionPlaceholder implements Serializable {
 //                LOGGER.debug("Ignoring failure to serialize throwable.", ignored);
         }
 
-        this.causes = convertToExceptionPlaceholderList(causes, objectOutputStreamCreator);
-        this.suppressed = convertToExceptionPlaceholderList(suppressed, objectOutputStreamCreator);
+        this.causes = convertToExceptionPlaceholderList(original, causes, objectOutputStreamCreator, false);
+        this.suppressed = convertToExceptionPlaceholderList(original, suppressed, objectOutputStreamCreator, true);
 
     }
 
@@ -142,18 +142,51 @@ class ExceptionPlaceholder implements Serializable {
         return Collections.emptyList();
     }
 
-    private static List<ExceptionPlaceholder> convertToExceptionPlaceholderList(List<? extends Throwable> throwables, Transformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator) {
+    private static List<ExceptionPlaceholder> convertToExceptionPlaceholderList(Throwable original, List<? extends Throwable> throwables, Transformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator, boolean checkCycle) {
         if (throwables.isEmpty()) {
             return Collections.emptyList();
         } else if (throwables.size() == 1) {
-            return Collections.singletonList(new ExceptionPlaceholder(throwables.get(0), objectOutputStreamCreator));
+            Throwable cause = throwables.get(0);
+            if (checkCycle) {
+                if (hasCycle(original, cause)) {
+                    return Collections.emptyList();
+                }
+            }
+            return Collections.singletonList(new ExceptionPlaceholder(cause, objectOutputStreamCreator));
         } else {
             List<ExceptionPlaceholder> placeholders = new ArrayList<ExceptionPlaceholder>(throwables.size());
             for (Throwable cause : throwables) {
-                placeholders.add(new ExceptionPlaceholder(cause, objectOutputStreamCreator));
+                if (!checkCycle || !hasCycle(original, cause)) {
+                    placeholders.add(new ExceptionPlaceholder(cause, objectOutputStreamCreator));
+                }
             }
             return placeholders;
         }
+    }
+
+    private static boolean hasCycle(Throwable original, Throwable source) {
+        Throwable current;
+        Throwable cause = source;
+
+        try {
+            do {
+                current = cause;
+                if (original == current) {
+                    return true;
+                }
+                List<? extends Throwable> suppressed = extractSuppressed(current);
+                if (!suppressed.isEmpty()) {
+                    for (Throwable throwable : suppressed) {
+                        if (hasCycle(original, throwable)) {
+                            return true;
+                        }
+                    }
+                }
+            } while ((cause = current.getCause()) != null);
+        } catch (Throwable e) {
+            // Ignore, is handled elsewhere
+        }
+        return false;
     }
 
     private static boolean isJava7() {
