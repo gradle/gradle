@@ -19,13 +19,15 @@ package org.gradle.internal.watch
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FileSystemWatchingFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
 
-// The whole test makes no sense if there isn't a daemon to retain the state.
-@IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.watchFs })
+import static org.junit.Assume.assumeFalse
+
 class AbstractFileSystemWatchingIntegrationTest extends AbstractIntegrationSpec implements FileSystemWatchingFixture {
 
     def setup() {
+        assumeFalse("No shared state without a daemon", GradleContextualExecuter.noDaemon)
+        assumeFalse("The test manually enables file system watching", GradleContextualExecuter.watchFs)
+
         // Make the first build in each test drop the VFS state
         executer.requireIsolatedDaemons()
     }

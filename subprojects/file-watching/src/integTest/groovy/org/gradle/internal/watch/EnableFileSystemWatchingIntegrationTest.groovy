@@ -17,14 +17,11 @@
 package org.gradle.internal.watch
 
 import org.gradle.initialization.StartParameterBuildOptions
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
-import spock.lang.IgnoreIf
 
 class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
     private static final String INCUBATING_MESSAGE = "Watching the file system is an incubating feature"
 
-    @IgnoreIf({ GradleContextualExecuter.watchFs })
     def "incubating message is shown for watching the file system"() {
         buildFile << """
             apply plugin: "java"
