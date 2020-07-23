@@ -25,7 +25,7 @@ pluginManagement {
 
 plugins {
     id("com.gradle.enterprise").version("3.4")
-    id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.3")
+    id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.6")
 }
 
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
@@ -193,4 +193,3 @@ FeaturePreviews.Feature.values().forEach { feature ->
         enableFeaturePreview(feature.name)
     }
 }
-
