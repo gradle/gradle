@@ -25,9 +25,25 @@ import org.gradle.invocation.DefaultGradle
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
+import static org.gradle.integtests.fixtures.instantexecution.InstantExecutionProblemsFixture.resolveInstantExecutionReportDirectory
 
 @IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
 class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+
+    def "report is written to root project's buildDir"() {
+        file("build.gradle") << """
+            buildDir = 'out'
+            tasks.register('broken') {
+                doFirst { println(project.name) }
+            }
+        """
+
+        when:
+        instantFails 'broken'
+
+        then:
+        resolveInstantExecutionReportDirectory(testDirectory, failure.error, 'out')?.isDirectory()
+    }
 
     def "state serialization errors always halt the build and invalidate the cache"() {
         given:

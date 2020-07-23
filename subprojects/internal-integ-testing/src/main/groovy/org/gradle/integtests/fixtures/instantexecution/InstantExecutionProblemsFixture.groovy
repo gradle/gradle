@@ -324,8 +324,8 @@ final class InstantExecutionProblemsFixture {
     }
 
     @Nullable
-    private static TestFile resolveInstantExecutionReportDirectory(File rootDir, String output) {
-        def baseDirUri = clickableUrlFor(new File(rootDir, "build/reports/configuration-cache"))
+    static TestFile resolveInstantExecutionReportDirectory(File rootDir, String output, String buildDir = "build") {
+        def baseDirUri = clickableUrlFor(new File(rootDir, "$buildDir/reports/configuration-cache"))
         def pattern = Pattern.compile("See the complete report at (${baseDirUri}.*)$PROBLEMS_REPORT_HTML_FILE_NAME")
         def reportDirUri = output.readLines().findResult { line ->
             def matcher = pattern.matcher(line)
