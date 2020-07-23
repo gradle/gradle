@@ -305,7 +305,7 @@ installDist.destinationDir = buildDir
         then:
         File generatedWindowsStartScript = file("build/scripts/application.bat")
         generatedWindowsStartScript.exists()
-        assertLineSeparators(generatedWindowsStartScript, TextUtil.windowsLineSeparator, 104)
+        assertLineSeparators(generatedWindowsStartScript, TextUtil.windowsLineSeparator, 89)
 
         File generatedLinuxStartScript = file("build/scripts/application")
         generatedLinuxStartScript.exists()
