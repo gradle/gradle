@@ -145,11 +145,11 @@ class DefaultRecursionScope(
     fun runCallLoop(): Any? {
         while (true) {
             val k = this.k
-            val result = this.result
-            if (k == null) {
-                return result.getOrThrow() // done -- final result
+                ?: return result.getOrThrow() // done -- final result
+            if (Thread.interrupted()) {
+                k.resumeWithException(InterruptedException())
+                continue
             }
-            // ~startCoroutineUninterceptedOrReturn
             val r = try {
                 function(value, k)
             } catch (e: Throwable) {
