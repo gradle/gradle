@@ -114,7 +114,7 @@ class ExceptionPlaceholder implements Serializable {
                 }
                 int suppressedIndex = suppressed.indexOf(obj);
                 if (suppressedIndex >= 0) {
-                    return new NestedExceptionPlaceholder(NestedExceptionPlaceholder.Kind.suppressed, causeIndex);
+                    return new NestedExceptionPlaceholder(NestedExceptionPlaceholder.Kind.suppressed, suppressedIndex);
                 }
                 return obj;
             }
