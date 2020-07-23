@@ -46,4 +46,13 @@ class RootProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBuc
 
     buildTypesOrder = buildTypes
     subProjectsOrder = subProjects
+
+    cleanup {
+        baseRule {
+            history(days = 7)
+        }
+        baseRule {
+            artifacts(days = 7)
+        }
+    }
 })
