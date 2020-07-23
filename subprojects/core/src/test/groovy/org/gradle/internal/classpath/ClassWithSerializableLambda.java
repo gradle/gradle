@@ -16,12 +16,14 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.Action;
+import java.io.Serializable;
+import java.util.concurrent.Callable;
 
-public class TestLambdas {
-    public static Action<StringBuilder> action(int value) {
-        return s -> {
-            s.append(value);
-        };
+public class ClassWithSerializableLambda {
+    public static SerializableThing thing(int value) {
+        return () -> String.valueOf(value);
+    }
+
+    public interface SerializableThing extends Callable<String>, Serializable {
     }
 }
