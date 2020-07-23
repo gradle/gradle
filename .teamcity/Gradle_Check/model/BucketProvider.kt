@@ -124,14 +124,27 @@ class StatisticBasedGradleBuildBucketProvider(private val model: CIBuildModel, t
             .map { SubprojectTestClassTime(model.subprojects.getSubprojectByName(it.key)!!, it.value.filter { it.sourceSet != "test" }) }
             .sortedBy { -it.totalTime }
 
-        return split(
-            LinkedList(subProjectTestClassTimes),
-            SubprojectTestClassTime::totalTime,
-            { largeElement: SubprojectTestClassTime, size: Int -> largeElement.split(size) },
-            { list: List<SubprojectTestClassTime> -> SmallSubprojectBucket(list) },
-            testCoverage.expectedBucketNumber,
-            MAX_PROJECT_NUMBER_IN_BUCKET
-        )
+        if (testCoverage.testType == TestType.platform) {
+            val docsSubproject = validSubprojects.filter { it.name == "docs" }
+            val otherSubProjectTestClassTimes = subProjectTestClassTimes.filter { it.subProject.name != "docs" }
+            return docsSubproject + split(
+                LinkedList(otherSubProjectTestClassTimes),
+                SubprojectTestClassTime::totalTime,
+                { largeElement: SubprojectTestClassTime, size: Int -> largeElement.split(size) },
+                { list: List<SubprojectTestClassTime> -> SmallSubprojectBucket(list) },
+                testCoverage.expectedBucketNumber - docsSubproject.size,
+                MAX_PROJECT_NUMBER_IN_BUCKET
+            )
+        } else {
+            return split(
+                LinkedList(subProjectTestClassTimes),
+                SubprojectTestClassTime::totalTime,
+                { largeElement: SubprojectTestClassTime, size: Int -> largeElement.split(size) },
+                { list: List<SubprojectTestClassTime> -> SmallSubprojectBucket(list) },
+                testCoverage.expectedBucketNumber,
+                MAX_PROJECT_NUMBER_IN_BUCKET
+            )
+        }
     }
 
     private fun determineSubProjectClassTimes(testCoverage: TestCoverage, buildProjectClassTimes: BuildProjectToSubprojectTestClassTimes): Map<String, List<TestClassTime>>? {
