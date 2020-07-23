@@ -37,5 +37,7 @@ dependencies {
     testImplementation(testFixtures(project(":fileCollections")))
     testImplementation(libs.commonsIo)
 
+    integTestImplementation(libs.jetty)
+
     integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }

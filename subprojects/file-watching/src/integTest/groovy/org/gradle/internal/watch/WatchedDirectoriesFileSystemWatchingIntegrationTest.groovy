@@ -21,14 +21,19 @@ import org.apache.commons.io.FileUtils
 import org.gradle.cache.GlobalCacheLocations
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
+import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
 
 @Unroll
 class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
+    @Rule
+    public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
 
     def "watches the project directory"() {
         buildFile << """
@@ -250,7 +255,6 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
     }
 
     def "watches the roots of #repositoryType file repositories"() {
-        using(m2)
         def repo = this."${repositoryType}"("repo")
         def moduleA = repo.module('group', 'projectA', '9.1')
         moduleA.publish()
@@ -278,6 +282,45 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         "maven"        | "artifactFile"
         "mavenLocal"   | "artifactFile"
         "ivy"          | "jarFile"
+    }
+
+    def "does not watch mavenLocal when not declared and dependency is copied into cache"() {
+        server.start()
+        def mavenRepository = maven("repo")
+        def mavenHttpRepository = new MavenHttpRepository(server, mavenRepository)
+        m2.generateGlobalSettingsFile()
+        def remoteModule = mavenHttpRepository.module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
+        def m2Module = m2.mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
+
+        def projectDir = file("projectDir")
+
+        projectDir.file("build.gradle") << """
+            repositories {
+                maven { url "${mavenHttpRepository.uri}" }
+            }
+            configurations { compile }
+            dependencies {
+                compile 'gradletest.maven.local.cache.test:foo:1.0'
+            }
+            task retrieve(type: Sync) {
+                from configurations.compile
+                into 'build'
+            }
+        """
+        executer.beforeExecute { inDirectory(projectDir) }
+
+        remoteModule.pom.expectHead()
+        remoteModule.pom.sha1.expectGet()
+        remoteModule.artifact.expectHead()
+        remoteModule.artifact.sha1.expectGet()
+
+        when:
+        using m2
+        withWatchFs().run 'retrieve', "--info"
+
+        then:
+        projectDir.file('build/foo-1.0.jar').assertIsCopyOf(m2Module.artifactFile)
+        assertWatchedHierarchies([projectDir])
     }
 
     void assertWatchedRootDirectories(List<Set<File>> expectedWatchedRootDirectories) {
