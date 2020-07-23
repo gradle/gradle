@@ -112,11 +112,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(VirtualFileSystemServices.class);
 
     /**
-     * Boolean system property to enable partial invalidation.
-     */
-    public static final String VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.partial-invalidation";
-
-    /**
      * Deprecated system property used to enable watching the file system.
      *
      * Using this property causes Gradle to emit a deprecation warning.
@@ -131,11 +126,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
      * @see org.gradle.initialization.StartParameterBuildOptions.WatchFileSystemOption
      */
     public static final String VFS_DROP_PROPERTY = "org.gradle.unsafe.vfs.drop";
-
-    public static boolean isPartialInvalidationEnabled(StartParameterInternal startParameter) {
-        return startParameter.isWatchFileSystem()
-            || isSystemPropertyEnabled(VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, startParameter.getSystemPropertiesArgs());
-    }
 
     public static boolean isDropVfs(StartParameter startParameter) {
         return isSystemPropertyEnabled(VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs());
