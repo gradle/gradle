@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ArtifactExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeEverything;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeNothing;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -40,8 +39,6 @@ public interface ExcludeFactory {
     ModuleExclude module(String module);
 
     ModuleIdExclude moduleId(ModuleIdentifier id);
-
-    ArtifactExclude artifact(ModuleIdentifier id, IvyArtifactName artifact);
 
     ExcludeSpec anyOf(ExcludeSpec one, ExcludeSpec two);
 

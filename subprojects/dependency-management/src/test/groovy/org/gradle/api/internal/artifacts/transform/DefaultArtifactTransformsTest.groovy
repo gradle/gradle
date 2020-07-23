@@ -47,8 +47,8 @@ class DefaultArtifactTransformsTest extends Specification {
     def attributeMatcher = Mock(AttributeMatcher)
     def factory = Mock(VariantSelector.Factory)
     def dependenciesResolver = Stub(ExtraExecutionGraphDependenciesResolverFactory)
-    def transformationNodeRegistry = Mock(TransformationNodeRegistry)
-    def transforms = new DefaultArtifactTransforms(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformationNodeRegistry)
+    def transformedVariantFactory = Mock(TransformedVariantFactory)
+    def transforms = new DefaultArtifactTransforms(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformedVariantFactory)
 
     def "selects producer variant with requested attributes"() {
         def variant1 = resolvedVariant()

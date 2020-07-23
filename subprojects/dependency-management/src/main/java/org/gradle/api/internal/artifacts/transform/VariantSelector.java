@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
@@ -29,6 +30,6 @@ public interface VariantSelector {
     ResolvedArtifactSet select(ResolvedVariantSet candidates, Factory factory);
 
     interface Factory {
-        ResolvedArtifactSet asTransformed(ResolvedArtifactSet artifacts, ImmutableAttributes targetAttributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformationNodeRegistry transformationNodeRegistry);
+        ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, ImmutableAttributes targetAttributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformedVariantFactory transformedVariantFactory);
     }
 }

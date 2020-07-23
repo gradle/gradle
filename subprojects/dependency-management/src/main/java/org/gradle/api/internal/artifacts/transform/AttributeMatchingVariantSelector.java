@@ -51,7 +51,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
-    private final TransformationNodeRegistry transformationNodeRegistry;
+    private final TransformedVariantFactory transformedVariantFactory;
     private final ImmutableAttributes requested;
     private final boolean ignoreWhenNoMatches;
     private final ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver;
@@ -60,7 +60,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributesSchemaInternal schema,
         ImmutableAttributesFactory attributesFactory,
-        TransformationNodeRegistry transformationNodeRegistry,
+        TransformedVariantFactory transformedVariantFactory,
         AttributeContainerInternal requested,
         boolean ignoreWhenNoMatches,
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver
@@ -68,7 +68,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
-        this.transformationNodeRegistry = transformationNodeRegistry;
+        this.transformedVariantFactory = transformedVariantFactory;
         this.requested = requested.asImmutable();
         this.ignoreWhenNoMatches = ignoreWhenNoMatches;
         this.dependenciesResolver = dependenciesResolver;
@@ -121,10 +121,10 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         }
         if (candidates.size() == 1) {
             Pair<ResolvedVariant, MutableConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
-            ResolvedArtifactSet artifacts = result.getLeft().getArtifacts();
+            ResolvedVariant variant = result.getLeft();
             ImmutableAttributes attributes = result.getRight().attributes.asImmutable();
             Transformation transformation = result.getRight().transformation;
-            return factory.asTransformed(artifacts, attributes, transformation, dependenciesResolver, transformationNodeRegistry);
+            return factory.asTransformed(variant, attributes, transformation, dependenciesResolver, transformedVariantFactory);
         }
 
         if (!candidates.isEmpty()) {

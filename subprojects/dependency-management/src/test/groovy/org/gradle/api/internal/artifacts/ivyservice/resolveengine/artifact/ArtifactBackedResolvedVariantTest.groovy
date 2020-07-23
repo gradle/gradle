@@ -31,6 +31,7 @@ import spock.lang.Specification
 class ArtifactBackedResolvedVariantTest extends Specification {
     def variant = Mock(AttributeContainerInternal)
     def variantDisplayName = Describables.of("<variant>")
+    def id = Mock(ResolvedVariant.Identifier)
     def queue = new TestBuildOperationExecutor.TestBuildOperationQueue()
     def artifact1 = Mock(TestArtifact)
     def artifact2 = Mock(TestArtifact)
@@ -187,7 +188,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
     }
 
     ResolvedVariant of(artifacts) {
-        return ArtifactBackedResolvedVariant.create(variantDisplayName, variant, artifacts)
+        return ArtifactBackedResolvedVariant.create(id, variantDisplayName, variant, artifacts)
     }
 
     interface TestArtifact extends ResolvableArtifact, Buildable { }
