@@ -16,7 +16,6 @@
 
 package org.gradle.internal.watch.vfs.impl;
 
-import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.impl.SnapshotCollectingDiffListener;
 
@@ -41,17 +40,15 @@ public class DelegatingDiffCapturingUpdateFunctionDecorator implements SnapshotH
     }
 
     @Override
-    public AtomicSnapshotHierarchyReference.UpdateFunction decorate(SnapshotHierarchy.DiffCapturingUpdateFunction updateFunction) {
+    public SnapshotHierarchy decorate(SnapshotHierarchy.DiffCapturingUpdateFunction updateFunction, SnapshotHierarchy root) {
         ErrorHandlingDiffPublisher currentErrorHandlingDiffPublisher = errorHandlingDiffPublisher;
         if (currentErrorHandlingDiffPublisher == null) {
-            return root -> updateFunction.update(root, SnapshotHierarchy.NodeDiffListener.NOOP);
+            return updateFunction.update(root, SnapshotHierarchy.NodeDiffListener.NOOP);
         }
 
         SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener(watchFilter);
-        return root -> {
-            SnapshotHierarchy newRoot = updateFunction.update(root, diffListener);
-            return currentErrorHandlingDiffPublisher.publishSnapshotDiff(diffListener, newRoot);
-        };
+        SnapshotHierarchy newRoot = updateFunction.update(root, diffListener);
+        return currentErrorHandlingDiffPublisher.publishSnapshotDiff(diffListener, newRoot);
     }
 
     public interface ErrorHandler {

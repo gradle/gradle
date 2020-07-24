@@ -37,13 +37,9 @@ public class AtomicSnapshotHierarchyReference {
         try {
             // Store the current root in a local variable to make the call atomic
             SnapshotHierarchy currentRoot = root;
-            root = updateFunctionDecorator.decorate(updateFunction).updateRoot(currentRoot);
+            root = updateFunctionDecorator.decorate(updateFunction, currentRoot);
         } finally {
             updateLock.unlock();
         }
-    }
-
-    public interface UpdateFunction {
-        SnapshotHierarchy updateRoot(SnapshotHierarchy root);
     }
 }

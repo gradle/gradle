@@ -356,9 +356,10 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
         }
 
         private void invalidateSymlink(CompleteFileSystemLocationSnapshot snapshot) {
-            root = delegatingUpdateFunctionDecorator
-                .decorate((root, diffListener) -> root.invalidate(snapshot.getAbsolutePath(), diffListener))
-                .updateRoot(root);
+            root = delegatingUpdateFunctionDecorator.decorate(
+                (root, diffListener) -> root.invalidate(snapshot.getAbsolutePath(), diffListener),
+                root
+            );
         }
 
         public SnapshotHierarchy getRootWithSymlinksRemoved() {
