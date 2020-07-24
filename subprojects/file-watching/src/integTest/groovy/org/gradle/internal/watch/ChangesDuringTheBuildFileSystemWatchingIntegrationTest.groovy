@@ -30,6 +30,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         buildFile << """
             import org.gradle.internal.file.FileType
             import org.gradle.internal.snapshot.*
+            import org.gradle.internal.vfs.*
 
             task waitForUserChanges {
                 doLast {

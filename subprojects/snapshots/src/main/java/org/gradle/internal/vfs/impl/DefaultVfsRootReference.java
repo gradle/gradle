@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot;
+package org.gradle.internal.vfs.impl;
 
-import org.gradle.internal.snapshot.impl.DefaultVfsRoot;
+import org.gradle.internal.snapshot.ReadOnlyVfsRoot;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.vfs.VfsRootReference;
 
 import java.util.concurrent.locks.ReentrantLock;
 
-public class AtomicSnapshotHierarchyReference implements VfsRootReference {
+public class DefaultVfsRootReference implements VfsRootReference {
     private volatile SnapshotHierarchy root;
     private final SnapshotHierarchy.UpdateFunctionRunner updateFunctionRunner;
     private final ReentrantLock updateLock = new ReentrantLock();
 
-    public AtomicSnapshotHierarchyReference(SnapshotHierarchy root, SnapshotHierarchy.UpdateFunctionRunner updateFunctionRunner) {
+    public DefaultVfsRootReference(SnapshotHierarchy root, SnapshotHierarchy.UpdateFunctionRunner updateFunctionRunner) {
         this.root = root;
         this.updateFunctionRunner = updateFunctionRunner;
     }

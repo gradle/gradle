@@ -61,7 +61,7 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
     }
 
     @Override
-    public void accept(VfsRoot.SnapshotVisitor snapshotVisitor) {
+    public void accept(SnapshotVisitor snapshotVisitor) {
         snapshotVisitor.visitSnapshotRoot(this);
     }
 
@@ -134,7 +134,7 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
         }
 
         @Override
-        public void accept(VfsRoot.SnapshotVisitor snapshotVisitor) {
+        public void accept(SnapshotVisitor snapshotVisitor) {
             delegate.accept(snapshotVisitor);
         }
     }

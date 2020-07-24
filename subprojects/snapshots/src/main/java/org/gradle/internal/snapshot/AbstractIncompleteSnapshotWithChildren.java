@@ -121,7 +121,7 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
     }
 
     @Override
-    public void accept(VfsRoot.SnapshotVisitor snapshotVisitor) {
+    public void accept(SnapshotVisitor snapshotVisitor) {
         for (FileSystemNode child : children) {
             child.accept(snapshotVisitor);
         }

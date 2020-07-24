@@ -61,7 +61,7 @@ public interface FileSystemNode {
      */
     FileSystemNode withPathToParent(String newPathToParent);
 
-    void accept(VfsRoot.SnapshotVisitor snapshotVisitor);
+    void accept(SnapshotVisitor snapshotVisitor);
 
     interface NodeVisitor {
         void visitNode(FileSystemNode node, @Nullable FileSystemNode parent);

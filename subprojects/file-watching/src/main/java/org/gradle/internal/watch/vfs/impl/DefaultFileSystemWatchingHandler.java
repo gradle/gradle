@@ -26,8 +26,9 @@ import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.ReadOnlyVfsRoot;
-import org.gradle.internal.snapshot.VfsRoot;
-import org.gradle.internal.snapshot.VfsRootReference;
+import org.gradle.internal.vfs.SnapshotDiffListener;
+import org.gradle.internal.vfs.VfsRoot;
+import org.gradle.internal.vfs.VfsRootReference;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
@@ -59,7 +60,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
     private FileWatcherRegistry watchRegistry;
     private Exception reasonForNotWatchingFiles;
 
-    private final VfsRoot.SnapshotDiffListener snapshotDiffListener = (removedSnapshots, addedSnapshots) -> {
+    private final SnapshotDiffListener snapshotDiffListener = (removedSnapshots, addedSnapshots) -> {
         if (watchRegistry != null) {
             watchRegistry.getFileWatcherUpdater().changed(removedSnapshots, addedSnapshots);
         }

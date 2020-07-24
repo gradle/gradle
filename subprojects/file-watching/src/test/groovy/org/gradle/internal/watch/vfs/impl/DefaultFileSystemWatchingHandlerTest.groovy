@@ -17,8 +17,8 @@
 package org.gradle.internal.watch.vfs.impl
 
 import com.google.common.collect.ImmutableSet
-import org.gradle.internal.snapshot.VfsRoot
-import org.gradle.internal.snapshot.VfsRootReference
+import org.gradle.internal.vfs.VfsRoot
+import org.gradle.internal.vfs.VfsRootReference
 import org.gradle.internal.watch.registry.FileWatcherRegistry
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory
 import org.gradle.internal.watch.registry.FileWatcherUpdater

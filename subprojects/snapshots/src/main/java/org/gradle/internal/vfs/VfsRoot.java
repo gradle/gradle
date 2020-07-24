@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot;
+package org.gradle.internal.vfs;
+
+import org.gradle.internal.snapshot.MetadataSnapshot;
+import org.gradle.internal.snapshot.ReadOnlyVfsRoot;
 
 import javax.annotation.CheckReturnValue;
-import java.util.Collection;
 
 public interface VfsRoot extends ReadOnlyVfsRoot {
     /**
@@ -35,22 +37,4 @@ public interface VfsRoot extends ReadOnlyVfsRoot {
      * Empties the root.
      */
     void invalidateAll();
-
-    /**
-     * Listens to diffs to {@link CompleteFileSystemLocationSnapshot}s during an update of {@link SnapshotHierarchy}.
-     *
-     * Similar to {@link SnapshotHierarchy.NodeDiffListener}, only that
-     * - it listens for {@link CompleteFileSystemLocationSnapshot}s and not {@link FileSystemNode}s.
-     * - it receives all the changes for one update at once.
-     */
-    interface SnapshotDiffListener {
-        SnapshotDiffListener NOOP = (removedSnapshots, addedSnapshots) -> {};
-
-        /**
-         * Called after the update to {@link SnapshotHierarchy} finished.
-         *
-         * Only the roots of added/removed hierarchies are reported.
-         */
-        void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots);
-    }
 }

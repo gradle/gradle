@@ -16,12 +16,6 @@
 
 package org.gradle.internal.snapshot;
 
-public interface VfsRootReference {
-    ReadOnlyVfsRoot get();
-
-    void update(VfsUpdateFunction updateFunction);
-
-    interface VfsUpdateFunction {
-        void update(VfsRoot root);
-    }
+public interface SnapshotVisitor {
+    void visitSnapshotRoot(CompleteFileSystemLocationSnapshot snapshot);
 }

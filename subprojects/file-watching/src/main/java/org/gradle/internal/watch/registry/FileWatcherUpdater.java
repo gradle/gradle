@@ -17,13 +17,13 @@
 package org.gradle.internal.watch.registry;
 
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.VfsRoot;
+import org.gradle.internal.vfs.SnapshotDiffListener;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 
 import java.io.File;
 import java.util.Collection;
 
-public interface FileWatcherUpdater extends VfsRoot.SnapshotDiffListener {
+public interface FileWatcherUpdater extends SnapshotDiffListener {
     /**
      * Changes the root project directories, e.g. when the same daemon is used on a different project.
      *

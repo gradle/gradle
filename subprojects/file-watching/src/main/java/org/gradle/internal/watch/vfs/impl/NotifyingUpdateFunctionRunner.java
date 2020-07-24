@@ -16,11 +16,17 @@
 
 package org.gradle.internal.watch.vfs.impl;
 
+import org.gradle.internal.file.FileMetadata;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
-import org.gradle.internal.snapshot.VfsRoot;
-import org.gradle.internal.snapshot.impl.DefaultVfsRoot;
-import org.gradle.internal.vfs.impl.SnapshotCollectingDiffListener;
+import org.gradle.internal.vfs.SnapshotDiffListener;
+import org.gradle.internal.vfs.VfsRoot;
+import org.gradle.internal.vfs.impl.DefaultVfsRoot;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class NotifyingUpdateFunctionRunner implements SnapshotHierarchy.UpdateFunctionRunner {
@@ -32,7 +38,7 @@ public class NotifyingUpdateFunctionRunner implements SnapshotHierarchy.UpdateFu
         this.watchFilter = watchFilter;
     }
 
-    public void setSnapshotDiffListener(VfsRoot.SnapshotDiffListener snapshotDiffListener, ErrorHandler errorHandler) {
+    public void setSnapshotDiffListener(SnapshotDiffListener snapshotDiffListener, ErrorHandler errorHandler) {
         this.errorHandlingDiffPublisher = new ErrorHandlingDiffPublisher(snapshotDiffListener, errorHandler);
     }
 
@@ -57,10 +63,10 @@ public class NotifyingUpdateFunctionRunner implements SnapshotHierarchy.UpdateFu
     }
 
     private static class ErrorHandlingDiffPublisher {
-        private final VfsRoot.SnapshotDiffListener diffListener;
+        private final SnapshotDiffListener diffListener;
         private final ErrorHandler errorHandler;
 
-        public ErrorHandlingDiffPublisher(VfsRoot.SnapshotDiffListener diffListener, ErrorHandler errorHandler) {
+        public ErrorHandlingDiffPublisher(SnapshotDiffListener diffListener, ErrorHandler errorHandler) {
             this.diffListener = diffListener;
             this.errorHandler = errorHandler;
         }
@@ -69,6 +75,40 @@ public class NotifyingUpdateFunctionRunner implements SnapshotHierarchy.UpdateFu
             DefaultVfsRoot vfsRoot = new DefaultVfsRoot(newRoot, SnapshotHierarchy.UpdateFunctionRunner.WITHOUT_LISTENERS);
             errorHandler.handleErrors(vfsRoot, () -> collectedDiff.publishSnapshotDiff(diffListener));
             return vfsRoot.getDelegate();
+        }
+    }
+
+    private static class SnapshotCollectingDiffListener implements SnapshotHierarchy.NodeDiffListener {
+        private final List<CompleteFileSystemLocationSnapshot> removedSnapshots = new ArrayList<>();
+        private final List<CompleteFileSystemLocationSnapshot> addedSnapshots = new ArrayList<>();
+        private final Predicate<String> watchFilter;
+
+        public SnapshotCollectingDiffListener(Predicate<String> watchFilter) {
+            this.watchFilter = watchFilter;
+        }
+
+        public void publishSnapshotDiff(SnapshotDiffListener snapshotDiffListener) {
+            if (!removedSnapshots.isEmpty() || !addedSnapshots.isEmpty()) {
+                snapshotDiffListener.changed(removedSnapshots, addedSnapshots);
+            }
+        }
+
+        private void extractRootSnapshots(FileSystemNode rootNode, Consumer<CompleteFileSystemLocationSnapshot> consumer) {
+            rootNode.accept(snapshot -> {
+                if (snapshot.getAccessType() == FileMetadata.AccessType.DIRECT && watchFilter.test(snapshot.getAbsolutePath())) {
+                    consumer.accept(snapshot);
+                }
+            });
+        }
+
+        @Override
+        public void nodeRemoved(FileSystemNode node) {
+            extractRootSnapshots(node, removedSnapshots::add);
+        }
+
+        @Override
+        public void nodeAdded(FileSystemNode node) {
+            extractRootSnapshots(node, addedSnapshots::add);
         }
     }
 }

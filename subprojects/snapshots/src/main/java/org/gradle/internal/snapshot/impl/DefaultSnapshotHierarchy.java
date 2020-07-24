@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs.impl;
+package org.gradle.internal.snapshot.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.snapshot.SnapshotVisitor;
 import org.gradle.internal.snapshot.VfsRelativePath;
-import org.gradle.internal.snapshot.VfsRoot;
 
 import java.util.Optional;
 
@@ -86,7 +86,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     }
 
     @Override
-    public void visitSnapshotRoots(VfsRoot.SnapshotVisitor snapshotVisitor) {
+    public void visitSnapshotRoots(SnapshotVisitor snapshotVisitor) {
         rootNode.accept(snapshotVisitor);
     }
 
@@ -124,6 +124,6 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
         }
 
         @Override
-        public void visitSnapshotRoots(VfsRoot.SnapshotVisitor snapshotVisitor) {}
+        public void visitSnapshotRoots(SnapshotVisitor snapshotVisitor) {}
     }
 }

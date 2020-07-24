@@ -34,8 +34,4 @@ public interface ReadOnlyVfsRoot {
     }
 
     void visitSnapshotRoots(SnapshotVisitor snapshotVisitor);
-
-    interface SnapshotVisitor {
-        void visitSnapshotRoot(CompleteFileSystemLocationSnapshot snapshot);
-    }
 }

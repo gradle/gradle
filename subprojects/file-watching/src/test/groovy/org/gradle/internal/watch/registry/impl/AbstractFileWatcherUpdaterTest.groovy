@@ -25,9 +25,9 @@ import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.gradle.internal.snapshot.VfsRoot
+import org.gradle.internal.snapshot.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
-import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
+import org.gradle.internal.vfs.VfsRoot
 import org.gradle.internal.watch.registry.FileWatcherUpdater
 import org.gradle.internal.watch.vfs.impl.NotifyingUpdateFunctionRunner
 import org.gradle.test.fixtures.file.CleanupTestDirectory

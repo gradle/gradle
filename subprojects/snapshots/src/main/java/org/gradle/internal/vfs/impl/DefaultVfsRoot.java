@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot.impl;
+package org.gradle.internal.vfs.impl;
 
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
-import org.gradle.internal.snapshot.VfsRoot;
+import org.gradle.internal.snapshot.SnapshotVisitor;
+import org.gradle.internal.vfs.VfsRoot;
 
 import java.util.Optional;
 

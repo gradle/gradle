@@ -16,9 +16,9 @@
 
 package org.gradle.internal.watch.vfs.impl
 
-import org.gradle.internal.snapshot.VfsRoot
-import org.gradle.internal.snapshot.VfsRootReference
-import org.gradle.internal.snapshot.VfsRootReference.VfsUpdateFunction
+import org.gradle.internal.vfs.VfsRoot
+import org.gradle.internal.vfs.VfsRootReference
+import org.gradle.internal.vfs.VfsRootReference.VfsUpdateFunction
 import spock.lang.Specification
 
 class WatchingNotSupportedFileSystemWatchingHandlerTest extends Specification {

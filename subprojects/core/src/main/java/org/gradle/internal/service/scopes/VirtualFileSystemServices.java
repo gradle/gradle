@@ -77,12 +77,12 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
-import org.gradle.internal.snapshot.VfsRootReference;
+import org.gradle.internal.snapshot.impl.DefaultSnapshotHierarchy;
+import org.gradle.internal.vfs.VfsRootReference;
 import org.gradle.internal.vfs.VirtualFileSystem;
-import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
+import org.gradle.internal.vfs.impl.DefaultVfsRootReference;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.DarwinFileWatcherRegistryFactory;
@@ -195,7 +195,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
         VfsRootReference createVfsRootReference(FileSystem fileSystem, SnapshotHierarchy.UpdateFunctionRunner updateFunctionRunner) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
-            return new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity), updateFunctionRunner);
+            return new DefaultVfsRootReference(DefaultSnapshotHierarchy.empty(caseSensitivity), updateFunctionRunner);
         }
 
         VirtualFileSystem createVirtualFileSystem(
