@@ -22,12 +22,12 @@ import net.rubygrapefruit.platform.internal.jni.InotifyInstanceLimitTooLowExcept
 import net.rubygrapefruit.platform.internal.jni.InotifyWatchesLimitTooLowException;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.ReadOnlyVfsRoot;
 import org.gradle.internal.snapshot.VfsRoot;
+import org.gradle.internal.snapshot.VfsRootReference;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
@@ -50,7 +50,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
     private static final String FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD = "Gradle was unable to watch the file system for changes";
 
     private final FileWatcherRegistryFactory watcherRegistryFactory;
-    private final AtomicSnapshotHierarchyReference root;
+    private final VfsRootReference rootReference;
     private final NotifyingUpdateFunctionRunner updateFunctionRunner;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
     private final LocationsUpdatedByCurrentBuild locationsUpdatedByCurrentBuild;
@@ -67,13 +67,13 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
 
     public DefaultFileSystemWatchingHandler(
         FileWatcherRegistryFactory watcherRegistryFactory,
-        AtomicSnapshotHierarchyReference root,
+        VfsRootReference rootReference,
         NotifyingUpdateFunctionRunner updateFunctionRunner,
         DaemonDocumentationIndex daemonDocumentationIndex,
         LocationsUpdatedByCurrentBuild locationsUpdatedByCurrentBuild
     ) {
         this.watcherRegistryFactory = watcherRegistryFactory;
-        this.root = root;
+        this.rootReference = rootReference;
         this.updateFunctionRunner = updateFunctionRunner;
         this.daemonDocumentationIndex = daemonDocumentationIndex;
         this.locationsUpdatedByCurrentBuild = locationsUpdatedByCurrentBuild;
@@ -82,13 +82,13 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
     @Override
     public void afterBuildStarted(boolean watchingEnabled) {
         reasonForNotWatchingFiles = null;
-        root.update(vfsRoot -> {
+        rootReference.update(root -> {
             if (watchingEnabled) {
-                handleWatcherRegistryEvents(vfsRoot, "since last build");
-                startWatching(vfsRoot);
-                printStatistics(vfsRoot, "retained", "since last build");
+                handleWatcherRegistryEvents(root, "since last build");
+                startWatching(root);
+                printStatistics(root, "retained", "since last build");
             } else {
-                stopWatchingAndInvalidateHierarchy(vfsRoot);
+                stopWatchingAndInvalidateHierarchy(root);
             }
         });
     }
@@ -98,11 +98,11 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
     }
 
     private void updateWatchRegistry(Consumer<FileWatcherRegistry> updateFunction, Runnable noWatchRegistry) {
-        root.update(currentRoot -> {
+        rootReference.update(root -> {
             if (watchRegistry == null) {
                 noWatchRegistry.run();
             } else {
-                withWatcherChangeErrorHandling(currentRoot, () -> updateFunction.accept(watchRegistry));
+                withWatcherChangeErrorHandling(root, () -> updateFunction.accept(watchRegistry));
             }
         });
     }
@@ -126,16 +126,16 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
                 logWatchingError(reasonForNotWatchingFiles, FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD);
                 reasonForNotWatchingFiles = null;
             }
-            root.update(currentRoot -> {
-                removeSymbolicLinks(currentRoot);
-                handleWatcherRegistryEvents(currentRoot, "for current build");
+            rootReference.update(root -> {
+                removeSymbolicLinks(root);
+                handleWatcherRegistryEvents(root, "for current build");
                 if (watchRegistry != null) {
-                    withWatcherChangeErrorHandling(currentRoot, () -> watchRegistry.getFileWatcherUpdater().buildFinished());
+                    withWatcherChangeErrorHandling(root, () -> watchRegistry.getFileWatcherUpdater().buildFinished());
                 }
-                printStatistics(currentRoot, "retains", "till next build");
+                printStatistics(root, "retains", "till next build");
             });
         } else {
-            root.update(VfsRoot::invalidateAll);
+            rootReference.update(VfsRoot::invalidateAll);
         }
     }
 
@@ -169,7 +169,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
                         LOGGER.debug("Handling VFS change {} {}", type, path);
                         String absolutePath = path.toString();
                         if (!locationsUpdatedByCurrentBuild.wasLocationUpdated(absolutePath)) {
-                            root.update(root -> root.invalidate(absolutePath));
+                            rootReference.update(root -> root.invalidate(absolutePath));
                         }
                     } catch (Exception e) {
                         LOGGER.error("Error while processing file events", e);
@@ -225,7 +225,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
      * the parts that have been changed since calling {@link #startWatching(VfsRoot)}}.
      */
     private void stopWatchingAndInvalidateHierarchy() {
-        root.update(this::stopWatchingAndInvalidateHierarchy);
+        rootReference.update(this::stopWatchingAndInvalidateHierarchy);
     }
 
     private void stopWatchingAndInvalidateHierarchy(VfsRoot currentRoot) {
@@ -305,9 +305,9 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
 
     @Override
     public void close() {
-        root.update(currentRoot -> {
+        rootReference.update(root -> {
             closeUnderLock();
-            currentRoot.invalidateAll();
+            root.invalidateAll();
         });
     }
 

@@ -39,7 +39,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
 
             gradle.buildFinished {
                 def projectRoot = project.projectDir.absolutePath
-                def root = gradle.services.get(AtomicSnapshotHierarchyReference)
+                def root = gradle.services.get(VfsRootReference)
                 int filesInVfs = 0
                 root.get().visitSnapshotRoots { snapshot ->
                     snapshot.accept(new FileSystemSnapshotVisitor() {

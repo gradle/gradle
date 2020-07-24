@@ -20,7 +20,7 @@ import org.gradle.internal.snapshot.impl.DefaultVfsRoot;
 
 import java.util.concurrent.locks.ReentrantLock;
 
-public class AtomicSnapshotHierarchyReference {
+public class AtomicSnapshotHierarchyReference implements VfsRootReference {
     private volatile SnapshotHierarchy root;
     private final SnapshotHierarchy.UpdateFunctionRunner updateFunctionRunner;
     private final ReentrantLock updateLock = new ReentrantLock();
@@ -30,10 +30,12 @@ public class AtomicSnapshotHierarchyReference {
         this.updateFunctionRunner = updateFunctionRunner;
     }
 
+    @Override
     public ReadOnlyVfsRoot get() {
         return root;
     }
 
+    @Override
     public void update(VfsUpdateFunction updateFunction) {
         updateLock.lock();
         try {
@@ -43,9 +45,5 @@ public class AtomicSnapshotHierarchyReference {
         } finally {
             updateLock.unlock();
         }
-    }
-
-    public interface VfsUpdateFunction {
-        void update(VfsRoot root);
     }
 }

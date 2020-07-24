@@ -80,6 +80,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.snapshot.VfsRootReference;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
@@ -192,14 +193,14 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new NotifyingUpdateFunctionRunner(watchFilter);
         }
 
-        AtomicSnapshotHierarchyReference createRoot(FileSystem fileSystem, SnapshotHierarchy.UpdateFunctionRunner updateFunctionRunner) {
+        VfsRootReference createVfsRootReference(FileSystem fileSystem, SnapshotHierarchy.UpdateFunctionRunner updateFunctionRunner) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             return new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity), updateFunctionRunner);
         }
 
         VirtualFileSystem createVirtualFileSystem(
             FileHasher hasher,
-            AtomicSnapshotHierarchyReference root,
+            VfsRootReference rootReference,
             Stat stat,
             StringInterner stringInterner,
             ListenerManager listenerManager,
@@ -210,7 +211,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 hasher,
                 stringInterner,
                 stat,
-                root,
+                rootReference,
                 updateListener,
                 DirectoryScanner.getDefaultExcludes()
             );
@@ -241,7 +242,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         FileSystemWatchingHandler createFileSystemWatchingHandler(
-            AtomicSnapshotHierarchyReference root,
+            VfsRootReference rootReference,
             LocationsUpdatedByCurrentBuild locationsUpdatedByCurrentBuild,
             DocumentationRegistry documentationRegistry,
             NativeCapabilities nativeCapabilities,
@@ -251,12 +252,12 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             FileSystemWatchingHandler watchingHandler = determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities)
                 .<FileSystemWatchingHandler>map(watcherRegistryFactory -> new DefaultFileSystemWatchingHandler(
                     watcherRegistryFactory,
-                    root,
+                    rootReference,
                     updateFunctionRunner,
                     sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId),
                     locationsUpdatedByCurrentBuild
                 ))
-                .orElse(new WatchingNotSupportedFileSystemWatchingHandler(root));
+                .orElse(new WatchingNotSupportedFileSystemWatchingHandler(rootReference));
             listenerManager.addListener((BuildAddedListener) buildState ->
                 watchingHandler.buildRootDirectoryAdded(buildState.getBuildRootDir())
             );
@@ -330,14 +331,14 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             ListenerManager listenerManager,
             Stat stat,
             StringInterner stringInterner,
-            AtomicSnapshotHierarchyReference root,
+            VfsRootReference rootReference,
             VirtualFileSystem.UpdateListener updateListener
         ) {
             DefaultVirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(
                 hasher,
                 stringInterner,
                 stat,
-                root,
+                rootReference,
                 updateListener,
                 DirectoryScanner.getDefaultExcludes()
             );

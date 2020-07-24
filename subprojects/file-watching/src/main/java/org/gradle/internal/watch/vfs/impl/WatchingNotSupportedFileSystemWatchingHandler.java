@@ -16,8 +16,8 @@
 
 package org.gradle.internal.watch.vfs.impl;
 
-import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
 import org.gradle.internal.snapshot.VfsRoot;
+import org.gradle.internal.snapshot.VfsRootReference;
 import org.gradle.internal.watch.vfs.FileSystemWatchingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,10 +30,10 @@ import java.io.File;
 public class WatchingNotSupportedFileSystemWatchingHandler implements FileSystemWatchingHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchingNotSupportedFileSystemWatchingHandler.class);
-    private final AtomicSnapshotHierarchyReference snapshotHierarchyReference;
+    private final VfsRootReference rootReference;
 
-    public WatchingNotSupportedFileSystemWatchingHandler(AtomicSnapshotHierarchyReference snapshotHierarchyReference) {
-        this.snapshotHierarchyReference = snapshotHierarchyReference;
+    public WatchingNotSupportedFileSystemWatchingHandler(VfsRootReference rootReference) {
+        this.rootReference = rootReference;
     }
 
     @Override
@@ -41,7 +41,7 @@ public class WatchingNotSupportedFileSystemWatchingHandler implements FileSystem
         if (watchingEnabled) {
             LOGGER.warn("Watching the file system is not supported on this operating system.");
         }
-        snapshotHierarchyReference.update(VfsRoot::invalidateAll);
+        rootReference.update(VfsRoot::invalidateAll);
     }
 
     @Override
@@ -50,6 +50,6 @@ public class WatchingNotSupportedFileSystemWatchingHandler implements FileSystem
 
     @Override
     public void beforeBuildFinished(boolean watchingEnabled) {
-        snapshotHierarchyReference.update(VfsRoot::invalidateAll);
+        rootReference.update(VfsRoot::invalidateAll);
     }
 }

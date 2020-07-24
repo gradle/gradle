@@ -16,19 +16,19 @@
 
 package org.gradle.internal.watch.vfs.impl
 
-import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference
-import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference.VfsUpdateFunction
 import org.gradle.internal.snapshot.VfsRoot
+import org.gradle.internal.snapshot.VfsRootReference
+import org.gradle.internal.snapshot.VfsRootReference.VfsUpdateFunction
 import spock.lang.Specification
 
 class WatchingNotSupportedFileSystemWatchingHandlerTest extends Specification {
     def vfsRoot = Mock(VfsRoot)
-    def root = Stub(AtomicSnapshotHierarchyReference) {
+    def rootReference = Stub(VfsRootReference) {
         update(_ as VfsUpdateFunction) >> { VfsUpdateFunction updateFunction ->
             updateFunction.update(vfsRoot)
         }
     }
-    def watchingNotSupportedHandler = new WatchingNotSupportedFileSystemWatchingHandler(root)
+    def watchingNotSupportedHandler = new WatchingNotSupportedFileSystemWatchingHandler(rootReference)
 
     def "invalidates the virtual file system before and after the build"() {
 

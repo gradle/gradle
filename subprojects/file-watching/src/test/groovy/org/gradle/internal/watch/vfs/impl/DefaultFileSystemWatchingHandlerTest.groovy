@@ -17,8 +17,8 @@
 package org.gradle.internal.watch.vfs.impl
 
 import com.google.common.collect.ImmutableSet
-import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference
 import org.gradle.internal.snapshot.VfsRoot
+import org.gradle.internal.snapshot.VfsRootReference
 import org.gradle.internal.watch.registry.FileWatcherRegistry
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory
 import org.gradle.internal.watch.registry.FileWatcherUpdater
@@ -31,8 +31,8 @@ class DefaultFileSystemWatchingHandlerTest extends Specification {
     def fileWatcherUpdater = Mock(FileWatcherUpdater)
     def capturingUpdateFunctionDecorator = new NotifyingUpdateFunctionRunner({ -> true })
     def vfsRoot = Mock(VfsRoot)
-    def root = Stub(AtomicSnapshotHierarchyReference) {
-        update(_ as AtomicSnapshotHierarchyReference.VfsUpdateFunction) >> { AtomicSnapshotHierarchyReference.VfsUpdateFunction updateFunction ->
+    def rootReference = Stub(VfsRootReference) {
+        update(_ as VfsRootReference.VfsUpdateFunction) >> { VfsRootReference.VfsUpdateFunction updateFunction ->
             updateFunction.update(vfsRoot)
         }
     }
@@ -40,7 +40,7 @@ class DefaultFileSystemWatchingHandlerTest extends Specification {
     def locationsUpdatedByCurrentBuild = Mock(LocationsUpdatedByCurrentBuild)
     def watchingHandler = new DefaultFileSystemWatchingHandler(
         watcherRegistryFactory,
-        root,
+        rootReference,
         capturingUpdateFunctionDecorator,
         daemonDocumentationIndex,
         locationsUpdatedByCurrentBuild
