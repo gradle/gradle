@@ -85,8 +85,5 @@ class DistributionPropertiesLoaderIntegrationTest extends AbstractIntegrationSpe
         outputContains('project_property_available in settings.gradle:         true')
         outputContains('system_property_available in included settings.gradle: true')
         outputContains('project_property_available in included settings.gradle:false')
-
-        cleanup:
-        executer.withArguments("--stop", "--info").run()
     }
 }

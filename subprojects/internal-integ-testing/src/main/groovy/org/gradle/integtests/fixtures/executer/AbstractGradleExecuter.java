@@ -1136,6 +1136,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
         beforeExecute.execute(this);
         assertCanExecute();
+        assert !(usesSharedDaemons() && (args.contains("--stop") || tasks.contains("--stop"))) : "--stop cannot be used with daemons that are shared with other tests, since this will cause other tests to fail.";
         collectStateBeforeExecution();
     }
 
