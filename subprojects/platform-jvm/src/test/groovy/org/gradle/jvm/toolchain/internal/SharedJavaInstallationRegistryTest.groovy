@@ -22,8 +22,7 @@ import spock.lang.Unroll
 
 class SharedJavaInstallationRegistryTest extends Specification {
 
-    def canonicalizer = { File it -> it.canonicalFile }
-    def registry = new SharedJavaInstallationRegistry(Collections.emptyList(), canonicalizer)
+    def registry = new SharedJavaInstallationRegistry(Collections.emptyList())
     def tempFolder = createTempDir()
 
     def "registry keeps track of newly added installations"() {
@@ -61,7 +60,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
         def tmpDir3 = createTempDir()
 
         when:
-        def registry = new SharedJavaInstallationRegistry([forDirectory(tmpDir2), forDirectory(tmpDir3)], canonicalizer)
+        def registry = new SharedJavaInstallationRegistry([forDirectory(tmpDir2), forDirectory(tmpDir3)])
         registry.add(forDirectory(tempFolder))
 
         then:
@@ -117,7 +116,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
         file.isDirectory() >> directory
         file.absolutePath >> path
         def logger = Mock(Logger)
-        def registry = SharedJavaInstallationRegistry.withLogger(canonicalizer, logger)
+        def registry = SharedJavaInstallationRegistry.withLogger(logger)
         registry.add(forDirectory(file))
 
         when:
