@@ -31,7 +31,7 @@ class DefaultFileSystemWatchingHandlerTest extends Specification {
     def watcherRegistryFactory = Mock(FileWatcherRegistryFactory)
     def watcherRegistry = Mock(FileWatcherRegistry)
     def fileWatcherUpdater = Mock(FileWatcherUpdater)
-    def capturingUpdateFunctionDecorator = new DelegatingDiffCapturingUpdateFunctionDecorator({ -> true })
+    def capturingUpdateFunctionDecorator = new NotifyingUpdateFunctionRunner({ -> true })
     def emptySnapshotHierarchy = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
     def nonEmptySnapshotHierarchy = Stub(SnapshotHierarchy) {
         empty() >> emptySnapshotHierarchy

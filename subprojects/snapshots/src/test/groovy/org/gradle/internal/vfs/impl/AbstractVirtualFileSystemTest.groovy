@@ -56,7 +56,7 @@ abstract class AbstractVirtualFileSystemTest extends Specification {
         stat,
         new AtomicSnapshotHierarchyReference(
             DefaultSnapshotHierarchy.empty(CASE_SENSITIVE),
-            SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP
+            SnapshotHierarchy.UpdateFunctionRunner.WITHOUT_LISTENERS
         ),
         updateListener
     )

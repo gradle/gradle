@@ -195,7 +195,7 @@ public class TestFiles {
 
     public static VirtualFileSystem virtualFileSystem() {
         CaseSensitivity caseSensitivity = fileSystem().isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
-        AtomicSnapshotHierarchyReference root = new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity), SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP);
+        AtomicSnapshotHierarchyReference root = new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity), SnapshotHierarchy.UpdateFunctionRunner.WITHOUT_LISTENERS);
         return new DefaultVirtualFileSystem(
             fileHasher(),
             new StringInterner(),

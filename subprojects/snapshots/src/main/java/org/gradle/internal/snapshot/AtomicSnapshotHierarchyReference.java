@@ -20,24 +20,24 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class AtomicSnapshotHierarchyReference {
     private volatile SnapshotHierarchy root;
-    private final SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator;
+    private final SnapshotHierarchy.UpdateFunctionRunner updateFunctionRunner;
     private final ReentrantLock updateLock = new ReentrantLock();
 
-    public AtomicSnapshotHierarchyReference(SnapshotHierarchy root, SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator) {
+    public AtomicSnapshotHierarchyReference(SnapshotHierarchy root, SnapshotHierarchy.UpdateFunctionRunner updateFunctionRunner) {
         this.root = root;
-        this.updateFunctionDecorator = updateFunctionDecorator;
+        this.updateFunctionRunner = updateFunctionRunner;
     }
 
     public SnapshotHierarchy get() {
         return root;
     }
 
-    public void update(SnapshotHierarchy.DiffCapturingUpdateFunction updateFunction) {
+    public void update(SnapshotHierarchy.UpdateFunction updateFunction) {
         updateLock.lock();
         try {
             // Store the current root in a local variable to make the call atomic
             SnapshotHierarchy currentRoot = root;
-            root = updateFunctionDecorator.decorate(updateFunction, currentRoot);
+            root = updateFunctionRunner.runUpdateFunction(updateFunction, currentRoot);
         } finally {
             updateLock.unlock();
         }
