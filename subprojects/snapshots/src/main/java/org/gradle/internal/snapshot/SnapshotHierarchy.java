@@ -17,29 +17,13 @@
 package org.gradle.internal.snapshot;
 
 import javax.annotation.CheckReturnValue;
-import java.util.Collection;
-import java.util.Optional;
 
 /**
  * An immutable hierarchy of snapshots of the file system.
  *
  * Intended to be to store an in-memory representation of the state of the file system.
  */
-public interface SnapshotHierarchy {
-
-    /**
-     * Returns the snapshot stored at the absolute path.
-     */
-    Optional<MetadataSnapshot> getMetadata(String absolutePath);
-
-    /**
-     * Returns the complete snapshot stored at the absolute path.
-     */
-    default Optional<CompleteFileSystemLocationSnapshot> getSnapshot(String absolutePath) {
-        return getMetadata(absolutePath)
-            .filter(CompleteFileSystemLocationSnapshot.class::isInstance)
-            .map(CompleteFileSystemLocationSnapshot.class::cast);
-    }
+public interface SnapshotHierarchy extends ReadOnlyVfsRoot {
 
     /**
      * Returns a hierarchy augmented by the information of the snapshot at the absolute path.
@@ -58,12 +42,6 @@ public interface SnapshotHierarchy {
      */
     @CheckReturnValue
     SnapshotHierarchy empty();
-
-    void visitSnapshotRoots(SnapshotVisitor snapshotVisitor);
-
-    interface SnapshotVisitor {
-        void visitSnapshotRoot(CompleteFileSystemLocationSnapshot snapshot);
-    }
 
     /**
      * Receives diff when a {@link SnapshotHierarchy} is updated.
@@ -94,24 +72,6 @@ public interface SnapshotHierarchy {
          * Only called for the node which is added, and not every node in the hierarchy which is added.
          */
         void nodeAdded(FileSystemNode node);
-    }
-
-    /**
-     * Listens to diffs to {@link CompleteFileSystemLocationSnapshot}s during an update of {@link SnapshotHierarchy}.
-     *
-     * Similar to {@link NodeDiffListener}, only that
-     * - it listens for {@link CompleteFileSystemLocationSnapshot}s and not {@link FileSystemNode}s.
-     * - it receives all the changes for one update at once.
-     */
-    interface SnapshotDiffListener {
-        SnapshotDiffListener NOOP = (removedSnapshots, addedSnapshots) -> {};
-
-        /**
-         * Called after the update to {@link SnapshotHierarchy} finished.
-         *
-         * Only the roots of added/removed hierarchies are reported.
-         */
-        void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots);
     }
 
     /**

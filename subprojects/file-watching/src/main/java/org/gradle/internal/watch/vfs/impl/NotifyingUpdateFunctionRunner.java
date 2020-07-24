@@ -17,9 +17,10 @@
 package org.gradle.internal.watch.vfs.impl;
 
 import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.snapshot.VfsRoot;
+import org.gradle.internal.snapshot.impl.DefaultVfsRoot;
 import org.gradle.internal.vfs.impl.SnapshotCollectingDiffListener;
 
-import javax.annotation.CheckReturnValue;
 import java.util.function.Predicate;
 
 public class NotifyingUpdateFunctionRunner implements SnapshotHierarchy.UpdateFunctionRunner {
@@ -31,7 +32,7 @@ public class NotifyingUpdateFunctionRunner implements SnapshotHierarchy.UpdateFu
         this.watchFilter = watchFilter;
     }
 
-    public void setSnapshotDiffListener(SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener, ErrorHandler errorHandler) {
+    public void setSnapshotDiffListener(VfsRoot.SnapshotDiffListener snapshotDiffListener, ErrorHandler errorHandler) {
         this.errorHandlingDiffPublisher = new ErrorHandlingDiffPublisher(snapshotDiffListener, errorHandler);
     }
 
@@ -52,21 +53,22 @@ public class NotifyingUpdateFunctionRunner implements SnapshotHierarchy.UpdateFu
     }
 
     public interface ErrorHandler {
-        @CheckReturnValue
-        SnapshotHierarchy handleErrors(SnapshotHierarchy currentRoot, Runnable runnable);
+        void handleErrors(VfsRoot currentRoot, Runnable runnable);
     }
 
     private static class ErrorHandlingDiffPublisher {
-        private final SnapshotHierarchy.SnapshotDiffListener diffListener;
+        private final VfsRoot.SnapshotDiffListener diffListener;
         private final ErrorHandler errorHandler;
 
-        public ErrorHandlingDiffPublisher(SnapshotHierarchy.SnapshotDiffListener diffListener, ErrorHandler errorHandler) {
+        public ErrorHandlingDiffPublisher(VfsRoot.SnapshotDiffListener diffListener, ErrorHandler errorHandler) {
             this.diffListener = diffListener;
             this.errorHandler = errorHandler;
         }
 
         public SnapshotHierarchy publishSnapshotDiff(SnapshotCollectingDiffListener collectedDiff, SnapshotHierarchy newRoot) {
-            return errorHandler.handleErrors(newRoot, () -> collectedDiff.publishSnapshotDiff(diffListener));
+            DefaultVfsRoot vfsRoot = new DefaultVfsRoot(newRoot, SnapshotHierarchy.UpdateFunctionRunner.WITHOUT_LISTENERS);
+            errorHandler.handleErrors(vfsRoot, () -> collectedDiff.publishSnapshotDiff(diffListener));
+            return vfsRoot.getDelegate();
         }
     }
 }

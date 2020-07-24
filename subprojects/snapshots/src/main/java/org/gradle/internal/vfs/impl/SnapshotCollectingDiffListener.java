@@ -20,6 +20,7 @@ import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.snapshot.VfsRoot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +36,7 @@ public class SnapshotCollectingDiffListener implements SnapshotHierarchy.NodeDif
         this.watchFilter = watchFilter;
     }
 
-    public void publishSnapshotDiff(SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener) {
+    public void publishSnapshotDiff(VfsRoot.SnapshotDiffListener snapshotDiffListener) {
         if (!removedSnapshots.isEmpty() || !addedSnapshots.isEmpty()) {
             snapshotDiffListener.changed(removedSnapshots, addedSnapshots);
         }

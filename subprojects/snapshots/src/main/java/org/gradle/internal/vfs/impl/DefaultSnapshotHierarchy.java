@@ -22,6 +22,7 @@ import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.VfsRelativePath;
+import org.gradle.internal.snapshot.VfsRoot;
 
 import java.util.Optional;
 
@@ -85,7 +86,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     }
 
     @Override
-    public void visitSnapshotRoots(SnapshotVisitor snapshotVisitor) {
+    public void visitSnapshotRoots(VfsRoot.SnapshotVisitor snapshotVisitor) {
         rootNode.accept(snapshotVisitor);
     }
 
@@ -123,6 +124,6 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
         }
 
         @Override
-        public void visitSnapshotRoots(SnapshotVisitor snapshotVisitor) {}
+        public void visitSnapshotRoots(VfsRoot.SnapshotVisitor snapshotVisitor) {}
     }
 }

@@ -25,7 +25,7 @@ import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.gradle.internal.snapshot.SnapshotHierarchy
+import org.gradle.internal.snapshot.VfsRoot
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherUpdater
@@ -54,9 +54,8 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     def setup() {
         updater = createUpdater(watcher)
-        decorator.setSnapshotDiffListener(updater) { SnapshotHierarchy currentRoot, Runnable runnable ->
+        decorator.setSnapshotDiffListener(updater) { VfsRoot root, Runnable runnable ->
             runnable.run()
-            return currentRoot
         }
     }
 

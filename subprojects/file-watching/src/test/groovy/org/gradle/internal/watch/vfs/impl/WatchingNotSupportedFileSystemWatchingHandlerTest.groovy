@@ -17,17 +17,17 @@
 package org.gradle.internal.watch.vfs.impl
 
 import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference
-import org.gradle.internal.snapshot.CaseSensitivity
-import org.gradle.internal.snapshot.SnapshotHierarchy
-import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
+import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference.VfsUpdateFunction
+import org.gradle.internal.snapshot.VfsRoot
 import spock.lang.Specification
 
 class WatchingNotSupportedFileSystemWatchingHandlerTest extends Specification {
-    def emptySnapshotHierarchy = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
-    def nonEmptySnapshotHierarchy = Stub(SnapshotHierarchy) {
-        empty() >> emptySnapshotHierarchy
+    def vfsRoot = Mock(VfsRoot)
+    def root = Stub(AtomicSnapshotHierarchyReference) {
+        update(_ as VfsUpdateFunction) >> { VfsUpdateFunction updateFunction ->
+            updateFunction.update(vfsRoot)
+        }
     }
-    def root = new AtomicSnapshotHierarchyReference(nonEmptySnapshotHierarchy, SnapshotHierarchy.UpdateFunctionRunner.WITHOUT_LISTENERS)
     def watchingNotSupportedHandler = new WatchingNotSupportedFileSystemWatchingHandler(root)
 
     def "invalidates the virtual file system before and after the build"() {
@@ -35,13 +35,14 @@ class WatchingNotSupportedFileSystemWatchingHandlerTest extends Specification {
         when:
         watchingNotSupportedHandler.afterBuildStarted(retentionEnabled)
         then:
-        root.get() == emptySnapshotHierarchy
+        1 * vfsRoot.invalidateAll()
+        0 * _
 
         when:
-        root.update { root, listener -> nonEmptySnapshotHierarchy }
         watchingNotSupportedHandler.beforeBuildFinished(retentionEnabled)
         then:
-        root.get() == emptySnapshotHierarchy
+        1 * vfsRoot.invalidateAll()
+        0 * _
 
         where:
         retentionEnabled << [true, false]
