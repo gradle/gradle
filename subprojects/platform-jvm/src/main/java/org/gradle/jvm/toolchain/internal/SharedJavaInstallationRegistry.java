@@ -21,12 +21,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Sets;
+import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -40,22 +41,20 @@ public class SharedJavaInstallationRegistry {
     private final Supplier<Set<File>> finalizedInstallations = Suppliers.memoize(this::mapToDirectories);
     private final AtomicBoolean finalized = new AtomicBoolean();
     private final Logger logger;
-    private final FileCanonicalizer canonicalizer;
 
     @Inject
-    public SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers, FileCanonicalizer canonicalizer) {
-        this(suppliers, canonicalizer, Logging.getLogger(SharedJavaInstallationRegistry.class));
+    public SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers) {
+        this(suppliers, Logging.getLogger(SharedJavaInstallationRegistry.class));
     }
 
-    private SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers, FileCanonicalizer canonicalizer, Logger logger) {
+    private SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers, Logger logger) {
         this.suppliers.addAll(suppliers);
-        this.canonicalizer = canonicalizer;
         this.logger = logger;
     }
 
     @VisibleForTesting
-    static SharedJavaInstallationRegistry withLogger(FileCanonicalizer canonicalizer, Logger logger) {
-        return new SharedJavaInstallationRegistry(Collections.emptyList(), canonicalizer, logger);
+    static SharedJavaInstallationRegistry withLogger(Logger logger) {
+        return new SharedJavaInstallationRegistry(Collections.emptyList(), logger);
     }
 
     void add(InstallationSupplier provider) {
@@ -78,7 +77,7 @@ public class SharedJavaInstallationRegistry {
             .flatMap(Set::stream)
             .filter(this::installationExists)
             .map(InstallationLocation::getLocation)
-            .map(canonicalizer::canonicalize)
+            .map(this::canonicalize)
             .collect(Collectors.toSet());
     }
 
@@ -93,6 +92,14 @@ public class SharedJavaInstallationRegistry {
             return false;
         }
         return true;
+    }
+
+    private File canonicalize(File file) {
+        try {
+            return file.getCanonicalFile();
+        } catch (IOException e) {
+            throw new GradleException(String.format("Could not canonicalize path to java installation: %s.", file), e);
+        }
     }
 
 }

@@ -91,8 +91,7 @@ class JavaToolchainQueryServiceTest extends Specification {
                 installations.collect { new InstallationLocation(new File("/path/${it}"), "test") } as Set
             }
         }
-        def canonicalizer = { File it -> it.canonicalFile }
-        def registry = new SharedJavaInstallationRegistry([supplier], canonicalizer) {
+        def registry = new SharedJavaInstallationRegistry([supplier]) {
             boolean installationExists(InstallationLocation installationLocation) {
                 return true
             }
