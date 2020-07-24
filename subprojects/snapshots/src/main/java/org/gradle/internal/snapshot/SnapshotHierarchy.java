@@ -122,11 +122,11 @@ public interface SnapshotHierarchy {
     }
 
     /**
-     * Passes an {@link NodeDiffListener} to an {@link DiffCapturingUpdateFunction}, so it becomes an {@link org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference.UpdateFunction}.
+     * Creates a {@link NodeDiffListener} for a {@link DiffCapturingUpdateFunction} and runs the function.
      */
     interface DiffCapturingUpdateFunctionDecorator {
-        DiffCapturingUpdateFunctionDecorator NOOP = updateFunction -> root -> updateFunction.update(root, NodeDiffListener.NOOP);
+        DiffCapturingUpdateFunctionDecorator NOOP = (updateFunction, root) -> updateFunction.update(root, NodeDiffListener.NOOP);
 
-        AtomicSnapshotHierarchyReference.UpdateFunction decorate(DiffCapturingUpdateFunction updateFunction);
+        SnapshotHierarchy decorate(DiffCapturingUpdateFunction updateFunction, SnapshotHierarchy root);
     }
 }

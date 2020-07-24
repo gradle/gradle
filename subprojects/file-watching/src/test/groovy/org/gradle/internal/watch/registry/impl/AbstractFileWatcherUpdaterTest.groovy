@@ -71,11 +71,11 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     void addSnapshot(CompleteFileSystemLocationSnapshot snapshot) {
-        root = decorator.decorate({ currentRoot, listener -> currentRoot.store(snapshot.absolutePath, snapshot, listener) }).updateRoot(root)
+        root = decorator.decorate({ currentRoot, listener -> currentRoot.store(snapshot.absolutePath, snapshot, listener) }, root)
     }
 
     void invalidate(String absolutePath) {
-        root = decorator.decorate({ currentRoot, listener -> currentRoot.invalidate(absolutePath, listener) }).updateRoot(root)
+        root = decorator.decorate({ currentRoot, listener -> currentRoot.invalidate(absolutePath, listener) }, root)
     }
 
     void invalidate(CompleteFileSystemLocationSnapshot snapshot) {
