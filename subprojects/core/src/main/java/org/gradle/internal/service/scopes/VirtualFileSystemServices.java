@@ -24,7 +24,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
@@ -81,7 +80,6 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
-import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
@@ -328,50 +326,26 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         VirtualFileSystem createVirtualFileSystem(
-            GlobalCacheLocations globalCacheLocations,
             FileHasher hasher,
-            FileSystem fileSystem,
             ListenerManager listenerManager,
-            StartParameter startParameter,
             Stat stat,
             StringInterner stringInterner,
-            VirtualFileSystem gradleUserHomeVirtualFileSystem
+            AtomicSnapshotHierarchyReference root,
+            VirtualFileSystem.UpdateListener updateListener
         ) {
-            StartParameterInternal startParameterInternal = (StartParameterInternal) startParameter;
-            AtomicSnapshotHierarchyReference snapshotHierarchyReference = new AtomicSnapshotHierarchyReference(
-                DefaultSnapshotHierarchy.empty(fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE),
-                SnapshotHierarchy.UpdateFunctionRunner.WITHOUT_LISTENERS
-            );
             DefaultVirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(
                 hasher,
                 stringInterner,
                 stat,
-                snapshotHierarchyReference,
-                locations -> {},
+                root,
+                updateListener,
                 DirectoryScanner.getDefaultExcludes()
             );
-            RoutingVirtualFileSystem routingVirtualFileSystem = new RoutingVirtualFileSystem(
-                globalCacheLocations,
-                gradleUserHomeVirtualFileSystem,
-                buildSessionsScopedVirtualFileSystem,
-                startParameterInternal::isWatchFileSystem
-            );
 
-            listenerManager.addListener(new RootBuildLifecycleListener() {
-                @Override
-                public void afterStart(GradleInternal gradle) {
-                    // Note: this never fires as we are registering it too late
-                }
-
-                @Override
-                public void beforeComplete(GradleInternal gradle) {
-                    buildSessionsScopedVirtualFileSystem.invalidateAll();
-                }
-            });
             listenerManager.addListener(new DefaultExcludesBuildListener(buildSessionsScopedVirtualFileSystem));
-            listenerManager.addListener((OutputChangeListener) affectedOutputPaths -> routingVirtualFileSystem.update(affectedOutputPaths, () -> {}));
+            listenerManager.addListener((OutputChangeListener) affectedOutputPaths -> buildSessionsScopedVirtualFileSystem.update(affectedOutputPaths, () -> {}));
 
-            return routingVirtualFileSystem;
+            return buildSessionsScopedVirtualFileSystem;
         }
 
         GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {
