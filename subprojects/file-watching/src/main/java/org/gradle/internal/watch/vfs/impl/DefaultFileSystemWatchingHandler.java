@@ -27,7 +27,6 @@ import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
-import org.gradle.internal.vfs.impl.SnapshotCollectingDiffListener;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
@@ -43,7 +42,6 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandler, Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileSystemWatchingHandler.class);
@@ -53,7 +51,6 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
     private final FileWatcherRegistryFactory watcherRegistryFactory;
     private final AtomicSnapshotHierarchyReference root;
     private final DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator;
-    private final Predicate<String> watchFilter;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
     private final LocationsUpdatedByCurrentBuild locationsUpdatedByCurrentBuild;
     private final Set<File> rootProjectDirectoriesForWatching = new HashSet<>();
@@ -71,14 +68,12 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
         FileWatcherRegistryFactory watcherRegistryFactory,
         AtomicSnapshotHierarchyReference root,
         DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator,
-        Predicate<String> watchFilter,
         DaemonDocumentationIndex daemonDocumentationIndex,
         LocationsUpdatedByCurrentBuild locationsUpdatedByCurrentBuild
     ) {
         this.watcherRegistryFactory = watcherRegistryFactory;
         this.root = root;
         this.delegatingUpdateFunctionDecorator = delegatingUpdateFunctionDecorator;
-        this.watchFilter = watchFilter;
         this.daemonDocumentationIndex = daemonDocumentationIndex;
         this.locationsUpdatedByCurrentBuild = locationsUpdatedByCurrentBuild;
     }
@@ -86,7 +81,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
     @Override
     public void afterBuildStarted(boolean watchingEnabled) {
         reasonForNotWatchingFiles = null;
-        root.update(currentRoot -> {
+        root.update((currentRoot, ignored) -> {
             if (watchingEnabled) {
                 SnapshotHierarchy newRoot = handleWatcherRegistryEvents(currentRoot, "since last build");
                 newRoot = startWatching(newRoot);
@@ -103,7 +98,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
     }
 
     private void updateWatchRegistry(Consumer<FileWatcherRegistry> updateFunction, Runnable noWatchRegistry) {
-        root.update(currentRoot -> {
+        root.update((currentRoot, ignored) -> {
             if (watchRegistry == null) {
                 noWatchRegistry.run();
                 return currentRoot;
@@ -131,7 +126,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
                 logWatchingError(reasonForNotWatchingFiles, FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD);
                 reasonForNotWatchingFiles = null;
             }
-            root.update(currentRoot -> {
+            root.update((currentRoot, ignored) -> {
                 SnapshotHierarchy newRoot = removeSymbolicLinks(currentRoot);
                 newRoot = handleWatcherRegistryEvents(newRoot, "for current build");
                 if (watchRegistry != null) {
@@ -141,7 +136,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
                 return newRoot;
             });
         } else {
-            root.update(SnapshotHierarchy::empty);
+            root.update((currentRoot, ignored) -> currentRoot.empty());
         }
     }
 
@@ -175,14 +170,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
                         LOGGER.debug("Handling VFS change {} {}", type, path);
                         String absolutePath = path.toString();
                         if (!locationsUpdatedByCurrentBuild.wasLocationUpdated(absolutePath)) {
-                            root.update(root -> {
-                                SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener(watchFilter);
-                                SnapshotHierarchy newRoot = root.invalidate(absolutePath, diffListener);
-                                return withWatcherChangeErrorHandling(
-                                    newRoot,
-                                    () -> diffListener.publishSnapshotDiff(snapshotDiffListener)
-                                );
-                            });
+                            root.update((root, diffListener) -> root.invalidate(absolutePath, diffListener));
                         }
                     } catch (Exception e) {
                         LOGGER.error("Error while processing file events", e);
@@ -241,7 +229,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
      * the parts that have been changed since calling {@link #startWatching(SnapshotHierarchy)}}.
      */
     private void stopWatchingAndInvalidateHierarchy() {
-        root.update(this::stopWatchingAndInvalidateHierarchy);
+        root.update((currentRoot, ignored) -> stopWatchingAndInvalidateHierarchy(currentRoot));
     }
 
     private SnapshotHierarchy stopWatchingAndInvalidateHierarchy(SnapshotHierarchy currentRoot) {
@@ -322,7 +310,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
 
     @Override
     public void close() {
-        root.update(currentRoot -> {
+        root.update((currentRoot, ignored) -> {
             closeUnderLock();
             return currentRoot.empty();
         });
