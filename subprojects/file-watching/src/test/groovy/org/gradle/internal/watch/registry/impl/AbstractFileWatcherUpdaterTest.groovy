@@ -29,7 +29,7 @@ import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherUpdater
-import org.gradle.internal.watch.vfs.impl.DelegatingDiffCapturingUpdateFunctionDecorator
+import org.gradle.internal.watch.vfs.impl.NotifyingUpdateFunctionRunner
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -47,7 +47,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     def watcher = Mock(FileWatcher)
     def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [])
-    def decorator = new DelegatingDiffCapturingUpdateFunctionDecorator({ String path -> true})
+    def decorator = new NotifyingUpdateFunctionRunner({ String path -> true})
     def root = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
 
     FileWatcherUpdater updater
@@ -71,11 +71,11 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     void addSnapshot(CompleteFileSystemLocationSnapshot snapshot) {
-        root = decorator.decorate({ currentRoot, listener -> currentRoot.store(snapshot.absolutePath, snapshot, listener) }, root)
+        root = decorator.runUpdateFunction({ currentRoot, listener -> currentRoot.store(snapshot.absolutePath, snapshot, listener) }, root)
     }
 
     void invalidate(String absolutePath) {
-        root = decorator.decorate({ currentRoot, listener -> currentRoot.invalidate(absolutePath, listener) }, root)
+        root = decorator.runUpdateFunction({ currentRoot, listener -> currentRoot.invalidate(absolutePath, listener) }, root)
     }
 
     void invalidate(CompleteFileSystemLocationSnapshot snapshot) {

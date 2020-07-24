@@ -117,16 +117,16 @@ public interface SnapshotHierarchy {
     /**
      * Updates the snapshot hierarchy, passing a {@link NodeDiffListener} to the calls on {@link SnapshotHierarchy}.
      */
-    interface DiffCapturingUpdateFunction {
+    interface UpdateFunction {
         SnapshotHierarchy update(SnapshotHierarchy root, NodeDiffListener diffListener);
     }
 
     /**
-     * Creates a {@link NodeDiffListener} for a {@link DiffCapturingUpdateFunction} and runs the function.
+     * Creates a {@link NodeDiffListener} for a {@link UpdateFunction} and runs the function.
      */
-    interface DiffCapturingUpdateFunctionDecorator {
-        DiffCapturingUpdateFunctionDecorator NOOP = (updateFunction, root) -> updateFunction.update(root, NodeDiffListener.NOOP);
+    interface UpdateFunctionRunner {
+        UpdateFunctionRunner WITHOUT_LISTENERS = (updateFunction, root) -> updateFunction.update(root, NodeDiffListener.NOOP);
 
-        SnapshotHierarchy decorate(DiffCapturingUpdateFunction updateFunction, SnapshotHierarchy root);
+        SnapshotHierarchy runUpdateFunction(UpdateFunction updateFunction, SnapshotHierarchy root);
     }
 }

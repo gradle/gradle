@@ -22,12 +22,12 @@ import org.gradle.internal.vfs.impl.SnapshotCollectingDiffListener;
 import javax.annotation.CheckReturnValue;
 import java.util.function.Predicate;
 
-public class DelegatingDiffCapturingUpdateFunctionDecorator implements SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator {
+public class NotifyingUpdateFunctionRunner implements SnapshotHierarchy.UpdateFunctionRunner {
 
     private final Predicate<String> watchFilter;
     private ErrorHandlingDiffPublisher errorHandlingDiffPublisher;
 
-    public DelegatingDiffCapturingUpdateFunctionDecorator(Predicate<String> watchFilter) {
+    public NotifyingUpdateFunctionRunner(Predicate<String> watchFilter) {
         this.watchFilter = watchFilter;
     }
 
@@ -40,7 +40,7 @@ public class DelegatingDiffCapturingUpdateFunctionDecorator implements SnapshotH
     }
 
     @Override
-    public SnapshotHierarchy decorate(SnapshotHierarchy.DiffCapturingUpdateFunction updateFunction, SnapshotHierarchy root) {
+    public SnapshotHierarchy runUpdateFunction(SnapshotHierarchy.UpdateFunction updateFunction, SnapshotHierarchy root) {
         ErrorHandlingDiffPublisher currentErrorHandlingDiffPublisher = errorHandlingDiffPublisher;
         if (currentErrorHandlingDiffPublisher == null) {
             return updateFunction.update(root, SnapshotHierarchy.NodeDiffListener.NOOP);
