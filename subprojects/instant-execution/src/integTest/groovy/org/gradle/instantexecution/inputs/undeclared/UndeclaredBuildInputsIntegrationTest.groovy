@@ -340,4 +340,38 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         output.count("resource = ") == 1
         outputContains("resource = two")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/13325")
+    def "Java plugin can use serializable lambda and action lambda"() {
+        file("buildSrc/src/main/java/SomePlugin.java") << """
+            import ${Project.name};
+            import ${Plugin.name};
+            import ${Serializable.name};
+
+            public class SomePlugin implements Plugin<Project> {
+                interface SerializableThing<T> extends Serializable {
+                    void run(T value);
+                }
+
+                public void apply(Project project) {
+                    SerializableThing<String> action = v -> { System.out.println("value = " + v); };
+                    project.getTasks().register("task", t1 -> {
+                        t1.doLast(t2 -> {
+                            action.run("value");
+                        });
+                    });
+                }
+            }
+        """
+        buildFile << """
+            apply plugin: SomePlugin
+        """
+
+        when:
+        instantRun("task")
+        instantRun("task")
+
+        then:
+        outputContains("value = value")
+    }
 }
