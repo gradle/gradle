@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
@@ -40,8 +39,6 @@ import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.codecs.transform.FixedDependenciesResolver
-import org.gradle.instantexecution.serialization.codecs.transform.TransformationSpec
-import org.gradle.instantexecution.serialization.codecs.transform.unpackTransformation
 import org.gradle.instantexecution.serialization.decodePreservingIdentity
 import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
 import org.gradle.instantexecution.serialization.logPropertyProblem
@@ -90,9 +87,8 @@ class FileCollectionCodec(
                         is SubtractingFileCollectionSpec -> element.left.minus(element.right)
                         is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
                         is FileTree -> element
-                        is TransformedExternalFileSpec -> Callable {
-                            val initialSubject = TransformationSubject.initial(element.artifactIdentifier, element.origin)
-                            element.transformation.files(initialSubject)
+                        is TransformedExternalArtifactSet -> Callable {
+                            element.calculateResult()
                         }
                         is TransformedLocalFileSpec -> Callable {
                             element.transformation.createInvocation(TransformationSubject.initial(element.origin), noDependencies, null).invoke().get().files
@@ -123,11 +119,6 @@ FilteredFileCollectionSpec(val collection: FileCollection, val filter: Spec<in F
 private
 class
 TransformedLocalFileSpec(val origin: File, val transformation: Transformation)
-
-
-private
-class
-TransformedExternalFileSpec(val artifactIdentifier: ComponentArtifactIdentifier, val origin: File, val transformation: TransformationSpec)
 
 
 private
@@ -171,9 +162,7 @@ class CollectingVisitor : FileCollectionStructureVisitor {
                 elements.add(TransformedLocalFileSpec(source.file, source.transformation))
             }
             is TransformedExternalArtifactSet -> {
-                source.visitArtifacts { artifact ->
-                    elements.add(TransformedExternalFileSpec(artifact.id, artifact.file, unpackTransformation(source.transformation, source.dependenciesResolver)))
-                }
+                elements.add(source)
             }
             else -> {
                 elements.addAll(contents)

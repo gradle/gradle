@@ -28,8 +28,8 @@ import java.net.URLEncoder
 import java.util.concurrent.atomic.AtomicBoolean
 
 val serverUrl = "https://ge.gradle.org"
-val gitCommitName = "Git Commit ID"
-val ciBuildTypeName = "CI Build Type"
+val gitCommitName = "gitCommitId"
+val tcBuildTypeName = "tcBuildType"
 
 val cacheMissTagged = AtomicBoolean(false)
 
@@ -70,13 +70,13 @@ fun Task.isCacheMiss() = !state.skipped && (isCompileCacheMiss() || isAsciidocto
 
 fun Task.isCompileCacheMiss() = isMonitoredCompileTask() && !isExpectedCompileCacheMiss()
 
-fun Task.isAsciidoctorCacheMiss() = isMonitoredAsciidoctorTask() && !isExpectedAsciidoctorCacheMiss()
+fun isAsciidoctorCacheMiss() = isMonitoredAsciidoctorTask() && !isExpectedAsciidoctorCacheMiss()
 
 fun Task.isMonitoredCompileTask() = this is AbstractCompile || this is ClasspathManifest
 
-fun Task.isMonitoredAsciidoctorTask() = false // No asciidoctor tasks are cacheable for now
+fun isMonitoredAsciidoctorTask() = false // No asciidoctor tasks are cacheable for now
 
-fun Task.isExpectedAsciidoctorCacheMiss() =
+fun isExpectedAsciidoctorCacheMiss() =
 // Expected cache-miss for asciidoctor task:
 // 1. CompileAll is the seed build for docs:distDocs
 // 2. Gradle_Check_BuildDistributions is the seed build for other asciidoctor tasks
@@ -89,7 +89,7 @@ fun Task.isExpectedAsciidoctorCacheMiss() =
         "Enterprise_Release_Components_BuildScansPlugin_Performance_PerformanceLinux"
     )
 
-fun Task.isExpectedCompileCacheMiss() =
+fun isExpectedCompileCacheMiss() =
 // Expected cache-miss:
 // 1. CompileAll is the seed build
 // 2. Gradleception which re-builds Gradle with a new Gradle version
@@ -102,7 +102,7 @@ fun Task.isExpectedCompileCacheMiss() =
         "Gradle_Check_Gradleception"
     )
 
-fun Task.isInBuild(vararg buildTypeIds: String) = System.getenv("BUILD_TYPE_ID") in buildTypeIds
+fun isInBuild(vararg buildTypeIds: String) = System.getenv("BUILD_TYPE_ID") in buildTypeIds
 
 fun extractCheckstyleAndCodenarcData() {
     gradle.taskGraph.afterTask {
@@ -152,8 +152,8 @@ fun Project.extractCiData() {
                 tag("EC2")
             }
             whenEnvIsSet("BUILD_TYPE_ID") { buildType ->
-                value(ciBuildTypeName, buildType)
-                link("Build Type Scans", customValueSearchUrl(mapOf(ciBuildTypeName to buildType)))
+                value(tcBuildTypeName, buildType)
+                link("Build Type Scans", customValueSearchUrl(mapOf(tcBuildTypeName to buildType)))
             }
         }
     }

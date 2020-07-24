@@ -1,6 +1,7 @@
 package projects
 
 import Gradle_Check.model.GradleBuildBucketProvider
+import common.failedTestArtifactDestination
 import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
@@ -46,4 +47,16 @@ class RootProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBuc
 
     buildTypesOrder = buildTypes
     subProjectsOrder = subProjects
+
+    cleanup {
+        baseRule {
+            history(days = 7)
+        }
+        baseRule {
+            artifacts(days = 7, artifactPatterns = """
+                +:**/*
+                +:$failedTestArtifactDestination/**/*"
+            """.trimIndent())
+        }
+    }
 })

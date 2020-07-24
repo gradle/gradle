@@ -23,6 +23,18 @@ import java.util.Collection;
 import java.util.Optional;
 
 public interface TransformationNodeRegistry {
+    TransformationNodeRegistry EMPTY = new TransformationNodeRegistry() {
+        @Override
+        public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Optional<TransformationNode> getIfExecuted(ComponentArtifactIdentifier artifactId, Transformation transformation) {
+            return Optional.empty();
+        }
+    };
+
     Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver);
 
     Optional<TransformationNode> getIfExecuted(ComponentArtifactIdentifier artifactId, Transformation transformation);

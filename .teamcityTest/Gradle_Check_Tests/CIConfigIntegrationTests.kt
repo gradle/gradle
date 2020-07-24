@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Disabled
 import projects.FunctionalTestProject
 import projects.RootProject
 import projects.StageProject
@@ -236,14 +235,13 @@ class CIConfigIntegrationTests {
     private fun getSubProjectFolder(subProject: GradleSubproject): File = File("../subprojects/${subProject.asDirectoryName()}")
 
     @Test
-    @Disabled
     fun testsAreCorrectlyConfiguredForAllSubProjects() {
         model.subprojects.subprojects.filter {
             !ignoredSubprojects.contains(it.name)
         }.forEach {
             val dir = getSubProjectFolder(it)
             assertEquals(it.unitTests, File(dir, "src/test").isDirectory, "${it.name}'s unitTests is wrong!")
-            assertEquals(it.functionalTests, if (it.name == "docs") true else File(dir, "src/integTest").isDirectory, "${it.name}'s functionalTests is wrong!")
+            assertEquals(it.functionalTests, File(dir, "src/integTest").isDirectory, "${it.name}'s functionalTests is wrong!")
             assertEquals(it.crossVersionTests, File(dir, "src/crossVersionTest").isDirectory, "${it.name}'s crossVersionTests is wrong!")
         }
     }
@@ -253,7 +251,6 @@ class CIConfigIntegrationTests {
         val projectsWithUnitTests = model.subprojects.subprojects.filter { it.unitTests }
         val projectFoldersWithUnitTests = subProjectFolderList().filter {
             File(it, "src/test").exists() &&
-                it.name != "docs" && // docs:check is part of Sanity Check
                 it.name != "architecture-test" // architectureTest:test is part of Sanity Check
         }
         assertFalse(projectFoldersWithUnitTests.isEmpty())

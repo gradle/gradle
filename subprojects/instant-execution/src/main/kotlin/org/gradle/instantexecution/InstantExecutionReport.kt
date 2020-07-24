@@ -19,9 +19,6 @@ package org.gradle.instantexecution
 import groovy.json.JsonOutput
 import org.gradle.api.internal.DocumentationRegistry
 
-import org.gradle.api.logging.Logging
-
-import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.problems.PropertyKind
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.PropertyTrace
@@ -37,53 +34,17 @@ import java.io.StringWriter
 import java.net.URL
 
 
-class InstantExecutionReport(
-
-    private
-    val startParameter: InstantExecutionStartParameter,
-
-    private
-    val cacheKey: InstantExecutionCacheKey
-
-) {
+class InstantExecutionReport {
 
     companion object {
-
-        private
-        val logger = Logging.getLogger(InstantExecutionReport::class.java)
 
         private
         const val reportHtmlFileName = "configuration-cache-report.html"
     }
 
-    private
-    val outputDirectory: File by lazy {
-        startParameter.rootDirectory.resolve(
-            "build/reports/configuration-cache/$cacheKey"
-        ).let { base ->
-            if (!base.exists()) base
-            else generateSequence(1) { it + 1 }
-                .map { base.resolveSibling("${base.name}-$it") }
-                .first { !it.exists() }
-        }
-    }
-
     internal
-    val htmlReportFile: File
-        get() = outputDirectory.resolve(reportHtmlFileName)
-
-    internal
-    fun logConsoleSummary(cacheAction: String, problems: List<PropertyProblem>) {
-        logger.warn(buildConsoleSummary(cacheAction, problems, htmlReportFile))
-    }
-
-    internal
-    fun writeReportFiles(cacheAction: String, problems: List<PropertyProblem>) {
-        require(outputDirectory.mkdirs()) {
-            "Could not create configuration cache report directory '$outputDirectory'"
-        }
-        writeReportFile(cacheAction, problems, outputDirectory)
-    }
+    fun consoleSummaryFor(cacheAction: String, problems: List<PropertyProblem>, htmlReportFile: File) =
+        buildConsoleSummary(cacheAction, problems, htmlReportFile)
 
     /**
      * Writes the report file to [outputDirectory].
@@ -91,12 +52,17 @@ class InstantExecutionReport(
      * The file is laid out in such a way as to allow extracting the pure JSON model,
      * see [writeJsReportData].
      */
-    private
-    fun writeReportFile(cacheAction: String, problems: List<PropertyProblem>, outputDirectory: File) {
-        val html = javaClass.requireResource(reportHtmlFileName)
-        outputDirectory.resolve(reportHtmlFileName).bufferedWriter().use { writer ->
-            html.openStream().bufferedReader().use { reader ->
-                writer.writeReportFileText(reader, cacheAction, problems)
+    internal
+    fun writeReportFileTo(outputDirectory: File, cacheAction: String, problems: List<PropertyProblem>): File {
+        require(outputDirectory.mkdirs()) {
+            "Could not create configuration cache report directory '$outputDirectory'"
+        }
+        return outputDirectory.resolve(reportHtmlFileName).also { htmlReportFile ->
+            val html = javaClass.requireResource(reportHtmlFileName)
+            htmlReportFile.bufferedWriter().use { writer ->
+                html.openStream().bufferedReader().use { reader ->
+                    writer.writeReportFileText(reader, cacheAction, problems)
+                }
             }
         }
     }

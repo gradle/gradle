@@ -32,6 +32,7 @@ class LegacyGradleEnterpriseCheckInConfigCachingIntegTest extends AbstractIntegr
         scanPlugin.with {
             logConfig = true
             logApplied = true
+            runtimeVersion = "3.3.4"
             publishDummyPlugin(executer)
         }
 
@@ -43,7 +44,7 @@ class LegacyGradleEnterpriseCheckInConfigCachingIntegTest extends AbstractIntegr
         succeeds "t", "--configuration-cache"
 
         then:
-        scanPlugin.assertUnsupportedMessage(output, "Build scans have been disabled due to incompatibility between your Gradle Enterprise plugin version ($scanPlugin.runtimeVersion) and configuration caching. Please use Gradle Enterprise plugin version 3.4 or later for compatibility with configuration caching.")
+        scanPlugin.assertUnsupportedMessage(output, "Build scans have been disabled due to incompatibility between your Gradle Enterprise plugin version (3.3.4) and configuration caching. Please use Gradle Enterprise plugin version 3.4 or later for compatibility with configuration caching.")
     }
 
 }

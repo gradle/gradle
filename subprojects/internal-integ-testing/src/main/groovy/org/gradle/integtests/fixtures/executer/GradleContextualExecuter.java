@@ -140,7 +140,6 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
             case instant:
                 return new InstantExecutionGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case watchFs:
-                requireIsolatedDaemons();
                 return new FileSystemWatchingGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             default:
                 throw new RuntimeException("Not a supported executer type: " + executerType);
