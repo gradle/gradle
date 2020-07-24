@@ -194,16 +194,15 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new DelegatingDiffCapturingUpdateFunctionDecorator(watchFilter);
         }
 
-        AtomicSnapshotHierarchyReference createRoot(FileSystem fileSystem) {
+        AtomicSnapshotHierarchyReference createRoot(FileSystem fileSystem, SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator decorator) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
-            return new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
+            return new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity), decorator);
         }
 
         VirtualFileSystem createVirtualFileSystem(
             FileHasher hasher,
             AtomicSnapshotHierarchyReference root,
             Stat stat,
-            SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator diffCapturingUpdateFunctionDecorator,
             StringInterner stringInterner,
             ListenerManager listenerManager,
             PatternSpecFactory patternSpecFactory,
@@ -214,7 +213,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 stringInterner,
                 stat,
                 root,
-                diffCapturingUpdateFunctionDecorator,
                 updateListener,
                 DirectoryScanner.getDefaultExcludes()
             );
@@ -245,7 +243,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         FileSystemWatchingHandler createFileSystemWatchingHandler(
-            WatchFilter watchFilter,
             AtomicSnapshotHierarchyReference root,
             LocationsUpdatedByCurrentBuild locationsUpdatedByCurrentBuild,
             DocumentationRegistry documentationRegistry,
@@ -258,7 +255,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     watcherRegistryFactory,
                     root,
                     updateFunctionDecorator,
-                    watchFilter,
                     sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId),
                     locationsUpdatedByCurrentBuild
                 ))
@@ -342,13 +338,15 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             VirtualFileSystem gradleUserHomeVirtualFileSystem
         ) {
             StartParameterInternal startParameterInternal = (StartParameterInternal) startParameter;
-            AtomicSnapshotHierarchyReference snapshotHierarchyReference = new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE));
+            AtomicSnapshotHierarchyReference snapshotHierarchyReference = new AtomicSnapshotHierarchyReference(
+                DefaultSnapshotHierarchy.empty(fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE),
+                SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP
+            );
             DefaultVirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(
                 hasher,
                 stringInterner,
                 stat,
                 snapshotHierarchyReference,
-                SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP,
                 locations -> {},
                 DirectoryScanner.getDefaultExcludes()
             );

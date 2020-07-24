@@ -31,26 +31,25 @@ class DefaultFileSystemWatchingHandlerTest extends Specification {
     def watcherRegistryFactory = Mock(FileWatcherRegistryFactory)
     def watcherRegistry = Mock(FileWatcherRegistry)
     def fileWatcherUpdater = Mock(FileWatcherUpdater)
-    def capturingUpdateFunctionDecorator = Mock(DelegatingDiffCapturingUpdateFunctionDecorator)
+    def capturingUpdateFunctionDecorator = new DelegatingDiffCapturingUpdateFunctionDecorator({ -> true })
     def emptySnapshotHierarchy = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
     def nonEmptySnapshotHierarchy = Stub(SnapshotHierarchy) {
         empty() >> emptySnapshotHierarchy
     }
-    def root = new AtomicSnapshotHierarchyReference(nonEmptySnapshotHierarchy)
+    def root = new AtomicSnapshotHierarchyReference(nonEmptySnapshotHierarchy, capturingUpdateFunctionDecorator)
     def daemonDocumentationIndex = Mock(DaemonDocumentationIndex)
     def locationsUpdatedByCurrentBuild = Mock(LocationsUpdatedByCurrentBuild)
     def watchingHandler = new DefaultFileSystemWatchingHandler(
         watcherRegistryFactory,
         root,
         capturingUpdateFunctionDecorator,
-        { -> true },
         daemonDocumentationIndex,
         locationsUpdatedByCurrentBuild
     )
 
     def "invalidates the virtual file system before and after the build when watching is disabled"() {
         when:
-        root.update { nonEmptySnapshotHierarchy }
+        root.update { root, listener -> nonEmptySnapshotHierarchy }
         watchingHandler.afterBuildStarted(false)
         then:
         0 * _
@@ -58,7 +57,7 @@ class DefaultFileSystemWatchingHandlerTest extends Specification {
         root.get() == emptySnapshotHierarchy
 
         when:
-        root.update { nonEmptySnapshotHierarchy }
+        root.update { root, listener -> nonEmptySnapshotHierarchy }
         watchingHandler.beforeBuildFinished(false)
         then:
         0 * _
@@ -73,7 +72,6 @@ class DefaultFileSystemWatchingHandlerTest extends Specification {
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
         1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of())
-        1 * capturingUpdateFunctionDecorator.setSnapshotDiffListener(_, _)
         0 * _
 
         when:
@@ -85,11 +83,10 @@ class DefaultFileSystemWatchingHandlerTest extends Specification {
         0 * _
 
         when:
-        root.update { nonEmptySnapshotHierarchy }
+        root.update { root, listener -> nonEmptySnapshotHierarchy }
         watchingHandler.afterBuildStarted(false)
         then:
         1 * watcherRegistry.close()
-        1 * capturingUpdateFunctionDecorator.stopListening()
         0 * _
 
         root.get() == emptySnapshotHierarchy
@@ -102,7 +99,6 @@ class DefaultFileSystemWatchingHandlerTest extends Specification {
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
         1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of())
-        1 * capturingUpdateFunctionDecorator.setSnapshotDiffListener(_, _)
         0 * _
 
         when:
@@ -114,7 +110,7 @@ class DefaultFileSystemWatchingHandlerTest extends Specification {
         0 * _
 
         when:
-        root.update { nonEmptySnapshotHierarchy }
+        root.update { root, listener -> nonEmptySnapshotHierarchy }
         watchingHandler.afterBuildStarted(true)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
@@ -139,7 +135,6 @@ class DefaultFileSystemWatchingHandlerTest extends Specification {
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
         1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of(rootDirectory))
-        1 * capturingUpdateFunctionDecorator.setSnapshotDiffListener(_, _)
         0 * _
 
         when:

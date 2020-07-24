@@ -54,8 +54,10 @@ abstract class AbstractVirtualFileSystemTest extends Specification {
         fileHasher,
         new StringInterner(),
         stat,
-        new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(CASE_SENSITIVE)),
-        SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP,
+        new AtomicSnapshotHierarchyReference(
+            DefaultSnapshotHierarchy.empty(CASE_SENSITIVE),
+            SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP
+        ),
         updateListener
     )
 

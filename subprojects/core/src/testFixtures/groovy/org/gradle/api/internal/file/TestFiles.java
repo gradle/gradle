@@ -195,13 +195,12 @@ public class TestFiles {
 
     public static VirtualFileSystem virtualFileSystem() {
         CaseSensitivity caseSensitivity = fileSystem().isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
-        AtomicSnapshotHierarchyReference root = new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
+        AtomicSnapshotHierarchyReference root = new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity), SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP);
         return new DefaultVirtualFileSystem(
             fileHasher(),
             new StringInterner(),
             fileSystem(),
             root,
-            SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP,
             locations -> {}
         );
     }
