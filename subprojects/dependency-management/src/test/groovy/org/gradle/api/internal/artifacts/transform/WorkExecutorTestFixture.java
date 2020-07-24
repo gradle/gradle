@@ -86,17 +86,7 @@ public class WorkExecutorTestFixture {
         BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
         BuildCancellationToken cancellationToken = new DefaultBuildCancellationToken();
         BuildCacheCommandFactory buildCacheCommandFactory = null;
-        OutputChangeListener outputChangeListener = new OutputChangeListener() {
-            @Override
-            public void beforeOutputChange() {
-                virtualFileSystem.invalidateAll();
-            }
-
-            @Override
-            public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-                virtualFileSystem.update(affectedOutputPaths, () -> {});
-            }
-        };
+        OutputChangeListener outputChangeListener = affectedOutputPaths -> virtualFileSystem.update(affectedOutputPaths, () -> {});
         OutputFilesRepository outputFilesRepository = new OutputFilesRepository() {
             @Override
             public boolean isGeneratedByGradle(File file) {

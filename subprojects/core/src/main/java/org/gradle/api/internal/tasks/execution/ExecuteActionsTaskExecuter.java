@@ -365,12 +365,12 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public Optional<? extends Iterable<String>> getChangingOutputs() {
+        public Iterable<String> getChangingOutputs() {
             ImmutableList.Builder<String> builder = ImmutableList.builder();
             visitOutputProperties((propertyName, type, root) -> builder.add(root.getAbsolutePath()));
             context.getTaskProperties().getDestroyableFiles().forEach(file -> builder.add(file.getAbsolutePath()));
             context.getTaskProperties().getLocalStateFiles().forEach(file -> builder.add(file.getAbsolutePath()));
-            return Optional.of(builder.build());
+            return builder.build();
         }
 
         @Override

@@ -371,17 +371,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 }
             });
             listenerManager.addListener(new DefaultExcludesBuildListener(buildSessionsScopedVirtualFileSystem));
-            listenerManager.addListener(new OutputChangeListener() {
-                @Override
-                public void beforeOutputChange() {
-                    routingVirtualFileSystem.invalidateAll();
-                }
-
-                @Override
-                public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-                    routingVirtualFileSystem.update(affectedOutputPaths, () -> {});
-                }
-            });
+            listenerManager.addListener((OutputChangeListener) affectedOutputPaths -> routingVirtualFileSystem.update(affectedOutputPaths, () -> {}));
 
             return routingVirtualFileSystem;
         }
