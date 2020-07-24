@@ -32,7 +32,6 @@ import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.Actions;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
@@ -129,7 +128,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
 
     @Override
     public JavaToolchainSpec getToolchain() {
-        return toolchain(Actions.doNothing());
+        return toolchain;
     }
 
     @Override
