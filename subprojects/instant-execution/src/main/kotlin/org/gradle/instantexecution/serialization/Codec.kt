@@ -37,7 +37,7 @@ import org.gradle.internal.serialize.Encoder
 interface Codec<T> : EncodingProvider<T>, DecodingProvider<T>
 
 
-interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
+interface WriteContext : IsolateContext, MutableIsolateContext, StackSafe, Encoder {
 
     val sharedIdentities: WriteIdentities
 
@@ -51,7 +51,7 @@ interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
 }
 
 
-interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
+interface ReadContext : IsolateContext, MutableIsolateContext, StackSafe, Decoder {
 
     val sharedIdentities: ReadIdentities
 
@@ -75,7 +75,16 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 }
 
 
-suspend fun <T : Any> ReadContext.readNonNull() = read()!!.uncheckedCast<T>()
+suspend fun <T : Any> ReadContext.readNonNull() =
+    read()!!.uncheckedCast<T>()
+
+
+interface StackSafe {
+
+    fun saveCallStack(): Any?
+
+    fun restoreCallStack(savedCallStack: Any?)
+}
 
 
 interface IsolateContext {
