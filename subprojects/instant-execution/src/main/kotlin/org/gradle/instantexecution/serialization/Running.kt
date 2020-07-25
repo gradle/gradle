@@ -24,10 +24,16 @@ import kotlin.coroutines.startCoroutine
  * Runs the given [readOperation] synchronously.
  */
 internal
-fun <T : ReadContext, R> T.runReadOperation(readOperation: suspend T.() -> R): R =
-    runToCompletion {
-        readOperation()
+fun <T : ReadContext, R> T.runReadOperation(readOperation: suspend T.() -> R): R {
+    val callStack = saveCallStack()
+    try {
+        return runToCompletion {
+            readOperation()
+        }
+    } finally {
+        restoreCallStack(callStack)
     }
+}
 
 
 /**
@@ -35,8 +41,13 @@ fun <T : ReadContext, R> T.runReadOperation(readOperation: suspend T.() -> R): R
  */
 internal
 fun <T : WriteContext> T.runWriteOperation(writeOperation: suspend T.() -> Unit) {
-    runToCompletion {
-        writeOperation()
+    val callStack = saveCallStack()
+    try {
+        runToCompletion {
+            writeOperation()
+        }
+    } finally {
+        restoreCallStack(callStack)
     }
 }
 

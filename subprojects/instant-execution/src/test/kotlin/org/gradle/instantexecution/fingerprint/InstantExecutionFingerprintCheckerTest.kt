@@ -281,6 +281,13 @@ class InstantExecutionFingerprintCheckerTest {
         override fun writeClass(type: Class<*>): Unit =
             undefined()
 
+        override fun saveCallStack(): Any? =
+            null
+
+        override fun restoreCallStack(savedCallStack: Any?) {
+            require(savedCallStack === null)
+        }
+
         override val logger: Logger
             get() = undefined()
 
@@ -396,6 +403,13 @@ class InstantExecutionFingerprintCheckerTest {
 
         override fun pop(): Unit =
             undefined()
+
+        override fun saveCallStack(): Any? =
+            null
+
+        override fun restoreCallStack(savedCallStack: Any?) {
+            require(savedCallStack === null)
+        }
 
         override fun readInt(): Int =
             undefined()
