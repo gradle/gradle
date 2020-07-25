@@ -27,12 +27,6 @@ import org.gradle.internal.serialize.Serializer
 
 import java.io.File
 
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
-import kotlin.coroutines.startCoroutine
-import kotlin.coroutines.suspendCoroutine
-
 
 internal
 fun <T> singleton(value: T): Codec<T> =
@@ -74,93 +68,6 @@ inline fun <reified T> ReadContext.ownerService() =
 internal
 fun <T> ReadContext.ownerService(serviceType: Class<T>) =
     isolate.owner.service(serviceType)
-
-
-internal
-fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
-
-    var encodeCall: EncodeFrame<T>? = null
-
-    var decodeCall: DecodeFrame<T?>? = null
-
-    override suspend fun WriteContext.encode(value: T) {
-        when (encodeCall) {
-            null -> {
-                encodeCall = EncodeFrame(value, null)
-                encodeLoop(coroutineContext)
-            }
-            else -> suspendCoroutine<Unit> { k ->
-                encodeCall = EncodeFrame(value, k)
-            }
-        }
-    }
-
-    override suspend fun ReadContext.decode(): T? =
-        when {
-            immediateMode -> {
-                codec.run { decode() }
-            }
-            decodeCall == null -> {
-                decodeCall = DecodeFrame(null)
-                decodeLoop(coroutineContext)
-            }
-            else -> suspendCoroutine { k ->
-                decodeCall = DecodeFrame(k)
-            }
-        }
-
-    private
-    fun WriteContext.encodeLoop(coroutineContext: CoroutineContext) {
-        do {
-            val call = encodeCall!!
-            suspend {
-                codec.run {
-                    encode(call.value)
-                }
-            }.startCoroutine(
-                Continuation(coroutineContext) {
-                    when (val k = call.k) {
-                        null -> {
-                            encodeCall = null
-                            it.getOrThrow()
-                        }
-                        else -> k.resumeWith(it)
-                    }
-                }
-            )
-        } while (encodeCall != null)
-    }
-
-    private
-    fun ReadContext.decodeLoop(coroutineContext: CoroutineContext): T? {
-        var result: T? = null
-        do {
-            val call = decodeCall!!
-            suspend {
-                codec.run { decode() }
-            }.startCoroutine(
-                Continuation(coroutineContext) {
-                    when (val k = call.k) {
-                        null -> {
-                            decodeCall = null
-                            result = it.getOrThrow()
-                        }
-                        else -> k.resumeWith(it)
-                    }
-                }
-            )
-        } while (decodeCall != null)
-        return result
-    }
-}
-
-
-private
-class DecodeFrame<T>(val k: Continuation<T>?)
-
-
-private
-data class EncodeFrame<T>(val value: T, val k: Continuation<Unit>?)
 
 
 private

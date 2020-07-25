@@ -54,7 +54,6 @@ import org.gradle.instantexecution.serialization.codecs.transform.Transformation
 import org.gradle.instantexecution.serialization.codecs.transform.TransformationStepCodec
 import org.gradle.instantexecution.serialization.codecs.transform.TransformedExternalArtifactSetCodec
 import org.gradle.instantexecution.serialization.ownerServiceCodec
-import org.gradle.instantexecution.serialization.reentrant
 import org.gradle.instantexecution.serialization.unsupported
 import org.gradle.internal.Factory
 import org.gradle.internal.event.ListenerManager
@@ -204,10 +203,7 @@ class Codecs(
         bind(unsupported<Externalizable>(NotYetImplementedJavaSerialization))
         bind(JavaObjectSerializationCodec())
 
-        // This protects the BeanCodec against StackOverflowErrors but
-        // we can still get them for the other codecs, for instance,
-        // with deeply nested Lists, deeply nested Maps, etc.
-        bind(reentrant(BeanCodec()))
+        bind(BeanCodec())
     }
 
     val internalTypesCodec = BindingsBackedCodec {
