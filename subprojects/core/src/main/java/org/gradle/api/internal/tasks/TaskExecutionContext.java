@@ -58,5 +58,5 @@ public interface TaskExecutionContext {
      * Sets the build operation designed to measure the time taken
      * by capturing input snapshotting and cache key calculation.
      */
-    void setSnapshotTaskInputsBuildOperation(ExecutingBuildOperation  operation);
+    void setSnapshotTaskInputsBuildOperation(ExecutingBuildOperation operation);
 }
