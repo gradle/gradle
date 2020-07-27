@@ -49,7 +49,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     private final ManagedExecutor fixedSizePool;
 
     public DefaultBuildOperationExecutor(BuildOperationListener listener, Clock clock, ProgressLoggerFactory progressLoggerFactory, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, ParallelismConfiguration parallelismConfiguration, BuildOperationIdFactory buildOperationIdFactory) {
-        super(listener, clock, buildOperationIdFactory);
+        super(listener, clock::getCurrentTime, buildOperationIdFactory);
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
         this.fixedSizePool = executorFactory.create("Build operations", parallelismConfiguration.getMaxWorkerCount());
@@ -155,7 +155,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
 
     private BuildOperationState maybeStartUnmanagedThreadOperation(BuildOperationState parentState) {
         if (parentState == null && !GradleThread.isManaged()) {
-            parentState = UnmanagedThreadOperation.create(clock);
+            parentState = UnmanagedThreadOperation.create(getCurrentTime());
             parentState.setRunning(true);
             setCurrentBuildOperation(parentState);
             listener.started(parentState.getDescription(), new OperationStartEvent(parentState.getStartTime()));
@@ -167,7 +167,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
         BuildOperationState current = getCurrentBuildOperation();
         if (current instanceof UnmanagedThreadOperation) {
             try {
-                listener.finished(current.getDescription(), new OperationFinishEvent(current.getStartTime(), clock.getCurrentTime(), null, null));
+                listener.finished(current.getDescription(), new OperationFinishEvent(current.getStartTime(), getCurrentTime(), null, null));
             } finally {
                 setCurrentBuildOperation(null);
                 current.setRunning(false);
@@ -182,7 +182,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     protected void createRunningRootOperation(String displayName) {
         assert getCurrentBuildOperation() == null;
         OperationIdentifier rootBuildOpId = new OperationIdentifier(DefaultBuildOperationIdFactory.ROOT_BUILD_OPERATION_ID_VALUE);
-        BuildOperationState operation = new BuildOperationState(BuildOperationDescriptor.displayName(displayName).build(rootBuildOpId, null), clock.getCurrentTime());
+        BuildOperationState operation = new BuildOperationState(BuildOperationDescriptor.displayName(displayName).build(rootBuildOpId, null), getCurrentTime());
         operation.setRunning(true);
         setCurrentBuildOperation(operation);
     }
@@ -226,12 +226,12 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
 
         private static final AtomicLong UNMANAGED_THREAD_OPERATION_COUNTER = new AtomicLong(-1);
 
-        private static UnmanagedThreadOperation create(Clock clock) {
+        private static UnmanagedThreadOperation create(long currentTime) {
             // TODO:pm Move this to WARN level once we fixed maven-publish, see gradle/gradle#1662
             LOGGER.debug("WARNING No operation is currently running in unmanaged thread: {}", Thread.currentThread().getName());
             OperationIdentifier id = new OperationIdentifier(UNMANAGED_THREAD_OPERATION_COUNTER.getAndDecrement());
             String displayName = "Unmanaged thread operation #" + id + " (" + Thread.currentThread().getName() + ')';
-            return new UnmanagedThreadOperation(BuildOperationDescriptor.displayName(displayName).build(id, null), clock.getCurrentTime());
+            return new UnmanagedThreadOperation(BuildOperationDescriptor.displayName(displayName).build(id, null), currentTime);
         }
 
         private UnmanagedThreadOperation(BuildOperationDescriptor descriptor, long startTime) {
