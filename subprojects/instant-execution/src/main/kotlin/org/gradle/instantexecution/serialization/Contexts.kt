@@ -269,7 +269,7 @@ class DefaultReadContext(
     lateinit var projectProvider: ProjectProvider
 
     private
-    var pendingReadCall: ReadCall? = null
+    var pendingReadCall: Continuation<Any?>? = null
 
     private
     var readCallDepth: Int = 0
@@ -305,11 +305,11 @@ class DefaultReadContext(
                 }
             }
             pendingReadCall === null -> {
-                pendingReadCall = ReadCall(continuation)
+                pendingReadCall = continuation
                 readCallLoop()
             }
             else -> suspendCoroutine { k ->
-                pendingReadCall = ReadCall(k)
+                pendingReadCall = k
             }
         }
 
@@ -320,10 +320,9 @@ class DefaultReadContext(
         try {
             while (true) {
                 val call = pendingReadCall!!
-                val k = call.k
-                val result = unsafeRead.invoke(k)
+                val result = unsafeRead.invoke(call)
                 if (result !== COROUTINE_SUSPENDED) {
-                    k.resume(result)
+                    call.resume(result)
                 }
                 if (pendingReadCall === null) {
                     return readCallResult.getOrThrow()
@@ -432,9 +431,6 @@ class DefaultReadContext(
         require(pendingReadCall === null)
         pendingReadCall = savedCallStack?.uncheckedCast()
     }
-
-    internal
-    class ReadCall(val k: Continuation<Any?>)
 }
 
 
