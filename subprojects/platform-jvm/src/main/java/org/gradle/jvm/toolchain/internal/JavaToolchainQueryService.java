@@ -17,7 +17,9 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -35,6 +37,9 @@ public class JavaToolchainQueryService {
     }
 
     public Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
+        if (!((DefaultToolchainSpec) filter).isConfigured()) {
+            return Providers.notDefined();
+        }
         return new DefaultProvider<>(() -> query(filter));
     }
 
@@ -48,7 +53,7 @@ public class JavaToolchainQueryService {
 
     // TODO: to be replaced with AttributeContainer/AttributeMatcher
     private Predicate<JavaToolchain> matchingToolchain(JavaToolchainSpec spec) {
-        return toolchain -> toolchain.getJavaMajorVersion() == spec.getLanguageVersion();
+        return toolchain -> toolchain.getJavaMajorVersion() == spec.getLanguageVersion().get();
     }
 
     private JavaToolchain asToolchain(File javaHome) {

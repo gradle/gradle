@@ -21,12 +21,13 @@ import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest {
 
+    @Unroll
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
-    def "can manually set java compiler via toolchain on java compile task"() {
-        def someJdk = AvailableJavaHomes.getDifferentJdk()
+    def "can manually set java compiler via  #type toolchain on java compile task"() {
         buildFile << """
             import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService
             import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
@@ -39,12 +40,44 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
                 void apply(Project project) {
                     project.tasks.withType(JavaCompile) {
-                        javaCompiler = getQueryService().findMatchingToolchain(new DefaultToolchainSpec(JavaVersion.${someJdk.javaVersion.name()})).map({it.javaCompiler.get()})
+                        def filter = project.objects.newInstance(DefaultToolchainSpec)
+                        filter.languageVersion = JavaVersion.${jdk.javaVersion.name()}
+                        javaCompiler = getQueryService().findMatchingToolchain(filter).map({it.javaCompiler.get()})
                     }
                 }
             }
 
             apply plugin: InstallToolchain
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        result = executer
+            .withArguments("-Porg.gradle.java.installations.paths=" + jdk.javaHome.absolutePath, "--info")
+            .withTasks("compileJava")
+            .run()
+
+        then:
+        outputContains("Compiling with toolchain '${jdk.javaHome.absolutePath}'.")
+        javaClassFile("Foo.class").exists()
+
+        where:
+        type           | jdk
+        'differentJdk' | AvailableJavaHomes.getDifferentJdk()
+        'current'      | Jvm.current()
+    }
+
+    def "can set explicit toolchain used by JavaCompile"() {
+        def someJdk = AvailableJavaHomes.getDifferentJdk()
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaVersion.toVersion(${someJdk.javaVersion.majorVersion})
+                }
+            }
         """
 
         file("src/main/java/Foo.java") << "public class Foo {}"
@@ -57,40 +90,6 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
         then:
         outputContains("Compiling with toolchain '${someJdk.javaHome.absolutePath}'.")
-        javaClassFile("Foo.class").exists()
-    }
-
-    def "can query for running vm as toolchain"() {
-        buildFile << """
-            import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService
-            import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
-
-            apply plugin: "java"
-
-            abstract class InstallToolchain implements Plugin<Project> {
-                @javax.inject.Inject
-                abstract JavaToolchainQueryService getQueryService()
-
-                void apply(Project project) {
-                    project.tasks.withType(JavaCompile) {
-                        javaCompiler = getQueryService().findMatchingToolchain(new DefaultToolchainSpec(JavaVersion.current())).map({it.javaCompiler.get()})
-                    }
-                }
-            }
-
-            apply plugin: InstallToolchain
-        """
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        when:
-        result = executer
-            .withArguments("--info")
-            .withTasks("compileJava")
-            .run()
-
-        then:
-        outputContains("Compiling with toolchain '${Jvm.current().javaHome.absolutePath}'.")
         javaClassFile("Foo.class").exists()
     }
 

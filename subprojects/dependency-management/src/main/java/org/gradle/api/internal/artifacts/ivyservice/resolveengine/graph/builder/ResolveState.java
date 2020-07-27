@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
+import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
@@ -70,6 +71,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final DependencyToComponentIdResolver idResolver;
     private final ComponentMetaDataResolver metaDataResolver;
     private final Deque<NodeState> queue;
+    private final ConflictResolution conflictResolution;
     private final AttributesSchemaInternal attributesSchema;
     private final ModuleExclusions moduleExclusions;
     private final DeselectVersionAction deselectVersionAction = new DeselectVersionAction(this);
@@ -100,7 +102,8 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
                         Comparator<Version> versionComparator,
                         VersionParser versionParser,
                         ModuleConflictResolver<ComponentState> conflictResolver,
-                        int graphSize) {
+                        int graphSize,
+                        ConflictResolution conflictResolution) {
         this.idGenerator = idGenerator;
         this.idResolver = idResolver;
         this.metaDataResolver = metaDataResolver;
@@ -117,8 +120,11 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         this.nodes = new LinkedHashMap<>(3 * graphSize / 2);
         this.selectors = new LinkedHashMap<>(5 * graphSize / 2);
         this.queue = new ArrayDeque<>(graphSize);
+        this.conflictResolution = conflictResolution;
         this.resolveOptimizations = new ResolveOptimizations();
         this.attributeDesugaring = new AttributeDesugaring(attributesFactory);
+        // Create root module
+        getModule(rootResult.getModuleVersionId().getModule(), true);
         ComponentState rootVersion = getRevision(rootResult.getId(), rootResult.getModuleVersionId(), rootResult.getMetadata());
         final ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(rootVersion.getId(), rootConfigurationName);
         ConfigurationMetadata configurationMetadata = rootVersion.getMetadata().getConfiguration(id.getConfiguration());
@@ -143,7 +149,11 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     }
 
     public ModuleResolveState getModule(ModuleIdentifier id) {
-        return modules.computeIfAbsent(id, mid -> new ModuleResolveState(idGenerator, id, metaDataResolver, attributesFactory, versionComparator, versionParser, selectorStateResolver, resolveOptimizations));
+        return getModule(id, false);
+    }
+
+    private ModuleResolveState getModule(ModuleIdentifier id, boolean rootModule) {
+        return modules.computeIfAbsent(id, mid -> new ModuleResolveState(idGenerator, id, metaDataResolver, attributesFactory, versionComparator, versionParser, selectorStateResolver, resolveOptimizations, rootModule, conflictResolution));
     }
 
     @Override

@@ -17,24 +17,33 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
-// TODO: turn this into API with Properties
+import javax.inject.Inject;
+
 public class DefaultToolchainSpec implements JavaToolchainSpec {
 
-    private JavaVersion languageVersion;
+    private final Property<JavaVersion> languageVersion;
 
-    public DefaultToolchainSpec(JavaVersion languageVersion) {
-        this.languageVersion = languageVersion;
+    @Inject
+    public DefaultToolchainSpec(ObjectFactory factory) {
+        this.languageVersion = factory.property(JavaVersion.class);
     }
 
     @Override
-    public JavaVersion getLanguageVersion() {
+    public Property<JavaVersion> getLanguageVersion() {
         return languageVersion;
+    }
+
+    public boolean isConfigured() {
+        return languageVersion.isPresent();
     }
 
     @Override
     public String getDisplayName() {
-        return "{languageVersion=" + languageVersion + "}";
+        return "{languageVersion=" + languageVersion.get() + "}";
     }
 
 }

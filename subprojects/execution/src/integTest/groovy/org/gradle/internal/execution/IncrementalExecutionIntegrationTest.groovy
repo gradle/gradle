@@ -86,10 +86,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
     def outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
     def executionHistoryStore = new TestExecutionHistoryStore()
     def outputChangeListener = new OutputChangeListener() {
-        @Override
-        void beforeOutputChange() {
-            virtualFileSystem.invalidateAll()
-        }
 
         @Override
         void beforeOutputChange(Iterable<String> affectedOutputPaths) {
@@ -846,8 +842,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                Optional<? extends Iterable<String>> getChangingOutputs() {
-                    Optional.empty()
+                Iterable<String> getChangingOutputs() {
+                    outputs.values()*.root*.absolutePath
                 }
 
                 @Override

@@ -23,7 +23,9 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
@@ -36,6 +38,8 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -52,16 +56,21 @@ import java.util.Set;
  * Resolution state for a given module.
  */
 class ModuleResolveState implements CandidateModule {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ModuleResolveState.class);
+    private static final int MAX_SELECTION_CHANGE = 1000;
+
     private final ComponentMetaDataResolver metaDataResolver;
     private final IdGenerator<Long> idGenerator;
     private final ModuleIdentifier id;
     private final List<EdgeState> unattachedDependencies = new LinkedList<>();
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<>();
     private final ModuleSelectors<SelectorState> selectors;
+    private final ConflictResolution conflictResolution;
     private final ImmutableAttributesFactory attributesFactory;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
     final ResolveOptimizations resolveOptimizations;
+    private final boolean rootModule;
     private SelectorStateResolver<ComponentState> selectorStateResolver;
     private final PendingDependencies pendingDependencies;
     private ComponentState selected;
@@ -73,6 +82,7 @@ class ModuleResolveState implements CandidateModule {
     private Set<VirtualPlatformState> platformOwners;
     private boolean replaced = false;
     private boolean changingSelection;
+    private int selectionChangedCounter;
 
     ModuleResolveState(IdGenerator<Long> idGenerator,
                        ModuleIdentifier id,
@@ -81,7 +91,9 @@ class ModuleResolveState implements CandidateModule {
                        Comparator<Version> versionComparator,
                        VersionParser versionParser,
                        SelectorStateResolver<ComponentState> selectorStateResolver,
-                       ResolveOptimizations resolveOptimizations) {
+                       ResolveOptimizations resolveOptimizations,
+                       boolean rootModule,
+                       ConflictResolution conflictResolution) {
         this.idGenerator = idGenerator;
         this.id = id;
         this.metaDataResolver = metaDataResolver;
@@ -89,9 +101,11 @@ class ModuleResolveState implements CandidateModule {
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
         this.resolveOptimizations = resolveOptimizations;
+        this.rootModule = rootModule;
         this.pendingDependencies = new PendingDependencies(id);
         this.selectorStateResolver = selectorStateResolver;
-        selectors = new ModuleSelectors<SelectorState>(versionComparator);
+        this.selectors = new ModuleSelectors<>(versionComparator);
+        this.conflictResolution = conflictResolution;
     }
 
     void setSelectorStateResolver(SelectorStateResolver<ComponentState> selectorStateResolver) {
@@ -400,7 +414,7 @@ class ModuleResolveState implements CandidateModule {
             // Never update selection for a replaced module
             return;
         }
-        if (selectors.checkDeferSelection()) {
+        if (!rootModule && selectors.checkDeferSelection()) {
             // Selection deferred as we know another selector will be added soon
             return;
         }
@@ -409,8 +423,32 @@ class ModuleResolveState implements CandidateModule {
         if (selected == null) {
             select(newSelected);
         } else if (newSelected != selected) {
+            if (++selectionChangedCounter > MAX_SELECTION_CHANGE) {
+                // Let's ignore modules that are changing selection way too much, by keeping the highest version
+                if (maybeSkipSelectionChange(newSelected)) {
+                    return;
+                }
+            }
             changeSelection(newSelected);
         }
+    }
+
+    private boolean maybeSkipSelectionChange(ComponentState newSelected) {
+        if (selectionChangedCounter == MAX_SELECTION_CHANGE + 1) {
+            LOGGER.warn("The dependency resolution engine wasn't able to find a version of module {} which satisfied all requirements because the graph wasn't stable enough. " +
+                "The highest version was selected in order to stabilize selection.\n" +
+                "Features available in a stable graph like version alignment are not guaranteed in this case.", id);
+        }
+        boolean newSelectedIsProject = false;
+        if (conflictResolution == ConflictResolution.preferProjectModules) {
+            if (newSelected.getComponentId() instanceof ProjectComponentIdentifier) {
+                // Keep the project selected
+                newSelectedIsProject = true;
+            }
+        }
+        Version newVersion = versionParser.transform(newSelected.getVersion());
+        Version currentVersion = versionParser.transform(selected.getVersion());
+        return !newSelectedIsProject && versionComparator.compare(newVersion, currentVersion) <= 0;
     }
 
     void maybeCreateVirtualMetadata(ResolveState resolveState) {

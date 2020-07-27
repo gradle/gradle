@@ -27,7 +27,6 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.asm)
 
-    testImplementation(project(":native"))
     testImplementation(project(":snapshots"))
     testImplementation(libs.ant)
     testImplementation(testFixtures(project(":core")))

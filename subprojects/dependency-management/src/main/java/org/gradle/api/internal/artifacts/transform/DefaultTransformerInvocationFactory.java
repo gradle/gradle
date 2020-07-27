@@ -437,8 +437,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public Optional<? extends Iterable<String>> getChangingOutputs() {
-            return Optional.of(ImmutableList.of(workspace.getOutputDirectory().getAbsolutePath(), workspace.getResultsFile().getAbsolutePath()));
+        public Iterable<String> getChangingOutputs() {
+            return ImmutableList.of(workspace.getOutputDirectory().getAbsolutePath(), workspace.getResultsFile().getAbsolutePath());
         }
 
         @Override
