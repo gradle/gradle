@@ -82,7 +82,6 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.work.AsyncWorkTracker;
@@ -478,24 +477,24 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             // Note: this operation should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
             //   expects it to be added also when the build cache is enabled (but not the scan plugin)
             if (buildCacheState == BuildCacheState.ENABLED || scanPluginState == ScanPluginState.APPLIED) {
-                ExecutingBuildOperation operation = buildOperationExecutor.start(BuildOperationDescriptor
+                BuildOperationContext operationContext = buildOperationExecutor.start(BuildOperationDescriptor
                     .displayName("Snapshot task inputs for " + task.getIdentityPath())
                     .name("Snapshot task inputs")
                     .details(SnapshotTaskInputsBuildOperationType.Details.INSTANCE));
-                context.setSnapshotTaskInputsBuildOperation(operation);
+                context.setSnapshotTaskInputsBuildOperationContext(operationContext);
             }
         }
 
         @Override
         public void markLegacySnapshottingInputsFinished(CachingState cachingState) {
-            context.removeSnapshotTaskInputsBuildOperation()
+            context.removeSnapshotTaskInputsBuildOperationContext()
                 .ifPresent(operation -> operation.setResult(new SnapshotTaskInputsBuildOperationResult(cachingState)));
         }
 
         @Override
         public void ensureLegacySnapshottingInputsClosed() {
             // If the operation hasn't finished normally (because of a shortcut or an error), we close it without a cache key
-            context.removeSnapshotTaskInputsBuildOperation()
+            context.removeSnapshotTaskInputsBuildOperationContext()
                 .ifPresent(operation -> operation.setResult(new SnapshotTaskInputsBuildOperationResult(CachingState.NOT_DETERMINED)));
         }
 

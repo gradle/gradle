@@ -44,7 +44,7 @@ public interface BuildOperationRunner {
      *
      * When a parent operation is finished any unfinished child operations will be failed.
      */
-    ExecutingBuildOperation start(BuildOperationDescriptor.Builder descriptor);
+    BuildOperationContext start(BuildOperationDescriptor.Builder descriptor);
 
     /**
      * Returns the state of the build operation currently running on this thread. Can be used as parent of a new build operation

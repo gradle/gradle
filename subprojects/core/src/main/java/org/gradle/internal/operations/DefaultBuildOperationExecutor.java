@@ -80,7 +80,7 @@ public class DefaultBuildOperationExecutor extends AbstractBuildOperationRunner 
     }
 
     @Override
-    public ExecutingBuildOperation start(BuildOperationDescriptor.Builder descriptor) {
+    public BuildOperationContext start(BuildOperationDescriptor.Builder descriptor) {
         return start(descriptor, getCurrentBuildOperation());
     }
 
@@ -127,7 +127,7 @@ public class DefaultBuildOperationExecutor extends AbstractBuildOperationRunner 
     }
 
     @Override
-    protected <O extends BuildOperation> O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, BuildOperationExecution<O> execution, BuildOperationExecutionListener listener) {
+    protected <O> O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, BuildOperationExecution<O> execution, BuildOperationExecutionListener listener) {
         MutableReference<ProgressLogger> progressLoggerHolder = MutableReference.empty();
         BuildOperationExecutionListener progressLoggingListener = new BuildOperationExecutionListener() {
             @Override

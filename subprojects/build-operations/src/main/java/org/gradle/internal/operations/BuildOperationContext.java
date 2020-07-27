@@ -28,6 +28,9 @@ public interface BuildOperationContext {
      */
     void failed(@Nullable Throwable failure);
 
+    /**
+     * Finishes the build operation which should only be done once.
+     */
     void setResult(Object result);
 
     /**

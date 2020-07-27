@@ -39,7 +39,7 @@ public abstract class AbstractBuildOperationRunner implements BuildOperationRunn
 
     protected <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
         BuildOperationDescriptor.Builder descriptorBuilder = buildOperation.description();
-        execute(descriptorBuilder, defaultParent, (BuildOperationExecution<BuildOperation>) (descriptor, operationState, context, listener) -> {
+        execute(descriptorBuilder, defaultParent, (descriptor, operationState, context, listener) -> {
             Throwable failure = null;
             try {
                 listener.start(operationState);
@@ -60,16 +60,11 @@ public abstract class AbstractBuildOperationRunner implements BuildOperationRunn
         });
     }
 
-    protected ExecutingBuildOperation start(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
-        return execute(descriptorBuilder, defaultParent, (BuildOperationExecution<ExecutingBuildOperation>) (descriptor, operationState, context, listener) -> {
+    protected BuildOperationContext start(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
+        return execute(descriptorBuilder, defaultParent, (BuildOperationExecution<BuildOperationContext>) (descriptor, operationState, context, listener) -> {
             listener.start(operationState);
-            return new ExecutingBuildOperation() {
+            return new BuildOperationContext() {
                 private boolean finished;
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return descriptorBuilder;
-                }
 
                 @Override
                 public void failed(@Nullable Throwable failure) {
@@ -109,7 +104,7 @@ public abstract class AbstractBuildOperationRunner implements BuildOperationRunn
         });
     }
 
-    private <O extends BuildOperation> O execute(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent, BuildOperationExecution<O> execution) {
+    private <O> O execute(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent, BuildOperationExecution<O> execution) {
         BuildOperationState parent = AbstractBuildOperationRunner.determineParent(descriptorBuilder, defaultParent);
         BuildOperationDescriptor descriptor = createDescriptor(descriptorBuilder, parent);
 
@@ -143,7 +138,7 @@ public abstract class AbstractBuildOperationRunner implements BuildOperationRunn
         });
     }
 
-    protected <O extends BuildOperation> O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, BuildOperationExecution<O> execution, BuildOperationExecutionListener listener) {
+    protected <O> O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, BuildOperationExecution<O> execution, BuildOperationExecutionListener listener) {
         return execution.execute(
             descriptor,
             operationState,
@@ -186,7 +181,7 @@ public abstract class AbstractBuildOperationRunner implements BuildOperationRunn
         return (BuildOperationState) currentBuildOperationRef.get();
     }
 
-    protected interface BuildOperationExecution<O extends BuildOperation> {
+    protected interface BuildOperationExecution<O> {
         O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, DefaultBuildOperationContext context, BuildOperationExecutionListener listener);
     }
 

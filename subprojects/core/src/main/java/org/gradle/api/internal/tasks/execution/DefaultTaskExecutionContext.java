@@ -19,7 +19,7 @@ import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.execution.plan.LocalTaskNode;
-import org.gradle.internal.operations.ExecutingBuildOperation;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
@@ -31,7 +31,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private TaskExecutionMode taskExecutionMode;
     private TaskProperties properties;
     private Long executionTime;
-    private ExecutingBuildOperation snapshotTaskInputsBuildOperation;
+    private BuildOperationContext snapshotTaskInputsBuildOperationContext;
 
     private final Timer executionTimer;
 
@@ -75,14 +75,14 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     }
 
     @Override
-    public Optional<ExecutingBuildOperation> removeSnapshotTaskInputsBuildOperation() {
-        Optional<ExecutingBuildOperation> result = Optional.ofNullable(snapshotTaskInputsBuildOperation);
-        snapshotTaskInputsBuildOperation = null;
+    public Optional<BuildOperationContext> removeSnapshotTaskInputsBuildOperationContext() {
+        Optional<BuildOperationContext> result = Optional.ofNullable(snapshotTaskInputsBuildOperationContext);
+        snapshotTaskInputsBuildOperationContext = null;
         return result;
     }
 
     @Override
-    public void setSnapshotTaskInputsBuildOperation(ExecutingBuildOperation snapshotTaskInputsBuildOperation) {
-        this.snapshotTaskInputsBuildOperation = snapshotTaskInputsBuildOperation;
+    public void setSnapshotTaskInputsBuildOperationContext(BuildOperationContext snapshotTaskInputsBuildOperation) {
+        this.snapshotTaskInputsBuildOperationContext = snapshotTaskInputsBuildOperation;
     }
 }
