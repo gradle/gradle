@@ -19,7 +19,6 @@ package org.gradle.internal.typeconversion;
 import org.gradle.api.Describable;
 import org.gradle.internal.Cast;
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -31,7 +30,7 @@ public class NotationParserBuilder<N, T> {
     private Object typeDisplayName;
     private boolean implicitConverters = true;
     private boolean allowNullInput;
-    private final Collection<NotationConverter<? super N, ? extends T>> notationParsers = new LinkedList<>();
+    private final List<NotationConverter<? super N, ? extends T>> notationParsers = new LinkedList<>();
 
     public static <T> NotationParserBuilder<Object, T> toType(Class<T> resultingType) {
         return new NotationParserBuilder<>(Object.class, new TypeInfo<>(resultingType));
@@ -141,19 +140,18 @@ public class NotationParserBuilder<N, T> {
     }
 
     private NotationParser<N, T> create() {
-        List<NotationConverter<? super N, ? extends T>> composites = new LinkedList<>();
-        if (notationType.isAssignableFrom(resultingType.getTargetType()) && implicitConverters) {
-            composites.add(new JustReturningConverter<>(resultingType.getTargetType()));
-        }
-        composites.addAll(this.notationParsers);
-
         NotationConverter<? super N, ? extends T> notationConverter;
-        if (composites.size() == 1) {
-            notationConverter = composites.get(0);
+        if (notationParsers.size() == 1) {
+            notationConverter = notationParsers.get(0);
         } else {
-            notationConverter = new CompositeNotationConverter<>(composites);
+            notationConverter = new CompositeNotationConverter<>(notationParsers);
         }
-        return new NotationConverterToNotationParserAdapter<>(notationConverter);
+
+        NotationParser<N, T> parser = new NotationConverterToNotationParserAdapter<>(notationConverter);
+        if (notationType.isAssignableFrom(resultingType.getTargetType()) && implicitConverters) {
+            parser = new JustReturningParser<>(resultingType.getTargetType(), parser);
+        }
+        return parser;
     }
 
     private static class LazyDisplayName<T> implements Describable {
