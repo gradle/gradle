@@ -16,13 +16,10 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Project;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
