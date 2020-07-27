@@ -16,25 +16,29 @@
 
 package org.gradle.internal.operations;
 
+import java.io.ObjectStreamException;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public abstract class AbstractBuildOperationRunner implements BuildOperationRunner {
-    protected <O extends BuildOperation> O execute(BuildOperationDescriptor descriptor, BuildOperationExecution<O> execution, BuildOperationExecutionListener listener) {
+    protected <O extends BuildOperation> O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, BuildOperationExecution<O> execution, BuildOperationExecutionListener listener) {
         return execution.execute(
             descriptor,
+            operationState,
             new DefaultBuildOperationContext(),
             listener
         );
     }
 
     protected interface BuildOperationExecution<O extends BuildOperation> {
-        O execute(BuildOperationDescriptor descriptor, DefaultBuildOperationContext context, BuildOperationExecutionListener listener);
+        O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, DefaultBuildOperationContext context, BuildOperationExecutionListener listener);
     }
 
     protected interface BuildOperationExecutionListener {
-        void start();
+        void start(BuildOperationState operationState);
 
-        void stop(DefaultBuildOperationContext context);
+        void stop(BuildOperationState operationState, DefaultBuildOperationContext context);
 
-        void close();
+        void close(BuildOperationState operationState);
     }
 
     protected static class DefaultBuildOperationContext implements BuildOperationContext {
@@ -61,6 +65,47 @@ public abstract class AbstractBuildOperationRunner implements BuildOperationRunn
         @Override
         public void setStatus(String status) {
             this.status = status;
+        }
+    }
+
+    protected static class BuildOperationState implements BuildOperationRef {
+        private final BuildOperationDescriptor description;
+        private final AtomicBoolean running = new AtomicBoolean();
+        private final long startTime;
+
+        public BuildOperationState(BuildOperationDescriptor descriptor, long startTime) {
+            this.startTime = startTime;
+            this.description = descriptor;
+        }
+
+        public BuildOperationDescriptor getDescription() {
+            return description;
+        }
+
+        public boolean isRunning() {
+            return running.get();
+        }
+
+        public void setRunning(boolean running) {
+            this.running.set(running);
+        }
+
+        public long getStartTime() {
+            return startTime;
+        }
+
+        @Override
+        public OperationIdentifier getId() {
+            return description.getId();
+        }
+
+        @Override
+        public OperationIdentifier getParentId() {
+            return description.getParentId();
+        }
+
+        private Object writeReplace() throws ObjectStreamException {
+            return new DefaultBuildOperationRef(description.getId(), description.getParentId());
         }
     }
 }
