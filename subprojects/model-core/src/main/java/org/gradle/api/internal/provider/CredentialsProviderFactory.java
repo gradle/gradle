@@ -22,7 +22,6 @@ import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.internal.Cast;
@@ -37,14 +36,14 @@ import java.util.List;
 
 public class CredentialsProviderFactory {
 
-    private final ProviderFactory providerFactory;
+    private final ValueSourceProviderFactory providerFactory;
 
-    public CredentialsProviderFactory(ProviderFactory providerFactory) {
+    public CredentialsProviderFactory(ValueSourceProviderFactory providerFactory) {
         this.providerFactory = providerFactory;
     }
 
     public <T extends Credentials> Provider<T> provide(Class<T> credentialsType, String identity) {
-        return provide(credentialsType, providerFactory.provider(() -> identity));
+        return provide(credentialsType, new DefaultProvider<>(() -> identity));
     }
 
     public <T extends Credentials> Provider<T> provide(Class<T> credentialsType, Provider<String> identity) {
@@ -59,7 +58,7 @@ public class CredentialsProviderFactory {
     }
 
     private <T extends Credentials> Provider<T> credentialsProvider(Provider<String> identity, Class<? extends CredentialsValueSource<T>> valueSourceClass) {
-        Provider<T> provider = providerFactory.of(
+        Provider<T> provider = providerFactory.createProviderOf(
             valueSourceClass,
             spec -> spec.getParameters().getIdentity().set(identity)
         );
@@ -76,7 +75,7 @@ public class CredentialsProviderFactory {
 
         @Override
         public ValueProducer getProducer() {
-            return delegate.getProducer().plus(ValueProducer.validationRequest(this));
+            return delegate.getProducer().plus(ValueProducer.buildPrerequisite(delegate));
         }
 
         @Nullable

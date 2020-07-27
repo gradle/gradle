@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 
@@ -98,7 +97,7 @@ public interface ValueSupplier {
             return new TaskProducer(task, false);
         }
 
-        static ValueProducer validationRequest(Provider<?> provider) {
+        static ValueProducer buildPrerequisite(ProviderInternal<?> provider) {
             return new ValidationRequestProducer(new ValidationRequest(provider));
         }
     }
@@ -143,13 +142,13 @@ public interface ValueSupplier {
     }
 
     class ValidationRequest {
-        private final Provider<?> provider;
+        private final ProviderInternal<?> provider;
 
-        public ValidationRequest(Provider<?> provider) {
+        public ValidationRequest(ProviderInternal<?> provider) {
             this.provider = provider;
         }
 
-        public Provider<?> getProvider() {
+        public ProviderInternal<?> getProvider() {
             return provider;
         }
     }

@@ -22,8 +22,7 @@ import org.gradle.api.credentials.PasswordCredentials
 
 class CredentialsProviderFactoryTest extends ValueSourceBasedSpec {
 
-    def providerFactory = new DefaultProviderFactory(valueSourceProviderFactory)
-    def factory = new CredentialsProviderFactory(providerFactory)
+    def factory = new CredentialsProviderFactory(valueSourceProviderFactory)
 
     def "does not allow non-letters and non-digits for identity"() {
         when:

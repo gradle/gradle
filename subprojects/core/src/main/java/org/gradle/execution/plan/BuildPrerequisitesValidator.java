@@ -21,10 +21,10 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.provider.MissingValueException;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
-import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -68,9 +68,9 @@ public class BuildPrerequisitesValidator extends ActionNode implements Dependenc
 
     public static class ValidationAction implements WorkNodeAction {
 
-        private final List<Provider<?>> providersToValidate = new ArrayList<>();
+        private final List<ProviderInternal<?>> providersToValidate = new ArrayList<>();
 
-        void addToValidations(Provider<?> provider) {
+        void addToValidations(ProviderInternal<?> provider) {
             providersToValidate.add(provider);
         }
 

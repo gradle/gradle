@@ -49,7 +49,7 @@ public class DefaultProviderFactory implements ProviderFactory {
 
     public DefaultProviderFactory(@Nullable ValueSourceProviderFactory valueSourceProviderFactory) {
         this.valueSourceProviderFactory = valueSourceProviderFactory;
-        this.credentialsProviderFactory = new CredentialsProviderFactory(this);
+        this.credentialsProviderFactory = new CredentialsProviderFactory(valueSourceProviderFactory);
     }
 
     @Override
