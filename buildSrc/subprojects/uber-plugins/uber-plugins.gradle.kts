@@ -4,7 +4,6 @@ dependencies {
     implementation(project(":buildquality"))
     implementation(project(":cleanup"))
     implementation(project(":dependencyModules"))
-    implementation(project(":kotlinDsl"))
     implementation(project(":jvm"))
     implementation(project(":profiling"))
     implementation(project(":publishing"))
