@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import com.google.common.base.Joiner;
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.os.OperatingSystem;
@@ -29,6 +30,7 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.nio.charset.Charset;
 
+@NonNullApi
 public class DefaultCommandLineToolInvocationWorker implements CommandLineToolInvocationWorker {
     private final String name;
     private final File executable;

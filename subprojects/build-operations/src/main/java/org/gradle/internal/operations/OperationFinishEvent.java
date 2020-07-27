@@ -24,7 +24,7 @@ public final class OperationFinishEvent {
     private final Throwable failure;
     private final Object result;
 
-    public OperationFinishEvent(long startTime, long endTime, Throwable failure, Object result) {
+    public OperationFinishEvent(long startTime, long endTime, @Nullable Throwable failure, @Nullable Object result) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.failure = failure;

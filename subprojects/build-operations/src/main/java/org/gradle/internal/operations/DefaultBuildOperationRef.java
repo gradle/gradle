@@ -15,12 +15,14 @@
  */
 package org.gradle.internal.operations;
 
+import javax.annotation.Nullable;
+
 public class DefaultBuildOperationRef implements BuildOperationRef {
 
     private final OperationIdentifier id;
     private final OperationIdentifier parentId;
 
-    public DefaultBuildOperationRef(OperationIdentifier id, OperationIdentifier parentId) {
+    public DefaultBuildOperationRef(@Nullable OperationIdentifier id, @Nullable OperationIdentifier parentId) {
         this.id = id;
         this.parentId = parentId;
     }

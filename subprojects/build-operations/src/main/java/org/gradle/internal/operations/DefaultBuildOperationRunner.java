@@ -174,7 +174,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         );
     }
 
-    private void assertParentRunning(String message, BuildOperationDescriptor child, BuildOperationState parent) {
+    private void assertParentRunning(String message, BuildOperationDescriptor child, @Nullable BuildOperationState parent) {
         if (parent != null && !parent.isRunning()) {
             String parentName = parent.getDescription().getDisplayName();
             throw new IllegalStateException(String.format(message, child.getDisplayName(), parentName));
@@ -190,14 +190,16 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         return current;
     }
 
+    @Nullable
     protected BuildOperationState getCurrentBuildOperation() {
         return (BuildOperationState) currentBuildOperationRef.get();
     }
 
-    protected void setCurrentBuildOperation(BuildOperationState parentState) {
+    protected void setCurrentBuildOperation(@Nullable BuildOperationState parentState) {
         currentBuildOperationRef.set(parentState);
     }
 
+    @Nullable
     private static BuildOperationState determineParent(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
         BuildOperationState parent = (BuildOperationState) descriptorBuilder.getParentState();
         if (parent == null) {
@@ -207,7 +209,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     }
 
     @OverridingMethodsMustInvokeSuper
-    protected BuildOperationDescriptor createDescriptor(BuildOperationDescriptor.Builder descriptorBuilder, BuildOperationState parent) {
+    protected BuildOperationDescriptor createDescriptor(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState parent) {
         OperationIdentifier id = new OperationIdentifier(buildOperationIdFactory.nextId());
         return descriptorBuilder.build(id, parent == null
             ? null
@@ -256,7 +258,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         protected String status;
 
         @Override
-        public void failed(Throwable t) {
+        public void failed(@Nullable Throwable t) {
             failure = t;
         }
 

@@ -144,7 +144,7 @@ class InstantExecutionHost internal constructor(
 
             // Fire build operation required by build scans to determine the root path
             buildOperationExecutor.run(object : RunnableBuildOperation {
-                override fun run(context: BuildOperationContext?) = Unit
+                override fun run(context: BuildOperationContext) = Unit
 
                 override fun description(): BuildOperationDescriptor.Builder {
                     val project = gradle.rootProject

@@ -31,7 +31,16 @@ public final class BuildOperationDescriptor {
     private final BuildOperationCategory operationType;
     private final int totalProgress;
 
-    private BuildOperationDescriptor(OperationIdentifier id, OperationIdentifier parentId, String name, String displayName, String progressDisplayName, Object details, BuildOperationCategory operationType, int totalProgress) {
+    private BuildOperationDescriptor(
+        @Nullable OperationIdentifier id,
+        @Nullable OperationIdentifier parentId,
+        String name,
+        String displayName,
+        @Nullable String progressDisplayName,
+        @Nullable Object details,
+        BuildOperationCategory operationType,
+        int totalProgress
+    ) {
         this.id = id;
         this.parentId = parentId;
         this.name = name;
@@ -42,6 +51,7 @@ public final class BuildOperationDescriptor {
         this.totalProgress = totalProgress;
     }
 
+    @Nullable
     public OperationIdentifier getId() {
         return id;
     }
@@ -156,6 +166,7 @@ public final class BuildOperationDescriptor {
             return build(null, null);
         }
 
+        @Nullable
         BuildOperationRef getParentState() {
             return parent;
         }

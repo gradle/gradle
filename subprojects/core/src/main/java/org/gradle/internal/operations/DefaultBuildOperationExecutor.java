@@ -35,6 +35,7 @@ import org.gradle.internal.time.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -143,7 +144,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     }
 
     @Override
-    protected BuildOperationDescriptor createDescriptor(BuildOperationDescriptor.Builder descriptorBuilder, BuildOperationState parent) {
+    protected BuildOperationDescriptor createDescriptor(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState parent) {
         return super.createDescriptor(descriptorBuilder, maybeStartUnmanagedThreadOperation(parent));
     }
 
@@ -153,7 +154,8 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
         return progressLogger.start(descriptor.getDisplayName(), descriptor.getProgressDisplayName());
     }
 
-    private BuildOperationState maybeStartUnmanagedThreadOperation(BuildOperationState parentState) {
+    @Nullable
+    private BuildOperationState maybeStartUnmanagedThreadOperation(@Nullable BuildOperationState parentState) {
         if (parentState == null && !GradleThread.isManaged()) {
             parentState = UnmanagedThreadOperation.create(getCurrentTime());
             parentState.setRunning(true);
