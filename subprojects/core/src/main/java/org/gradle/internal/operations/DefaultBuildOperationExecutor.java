@@ -49,8 +49,6 @@ public class DefaultBuildOperationExecutor extends AbstractBuildOperationRunner 
     private final ManagedExecutor fixedSizePool;
     private final BuildOperationIdFactory buildOperationIdFactory;
 
-    private final RunnableBuildOperationWorker runnableBuildOperationWorker = new RunnableBuildOperationWorker();
-
     public DefaultBuildOperationExecutor(BuildOperationListener listener, Clock clock, ProgressLoggerFactory progressLoggerFactory, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, ParallelismConfiguration parallelismConfiguration, BuildOperationIdFactory buildOperationIdFactory) {
         super(listener, clock);
         this.progressLoggerFactory = progressLoggerFactory;
@@ -62,7 +60,7 @@ public class DefaultBuildOperationExecutor extends AbstractBuildOperationRunner 
     @Override
     public void run(RunnableBuildOperation buildOperation) {
         try {
-            execute(buildOperation, runnableBuildOperationWorker, getCurrentBuildOperation());
+            super.run(buildOperation);
         } finally {
             maybeStopUnmanagedThreadOperation();
         }
@@ -70,18 +68,11 @@ public class DefaultBuildOperationExecutor extends AbstractBuildOperationRunner 
 
     @Override
     public <T> T call(CallableBuildOperation<T> buildOperation) {
-        CallableBuildOperationWorker<T> worker = new CallableBuildOperationWorker<>();
         try {
-            execute(buildOperation, worker, getCurrentBuildOperation());
+            return super.call(buildOperation);
         } finally {
             maybeStopUnmanagedThreadOperation();
         }
-        return worker.getReturnValue();
-    }
-
-    @Override
-    public BuildOperationContext start(BuildOperationDescriptor.Builder descriptor) {
-        return start(descriptor, getCurrentBuildOperation());
     }
 
     @Override
@@ -209,36 +200,6 @@ public class DefaultBuildOperationExecutor extends AbstractBuildOperationRunner 
     @Override
     public void stop() {
         fixedSizePool.stop();
-    }
-
-    private static class RunnableBuildOperationWorker implements BuildOperationWorker<RunnableBuildOperation> {
-        @Override
-        public String getDisplayName() {
-            return "runnable build operation";
-        }
-
-        @Override
-        public void execute(RunnableBuildOperation buildOperation, BuildOperationContext context) {
-            buildOperation.run(context);
-        }
-    }
-
-    private static class CallableBuildOperationWorker<T> implements BuildOperationWorker<CallableBuildOperation<T>> {
-        private T returnValue;
-
-        @Override
-        public String getDisplayName() {
-            return "callable build operation";
-        }
-
-        @Override
-        public void execute(CallableBuildOperation<T> buildOperation, BuildOperationContext context) {
-            returnValue = buildOperation.call(context);
-        }
-
-        public T getReturnValue() {
-            return returnValue;
-        }
     }
 
     /**

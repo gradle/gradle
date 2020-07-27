@@ -30,11 +30,29 @@ public abstract class AbstractBuildOperationRunner implements BuildOperationRunn
 
     protected final BuildOperationListener listener;
     protected final Clock clock;
+    protected final RunnableBuildOperationWorker runnableBuildOperationWorker = new RunnableBuildOperationWorker();
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
 
     public AbstractBuildOperationRunner(BuildOperationListener listener, Clock clock) {
         this.listener = listener;
         this.clock = clock;
+    }
+
+    @Override
+    public void run(RunnableBuildOperation buildOperation) {
+        execute(buildOperation, runnableBuildOperationWorker, getCurrentBuildOperation());
+    }
+
+    @Override
+    public <T> T call(CallableBuildOperation<T> buildOperation) {
+        CallableBuildOperationWorker<T> worker = new CallableBuildOperationWorker<>();
+        execute(buildOperation, worker, getCurrentBuildOperation());
+        return worker.getReturnValue();
+    }
+
+    @Override
+    public BuildOperationContext start(BuildOperationDescriptor.Builder descriptor) {
+        return start(descriptor, getCurrentBuildOperation());
     }
 
     protected <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
@@ -258,6 +276,36 @@ public abstract class AbstractBuildOperationRunner implements BuildOperationRunn
 
         private Object writeReplace() throws ObjectStreamException {
             return new DefaultBuildOperationRef(description.getId(), description.getParentId());
+        }
+    }
+
+    private static class RunnableBuildOperationWorker implements BuildOperationWorker<RunnableBuildOperation> {
+        @Override
+        public String getDisplayName() {
+            return "runnable build operation";
+        }
+
+        @Override
+        public void execute(RunnableBuildOperation buildOperation, BuildOperationContext context) {
+            buildOperation.run(context);
+        }
+    }
+
+    private static class CallableBuildOperationWorker<T> implements BuildOperationWorker<CallableBuildOperation<T>> {
+        private T returnValue;
+
+        @Override
+        public String getDisplayName() {
+            return "callable build operation";
+        }
+
+        @Override
+        public void execute(CallableBuildOperation<T> buildOperation, BuildOperationContext context) {
+            returnValue = buildOperation.call(context);
+        }
+
+        public T getReturnValue() {
+            return returnValue;
         }
     }
 }
