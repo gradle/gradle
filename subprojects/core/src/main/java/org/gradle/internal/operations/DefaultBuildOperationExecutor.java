@@ -40,21 +40,19 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @ServiceScope(Scopes.BuildSession)
-public class DefaultBuildOperationExecutor extends AbstractBuildOperationRunner implements BuildOperationExecutor, Stoppable {
+public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner implements BuildOperationExecutor, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final ManagedExecutor fixedSizePool;
-    private final BuildOperationIdFactory buildOperationIdFactory;
 
     public DefaultBuildOperationExecutor(BuildOperationListener listener, Clock clock, ProgressLoggerFactory progressLoggerFactory, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, ParallelismConfiguration parallelismConfiguration, BuildOperationIdFactory buildOperationIdFactory) {
-        super(listener, clock);
+        super(listener, clock, buildOperationIdFactory);
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
         this.fixedSizePool = executorFactory.create("Build operations", parallelismConfiguration.getMaxWorkerCount());
-        this.buildOperationIdFactory = buildOperationIdFactory;
     }
 
     @Override
@@ -146,9 +144,7 @@ public class DefaultBuildOperationExecutor extends AbstractBuildOperationRunner 
 
     @Override
     protected BuildOperationDescriptor createDescriptor(BuildOperationDescriptor.Builder descriptorBuilder, BuildOperationState parent) {
-        OperationIdentifier id = new OperationIdentifier(buildOperationIdFactory.nextId());
-        BuildOperationState current = maybeStartUnmanagedThreadOperation(parent);
-        return descriptorBuilder.build(id, current == null ? null : current.getDescription().getId());
+        return super.createDescriptor(descriptorBuilder, maybeStartUnmanagedThreadOperation(parent));
     }
 
     private ProgressLogger createProgressLogger(BuildOperationState currentOperation) {

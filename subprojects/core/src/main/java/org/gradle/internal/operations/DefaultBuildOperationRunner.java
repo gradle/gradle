@@ -25,17 +25,19 @@ import javax.annotation.Nullable;
 import java.io.ObjectStreamException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public abstract class AbstractBuildOperationRunner implements BuildOperationRunner {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractBuildOperationRunner.class);
+public class DefaultBuildOperationRunner implements BuildOperationRunner {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationRunner.class);
 
     protected final BuildOperationListener listener;
     protected final Clock clock;
     protected final RunnableBuildOperationWorker runnableBuildOperationWorker = new RunnableBuildOperationWorker();
+    protected final BuildOperationIdFactory buildOperationIdFactory;
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
 
-    public AbstractBuildOperationRunner(BuildOperationListener listener, Clock clock) {
+    public DefaultBuildOperationRunner(BuildOperationListener listener, Clock clock, BuildOperationIdFactory buildOperationIdFactory) {
         this.listener = listener;
         this.clock = clock;
+        this.buildOperationIdFactory = buildOperationIdFactory;
     }
 
     @Override
@@ -123,7 +125,7 @@ public abstract class AbstractBuildOperationRunner implements BuildOperationRunn
     }
 
     private <O> O execute(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent, BuildOperationExecution<O> execution) {
-        BuildOperationState parent = AbstractBuildOperationRunner.determineParent(descriptorBuilder, defaultParent);
+        BuildOperationState parent = DefaultBuildOperationRunner.determineParent(descriptorBuilder, defaultParent);
         BuildOperationDescriptor descriptor = createDescriptor(descriptorBuilder, parent);
 
         assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, parent);
@@ -193,7 +195,12 @@ public abstract class AbstractBuildOperationRunner implements BuildOperationRunn
         return parent;
     }
 
-    abstract protected BuildOperationDescriptor createDescriptor(BuildOperationDescriptor.Builder descriptorBuilder, BuildOperationState parent);
+    protected BuildOperationDescriptor createDescriptor(BuildOperationDescriptor.Builder descriptorBuilder, BuildOperationState parent) {
+        OperationIdentifier id = new OperationIdentifier(buildOperationIdFactory.nextId());
+        return descriptorBuilder.build(id, parent == null
+            ? null
+            : parent.getDescription().getId());
+    }
 
     protected BuildOperationState getCurrentBuildOperation() {
         return (BuildOperationState) currentBuildOperationRef.get();
