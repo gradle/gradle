@@ -105,7 +105,6 @@ public class CredentialsProviderFactory {
         public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
             return delegate.calculateExecutionTimeValue();
         }
-
     }
 
     private static class CredentialsPrerequisite implements ValueSupplier.BuildPrerequisite {
@@ -120,7 +119,6 @@ public class CredentialsProviderFactory {
             provider.get();
         }
     }
-
 }
 
 abstract class CredentialsValueSource<T extends Credentials> implements ValueSource<T, CredentialsValueSource.Parameters> {
@@ -169,7 +167,6 @@ abstract class CredentialsValueSource<T extends Credentials> implements ValueSou
         }
         return propertyValue;
     }
-
 }
 
 abstract class PasswordCredentialsValueSource extends CredentialsValueSource<PasswordCredentials> {

@@ -350,7 +350,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         notExecuted(':jar', ':publishMavenPublicationToMavenRepository')
-        failure.assertHasDescription("Credentials required for this build could not be resolved.")
+        failure.assertHasDescription("Prerequisites for this build could not be resolved.")
         failure.assertHasCause("The following Gradle properties are missing for 'maven' credentials:")
         failure.assertHasErrorOutput("- mavenUsername")
         failure.assertHasErrorOutput("- mavenPassword")

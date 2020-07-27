@@ -88,7 +88,7 @@ public class BuildPrerequisitesResolver extends ActionNode implements Dependency
             taskPrerequisites.forEach((task, taskPrerequisites) ->
                 taskPrerequisites.forEach(prerequisite -> ensurePresent(prerequisite, missingPrerequisiteErrors)));
             if (!missingPrerequisiteErrors.isEmpty()) {
-                throw new ProjectConfigurationException("Credentials required for this build could not be resolved.",
+                throw new ProjectConfigurationException("Prerequisites for this build could not be resolved.",
                     missingPrerequisiteErrors.stream().map(MissingValueException::new).collect(Collectors.toList()));
             }
         }
