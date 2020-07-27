@@ -53,7 +53,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
     private final Predicate<String> watchFilter;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
     private final LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild;
-    private final Set<File> rootProjectDirectoriesForWatching = new HashSet<>();
+    private final Set<File> rootDirectoriesForWatching = new HashSet<>();
 
     private FileWatcherRegistry watchRegistry;
     private Exception reasonForNotWatchingFiles;
@@ -110,16 +110,16 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
     }
 
     @Override
-    public void buildRootDirectoryAdded(File buildRootDirectory) {
-        synchronized (rootProjectDirectoriesForWatching) {
-            rootProjectDirectoriesForWatching.add(buildRootDirectory);
+    public void registerRootDirectoryForWatching(File buildRootDirectory) {
+        synchronized (rootDirectoriesForWatching) {
+            rootDirectoriesForWatching.add(buildRootDirectory);
             rootReference.update(currentRoot -> {
                 if (watchRegistry == null) {
                     return currentRoot;
                 }
                 return withWatcherChangeErrorHandling(
                     currentRoot,
-                    () -> watchRegistry.getFileWatcherUpdater().updateRootProjectDirectories(rootProjectDirectoriesForWatching)
+                    () -> watchRegistry.getFileWatcherUpdater().updateRootProjectDirectories(rootDirectoriesForWatching)
                 );
             });
         }
@@ -127,8 +127,8 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
 
     @Override
     public void beforeBuildFinished(boolean watchingEnabled) {
-        synchronized (rootProjectDirectoriesForWatching) {
-            rootProjectDirectoriesForWatching.clear();
+        synchronized (rootDirectoriesForWatching) {
+            rootDirectoriesForWatching.clear();
         }
         if (watchingEnabled) {
             if (reasonForNotWatchingFiles != null) {
@@ -191,7 +191,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                     stopWatchingAndInvalidateHierarchy();
                 }
             });
-            watchRegistry.getFileWatcherUpdater().updateRootProjectDirectories(rootProjectDirectoriesForWatching);
+            watchRegistry.getFileWatcherUpdater().updateRootProjectDirectories(rootDirectoriesForWatching);
             long endTime = System.currentTimeMillis() - startTime;
             LOGGER.warn("Spent {} ms registering watches for file system events", endTime);
             // TODO: Move start watching early enough so that the root is always empty
