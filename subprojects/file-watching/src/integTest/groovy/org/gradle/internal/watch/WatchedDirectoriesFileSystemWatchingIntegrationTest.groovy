@@ -275,10 +275,10 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         when:
         withWatchFs().run "retrieve", "--info"
         then:
-        assertWatchedHierarchies([projectDir, moduleA."${artifactFileMethod}".parentFile])
+        assertWatchedHierarchies([projectDir, moduleA."${artifactFileProperty}".parentFile])
 
         where:
-        repositoryType | artifactFileMethod
+        repositoryType | artifactFileProperty
         "maven"        | "artifactFile"
         "mavenLocal"   | "artifactFile"
         "ivy"          | "jarFile"
