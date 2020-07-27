@@ -46,32 +46,19 @@ public class DefaultBuildOperationExecutor extends AbstractBuildOperationRunner 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
-    private final BuildOperationListener listener;
-    private final Clock clock;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final ManagedExecutor fixedSizePool;
     private final BuildOperationIdFactory buildOperationIdFactory;
 
-    private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
     private final RunnableBuildOperationWorker runnableBuildOperationWorker = new RunnableBuildOperationWorker();
 
     public DefaultBuildOperationExecutor(BuildOperationListener listener, Clock clock, ProgressLoggerFactory progressLoggerFactory, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, ParallelismConfiguration parallelismConfiguration, BuildOperationIdFactory buildOperationIdFactory) {
-        this.listener = listener;
-        this.clock = clock;
+        super(listener, clock);
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
         this.fixedSizePool = executorFactory.create("Build operations", parallelismConfiguration.getMaxWorkerCount());
         this.buildOperationIdFactory = buildOperationIdFactory;
-    }
-
-    @Override
-    public BuildOperationRef getCurrentOperation() {
-        BuildOperationRef current = getCurrentBuildOperation();
-        if (current == null) {
-            throw new IllegalStateException("No operation is currently running.");
-        }
-        return current;
     }
 
     @Override
@@ -213,40 +200,6 @@ public class DefaultBuildOperationExecutor extends AbstractBuildOperationRunner 
         });
     }
 
-    private <O extends BuildOperation> O execute(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent, BuildOperationExecution<O> execution) {
-        BuildOperationState parent = determineParent(descriptorBuilder, defaultParent);
-        BuildOperationDescriptor descriptor = createDescriptor(descriptorBuilder, parent);
-
-        assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, parent);
-
-        BuildOperationState operationState = new BuildOperationState(descriptor, clock.getCurrentTime());
-        operationState.setRunning(true);
-        BuildOperationState parentOperation = getCurrentBuildOperation();
-        setCurrentBuildOperation(operationState);
-
-        return execute(descriptor, operationState, execution, new BuildOperationExecutionListener() {
-            @Override
-            public void start(BuildOperationState operationState) {
-                listener.started(descriptor, new OperationStartEvent(operationState.getStartTime()));
-                LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
-            }
-
-            @Override
-            public void stop(BuildOperationState operationState, DefaultBuildOperationContext context) {
-                LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
-                listener.finished(descriptor, new OperationFinishEvent(operationState.getStartTime(), clock.getCurrentTime(), context.failure, context.result));
-                assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
-            }
-
-            @Override
-            public void close(BuildOperationState operationState) {
-                setCurrentBuildOperation(parentOperation);
-                operationState.setRunning(false);
-                LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
-            }
-        });
-    }
-
     @Override
     protected <O extends BuildOperation> O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, BuildOperationExecution<O> execution, BuildOperationExecutionListener listener) {
         MutableReference<ProgressLogger> progressLoggerHolder = MutableReference.empty();
@@ -274,25 +227,11 @@ public class DefaultBuildOperationExecutor extends AbstractBuildOperationRunner 
         return super.execute(descriptor, operationState, execution, progressLoggingListener);
     }
 
-    private static BuildOperationState determineParent(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
-        BuildOperationState parent = (BuildOperationState) descriptorBuilder.getParentState();
-        if (parent == null) {
-            parent = defaultParent;
-        }
-        return parent;
-    }
-
-    private BuildOperationDescriptor createDescriptor(BuildOperationDescriptor.Builder descriptorBuilder, BuildOperationState parent) {
+    @Override
+    protected BuildOperationDescriptor createDescriptor(BuildOperationDescriptor.Builder descriptorBuilder, BuildOperationState parent) {
         OperationIdentifier id = new OperationIdentifier(buildOperationIdFactory.nextId());
         BuildOperationState current = maybeStartUnmanagedThreadOperation(parent);
         return descriptorBuilder.build(id, current == null ? null : current.getDescription().getId());
-    }
-
-    private void assertParentRunning(String message, BuildOperationDescriptor child, BuildOperationState parent) {
-        if (parent != null && !parent.isRunning()) {
-            String parentName = parent.getDescription().getDisplayName();
-            throw new IllegalStateException(String.format(message, child.getDisplayName(), parentName));
-        }
     }
 
     private ProgressLogger createProgressLogger(BuildOperationState currentOperation) {
@@ -398,14 +337,6 @@ public class DefaultBuildOperationExecutor extends AbstractBuildOperationRunner 
         public void execute(O buildOperation) {
             DefaultBuildOperationExecutor.this.execute(buildOperation, worker, parent);
         }
-    }
-
-    private void setCurrentBuildOperation(BuildOperationState parentState) {
-        currentBuildOperationRef.set(parentState);
-    }
-
-    private BuildOperationState getCurrentBuildOperation() {
-        return (BuildOperationState) currentBuildOperationRef.get();
     }
 
     private static class UnmanagedThreadOperation extends BuildOperationState {

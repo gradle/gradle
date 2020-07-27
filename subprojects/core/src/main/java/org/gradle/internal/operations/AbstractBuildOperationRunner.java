@@ -16,10 +16,60 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.time.Clock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nullable;
 import java.io.ObjectStreamException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AbstractBuildOperationRunner implements BuildOperationRunner {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractBuildOperationRunner.class);
+
+    protected final BuildOperationListener listener;
+    protected final Clock clock;
+    private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
+
+    public AbstractBuildOperationRunner(BuildOperationListener listener, Clock clock) {
+        this.listener = listener;
+        this.clock = clock;
+    }
+
+    protected <O extends BuildOperation> O execute(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent, BuildOperationExecution<O> execution) {
+        BuildOperationState parent = AbstractBuildOperationRunner.determineParent(descriptorBuilder, defaultParent);
+        BuildOperationDescriptor descriptor = createDescriptor(descriptorBuilder, parent);
+
+        assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, parent);
+
+        BuildOperationState operationState = new BuildOperationState(descriptor, clock.getCurrentTime());
+        operationState.setRunning(true);
+        BuildOperationState parentOperation = getCurrentBuildOperation();
+        setCurrentBuildOperation(operationState);
+
+        return execute(descriptor, operationState, execution, new BuildOperationExecutionListener() {
+            @Override
+            public void start(BuildOperationState operationState) {
+                listener.started(descriptor, new OperationStartEvent(operationState.getStartTime()));
+                LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
+            }
+
+            @Override
+            public void stop(BuildOperationState operationState, DefaultBuildOperationContext context) {
+                LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
+                listener.finished(descriptor, new OperationFinishEvent(operationState.getStartTime(), clock.getCurrentTime(), context.failure, context.result));
+                assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
+            }
+
+            @Override
+            public void close(BuildOperationState operationState) {
+                setCurrentBuildOperation(parentOperation);
+                operationState.setRunning(false);
+                LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
+            }
+        });
+    }
+
     protected <O extends BuildOperation> O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, BuildOperationExecution<O> execution, BuildOperationExecutionListener listener) {
         return execution.execute(
             descriptor,
@@ -27,6 +77,40 @@ public abstract class AbstractBuildOperationRunner implements BuildOperationRunn
             new DefaultBuildOperationContext(),
             listener
         );
+    }
+
+    private void assertParentRunning(String message, BuildOperationDescriptor child, BuildOperationState parent) {
+        if (parent != null && !parent.isRunning()) {
+            String parentName = parent.getDescription().getDisplayName();
+            throw new IllegalStateException(String.format(message, child.getDisplayName(), parentName));
+        }
+    }
+
+    @Override
+    public BuildOperationRef getCurrentOperation() {
+        BuildOperationRef current = getCurrentBuildOperation();
+        if (current == null) {
+            throw new IllegalStateException("No operation is currently running.");
+        }
+        return current;
+    }
+
+    protected void setCurrentBuildOperation(BuildOperationState parentState) {
+        currentBuildOperationRef.set(parentState);
+    }
+
+    private static BuildOperationState determineParent(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
+        BuildOperationState parent = (BuildOperationState) descriptorBuilder.getParentState();
+        if (parent == null) {
+            parent = defaultParent;
+        }
+        return parent;
+    }
+
+    abstract protected BuildOperationDescriptor createDescriptor(BuildOperationDescriptor.Builder descriptorBuilder, BuildOperationState parent);
+
+    protected BuildOperationState getCurrentBuildOperation() {
+        return (BuildOperationState) currentBuildOperationRef.get();
     }
 
     protected interface BuildOperationExecution<O extends BuildOperation> {
