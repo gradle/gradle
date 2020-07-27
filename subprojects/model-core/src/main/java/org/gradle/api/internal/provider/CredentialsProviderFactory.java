@@ -111,25 +111,6 @@ public class CredentialsProviderFactory {
         }
 
     }
-
-    public static class ResolveCredentialsWorkNodeAction implements WorkNodeAction {
-        private final Provider<?> provider;
-
-        public ResolveCredentialsWorkNodeAction(Provider<?> provider) {
-            this.provider = provider;
-        }
-
-        @Nullable
-        @Override
-        public Project getProject() {
-            return null;
-        }
-
-        @Override
-        public void run(NodeExecutionContext context) {
-            provider.get();
-        }
-    }
 }
 
 abstract class CredentialsValueSource<T extends Credentials> implements ValueSource<T, CredentialsValueSource.Parameters> {
