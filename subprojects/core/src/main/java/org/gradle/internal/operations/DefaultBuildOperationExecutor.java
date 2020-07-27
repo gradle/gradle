@@ -44,7 +44,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @ServiceScope(Scopes.BuildSession)
-public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable {
+public class DefaultBuildOperationExecutor extends AbstractBuildOperationRunner implements BuildOperationExecutor, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
@@ -155,7 +155,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
                     context.thrown(t);
                     failure = t;
                 }
-                listener.stop();
+                listener.stop(context);
                 if (failure != null) {
                     throw UncheckedException.throwAsUncheckedException(failure, true);
                 }
@@ -200,7 +200,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
                 private void finish() {
                     finished = true;
                     try {
-                        listener.stop();
+                        listener.stop(context);
                     } finally {
                         listener.close();
                     }
@@ -217,61 +217,62 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     private <O extends BuildOperation> O execute(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent, BuildOperationExecution<O> execution) {
         BuildOperationState parent = determineParent(descriptorBuilder, defaultParent);
-
         BuildOperationDescriptor descriptor = createDescriptor(descriptorBuilder, parent);
-        BuildOperationState newOperation = new BuildOperationState(descriptor, clock.getCurrentTime());
 
         assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, parent);
-
+        BuildOperationState newOperation = new BuildOperationState(descriptor, clock.getCurrentTime());
         newOperation.setRunning(true);
 
         BuildOperationState parentOperation = getCurrentBuildOperation();
         setCurrentBuildOperation(newOperation);
 
-        MutableReference<ProgressLogger> progressLoggerHolder = MutableReference.empty();
-        DefaultBuildOperationContext context = new DefaultBuildOperationContext();
-
-        return execution.execute(
-            descriptor,
-            context,
-            new BuildOperationExecutionListener() {
-                @Override
-                public void start() {
-                    listener.started(descriptor, new OperationStartEvent(newOperation.getStartTime()));
-                    progressLoggerHolder.set(createProgressLogger(newOperation));
-                    LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
-                }
-
-                @Override
-                public void stop() {
-                    LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
-                    ProgressLogger progressLogger = progressLoggerHolder.get();
-                    assert progressLogger != null;
-                    progressLogger.completed(context.status, context.failure != null);
-                    listener.finished(descriptor, new OperationFinishEvent(newOperation.getStartTime(), clock.getCurrentTime(), context.failure, context.result));
-                    assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
-                }
-
-                @Override
-                public void close() {
-                    setCurrentBuildOperation(parentOperation);
-                    newOperation.setRunning(false);
-                    LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
-                }
+        return execute0(descriptor, newOperation, execution, new BuildOperationExecutionListener() {
+            @Override
+            public void start() {
+                listener.started(descriptor, new OperationStartEvent(newOperation.getStartTime()));
+                LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
             }
-        );
+
+            @Override
+            public void stop(DefaultBuildOperationContext context) {
+                LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
+                listener.finished(descriptor, new OperationFinishEvent(newOperation.getStartTime(), clock.getCurrentTime(), context.failure, context.result));
+                assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
+            }
+
+            @Override
+            public void close() {
+                setCurrentBuildOperation(parentOperation);
+                newOperation.setRunning(false);
+                LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
+            }
+        });
     }
 
-    private interface BuildOperationExecution<O extends BuildOperation> {
-        O execute(BuildOperationDescriptor descriptor, DefaultBuildOperationContext context, BuildOperationExecutionListener listener);
-    }
+    private <O extends BuildOperation> O execute0(BuildOperationDescriptor descriptor, BuildOperationState operationState, BuildOperationExecution<O> execution, BuildOperationExecutionListener listener) {
+        MutableReference<ProgressLogger> progressLoggerHolder = MutableReference.empty();
+        BuildOperationExecutionListener progressLoggingListener = new BuildOperationExecutionListener() {
+            @Override
+            public void start() {
+                listener.start();
+                progressLoggerHolder.set(createProgressLogger(operationState));
+            }
 
-    private interface BuildOperationExecutionListener {
-        void start();
+            @Override
+            public void stop(DefaultBuildOperationContext context) {
+                ProgressLogger progressLogger = progressLoggerHolder.get();
+                assert progressLogger != null;
+                progressLogger.completed(context.status, context.failure != null);
+                listener.stop(context);
+            }
 
-        void stop();
+            @Override
+            public void close() {
+                listener.close();
+            }
+        };
 
-        void close();
+        return execute(descriptor, execution, progressLoggingListener);
     }
 
     private static BuildOperationState determineParent(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
@@ -344,33 +345,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     @Override
     public void stop() {
         fixedSizePool.stop();
-    }
-
-    private static class DefaultBuildOperationContext implements BuildOperationContext {
-        Throwable failure;
-        Object result;
-        private String status;
-
-        @Override
-        public void failed(Throwable t) {
-            failure = t;
-        }
-
-        public void thrown(Throwable t) {
-            if (failure == null) {
-                failure = t;
-            }
-        }
-
-        @Override
-        public void setResult(Object result) {
-            this.result = result;
-        }
-
-        @Override
-        public void setStatus(String status) {
-            this.status = status;
-        }
     }
 
     private static class RunnableBuildOperationWorker implements BuildOperationWorker<RunnableBuildOperation> {
