@@ -94,7 +94,8 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
             "gradle-files",
             "gradle-file-collections",
             "gradle-hashing",
-            "gradle-snapshots"
+            "gradle-snapshots",
+            "gradle-build-operations"
     };
 
     public static final String[] RUNTIME_EXTERNAL_MODULES = new String[] {
