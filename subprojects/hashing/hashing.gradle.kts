@@ -18,7 +18,7 @@ plugins {
     id("gradlebuild.publish-public-libraries")
 }
 
-description = "Common shared classes without external dependencies"
+description = "Tools for creating secure hashes for files and other content"
 
 // We need this because org.gradle.internal.nativeintegration.filesystem.Stat is used in workers
 gradlebuildJava.usedInWorkers()
