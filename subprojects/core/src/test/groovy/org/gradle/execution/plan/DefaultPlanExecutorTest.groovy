@@ -90,7 +90,7 @@ class DefaultPlanExecutorTest extends Specification {
         1 * executionPlan.selectNext(_, _) >> node
         1 * worker.execute(node)
         1 * executionPlan.finishedExecuting(node)
-        1 * executionPlan.ensureCredentialsAreAvailable()
+        1 * executionPlan.validateBuildPrerequisites()
 
         then:
         1 * cancellationHandler.isCancellationRequested() >> true

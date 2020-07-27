@@ -65,7 +65,7 @@ public class DefaultPlanExecutor implements PlanExecutor {
 
     @Override
     public void process(ExecutionPlan executionPlan, Collection<? super Throwable> failures, Action<Node> nodeExecutor) {
-        executionPlan.ensureCredentialsAreAvailable();
+        executionPlan.validateBuildPrerequisites();
         ManagedExecutor executor = executorFactory.create("Execution worker for '" + executionPlan.getDisplayName() + "'");
         try {
             WorkerLease parentWorkerLease = workerLeaseService.getCurrentWorkerLease();

@@ -41,7 +41,7 @@ public interface ExecutionPlan extends Describable {
 
     void cancelExecution();
 
-    void ensureCredentialsAreAvailable();
+    void validateBuildPrerequisites();
 
     /**
      * Returns the node for the supplied task that is part of this execution plan.

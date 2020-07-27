@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.WorkNodeAction;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 
@@ -98,8 +98,8 @@ public interface ValueSupplier {
             return new TaskProducer(task, false);
         }
 
-        static ValueProducer nodeAction(WorkNodeAction action) {
-            return new WorkNodeActionProducer(action);
+        static ValueProducer validationRequest(Provider<?> provider) {
+            return new ValidationRequestProducer(new ValidationRequest(provider));
         }
     }
 
@@ -119,11 +119,11 @@ public interface ValueSupplier {
         }
     }
 
-    class WorkNodeActionProducer implements ValueProducer {
-        private final WorkNodeAction action;
+    class ValidationRequestProducer implements ValueProducer {
+        private final ValidationRequest validationRequest;
 
-        WorkNodeActionProducer(WorkNodeAction action) {
-            this.action = action;
+        public ValidationRequestProducer(ValidationRequest validationRequest) {
+            this.validationRequest = validationRequest;
         }
 
         @Override
@@ -138,7 +138,19 @@ public interface ValueSupplier {
 
         @Override
         public void visitProducerTasks(Action<? super Task> visitor) {
-            ((TaskDependencyResolveContext)visitor).add(action);
+            ((TaskDependencyResolveContext) visitor).add(validationRequest);
+        }
+    }
+
+    class ValidationRequest {
+        private final Provider<?> provider;
+
+        public ValidationRequest(Provider<?> provider) {
+            this.provider = provider;
+        }
+
+        public Provider<?> getProvider() {
+            return provider;
         }
     }
 

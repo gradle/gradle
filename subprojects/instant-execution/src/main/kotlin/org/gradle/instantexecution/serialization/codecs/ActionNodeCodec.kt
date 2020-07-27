@@ -18,10 +18,10 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
-import org.gradle.api.internal.provider.CredentialsProviderFactory
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.WorkNodeAction
 import org.gradle.execution.plan.ActionNode
+import org.gradle.execution.plan.BuildPrerequisitesValidator
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -39,8 +39,8 @@ class ActionNodeCodec(
             // Can ignore
             writeByte(0)
             return
-        } else if (value.action is CredentialsProviderFactory.ResolveCredentialsWorkNodeAction) {
-            val action = value.action as CredentialsProviderFactory.ResolveCredentialsWorkNodeAction
+        } else if (value is BuildPrerequisitesValidator) {
+            val action = value.action as BuildPrerequisitesValidator.ValidationAction
             writeByte(1)
             withCodec(userTypesCodec) {
                 write(action)
@@ -55,9 +55,9 @@ class ActionNodeCodec(
         when (readByte()) {
             1.toByte() -> {
                 val action = withCodec(userTypesCodec) {
-                    readNonNull<CredentialsProviderFactory.ResolveCredentialsWorkNodeAction>()
+                    readNonNull<BuildPrerequisitesValidator.ValidationAction>()
                 }
-                return ActionNode(action)
+                return BuildPrerequisitesValidator(action)
             }
             else -> return ActionNode(object : WorkNodeAction {
                 override fun run(context: NodeExecutionContext) {

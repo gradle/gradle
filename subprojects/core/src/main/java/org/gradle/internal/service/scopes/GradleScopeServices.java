@@ -69,6 +69,7 @@ import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.execution.plan.TaskNodeDependencyResolver;
 import org.gradle.execution.plan.TaskNodeFactory;
+import org.gradle.execution.plan.BuildPrerequisitesValidator;
 import org.gradle.execution.plan.WorkNodeDependencyResolver;
 import org.gradle.execution.plan.WorkNodeExecutor;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
@@ -185,6 +186,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     WorkNodeDependencyResolver createWorkNodeResolver() {
         return new WorkNodeDependencyResolver();
+    }
+
+    BuildPrerequisitesValidator createBuildPrerequisitesValidator() {
+        return new BuildPrerequisitesValidator();
     }
 
     TaskDependencyResolver createTaskDependencyResolver(List<DependencyResolver> dependencyResolvers) {

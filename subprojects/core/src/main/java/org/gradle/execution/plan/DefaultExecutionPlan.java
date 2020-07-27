@@ -28,11 +28,8 @@ import org.gradle.api.BuildCancelledException;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.provider.CredentialsProviderFactory;
-import org.gradle.api.internal.provider.MissingValueException;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -55,14 +52,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * A reusable implementation of ExecutionPlan. The {@link #addEntryTasks(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these methods.
@@ -92,6 +87,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final GradleInternal gradle;
 
     private boolean buildCancelled;
+
+    private BuildPrerequisitesValidator validator;
 
     public DefaultExecutionPlan(GradleInternal gradle, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver) {
         this.gradle = gradle;
@@ -336,12 +333,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         for (Node node : nodeMapping) {
             executionQueue.add(node);
             maybeNodesReady |= node.updateAllDependenciesComplete() && node.isReady();
-            if (node instanceof ActionNode) {
-                ActionNode actionNode = (ActionNode) node;
-                WorkNodeAction action = actionNode.getAction();
-                if (action instanceof CredentialsProviderFactory.ResolveCredentialsWorkNodeAction) {
-                    credentialsResolvers.add(action);
-                }
+            if (node instanceof BuildPrerequisitesValidator) {
+                this.validator = (BuildPrerequisitesValidator) node;
             }
         }
         this.dependenciesWhichRequireMonitoring.addAll(dependenciesWhichRequireMonitoring);
@@ -908,18 +901,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     @Override
-    public void ensureCredentialsAreAvailable() {
-        Set<String> missingProviderErrors = new HashSet<>();
-        credentialsResolvers.forEach(resolver -> {
-            try {
-                resolver.run(null);
-            } catch (MissingValueException e) {
-                missingProviderErrors.add(e.getMessage());
-            }
-        });
-        if (!missingProviderErrors.isEmpty()) {
-            throw new ProjectConfigurationException("Credentials required for this build could not be resolved.",
-                missingProviderErrors.stream().map(MissingValueException::new).collect(Collectors.toList()));
+    public void validateBuildPrerequisites() {
+        if (validator != null) {
+            validator.execute(null);
         }
     }
 

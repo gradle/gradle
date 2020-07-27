@@ -79,7 +79,7 @@ public class CredentialsProviderFactory {
 
         @Override
         public ValueProducer getProducer() {
-            return delegate.getProducer().plus(ValueProducer.nodeAction(new ResolveCredentialsWorkNodeAction(this)));
+            return delegate.getProducer().plus(ValueProducer.validationRequest(this));
         }
 
         @Nullable
