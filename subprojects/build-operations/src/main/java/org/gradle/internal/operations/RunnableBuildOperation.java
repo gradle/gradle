@@ -16,9 +16,6 @@
 
 package org.gradle.internal.operations;
 
-/**
- * Represents a build operation that is directly runnable and therefore does not require a {@link BuildOperationWorker}.
- */
 public interface RunnableBuildOperation extends BuildOperation {
 
     void run(BuildOperationContext context);
