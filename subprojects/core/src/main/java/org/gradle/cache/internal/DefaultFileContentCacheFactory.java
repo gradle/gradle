@@ -104,14 +104,9 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
         }
 
         @Override
-        public void beforeOutputChange() {
+        public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
             // A very dumb strategy for invalidating cache
             locationCache.clear();
-        }
-
-        @Override
-        public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-            beforeOutputChange();
         }
 
         @Override

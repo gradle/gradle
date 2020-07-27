@@ -179,7 +179,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         0 * _
 
         when:
-        listenerManager.getBroadcaster(OutputChangeListener).beforeOutputChange()
+        listenerManager.getBroadcaster(OutputChangeListener).beforeOutputChange([])
         result = cache.get(file)
 
         then:
@@ -208,7 +208,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         0 * _
 
         when:
-        listenerManager.getBroadcaster(OutputChangeListener).beforeOutputChange()
+        listenerManager.getBroadcaster(OutputChangeListener).beforeOutputChange([])
         result = cache.get(file)
 
         then:
@@ -238,7 +238,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         0 * _
 
         when:
-        listenerManager.getBroadcaster(OutputChangeListener).beforeOutputChange()
+        listenerManager.getBroadcaster(OutputChangeListener).beforeOutputChange([])
         result = cache.get(file)
 
         then:
