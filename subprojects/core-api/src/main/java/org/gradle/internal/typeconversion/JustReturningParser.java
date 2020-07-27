@@ -17,23 +17,27 @@ package org.gradle.internal.typeconversion;
 
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 
-public class JustReturningConverter<N, T> implements NotationConverter<N, T> {
-
+public class JustReturningParser<N, T> implements NotationParser<N, T> {
     private final Class<? extends T> passThroughType;
+    private final NotationParser<N, T> delegate;
 
-    public JustReturningConverter(Class<? extends T> passThroughType) {
+    public JustReturningParser(Class<? extends T> passThroughType, NotationParser<N, T> delegate) {
         this.passThroughType = passThroughType;
+        this.delegate = delegate;
     }
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
         visitor.candidate(String.format("Instances of %s.", passThroughType.getSimpleName()));
+        delegate.describe(visitor);
     }
 
     @Override
-    public void convert(N notation, NotationConvertResult<? super T> result) throws TypeConversionException {
+    public T parseNotation(N notation) throws TypeConversionException {
         if (passThroughType.isInstance(notation)) {
-            result.converted(passThroughType.cast(notation));
+            return passThroughType.cast(notation);
+        } else {
+            return delegate.parseNotation(notation);
         }
     }
 }
