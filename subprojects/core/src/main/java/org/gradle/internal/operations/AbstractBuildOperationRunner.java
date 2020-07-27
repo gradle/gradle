@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.time.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,79 @@ public abstract class AbstractBuildOperationRunner implements BuildOperationRunn
         this.clock = clock;
     }
 
-    protected <O extends BuildOperation> O execute(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent, BuildOperationExecution<O> execution) {
+    protected <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
+        BuildOperationDescriptor.Builder descriptorBuilder = buildOperation.description();
+        execute(descriptorBuilder, defaultParent, (BuildOperationExecution<BuildOperation>) (descriptor, operationState, context, listener) -> {
+            Throwable failure = null;
+            try {
+                listener.start(operationState);
+                try {
+                    worker.execute(buildOperation, context);
+                } catch (Throwable t) {
+                    context.thrown(t);
+                    failure = t;
+                }
+                listener.stop(operationState, context);
+                if (failure != null) {
+                    throw UncheckedException.throwAsUncheckedException(failure, true);
+                }
+                return buildOperation;
+            } finally {
+                listener.close(operationState);
+            }
+        });
+    }
+
+    protected ExecutingBuildOperation start(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
+        return execute(descriptorBuilder, defaultParent, (BuildOperationExecution<ExecutingBuildOperation>) (descriptor, operationState, context, listener) -> {
+            listener.start(operationState);
+            return new ExecutingBuildOperation() {
+                private boolean finished;
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return descriptorBuilder;
+                }
+
+                @Override
+                public void failed(@Nullable Throwable failure) {
+                    assertNotFinished();
+                    context.failed(failure);
+                    finish();
+                }
+
+                @Override
+                public void setResult(Object result) {
+                    assertNotFinished();
+                    context.setResult(result);
+                    finish();
+                }
+
+                @Override
+                public void setStatus(String status) {
+                    assertNotFinished();
+                    context.setStatus(status);
+                }
+
+                private void finish() {
+                    finished = true;
+                    try {
+                        listener.stop(operationState, context);
+                    } finally {
+                        listener.close(operationState);
+                    }
+                }
+
+                private void assertNotFinished() {
+                    if (finished) {
+                        throw new IllegalStateException(String.format("Operation (%s) has already finished.", descriptor));
+                    }
+                }
+            };
+        });
+    }
+
+    private <O extends BuildOperation> O execute(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent, BuildOperationExecution<O> execution) {
         BuildOperationState parent = AbstractBuildOperationRunner.determineParent(descriptorBuilder, defaultParent);
         BuildOperationDescriptor descriptor = createDescriptor(descriptorBuilder, parent);
 

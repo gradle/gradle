@@ -22,7 +22,6 @@ import org.gradle.api.GradleException;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -36,7 +35,6 @@ import org.gradle.internal.time.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -126,78 +124,6 @@ public class DefaultBuildOperationExecutor extends AbstractBuildOperationRunner 
         } else if (failures.size() > 1) {
             throw new DefaultMultiCauseException(formatMultipleFailureMessage(failures), failures);
         }
-    }
-
-    private <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
-        BuildOperationDescriptor.Builder descriptorBuilder = buildOperation.description();
-        execute(descriptorBuilder, defaultParent, (BuildOperationExecution<BuildOperation>) (descriptor, operationState, context, listener) -> {
-            Throwable failure = null;
-            try {
-                listener.start(operationState);
-                try {
-                    worker.execute(buildOperation, context);
-                } catch (Throwable t) {
-                    context.thrown(t);
-                    failure = t;
-                }
-                listener.stop(operationState, context);
-                if (failure != null) {
-                    throw UncheckedException.throwAsUncheckedException(failure, true);
-                }
-                return buildOperation;
-            } finally {
-                listener.close(operationState);
-            }
-        });
-    }
-
-    private ExecutingBuildOperation start(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
-        return execute(descriptorBuilder, defaultParent, (BuildOperationExecution<ExecutingBuildOperation>) (descriptor, operationState, context, listener) -> {
-            listener.start(operationState);
-            return new ExecutingBuildOperation() {
-                private boolean finished;
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return descriptorBuilder;
-                }
-
-                @Override
-                public void failed(@Nullable Throwable failure) {
-                    assertNotFinished();
-                    context.failed(failure);
-                    finish();
-                }
-
-                @Override
-                public void setResult(Object result) {
-                    assertNotFinished();
-                    context.setResult(result);
-                    finish();
-                }
-
-                @Override
-                public void setStatus(String status) {
-                    assertNotFinished();
-                    context.setStatus(status);
-                }
-
-                private void finish() {
-                    finished = true;
-                    try {
-                        listener.stop(operationState, context);
-                    } finally {
-                        listener.close(operationState);
-                    }
-                }
-
-                private void assertNotFinished() {
-                    if (finished) {
-                        throw new IllegalStateException(String.format("Operation (%s) has already finished.", descriptor));
-                    }
-                }
-            };
-        });
     }
 
     @Override
