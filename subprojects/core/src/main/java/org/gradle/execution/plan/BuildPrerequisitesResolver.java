@@ -54,8 +54,7 @@ public class BuildPrerequisitesResolver extends ActionNode implements Dependency
             return false;
         }
 
-        ValueSupplier.BuildPrerequisite validationRequest = (ValueSupplier.BuildPrerequisite) node;
-        validationAction.addTaskPrerequisite(task.getName(), validationRequest);
+        validationAction.addTaskPrerequisite(task.getName(), (ValueSupplier.BuildPrerequisite) node);
         if (!validating) {
             resolveAction.execute(this);
             validating = true;

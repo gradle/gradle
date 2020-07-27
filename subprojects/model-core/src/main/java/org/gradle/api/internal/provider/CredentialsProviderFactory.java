@@ -86,19 +86,19 @@ public class CredentialsProviderFactory {
 
         @Override
         protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-            return delegate.calculateValue(consumer);
-        }
-
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
             try {
-                return super.calculatePresence(consumer);
+                return delegate.calculateValue(consumer);
             } catch (MissingValueException e) {
                 if (consumer == ValueConsumer.IgnoreUnsafeRead) {
-                    return false;
+                    return Value.missing();
                 }
                 throw e;
             }
+        }
+
+        @Override
+        public T get() {
+            return calculateOwnValue(ValueConsumer.DisallowUnsafeRead).get();
         }
 
         @Override

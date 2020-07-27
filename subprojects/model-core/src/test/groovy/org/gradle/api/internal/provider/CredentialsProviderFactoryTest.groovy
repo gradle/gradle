@@ -62,6 +62,18 @@ class CredentialsProviderFactoryTest extends ValueSourceBasedSpec {
         !isPresent
     }
 
+    def "does not throw on getOrNull when credentials are missing"() {
+        given:
+        def provider = factory.provide(PasswordCredentials, 'myService')
+
+        when:
+        def value = provider.getOrNull()
+
+        then:
+        noExceptionThrown()
+        value == null
+    }
+
     def "describes single missing property"() {
         given:
         gradleProperties.find('myServicePassword') >> 'secret'
