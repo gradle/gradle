@@ -32,6 +32,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class CredentialsProviderFactory {
@@ -75,7 +76,7 @@ public class CredentialsProviderFactory {
 
         @Override
         public ValueProducer getProducer() {
-            return delegate.getProducer().plus(ValueProducer.buildPrerequisite(delegate));
+            return delegate.getProducer().plus(ValueProducer.buildPrerequisite(new ValidationRequest(delegate)));
         }
 
         @Nullable
@@ -107,6 +108,24 @@ public class CredentialsProviderFactory {
         }
 
     }
+
+    private static class ValidationRequest implements ValueSupplier.BuildPrerequisite {
+        private final ProviderInternal<?> provider;
+
+        public ValidationRequest(ProviderInternal<?> provider) {
+            this.provider = provider;
+        }
+
+        @Override
+        public void collectValidationErrors(Collection<String> validationErrorCollector) {
+            try {
+                provider.get();
+            } catch (MissingValueException e) {
+                validationErrorCollector.add(e.getMessage());
+            }
+        }
+    }
+
 }
 
 abstract class CredentialsValueSource<T extends Credentials> implements ValueSource<T, CredentialsValueSource.Parameters> {

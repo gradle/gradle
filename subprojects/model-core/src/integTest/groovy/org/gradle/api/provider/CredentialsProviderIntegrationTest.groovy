@@ -269,6 +269,8 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         args '--configuration-cache'
         fails 'finalTask'
         failure.assertHasDescription("Credentials required for this build could not be resolved.")
+        failure.assertHasErrorOutput("- testCredentialsUsername")
+        failure.assertHasErrorOutput("- testCredentialsPassword")
     }
 
     @UnsupportedWithInstantExecution(because = "test checks behavior with configuration cache")

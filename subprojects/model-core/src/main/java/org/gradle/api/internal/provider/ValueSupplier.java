@@ -24,6 +24,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -97,8 +98,8 @@ public interface ValueSupplier {
             return new TaskProducer(task, false);
         }
 
-        static ValueProducer buildPrerequisite(ProviderInternal<?> provider) {
-            return new ValidationRequestProducer(new ValidationRequest(provider));
+        static ValueProducer buildPrerequisite(BuildPrerequisite prerequisite) {
+            return new BuildPrerequisiteProducer(prerequisite);
         }
     }
 
@@ -118,11 +119,11 @@ public interface ValueSupplier {
         }
     }
 
-    class ValidationRequestProducer implements ValueProducer {
-        private final ValidationRequest validationRequest;
+    class BuildPrerequisiteProducer implements ValueProducer {
+        private final BuildPrerequisite buildPrerequisite;
 
-        public ValidationRequestProducer(ValidationRequest validationRequest) {
-            this.validationRequest = validationRequest;
+        public BuildPrerequisiteProducer(BuildPrerequisite buildPrerequisite) {
+            this.buildPrerequisite = buildPrerequisite;
         }
 
         @Override
@@ -137,20 +138,12 @@ public interface ValueSupplier {
 
         @Override
         public void visitProducerTasks(Action<? super Task> visitor) {
-            ((TaskDependencyResolveContext) visitor).add(validationRequest);
+            ((TaskDependencyResolveContext) visitor).add(buildPrerequisite);
         }
     }
 
-    class ValidationRequest {
-        private final ProviderInternal<?> provider;
-
-        public ValidationRequest(ProviderInternal<?> provider) {
-            this.provider = provider;
-        }
-
-        public ProviderInternal<?> getProvider() {
-            return provider;
-        }
+    interface BuildPrerequisite {
+        void collectValidationErrors(Collection<String> validationErrorCollector);
     }
 
     class TaskProducer implements ValueProducer {

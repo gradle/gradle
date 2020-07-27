@@ -88,7 +88,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private boolean buildCancelled;
 
-    private BuildPrerequisitesValidator validator;
+    private BuildPrerequisitesResolver validator;
 
     public DefaultExecutionPlan(GradleInternal gradle, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver) {
         this.gradle = gradle;
@@ -333,8 +333,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         for (Node node : nodeMapping) {
             executionQueue.add(node);
             maybeNodesReady |= node.updateAllDependenciesComplete() && node.isReady();
-            if (node instanceof BuildPrerequisitesValidator) {
-                this.validator = (BuildPrerequisitesValidator) node;
+            if (node instanceof BuildPrerequisitesResolver) {
+                this.validator = (BuildPrerequisitesResolver) node;
             }
         }
         this.dependenciesWhichRequireMonitoring.addAll(dependenciesWhichRequireMonitoring);

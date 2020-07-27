@@ -21,39 +21,40 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.provider.MissingValueException;
-import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class BuildPrerequisitesValidator extends ActionNode implements DependencyResolver {
+public class BuildPrerequisitesResolver extends ActionNode implements DependencyResolver {
     private final ValidationAction validationAction;
     private boolean validating = false;
 
-    public BuildPrerequisitesValidator() {
+    public BuildPrerequisitesResolver() {
         this(new ValidationAction());
     }
 
-    public BuildPrerequisitesValidator(ValidationAction validationAction) {
+    public BuildPrerequisitesResolver(ValidationAction validationAction) {
         super(validationAction);
         this.validationAction = validationAction;
     }
 
     @Override
     public boolean resolve(Task task, Object node, Action<? super Node> resolveAction) {
-        if (!(node instanceof ValueSupplier.ValidationRequest)) {
+        if (!(node instanceof ValueSupplier.BuildPrerequisite)) {
             return false;
         }
 
-        ValueSupplier.ValidationRequest validationRequest = (ValueSupplier.ValidationRequest) node;
-        validationAction.addToValidations(validationRequest.getProvider());
+        ValueSupplier.BuildPrerequisite validationRequest = (ValueSupplier.BuildPrerequisite) node;
+        validationAction.addTaskPrerequisite(task.getName(), validationRequest);
         if (!validating) {
             resolveAction.execute(this);
             validating = true;
@@ -68,10 +69,10 @@ public class BuildPrerequisitesValidator extends ActionNode implements Dependenc
 
     public static class ValidationAction implements WorkNodeAction {
 
-        private final List<ProviderInternal<?>> providersToValidate = new ArrayList<>();
+        private final Map<String, List<ValueSupplier.BuildPrerequisite>> taskPrerequisites = new HashMap<>();
 
-        void addToValidations(ProviderInternal<?> provider) {
-            providersToValidate.add(provider);
+        void addTaskPrerequisite(String taskName, ValueSupplier.BuildPrerequisite validationRequest) {
+            taskPrerequisites.computeIfAbsent(taskName, t -> new ArrayList<>()).add(validationRequest);
         }
 
         @Nullable
@@ -83,13 +84,9 @@ public class BuildPrerequisitesValidator extends ActionNode implements Dependenc
         @Override
         public void run(NodeExecutionContext context) {
             Set<String> missingProviderErrors = new HashSet<>();
-            providersToValidate.forEach(provider -> {
-                try {
-                    provider.get();
-                } catch (MissingValueException e) {
-                    missingProviderErrors.add(e.getMessage());
-                }
-            });
+            taskPrerequisites.forEach((task, prerequisiteValidators) ->
+                prerequisiteValidators.forEach(validator ->
+                    validator.collectValidationErrors(missingProviderErrors)));
             if (!missingProviderErrors.isEmpty()) {
                 throw new ProjectConfigurationException("Credentials required for this build could not be resolved.",
                     missingProviderErrors.stream().map(MissingValueException::new).collect(Collectors.toList()));
