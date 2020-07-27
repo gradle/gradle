@@ -227,7 +227,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(file)
-        def cachedFile = testDir.file("cached/13458f2c7eb800684fa33375e7acb787/thing.jar")
+        def cachedFile = testDir.file("cached/784deca90bf6accd886b93158ac2b895/thing.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, BuildLogic)
@@ -255,7 +255,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def dir = testDir.file("thing.dir")
         classesDir(dir)
         def classpath = DefaultClassPath.of(dir)
-        def cachedFile = testDir.file("cached/97bac9ac2a3980607fc1c403acd7359d/thing.dir.jar")
+        def cachedFile = testDir.file("cached/4019c2992955d8f6fa5db60645c41a34/thing.dir.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, BuildLogic)
@@ -285,8 +285,8 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(dir, file)
-        def cachedDir = testDir.file("cached/97bac9ac2a3980607fc1c403acd7359d/thing.dir.jar")
-        def cachedFile = testDir.file("cached/13458f2c7eb800684fa33375e7acb787/thing.jar")
+        def cachedDir = testDir.file("cached/4019c2992955d8f6fa5db60645c41a34/thing.dir.jar")
+        def cachedFile = testDir.file("cached/784deca90bf6accd886b93158ac2b895/thing.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, BuildLogic)
@@ -343,8 +343,8 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file3 = testDir.file("thing3.jar")
         jar(file3)
         def classpath = DefaultClassPath.of(dir, file, dir2, file2, dir3, file3)
-        def cachedDir = testDir.file("cached/97bac9ac2a3980607fc1c403acd7359d/thing.dir.jar")
-        def cachedFile = testDir.file("cached/13458f2c7eb800684fa33375e7acb787/thing.jar")
+        def cachedDir = testDir.file("cached/4019c2992955d8f6fa5db60645c41a34/thing.dir.jar")
+        def cachedFile = testDir.file("cached/784deca90bf6accd886b93158ac2b895/thing.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, BuildLogic)
@@ -364,7 +364,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(file)
-        def cachedFile = testDir.file("cached/1f4a29be6f3ad350728e82891a104412/thing.jar")
+        def cachedFile = testDir.file("cached/7ae7d6b74079550480d47d9d386c1576/thing.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, BuildLogic, transform)
@@ -430,7 +430,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
 
     def "transforms Java lambda Action implementations so they can be serialized"() {
         given:
-        def cl = transformAndLoad(TestLambdas)
+        def cl = transformAndLoad(ClassWithActionLambda)
 
         expect:
         def original = cl.action(123)
@@ -443,6 +443,37 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         result.toString() == "123"
     }
 
+    def "class can include both serializable lambda and Action implementations"() {
+        given:
+        def cl = transformAndLoad(ClassWithActionAndSerializableLambda, ClassWithActionAndSerializableLambda.SerializableThing)
+
+        expect:
+        def original1 = cl.action(123)
+        original1 instanceof Serializable
+
+        def recreated1 = recreate(original1)
+        def result1 = new StringBuilder()
+        recreated1.execute(result1)
+
+        result1.toString() == "123"
+
+        def original2 = cl.thing(123)
+        def result2 = recreate(original2).call()
+
+        result2 == "123"
+    }
+
+    def "class can include only serializable lambda"() {
+        given:
+        def cl = transformAndLoad(ClassWithSerializableLambda, ClassWithSerializableLambda.SerializableThing)
+
+        expect:
+        def original = cl.thing(123)
+        def result = recreate(original).call()
+
+        result == "123"
+    }
+
     Object recreate(Object value) {
         def outputStream = new ByteArrayOutputStream()
         new ObjectOutputStream(outputStream).with {
@@ -452,12 +483,14 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         return new ClassLoaderObjectInputStream(new ByteArrayInputStream(outputStream.toByteArray()), value.class.classLoader).readObject()
     }
 
-    Class transformAndLoad(Class cl) {
+    Class transformAndLoad(Class cl, Class... additional) {
         def jar = testDir.file("${cl.name}.jar")
         classpathBuilder.jar(jar) { builder ->
-            def fileName = cl.name.replace('.', '/') + ".class"
-            def content = cl.classLoader.getResource(fileName).bytes
-            builder.put(fileName, content)
+            ([cl] + additional.toList()).forEach { required ->
+                def fileName = required.name.replace('.', '/') + ".class"
+                def content = required.classLoader.getResource(fileName).bytes
+                builder.put(fileName, content)
+            }
         }
         def transformed = transformer.transform(DefaultClassPath.of(jar), BuildLogic)
         def filtering = new FilteringClassLoader(getClass().classLoader, new FilteringClassLoader.Spec([Action.name, Instrumented.name], [], [], [], [], [], []))

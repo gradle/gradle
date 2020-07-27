@@ -64,7 +64,7 @@ This release brings a number of stability improvements for file-system watching 
 
 For [up-to-date checks](userguide/more_about_tasks.html#sec:up_to_date_checks) and the [build cache](userguide/build_cache.html), Gradle needs to determine if two task input properties have the same value. In order to do so, Gradle first normalizes both inputs and then compares the result. 
 
-Runtime classpath analysis can now inspect manifest and `META-INF` properties files, ignore changes to comments, and selectively ignore attributes or properties that don't impact the runtime classpath.
+Runtime classpath analysis now inspects manifest and `META-INF` properties files, ignoring changes to comments, whitespace and order-differences. Moreover, you can selectively ignore attributes or properties that don't impact the runtime classpath.
 
 ```groovy
 normalization {
