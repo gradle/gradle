@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.WorkNodeAction;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -83,13 +84,20 @@ public class BuildPrerequisitesResolver extends ActionNode implements Dependency
 
         @Override
         public void run(NodeExecutionContext context) {
-            Set<String> missingProviderErrors = new HashSet<>();
-            taskPrerequisites.forEach((task, prerequisiteValidators) ->
-                prerequisiteValidators.forEach(validator ->
-                    validator.collectValidationErrors(missingProviderErrors)));
-            if (!missingProviderErrors.isEmpty()) {
+            Set<String> missingPrerequisiteErrors = new HashSet<>();
+            taskPrerequisites.forEach((task, taskPrerequisites) ->
+                taskPrerequisites.forEach(prerequisite -> ensurePresent(prerequisite, missingPrerequisiteErrors)));
+            if (!missingPrerequisiteErrors.isEmpty()) {
                 throw new ProjectConfigurationException("Credentials required for this build could not be resolved.",
-                    missingProviderErrors.stream().map(MissingValueException::new).collect(Collectors.toList()));
+                    missingPrerequisiteErrors.stream().map(MissingValueException::new).collect(Collectors.toList()));
+            }
+        }
+
+        private static void ensurePresent(ValueSupplier.BuildPrerequisite prerequisite, Collection<String> errorsCollector) {
+            try {
+                prerequisite.ensurePresent();
+            } catch (MissingValueException e) {
+                errorsCollector.add(e.getMessage());
             }
         }
     }

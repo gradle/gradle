@@ -24,7 +24,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -143,7 +142,7 @@ public interface ValueSupplier {
     }
 
     interface BuildPrerequisite {
-        void collectValidationErrors(Collection<String> validationErrorCollector);
+        void ensurePresent();
     }
 
     class TaskProducer implements ValueProducer {
