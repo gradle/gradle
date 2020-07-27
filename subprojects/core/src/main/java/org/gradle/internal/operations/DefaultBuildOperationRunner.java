@@ -22,16 +22,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.ObjectStreamException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultBuildOperationRunner implements BuildOperationRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationRunner.class);
+    protected static final BuildOperationWorker<RunnableBuildOperation> RUNNABLE_BUILD_OPERATION_WORKER = new RunnableBuildOperationWorker();
 
     protected final BuildOperationListener listener;
     protected final Clock clock;
-    protected final RunnableBuildOperationWorker runnableBuildOperationWorker = new RunnableBuildOperationWorker();
-    protected final BuildOperationIdFactory buildOperationIdFactory;
+    private final BuildOperationIdFactory buildOperationIdFactory;
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
 
     public DefaultBuildOperationRunner(BuildOperationListener listener, Clock clock, BuildOperationIdFactory buildOperationIdFactory) {
@@ -42,7 +43,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
 
     @Override
     public void run(RunnableBuildOperation buildOperation) {
-        execute(buildOperation, runnableBuildOperationWorker, getCurrentBuildOperation());
+        execute(buildOperation, RUNNABLE_BUILD_OPERATION_WORKER, getCurrentBuildOperation());
     }
 
     @Override
@@ -80,7 +81,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         });
     }
 
-    protected BuildOperationContext start(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
+    private BuildOperationContext start(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
         return execute(descriptorBuilder, defaultParent, (BuildOperationExecution<BuildOperationContext>) (descriptor, operationState, context, listener) -> {
             listener.start(operationState);
             return new BuildOperationContext() {
@@ -158,6 +159,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         });
     }
 
+    @OverridingMethodsMustInvokeSuper
     protected <O> O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, BuildOperationExecution<O> execution, BuildOperationExecutionListener listener) {
         return execution.execute(
             descriptor,
@@ -183,6 +185,10 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         return current;
     }
 
+    protected BuildOperationState getCurrentBuildOperation() {
+        return (BuildOperationState) currentBuildOperationRef.get();
+    }
+
     protected void setCurrentBuildOperation(BuildOperationState parentState) {
         currentBuildOperationRef.set(parentState);
     }
@@ -195,15 +201,12 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         return parent;
     }
 
+    @OverridingMethodsMustInvokeSuper
     protected BuildOperationDescriptor createDescriptor(BuildOperationDescriptor.Builder descriptorBuilder, BuildOperationState parent) {
         OperationIdentifier id = new OperationIdentifier(buildOperationIdFactory.nextId());
         return descriptorBuilder.build(id, parent == null
             ? null
             : parent.getDescription().getId());
-    }
-
-    protected BuildOperationState getCurrentBuildOperation() {
-        return (BuildOperationState) currentBuildOperationRef.get();
     }
 
     protected interface BuildOperationExecution<O> {
@@ -287,6 +290,8 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     }
 
     private static class RunnableBuildOperationWorker implements BuildOperationWorker<RunnableBuildOperation> {
+        private RunnableBuildOperationWorker() {}
+
         @Override
         public String getDisplayName() {
             return "runnable build operation";

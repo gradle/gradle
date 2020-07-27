@@ -76,7 +76,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
         try {
-            executeInParallel(new ParentPreservingQueueWorker<>(runnableBuildOperationWorker), schedulingAction);
+            executeInParallel(new ParentPreservingQueueWorker<>(RUNNABLE_BUILD_OPERATION_WORKER), schedulingAction);
         } finally {
             maybeStopUnmanagedThreadOperation();
         }
