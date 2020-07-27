@@ -36,8 +36,9 @@ import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
-import kotlin.coroutines.startCoroutine
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
+import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 
@@ -99,8 +100,8 @@ class DefaultWriteContext(
                 }
             }
             pendingWriteCall === null -> {
-                pendingWriteCall = WriteCall(value, null)
-                writeCallLoop(coroutineContext)
+                pendingWriteCall = WriteCall(value, continuation)
+                writeCallLoop()
             }
             else -> suspendCoroutine<Unit> { k ->
                 pendingWriteCall = WriteCall(value, k)
@@ -109,23 +110,29 @@ class DefaultWriteContext(
     }
 
     private
-    fun writeCallLoop(coroutineContext: CoroutineContext) {
+    fun writeCallLoop() {
+        @Suppress("unchecked_cast")
+        val unsafeWrite = ::stackUnsafeWrite as Function2<Any?, Continuation<Unit>, Any>
         do {
             val call = pendingWriteCall!!
-            suspend {
-                stackUnsafeWrite(call.value)
-            }.startCoroutine(
-                Continuation(coroutineContext) {
-                    when (val k = call.k) {
-                        null -> {
-                            pendingWriteCall = null
-                            it.getOrThrow()
-                        }
-                        else -> k.resumeWith(it)
-                    }
-                }
-            )
+            val k = call.k
+            val result = unsafeWrite.invoke(call.value, k)
+            if (result !== COROUTINE_SUSPENDED) {
+                k.resume(Unit)
+            }
         } while (pendingWriteCall !== null)
+    }
+
+    private
+    val continuation = object : Continuation<Unit> {
+
+        override val context: CoroutineContext
+            get() = EmptyCoroutineContext
+
+        override fun resumeWith(result: Result<Unit>) {
+            pendingWriteCall = null
+            result.getOrThrow()
+        }
     }
 
     private
@@ -136,7 +143,7 @@ class DefaultWriteContext(
     }
 
     private
-    class WriteCall(val value: Any?, val k: Continuation<Unit>?)
+    class WriteCall(val value: Any?, val k: Continuation<Unit>)
 
     override fun writeClass(type: Class<*>) {
         val id = classes.getId(type)
@@ -267,6 +274,9 @@ class DefaultReadContext(
     private
     var readCallDepth: Int = 0
 
+    private
+    var readCallResult: Result<Any?> = UNDEFINED_RESULT
+
     override lateinit var classLoader: ClassLoader
 
     internal
@@ -295,8 +305,8 @@ class DefaultReadContext(
                 }
             }
             pendingReadCall === null -> {
-                pendingReadCall = ReadCall(null)
-                readCallLoop(coroutineContext)
+                pendingReadCall = ReadCall(continuation)
+                readCallLoop()
             }
             else -> suspendCoroutine { k ->
                 pendingReadCall = ReadCall(k)
@@ -304,25 +314,36 @@ class DefaultReadContext(
         }
 
     private
-    fun readCallLoop(coroutineContext: CoroutineContext): Any? {
-        var result: Any? = null
-        do {
-            val call = pendingReadCall!!
-            suspend {
-                stackUnsafeRead()
-            }.startCoroutine(
-                Continuation(coroutineContext) {
-                    when (val k = call.k) {
-                        null -> {
-                            pendingReadCall = null
-                            result = it.getOrThrow()
-                        }
-                        else -> k.resumeWith(it)
-                    }
+    fun readCallLoop(): Any? {
+        @Suppress("unchecked_cast")
+        val unsafeRead = ::stackUnsafeRead as Function1<Continuation<Any?>, Any?>
+        try {
+            while (true) {
+                val call = pendingReadCall!!
+                val k = call.k
+                val result = unsafeRead.invoke(k)
+                if (result !== COROUTINE_SUSPENDED) {
+                    k.resume(result)
                 }
-            )
-        } while (pendingReadCall !== null)
-        return result
+                if (pendingReadCall === null) {
+                    return readCallResult.getOrThrow()
+                }
+            }
+        } finally {
+            readCallResult = UNDEFINED_RESULT
+        }
+    }
+
+    private
+    val continuation = object : Continuation<Any?> {
+
+        override val context: CoroutineContext
+            get() = EmptyCoroutineContext
+
+        override fun resumeWith(result: Result<Any?>) {
+            pendingReadCall = null
+            readCallResult = result
+        }
     }
 
     private
@@ -413,7 +434,7 @@ class DefaultReadContext(
     }
 
     internal
-    class ReadCall(val k: Continuation<Any?>?)
+    class ReadCall(val k: Continuation<Any?>)
 }
 
 
@@ -425,6 +446,10 @@ class DefaultReadContext(
  */
 private
 const val MAX_STACK_DEPTH = 64
+
+
+private
+val UNDEFINED_RESULT = Result.success(COROUTINE_SUSPENDED)
 
 
 interface DecodingProvider<T> {

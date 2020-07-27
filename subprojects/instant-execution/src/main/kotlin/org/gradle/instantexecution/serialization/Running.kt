@@ -56,18 +56,19 @@ fun <T : WriteContext> T.runWriteOperation(writeOperation: suspend T.() -> Unit)
  * [Starts][startCoroutine] the suspending [block], asserts it runs
  * to completion and returns its result.
  */
+@Suppress("unchecked_cast")
 private
 fun <R> runToCompletion(block: suspend () -> R): R {
-    var completion: Result<R>? = null
-    block.startCoroutine(
-        Continuation(EmptyCoroutineContext) {
-            completion = it
-        }
-    )
-    return completion.let {
-        require(it != null) {
-            "Coroutine didn't run to completion."
-        }
-        it.getOrThrow()
+    val blockFunction = block as Function1<Continuation<R>, Any?>
+    val result = blockFunction.invoke(continuation)
+    require(result !== kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED) {
+        "Coroutine didn't run to completion."
     }
+    return result as R
+}
+
+
+private
+val continuation = Continuation<Any?>(EmptyCoroutineContext) {
+    throw IllegalStateException("Illegal continuation: $it")
 }
