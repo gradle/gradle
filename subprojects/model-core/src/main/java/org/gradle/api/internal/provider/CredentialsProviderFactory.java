@@ -62,14 +62,14 @@ public class CredentialsProviderFactory {
             valueSourceClass,
             spec -> spec.getParameters().getIdentity().set(identity)
         );
-        return new InterceptingProvider<>(provider);
+        return new BuildPrerequisiteProvider<>(provider);
     }
 
-    private static class InterceptingProvider<T extends Credentials> extends AbstractMinimalProvider<T> {
+    private static class BuildPrerequisiteProvider<T extends Credentials> extends AbstractMinimalProvider<T> {
 
         private final ProviderInternal<T> delegate;
 
-        public InterceptingProvider(Provider<T> delegate) {
+        public BuildPrerequisiteProvider(Provider<T> delegate) {
             this.delegate = (ProviderInternal<T>) delegate;
         }
 
