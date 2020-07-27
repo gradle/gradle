@@ -218,13 +218,13 @@ public class DefaultBuildOperationExecutor extends AbstractBuildOperationRunner 
         BuildOperationDescriptor descriptor = createDescriptor(descriptorBuilder, parent);
 
         assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, parent);
+
         BuildOperationState operationState = new BuildOperationState(descriptor, clock.getCurrentTime());
         operationState.setRunning(true);
-
         BuildOperationState parentOperation = getCurrentBuildOperation();
         setCurrentBuildOperation(operationState);
 
-        return execute0(descriptor, operationState, execution, new BuildOperationExecutionListener() {
+        return execute(descriptor, operationState, execution, new BuildOperationExecutionListener() {
             @Override
             public void start(BuildOperationState operationState) {
                 listener.started(descriptor, new OperationStartEvent(operationState.getStartTime()));
@@ -247,7 +247,8 @@ public class DefaultBuildOperationExecutor extends AbstractBuildOperationRunner 
         });
     }
 
-    private <O extends BuildOperation> O execute0(BuildOperationDescriptor descriptor, BuildOperationState operationState, BuildOperationExecution<O> execution, BuildOperationExecutionListener listener) {
+    @Override
+    protected <O extends BuildOperation> O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, BuildOperationExecution<O> execution, BuildOperationExecutionListener listener) {
         MutableReference<ProgressLogger> progressLoggerHolder = MutableReference.empty();
         BuildOperationExecutionListener progressLoggingListener = new BuildOperationExecutionListener() {
             @Override
@@ -270,7 +271,7 @@ public class DefaultBuildOperationExecutor extends AbstractBuildOperationRunner 
             }
         };
 
-        return execute(descriptor, operationState, execution, progressLoggingListener);
+        return super.execute(descriptor, operationState, execution, progressLoggingListener);
     }
 
     private static BuildOperationState determineParent(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
