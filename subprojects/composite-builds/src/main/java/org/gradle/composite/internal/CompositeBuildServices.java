@@ -16,8 +16,8 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -56,15 +56,15 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
         public BuildStateRegistry createIncludedBuildRegistry(CompositeBuildContext context,
                                                               Instantiator instantiator,
                                                               WorkerLeaseService workerLeaseService,
-                                                              ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                               GradleLauncherFactory gradleLauncherFactory,
                                                               ListenerManager listenerManager,
                                                               ServiceRegistry rootServices,
                                                               ObjectFactory objectFactory,
+                                                              NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
                                                               ImmutableAttributesFactory attributesFactory) {
             IncludedBuildFactory includedBuildFactory = new DefaultIncludedBuildFactory(instantiator, workerLeaseService);
             NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
-            IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, moduleIdentifierFactory, instantiator, objectFactory, attributesFactory, capabilityNotationParser);
+            IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, instantiator, objectFactory, attributesFactory, moduleSelectorNotationParser, capabilityNotationParser);
             return new DefaultIncludedBuildRegistry(includedBuildFactory, dependencySubstitutionsBuilder, gradleLauncherFactory, listenerManager, (BuildTreeScopeServices) rootServices);
         }
 

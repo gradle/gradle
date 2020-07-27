@@ -21,6 +21,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
@@ -510,6 +511,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     CollectionCallbackActionDecorator callbackDecorator,
                                                                     UserCodeApplicationContext userCodeApplicationContext,
                                                                     DomainObjectCollectionFactory domainObjectCollectionFactory,
+                                                                    NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
                                                                     ObjectFactory objectFactory) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                     configurationResolver,
@@ -534,6 +536,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     callbackDecorator,
                     userCodeApplicationContext,
                     domainObjectCollectionFactory,
+                    moduleSelectorNotationParser,
                     objectFactory
             );
         }
