@@ -30,17 +30,17 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
         def fixture = newInstantExecutionFixture()
 
         when:
-        instantFails("thing", "-DCI=$value")
+        instantRunLenient"thing", "-DCI=$value"
 
         then:
         fixture.assertStateStored()
         // TODO - use problems fixture, need to be able to ignore problems from the Kotlin plugin
-        failure.assertThatDescription(containsNormalizedString("$location: read system property 'CI'"))
+        result.normalizedOutput.contains("$location: read system property 'CI'")
         outputContains("apply = $value")
         outputContains("task = $value")
 
         when:
-        instantRun WARN_PROBLEMS_CLI_OPT, "thing", "-DCI=$value"
+        instantRunLenient "thing", "-DCI=$value"
 
         then:
         fixture.assertStateLoaded()

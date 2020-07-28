@@ -47,10 +47,10 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
         ]
 
         when:
-        instantFails 'test', 'jacocoTestReport'
+        instantRunLenient 'test', 'jacocoTestReport'
 
         then:
-        problems.assertFailureHasProblems(failure) {
+        problems.assertResultHasProblems(result) {
             withUniqueProblems(expectedStoreProblems)
             withTotalProblemsCount(expectedStoreProblemCount)
             withProblemsWithStackTraceCount(0)
