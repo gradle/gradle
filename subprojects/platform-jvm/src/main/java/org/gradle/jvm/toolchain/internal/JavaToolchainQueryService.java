@@ -20,20 +20,24 @@ import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public class JavaToolchainQueryService {
 
     private final SharedJavaInstallationRegistry registry;
     private final JavaToolchainFactory toolchainFactory;
+    private final JavaToolchainProvisioningService installService;
 
     @Inject
-    public JavaToolchainQueryService(SharedJavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory) {
+    public JavaToolchainQueryService(SharedJavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory, JavaToolchainProvisioningService provisioningService) {
         this.registry = registry;
         this.toolchainFactory = toolchainFactory;
+        this.installService = provisioningService;
     }
 
     public Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
@@ -48,7 +52,13 @@ public class JavaToolchainQueryService {
             .map(this::asToolchain)
             .filter(matchingToolchain(filter))
             .findFirst()
-            .orElseThrow(() -> new NoToolchainAvailableException(filter));
+            .orElseGet(() -> downloadToolchain(filter));
+    }
+
+    private JavaToolchain downloadToolchain(JavaToolchainSpec spec) {
+        final Optional<File> installation = installService.tryInstall(spec);
+        return installation.map(this::asToolchain).orElseThrow(() ->
+            new NoToolchainAvailableException(spec));
     }
 
     // TODO: to be replaced with AttributeContainer/AttributeMatcher
