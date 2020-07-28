@@ -49,7 +49,7 @@ fun buildConsoleSummary(cacheAction: String, problems: List<PropertyProblem>, re
             appendln("plus ${uniquePropertyProblems.size - maxConsoleProblems} more problems. Please see the report for details.")
         }
         appendln()
-        appendln(buildSummaryReportLink(reportFile))
+        append(buildSummaryReportLink(reportFile))
     }.toString()
 }
 
