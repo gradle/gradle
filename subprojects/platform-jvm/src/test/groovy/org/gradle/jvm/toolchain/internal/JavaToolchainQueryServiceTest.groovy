@@ -36,7 +36,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         given:
         def registry = createInstallationRegistry()
         def toolchainFactory = newToolchainFactory()
-        def queryService = new JavaToolchainQueryService(registry, toolchainFactory)
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService))
 
         when:
         def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
@@ -57,7 +57,9 @@ class JavaToolchainQueryServiceTest extends Specification {
         given:
         def registry = createInstallationRegistry(["8", "9", "10"])
         def toolchainFactory = newToolchainFactory()
-        def queryService = new JavaToolchainQueryService(registry, toolchainFactory)
+        def provisioningService = Mock(JavaToolchainProvisioningService)
+        provisioningService.tryInstall(_) >> Optional.empty()
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, provisioningService)
 
         when:
         def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
@@ -74,7 +76,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         given:
         def registry = createInstallationRegistry(["8", "9", "10"])
         def toolchainFactory = newToolchainFactory()
-        def queryService = new JavaToolchainQueryService(registry, toolchainFactory)
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService))
 
         when:
         def filter = new DefaultToolchainSpec(TestUtil.objectFactory())

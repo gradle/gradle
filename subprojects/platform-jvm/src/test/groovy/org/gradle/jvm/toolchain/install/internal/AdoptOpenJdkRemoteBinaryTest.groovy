@@ -131,13 +131,14 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         })
 
         then:
-        downloadedJdk.exists()
-        downloadedJdk.text == "binary"
+        downloadedJdk.get().exists()
+        downloadedJdk.get().text == "binary"
 
     }
 
     def setupApiOnFilesystem() {
-        def downloadServer = temporaryFolder.create()
+        temporaryFolder.create()
+        def downloadServer = temporaryFolder.root
         def apiPath = new File(downloadServer, "/v3/binary/latest/11/ga/mac/x64/jdk/hotspot/normal/")
         apiPath.mkdirs()
         def jdk = new File(apiPath, "adoptopenjdk")
