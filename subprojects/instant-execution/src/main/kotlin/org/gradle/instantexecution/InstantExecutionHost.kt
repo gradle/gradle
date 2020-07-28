@@ -150,7 +150,7 @@ class InstantExecutionHost internal constructor(
                     val project = gradle.rootProject
                     val displayName = "Configure project " + project.identityPath
                     return BuildOperationDescriptor.displayName(displayName)
-                        .operationType(BuildOperationCategory.CONFIGURE_PROJECT)
+                        .metadata(BuildOperationCategory.CONFIGURE_PROJECT)
                         .progressDisplayName(displayName)
                         .details(ConfigureProjectBuildOperationType.DetailsImpl(project.projectPath, gradle.identityPath, project.rootDir))
                 }

@@ -262,7 +262,7 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
             String basicName = subjectName + " with " + transformerName;
             return BuildOperationDescriptor.displayName("Transform " + basicName)
                 .progressDisplayName(TRANSFORMING_PROGRESS_PREFIX + basicName)
-                .operationType(BuildOperationCategory.TRANSFORM)
+                .metadata(BuildOperationCategory.TRANSFORM)
                 .details(new ExecuteScheduledTransformationStepBuildOperationDetails(TransformationNode.this, transformerName, subjectName));
         }
 

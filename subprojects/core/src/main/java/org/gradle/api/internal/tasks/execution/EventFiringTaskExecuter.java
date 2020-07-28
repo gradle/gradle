@@ -103,7 +103,7 @@ public class EventFiringTaskExecuter implements TaskExecuter {
                 return BuildOperationDescriptor.displayName("Task " + task.getIdentityPath())
                     .name(task.getIdentityPath().toString())
                     .progressDisplayName(task.getIdentityPath().toString())
-                    .operationType(BuildOperationCategory.TASK)
+                    .metadata(BuildOperationCategory.TASK)
                     .details(taskOperation);
             }
         });

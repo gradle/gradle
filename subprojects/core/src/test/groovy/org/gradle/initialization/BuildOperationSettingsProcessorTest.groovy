@@ -20,7 +20,7 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.internal.operations.BuildOperationCategory
+import org.gradle.internal.operations.BuildOperationMetadata
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
 
@@ -62,7 +62,7 @@ class BuildOperationSettingsProcessorTest extends Specification {
         buildOperationExecutor.operations.get(0).displayName == "Evaluate settings"
         buildOperationExecutor.operations.get(0).name == "Evaluate settings"
 
-        buildOperationExecutor.operations.get(0).operationType == BuildOperationCategory.UNCATEGORIZED
+        buildOperationExecutor.operations.get(0).metadata == BuildOperationMetadata.NONE
         buildOperationExecutor.operations.get(0).details.settingsDir == rootDir.absolutePath
         buildOperationExecutor.operations.get(0).details.settingsFile == "settings.gradle"
     }

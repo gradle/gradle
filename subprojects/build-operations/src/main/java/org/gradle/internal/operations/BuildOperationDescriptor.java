@@ -28,7 +28,7 @@ public final class BuildOperationDescriptor {
     private final String name;
     private final String progressDisplayName;
     private final Object details;
-    private final BuildOperationCategory operationType;
+    private final BuildOperationMetadata metadata;
     private final int totalProgress;
 
     private BuildOperationDescriptor(
@@ -38,7 +38,7 @@ public final class BuildOperationDescriptor {
         String displayName,
         @Nullable String progressDisplayName,
         @Nullable Object details,
-        BuildOperationCategory operationType,
+        BuildOperationMetadata metadata,
         int totalProgress
     ) {
         this.id = id;
@@ -47,7 +47,7 @@ public final class BuildOperationDescriptor {
         this.displayName = displayName;
         this.progressDisplayName = progressDisplayName;
         this.details = details;
-        this.operationType = operationType;
+        this.metadata = metadata;
         this.totalProgress = totalProgress;
     }
 
@@ -100,8 +100,8 @@ public final class BuildOperationDescriptor {
         return parentId;
     }
 
-    public BuildOperationCategory getOperationType() {
-        return operationType;
+    public BuildOperationMetadata getMetadata() {
+        return metadata;
     }
 
     public int getTotalProgress() {
@@ -118,7 +118,7 @@ public final class BuildOperationDescriptor {
         private String progressDisplayName;
         private Object details;
         private BuildOperationRef parent;
-        private BuildOperationCategory operationType = BuildOperationCategory.UNCATEGORIZED;
+        private BuildOperationMetadata metadata = BuildOperationMetadata.NONE;
         private int totalProgress;
 
         private Builder(String displayName) {
@@ -141,8 +141,8 @@ public final class BuildOperationDescriptor {
             return this;
         }
 
-        public Builder operationType(BuildOperationCategory operationType) {
-            this.operationType = operationType;
+        public Builder metadata(BuildOperationMetadata metadata) {
+            this.metadata = metadata;
             return this;
         }
 
@@ -172,7 +172,7 @@ public final class BuildOperationDescriptor {
         }
 
         public BuildOperationDescriptor build(@Nullable OperationIdentifier id, @Nullable OperationIdentifier defaultParentId) {
-            return new BuildOperationDescriptor(id, parent == null ? defaultParentId : parent.getId(), name, displayName, progressDisplayName, details, operationType, totalProgress);
+            return new BuildOperationDescriptor(id, parent == null ? defaultParentId : parent.getId(), name, displayName, progressDisplayName, details, metadata, totalProgress);
         }
     }
 }

@@ -69,7 +69,7 @@ class EventFiringTaskExecuterTest extends Specification {
         buildOperationExecutor.operations[0].name == ":a"
         buildOperationExecutor.operations[0].displayName == "Task :a"
         buildOperationExecutor.operations[0].progressDisplayName == ":a"
-        buildOperationExecutor.operations[0].operationType == BuildOperationCategory.TASK
+        buildOperationExecutor.operations[0].metadata == BuildOperationCategory.TASK
     }
 
     def "does not run task action when beforeExecute event fails"() {
