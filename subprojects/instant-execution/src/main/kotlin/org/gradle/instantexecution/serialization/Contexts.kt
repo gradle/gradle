@@ -127,6 +127,10 @@ class DefaultWriteContext(
         while (true) {
             val call = nextWriteCall() ?: break
             val k = call.k
+            if (Thread.interrupted()) {
+                k.resumeWithException(InterruptedException())
+                continue
+            }
             val result = try {
                 unsafeWrite.invoke(call.value, k)
             } catch (error: Throwable) {
@@ -352,6 +356,10 @@ class DefaultReadContext(
         while (true) {
             val call = nextReadCall()
                 ?: return readCallResult.getOrThrow()
+            if (Thread.interrupted()) {
+                call.resumeWithException(InterruptedException())
+                continue
+            }
             val result = try {
                 unsafeRead.invoke(call)
             } catch (error: Throwable) {
