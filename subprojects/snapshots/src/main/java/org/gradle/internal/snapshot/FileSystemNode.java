@@ -16,28 +16,12 @@
 
 package org.gradle.internal.snapshot;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
  * Any snapshot in the tree of the virtual file system.
  */
-public interface FileSystemNode {
-
-    /**
-     * Gets a snapshot from the current node with relative path filePath.substring(offset).
-     *
-     * When calling this method, the caller needs to make sure the the snapshot is a child of this node.
-     * Must not include the {@link #getPathToParent()}..
-     */
-    Optional<MetadataSnapshot> getSnapshot(VfsRelativePath relativePath, CaseSensitivity caseSensitivity);
-
-    /**
-     * The snapshot information at this node.
-     *
-     * {@link Optional#empty()} if no information is available.
-     */
-    Optional<MetadataSnapshot> getSnapshot();
+public interface FileSystemNode extends ReadOnlyFileSystemNode {
 
     /**
      * Stores information to the virtual file system that we have learned about.
@@ -60,10 +44,4 @@ public interface FileSystemNode {
      * Creates a new node with the same children, but a different path to the parent.
      */
     FileSystemNode withPathToParent(String newPathToParent);
-
-    void accept(SnapshotHierarchy.SnapshotVisitor snapshotVisitor);
-
-    interface NodeVisitor {
-        void visitNode(FileSystemNode node, @Nullable FileSystemNode parent);
-    }
 }

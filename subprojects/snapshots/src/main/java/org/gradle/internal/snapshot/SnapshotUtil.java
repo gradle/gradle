@@ -76,6 +76,63 @@ public class SnapshotUtil {
         return child.getSnapshot(relativePath.fromChild(child.getPathToParent()), caseSensitivity);
     }
 
+    public static ReadOnlyFileSystemNode getChild(List<? extends FileSystemNode> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+        int numberOfChildren = children.size();
+        switch (numberOfChildren) {
+            case 0:
+                return ReadOnlyFileSystemNode.EMPTY;
+            case 1:
+                FileSystemNode onlyChild = children.get(0);
+                return getNodeFromChild(onlyChild, relativePath, caseSensitivity)
+                    .orElse(ReadOnlyFileSystemNode.EMPTY);
+            case 2:
+                FileSystemNode firstChild = children.get(0);
+                FileSystemNode secondChild = children.get(1);
+                return getNodeFromChild(firstChild, relativePath, caseSensitivity)
+                    .orElseGet(() -> getNodeFromChild(secondChild, relativePath, caseSensitivity).orElse(ReadOnlyFileSystemNode.EMPTY));
+            default:
+                if (numberOfChildren < MINIMUM_CHILD_COUNT_FOR_BINARY_SEARCH) {
+                    for (FileSystemNode currentChild : children) {
+                        Optional<ReadOnlyFileSystemNode> node = getNodeFromChild(currentChild, relativePath, caseSensitivity);
+                        if (node.isPresent()) {
+                            return node.get();
+                        }
+                    }
+                    return ReadOnlyFileSystemNode.EMPTY;
+                } else {
+                    int foundChild = SearchUtil.binarySearch(children, child -> relativePath.compareToFirstSegment(child.getPathToParent(), caseSensitivity));
+                    if (foundChild >= 0) {
+                        return getNodeFromChild(children.get(foundChild), relativePath, caseSensitivity).orElse(ReadOnlyFileSystemNode.EMPTY);
+                    }
+                    return ReadOnlyFileSystemNode.EMPTY;
+                }
+        }
+    }
+
+    public static Optional<ReadOnlyFileSystemNode> getNodeFromChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+        return handlePrefix(child.getPathToParent(), relativePath, caseSensitivity, new DescendantHandler<Optional<ReadOnlyFileSystemNode>>() {
+            @Override
+            public Optional<ReadOnlyFileSystemNode> handleDescendant() {
+                return Optional.of(child.getNode(relativePath.fromChild(child.getPathToParent()), caseSensitivity));
+            }
+
+            @Override
+            public Optional<ReadOnlyFileSystemNode> handleParent() {
+                return Optional.of(child.withPathToParent(child.getPathToParent().substring(relativePath.length() + 1)));
+            }
+
+            @Override
+            public Optional<ReadOnlyFileSystemNode> handleSame() {
+                return Optional.of(child);
+            }
+
+            @Override
+            public Optional<ReadOnlyFileSystemNode> handleDifferent(int commonPrefixLength) {
+                return Optional.empty();
+            }
+        });
+    }
+
     public static FileSystemNode storeSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
         return handlePrefix(child.getPathToParent(), relativePath, caseSensitivity, new DescendantHandler<FileSystemNode>() {
             @Override
@@ -193,9 +250,21 @@ public class SnapshotUtil {
     }
 
     private interface DescendantHandler<T> {
+        /**
+         * relativePath is a descendant of prefix.
+         */
         T handleDescendant();
+        /**
+         * relativePath is a parent of prefix.
+         */
         T handleParent();
+        /**
+         * relativePath is the same as prefix.
+         */
         T handleSame();
+        /**
+         * relativePath has a common prefix with prefix, but is different.
+         */
         T handleDifferent(int commonPrefixLength);
     }
 }
