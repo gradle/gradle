@@ -105,15 +105,20 @@ class DefaultWriteContext(
                 }
             }
             else -> {
-                try {
-                    pendingWriteCall = WriteCall(value, continuation)
-                    inCallLoop = true
-                    writeCallLoop()
-                } finally {
-                    inCallLoop = false
-                    pendingWriteCall = null
-                }
+                runWriteCallLoop(value)
             }
+        }
+    }
+
+    private
+    fun runWriteCallLoop(value: Any?) {
+        try {
+            pendingWriteCall = WriteCall(value, continuation)
+            inCallLoop = true
+            writeCallLoop()
+        } finally {
+            inCallLoop = false
+            pendingWriteCall = null
         }
     }
 
@@ -334,16 +339,20 @@ class DefaultReadContext(
                 }
             }
             else -> {
-                try {
-                    pendingReadCall = continuation
-                    inCallLoop = true
-                    readCallLoop()
-                } finally {
-                    inCallLoop = false
-                    pendingReadCall = null
-                    readCallResult = UNDEFINED_RESULT
-                }
+                runReadCallLoop()
             }
+        }
+
+    private
+    fun runReadCallLoop(): Any? =
+        try {
+            pendingReadCall = continuation
+            inCallLoop = true
+            readCallLoop()
+        } finally {
+            inCallLoop = false
+            pendingReadCall = null
+            readCallResult = UNDEFINED_RESULT
         }
 
     private
