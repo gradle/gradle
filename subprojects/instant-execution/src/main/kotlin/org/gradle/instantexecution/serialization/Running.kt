@@ -27,9 +27,7 @@ internal
 fun <T : ReadContext, R> T.runReadOperation(readOperation: suspend T.() -> R): R {
     val callStack = saveCallStack()
     try {
-        return runToCompletion {
-            readOperation()
-        }
+        return runToCompletion(readOperation)
     } finally {
         restoreCallStack(callStack)
     }
@@ -43,9 +41,7 @@ internal
 fun <T : WriteContext> T.runWriteOperation(writeOperation: suspend T.() -> Unit) {
     val callStack = saveCallStack()
     try {
-        runToCompletion {
-            writeOperation()
-        }
+        runToCompletion(writeOperation)
     } finally {
         restoreCallStack(callStack)
     }
@@ -58,9 +54,9 @@ fun <T : WriteContext> T.runWriteOperation(writeOperation: suspend T.() -> Unit)
  */
 @Suppress("unchecked_cast")
 private
-fun <R> runToCompletion(block: suspend () -> R): R {
-    val blockFunction = block as Function1<Continuation<R>, Any?>
-    val result = blockFunction.invoke(continuation)
+fun <T, R> T.runToCompletion(block: suspend T.() -> R): R {
+    val blockFunction = block as Function2<T, Continuation<R>, Any?>
+    val result = blockFunction.invoke(this, continuation)
     require(result !== kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED) {
         "Coroutine didn't run to completion."
     }
