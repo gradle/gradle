@@ -96,6 +96,15 @@ class InstantExecutionCompositeBuildsIntegrationTest extends AbstractInstantExec
         }
 
         when:
+        instantRunLenient("help")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems(expectedProblem)
+            withProblemsWithStackTraceCount(0)
+        }
+
+        when:
         instantFails("help")
 
         then:
