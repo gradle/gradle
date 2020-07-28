@@ -52,37 +52,28 @@ class DefaultArtifactTypeRegistryTest extends Specification {
 
     def "does not apply any mapping when no artifact types registered"() {
         def attrs = ImmutableAttributes.EMPTY
-        def variant = Stub(VariantResolveMetadata)
-
-        given:
-        variant.attributes >> attrs
 
         expect:
-        registry.mapAttributesFor(variant) == attrs
+        registry.mapAttributesFor(attrs, []) == attrs
     }
 
     def "does not apply any mapping when variant has no artifacts"() {
         def attrs = ImmutableAttributes.EMPTY
-        def variant = Stub(VariantResolveMetadata)
 
         given:
-        variant.attributes >> attrs
-        variant.artifacts >> ImmutableList.of()
+        registry.create().create("aar")
 
         expect:
-        registry.mapAttributesFor(variant) == attrs
+        registry.mapAttributesFor(attrs, []) == attrs
     }
 
     def "adds artifactType attribute but does not apply any mapping when no matching artifact type"() {
         def attrs = ImmutableAttributes.EMPTY
         def attrsPlusFormat = concat(attrs, ["artifactType": "jar"])
-        def variant = Stub(VariantResolveMetadata)
         def artifact = Stub(ComponentArtifactMetadata)
         def artifactName = Stub(IvyArtifactName)
 
         given:
-        variant.attributes >> attrs
-        variant.artifacts >> ImmutableList.of(artifact)
         artifact.name >> artifactName
         artifactName.extension >> "jar"
         artifactName.type >> "jar"
@@ -90,19 +81,16 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         registry.create().create("aar")
 
         expect:
-        registry.mapAttributesFor(variant) == attrsPlusFormat
+        registry.mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
     }
 
     def "applies mapping when no attributes defined for matching type"() {
         def attrs = ImmutableAttributes.EMPTY
         def attrsPlusFormat = concat(attrs, ["artifactType": "jar"])
-        def variant = Stub(VariantResolveMetadata)
         def artifact = Stub(ComponentArtifactMetadata)
         def artifactName = Stub(IvyArtifactName)
 
         given:
-        variant.attributes >> attrs
-        variant.artifacts >> ImmutableList.of(artifact)
         artifact.name >> artifactName
         artifactName.extension >> "jar"
         artifactName.type >> "jar"
@@ -110,19 +98,16 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         registry.create().create("jar")
 
         expect:
-        registry.mapAttributesFor(variant) == attrsPlusFormat
+        registry.mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
     }
 
     def "applies mapping to matching artifact type"() {
         def attrs = ImmutableAttributes.EMPTY
         def attrsPlusFormat = concat(attrs, ["artifactType": "jar", "custom": "123"])
-        def variant = Stub(VariantResolveMetadata)
         def artifact = Stub(ComponentArtifactMetadata)
         def artifactName = Stub(IvyArtifactName)
 
         given:
-        variant.attributes >> attrs
-        variant.artifacts >> ImmutableList.of(artifact)
         artifact.name >> artifactName
         artifactName.extension >> "jar"
         artifactName.type >> "jar"
@@ -130,20 +115,17 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         registry.create().create("jar").attributes.attribute(Attribute.of("custom", String), "123")
 
         expect:
-        registry.mapAttributesFor(variant) == attrsPlusFormat
+        registry.mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
     }
 
     def "does not apply mapping when multiple artifacts with different types"() {
         def attrs = ImmutableAttributes.EMPTY
-        def variant = Stub(VariantResolveMetadata)
         def artifact1 = Stub(ComponentArtifactMetadata)
         def artifactName1 = Stub(IvyArtifactName)
         def artifact2 = Stub(ComponentArtifactMetadata)
         def artifactName2 = Stub(IvyArtifactName)
 
         given:
-        variant.attributes >> attrs
-        variant.artifacts >> ImmutableList.of(artifact1, artifact2)
         artifact1.name >> artifactName1
         artifactName1.extension >> "jar"
         artifactName1.type >> "jar"
@@ -155,7 +137,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         registry.create().create("zip").attributes.attribute(Attribute.of("custom", String), "234")
 
         expect:
-        registry.mapAttributesFor(variant) == attrs
+        registry.mapAttributesFor(attrs, [artifact1, artifact2]) == attrs
     }
 
     def "maps only artifactType attribute for arbitrary files when no extensions are registered"() {
