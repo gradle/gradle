@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.internal.file.Chmod;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.io.FilterReader;
 import java.io.IOException;
@@ -43,6 +44,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     private Integer mode;
     private DuplicatesStrategy duplicatesStrategy;
 
+    @Inject
     public DefaultFileCopyDetails(FileVisitDetails fileDetails, CopySpecResolver specResolver, Chmod chmod) {
         super(chmod);
         this.filterChain = new FilterChain(specResolver.getFilteringCharset());
