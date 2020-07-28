@@ -38,6 +38,7 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.bubbleUp
 import org.gradle.instantexecution.serialization.codecs.transform.FixedDependenciesResolver
 import org.gradle.instantexecution.serialization.decodePreservingIdentity
 import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
@@ -64,13 +65,14 @@ class FileCollectionCodec(
                 onSuccess { elements ->
                     write(elements)
                 }
-                onFailure { ex ->
-                    logPropertyProblem("serialize", ex) {
+                onFailure { error ->
+                    error.bubbleUp()
+                    logPropertyProblem("serialize", error) {
                         text("value ")
                         reference(value.toString())
                         text(" failed to visit file collection")
                     }
-                    write(BrokenValue(ex))
+                    write(BrokenValue(error))
                 }
             }
         }

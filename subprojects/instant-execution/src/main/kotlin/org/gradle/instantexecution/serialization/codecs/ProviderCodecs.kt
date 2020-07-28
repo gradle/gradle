@@ -41,6 +41,7 @@ import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.bubbleUp
 import org.gradle.instantexecution.serialization.decodePreservingSharedIdentity
 import org.gradle.instantexecution.serialization.encodePreservingSharedIdentityOf
 import org.gradle.instantexecution.serialization.logPropertyProblem
@@ -62,14 +63,15 @@ class FixedValueReplacingProviderCodec(valueSourceProviderFactory: ValueSourcePr
     suspend fun WriteContext.encodeProvider(value: ProviderInternal<*>) {
         val state = try {
             value.calculateExecutionTimeValue()
-        } catch (e: Exception) {
-            logPropertyProblem("serialize", e) {
+        } catch (error: Exception) {
+            error.bubbleUp()
+            logPropertyProblem("serialize", error) {
                 text("value ")
                 reference(value.toString())
                 text(" failed to unpack provider")
             }
             writeByte(0)
-            write(BrokenValue(e))
+            write(BrokenValue(error))
             return
         }
         encodeValue(state)

@@ -22,6 +22,7 @@ import org.gradle.instantexecution.serialization.EncodingProvider
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
+import org.gradle.instantexecution.serialization.bubbleUp
 import org.gradle.instantexecution.serialization.codecs.BrokenValue
 import org.gradle.instantexecution.serialization.codecs.Decoding
 import org.gradle.instantexecution.serialization.codecs.Encoding
@@ -167,13 +168,14 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
                         writeClass(beanType)
                         record.run { playback() }
                     }
-                    onFailure { ex ->
-                        logPropertyProblem("serialize", ex, NotYetImplementedJavaSerialization) {
+                    onFailure { error ->
+                        error.bubbleUp()
+                        logPropertyProblem("serialize", error, NotYetImplementedJavaSerialization) {
                             failedJOS(value)
                         }
                         writeEnum(Format.Broken)
                         writeClass(beanType)
-                        write(BrokenValue(ex))
+                        write(BrokenValue(error))
                     }
                 }
             }

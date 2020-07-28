@@ -19,15 +19,14 @@ package org.gradle.instantexecution.serialization.beans
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
 import org.gradle.instantexecution.InstantExecutionError
-import org.gradle.instantexecution.InstantExecutionProblemsException
 import org.gradle.instantexecution.extensions.maybeUnwrapInvocationTargetException
 import org.gradle.instantexecution.problems.PropertyKind
 import org.gradle.instantexecution.problems.propertyDescriptionFor
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.bubbleUp
 import org.gradle.instantexecution.serialization.logPropertyInfo
-import java.io.IOException
 
 
 class BeanPropertyWriter(
@@ -69,11 +68,8 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
     withPropertyTrace(kind, name) {
         try {
             write(value)
-        } catch (passThrough: IOException) {
-            throw passThrough
-        } catch (passThrough: InstantExecutionProblemsException) {
-            throw passThrough
         } catch (error: Exception) {
+            error.bubbleUp()
             throw InstantExecutionError(
                 propertyErrorMessage(value),
                 error.maybeUnwrapInvocationTargetException()
