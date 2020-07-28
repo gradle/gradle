@@ -1,6 +1,8 @@
 
 dependencies {
     implementation(project(":basics"))
+    implementation(project(":dependencyModules"))
+    implementation(project(":jvm"))
 
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")
     implementation(kotlin("gradle-plugin"))

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gradlebuild.kotlindsl.tasks
+package gradlebuild.kotlindsl.compiler.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
