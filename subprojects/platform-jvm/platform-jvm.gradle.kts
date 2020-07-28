@@ -23,9 +23,11 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.guava)
     implementation(libs.commonsLang)
+    implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.inject)
     implementation(libs.asm)
+    implementation(libs.nativePlatform)
 
     testImplementation(project(":snapshots"))
     testImplementation(libs.ant)
