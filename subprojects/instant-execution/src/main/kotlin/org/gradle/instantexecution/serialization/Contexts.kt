@@ -100,8 +100,8 @@ class DefaultWriteContext(
                 }
             }
             pendingWriteCall === null -> {
-                pendingWriteCall = WriteCall(value, continuation)
                 try {
+                    pendingWriteCall = WriteCall(value, continuation)
                     writeCallLoop()
                 } finally {
                     pendingWriteCall = null
@@ -309,11 +309,12 @@ class DefaultReadContext(
                 }
             }
             pendingReadCall === null -> {
-                pendingReadCall = continuation
                 try {
+                    pendingReadCall = continuation
                     readCallLoop()
                 } finally {
                     pendingReadCall = null
+                    readCallResult = UNDEFINED_RESULT
                 }
             }
             else -> suspendCoroutine { k ->
@@ -325,19 +326,15 @@ class DefaultReadContext(
     fun readCallLoop(): Any? {
         @Suppress("unchecked_cast")
         val unsafeRead = ::stackUnsafeRead as Function1<Continuation<Any?>, Any?>
-        try {
-            while (true) {
-                val call = pendingReadCall!!
-                val result = unsafeRead.invoke(call)
-                if (result !== COROUTINE_SUSPENDED) {
-                    call.resume(result)
-                }
-                if (pendingReadCall === null) {
-                    return readCallResult.getOrThrow()
-                }
+        while (true) {
+            val call = pendingReadCall!!
+            val result = unsafeRead.invoke(call)
+            if (result !== COROUTINE_SUSPENDED) {
+                call.resume(result)
             }
-        } finally {
-            readCallResult = UNDEFINED_RESULT
+            if (pendingReadCall === null) {
+                return readCallResult.getOrThrow()
+            }
         }
     }
 
