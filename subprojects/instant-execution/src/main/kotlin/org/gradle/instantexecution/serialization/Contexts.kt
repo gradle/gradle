@@ -92,7 +92,11 @@ class DefaultWriteContext(
 
     override suspend fun write(value: Any?) {
         when {
-            pendingWriteCall === null && writeCallDepth < MAX_STACK_DEPTH -> {
+            inCallLoop -> suspendCoroutineUninterceptedOrReturn<Unit> { k ->
+                pendingWriteCall = WriteCall(value, k)
+                COROUTINE_SUSPENDED
+            }
+            writeCallDepth < MAX_STACK_DEPTH -> {
                 try {
                     writeCallDepth += 1
                     stackUnsafeWrite(value)
@@ -100,27 +104,28 @@ class DefaultWriteContext(
                     writeCallDepth -= 1
                 }
             }
-            pendingWriteCall === null -> {
+            else -> {
                 try {
                     pendingWriteCall = WriteCall(value, continuation)
+                    inCallLoop = true
                     writeCallLoop()
                 } finally {
+                    inCallLoop = false
                     pendingWriteCall = null
                 }
             }
-            else -> suspendCoroutineUninterceptedOrReturn<Unit> { k ->
-                pendingWriteCall = WriteCall(value, k)
-                COROUTINE_SUSPENDED
-            }
         }
     }
+
+    private
+    var inCallLoop = false
 
     private
     fun writeCallLoop() {
         @Suppress("unchecked_cast")
         val unsafeWrite = ::stackUnsafeWrite as Function2<Any?, Continuation<Unit>, Any>
         while (true) {
-            val call = pendingWriteCall ?: break
+            val call = nextWriteCall() ?: break
             val k = call.k
             val result = try {
                 unsafeWrite.invoke(call.value, k)
@@ -132,6 +137,11 @@ class DefaultWriteContext(
                 k.resume(Unit)
             }
         }
+    }
+
+    private
+    fun nextWriteCall() = pendingWriteCall?.also {
+        pendingWriteCall = null
     }
 
     private
@@ -307,7 +317,11 @@ class DefaultReadContext(
             immediateMode -> {
                 stackUnsafeRead()
             }
-            pendingReadCall === null && readCallDepth < MAX_STACK_DEPTH -> {
+            inCallLoop -> suspendCoroutineUninterceptedOrReturn { k ->
+                pendingReadCall = k
+                COROUTINE_SUSPENDED
+            }
+            readCallDepth < MAX_STACK_DEPTH -> {
                 try {
                     readCallDepth += 1
                     stackUnsafeRead()
@@ -315,27 +329,28 @@ class DefaultReadContext(
                     readCallDepth -= 1
                 }
             }
-            pendingReadCall === null -> {
+            else -> {
                 try {
                     pendingReadCall = continuation
+                    inCallLoop = true
                     readCallLoop()
                 } finally {
+                    inCallLoop = false
                     pendingReadCall = null
                     readCallResult = UNDEFINED_RESULT
                 }
             }
-            else -> suspendCoroutineUninterceptedOrReturn { k ->
-                pendingReadCall = k
-                COROUTINE_SUSPENDED
-            }
         }
+
+    private
+    var inCallLoop = false
 
     private
     fun readCallLoop(): Any? {
         @Suppress("unchecked_cast")
         val unsafeRead = ::stackUnsafeRead as Function1<Continuation<Any?>, Any?>
         while (true) {
-            val call = pendingReadCall
+            val call = nextReadCall()
                 ?: return readCallResult.getOrThrow()
             val result = try {
                 unsafeRead.invoke(call)
@@ -347,6 +362,11 @@ class DefaultReadContext(
                 call.resume(result)
             }
         }
+    }
+
+    private
+    fun nextReadCall() = pendingReadCall?.also {
+        pendingReadCall = null
     }
 
     private
