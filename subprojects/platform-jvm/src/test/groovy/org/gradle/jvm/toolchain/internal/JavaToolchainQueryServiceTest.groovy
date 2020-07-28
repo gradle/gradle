@@ -21,6 +21,8 @@ import org.gradle.api.file.Directory
 import org.gradle.api.internal.file.FileFactory
 import org.gradle.jvm.toolchain.JavaInstallation
 import org.gradle.jvm.toolchain.JavaInstallationRegistry
+import org.gradle.jvm.toolchain.JavaToolchainSpec
+import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -80,6 +82,29 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         !toolchain.isPresent()
+    }
+
+    def "install toolchain if no matching toolchain found"() {
+        given:
+        def registry = createInstallationRegistry([])
+        def toolchainFactory = newToolchainFactory()
+        def installed = false
+        def provisionService = new JavaToolchainProvisioningService() {
+            Optional<File> tryInstall(JavaToolchainSpec spec) {
+                installed = true
+                Optional.of(new File("/path/12"))
+            }
+        }
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, provisionService)
+
+        when:
+        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        filter.languageVersion.set(JavaVersion.VERSION_12)
+        def toolchain = queryService.findMatchingToolchain(filter)
+        toolchain.get()
+
+        then:
+        installed
     }
 
     private JavaToolchainFactory newToolchainFactory() {
