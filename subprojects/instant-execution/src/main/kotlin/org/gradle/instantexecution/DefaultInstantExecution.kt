@@ -38,6 +38,7 @@ import org.gradle.instantexecution.serialization.runWriteOperation
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.internal.Factory
 import org.gradle.internal.classpath.Instrumented
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
@@ -59,7 +60,8 @@ class DefaultInstantExecution internal constructor(
     private val cacheFingerprintController: InstantExecutionCacheFingerprintController,
     private val beanConstructors: BeanConstructors,
     private val gradlePropertiesController: GradlePropertiesController,
-    private val relevantProjectsRegistry: RelevantProjectsRegistry
+    private val relevantProjectsRegistry: RelevantProjectsRegistry,
+    private val listenerManager: ListenerManager
 ) : InstantExecution {
 
     interface Host {
@@ -147,8 +149,6 @@ class DefaultInstantExecution internal constructor(
             return
         }
 
-        problems.storing()
-
         // TODO - fingerprint should be collected until the state file has been written, as user code can run during this process
         // Moving this is currently broken because the Jar task queries provider values when serializing the manifest file tree and this
         // can cause the provider value to incorrectly be treated as a task graph input
@@ -157,10 +157,13 @@ class DefaultInstantExecution internal constructor(
 
         buildOperationExecutor.withStoreOperation {
             cache.useForStore(cacheKey.string) { layout ->
+                problems.storing {
+                    invalidateInstantExecutionState(layout)
+                }
                 try {
                     writeInstantExecutionFiles(layout)
                 } catch (error: InstantExecutionError) {
-                    // Invalidate state on problems that fail the build
+                    // Invalidate state on serialization errors
                     invalidateInstantExecutionState(layout)
                     problems.failingBuildDueToSerializationError()
                     throw error

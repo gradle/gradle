@@ -82,6 +82,9 @@ class InstantExecutionProblems(
     private
     var cacheAction: InstantExecutionCacheAction? = null
 
+    private
+    var invalidateStoredState: (() -> Unit)? = null
+
     init {
         listenerManager.addListener(problemHandler)
         listenerManager.addListener(buildFinishedHandler)
@@ -94,8 +97,9 @@ class InstantExecutionProblems(
         listenerManager.removeListener(postBuildHandler)
     }
 
-    fun storing() {
+    fun storing(invalidateState: () -> Unit) {
         cacheAction = STORE
+        invalidateStoredState = invalidateState
     }
 
     fun loading() {
@@ -129,6 +133,11 @@ class InstantExecutionProblems(
             if (result.gradle?.parent != null || cacheAction == null || problems.isEmpty()) {
                 return
             }
+            val tooManyProblems = problems.size > startParameter.maxProblems
+            if (cacheAction == STORE && (isFailOnProblems || tooManyProblems)) {
+                // Invalidate stored state if problems fail the build
+                invalidateStoredState!!()
+            }
             val cacheActionText = requireNotNull(cacheAction).summaryText()
             val outputDirectory = outputDirectoryFor(result.gradle?.rootProject?.buildDir ?: startParameter.rootDirectory)
             val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, problems)
@@ -137,7 +146,7 @@ class InstantExecutionProblems(
                     // TODO - always include this as a build failure; currently it is disabled when a serialization problem happens
                     throw newProblemsException(cacheActionText, htmlReportFile)
                 }
-                problems.size > startParameter.maxProblems -> {
+                tooManyProblems -> {
                     throw newTooManyProblemsException(cacheActionText, htmlReportFile)
                 }
                 else -> {
@@ -191,6 +200,8 @@ class InstantExecutionProblems(
             when {
                 isFailingBuildDueToSerializationError && problems.isEmpty() -> log("Configuration cache entry discarded.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCount)
+                cacheAction == STORE && isFailOnProblems && problems.isNotEmpty() -> log("Configuration cache entry discarded with {}.", problemCount)
+                cacheAction == STORE && problems.size > startParameter.maxProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCount)
                 cacheAction == LOAD && problems.isEmpty() -> log("Configuration cache entry reused.")
                 cacheAction == LOAD -> log("Configuration cache entry reused with {}.", problemCount)
                 problems.isEmpty() -> log("Configuration cache entry stored.")
