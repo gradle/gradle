@@ -30,15 +30,14 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
     @Unroll
     def "generates url for jdk #jdkVersion on #operatingSystemName (#architecture)"() {
         given:
-        def spec = new DefaultToolchainSpec(TestUtil.objectFactory())
-        spec.languageVersion.set(JavaVersion.toVersion(jdkVersion))
+        def spec = newSpec(jdkVersion)
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> architecture
         def operatingSystem = OperatingSystem.forName(operatingSystemName)
         def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem)
 
         when:
-        def uri = binary.getUri(spec)
+        def uri = binary.toDownloadUrl(spec)
 
         then:
         uri.toString() == "https://api.adoptopenjdk.net/v3/binary/latest" + expectedPath
@@ -58,20 +57,48 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
     }
 
     @Unroll
+    def "generates filename for jdk #jdkVersion on #operatingSystemName (#architecture)"() {
+        given:
+        def spec = newSpec(jdkVersion)
+        def systemInfo = Mock(SystemInfo)
+        systemInfo.architecture >> architecture
+        def operatingSystem = OperatingSystem.forName(operatingSystemName)
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem)
+
+        when:
+        def filename = binary.toFilename(spec)
+
+        then:
+        filename == expectedFilename
+
+        where:
+        jdkVersion | operatingSystemName | architecture                    | expectedFilename
+        11         | "Windows"           | SystemInfo.Architecture.amd64   | "adoptopenjdk-11-x64-windows.zip"
+        12         | "Windows"           | SystemInfo.Architecture.i386    | "adoptopenjdk-12-x32-windows.zip"
+        13         | "Windows"           | SystemInfo.Architecture.aarch64 | "adoptopenjdk-13-aarch64-windows.zip"
+        11         | "Linux"             | SystemInfo.Architecture.amd64   | "adoptopenjdk-11-x64-linux.tar.gz"
+        12         | "Linux"             | SystemInfo.Architecture.i386    | "adoptopenjdk-12-x32-linux.tar.gz"
+        13         | "Linux"             | SystemInfo.Architecture.aarch64 | "adoptopenjdk-13-aarch64-linux.tar.gz"
+        11         | "Mac OS X"          | SystemInfo.Architecture.amd64   | "adoptopenjdk-11-x64-mac.tar.gz"
+        12         | "Darwin"            | SystemInfo.Architecture.i386    | "adoptopenjdk-12-x32-mac.tar.gz"
+        13         | "OSX"               | SystemInfo.Architecture.aarch64 | "adoptopenjdk-13-aarch64-mac.tar.gz"
+        13         | "Solaris"           | SystemInfo.Architecture.i386    | "adoptopenjdk-13-x32-solaris.tar.gz"
+    }
+
+    @Unroll
     def "uses configured base uri #customBaseUrl if available"() {
         given:
-        def spec = new DefaultToolchainSpec(TestUtil.objectFactory())
-        spec.languageVersion.set(JavaVersion.VERSION_11)
+        def spec = newSpec()
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
-        def operatingSystem = OperatingSystem.forName("OSX")
+        def operatingSystem = OperatingSystem.MAC_OS
         def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem)
 
         when:
         def uri
         def properties = ["org.gradle.jvm.toolchain.install.internal.adoptopenjdk.baseUri": customBaseUrl]
         SystemProperties.getInstance().withSystemProperties(properties, {
-            uri = binary.getUri(spec)
+            uri = binary.toDownloadUrl(spec)
         })
 
         then:
@@ -81,4 +108,41 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         customBaseUrl << ["http://foobar", "http://foobar/"]
     }
 
+    @Unroll
+    def "can download toolchain"() {
+        given:
+        def spec = newSpec()
+        def systemInfo = Mock(SystemInfo)
+        systemInfo.architecture >> SystemInfo.Architecture.amd64
+        def operatingSystem = OperatingSystem.MAC_OS
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem)
+        def downloadServer = setupApiOnFilesystem()
+
+        when:
+        def properties = ["org.gradle.jvm.toolchain.install.internal.adoptopenjdk.baseUri": "file://" + downloadServer]
+        def downloadedJdk
+        SystemProperties.getInstance().withSystemProperties(properties, {
+            downloadedJdk = binary.download(spec)
+        })
+
+        then:
+        downloadedJdk.exists()
+        downloadedJdk.text == "binary"
+
+    }
+
+    def setupApiOnFilesystem() {
+        def downloadServer = File.createTempDir()
+        def apiPath = new File(downloadServer, "/v3/binary/latest/11/ga/mac/x64/jdk/hotspot/normal/")
+        apiPath.mkdirs()
+        def jdk = new File(apiPath, "adoptopenjdk")
+        jdk << "binary"
+        downloadServer.absolutePath
+    }
+
+    def newSpec(int jdkVersion = 11) {
+        def spec = new DefaultToolchainSpec(TestUtil.objectFactory())
+        spec.languageVersion.set(JavaVersion.toVersion(jdkVersion))
+        spec
+    }
 }
