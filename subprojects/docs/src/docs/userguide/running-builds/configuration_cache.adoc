@@ -357,9 +357,11 @@ Running that task fails and print the following in the console:
 ----
 ❯ gradle --configuration-cache someTask -DsomeMessage=hello
 ...
-include::{snippetsPath}/configurationCache/problemsGroovy/tests/store.out[]
-Configuration cache entry stored.
+include::{snippetsPath}/configurationCache/problemsGroovy/tests/fail.out[]
+Configuration cache entry discarded with 2 problems.
 ----
+
+The configuration cache entry was discarded because of the found problems failing the build.
 
 Details can be found in the linked HTML report:
 
@@ -380,29 +382,34 @@ When changing your build or plugin to fix the problems you should consider <<con
 
 At this stage, you can decide to either <<configuration_cache#config_cache:usage:ignore_problems, turn the problems into warnings>> and continue exploring how your build reacts to the configuration cache, or fix the problems at hand.
 
-Let's ignore the problems reported when storing the configuration cache, and run the same build again to see what happens when reusing the problematic cached configuration:
+Let's ignore the reported problems, and run the same build again twice to see what happens when reusing the cached problematic configuration:
 
 ----
-❯ gradle --configuration-cache someTask -DsomeDestination=dest
-...
+❯ gradle --configuration-cache --configuration-cache-problems=warn someTask -DsomeDestination=dest
+include::{snippetsPath}/configurationCache/problemsGroovy/tests/store.out[]
+Configuration cache entry stored with 2 problems.
+❯ gradle --configuration-cache --configuration-cache-problems=warn someTask -DsomeDestination=dest
 include::{snippetsPath}/configurationCache/problemsGroovy/tests/load.out[]
-Configuration cache entry reused.
+Configuration cache entry reused with 1 problem.
 ----
 
-The build fails again, reporting the observed problems.
-The first problem that happened at configuration time when storing is not reported given the configuration phase was skipped.
-The second problem about using `Project` at execution time is reported.
+The two builds succeed reporting the observed problems, storing then reusing the configuration cache.
+The first problem, that happens at configuration time when storing, is not reported on the second run, reusing the configuration cache.
+The configuration phase was skipped.
+The second problem about using `Project` at execution time is reported in both when storing and reusing.
+Both builds did execute the task.
 
 With the help of the links present in the console problem summary and in the HTML report we can fix our problems.
-Here's a fixed version of the build script:
+Here's some fixed version of the build script:
 
 ====
 include::sample[dir="snippets/configurationCache/problemsFixed/groovy",files="build.gradle[tags=fixed]"]
 include::sample[dir="snippets/configurationCache/problemsFixed/kotlin",files="build.gradle.kts[tags=fixed]"]
 ====
-<1> we turned our ad-hoc task into a proper task class
-<2> this allows the injection of the `FileSystemOperations` service, a supported replacement for `project.copy {}`
-<3> finally, we declare the system property as a build configuration input, used at configuration time and wire it to our task input
+<1> We turned our ad-hoc task into a proper task class,
+<2> with inputs and outputs declaration,
+<3> and injected with the `FileSystemOperations` service, a supported replacement for <<configuration_cache#config_cache:requirements:use_project_during_execution, `project.copy {}`>>.
+<4> Finally, we declared the <<configuration_cache#config_cache:requirements:undeclared_sys_prop_read, system property used at configuration time>> as a build configuration input, and wire it to our task input.
 
 Running the task twice now succeeds without reporting any problem and reusing the configuration cache on the second run:
 
@@ -423,7 +430,7 @@ include::{snippetsPath}/configurationCache/problemsFixed/tests/store-another.out
 Configuration cache entry stored.
 ----
 
-The previous configuration cache entry could not be reused, and the task graph had to be calculated again.
+The previous configuration cache entry could not be reused, and the task graph had to be calculated and stored again.
 This is because we read the system property at configuration time, hence requiring Gradle to run the configuration phase again when the value of that property changes.
 Fixing that is as simple as wiring the system property directly, without reading it at configuration time.
 
@@ -431,9 +438,9 @@ Fixing that is as simple as wiring the system property directly, without reading
 include::sample[dir="snippets/configurationCache/problemsFixedReuse/groovy",files="build.gradle[tags=fixed-reuse]"]
 include::sample[dir="snippets/configurationCache/problemsFixedReuse/kotlin",files="build.gradle.kts[tags=fixed-reuse]"]
 ====
-<1> wire the declared system property directly, without reading it at configuration time
+<1> We wired the declared system property directly, without reading it at configuration time.
 
-With those changes in place we can run the task twice, changing the system property value:
+With this simple change in place we can run the task any number of time, change the system property value, and reuse the configuration cache:
 
 ----
 ❯ gradle --configuration-cache someTask -DsomeDestination=dest
@@ -568,13 +575,14 @@ These types almost never represent a task input or output.
 
 Gradle model types (e.g. `Gradle`, `Settings`, `Project`, `SourceSet`, `Configuration` etc...) are usually used to carry some task input that should be explicitly and precisely declared instead.
 
-For example, if you reference a `Project` in order to get the `project.version` at execution time, you should instead directly declare the _project version_  as an input to your task using a `Property<String>`.
+For example, if you reference a `Project` in order to get the `project.version` at execution time, you should instead directly declare the _project version_ as an input to your task using a `Property<String>`.
 Another example would be to reference a `SourceSet` to later get the source files, the compilation classpath or the outputs of the source set.
 You should instead declare these as a `FileCollection` input and reference just that.
 
 The same requirement applies to dependency management types with some nuances.
 
-Some types, such as `Configuration`, don't make good task input parameters, as they hold a lot of irrelevant state, and it is better to model these inputs as something more precise. We don't intend to make these types serializable at all.
+Some types, such as `Configuration`, don't make good task input parameters, as they hold a lot of irrelevant state, and it is better to model these inputs as something more precise.
+We don't intend to make these types serializable at all.
 For example, if you reference a `Configuration` to later get the resolved files, you should instead declare a `FileCollection` as an input to your task.
 
 Referencing dependency resolution results is also disallowed (e.g. `ArtifactResolutionQuery`, `ResolvedArtifact`, `ArtifactResult` etc...).
@@ -582,7 +590,8 @@ For example, if you reference some `ResolvedArtifactResult` instances, you shoul
 The rule of thumb is that tasks must not reference _resolved_ results, but lazy specifications instead, in order to do the dependency resolution at execution time.
 Some APIs are missing and cannot yet be used as task inputs, for example it is currently not possible for task actions to reason about the dependency _graph_, see link:{gradle-issues}12871[gradle/gradle#12871].
 
-Some types, such as `Publication` or `Dependency` are not serializable, but could be. We may, if necessary, allow these to be used as task inputs directly.
+Some types, such as `Publication` or `Dependency` are not serializable, but could be.
+We may, if necessary, allow these to be used as task inputs directly.
 
 Here's an example of a problematic task type referencing a `SourceSet`:
 
@@ -927,8 +936,7 @@ When running builds using <<test_kit#test_kit, TestKit>>, the configuration cach
 
 Gradle allows objects that support the link:https://docs.oracle.com/javase/8/docs/platform/serialization/spec/serialTOC.html[Java Object Serialization] protocol to be stored in the configuration cache.
 
-The implementation is currently limited to serializable classes that implement the `java.io.Serializable` interface
-and define one of the following combination of methods:
+The implementation is currently limited to serializable classes that implement the `java.io.Serializable` interface and define one of the following combination of methods:
 
 - a `writeObject` method combined with a `readObject` method to control exactly which information to store;
 - a `writeObject` method with no corresponding `readObject`; `writeObject` must eventually call `ObjectOutputStream.defaultWriteObject`;
