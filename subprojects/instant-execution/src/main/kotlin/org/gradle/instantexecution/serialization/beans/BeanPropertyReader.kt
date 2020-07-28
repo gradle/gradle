@@ -16,12 +16,15 @@
 
 package org.gradle.instantexecution.serialization.beans
 
-import org.gradle.api.GradleException
+import org.gradle.instantexecution.InstantExecutionError
+import org.gradle.instantexecution.extensions.maybeUnwrapInvocationTargetException
 import org.gradle.instantexecution.extensions.unsafeLazy
 import org.gradle.instantexecution.problems.PropertyKind
 import org.gradle.instantexecution.problems.PropertyTrace
+import org.gradle.instantexecution.problems.propertyDescriptionFor
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.ReadContext
+import org.gradle.instantexecution.serialization.bubbleUp
 import org.gradle.instantexecution.serialization.logPropertyInfo
 import org.gradle.instantexecution.serialization.logPropertyProblem
 import org.gradle.instantexecution.serialization.ownerService
@@ -30,7 +33,6 @@ import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.service.ServiceRegistry
-import java.io.IOException
 import java.lang.reflect.Field
 
 
@@ -103,12 +105,12 @@ suspend fun ReadContext.readPropertyValue(kind: PropertyKind, name: String, acti
                 read().also {
                     logPropertyInfo("deserialize", it)
                 }
-            } catch (passThrough: IOException) {
-                throw passThrough
-            } catch (passThrough: GradleException) {
-                throw passThrough
-            } catch (e: Exception) {
-                throw GradleException("Could not load the value of $trace.", e)
+            } catch (error: Exception) {
+                error.bubbleUp()
+                throw InstantExecutionError(
+                    "Could not load the value of ${propertyDescriptionFor(trace)}.",
+                    error.maybeUnwrapInvocationTargetException()
+                )
             }
         action(value)
     }
