@@ -101,7 +101,11 @@ class DefaultWriteContext(
             }
             pendingWriteCall === null -> {
                 pendingWriteCall = WriteCall(value, continuation)
-                writeCallLoop()
+                try {
+                    writeCallLoop()
+                } finally {
+                    pendingWriteCall = null
+                }
             }
             else -> suspendCoroutine<Unit> { k ->
                 pendingWriteCall = WriteCall(value, k)
@@ -306,7 +310,11 @@ class DefaultReadContext(
             }
             pendingReadCall === null -> {
                 pendingReadCall = continuation
-                readCallLoop()
+                try {
+                    readCallLoop()
+                } finally {
+                    pendingReadCall = null
+                }
             }
             else -> suspendCoroutine { k ->
                 pendingReadCall = k
