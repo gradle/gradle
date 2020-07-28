@@ -45,7 +45,7 @@ class DefaultCopySpecCodec(
     private val instantiator: Instantiator
 ) : Codec<DefaultCopySpec> {
 
-    override suspend fun WriteContext.encode(value: DefaultCopySpec) {
+    override fun WriteContext.encode(value: DefaultCopySpec) {
         encodePreservingIdentityOf(value) {
             write(value.destPath)
             write(value.sourceRootsForThisSpec)
@@ -61,7 +61,7 @@ class DefaultCopySpecCodec(
         }
     }
 
-    override suspend fun ReadContext.decode(): DefaultCopySpec {
+    override fun ReadContext.decode(): DefaultCopySpec {
         return decodePreservingIdentity { id ->
             val destPath = read() as String?
             val sourceFiles = read() as FileCollection

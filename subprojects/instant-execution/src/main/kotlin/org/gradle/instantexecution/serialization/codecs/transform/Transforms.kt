@@ -50,7 +50,7 @@ sealed class TransformDependencies {
 
 
 object TransformDependenciesCodec : Codec<TransformDependencies> {
-    override suspend fun WriteContext.encode(value: TransformDependencies) {
+    override fun WriteContext.encode(value: TransformDependencies) {
         if (value is TransformDependencies.FileDependencies) {
             writeBoolean(true)
             write(value.files)
@@ -59,7 +59,7 @@ object TransformDependenciesCodec : Codec<TransformDependencies> {
         }
     }
 
-    override suspend fun ReadContext.decode(): TransformDependencies {
+    override fun ReadContext.decode(): TransformDependencies {
         return if (readBoolean()) {
             return TransformDependencies.FileDependencies(read() as FileCollection)
         } else {

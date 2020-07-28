@@ -33,7 +33,7 @@ import org.gradle.internal.Factory
 
 class PatternSetCodec(private val patternSetFactory: Factory<PatternSet>) : Codec<PatternSet> {
 
-    override suspend fun WriteContext.encode(value: PatternSet) {
+    override fun WriteContext.encode(value: PatternSet) {
         writeBoolean(value.isCaseSensitive)
         writeStrings(value.includes)
         writeStrings(value.excludes)
@@ -41,7 +41,7 @@ class PatternSetCodec(private val patternSetFactory: Factory<PatternSet>) : Code
         writeCollection(value.excludeSpecs)
     }
 
-    override suspend fun ReadContext.decode() =
+    override fun ReadContext.decode() =
         patternSetFactory.create()!!.apply {
             isCaseSensitive = readBoolean()
             setIncludes(readStrings())
@@ -57,13 +57,13 @@ class PatternSetCodec(private val patternSetFactory: Factory<PatternSet>) : Code
 
 
 object IntersectPatternSetCodec : Codec<IntersectionPatternSet> {
-    override suspend fun WriteContext.encode(value: IntersectionPatternSet) {
+    override fun WriteContext.encode(value: IntersectionPatternSet) {
         write(value.other)
         writeStrings(value.includes)
         writeStrings(value.excludes)
     }
 
-    override suspend fun ReadContext.decode(): IntersectionPatternSet? {
+    override fun ReadContext.decode(): IntersectionPatternSet? {
         val other = read() as PatternSet
         return IntersectionPatternSet(other).apply {
             setIncludes(readStrings())

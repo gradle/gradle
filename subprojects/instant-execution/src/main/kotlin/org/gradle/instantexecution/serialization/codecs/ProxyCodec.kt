@@ -28,7 +28,7 @@ object ProxyCodec : EncodingProducer, Decoding {
     override fun encodingForType(type: Class<*>): Encoding? =
         ProxyEncoding.takeIf { Proxy.isProxyClass(type) }
 
-    override suspend fun ReadContext.decode(): Any {
+    override fun ReadContext.decode(): Any {
         val interfaces = readClassArray()
         val handler = read() as InvocationHandler
         return Proxy.newProxyInstance(interfaces.first().classLoader, interfaces, handler)
@@ -38,7 +38,7 @@ object ProxyCodec : EncodingProducer, Decoding {
 
 private
 object ProxyEncoding : Encoding {
-    override suspend fun WriteContext.encode(value: Any) {
+    override fun WriteContext.encode(value: Any) {
         writeClassArray(value.javaClass.interfaces)
         write(Proxy.getInvocationHandler(value))
     }

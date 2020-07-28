@@ -30,7 +30,7 @@ import org.gradle.instantexecution.serialization.withBeanTrace
 internal
 class BeanCodec : Codec<Any> {
 
-    override suspend fun WriteContext.encode(value: Any) {
+    override fun WriteContext.encode(value: Any) {
         encodePreservingIdentityOf(value) {
             val beanType = GeneratedSubclasses.unpackType(value)
             withBeanTrace(beanType) {
@@ -39,7 +39,7 @@ class BeanCodec : Codec<Any> {
         }
     }
 
-    override suspend fun ReadContext.decode(): Any? =
+    override fun ReadContext.decode(): Any? =
         decodePreservingIdentity { id ->
             val beanType = readClass()
             val generated = readBoolean()
@@ -49,7 +49,7 @@ class BeanCodec : Codec<Any> {
         }
 
     private
-    suspend fun WriteContext.writeBeanOf(beanType: Class<*>, value: Any) {
+    fun WriteContext.writeBeanOf(beanType: Class<*>, value: Any) {
         writeClass(beanType)
         // TODO - should collect the details of the decoration (eg enabled annotations, etc), and also carry this information with the serialized class reference
         //  instead of separately for each bean
@@ -61,7 +61,7 @@ class BeanCodec : Codec<Any> {
     }
 
     private
-    suspend fun ReadContext.readBeanOf(beanType: Class<*>, generated: Boolean, id: Int): Any {
+    fun ReadContext.readBeanOf(beanType: Class<*>, generated: Boolean, id: Int): Any {
         val beanReader = beanStateReaderFor(beanType)
         val bean = beanReader.run { newBeanWithId(generated, id) }
         val effectiveBeanType = bean.javaClass

@@ -60,7 +60,7 @@ class FixedValueReplacingProviderCodec(valueSourceProviderFactory: ValueSourcePr
         bind(BeanCodec())
     }
 
-    suspend fun WriteContext.encodeProvider(value: ProviderInternal<*>) {
+    fun WriteContext.encodeProvider(value: ProviderInternal<*>) {
         val state = try {
             value.calculateExecutionTimeValue()
         } catch (error: Exception) {
@@ -77,7 +77,7 @@ class FixedValueReplacingProviderCodec(valueSourceProviderFactory: ValueSourcePr
         encodeValue(state)
     }
 
-    suspend fun WriteContext.encodeValue(value: ValueSupplier.ExecutionTimeValue<*>) {
+    fun WriteContext.encodeValue(value: ValueSupplier.ExecutionTimeValue<*>) {
         if (value.isMissing) {
             // Can serialize a fixed value and discard the provider
             // TODO - should preserve information about the source, for diagnostics at execution time
@@ -94,11 +94,11 @@ class FixedValueReplacingProviderCodec(valueSourceProviderFactory: ValueSourcePr
         }
     }
 
-    suspend fun ReadContext.decodeProvider(): ProviderInternal<*> {
+    fun ReadContext.decodeProvider(): ProviderInternal<*> {
         return decodeValue().toProvider()
     }
 
-    suspend fun ReadContext.decodeValue(): ValueSupplier.ExecutionTimeValue<*> {
+    fun ReadContext.decodeValue(): ValueSupplier.ExecutionTimeValue<*> {
         return when (readByte()) {
             0.toByte() -> {
                 val value = read() as BrokenValue
@@ -118,18 +118,18 @@ class FixedValueReplacingProviderCodec(valueSourceProviderFactory: ValueSourcePr
  */
 class
 ProviderCodec(private val providerCodec: FixedValueReplacingProviderCodec) : Codec<ProviderInternal<*>> {
-    override suspend fun WriteContext.encode(value: ProviderInternal<*>) {
+    override fun WriteContext.encode(value: ProviderInternal<*>) {
         // TODO - should write the provider value type
         providerCodec.run { encodeProvider(value) }
     }
 
-    override suspend fun ReadContext.decode() = providerCodec.run { decodeProvider() }
+    override fun ReadContext.decode() = providerCodec.run { decodeProvider() }
 }
 
 
 class
 BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInternal) : Codec<BuildServiceProvider<*, *>> {
-    override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
+    override fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
         encodePreservingSharedIdentityOf(value) {
             writeString(value.name)
             writeClass(value.implementationType)
@@ -138,7 +138,7 @@ BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInter
         }
     }
 
-    override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? =
+    override fun ReadContext.decode(): BuildServiceProvider<*, *>? =
         decodePreservingSharedIdentity {
             val name = readString()
             val implementationType = readClassOf<BuildService<*>>()
@@ -154,7 +154,7 @@ ValueSourceProviderCodec(
     private val valueSourceProviderFactory: ValueSourceProviderFactory
 ) : Codec<ValueSourceProvider<*, *>> {
 
-    override suspend fun WriteContext.encode(value: ValueSourceProvider<*, *>) {
+    override fun WriteContext.encode(value: ValueSourceProvider<*, *>) {
         when (value.obtainedValueOrNull) {
             null -> {
                 // source has **NOT** been used as build logic input:
@@ -173,14 +173,14 @@ ValueSourceProviderCodec(
         }
     }
 
-    override suspend fun ReadContext.decode(): ValueSourceProvider<*, *>? =
+    override fun ReadContext.decode(): ValueSourceProvider<*, *>? =
         when (readBoolean()) {
             true -> decodeValueSource()
             false -> throw IllegalStateException()
         }
 
     private
-    suspend fun WriteContext.encodeValueSource(value: ValueSourceProvider<*, *>) {
+    fun WriteContext.encodeValueSource(value: ValueSourceProvider<*, *>) {
         encodePreservingSharedIdentityOf(value) {
             value.run {
                 writeClass(valueSourceType)
@@ -191,7 +191,7 @@ ValueSourceProviderCodec(
     }
 
     private
-    suspend fun ReadContext.decodeValueSource(): ValueSourceProvider<*, *> =
+    fun ReadContext.decodeValueSource(): ValueSourceProvider<*, *> =
         decodePreservingSharedIdentity {
             val valueSourceType = readClass()
             val parametersType = readClass()
@@ -209,12 +209,12 @@ ValueSourceProviderCodec(
 
 class
 PropertyCodec(private val propertyFactory: PropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultProperty<*>> {
-    override suspend fun WriteContext.encode(value: DefaultProperty<*>) {
+    override fun WriteContext.encode(value: DefaultProperty<*>) {
         writeClass(value.type as Class<*>)
         providerCodec.run { encodeProvider(value.provider) }
     }
 
-    override suspend fun ReadContext.decode(): DefaultProperty<*> {
+    override fun ReadContext.decode(): DefaultProperty<*> {
         val type: Class<Any> = readClass().uncheckedCast()
         val provider = providerCodec.run { decodeProvider() }
         return propertyFactory.property(type).provider(provider)
@@ -224,11 +224,11 @@ PropertyCodec(private val propertyFactory: PropertyFactory, private val provider
 
 class
 DirectoryPropertyCodec(private val filePropertyFactory: FilePropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultDirectoryVar> {
-    override suspend fun WriteContext.encode(value: DefaultDirectoryVar) {
+    override fun WriteContext.encode(value: DefaultDirectoryVar) {
         providerCodec.run { encodeProvider(value.provider) }
     }
 
-    override suspend fun ReadContext.decode(): DefaultDirectoryVar {
+    override fun ReadContext.decode(): DefaultDirectoryVar {
         val provider: Provider<Directory> = providerCodec.run { decodeProvider() }.uncheckedCast()
         return filePropertyFactory.newDirectoryProperty().value(provider) as DefaultDirectoryVar
     }
@@ -237,11 +237,11 @@ DirectoryPropertyCodec(private val filePropertyFactory: FilePropertyFactory, pri
 
 class
 RegularFilePropertyCodec(private val filePropertyFactory: FilePropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultRegularFileVar> {
-    override suspend fun WriteContext.encode(value: DefaultRegularFileVar) {
+    override fun WriteContext.encode(value: DefaultRegularFileVar) {
         providerCodec.run { encodeProvider(value.provider) }
     }
 
-    override suspend fun ReadContext.decode(): DefaultRegularFileVar {
+    override fun ReadContext.decode(): DefaultRegularFileVar {
         val provider: Provider<RegularFile> = providerCodec.run { decodeProvider() }.uncheckedCast()
         return filePropertyFactory.newFileProperty().value(provider) as DefaultRegularFileVar
     }
@@ -250,12 +250,12 @@ RegularFilePropertyCodec(private val filePropertyFactory: FilePropertyFactory, p
 
 class
 ListPropertyCodec(private val propertyFactory: PropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultListProperty<*>> {
-    override suspend fun WriteContext.encode(value: DefaultListProperty<*>) {
+    override fun WriteContext.encode(value: DefaultListProperty<*>) {
         writeClass(value.elementType)
         providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
     }
 
-    override suspend fun ReadContext.decode(): DefaultListProperty<*> {
+    override fun ReadContext.decode(): DefaultListProperty<*> {
         val type: Class<Any> = readClass().uncheckedCast()
         val value: ValueSupplier.ExecutionTimeValue<List<Any>> = providerCodec.run { decodeValue() }.uncheckedCast()
         return propertyFactory.listProperty(type).apply {
@@ -267,12 +267,12 @@ ListPropertyCodec(private val propertyFactory: PropertyFactory, private val prov
 
 class
 SetPropertyCodec(private val propertyFactory: PropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultSetProperty<*>> {
-    override suspend fun WriteContext.encode(value: DefaultSetProperty<*>) {
+    override fun WriteContext.encode(value: DefaultSetProperty<*>) {
         writeClass(value.elementType)
         providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
     }
 
-    override suspend fun ReadContext.decode(): DefaultSetProperty<*> {
+    override fun ReadContext.decode(): DefaultSetProperty<*> {
         val type: Class<Any> = readClass().uncheckedCast()
         val value: ValueSupplier.ExecutionTimeValue<Set<Any>> = providerCodec.run { decodeValue() }.uncheckedCast()
         return propertyFactory.setProperty(type).apply {
@@ -284,13 +284,13 @@ SetPropertyCodec(private val propertyFactory: PropertyFactory, private val provi
 
 class
 MapPropertyCodec(private val propertyFactory: PropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultMapProperty<*, *>> {
-    override suspend fun WriteContext.encode(value: DefaultMapProperty<*, *>) {
+    override fun WriteContext.encode(value: DefaultMapProperty<*, *>) {
         writeClass(value.keyType)
         writeClass(value.valueType)
         providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
     }
 
-    override suspend fun ReadContext.decode(): DefaultMapProperty<*, *> {
+    override fun ReadContext.decode(): DefaultMapProperty<*, *> {
         val keyType: Class<Any> = readClass().uncheckedCast()
         val valueType: Class<Any> = readClass().uncheckedCast()
         val state: ValueSupplier.ExecutionTimeValue<Map<Any, Any>> = providerCodec.run { decodeValue() }.uncheckedCast()

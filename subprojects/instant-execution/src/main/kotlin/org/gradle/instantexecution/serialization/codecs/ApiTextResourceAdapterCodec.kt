@@ -28,11 +28,11 @@ import java.net.URI
 
 object ApiTextResourceAdapterCodec : Codec<ApiTextResourceAdapter> {
 
-    override suspend fun WriteContext.encode(value: ApiTextResourceAdapter) {
+    override fun WriteContext.encode(value: ApiTextResourceAdapter) {
         writeString((value.inputProperties as URI).toASCIIString())
     }
 
-    override suspend fun ReadContext.decode(): ApiTextResourceAdapter =
+    override fun ReadContext.decode(): ApiTextResourceAdapter =
         textResourceFactory.fromInsecureUri(readString()) as ApiTextResourceAdapter
 
     private

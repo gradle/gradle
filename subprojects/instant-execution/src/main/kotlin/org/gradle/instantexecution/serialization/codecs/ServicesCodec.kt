@@ -32,7 +32,7 @@ class ServicesCodec : EncodingProducer, Decoding {
         }
     }
 
-    override suspend fun ReadContext.decode(): Any? {
+    override fun ReadContext.decode(): Any? {
         return isolate.owner.service(readClass())
     }
 }
@@ -40,7 +40,7 @@ class ServicesCodec : EncodingProducer, Decoding {
 
 internal
 object OwnerServiceEncoding : Encoding {
-    override suspend fun WriteContext.encode(value: Any) {
+    override fun WriteContext.encode(value: Any) {
         writeClass(value.javaClass)
     }
 }

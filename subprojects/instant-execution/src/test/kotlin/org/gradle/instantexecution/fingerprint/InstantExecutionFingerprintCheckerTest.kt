@@ -241,7 +241,7 @@ class InstantExecutionFingerprintCheckerTest {
     }
 
     private
-    fun recordWritingOf(writeOperation: suspend WriteContext.() -> Unit): PlaybackReadContext =
+    fun recordWritingOf(writeOperation: WriteContext.() -> Unit): PlaybackReadContext =
         RecordingWriteContext().apply {
             runWriteOperation(writeOperation)
         }.toReadContext()
@@ -265,7 +265,7 @@ class InstantExecutionFingerprintCheckerTest {
             values.add(value)
         }
 
-        override suspend fun write(value: Any?) {
+        override fun write(value: Any?) {
             values.add(value)
         }
 
@@ -280,13 +280,6 @@ class InstantExecutionFingerprintCheckerTest {
 
         override fun writeClass(type: Class<*>): Unit =
             undefined()
-
-        override fun saveCallStack(): Any? =
-            null
-
-        override fun restoreCallStack(savedCallStack: Any?) {
-            require(savedCallStack === null)
-        }
 
         override val logger: Logger
             get() = undefined()
@@ -357,7 +350,7 @@ class InstantExecutionFingerprintCheckerTest {
 
         override fun readSmallInt(): Int = next()
 
-        override suspend fun read(): Any? = next()
+        override fun read(): Any? = next()
 
         @Suppress("unchecked_cast")
         private
@@ -403,13 +396,6 @@ class InstantExecutionFingerprintCheckerTest {
 
         override fun pop(): Unit =
             undefined()
-
-        override fun saveCallStack(): Any? =
-            null
-
-        override fun restoreCallStack(savedCallStack: Any?) {
-            require(savedCallStack === null)
-        }
 
         override fun readInt(): Int =
             undefined()

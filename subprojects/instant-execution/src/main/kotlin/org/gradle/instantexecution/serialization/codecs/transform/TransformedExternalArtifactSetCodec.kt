@@ -50,7 +50,7 @@ import java.io.File
 class TransformedExternalArtifactSetCodec(
     private val transformationNodeRegistry: TransformationNodeRegistry
 ) : Codec<TransformedExternalArtifactSet> {
-    override suspend fun WriteContext.encode(value: TransformedExternalArtifactSet) {
+    override fun WriteContext.encode(value: TransformedExternalArtifactSet) {
         encodePreservingSharedIdentityOf(value) {
             write(value.ownerId)
             write(value.targetVariantAttributes)
@@ -63,7 +63,7 @@ class TransformedExternalArtifactSetCodec(
         }
     }
 
-    override suspend fun ReadContext.decode(): TransformedExternalArtifactSet {
+    override fun ReadContext.decode(): TransformedExternalArtifactSet {
         return decodePreservingSharedIdentity {
             val ownerId = readNonNull<ComponentIdentifier>()
             val targetAttributes = readNonNull<ImmutableAttributes>()

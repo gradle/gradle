@@ -26,7 +26,7 @@ object EnumCodec : EncodingProducer, Decoding {
         EnumEncoding.takeIf { type.isEnum }
             ?: EnumSubTypeEncoding.takeIf { type.superclass?.isEnum == true }
 
-    override suspend fun ReadContext.decode(): Any? {
+    override fun ReadContext.decode(): Any? {
         val enumClass = readClass()
         val enumOrdinal = readSmallInt()
         return enumClass.enumConstants[enumOrdinal]
@@ -36,7 +36,7 @@ object EnumCodec : EncodingProducer, Decoding {
 
 private
 object EnumEncoding : Encoding {
-    override suspend fun WriteContext.encode(value: Any) {
+    override fun WriteContext.encode(value: Any) {
         writeEnumValueOf(value::class.java, value)
     }
 }
@@ -44,7 +44,7 @@ object EnumEncoding : Encoding {
 
 private
 object EnumSubTypeEncoding : Encoding {
-    override suspend fun WriteContext.encode(value: Any) {
+    override fun WriteContext.encode(value: Any) {
         writeEnumValueOf(value::class.java.superclass, value)
     }
 }

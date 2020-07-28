@@ -24,10 +24,10 @@ import org.gradle.instantexecution.serialization.WriteContext
 internal
 object ClassCodec : Codec<Class<*>> {
 
-    override suspend fun WriteContext.encode(value: Class<*>) {
+    override fun WriteContext.encode(value: Class<*>) {
         writeClass(value)
     }
 
-    override suspend fun ReadContext.decode(): Class<*>? =
+    override fun ReadContext.decode(): Class<*>? =
         readClass()
 }

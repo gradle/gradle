@@ -60,7 +60,7 @@ class BeanPropertyReader(
         constructorForSerialization.newInstance()
     }
 
-    override suspend fun ReadContext.readStateOf(bean: Any) {
+    override fun ReadContext.readStateOf(bean: Any) {
         for (relevantField in relevantFields) {
             val field = relevantField.field
             val fieldName = field.name
@@ -98,7 +98,7 @@ class BeanPropertyReader(
 /**
  * Reads a sequence of properties written with [writingProperties].
  */
-suspend fun ReadContext.readPropertyValue(kind: PropertyKind, name: String, action: (Any?) -> Unit) {
+fun ReadContext.readPropertyValue(kind: PropertyKind, name: String, action: (Any?) -> Unit) {
     withPropertyTrace(kind, name) {
         val value =
             try {

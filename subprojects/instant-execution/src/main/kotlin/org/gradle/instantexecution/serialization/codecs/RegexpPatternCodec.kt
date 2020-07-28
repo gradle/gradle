@@ -23,12 +23,12 @@ import java.util.regex.Pattern
 
 
 object RegexpPatternCodec : Codec<Pattern> {
-    override suspend fun WriteContext.encode(value: Pattern) {
+    override fun WriteContext.encode(value: Pattern) {
         writeString(value.pattern())
         writeInt(value.flags())
     }
 
-    override suspend fun ReadContext.decode(): Pattern? {
+    override fun ReadContext.decode(): Pattern? {
         return Pattern.compile(readString(), readInt())
     }
 }

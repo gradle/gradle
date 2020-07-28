@@ -58,14 +58,14 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
     private
     val noDependencies = FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty()))
 
-    override suspend fun WriteContext.encode(value: ArtifactCollectionInternal) {
+    override fun WriteContext.encode(value: ArtifactCollectionInternal) {
         val visitor = CollectingArtifactVisitor()
         value.visitArtifacts(visitor)
         writeCollection(visitor.elements)
         writeCollection(visitor.failures)
     }
 
-    override suspend fun ReadContext.decode(): ArtifactCollectionInternal {
+    override fun ReadContext.decode(): ArtifactCollectionInternal {
         val elements = readList().uncheckedCast<List<Any>>()
 
         @Suppress("implicit_cast_to_any")

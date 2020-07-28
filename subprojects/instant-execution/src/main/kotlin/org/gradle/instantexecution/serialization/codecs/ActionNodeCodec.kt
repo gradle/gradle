@@ -28,7 +28,7 @@ import org.gradle.instantexecution.serialization.logNotImplemented
 
 
 object ActionNodeCodec : Codec<ActionNode> {
-    override suspend fun WriteContext.encode(value: ActionNode) {
+    override fun WriteContext.encode(value: ActionNode) {
         if (value.action is DefaultConfiguration.ResolveGraphAction) {
             // Can ignore
             return
@@ -37,7 +37,7 @@ object ActionNodeCodec : Codec<ActionNode> {
         }
     }
 
-    override suspend fun ReadContext.decode(): ActionNode? {
+    override fun ReadContext.decode(): ActionNode? {
         // TODO - should discard from graph instead
         return ActionNode(object : WorkNodeAction {
             override fun run(context: NodeExecutionContext) {

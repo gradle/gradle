@@ -30,13 +30,13 @@ import org.gradle.instantexecution.serialization.WriteContext
  */
 internal
 object TransformationNodeReferenceCodec : Codec<TransformationNode> {
-    override suspend fun WriteContext.encode(value: TransformationNode) {
+    override fun WriteContext.encode(value: TransformationNode) {
         val id = sharedIdentities.getId(value)
             ?: throw IllegalStateException("Node $value has not been encoded yet.")
         writeSmallInt(id)
     }
 
-    override suspend fun ReadContext.decode(): TransformationNode {
+    override fun ReadContext.decode(): TransformationNode {
         val id = readSmallInt()
         val instance = sharedIdentities.getInstance(id)
             ?: throw IllegalStateException("Node with id $id has not been decoded yet.")

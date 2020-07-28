@@ -43,21 +43,21 @@ import org.gradle.internal.state.ManagedFactoryRegistry
 
 
 object NullValueSnapshotCodec : Codec<NullValueSnapshot> {
-    override suspend fun WriteContext.encode(value: NullValueSnapshot) {
+    override fun WriteContext.encode(value: NullValueSnapshot) {
     }
 
-    override suspend fun ReadContext.decode(): NullValueSnapshot {
+    override fun ReadContext.decode(): NullValueSnapshot {
         return NullValueSnapshot.INSTANCE
     }
 }
 
 
 object IsolatedEnumValueSnapshotCodec : Codec<IsolatedEnumValueSnapshot> {
-    override suspend fun WriteContext.encode(value: IsolatedEnumValueSnapshot) {
+    override fun WriteContext.encode(value: IsolatedEnumValueSnapshot) {
         write(value.value)
     }
 
-    override suspend fun ReadContext.decode(): IsolatedEnumValueSnapshot {
+    override fun ReadContext.decode(): IsolatedEnumValueSnapshot {
         val value = read() as Enum<*>
         return IsolatedEnumValueSnapshot(value)
     }
@@ -65,11 +65,11 @@ object IsolatedEnumValueSnapshotCodec : Codec<IsolatedEnumValueSnapshot> {
 
 
 object IsolatedSetCodec : Codec<IsolatedSet> {
-    override suspend fun WriteContext.encode(value: IsolatedSet) {
+    override fun WriteContext.encode(value: IsolatedSet) {
         write(value.elements)
     }
 
-    override suspend fun ReadContext.decode(): IsolatedSet {
+    override fun ReadContext.decode(): IsolatedSet {
         val elements = readNonNull<ImmutableSet<Isolatable<*>>>()
         return IsolatedSet(elements)
     }
@@ -77,11 +77,11 @@ object IsolatedSetCodec : Codec<IsolatedSet> {
 
 
 object IsolatedListCodec : Codec<IsolatedList> {
-    override suspend fun WriteContext.encode(value: IsolatedList) {
+    override fun WriteContext.encode(value: IsolatedList) {
         write(value.elements)
     }
 
-    override suspend fun ReadContext.decode(): IsolatedList {
+    override fun ReadContext.decode(): IsolatedList {
         val elements = readNonNull<ImmutableList<Isolatable<*>>>()
         return IsolatedList(elements)
     }
@@ -89,11 +89,11 @@ object IsolatedListCodec : Codec<IsolatedList> {
 
 
 object IsolatedMapCodec : Codec<IsolatedMap> {
-    override suspend fun WriteContext.encode(value: IsolatedMap) {
+    override fun WriteContext.encode(value: IsolatedMap) {
         write(value.entries)
     }
 
-    override suspend fun ReadContext.decode(): IsolatedMap {
+    override fun ReadContext.decode(): IsolatedMap {
         val elements = readNonNull<ImmutableList<MapEntrySnapshot<Isolatable<*>>>>()
         return IsolatedMap(elements)
     }
@@ -101,12 +101,12 @@ object IsolatedMapCodec : Codec<IsolatedMap> {
 
 
 object MapEntrySnapshotCodec : Codec<MapEntrySnapshot<Any>> {
-    override suspend fun WriteContext.encode(value: MapEntrySnapshot<Any>) {
+    override fun WriteContext.encode(value: MapEntrySnapshot<Any>) {
         write(value.key)
         write(value.value)
     }
 
-    override suspend fun ReadContext.decode(): MapEntrySnapshot<Any> {
+    override fun ReadContext.decode(): MapEntrySnapshot<Any> {
         val key = read() as Any
         val value = read() as Any
         return MapEntrySnapshot(key, value)
@@ -115,12 +115,12 @@ object MapEntrySnapshotCodec : Codec<MapEntrySnapshot<Any>> {
 
 
 object IsolatedArrayCodec : Codec<IsolatedArray> {
-    override suspend fun WriteContext.encode(value: IsolatedArray) {
+    override fun WriteContext.encode(value: IsolatedArray) {
         writeClass(value.arrayType)
         write(value.elements)
     }
 
-    override suspend fun ReadContext.decode(): IsolatedArray {
+    override fun ReadContext.decode(): IsolatedArray {
         val arrayType = readClass()
         val elements = readNonNull<ImmutableList<Isolatable<*>>>()
         return IsolatedArray(elements, arrayType)
@@ -129,11 +129,11 @@ object IsolatedArrayCodec : Codec<IsolatedArray> {
 
 
 object StringValueSnapshotCodec : Codec<StringValueSnapshot> {
-    override suspend fun WriteContext.encode(value: StringValueSnapshot) {
+    override fun WriteContext.encode(value: StringValueSnapshot) {
         writeString(value.value)
     }
 
-    override suspend fun ReadContext.decode(): StringValueSnapshot {
+    override fun ReadContext.decode(): StringValueSnapshot {
         val value = readString()
         return StringValueSnapshot(value)
     }
@@ -141,11 +141,11 @@ object StringValueSnapshotCodec : Codec<StringValueSnapshot> {
 
 
 object IntegerValueSnapshotCodec : Codec<IntegerValueSnapshot> {
-    override suspend fun WriteContext.encode(value: IntegerValueSnapshot) {
+    override fun WriteContext.encode(value: IntegerValueSnapshot) {
         writeInt(value.value)
     }
 
-    override suspend fun ReadContext.decode(): IntegerValueSnapshot {
+    override fun ReadContext.decode(): IntegerValueSnapshot {
         val value = readInt()
         return IntegerValueSnapshot(value)
     }
@@ -153,11 +153,11 @@ object IntegerValueSnapshotCodec : Codec<IntegerValueSnapshot> {
 
 
 object FileValueSnapshotCodec : Codec<FileValueSnapshot> {
-    override suspend fun WriteContext.encode(value: FileValueSnapshot) {
+    override fun WriteContext.encode(value: FileValueSnapshot) {
         writeString(value.value)
     }
 
-    override suspend fun ReadContext.decode(): FileValueSnapshot {
+    override fun ReadContext.decode(): FileValueSnapshot {
         val value = readString()
         return FileValueSnapshot(value)
     }
@@ -165,11 +165,11 @@ object FileValueSnapshotCodec : Codec<FileValueSnapshot> {
 
 
 object BooleanValueSnapshotCodec : Codec<BooleanValueSnapshot> {
-    override suspend fun WriteContext.encode(value: BooleanValueSnapshot) {
+    override fun WriteContext.encode(value: BooleanValueSnapshot) {
         writeBoolean(value.value)
     }
 
-    override suspend fun ReadContext.decode(): BooleanValueSnapshot {
+    override fun ReadContext.decode(): BooleanValueSnapshot {
         val value = readBoolean()
         return BooleanValueSnapshot(value)
     }
@@ -177,13 +177,13 @@ object BooleanValueSnapshotCodec : Codec<BooleanValueSnapshot> {
 
 
 class IsolatedManagedValueCodec(private val managedFactory: ManagedFactoryRegistry) : Codec<IsolatedManagedValue> {
-    override suspend fun WriteContext.encode(value: IsolatedManagedValue) {
+    override fun WriteContext.encode(value: IsolatedManagedValue) {
         writeClass(value.targetType)
         writeSmallInt(value.factoryId)
         write(value.state)
     }
 
-    override suspend fun ReadContext.decode(): IsolatedManagedValue {
+    override fun ReadContext.decode(): IsolatedManagedValue {
         val targetType = readClass()
         val factoryId = readSmallInt()
         val state = readNonNull<Isolatable<Any>>()
@@ -193,11 +193,11 @@ class IsolatedManagedValueCodec(private val managedFactory: ManagedFactoryRegist
 
 
 class IsolatedImmutableManagedValueCodec(private val managedFactory: ManagedFactoryRegistry) : Codec<IsolatedImmutableManagedValue> {
-    override suspend fun WriteContext.encode(value: IsolatedImmutableManagedValue) {
+    override fun WriteContext.encode(value: IsolatedImmutableManagedValue) {
         write(value.value)
     }
 
-    override suspend fun ReadContext.decode(): IsolatedImmutableManagedValue {
+    override fun ReadContext.decode(): IsolatedImmutableManagedValue {
         val state = read() as Managed
         return IsolatedImmutableManagedValue(state, managedFactory)
     }
@@ -205,13 +205,13 @@ class IsolatedImmutableManagedValueCodec(private val managedFactory: ManagedFact
 
 
 object IsolatedSerializedValueSnapshotCodec : Codec<IsolatedSerializedValueSnapshot> {
-    override suspend fun WriteContext.encode(value: IsolatedSerializedValueSnapshot) {
+    override fun WriteContext.encode(value: IsolatedSerializedValueSnapshot) {
         write(value.implementationHash)
         writeClass(value.originalClass)
         writeBinary(value.value)
     }
 
-    override suspend fun ReadContext.decode(): IsolatedSerializedValueSnapshot? {
+    override fun ReadContext.decode(): IsolatedSerializedValueSnapshot? {
         val implementationHash = read() as HashCode?
         val originalType = readClass()
         val binary = readBinary()

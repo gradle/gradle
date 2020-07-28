@@ -27,22 +27,22 @@ import org.gradle.instantexecution.serialization.writeFile
 
 
 class DirectoryCodec(private val fileFactory: FileFactory) : Codec<Directory> {
-    override suspend fun WriteContext.encode(value: Directory) {
+    override fun WriteContext.encode(value: Directory) {
         writeFile(value.asFile)
     }
 
-    override suspend fun ReadContext.decode(): Directory {
+    override fun ReadContext.decode(): Directory {
         return fileFactory.dir(readFile())
     }
 }
 
 
 class RegularFileCodec(private val fileFactory: FileFactory) : Codec<RegularFile> {
-    override suspend fun WriteContext.encode(value: RegularFile) {
+    override fun WriteContext.encode(value: RegularFile) {
         writeFile(value.asFile)
     }
 
-    override suspend fun ReadContext.decode(): RegularFile {
+    override fun ReadContext.decode(): RegularFile {
         return fileFactory.file(readFile())
     }
 }

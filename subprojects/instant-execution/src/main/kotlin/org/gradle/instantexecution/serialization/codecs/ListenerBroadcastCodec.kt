@@ -28,7 +28,7 @@ import org.gradle.internal.event.ListenerManager
 
 internal
 class ListenerBroadcastCodec(private val listenerManager: ListenerManager) : Codec<AnonymousListenerBroadcast<*>> {
-    override suspend fun WriteContext.encode(value: AnonymousListenerBroadcast<*>) {
+    override fun WriteContext.encode(value: AnonymousListenerBroadcast<*>) {
         val broadcast: AnonymousListenerBroadcast<Any> = value.uncheckedCast()
         writeClass(value.type)
         val listeners = mutableListOf<Any>()
@@ -40,7 +40,7 @@ class ListenerBroadcastCodec(private val listenerManager: ListenerManager) : Cod
         }
     }
 
-    override suspend fun ReadContext.decode(): AnonymousListenerBroadcast<*> {
+    override fun ReadContext.decode(): AnonymousListenerBroadcast<*> {
         val type: Class<Any> = readClass().uncheckedCast()
         val broadcast = listenerManager.createAnonymousBroadcaster(type)
         readCollection {

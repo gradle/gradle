@@ -47,7 +47,7 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
     private
     val encodings = HashMap<Class<*>, TaggedEncoding>()
 
-    override suspend fun WriteContext.encode(value: Any?) = when (value) {
+    override fun WriteContext.encode(value: Any?) = when (value) {
         null -> writeSmallInt(NULL_VALUE)
         else -> taggedEncodingFor(value.javaClass).run {
             writeSmallInt(tag)
@@ -55,7 +55,7 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
         }
     }
 
-    override suspend fun ReadContext.decode() = when (val tag = readSmallInt()) {
+    override fun ReadContext.decode() = when (val tag = readSmallInt()) {
         NULL_VALUE -> null
         else -> bindings[tag].decoding.run { decode() }
     }

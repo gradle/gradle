@@ -20,5 +20,5 @@ import org.gradle.instantexecution.serialization.WriteContext
 
 
 interface BeanStateWriter {
-    suspend fun WriteContext.writeStateOf(bean: Any)
+    fun WriteContext.writeStateOf(bean: Any)
 }

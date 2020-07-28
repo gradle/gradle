@@ -37,13 +37,13 @@ import org.gradle.internal.component.model.IvyArtifactName
  * so for now just use some custom serialization that also makes assumptions and improve the Eclipse tooling model builder later.
  */
 object PublishArtifactLocalArtifactMetadataCodec : Codec<PublishArtifactLocalArtifactMetadata> {
-    override suspend fun WriteContext.encode(value: PublishArtifactLocalArtifactMetadata) {
+    override fun WriteContext.encode(value: PublishArtifactLocalArtifactMetadata) {
         write(value.componentIdentifier)
         write(value.name)
         writeFile(value.file)
     }
 
-    override suspend fun ReadContext.decode(): PublishArtifactLocalArtifactMetadata? {
+    override fun ReadContext.decode(): PublishArtifactLocalArtifactMetadata? {
         val componentId = read() as ComponentIdentifier
         val ivyName = read() as IvyArtifactName
         val file = readFile()

@@ -44,7 +44,7 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
     }
 
-    suspend fun ReadContext.checkFingerprint(): InvalidationReason? {
+    fun ReadContext.checkFingerprint(): InvalidationReason? {
         // TODO: log some debug info
         while (true) {
             when (val input = read()) {

@@ -28,5 +28,5 @@ interface BeanStateReader {
 
     fun ReadContext.newBean(generated: Boolean): Any
 
-    suspend fun ReadContext.readStateOf(bean: Any)
+    fun ReadContext.readStateOf(bean: Any)
 }

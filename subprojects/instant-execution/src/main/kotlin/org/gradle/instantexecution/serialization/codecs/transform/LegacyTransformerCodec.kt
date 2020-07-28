@@ -33,14 +33,14 @@ class LegacyTransformerCodec(
     private val actionScheme: ArtifactTransformActionScheme
 ) : Codec<LegacyTransformer> {
 
-    override suspend fun WriteContext.encode(value: LegacyTransformer) {
+    override fun WriteContext.encode(value: LegacyTransformer) {
         writeClass(value.implementationClass)
         writeBinary(value.secondaryInputsHash.toByteArray())
         write(value.fromAttributes)
         write(value.isolatableParameters)
     }
 
-    override suspend fun ReadContext.decode(): LegacyTransformer? {
+    override fun ReadContext.decode(): LegacyTransformer? {
         @Suppress("deprecation")
         val implementationClass = readClassOf<org.gradle.api.artifacts.transform.ArtifactTransform>()
         val secondaryInputsHash = HashCode.fromBytes(readBinary())

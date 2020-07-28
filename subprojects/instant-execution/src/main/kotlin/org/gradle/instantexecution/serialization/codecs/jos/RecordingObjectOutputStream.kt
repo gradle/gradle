@@ -36,9 +36,9 @@ class RecordingObjectOutputStream(
 ) : ObjectOutputStream() {
 
     private
-    val operations = mutableListOf<suspend WriteContext.() -> Unit>()
+    val operations = mutableListOf<WriteContext.() -> Unit>()
 
-    suspend fun WriteContext.playback() {
+    fun WriteContext.playback() {
         withBeanTrace(beanType) {
             operations.forEach { operation ->
                 operation()
@@ -47,7 +47,7 @@ class RecordingObjectOutputStream(
     }
 
     private
-    fun record(operation: suspend WriteContext.() -> Unit) {
+    fun record(operation: WriteContext.() -> Unit) {
         operations.add(operation)
     }
 

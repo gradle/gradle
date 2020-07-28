@@ -25,11 +25,11 @@ import org.gradle.instantexecution.serialization.WriteContext
 
 object
 GroovyMetaClassCodec : Codec<MetaClass> {
-    override suspend fun WriteContext.encode(value: MetaClass) {
+    override fun WriteContext.encode(value: MetaClass) {
         writeClass(value.theClass)
     }
 
-    override suspend fun ReadContext.decode(): MetaClass? {
+    override fun ReadContext.decode(): MetaClass? {
         return InvokerHelper.getMetaClass(readClass())
     }
 }

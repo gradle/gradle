@@ -25,11 +25,11 @@ import org.gradle.instantexecution.serialization.writeCollection
 
 object ImmutableSetCodec : Codec<ImmutableSet<Any>> {
 
-    override suspend fun WriteContext.encode(value: ImmutableSet<Any>) {
+    override fun WriteContext.encode(value: ImmutableSet<Any>) {
         writeCollection(value)
     }
 
-    override suspend fun ReadContext.decode(): ImmutableSet<Any>? {
+    override fun ReadContext.decode(): ImmutableSet<Any>? {
         val size = readSmallInt()
         val builder = ImmutableSet.builderWithExpectedSize<Any>(size)
         for (i in 0 until size) {

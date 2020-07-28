@@ -35,7 +35,7 @@ class InitialTransformationNodeCodec(
     private val transformListener: ArtifactTransformListener
 ) : AbstractTransformationNodeCodec<TransformationNode.InitialTransformationNode>() {
 
-    override suspend fun WriteContext.doEncode(value: TransformationNode.InitialTransformationNode) {
+    override fun WriteContext.doEncode(value: TransformationNode.InitialTransformationNode) {
         withCodec(userTypesCodec) {
             write(value.transformationStep)
             write(transformDependencies(value))
@@ -43,7 +43,7 @@ class InitialTransformationNodeCodec(
         write((value.inputArtifacts as ArtifactBackedResolvedVariant.SingleLocalArtifactSet).artifact)
     }
 
-    override suspend fun ReadContext.doDecode(): TransformationNode.InitialTransformationNode {
+    override fun ReadContext.doDecode(): TransformationNode.InitialTransformationNode {
         val transformationStep = withCodec(userTypesCodec) {
             readNonNull<TransformationStep>()
         }

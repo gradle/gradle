@@ -39,7 +39,7 @@ class BeanPropertyWriter(
     /**
      * Serializes a bean by serializing the value of each of its fields.
      */
-    override suspend fun WriteContext.writeStateOf(bean: Any) {
+    override fun WriteContext.writeStateOf(bean: Any) {
         for (relevantField in relevantFields) {
             val field = relevantField.field
             val fieldName = field.name
@@ -64,7 +64,7 @@ class BeanPropertyWriter(
  *
  * A property can only be written when there's a suitable [Codec] for its [value].
  */
-suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind) {
+fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind) {
     withPropertyTrace(kind, name) {
         try {
             write(value)

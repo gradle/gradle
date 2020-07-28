@@ -104,7 +104,7 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
             .takeIf { it.isNotEmpty() }
             ?.let { ReadObjectEncoding }
 
-    override suspend fun ReadContext.decode(): Any? =
+    override fun ReadContext.decode(): Any? =
         decodePreservingIdentity { id ->
             when (readEnum<Format>()) {
                 Format.WriteObject -> {
@@ -155,7 +155,7 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
 
     private
     class WriteObjectEncoding(private val writeObject: List<Method>) : EncodingProvider<Any> {
-        override suspend fun WriteContext.encode(value: Any) {
+        override fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 val beanType = value.javaClass
                 runCatching {
@@ -192,7 +192,7 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
 
     private
     object ReadObjectEncoding : Encoding {
-        override suspend fun WriteContext.encode(value: Any) {
+        override fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 writeEnum(Format.ReadObject)
                 encodeBean(value)
@@ -202,7 +202,7 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
 
     private
     class WriteReplaceEncoding(private val writeReplace: Method) : EncodingProvider<Any> {
-        override suspend fun WriteContext.encode(value: Any) {
+        override fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 val replacement = writeReplace.invoke(value)
                 if (replacement === value) {
@@ -218,7 +218,7 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
 
     private
     object ReadResolveEncoding : Encoding {
-        override suspend fun WriteContext.encode(value: Any) {
+        override fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 writeEnum(Format.ReadResolve)
                 encodeBean(value)
@@ -307,7 +307,7 @@ fun StructuredMessage.Builder.failedJOS(value: Any) {
 
 
 private
-suspend fun WriteContext.encodeBean(value: Any) {
+fun WriteContext.encodeBean(value: Any) {
     val beanType = value.javaClass
     withBeanTrace(beanType) {
         writeClass(beanType)
@@ -331,7 +331,7 @@ inline fun ReadContext.decodingBeanWithId(id: Int, decode: (Any, Class<*>, BeanS
 
 
 private
-suspend fun ReadContext.decodeBean(): Any {
+fun ReadContext.decodeBean(): Any {
     val beanType = readClass()
     return withBeanTrace(beanType) {
         beanStateReaderFor(beanType).run {

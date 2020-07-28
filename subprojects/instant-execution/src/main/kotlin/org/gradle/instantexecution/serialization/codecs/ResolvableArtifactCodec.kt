@@ -34,7 +34,7 @@ object ResolvableArtifactCodec : Codec<ResolvableArtifact> {
     private
     val componentIdSerializer = ComponentIdentifierSerializer()
 
-    override suspend fun WriteContext.encode(value: ResolvableArtifact) {
+    override fun WriteContext.encode(value: ResolvableArtifact) {
         // TODO - handle other types
         if (value !is DefaultResolvedArtifact) {
             throw UnsupportedOperationException("Don't know how to serialize for ${value.javaClass.name}.")
@@ -50,7 +50,7 @@ object ResolvableArtifactCodec : Codec<ResolvableArtifact> {
         // TODO - preserve the artifact's owner id (or get rid of it as it's not used for transforms)
     }
 
-    override suspend fun ReadContext.decode(): ResolvableArtifact {
+    override fun ReadContext.decode(): ResolvableArtifact {
         val file = readFile()
         val artifactName = DefaultIvyArtifactName(readString(), readString(), readNullableString(), readNullableString())
         val componentId = componentIdSerializer.read(this)

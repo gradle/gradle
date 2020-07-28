@@ -27,16 +27,16 @@ import org.gradle.instantexecution.serialization.encodePreservingSharedIdentityO
 internal
 abstract class AbstractTransformationNodeCodec<T : TransformationNode> : Codec<T> {
 
-    override suspend fun WriteContext.encode(value: T) {
+    override fun WriteContext.encode(value: T) {
         encodePreservingSharedIdentityOf(value) { doEncode(value) }
     }
 
-    override suspend fun ReadContext.decode(): T =
+    override fun ReadContext.decode(): T =
         decodePreservingSharedIdentity { doDecode() }
 
     protected
-    abstract suspend fun WriteContext.doEncode(value: T)
+    abstract fun WriteContext.doEncode(value: T)
 
     protected
-    abstract suspend fun ReadContext.doDecode(): T
+    abstract fun ReadContext.doDecode(): T
 }

@@ -26,13 +26,13 @@ import org.gradle.instantexecution.serialization.logNotImplemented
 internal
 object NotImplementedCodec : Codec<Any> {
 
-    override suspend fun WriteContext.encode(value: Any) {
+    override fun WriteContext.encode(value: Any) {
         val javaClass = GeneratedSubclasses.unpack(value.javaClass)
         writeClass(javaClass)
         logNotImplemented(javaClass)
     }
 
-    override suspend fun ReadContext.decode(): Any? {
+    override fun ReadContext.decode(): Any? {
         logNotImplemented(readClass())
         return null
     }

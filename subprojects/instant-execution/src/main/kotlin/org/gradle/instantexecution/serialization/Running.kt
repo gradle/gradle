@@ -15,56 +15,19 @@
  */
 package org.gradle.instantexecution.serialization
 
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.coroutines.startCoroutine
-
 
 /**
  * Runs the given [readOperation] synchronously.
  */
 internal
-fun <T : ReadContext, R> T.runReadOperation(readOperation: suspend T.() -> R): R {
-    val callStack = saveCallStack()
-    try {
-        return runToCompletion(readOperation)
-    } finally {
-        restoreCallStack(callStack)
-    }
-}
+inline fun <T : ReadContext, R> T.runReadOperation(readOperation: T.() -> R): R =
+    readOperation()
 
 
 /**
  * Runs the given [writeOperation] synchronously.
  */
 internal
-fun <T : WriteContext> T.runWriteOperation(writeOperation: suspend T.() -> Unit) {
-    val callStack = saveCallStack()
-    try {
-        runToCompletion(writeOperation)
-    } finally {
-        restoreCallStack(callStack)
-    }
-}
-
-
-/**
- * [Starts][startCoroutine] the suspending [block], asserts it runs
- * to completion and returns its result.
- */
-@Suppress("unchecked_cast")
-private
-fun <T, R> T.runToCompletion(block: suspend T.() -> R): R {
-    val blockFunction = block as Function2<T, Continuation<R>, Any?>
-    val result = blockFunction.invoke(this, continuation)
-    require(result !== kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED) {
-        "Coroutine didn't run to completion."
-    }
-    return result as R
-}
-
-
-private
-val continuation = Continuation<Any?>(EmptyCoroutineContext) {
-    throw IllegalStateException("Illegal continuation: $it")
+inline fun <T : WriteContext> T.runWriteOperation(writeOperation: T.() -> Unit) {
+    writeOperation()
 }

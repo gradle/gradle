@@ -37,7 +37,7 @@ import org.gradle.internal.serialize.Encoder
 interface Codec<T> : EncodingProvider<T>, DecodingProvider<T>
 
 
-interface WriteContext : IsolateContext, MutableIsolateContext, StackSafe, Encoder {
+interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
 
     val sharedIdentities: WriteIdentities
 
@@ -45,13 +45,13 @@ interface WriteContext : IsolateContext, MutableIsolateContext, StackSafe, Encod
 
     fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter
 
-    suspend fun write(value: Any?)
+    fun write(value: Any?)
 
     fun writeClass(type: Class<*>)
 }
 
 
-interface ReadContext : IsolateContext, MutableIsolateContext, StackSafe, Decoder {
+interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 
     val sharedIdentities: ReadIdentities
 
@@ -69,22 +69,14 @@ interface ReadContext : IsolateContext, MutableIsolateContext, StackSafe, Decode
      */
     var immediateMode: Boolean // TODO:instant-execution prevent StackOverflowErrors when crossing protocols
 
-    suspend fun read(): Any?
+    fun read(): Any?
 
     fun readClass(): Class<*>
 }
 
 
-suspend fun <T : Any> ReadContext.readNonNull() =
+fun <T : Any> ReadContext.readNonNull() =
     read()!!.uncheckedCast<T>()
-
-
-interface StackSafe {
-
-    fun saveCallStack(): Any?
-
-    fun restoreCallStack(savedCallStack: Any?)
-}
 
 
 interface IsolateContext {

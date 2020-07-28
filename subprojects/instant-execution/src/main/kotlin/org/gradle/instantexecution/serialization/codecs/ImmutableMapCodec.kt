@@ -25,11 +25,11 @@ import org.gradle.instantexecution.serialization.writeMap
 
 object ImmutableMapCodec : Codec<ImmutableMap<Any, Any>> {
 
-    override suspend fun WriteContext.encode(value: ImmutableMap<Any, Any>) {
+    override fun WriteContext.encode(value: ImmutableMap<Any, Any>) {
         writeMap(value)
     }
 
-    override suspend fun ReadContext.decode(): ImmutableMap<Any, Any>? {
+    override fun ReadContext.decode(): ImmutableMap<Any, Any>? {
         val size = readSmallInt()
         val builder = ImmutableMap.builderWithExpectedSize<Any, Any>(size)
         for (i in 0 until size) {

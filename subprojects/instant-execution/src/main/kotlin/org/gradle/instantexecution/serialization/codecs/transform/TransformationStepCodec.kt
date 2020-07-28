@@ -36,7 +36,7 @@ class TransformationStepCodec(
     private val fingerprinterRegistry: FileCollectionFingerprinterRegistry
 ) : Codec<TransformationStep> {
 
-    override suspend fun WriteContext.encode(value: TransformationStep) {
+    override fun WriteContext.encode(value: TransformationStep) {
         encodePreservingSharedIdentityOf(value) {
             val project = value.owningProject ?: throw UnsupportedOperationException("Transformation must have an owning project to be encoded.")
             writeString(project.path)
@@ -44,7 +44,7 @@ class TransformationStepCodec(
         }
     }
 
-    override suspend fun ReadContext.decode(): TransformationStep {
+    override fun ReadContext.decode(): TransformationStep {
         return decodePreservingSharedIdentity {
             val path = readString()
             val transformer = readNonNull<Transformer>()

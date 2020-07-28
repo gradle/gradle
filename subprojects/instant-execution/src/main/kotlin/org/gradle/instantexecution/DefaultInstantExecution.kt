@@ -270,7 +270,7 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    fun withWriteContextFor(file: File, writeOperation: suspend DefaultWriteContext.() -> Unit) {
+    fun withWriteContextFor(file: File, writeOperation: DefaultWriteContext.() -> Unit) {
         writerContextFor(file.outputStream()).useToRun {
             runWriteOperation(writeOperation)
         }
@@ -281,7 +281,7 @@ class DefaultInstantExecution internal constructor(
         writeContextFor(KryoBackedEncoder(outputStream))
 
     private
-    fun <R> withReadContextFor(file: File, readOperation: suspend DefaultReadContext.() -> R): R =
+    fun <R> withReadContextFor(file: File, readOperation: DefaultReadContext.() -> R): R =
         KryoBackedDecoder(file.inputStream()).use { decoder ->
             readContextFor(decoder).run {
                 initClassLoader(javaClass.classLoader)

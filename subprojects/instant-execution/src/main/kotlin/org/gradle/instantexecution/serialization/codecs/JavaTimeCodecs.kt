@@ -31,7 +31,7 @@ fun BindingsBuilder.javaTimeTypes() {
 private
 object DurationCodec : Codec<Duration> {
 
-    override suspend fun WriteContext.encode(value: Duration) {
+    override fun WriteContext.encode(value: Duration) {
         // Do not use the ISO-8601 format for serialization
         // to work around https://bugs.openjdk.java.net/browse/JDK-8054978
         // on Java 8
@@ -39,6 +39,6 @@ object DurationCodec : Codec<Duration> {
         writeSmallInt(value.nano)
     }
 
-    override suspend fun ReadContext.decode(): Duration =
+    override fun ReadContext.decode(): Duration =
         Duration.ofSeconds(readLong(), readSmallInt().toLong())
 }

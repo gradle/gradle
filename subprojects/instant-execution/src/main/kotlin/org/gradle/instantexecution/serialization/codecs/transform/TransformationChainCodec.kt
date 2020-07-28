@@ -25,12 +25,12 @@ import org.gradle.instantexecution.serialization.readNonNull
 
 
 class TransformationChainCodec : Codec<TransformationChain> {
-    override suspend fun WriteContext.encode(value: TransformationChain) {
+    override fun WriteContext.encode(value: TransformationChain) {
         write(value.first)
         write(value.second)
     }
 
-    override suspend fun ReadContext.decode(): TransformationChain? {
+    override fun ReadContext.decode(): TransformationChain? {
         val first = readNonNull<Transformation>()
         val second = readNonNull<Transformation>()
         return TransformationChain(first, second)

@@ -27,10 +27,10 @@ import org.slf4j.LoggerFactory
 internal
 object LoggerCodec : Codec<Logger> {
 
-    override suspend fun WriteContext.encode(value: Logger) {
+    override fun WriteContext.encode(value: Logger) {
         writeString(value.name)
     }
 
-    override suspend fun ReadContext.decode(): Logger? =
+    override fun ReadContext.decode(): Logger? =
         LoggerFactory.getLogger(readString())
 }

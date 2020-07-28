@@ -21,7 +21,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.instantexecution.ClassLoaderScopeSpec
-import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.problems.ProblemsListener
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.PropertyTrace
@@ -34,12 +33,6 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
-import kotlin.coroutines.intrinsics.suspendCoroutineUninterceptedOrReturn
-import kotlin.coroutines.resume
 
 
 internal
@@ -70,12 +63,6 @@ class DefaultWriteContext(
     private
     val scopes = WriteIdentities()
 
-    private
-    var pendingWriteCall: WriteCall? = null
-
-    private
-    var writeCallDepth: Int = 0
-
     /**
      * Closes the given [encoder] if it is [AutoCloseable].
      */
@@ -89,66 +76,11 @@ class DefaultWriteContext(
     override val isolate: WriteIsolate
         get() = getIsolate()
 
-    override suspend fun write(value: Any?) {
-        when {
-            pendingWriteCall === null && writeCallDepth < MAX_STACK_DEPTH -> {
-                try {
-                    writeCallDepth += 1
-                    stackUnsafeWrite(value)
-                } finally {
-                    writeCallDepth -= 1
-                }
-            }
-            pendingWriteCall === null -> {
-                try {
-                    pendingWriteCall = WriteCall(value, continuation)
-                    writeCallLoop()
-                } finally {
-                    pendingWriteCall = null
-                }
-            }
-            else -> suspendCoroutineUninterceptedOrReturn<Unit> { k ->
-                pendingWriteCall = WriteCall(value, k)
-                COROUTINE_SUSPENDED
-            }
-        }
-    }
-
-    private
-    fun writeCallLoop() {
-        @Suppress("unchecked_cast")
-        val unsafeWrite = ::stackUnsafeWrite as Function2<Any?, Continuation<Unit>, Any>
-        do {
-            val call = pendingWriteCall!!
-            val k = call.k
-            val result = unsafeWrite.invoke(call.value, k)
-            if (result !== COROUTINE_SUSPENDED) {
-                k.resume(Unit)
-            }
-        } while (pendingWriteCall !== null)
-    }
-
-    private
-    val continuation = object : Continuation<Unit> {
-
-        override val context: CoroutineContext
-            get() = EmptyCoroutineContext
-
-        override fun resumeWith(result: Result<Unit>) {
-            pendingWriteCall = null
-            result.getOrThrow()
-        }
-    }
-
-    private
-    suspend fun stackUnsafeWrite(value: Any?) {
+    override fun write(value: Any?) {
         getCodec().run {
             encode(value)
         }
     }
-
-    private
-    class WriteCall(val value: Any?, val k: Continuation<Unit>)
 
     override fun writeClass(type: Class<*>) {
         val id = classes.getId(type)
@@ -167,17 +99,6 @@ class DefaultWriteContext(
                 writeBoolean(scope.second.local)
             }
         }
-    }
-
-    override fun saveCallStack(): Any? {
-        val savedCallStack = pendingWriteCall
-        pendingWriteCall = null
-        return savedCallStack
-    }
-
-    override fun restoreCallStack(savedCallStack: Any?) {
-        require(pendingWriteCall === null)
-        pendingWriteCall = savedCallStack?.uncheckedCast()
     }
 
     private
@@ -225,7 +146,7 @@ class DefaultWriteContext(
 
 
 interface EncodingProvider<T> {
-    suspend fun WriteContext.encode(value: T)
+    fun WriteContext.encode(value: T)
 }
 
 
@@ -273,15 +194,6 @@ class DefaultReadContext(
     private
     lateinit var projectProvider: ProjectProvider
 
-    private
-    var pendingReadCall: Continuation<Any?>? = null
-
-    private
-    var readCallDepth: Int = 0
-
-    private
-    var readCallResult: Result<Any?> = UNDEFINED_RESULT
-
     override lateinit var classLoader: ClassLoader
 
     internal
@@ -296,64 +208,7 @@ class DefaultReadContext(
 
     override var immediateMode: Boolean = false
 
-    override suspend fun read(): Any? =
-        when {
-            immediateMode -> {
-                stackUnsafeRead()
-            }
-            pendingReadCall === null && readCallDepth < MAX_STACK_DEPTH -> {
-                try {
-                    readCallDepth += 1
-                    stackUnsafeRead()
-                } finally {
-                    readCallDepth -= 1
-                }
-            }
-            pendingReadCall === null -> {
-                try {
-                    pendingReadCall = continuation
-                    readCallLoop()
-                } finally {
-                    pendingReadCall = null
-                    readCallResult = UNDEFINED_RESULT
-                }
-            }
-            else -> suspendCoroutineUninterceptedOrReturn { k ->
-                pendingReadCall = k
-                COROUTINE_SUSPENDED
-            }
-        }
-
-    private
-    fun readCallLoop(): Any? {
-        @Suppress("unchecked_cast")
-        val unsafeRead = ::stackUnsafeRead as Function1<Continuation<Any?>, Any?>
-        while (true) {
-            val call = pendingReadCall!!
-            val result = unsafeRead.invoke(call)
-            if (result !== COROUTINE_SUSPENDED) {
-                call.resume(result)
-            }
-            if (pendingReadCall === null) {
-                return readCallResult.getOrThrow()
-            }
-        }
-    }
-
-    private
-    val continuation = object : Continuation<Any?> {
-
-        override val context: CoroutineContext
-            get() = EmptyCoroutineContext
-
-        override fun resumeWith(result: Result<Any?>) {
-            pendingReadCall = null
-            readCallResult = result
-        }
-    }
-
-    private
-    suspend fun stackUnsafeRead(): Any? =
+    override fun read(): Any? =
         getCodec().run {
             decode()
         }
@@ -427,36 +282,11 @@ class DefaultReadContext(
     override fun onProblem(problem: PropertyProblem) {
         problemsListener.onProblem(problem)
     }
-
-    override fun saveCallStack(): Any? {
-        val savedCallStack = pendingReadCall
-        pendingReadCall = null
-        return savedCallStack
-    }
-
-    override fun restoreCallStack(savedCallStack: Any?) {
-        require(pendingReadCall === null)
-        pendingReadCall = savedCallStack?.uncheckedCast()
-    }
 }
 
 
-/**
- * Maximum number of direct recursive calls allowed before stack safety is preserved via heap allocations.
- *
- * A higher number means less `Continuation` allocations but it also increases the
- * chance that a very deep object graph could blow up the stack.
- */
-private
-const val MAX_STACK_DEPTH = 64
-
-
-private
-val UNDEFINED_RESULT = Result.success(COROUTINE_SUSPENDED)
-
-
 interface DecodingProvider<T> {
-    suspend fun ReadContext.decode(): T?
+    fun ReadContext.decode(): T?
 }
 
 

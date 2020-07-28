@@ -76,13 +76,13 @@ class FileTreeCodec(
     private val fileSystem: FileSystem
 ) : Codec<FileTreeInternal> {
 
-    override suspend fun WriteContext.encode(value: FileTreeInternal) {
+    override fun WriteContext.encode(value: FileTreeInternal) {
         encodePreservingIdentityOf(value) {
             write(rootSpecOf(value))
         }
     }
 
-    override suspend fun ReadContext.decode(): FileTreeInternal? {
+    override fun ReadContext.decode(): FileTreeInternal? {
         return decodePreservingIdentity { id ->
             val specs = readNonNull<List<FileTreeSpec>>()
             val fileTrees = specs.map {

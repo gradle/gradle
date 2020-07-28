@@ -30,12 +30,12 @@ class DestinationRootCopySpecCodec(
     private val fileResolver: FileResolver
 ) : Codec<DestinationRootCopySpec> {
 
-    override suspend fun WriteContext.encode(value: DestinationRootCopySpec) {
+    override fun WriteContext.encode(value: DestinationRootCopySpec) {
         write(value.destinationDir)
         write(value.delegate)
     }
 
-    override suspend fun ReadContext.decode(): DestinationRootCopySpec {
+    override fun ReadContext.decode(): DestinationRootCopySpec {
         val destDir = read() as? File
         val delegate = read() as CopySpecInternal
         val spec = DestinationRootCopySpec(fileResolver, delegate)

@@ -147,7 +147,7 @@ class InstantExecutionCacheFingerprintController internal constructor(
         writingState = writingState.dispose()
     }
 
-    suspend fun ReadContext.checkFingerprint(): InvalidationReason? =
+    fun ReadContext.checkFingerprint(): InvalidationReason? =
         InstantExecutionCacheFingerprintChecker(CacheFingerprintComponentHost()).run {
             checkFingerprint()
         }

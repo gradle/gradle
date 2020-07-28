@@ -56,12 +56,12 @@ class InstantExecutionState(
     private val relevantProjectsRegistry: RelevantProjectsRegistry
 ) {
 
-    suspend fun DefaultWriteContext.writeState() {
+    fun DefaultWriteContext.writeState() {
         encodeScheduledWork()
         writeInt(0x1ecac8e)
     }
 
-    suspend fun DefaultReadContext.readState() {
+    fun DefaultReadContext.readState() {
         decodeScheduledWork()
         require(readInt() == 0x1ecac8e) {
             "corrupt state file"
@@ -69,7 +69,7 @@ class InstantExecutionState(
     }
 
     private
-    suspend fun DefaultWriteContext.encodeScheduledWork() {
+    fun DefaultWriteContext.encodeScheduledWork() {
         val build = host.currentBuild
         writeString(build.rootProject.name)
 
@@ -84,7 +84,7 @@ class InstantExecutionState(
     }
 
     private
-    suspend fun DefaultReadContext.decodeScheduledWork() {
+    fun DefaultReadContext.decodeScheduledWork() {
 
         val rootProjectName = readString()
         val build = host.createBuild(rootProjectName)
@@ -104,7 +104,7 @@ class InstantExecutionState(
     }
 
     private
-    suspend fun DefaultWriteContext.writeGradleState(gradle: GradleInternal) {
+    fun DefaultWriteContext.writeGradleState(gradle: GradleInternal) {
         withGradleIsolate(gradle) {
             writeChildBuilds(gradle)
             writeBuildCacheConfiguration(gradle)
@@ -115,7 +115,7 @@ class InstantExecutionState(
     }
 
     private
-    suspend fun DefaultReadContext.readGradleState(gradle: GradleInternal) {
+    fun DefaultReadContext.readGradleState(gradle: GradleInternal) {
         withGradleIsolate(gradle) {
             readChildBuilds()
             readBuildCacheConfiguration(gradle)
@@ -170,7 +170,7 @@ class InstantExecutionState(
     }
 
     private
-    suspend fun DefaultWriteContext.writeBuildCacheConfiguration(gradle: GradleInternal) {
+    fun DefaultWriteContext.writeBuildCacheConfiguration(gradle: GradleInternal) {
         gradle.settings.buildCache.let { buildCache ->
             write(buildCache.local)
             write(buildCache.remote)
@@ -178,7 +178,7 @@ class InstantExecutionState(
     }
 
     private
-    suspend fun DefaultReadContext.readBuildCacheConfiguration(gradle: GradleInternal) {
+    fun DefaultReadContext.readBuildCacheConfiguration(gradle: GradleInternal) {
         gradle.settings.buildCache.let { buildCache ->
             buildCache.local = readNonNull()
             buildCache.remote = read() as BuildCache?
@@ -186,13 +186,13 @@ class InstantExecutionState(
     }
 
     private
-    suspend fun DefaultWriteContext.writeBuildEventListenerSubscriptions() {
+    fun DefaultWriteContext.writeBuildEventListenerSubscriptions() {
         val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
         writeCollection(eventListenerRegistry.subscriptions)
     }
 
     private
-    suspend fun DefaultReadContext.readBuildEventListenerSubscriptions() {
+    fun DefaultReadContext.readBuildEventListenerSubscriptions() {
         val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
         readCollection {
             val provider = readNonNull<Provider<OperationCompletionListener>>()
@@ -201,13 +201,13 @@ class InstantExecutionState(
     }
 
     private
-    suspend fun DefaultWriteContext.writeBuildOutputCleanupRegistrations() {
+    fun DefaultWriteContext.writeBuildOutputCleanupRegistrations() {
         val buildOutputCleanupRegistry = service<BuildOutputCleanupRegistry>()
         writeCollection(buildOutputCleanupRegistry.registeredOutputs)
     }
 
     private
-    suspend fun DefaultReadContext.readBuildOutputCleanupRegistrations() {
+    fun DefaultReadContext.readBuildOutputCleanupRegistrations() {
         val buildOutputCleanupRegistry = service<BuildOutputCleanupRegistry>()
         readCollection {
             val files = readNonNull<FileCollection>()
@@ -216,7 +216,7 @@ class InstantExecutionState(
     }
 
     private
-    suspend fun DefaultWriteContext.writeGradleEnterprisePluginManager() {
+    fun DefaultWriteContext.writeGradleEnterprisePluginManager() {
         val manager = service<GradleEnterprisePluginManager>()
         val adapter = manager.adapter
         val writtenAdapter = if (adapter == null) null else {
@@ -226,7 +226,7 @@ class InstantExecutionState(
     }
 
     private
-    suspend fun DefaultReadContext.readGradleEnterprisePluginManager() {
+    fun DefaultReadContext.readGradleEnterprisePluginManager() {
         val adapter = read() as GradleEnterprisePluginAdapter?
         if (adapter != null) {
             adapter.onLoadFromConfigurationCache()

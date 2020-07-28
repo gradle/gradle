@@ -55,7 +55,7 @@ class FileCollectionCodec(
     private
     val noDependencies = FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty()))
 
-    override suspend fun WriteContext.encode(value: FileCollectionInternal) {
+    override fun WriteContext.encode(value: FileCollectionInternal) {
         encodePreservingIdentityOf(value) {
             runCatching {
                 val visitor = CollectingVisitor()
@@ -78,7 +78,7 @@ class FileCollectionCodec(
         }
     }
 
-    override suspend fun ReadContext.decode(): FileCollectionInternal {
+    override fun ReadContext.decode(): FileCollectionInternal {
         return decodePreservingIdentity { id ->
             val contents = read()
             val collection = if (contents is Collection<*>) {

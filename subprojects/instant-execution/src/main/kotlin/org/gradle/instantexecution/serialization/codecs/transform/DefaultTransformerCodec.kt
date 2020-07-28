@@ -51,7 +51,7 @@ class DefaultTransformerCodec(
     private val actionScheme: ArtifactTransformActionScheme
 ) : Codec<DefaultTransformer> {
 
-    override suspend fun WriteContext.encode(value: DefaultTransformer) {
+    override fun WriteContext.encode(value: DefaultTransformer) {
         writeClass(value.implementationClass)
         write(value.fromAttributes)
         writeClass(value.inputArtifactNormalizer)
@@ -70,7 +70,7 @@ class DefaultTransformerCodec(
         }
     }
 
-    override suspend fun ReadContext.decode(): DefaultTransformer? {
+    override fun ReadContext.decode(): DefaultTransformer? {
         val implementationClass = readClassOf<TransformAction<*>>()
         val fromAttributes = readNonNull<ImmutableAttributes>()
         val inputArtifactNormalizer = readClassOf<FileNormalizer>()

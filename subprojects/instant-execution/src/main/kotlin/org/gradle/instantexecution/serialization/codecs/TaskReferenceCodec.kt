@@ -27,7 +27,7 @@ import org.gradle.instantexecution.serialization.logUnsupported
 internal
 object TaskReferenceCodec : Codec<Task> {
 
-    override suspend fun WriteContext.encode(value: Task) {
+    override fun WriteContext.encode(value: Task) {
         if (value === isolate.owner.delegate) {
             writeBoolean(true)
         } else {
@@ -41,7 +41,7 @@ object TaskReferenceCodec : Codec<Task> {
         }
     }
 
-    override suspend fun ReadContext.decode(): Task? =
+    override fun ReadContext.decode(): Task? =
         if (readBoolean()) {
             isolate.owner.delegate as Task
         } else {

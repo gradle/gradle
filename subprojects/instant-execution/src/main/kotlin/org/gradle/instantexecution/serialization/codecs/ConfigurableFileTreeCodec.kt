@@ -30,12 +30,12 @@ internal
 class ConfigurableFileTreeCodec(
     private val fileCollectionFactory: FileCollectionFactory
 ) : Codec<ConfigurableFileTree> {
-    override suspend fun WriteContext.encode(value: ConfigurableFileTree) {
+    override fun WriteContext.encode(value: ConfigurableFileTree) {
         writeFile(value.dir)
         write(value.patterns)
     }
 
-    override suspend fun ReadContext.decode(): ConfigurableFileTree {
+    override fun ReadContext.decode(): ConfigurableFileTree {
         val dir = readFile()
         val patterns = read() as PatternSet
         val tree = fileCollectionFactory.fileTree()

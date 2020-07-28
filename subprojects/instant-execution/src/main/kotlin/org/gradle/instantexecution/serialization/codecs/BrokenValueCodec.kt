@@ -24,11 +24,11 @@ import org.gradle.internal.serialize.Message
 
 object BrokenValueCodec : Codec<BrokenValue> {
 
-    override suspend fun WriteContext.encode(value: BrokenValue) {
+    override fun WriteContext.encode(value: BrokenValue) {
         Message.send(value.failure, outputStream)
     }
 
-    override suspend fun ReadContext.decode(): BrokenValue {
+    override fun ReadContext.decode(): BrokenValue {
         val exception = Message.receive(inputStream, classLoader) as Throwable
         return BrokenValue(exception)
     }

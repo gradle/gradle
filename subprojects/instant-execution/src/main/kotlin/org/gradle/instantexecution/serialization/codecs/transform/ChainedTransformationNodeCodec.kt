@@ -34,7 +34,7 @@ class ChainedTransformationNodeCodec(
     private val transformListener: ArtifactTransformListener
 ) : AbstractTransformationNodeCodec<TransformationNode.ChainedTransformationNode>() {
 
-    override suspend fun WriteContext.doEncode(value: TransformationNode.ChainedTransformationNode) {
+    override fun WriteContext.doEncode(value: TransformationNode.ChainedTransformationNode) {
         withCodec(userTypesCodec) {
             write(value.transformationStep)
             write(transformDependencies(value))
@@ -42,7 +42,7 @@ class ChainedTransformationNodeCodec(
         write(value.previousTransformationNode)
     }
 
-    override suspend fun ReadContext.doDecode(): TransformationNode.ChainedTransformationNode {
+    override fun ReadContext.doDecode(): TransformationNode.ChainedTransformationNode {
         val transformationStep = withCodec(userTypesCodec) {
             readNonNull<TransformationStep>()
         }

@@ -33,20 +33,20 @@ class WorkNodeCodec(
     private val internalTypesCodec: Codec<Any?>
 ) {
 
-    suspend fun WriteContext.writeWork(nodes: List<Node>) {
+    fun WriteContext.writeWork(nodes: List<Node>) {
         // Share bean instances across all nodes (except tasks, which have their own isolate)
         withIsolate(IsolateOwner.OwnerGradle(owner), internalTypesCodec) {
             writeNodes(nodes)
         }
     }
 
-    suspend fun ReadContext.readWork(): List<Node> =
+    fun ReadContext.readWork(): List<Node> =
         withIsolate(IsolateOwner.OwnerGradle(owner), internalTypesCodec) {
             readNodes()
         }
 
     private
-    suspend fun WriteContext.writeNodes(nodes: List<Node>) {
+    fun WriteContext.writeNodes(nodes: List<Node>) {
         val nodeCount = nodes.size
         writeSmallInt(nodeCount)
         val scheduledNodeIds = HashMap<Node, Int>(nodeCount)
@@ -57,7 +57,7 @@ class WorkNodeCodec(
     }
 
     private
-    suspend fun ReadContext.readNodes(): List<Node> {
+    fun ReadContext.readNodes(): List<Node> {
         val nodeCount = readSmallInt()
         val nodes = ArrayList<Node>(nodeCount)
         val nodesById = HashMap<Int, Node>(nodeCount)
@@ -70,7 +70,7 @@ class WorkNodeCodec(
     }
 
     private
-    suspend fun WriteContext.writeNode(
+    fun WriteContext.writeNode(
         node: Node,
         scheduledNodeIds: Map<Node, Int>
     ) {
@@ -80,7 +80,7 @@ class WorkNodeCodec(
     }
 
     private
-    suspend fun ReadContext.readNode(nodesById: Map<Int, Node>): Node {
+    fun ReadContext.readNode(nodesById: Map<Int, Node>): Node {
         val node = readNonNull<Node>()
         readSuccessorReferencesOf(node, nodesById)
         readExecutionStateOf(node)

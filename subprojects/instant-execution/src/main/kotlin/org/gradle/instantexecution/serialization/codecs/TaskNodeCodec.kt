@@ -68,14 +68,14 @@ class TaskNodeCodec(
     private val taskNodeFactory: TaskNodeFactory
 ) : Codec<LocalTaskNode> {
 
-    override suspend fun WriteContext.encode(value: LocalTaskNode) {
+    override fun WriteContext.encode(value: LocalTaskNode) {
         val task = value.task
         runWriteOperationWithMutableStateOf(task.project) {
             writeTask(task)
         }
     }
 
-    override suspend fun ReadContext.decode(): LocalTaskNode {
+    override fun ReadContext.decode(): LocalTaskNode {
         val task = readTask()
         val node = taskNodeFactory.getOrCreateNode(task) as LocalTaskNode
         node.isolated()
@@ -83,7 +83,7 @@ class TaskNodeCodec(
     }
 
     private
-    suspend fun WriteContext.writeTask(task: TaskInternal) {
+    fun WriteContext.writeTask(task: TaskInternal) {
         val taskType = GeneratedSubclasses.unpackType(task)
         writeClass(taskType)
         writeString(task.project.path)
@@ -104,7 +104,7 @@ class TaskNodeCodec(
     }
 
     private
-    suspend fun ReadContext.readTask(): Task {
+    fun ReadContext.readTask(): Task {
         val taskType = readClassOf<Task>()
         val projectPath = readString()
         val taskName = readString()
@@ -128,7 +128,7 @@ class TaskNodeCodec(
     }
 
     private
-    suspend fun WriteContext.writeUpToDateSpec(task: TaskInternal) {
+    fun WriteContext.writeUpToDateSpec(task: TaskInternal) {
         // TODO - should just write this as a bean field of the outputs object, and also do this for the registered properties above
         if (task.outputs.upToDateSpec.isEmpty) {
             writeBoolean(false)
@@ -139,26 +139,26 @@ class TaskNodeCodec(
     }
 
     private
-    suspend fun ReadContext.readUpToDateSpec(task: TaskInternal) {
+    fun ReadContext.readUpToDateSpec(task: TaskInternal) {
         if (readBoolean()) {
             task.outputs.upToDateWhen(readNonNull<Spec<Task>>())
         }
     }
 
     private
-    suspend fun WriteContext.writeRegisteredServicesOf(task: TaskInternal) {
+    fun WriteContext.writeRegisteredServicesOf(task: TaskInternal) {
         writeCollection(task.requiredServices)
     }
 
     private
-    suspend fun ReadContext.readRegisteredServicesOf(task: TaskInternal) {
+    fun ReadContext.readRegisteredServicesOf(task: TaskInternal) {
         readCollection {
             task.usesService(readNonNull())
         }
     }
 
     private
-    suspend fun WriteContext.writeDestroyablesOf(task: TaskInternal) {
+    fun WriteContext.writeDestroyablesOf(task: TaskInternal) {
         val destroyables = (task.destroyables as TaskDestroyablesInternal).registeredFiles
         if (destroyables.isEmpty) {
             writeBoolean(false)
@@ -169,14 +169,14 @@ class TaskNodeCodec(
     }
 
     private
-    suspend fun ReadContext.readDestroyablesOf(task: TaskInternal) {
+    fun ReadContext.readDestroyablesOf(task: TaskInternal) {
         if (readBoolean()) {
             task.destroyables.register(readNonNull<FileCollection>())
         }
     }
 
     private
-    suspend fun WriteContext.writeLocalStateOf(task: TaskInternal) {
+    fun WriteContext.writeLocalStateOf(task: TaskInternal) {
         val localState = (task.localState as TaskLocalStateInternal).registeredFiles
         if (localState.isEmpty) {
             writeBoolean(false)
@@ -187,7 +187,7 @@ class TaskNodeCodec(
     }
 
     private
-    suspend fun ReadContext.readLocalStateOf(task: TaskInternal) {
+    fun ReadContext.readLocalStateOf(task: TaskInternal) {
         if (readBoolean()) {
             task.localState.register(readNonNull<FileCollection>())
         }
@@ -197,7 +197,7 @@ class TaskNodeCodec(
      * Runs the suspending [operation] against the [public mutable state][ProjectState.withMutableState] of [project].
      */
     private
-    fun WriteContext.runWriteOperationWithMutableStateOf(project: Project, operation: suspend WriteContext.() -> Unit) {
+    fun WriteContext.runWriteOperationWithMutableStateOf(project: Project, operation: WriteContext.() -> Unit) {
         projectStateRegistry.stateFor(project).withMutableState {
             runWriteOperation(operation)
         }
@@ -249,20 +249,20 @@ sealed class RegisteredProperty {
 
 
 private
-suspend fun WriteContext.writeRegisteredPropertiesOf(
+fun WriteContext.writeRegisteredPropertiesOf(
     task: Task,
     propertyWriter: BeanPropertyWriter
 ) = propertyWriter.run {
 
-    suspend fun writeProperty(propertyName: String, propertyValue: Any?, kind: PropertyKind) {
+    fun writeProperty(propertyName: String, propertyValue: Any?, kind: PropertyKind) {
         writeString(propertyName)
         writeNextProperty(propertyName, propertyValue, kind)
     }
 
-    suspend fun writeInputProperty(propertyName: String, propertyValue: Any?) =
+    fun writeInputProperty(propertyName: String, propertyValue: Any?) =
         writeProperty(propertyName, propertyValue, PropertyKind.InputProperty)
 
-    suspend fun writeOutputProperty(propertyName: String, propertyValue: Any?) =
+    fun writeOutputProperty(propertyName: String, propertyValue: Any?) =
         writeProperty(propertyName, propertyValue, PropertyKind.OutputProperty)
 
     val inputProperties = collectRegisteredInputsOf(task)
@@ -375,14 +375,14 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
 
 
 private
-suspend fun ReadContext.readRegisteredPropertiesOf(task: Task) {
+fun ReadContext.readRegisteredPropertiesOf(task: Task) {
     readInputPropertiesOf(task)
     readOutputPropertiesOf(task)
 }
 
 
 private
-suspend fun ReadContext.readInputPropertiesOf(task: Task) =
+fun ReadContext.readInputPropertiesOf(task: Task) =
     readCollection {
         val propertyName = readString()
         readPropertyValue(PropertyKind.InputProperty, propertyName) { propertyValue ->
@@ -421,7 +421,7 @@ fun pack(value: Any?) = value ?: Providers.notDefined<Any>()
 
 
 private
-suspend fun ReadContext.readOutputPropertiesOf(task: Task) =
+fun ReadContext.readOutputPropertiesOf(task: Task) =
     readCollection {
         val propertyName = readString()
         readPropertyValue(PropertyKind.OutputProperty, propertyName) { propertyValue ->

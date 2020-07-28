@@ -38,11 +38,11 @@ class AttributeContainerCodec(
     private val managedFactories: ManagedFactoryRegistry
 ) : Codec<AttributeContainer> {
 
-    override suspend fun WriteContext.encode(value: AttributeContainer) {
+    override fun WriteContext.encode(value: AttributeContainer) {
         writeAttributes(value)
     }
 
-    override suspend fun ReadContext.decode(): AttributeContainer? =
+    override fun ReadContext.decode(): AttributeContainer? =
         readAttributesUsing(attributesFactory, managedFactories)
 }
 
@@ -53,17 +53,17 @@ class ImmutableAttributesCodec(
     private val managedFactories: ManagedFactoryRegistry
 ) : Codec<ImmutableAttributes> {
 
-    override suspend fun WriteContext.encode(value: ImmutableAttributes) {
+    override fun WriteContext.encode(value: ImmutableAttributes) {
         writeAttributes(value)
     }
 
-    override suspend fun ReadContext.decode(): ImmutableAttributes =
+    override fun ReadContext.decode(): ImmutableAttributes =
         readAttributesUsing(attributesFactory, managedFactories).asImmutable()
 }
 
 
 private
-suspend fun WriteContext.writeAttributes(container: AttributeContainer) {
+fun WriteContext.writeAttributes(container: AttributeContainer) {
     writeCollection(container.keySet()) { attribute ->
         writeAttribute(attribute)
         val value = container.getAttribute(attribute)
@@ -73,7 +73,7 @@ suspend fun WriteContext.writeAttributes(container: AttributeContainer) {
 
 
 private
-suspend fun ReadContext.readAttributesUsing(
+fun ReadContext.readAttributesUsing(
     attributesFactory: ImmutableAttributesFactory,
     managedFactories: ManagedFactoryRegistry
 ): AttributeContainerInternal =
@@ -87,7 +87,7 @@ suspend fun ReadContext.readAttributesUsing(
 
 
 private
-suspend fun WriteContext.writeAttributeValue(value: Any?) {
+fun WriteContext.writeAttributeValue(value: Any?) {
     if (value is Managed) {
         writeBoolean(true)
         // TODO: consider introducing a ManagedCodec
@@ -100,7 +100,7 @@ suspend fun WriteContext.writeAttributeValue(value: Any?) {
 
 
 private
-suspend fun ReadContext.readAttributeValue(managedFactories: ManagedFactoryRegistry): Any =
+fun ReadContext.readAttributeValue(managedFactories: ManagedFactoryRegistry): Any =
     if (readBoolean()) {
         // TODO: consider introducing a ManagedCodec
         readManaged(managedFactories)
@@ -125,7 +125,7 @@ fun ReadContext.readAttribute(): Attribute<Any> {
 
 
 private
-suspend fun WriteContext.writeManaged(value: Managed) {
+fun WriteContext.writeManaged(value: Managed) {
     writeSmallInt(value.factoryId)
     writeClass(value.publicType())
     write(value.unpackState())
@@ -133,7 +133,7 @@ suspend fun WriteContext.writeManaged(value: Managed) {
 
 
 private
-suspend fun ReadContext.readManaged(managedFactories: ManagedFactoryRegistry): Any {
+fun ReadContext.readManaged(managedFactories: ManagedFactoryRegistry): Any {
     val factoryId = readSmallInt()
     val type = readClass()
     val state = read()
