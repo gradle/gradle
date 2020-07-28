@@ -198,9 +198,7 @@ final class InstantExecutionProblemsFixture {
 
     private static Matcher<String> failureDescriptionMatcherForProblems(HasInstantExecutionProblemsSpec spec) {
         return buildMatcherForProblemsFailureDescription(
-            "Configuration cache problems found in this build.\n" +
-                "Gradle can be made to ignore these problems, " +
-                "see ${new DocumentationRegistry().getDocumentationFor("configuration_cache", "config_cache:usage:ignore_problems")}.",
+            "Configuration cache problems found in this build.",
             spec
         )
     }
