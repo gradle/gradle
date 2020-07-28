@@ -38,7 +38,6 @@ import org.gradle.instantexecution.serialization.runWriteOperation
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.internal.Factory
 import org.gradle.internal.classpath.Instrumented
-import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
@@ -60,8 +59,7 @@ class DefaultInstantExecution internal constructor(
     private val cacheFingerprintController: InstantExecutionCacheFingerprintController,
     private val beanConstructors: BeanConstructors,
     private val gradlePropertiesController: GradlePropertiesController,
-    private val relevantProjectsRegistry: RelevantProjectsRegistry,
-    private val listenerManager: ListenerManager
+    private val relevantProjectsRegistry: RelevantProjectsRegistry
 ) : InstantExecution {
 
     interface Host {
