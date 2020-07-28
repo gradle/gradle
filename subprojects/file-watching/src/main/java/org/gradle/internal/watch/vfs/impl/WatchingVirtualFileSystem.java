@@ -88,7 +88,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
         } else {
             SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener(watchFilter);
             SnapshotHierarchy newRoot = updateFunction.update(currentRoot, diffListener);
-            return withWatcherChangeErrorHandling(newRoot, () -> diffListener.publishSnapshotDiff(watchRegistry.getFileWatcherUpdater()));
+            return withWatcherChangeErrorHandling(newRoot, () -> diffListener.publishSnapshotDiff(watchRegistry.getFileWatcherUpdater(), newRoot));
         }
     }
 
@@ -119,7 +119,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                 }
                 return withWatcherChangeErrorHandling(
                     currentRoot,
-                    () -> watchRegistry.getFileWatcherUpdater().updateRootProjectDirectories(rootDirectoriesForWatching)
+                    () -> watchRegistry.getFileWatcherUpdater().updateRootProjectDirectories(rootDirectoriesForWatching, currentRoot)
                 );
             });
         }
@@ -140,7 +140,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                 SnapshotHierarchy newRoot = removeSymbolicLinks(currentRoot);
                 newRoot = handleWatcherRegistryEvents(newRoot, "for current build");
                 if (watchRegistry != null) {
-                    newRoot = withWatcherChangeErrorHandling(newRoot, () -> watchRegistry.getFileWatcherUpdater().buildFinished());
+                    newRoot = withWatcherChangeErrorHandling(newRoot, () -> watchRegistry.getFileWatcherUpdater().buildFinished(currentRoot));
                 }
                 printStatistics(newRoot, "retains", "till next build");
                 return newRoot;
@@ -191,7 +191,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                     stopWatchingAndInvalidateHierarchy();
                 }
             });
-            watchRegistry.getFileWatcherUpdater().updateRootProjectDirectories(rootDirectoriesForWatching);
+            watchRegistry.getFileWatcherUpdater().updateRootProjectDirectories(rootDirectoriesForWatching, currentRoot);
             long endTime = System.currentTimeMillis() - startTime;
             LOGGER.warn("Spent {} ms registering watches for file system events", endTime);
             // TODO: Move start watching early enough so that the root is always empty

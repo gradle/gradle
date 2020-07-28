@@ -250,7 +250,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         succeeds "help"
     }
 
-    def "watches the roots of #repositoryType file repositories"() {
+    def "does not watch files in #repositoryType file repositories"() {
         def repo = this."${repositoryType}"("repo")
         def moduleA = repo.module('group', 'projectA', '9.1')
         moduleA.publish()
@@ -271,7 +271,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         when:
         withWatchFs().run "retrieve", "--info"
         then:
-        assertWatchedHierarchies([projectDir, moduleA."${artifactFileProperty}".parentFile])
+        assertWatchedHierarchies([projectDir])
 
         where:
         repositoryType | artifactFileProperty

@@ -32,7 +32,7 @@ public interface FileWatcherUpdater extends SnapshotHierarchy.SnapshotDiffListen
      *
      * @throws WatchingNotSupportedException when the native watchers can't be updated.
      */
-    void updateRootProjectDirectories(Collection<File> updatedRootProjectDirectories);
+    void updateRootProjectDirectories(Collection<File> updatedRootProjectDirectories, SnapshotHierarchy root);
 
     /**
      * {@inheritDoc}.
@@ -40,12 +40,12 @@ public interface FileWatcherUpdater extends SnapshotHierarchy.SnapshotDiffListen
      * @throws WatchingNotSupportedException when the native watchers can't be updated.
      */
     @Override
-    void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots);
+    void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
 
     /**
      * Notifies the updater that the build has been finished, so it can do some internal bookkeeping updates.
      *
      * Used by the hierarchical watchers to avoid stop watching root project directories during a build.
      */
-    void buildFinished();
+    void buildFinished(SnapshotHierarchy root);
 }

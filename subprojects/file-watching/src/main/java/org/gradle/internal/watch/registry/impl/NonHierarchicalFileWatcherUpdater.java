@@ -25,6 +25,7 @@ import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.slf4j.Logger;
@@ -52,7 +53,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots) {
+    public void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
         Map<String, Integer> changedWatchedDirectories = new HashMap<>();
 
         removedSnapshots.forEach(snapshot -> {
@@ -71,12 +72,12 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void buildFinished() {
+    public void buildFinished(SnapshotHierarchy root) {
         LOGGER.warn("Watching {} directories to track changes", watchedRoots.entrySet().size());
     }
 
     @Override
-    public void updateRootProjectDirectories(Collection<File> updatedRootProjectDirectories) {
+    public void updateRootProjectDirectories(Collection<File> updatedRootProjectDirectories, SnapshotHierarchy root) {
     }
 
     private void updateWatchedDirectories(Map<String, Integer> changedWatchDirectories) {

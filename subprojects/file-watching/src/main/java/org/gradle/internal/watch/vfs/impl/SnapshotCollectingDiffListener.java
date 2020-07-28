@@ -35,9 +35,9 @@ public class SnapshotCollectingDiffListener implements SnapshotHierarchy.NodeDif
         this.watchFilter = watchFilter;
     }
 
-    public void publishSnapshotDiff(SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener) {
+    public void publishSnapshotDiff(SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener, SnapshotHierarchy root) {
         if (!removedSnapshots.isEmpty() || !addedSnapshots.isEmpty()) {
-            snapshotDiffListener.changed(removedSnapshots, addedSnapshots);
+            snapshotDiffListener.changed(removedSnapshots, addedSnapshots, root);
         }
     }
 
