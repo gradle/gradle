@@ -16,7 +16,6 @@
 
 package gradlebuild
 
-import gradlebuild.basics.BuildEnvironment
 import org.gradle.api.tasks.testing.Test
 
 
@@ -55,9 +54,24 @@ val propagatedEnvAllowList = listOf(
 )
 
 
+val propagatedBlockList = listOf(
+    "api_key",
+    "access_key",
+    "apikey",
+    "accesskey",
+    "password",
+    "token",
+    "credential",
+    "auth"
+)
+
+
 fun Test.configurePropagatedEnvVariables() {
-    if (BuildEnvironment.isCiServer) {
-        environment = System.getenv().entries.mapNotNull(::sanitize).toMap()
+    environment = System.getenv().entries.mapNotNull(::sanitize).toMap()
+    environment.forEach { (key, value) ->
+        if (propagatedBlockList.any { key.contains(it, true) } || propagatedBlockList.any { value.toString().contains(it, true) }) {
+            throw IllegalArgumentException("Found sensitive data in filtered environment variables: $key:$value")
+        }
     }
 }
 
@@ -79,6 +93,7 @@ fun sanitize(entry: MutableMap.MutableEntry<String, String>): Pair<String, Strin
         entry.key.startsWith("VS") -> entry.key to entry.value
         entry.key.startsWith("CommonProgram") -> entry.key to entry.value
         entry.key.startsWith("ProgramFiles") -> entry.key to entry.value
+        entry.key.startsWith("ProgramData") -> entry.key to entry.value
 
         entry.key.equals("Path", true) -> entry.key to entry.value
         else -> null
