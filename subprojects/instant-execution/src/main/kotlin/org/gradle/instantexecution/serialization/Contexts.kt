@@ -38,8 +38,8 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
+import kotlin.coroutines.intrinsics.suspendCoroutineUninterceptedOrReturn
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 
 internal
@@ -107,8 +107,9 @@ class DefaultWriteContext(
                     pendingWriteCall = null
                 }
             }
-            else -> suspendCoroutine<Unit> { k ->
+            else -> suspendCoroutineUninterceptedOrReturn<Unit> { k ->
                 pendingWriteCall = WriteCall(value, k)
+                COROUTINE_SUSPENDED
             }
         }
     }
@@ -317,8 +318,9 @@ class DefaultReadContext(
                     readCallResult = UNDEFINED_RESULT
                 }
             }
-            else -> suspendCoroutine { k ->
+            else -> suspendCoroutineUninterceptedOrReturn { k ->
                 pendingReadCall = k
+                COROUTINE_SUSPENDED
             }
         }
 
