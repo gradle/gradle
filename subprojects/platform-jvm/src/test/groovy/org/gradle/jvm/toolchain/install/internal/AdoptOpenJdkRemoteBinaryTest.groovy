@@ -22,10 +22,15 @@ import org.gradle.internal.SystemProperties
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.util.TestUtil
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class AdoptOpenJdkRemoteBinaryTest extends Specification {
+
+    @Rule
+    public final TemporaryFolder temporaryFolder = new TemporaryFolder()
 
     @Unroll
     def "generates url for jdk #jdkVersion on #operatingSystemName (#architecture)"() {
@@ -132,7 +137,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
     }
 
     def setupApiOnFilesystem() {
-        def downloadServer = File.createTempDir()
+        def downloadServer = temporaryFolder.create()
         def apiPath = new File(downloadServer, "/v3/binary/latest/11/ga/mac/x64/jdk/hotspot/normal/")
         apiPath.mkdirs()
         def jdk = new File(apiPath, "adoptopenjdk")
