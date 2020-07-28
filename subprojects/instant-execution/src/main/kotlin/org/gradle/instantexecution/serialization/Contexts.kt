@@ -40,6 +40,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
 import kotlin.coroutines.intrinsics.suspendCoroutineUninterceptedOrReturn
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 
 internal
@@ -118,14 +119,19 @@ class DefaultWriteContext(
     fun writeCallLoop() {
         @Suppress("unchecked_cast")
         val unsafeWrite = ::stackUnsafeWrite as Function2<Any?, Continuation<Unit>, Any>
-        do {
-            val call = pendingWriteCall!!
+        while (true) {
+            val call = pendingWriteCall ?: break
             val k = call.k
-            val result = unsafeWrite.invoke(call.value, k)
+            val result = try {
+                unsafeWrite.invoke(call.value, k)
+            } catch (error: Throwable) {
+                k.resumeWithException(error)
+                continue
+            }
             if (result !== COROUTINE_SUSPENDED) {
                 k.resume(Unit)
             }
-        } while (pendingWriteCall !== null)
+        }
     }
 
     private
@@ -329,13 +335,16 @@ class DefaultReadContext(
         @Suppress("unchecked_cast")
         val unsafeRead = ::stackUnsafeRead as Function1<Continuation<Any?>, Any?>
         while (true) {
-            val call = pendingReadCall!!
-            val result = unsafeRead.invoke(call)
+            val call = pendingReadCall
+                ?: return readCallResult.getOrThrow()
+            val result = try {
+                unsafeRead.invoke(call)
+            } catch (error: Throwable) {
+                call.resumeWithException(error)
+                continue
+            }
             if (result !== COROUTINE_SUSPENDED) {
                 call.resume(result)
-            }
-            if (pendingReadCall === null) {
-                return readCallResult.getOrThrow()
             }
         }
     }
