@@ -23,8 +23,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -68,7 +66,6 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
     }
 
     @ToBeFixedForInstantExecution(because = "composite build not yet supported")
-    @Requires(TestPrecondition.NOT_WINDOWS) // https://github.com/gradle/gradle-private/issues/3116
     def "works with composite build"() {
         buildTestFixture.withBuildInSubDir()
         def includedBuild = singleProjectBuild("includedBuild") {
@@ -115,7 +112,6 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         executedAndNotSkipped(":includedBuild:jar")
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS) // https://github.com/gradle/gradle-private/issues/3116
     @ToBeFixedForInstantExecution(because = "GradleBuild task is not yet supported")
     def "works with GradleBuild task"() {
         buildTestFixture.withBuildInSubDir()
