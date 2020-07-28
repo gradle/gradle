@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class AdoptOpenJdkRemoteBinary {
@@ -52,7 +53,8 @@ public class AdoptOpenJdkRemoteBinary {
     // Adds risk as AdoptOpenJDK is hosted on S3 which does not allow HEAD requests; they
     // currently have a workaround to support HEAD requests for the "Gradle" User agent
     // Not using accessor might help us to move all of this into jvmServices for TD reuse
-    public File download(JavaToolchainSpec spec) {
+    // TODO: [bm] Need to handle if Adopt does not offer a matching jdk
+    public Optional<File> download(JavaToolchainSpec spec) {
         File tmpFile = new File(Files.createTempDir(), toFilename(spec));
         int defaultTimeout = (int) TimeUnit.MINUTES.toMillis(5);
         URL source = toDownloadUrl(spec);
@@ -62,7 +64,7 @@ public class AdoptOpenJdkRemoteBinary {
         } catch (IOException e) {
             throw new GradleException("Could not download JDK from " + source, e);
         }
-        return tmpFile;
+        return Optional.of(tmpFile);
     }
 
     private URL toDownloadUrl(JavaToolchainSpec spec) {
