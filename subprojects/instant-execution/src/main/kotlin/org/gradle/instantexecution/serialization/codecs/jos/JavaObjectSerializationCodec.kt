@@ -33,7 +33,6 @@ import org.gradle.instantexecution.serialization.logPropertyProblem
 import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withBeanTrace
-import org.gradle.instantexecution.serialization.withImmediateMode
 import org.gradle.instantexecution.serialization.writeEnum
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -108,26 +107,22 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
         decodePreservingIdentity { id ->
             when (readEnum<Format>()) {
                 Format.WriteObject -> {
-                    withImmediateMode {
-                        decodingBeanWithId(id) { bean, beanType, beanStateReader ->
-                            val objectInputStream = objectInputStreamAdapterFor(bean, beanStateReader)
-                            val readObject = readObjectMethodHierarchyForDecoding(beanType)
-                            when {
-                                readObject.isNotEmpty() -> invokeAll(readObject, bean, objectInputStream)
-                                else -> objectInputStream.defaultReadObject()
-                            }
+                    decodingBeanWithId(id) { bean, beanType, beanStateReader ->
+                        val objectInputStream = objectInputStreamAdapterFor(bean, beanStateReader)
+                        val readObject = readObjectMethodHierarchyForDecoding(beanType)
+                        when {
+                            readObject.isNotEmpty() -> invokeAll(readObject, bean, objectInputStream)
+                            else -> objectInputStream.defaultReadObject()
                         }
                     }
                 }
                 Format.ReadObject -> {
-                    withImmediateMode {
-                        decodingBeanWithId(id) { bean, beanType, beanStateReader ->
-                            invokeAll(
-                                readObjectMethodHierarchyForDecoding(beanType),
-                                bean,
-                                objectInputStreamAdapterFor(bean, beanStateReader)
-                            )
-                        }
+                    decodingBeanWithId(id) { bean, beanType, beanStateReader ->
+                        invokeAll(
+                            readObjectMethodHierarchyForDecoding(beanType),
+                            bean,
+                            objectInputStreamAdapterFor(bean, beanStateReader)
+                        )
                     }
                 }
                 Format.WriteReplace -> {

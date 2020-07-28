@@ -206,8 +206,6 @@ class DefaultReadContext(
         this.projectProvider = projectProvider
     }
 
-    override var immediateMode: Boolean = false
-
     override fun read(): Any? =
         getCodec().run {
             decode()
