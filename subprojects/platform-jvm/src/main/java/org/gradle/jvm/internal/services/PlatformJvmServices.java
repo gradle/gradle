@@ -36,6 +36,10 @@ import org.gradle.jvm.internal.resolve.JvmVariantSelector;
 import org.gradle.jvm.internal.resolve.VariantAxisCompatibilityFactory;
 import org.gradle.jvm.internal.resolve.VariantsMetaData;
 import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.jvm.toolchain.install.internal.AdoptOpenJdkRemoteBinary;
+import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
+import org.gradle.jvm.toolchain.install.internal.JdkCacheDirectory;
+import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultJavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
@@ -72,12 +76,16 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         registration.add(EnvironmentVariableListInstallationSupplier.class);
         registration.add(CurrentInstallationSupplier.class);
         registration.add(SdkmanInstallationSupplier.class);
+        registration.add(AutoInstalledInstallationSupplier.class);
+        registration.add(JdkCacheDirectory.class);
     }
 
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.add(JavaToolchainFactory.class);
         registration.add(JavaToolchainQueryService.class);
+        registration.add(DefaultJavaToolchainProvisioningService.class);
+        registration.add(AdoptOpenJdkRemoteBinary.class);
     }
 
     private static class BuildScopeServices {
