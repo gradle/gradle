@@ -69,7 +69,7 @@ val credentialsKeywords = listOf(
 fun Test.filterEnvironmentVariables() {
     environment = System.getenv().entries.mapNotNull(::sanitize).toMap()
     environment.forEach { (key, value) ->
-        if (credentialsKeywords.any { key.contains(it, true) } || credentialsKeywords.any { value.toString().contains(it, true) }) {
+        if (credentialsKeywords.any { key.contains(it, true) }) {
             throw IllegalArgumentException("Found sensitive data in filtered environment variables: $key")
         }
     }
