@@ -19,7 +19,7 @@ package gradlebuild
 import org.gradle.api.tasks.testing.Test
 
 
-val propagatedEnvAllowList = listOf(
+val propagatedEnvironmentVariables = listOf(
     // Obviously necessary
     "HOME",
     "SHELL",
