@@ -27,7 +27,7 @@ public class NotationConverterToNotationParserAdapter<N, T> implements NotationP
 
     @Override
     public T parseNotation(N notation) throws TypeConversionException {
-        ResultImpl<T> result = new ResultImpl<T>();
+        ResultImpl<T> result = new ResultImpl<>();
         converter.convert(notation, result);
         if (!result.hasResult) {
             throw new UnsupportedNotationException(notation);

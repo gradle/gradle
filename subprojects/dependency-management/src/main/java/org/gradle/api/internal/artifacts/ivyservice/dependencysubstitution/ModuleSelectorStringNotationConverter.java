@@ -27,7 +27,7 @@ import org.gradle.util.GUtil;
 
 import static org.gradle.api.internal.notations.ModuleNotationValidation.*;
 
-class ModuleSelectorStringNotationConverter extends TypedNotationConverter<String, ComponentSelector> {
+public class ModuleSelectorStringNotationConverter extends TypedNotationConverter<String, ComponentSelector> {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     public ModuleSelectorStringNotationConverter(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {

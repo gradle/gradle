@@ -29,7 +29,7 @@ class RootProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBuc
     }
 
     params {
-        param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
+        param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%e.grdev.net.access.key%")
     }
 
     var prevStage: Stage? = null

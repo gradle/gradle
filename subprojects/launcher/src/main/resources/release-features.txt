@@ -1,3 +1,0 @@
- - Experimental build configuration caching
- - Built-in conventions for handling credentials
- - Java compilation supports --release flag

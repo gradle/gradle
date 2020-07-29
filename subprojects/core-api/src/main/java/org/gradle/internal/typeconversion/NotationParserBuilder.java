@@ -19,7 +19,6 @@ package org.gradle.internal.typeconversion;
 import org.gradle.api.Describable;
 import org.gradle.internal.Cast;
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -31,18 +30,18 @@ public class NotationParserBuilder<N, T> {
     private Object typeDisplayName;
     private boolean implicitConverters = true;
     private boolean allowNullInput;
-    private final Collection<NotationConverter<? super N, ? extends T>> notationParsers = new LinkedList<NotationConverter<? super N, ? extends T>>();
+    private final List<NotationConverter<? super N, ? extends T>> notationParsers = new LinkedList<>();
 
     public static <T> NotationParserBuilder<Object, T> toType(Class<T> resultingType) {
-        return new NotationParserBuilder<Object, T>(Object.class, new TypeInfo<T>(resultingType));
+        return new NotationParserBuilder<>(Object.class, new TypeInfo<>(resultingType));
     }
 
     public static <T> NotationParserBuilder<Object, T> toType(TypeInfo<T> resultingType) {
-        return new NotationParserBuilder<Object, T>(Object.class, resultingType);
+        return new NotationParserBuilder<>(Object.class, resultingType);
     }
 
     public static <N, T> NotationParserBuilder<N, T> builder(Class<N> notationType, Class<T> resultingType) {
-        return new NotationParserBuilder<N, T>(notationType, new TypeInfo<T>(resultingType));
+        return new NotationParserBuilder<>(notationType, new TypeInfo<>(resultingType));
     }
 
     private NotationParserBuilder(Class<N> notationType, TypeInfo<T> resultingType) {
@@ -126,7 +125,7 @@ public class NotationParserBuilder<N, T> {
     }
 
     public NotationParser<N, Set<T>> toFlatteningComposite() {
-        return wrapInErrorHandling(new FlatteningNotationParser<N, T>(create()));
+        return wrapInErrorHandling(new FlatteningNotationParser<>(create()));
     }
 
     public NotationParser<N, T> toComposite() {
@@ -135,25 +134,24 @@ public class NotationParserBuilder<N, T> {
 
     private <S> NotationParser<N, S> wrapInErrorHandling(NotationParser<N, S> parser) {
         if (typeDisplayName == null) {
-            typeDisplayName = new LazyDisplayName<T>(resultingType);
+            typeDisplayName = new LazyDisplayName<>(resultingType);
         }
-        return new ErrorHandlingNotationParser<N, S>(typeDisplayName, invalidNotationMessage, allowNullInput, parser);
+        return new ErrorHandlingNotationParser<>(typeDisplayName, invalidNotationMessage, allowNullInput, parser);
     }
 
     private NotationParser<N, T> create() {
-        List<NotationConverter<? super N, ? extends T>> composites = new LinkedList<NotationConverter<? super N, ? extends T>>();
-        if (notationType.isAssignableFrom(resultingType.getTargetType()) && implicitConverters) {
-            composites.add(new JustReturningConverter<N, T>(resultingType.getTargetType()));
-        }
-        composites.addAll(this.notationParsers);
-
         NotationConverter<? super N, ? extends T> notationConverter;
-        if (composites.size() == 1) {
-            notationConverter = composites.get(0);
+        if (notationParsers.size() == 1) {
+            notationConverter = notationParsers.get(0);
         } else {
-            notationConverter = new CompositeNotationConverter<N, T>(composites);
+            notationConverter = new CompositeNotationConverter<>(notationParsers);
         }
-        return new NotationConverterToNotationParserAdapter<N, T>(notationConverter);
+
+        NotationParser<N, T> parser = new NotationConverterToNotationParserAdapter<>(notationConverter);
+        if (notationType.isAssignableFrom(resultingType.getTargetType()) && implicitConverters) {
+            parser = new JustReturningParser<>(resultingType.getTargetType(), parser);
+        }
+        return parser;
     }
 
     private static class LazyDisplayName<T> implements Describable {
