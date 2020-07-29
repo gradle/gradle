@@ -42,6 +42,7 @@ import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFram
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -72,6 +73,8 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -150,6 +153,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
+    private Property<JavaLauncher> javaLauncher;
 
     private FileCollection testClassesDirs;
     private final PatternFilterable patternSet;
@@ -175,6 +179,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.setEnableAssertions(true);
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
+        javaLauncher = getObjectFactory().property(JavaLauncher.class);
     }
 
     @Inject
@@ -263,7 +268,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Input
     public JavaVersion getJavaVersion() {
-        return getServices().get(JvmVersionDetector.class).getJavaVersion(getExecutable());
+        return getServices().get(JvmVersionDetector.class).getJavaVersion(getEffectiveExecutable());
     }
 
     /**
@@ -591,6 +596,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Override
     public Test copyTo(ProcessForkOptions target) {
         forkOptions.copyTo(target);
+        copyToolchainAsExecutable(target);
         return this;
     }
 
@@ -600,7 +606,12 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Override
     public Test copyTo(JavaForkOptions target) {
         forkOptions.copyTo(target);
+        copyToolchainAsExecutable(target);
         return this;
+    }
+
+    private void copyToolchainAsExecutable(ProcessForkOptions target) {
+        target.setExecutable(getEffectiveExecutable());
     }
 
     /**
@@ -623,6 +634,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     protected JvmTestExecutionSpec createTestExecutionSpec() {
         JavaForkOptions javaForkOptions = getForkOptionsFactory().newJavaForkOptions();
         copyTo(javaForkOptions);
+        // TODO: check invariants
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
@@ -1142,4 +1154,24 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     void setTestExecuter(TestExecuter<JvmTestExecutionSpec> testExecuter) {
         this.testExecuter = testExecuter;
     }
+
+    /**
+     * Configures the java exectuable to be used to run the tests.
+     *
+     * @since 6.7
+     */
+    @Incubating
+    @Internal // getJavaVersion() is used as @Input
+    public Property<JavaLauncher> getJavaLauncher() {
+        return javaLauncher;
+    }
+
+    private String getEffectiveExecutable() {
+        if (javaLauncher.isPresent()) {
+            return ((DefaultToolchainJavaLauncher) javaLauncher.get()).getExecutable();
+        }
+        return getExecutable();
+    }
+
+
 }
