@@ -46,7 +46,7 @@ class FunctionalTest(
             listOf(""""-PtestJavaHome=%${testCoverage.os}.${testCoverage.testJvmVersion}.${testCoverage.vendor}.64bit%"""") +
                 buildScanTags.map { buildScanTag(it) } +
                 buildScanValues.map { buildScanCustomValue(it.key, it.value) } +
-                if (testCoverage.testDistribution) "-DenableTestDistribution=true -Dscan.tag.test-distribution" else "" +
+                if (testCoverage.testDistribution && subprojects.intersect(slowSubprojects).isEmpty()) "-DenableTestDistribution=true -Dscan.tag.test-distribution -Dgradle.enterprise.url=https://e.grdev.net" else "" +
                     extraParameters
             ).filter { it.isNotBlank() }.joinToString(separator = " "),
         timeout = testCoverage.testType.timeout,
