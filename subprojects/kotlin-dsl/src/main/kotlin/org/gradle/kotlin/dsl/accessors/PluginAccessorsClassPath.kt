@@ -164,7 +164,7 @@ class GeneratePluginAccessors(
 
     override fun getIdentity(): String = classLoaderHash.toString()
 
-    override fun getDisplayName(): String = "Kotlin plugin accessor generator for $classLoaderHash"
+    override fun getDisplayName(): String = "Kotlin DSL plugin accessors for classpath '$classLoaderHash'"
 
     override fun markExecutionTime(): Long = 0
 

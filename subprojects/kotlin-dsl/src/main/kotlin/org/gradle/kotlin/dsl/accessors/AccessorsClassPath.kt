@@ -156,7 +156,7 @@ class GenerateProjectAccessors(
 
     override fun getIdentity() = cacheKey
 
-    override fun getDisplayName(): String = "Kotlin project accessor generator for $project"
+    override fun getDisplayName(): String = "Kotlin DSL accessors for $project"
 
     override fun markExecutionTime(): Long = 0
 
