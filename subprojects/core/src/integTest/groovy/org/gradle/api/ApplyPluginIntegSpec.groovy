@@ -17,10 +17,12 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.GradleVersion
 import spock.lang.FailsWith
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
@@ -81,8 +83,6 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-3068")
     def "can use gradleApi in test"() {
-        requireGradleDistribution()
-
         given:
         file("src/test/groovy/org/acme/ProjectBuilderTest.groovy") << """
             package org.acme
@@ -113,8 +113,8 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
         succeeds("test")
     }
 
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // Gradle API JAR is not generated when running embedded
     def "generated Gradle API JAR in custom Gradle user home is reused across multiple invocations"() {
-        requireGradleDistribution()
         requireOwnGradleUserHomeDir()
 
         given:

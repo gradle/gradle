@@ -23,6 +23,7 @@ import spock.lang.Unroll
 abstract class AbstractValidatingLockingIntegrationTest extends AbstractLockingIntegrationTest {
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def 'fails when lock file conflicts with declared strict constraint (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -70,6 +71,7 @@ dependencies {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def 'fails when lock file conflicts with declared version constraint (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()

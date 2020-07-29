@@ -42,12 +42,11 @@ public class DefaultCollectionCallbackActionDecorator implements CollectionCallb
             return action;
         }
 
-        UserCodeApplicationId applicationId = userCodeApplicationContext.current();
-        if (applicationId == null) {
+        UserCodeApplicationContext.Application application = userCodeApplicationContext.current();
+        if (application == null) {
             return action;
         }
-
-        return new BuildOperationEmittingAction<T>(applicationId, action);
+        return new BuildOperationEmittingAction<>(application.getId(), application.reapplyLater(action));
     }
 
     private static abstract class Operation implements RunnableBuildOperation {
@@ -80,7 +79,6 @@ public class DefaultCollectionCallbackActionDecorator implements CollectionCallb
     }
 
     private class BuildOperationEmittingAction<T> implements Action<T> {
-
         private final UserCodeApplicationId applicationId;
         private final Action<T> delegate;
 
@@ -94,12 +92,7 @@ public class DefaultCollectionCallbackActionDecorator implements CollectionCallb
             buildOperationExecutor.run(new Operation(applicationId) {
                 @Override
                 public void run(final BuildOperationContext context) {
-                    userCodeApplicationContext.reapply(applicationId, new Runnable() {
-                        @Override
-                        public void run() {
-                            delegate.execute(arg);
-                        }
-                    });
+                    delegate.execute(arg);
                     context.setResult(ExecuteDomainObjectCollectionCallbackBuildOperationType.RESULT);
                 }
             });

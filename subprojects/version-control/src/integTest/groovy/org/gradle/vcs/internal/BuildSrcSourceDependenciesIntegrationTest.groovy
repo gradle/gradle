@@ -17,6 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 
@@ -24,6 +25,7 @@ class BuildSrcSourceDependenciesIntegrationTest extends AbstractIntegrationSpec 
     @Rule
     GitFileRepository first = new GitFileRepository('first', testDirectory)
 
+    @ToBeFixedForInstantExecution(because = "source dependency VCS mappings are defined")
     def "can build with a source dependency that has a buildSrc directory"() {
         buildTestFixture.withBuildInSubDir()
         vcsMapping('org.test:first', first)
@@ -42,11 +44,11 @@ class BuildSrcSourceDependenciesIntegrationTest extends AbstractIntegrationSpec 
             configurations {
                 foo
             }
-            
+
             dependencies {
                 foo "org.test:first:latest.integration"
             }
-            
+
             task resolve {
                 doLast {
                     println configurations.foo.files.collect { it.name }

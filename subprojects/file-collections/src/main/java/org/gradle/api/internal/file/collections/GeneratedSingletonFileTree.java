@@ -55,6 +55,25 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
         this.fileSystem = fileSystem;
     }
 
+    public Spec toSpec() {
+        return new Spec(tmpDirSource, fileName, fileGenerationListener, contentWriter);
+    }
+
+    public static class Spec {
+
+        public final Factory<File> tmpDir;
+        public final String fileName;
+        public final Action<File> fileGenerationListener;
+        public final Action<OutputStream> contentGenerator;
+
+        public Spec(Factory<File> tmpDir, String fileName, Action<File> fileGenerationListener, Action<OutputStream> contentGenerator) {
+            this.tmpDir = tmpDir;
+            this.fileName = fileName;
+            this.fileGenerationListener = fileGenerationListener;
+            this.contentGenerator = contentGenerator;
+        }
+    }
+
     private File getTmpDir() {
         return tmpDirSource.create();
     }

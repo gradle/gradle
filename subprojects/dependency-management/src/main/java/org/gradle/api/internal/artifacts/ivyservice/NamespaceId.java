@@ -45,7 +45,7 @@ public class NamespaceId implements Serializable {
     /**
      * Sets the namespace for this identifier.
      *
-     * @param namespace
+     * @param namespace the namespace
      */
     public void setNamespace(String namespace) {
         this.namespace = namespace;
@@ -63,7 +63,7 @@ public class NamespaceId implements Serializable {
     /**
      * Sets the name for this identifier.
      *
-     * @param name
+     * @param name the name
      */
     public void setName(String name) {
         this.name = name;

@@ -26,7 +26,7 @@ interface InstantExecutionBuild {
 
     val gradle: GradleInternal
 
-    fun createProject(path: String, dir: File)
+    fun createProject(path: String, dir: File, buildDir: File)
 
     fun getProject(path: String): ProjectInternal
 

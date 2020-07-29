@@ -30,13 +30,15 @@ public class CleaningInMemoryCacheDecoratorFactory extends DefaultInMemoryCacheD
     }
 
     public void clearCaches(Predicate<InMemoryCacheController> predicate) {
-        for (Iterator<WeakReference<InMemoryCacheController>> iterator = inMemoryCaches.iterator(); iterator.hasNext();) {
-            WeakReference<InMemoryCacheController> ref = iterator.next();
-            InMemoryCacheController cache = ref.get();
-            if (cache == null) {
-                iterator.remove();
-            } else if (predicate.test(cache)) {
-                cache.clearInMemoryCache();
+        synchronized (inMemoryCaches) {
+            for (Iterator<WeakReference<InMemoryCacheController>> iterator = inMemoryCaches.iterator(); iterator.hasNext();) {
+                WeakReference<InMemoryCacheController> ref = iterator.next();
+                InMemoryCacheController cache = ref.get();
+                if (cache == null) {
+                    iterator.remove();
+                } else if (predicate.test(cache)) {
+                    cache.clearInMemoryCache();
+                }
             }
         }
     }
@@ -46,7 +48,10 @@ public class CleaningInMemoryCacheDecoratorFactory extends DefaultInMemoryCacheD
         MultiProcessSafeAsyncPersistentIndexedCache<K, V> delegate = super.applyInMemoryCaching(cacheId, backingCache, maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses);
         if (delegate instanceof InMemoryCacheController) {
             InMemoryCacheController cimc = (InMemoryCacheController) delegate;
-            inMemoryCaches.add(new WeakReference<>(cimc));
+            WeakReference<InMemoryCacheController> ref = new WeakReference<>(cimc);
+            synchronized (inMemoryCaches) {
+                inMemoryCaches.add(ref);
+            }
         }
         return delegate;
     }

@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.testkit.runner.fixtures.InjectsPluginClasspath
@@ -24,6 +25,7 @@ import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
 import org.gradle.testkit.runner.fixtures.PluginUnderTest
 import org.gradle.util.GradleVersion
 import org.gradle.util.UsesNativeServices
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -33,7 +35,8 @@ import static org.hamcrest.CoreMatchers.containsString
 @InjectsPluginClasspath
 @InspectsBuildOutput
 @UsesNativeServices
-@SuppressWarnings('IntegrationTestFixtures')
+@SuppressWarnings('IntegrationTestFixtures') // result.output.contains does mean something different here
+@IgnoreIf({ GradleContextualExecuter.embedded }) // Test causes builds to hang
 class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     def plugin = new PluginUnderTest(1, file("plugin"))
@@ -277,6 +280,7 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
         execFailure(result).assertHasDescription("Plugin [id: '$plugin.id'] was not found in any of the following sources:")
     }
 
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // classloader isolation does not work here in embedded mode
     @InspectsExecutedTasks
     def "buildSrc classes are not visible to injected classes"() {
         plugin.build()

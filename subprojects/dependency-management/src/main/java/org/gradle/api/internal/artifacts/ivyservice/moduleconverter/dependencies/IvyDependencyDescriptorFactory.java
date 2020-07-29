@@ -20,8 +20,10 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
+import javax.annotation.Nullable;
+
 public interface IvyDependencyDescriptorFactory {
-    LocalOriginDependencyMetadata createDependencyDescriptor(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer attributes, ModuleDependency dependency);
+    LocalOriginDependencyMetadata createDependencyDescriptor(ComponentIdentifier componentId, @Nullable String clientConfiguration, @Nullable AttributeContainer attributes, ModuleDependency dependency);
 
     boolean canConvert(ModuleDependency dependency);
 }

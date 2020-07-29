@@ -131,7 +131,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "FailingBuildCache has not been registered.")
     def "remote cache is disabled after first #failEvent error for the current build"() {
         // Need to do it like this because stacktraces are always enabled for integration tests
         settingsFile << """
@@ -141,18 +141,20 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         buildFile << """
             task firstTask {
                 outputs.cacheIf { true }
-                outputs.file("build/first.txt")
+                def outTxt = file("build/first.txt")
+                outputs.file(outTxt)
                 doLast {
-                    file("build/first.txt").text = "Done"
+                    outTxt.text = "Done"
                 }
             }
 
             task secondTask {
                 dependsOn firstTask
                 outputs.cacheIf { true }
-                outputs.file("build/second.txt")
+                def outTxt = file("build/second.txt")
+                outputs.file(outTxt)
                 doLast {
-                    file("build/second.txt").text = "Done"
+                    outTxt.text = "Done"
                 }
             }
         """

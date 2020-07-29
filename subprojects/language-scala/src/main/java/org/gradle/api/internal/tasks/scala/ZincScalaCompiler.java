@@ -48,6 +48,7 @@ import xsbti.compile.AnalysisContents;
 import xsbti.compile.AnalysisStore;
 import xsbti.compile.Changes;
 import xsbti.compile.ClassFileManager;
+import xsbti.compile.ClassFileManagerType;
 import xsbti.compile.ClasspathOptionsUtil;
 import xsbti.compile.CompileAnalysis;
 import xsbti.compile.CompileOptions;
@@ -63,6 +64,7 @@ import xsbti.compile.PerClasspathEntryLookup;
 import xsbti.compile.PreviousResult;
 import xsbti.compile.ScalaCompiler;
 import xsbti.compile.Setup;
+import xsbti.compile.TransactionalManagerType;
 import xsbti.compile.analysis.Stamp;
 
 import javax.annotation.Nullable;
@@ -112,15 +114,25 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
                 .withJavacOptions(javacOptions.toArray(new String[0]));
 
         File analysisFile = spec.getAnalysisFile();
-        AnalysisStore analysisStore = analysisStoreProvider.get(analysisFile);
+        Optional<AnalysisStore> analysisStore;
+        Optional<ClassFileManagerType> classFileManagerType;
+        if (spec.getScalaCompileOptions().isForce()) {
+            analysisStore = Optional.empty();
+            classFileManagerType = IncOptions.defaultClassFileManagerType();
+        } else {
+            analysisStore = Optional.of(analysisStoreProvider.get(analysisFile));
+            classFileManagerType = Optional.of(TransactionalManagerType.of(spec.getClassfileBackupDir(), new SbtLoggerAdapter()));
+        }
 
-        PreviousResult previousResult = analysisStore.get()
-                .map(a -> PreviousResult.of(Optional.of(a.getAnalysis()), Optional.of(a.getMiniSetup())))
-                .orElse(PreviousResult.of(Optional.empty(), Optional.empty()));
+        PreviousResult previousResult;
+        previousResult = analysisStore.flatMap(store -> store.get()
+            .map(a -> PreviousResult.of(Optional.of(a.getAnalysis()), Optional.of(a.getMiniSetup()))))
+            .orElse(PreviousResult.of(Optional.empty(), Optional.empty()));
 
         IncOptions incOptions = IncOptions.of()
                 .withExternalHooks(new LookupOnlyExternalHooks(new ExternalBinariesLookup()))
                 .withRecompileOnMacroDef(Optional.of(false))
+                .withClassfileManagerType(classFileManagerType)
                 .withTransitiveStep(5);
 
         Setup setup = incremental.setup(new EntryLookup(spec),
@@ -140,13 +152,16 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         if (spec.getScalaCompileOptions().isForce()) {
             // TODO This should use Deleter
             GFileUtils.deleteDirectory(spec.getDestinationDir());
+            GFileUtils.deleteQuietly(spec.getAnalysisFile());
         }
         LOGGER.info("Prepared Zinc Scala inputs: {}", timer.getElapsed());
 
         try {
             CompileResult compile = incremental.compile(inputs, new SbtLoggerAdapter());
-            AnalysisContents contentNext = AnalysisContents.create(compile.analysis(), compile.setup());
-            analysisStore.set(contentNext);
+            if (analysisStore.isPresent()) {
+                AnalysisContents contentNext = AnalysisContents.create(compile.analysis(), compile.setup());
+                analysisStore.get().set(contentNext);
+            }
         } catch (xsbti.CompileFailed e) {
             throw new CompilationFailedException(e);
         }

@@ -25,7 +25,8 @@ public class LongCommandLineDetectionUtil {
     public static final int MAX_COMMAND_LINE_LENGTH_WINDOWS = 32767;
     // Derived from default when running getconf ARG_MAX in OSX
     public static final int MAX_COMMAND_LINE_LENGTH_OSX = 262144;
-    public static final int MAX_COMMAND_LINE_LENGTH_NIX = 2097152;
+    // Dervied from MAX_ARG_STRLEN as per http://man7.org/linux/man-pages/man2/execve.2.html
+    public static final int MAX_COMMAND_LINE_LENGTH_NIX = 131072;
     private static final String WINDOWS_LONG_COMMAND_EXCEPTION_MESSAGE = "The filename or extension is too long";
     private static final String NIX_LONG_COMMAND_EXCEPTION_MESSAGE = "error=7, Argument list too long";
 

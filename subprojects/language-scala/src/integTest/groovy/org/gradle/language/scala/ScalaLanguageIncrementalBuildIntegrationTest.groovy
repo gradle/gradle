@@ -16,12 +16,14 @@
 
 package org.gradle.language.scala
 
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIncrementalBuildIntegrationTest
 import org.gradle.language.scala.fixtures.TestScalaComponent
 
 @TestReproducibleArchives
+@UnsupportedWithInstantExecution(because = "software model")
 class ScalaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageIncrementalBuildIntegrationTest {
     TestJvmComponent testComponent = new TestScalaComponent()
 }

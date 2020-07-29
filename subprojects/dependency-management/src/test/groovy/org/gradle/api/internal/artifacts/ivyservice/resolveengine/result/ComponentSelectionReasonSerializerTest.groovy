@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.internal.Describables
 import org.gradle.internal.serialize.AbstractDecoder
 import org.gradle.internal.serialize.AbstractEncoder
@@ -36,7 +37,7 @@ class ComponentSelectionReasonSerializerTest extends SerializerSpec {
     ] as ComponentSelectionDescriptorInternal[]
 
 
-    private serializer = new ComponentSelectionReasonSerializer()
+    private serializer = new ComponentSelectionReasonSerializer(DependencyManagementTestUtil.componentSelectionDescriptorFactory())
 
     @Override
     Class<? extends AbstractEncoder> getEncoder() {

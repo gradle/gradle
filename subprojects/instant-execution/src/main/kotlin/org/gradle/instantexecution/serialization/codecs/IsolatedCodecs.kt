@@ -22,6 +22,7 @@ import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.readNonNull
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.Isolatable
 import org.gradle.internal.snapshot.impl.BooleanValueSnapshot
 import org.gradle.internal.snapshot.impl.FileValueSnapshot
@@ -32,6 +33,7 @@ import org.gradle.internal.snapshot.impl.IsolatedImmutableManagedValue
 import org.gradle.internal.snapshot.impl.IsolatedList
 import org.gradle.internal.snapshot.impl.IsolatedManagedValue
 import org.gradle.internal.snapshot.impl.IsolatedMap
+import org.gradle.internal.snapshot.impl.IsolatedSerializedValueSnapshot
 import org.gradle.internal.snapshot.impl.IsolatedSet
 import org.gradle.internal.snapshot.impl.MapEntrySnapshot
 import org.gradle.internal.snapshot.impl.NullValueSnapshot
@@ -198,5 +200,21 @@ class IsolatedImmutableManagedValueCodec(private val managedFactory: ManagedFact
     override suspend fun ReadContext.decode(): IsolatedImmutableManagedValue {
         val state = read() as Managed
         return IsolatedImmutableManagedValue(state, managedFactory)
+    }
+}
+
+
+object IsolatedSerializedValueSnapshotCodec : Codec<IsolatedSerializedValueSnapshot> {
+    override suspend fun WriteContext.encode(value: IsolatedSerializedValueSnapshot) {
+        write(value.implementationHash)
+        writeClass(value.originalClass)
+        writeBinary(value.value)
+    }
+
+    override suspend fun ReadContext.decode(): IsolatedSerializedValueSnapshot? {
+        val implementationHash = read() as HashCode?
+        val originalType = readClass()
+        val binary = readBinary()
+        return IsolatedSerializedValueSnapshot(implementationHash, binary, originalType)
     }
 }

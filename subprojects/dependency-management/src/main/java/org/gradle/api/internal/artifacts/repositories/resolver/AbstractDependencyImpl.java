@@ -27,9 +27,9 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
 
-public abstract class AbstractDependencyImpl<T extends DependencyMetadata> implements DependencyMetadata<T> {
+public abstract class AbstractDependencyImpl<T extends DependencyMetadata<T>> implements DependencyMetadata<T> {
     private final ModuleIdentifier moduleIdentifier;
-    private MutableVersionConstraint versionConstraint;
+    private final MutableVersionConstraint versionConstraint;
     private String reason;
     private AttributeContainer attributes = ImmutableAttributes.EMPTY;
 

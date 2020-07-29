@@ -18,6 +18,7 @@ package org.gradle.internal.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
@@ -34,8 +35,8 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     private final List<CompleteFileSystemLocationSnapshot> children;
     private final HashCode contentHash;
 
-    public CompleteDirectorySnapshot(String absolutePath, String name, List<CompleteFileSystemLocationSnapshot> children, HashCode contentHash) {
-        super(absolutePath, name);
+    public CompleteDirectorySnapshot(String absolutePath, String name, List<CompleteFileSystemLocationSnapshot> children, HashCode contentHash, AccessType accessType) {
+        super(absolutePath, name, accessType);
         this.children = children;
         this.contentHash = contentHash;
     }

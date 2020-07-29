@@ -57,6 +57,26 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
     }
 
+    @Issue("gradle/gradle#13392")
+    @ToBeFixedForInstantExecution
+    def restoresClassesOnCompilationFailure() {
+        given:
+        run("classes")
+        def iperson = scalaClassFile("IPerson.class")
+        def person = scalaClassFile("Person.class")
+
+        when: // Update interface, compile should fail
+        file('src/main/scala/IPerson.scala').assertIsFile().copyFrom(file('NewIPerson.scala'))
+
+        runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
+
+        then:
+        // both files must exist (same content as in previous compilation)
+        // this is needed for incremental compilation, outputs must be kept in sync with analysis file
+        iperson.assertIsFile()
+        person.assertIsFile()
+    }
+
     @Issue("GRADLE-2548")
     @ToBeFixedForInstantExecution
     def recompilesScalaWhenJavaChanges() {

@@ -15,17 +15,48 @@
  */
 package org.gradle.instantexecution.serialization
 
-import org.gradle.instantexecution.coroutines.runToCompletion
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.startCoroutine
+
+
+/**
+ * Runs the given [readOperation] synchronously.
+ */
+internal
+fun <T : ReadContext, R> T.runReadOperation(readOperation: suspend T.() -> R): R =
+    runToCompletion {
+        readOperation()
+    }
 
 
 /**
  * Runs the given [writeOperation] synchronously.
- *
- * @see runToCompletion
  */
 internal
-fun DefaultWriteContext.runWriteOperation(writeOperation: suspend DefaultWriteContext.() -> Unit) {
+fun <T : WriteContext> T.runWriteOperation(writeOperation: suspend T.() -> Unit) {
     runToCompletion {
         writeOperation()
+    }
+}
+
+
+/**
+ * [Starts][startCoroutine] the suspending [block], asserts it runs
+ * to completion and returns its result.
+ */
+private
+fun <R> runToCompletion(block: suspend () -> R): R {
+    var completion: Result<R>? = null
+    block.startCoroutine(
+        Continuation(EmptyCoroutineContext) {
+            completion = it
+        }
+    )
+    return completion.let {
+        require(it != null) {
+            "Coroutine didn't run to completion."
+        }
+        it.getOrThrow()
     }
 }

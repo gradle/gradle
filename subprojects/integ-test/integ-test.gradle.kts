@@ -1,8 +1,7 @@
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
 
 plugins {
-    gradlebuild.internal.java
+    id("gradlebuild.internal.java")
 }
 
 dependencies {
@@ -16,13 +15,13 @@ dependencies {
     integTestImplementation(project(":dependencyManagement"))
     integTestImplementation(project(":bootstrap"))
     integTestImplementation(project(":launcher"))
-    integTestImplementation(library("groovy"))
-    integTestImplementation(library("slf4j_api"))
-    integTestImplementation(library("guava"))
-    integTestImplementation(library("ant"))
-    integTestImplementation(testLibrary("jsoup"))
-    integTestImplementation(testLibrary("jetty"))
-    integTestImplementation(testLibrary("sampleCheck")) {
+    integTestImplementation(libs.groovy)
+    integTestImplementation(libs.slf4jApi)
+    integTestImplementation(libs.guava)
+    integTestImplementation(libs.ant)
+    integTestImplementation(libs.jsoup)
+    integTestImplementation(libs.jetty)
+    integTestImplementation(libs.sampleCheck) {
         exclude(group = "org.codehaus.groovy", module = "groovy-all")
         exclude(module = "slf4j-simple")
     }
@@ -43,16 +42,10 @@ dependencies {
     integTestImplementation(testFixtures(project(":core")))
     integTestImplementation(testFixtures(project(":diagnostics")))
     integTestImplementation(testFixtures(project(":platformNative")))
-}
-configurations.integTestRuntimeClasspath {
-    extendsFrom(configurations.fullGradleRuntime.get())
-}
-configurations.crossVersionTestRuntimeClasspath {
-    extendsFrom(configurations.fullGradleRuntime.get())
-}
+    integTestImplementation(libs.jgit)
 
-tasks.withType<IntegrationTest>().configureEach {
-    libsRepository.required = true
+    integTestDistributionRuntimeOnly(project(":distributionsFull"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributionsFull"))
 }
 
 testFilesCleanup {

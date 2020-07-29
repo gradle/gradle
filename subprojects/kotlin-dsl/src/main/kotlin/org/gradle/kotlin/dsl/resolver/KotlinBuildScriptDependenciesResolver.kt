@@ -231,7 +231,11 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
         environment.gradleHome?.let(GradleInstallation::Local)
             ?: environment.gradleUri?.let(GradleInstallation::Remote)
             ?: environment.gradleVersion?.let(GradleInstallation::Version)
-            ?: GradleInstallation.Wrapper
+            ?: if ("embedded" == System.getProperty("org.gradle.integtest.executer")) {
+                    GradleInstallation.Embedded
+                } else {
+                    GradleInstallation.Wrapper
+                }
 
     private
     fun dependenciesFrom(

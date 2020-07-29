@@ -23,6 +23,14 @@ plugins {
 configurations {
     jmhImplementation {
         extendsFrom(configurations.implementation.get())
+        configurations.findByName("platformImplementation")?.let {
+            extendsFrom(it)
+        }
+    }
+    jmhRuntime {
+        attributes {
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+        }
     }
 }
 

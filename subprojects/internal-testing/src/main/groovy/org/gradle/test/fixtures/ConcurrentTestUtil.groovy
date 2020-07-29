@@ -67,11 +67,11 @@ class ConcurrentTestUtil extends ExternalResource {
     }
 
     //simplistic polling assertion. attempts asserting every x millis up to some max timeout
-    static void poll(double timeout = 10, double initialDelay = 0, Closure assertion) {
+    static void poll(double timeout = 10, double initialDelay = 0, double pollInterval = 0.1, Closure assertion) {
         def start = monotonicClockMillis()
         Thread.sleep(toMillis(initialDelay))
         def expiry = start + toMillis(timeout) // convert to ms
-        long sleepTime = 100
+        long sleepTime = toMillis(pollInterval)
         while(true) {
             try {
                 assertion()
@@ -492,11 +492,6 @@ class ManagedExecutorStub extends AbstractExecutorService implements ManagedExec
     }
 
     boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        throw new UnsupportedOperationException()
-    }
-
-    @Override
-    void setFixedPoolSize(int numThreads) {
         throw new UnsupportedOperationException()
     }
 

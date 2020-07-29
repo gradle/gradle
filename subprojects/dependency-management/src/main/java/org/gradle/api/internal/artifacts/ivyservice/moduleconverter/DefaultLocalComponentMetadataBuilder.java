@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
@@ -62,7 +61,7 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
         ImmutableSet<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
         // Presence of capabilities is bound to the definition of a capabilities extension to the project
         ImmutableCapabilities capabilities =
-            asImmutable(Configurations.collectCapabilities(configuration, Sets.<Capability>newHashSet(), Sets.<Configuration>newHashSet()));
+            asImmutable(Configurations.collectCapabilities(configuration, Sets.newHashSet(), Sets.newHashSet()));
         return metaData.addConfiguration(configuration.getName(),
             configuration.getDescription(),
             extendsFrom,

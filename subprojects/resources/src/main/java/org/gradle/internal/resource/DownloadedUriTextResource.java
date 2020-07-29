@@ -16,6 +16,8 @@
 
 package org.gradle.internal.resource;
 
+import org.gradle.internal.file.RelativeFilePathResolver;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -33,8 +35,8 @@ public class DownloadedUriTextResource extends UriTextResource {
     private final String contentType;
     private final File downloadedResource;
 
-    public DownloadedUriTextResource(String description, URI sourceUri, String contentType, File downloadedResource) {
-        super(description, sourceUri);
+    public DownloadedUriTextResource(String description, URI sourceUri, String contentType, File downloadedResource, RelativeFilePathResolver resolver) {
+        super(description, sourceUri, resolver);
         this.contentType = contentType;
         this.downloadedResource = downloadedResource;
     }

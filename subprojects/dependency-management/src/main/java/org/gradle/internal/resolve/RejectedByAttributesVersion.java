@@ -21,25 +21,24 @@ import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.logging.text.TreeFormatter;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 public class RejectedByAttributesVersion extends RejectedVersion {
-    private static final Comparator<AttributeMatcher.MatchingDescription> DESCRIPTION_COMPARATOR = (o1, o2) -> o1.getRequestedAttribute().getName().compareTo(o2.getRequestedAttribute().getName());
-    private final List<AttributeMatcher.MatchingDescription> matchingDescription;
+    private static final Comparator<AttributeMatcher.MatchingDescription<?>> DESCRIPTION_COMPARATOR = Comparator.comparing(o -> o.getRequestedAttribute().getName());
+    private final List<AttributeMatcher.MatchingDescription<?>> matchingDescription;
 
-    public RejectedByAttributesVersion(ModuleComponentIdentifier id, List<AttributeMatcher.MatchingDescription> matchingDescription) {
+    public RejectedByAttributesVersion(ModuleComponentIdentifier id, List<AttributeMatcher.MatchingDescription<?>> matchingDescription) {
         super(id);
         this.matchingDescription = matchingDescription;
     }
 
     @Override
     public void describeTo(TreeFormatter builder) {
-        Collections.sort(matchingDescription, DESCRIPTION_COMPARATOR);
+        matchingDescription.sort(DESCRIPTION_COMPARATOR);
         builder.node(getId().getVersion());
         builder.startChildren();
-        for (AttributeMatcher.MatchingDescription description : matchingDescription) {
+        for (AttributeMatcher.MatchingDescription<?> description : matchingDescription) {
             builder.node("Attribute '" + description.getRequestedAttribute().getName() + "'");
             if (description.isMatch()) {
                 builder.append(" matched. ");
@@ -79,7 +78,7 @@ public class RejectedByAttributesVersion extends RejectedVersion {
         }
     }
 
-    public List<AttributeMatcher.MatchingDescription> getMatchingDescription() {
+    public List<AttributeMatcher.MatchingDescription<?>> getMatchingDescription() {
         return matchingDescription;
     }
 }

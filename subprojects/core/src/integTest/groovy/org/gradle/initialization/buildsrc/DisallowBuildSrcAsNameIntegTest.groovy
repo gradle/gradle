@@ -87,7 +87,7 @@ class DisallowBuildSrcAsNameIntegTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Included build $b has build name 'buildSrc' which cannot be used as it is a reserved name.")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "GradleBuild")
     def "fails when trying to create a buildSrc build with GradleBuild task"() {
         def b = file("b")
         b.file("build.gradle") << ""

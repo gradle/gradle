@@ -106,7 +106,7 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
 
     @Override
     public Object getCustomOperationTraceSerializableModel() {
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         model.put("configurationName", configurationName);
         model.put("scriptConfiguration", isScriptConfiguration);
         model.put("configurationDescription", configurationDescription);
@@ -114,17 +114,17 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
         model.put("projectPath", projectPath);
         model.put("configurationVisible", isConfigurationVisible);
         model.put("configurationTransitive", isConfigurationTransitive);
-        ImmutableList.Builder<Object> repoBuilder = new ImmutableList.Builder<Object>();
+        ImmutableList.Builder<Object> repoBuilder = new ImmutableList.Builder<>();
         for (Repository repository : repositories) {
-            ImmutableMap.Builder<String, Object> repoMapBuilder = new ImmutableMap.Builder<String, Object>();
+            ImmutableMap.Builder<String, Object> repoMapBuilder = new ImmutableMap.Builder<>();
             repoMapBuilder.put("id", repository.getId());
             repoMapBuilder.put("name", repository.getName());
             repoMapBuilder.put("type", repository.getType());
-            ImmutableMap.Builder<String, Object> propertiesMapBuilder = new ImmutableMap.Builder<String, Object>();
+            ImmutableMap.Builder<String, Object> propertiesMapBuilder = new ImmutableMap.Builder<>();
             for (Map.Entry<String, ?> property : repository.getProperties().entrySet()) {
                 Object propertyValue;
                 if (property.getValue() instanceof Collection) {
-                    ImmutableList.Builder<Object> listBuilder = new ImmutableList.Builder<Object>();
+                    ImmutableList.Builder<Object> listBuilder = new ImmutableList.Builder<>();
                     for (Object inner : (Collection<?>) property.getValue()) {
                         doSerialize(inner, listBuilder);
                     }

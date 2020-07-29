@@ -18,7 +18,6 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.TestExecutionResult.EXECUTION_FAILURE
@@ -27,7 +26,6 @@ import static org.hamcrest.CoreMatchers.startsWith
 class TestNGSuiteInitialisationIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-1710")
-    @ToBeFixedForInstantExecution
     def "reports suite fatal failure"() {
         buildFile << """
             apply plugin: 'java'

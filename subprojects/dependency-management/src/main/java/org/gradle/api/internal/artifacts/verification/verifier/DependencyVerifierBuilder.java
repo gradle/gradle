@@ -117,9 +117,7 @@ public class DependencyVerifierBuilder {
         byComponent.entrySet()
             .stream()
             .sorted(Map.Entry.comparingByKey(MODULE_COMPONENT_IDENTIFIER_COMPARATOR))
-            .forEachOrdered(entry -> {
-                builder.put(entry.getKey(), entry.getValue().build());
-            });
+            .forEachOrdered(entry -> builder.put(entry.getKey(), entry.getValue().build()));
         return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, ImmutableList.copyOf(keyServers), ImmutableSet.copyOf(ignoredKeys), ImmutableList.copyOf(trustedKeys)));
     }
 

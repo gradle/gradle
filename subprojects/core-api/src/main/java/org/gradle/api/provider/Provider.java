@@ -23,6 +23,7 @@ import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 
 /**
  * A container object that provides a value of a specific type. The value can be retrieved using one of the query methods such as {@link #get()} or {@link #getOrNull()}.
@@ -152,4 +153,22 @@ public interface Provider<T> {
      */
     @Incubating
     Provider<T> forUseAtConfigurationTime();
+
+    /**
+     * Returns a provider which value will be computed by combining this provider value with another
+     * provider value using the supplied combiner function.
+     *
+     * If the supplied providers represents a task or the output of a task, the resulting provider
+     * will carry the dependency information.
+     *
+     * @param right the second provider to combine with
+     * @param combiner the combiner of values
+     * @param <B> the type of the second provider
+     * @param <R> the type of the result of the combiner
+     * @return a combined provider
+     *
+     * @since 6.6
+     */
+    @Incubating
+    <B, R> Provider<R> zip(Provider<B> right, BiFunction<T, B, R> combiner);
 }

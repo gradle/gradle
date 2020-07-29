@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
+
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -30,36 +32,29 @@ dependencies {
     implementation(project(":platformBase"))
     implementation(project(":diagnostics"))
 
-    implementation(library("nativePlatform"))
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("commons_io"))
-    implementation(library("snakeyaml"))
-    implementation(library("gson"))
-    implementation(library("inject"))
-
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
-    integTestRuntimeOnly(project(":maven"))
-    // Required to test visual studio project file generation for generated sources
-    integTestRuntimeOnly(project(":ideNative"))
+    implementation(libs.nativePlatform)
+    implementation(libs.groovy)
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
+    implementation(libs.snakeyaml)
+    implementation(libs.gson)
+    implementation(libs.inject)
 
     testFixturesApi(project(":resources"))
     testFixturesApi(testFixtures(project(":ide")))
     testFixturesImplementation(testFixtures(project(":core")))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(project(":native"))
     testFixturesImplementation(project(":platformBase"))
     testFixturesImplementation(project(":fileCollections"))
     testFixturesImplementation(project(":processServices"))
     testFixturesImplementation(project(":snapshots"))
-    testFixturesImplementation(library("guava"))
-    testFixturesImplementation(library("nativePlatform"))
-    testFixturesImplementation(library("commons_lang"))
-    testFixturesImplementation(library("commons_io"))
+    testFixturesImplementation(libs.guava)
+    testFixturesImplementation(libs.nativePlatform)
+    testFixturesImplementation(libs.commonsLang)
+    testFixturesImplementation(libs.commonsIo)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))
@@ -68,6 +63,13 @@ dependencies {
     testImplementation(testFixtures(project(":diagnostics")))
     testImplementation(testFixtures(project(":baseServices")))
     testImplementation(testFixtures(project(":snapshots")))
+
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsNative")) {
+        because("Required 'ideNative' to test visual studio project file generation for generated sources")
+    }
 }
 
 classycle {
@@ -78,3 +80,5 @@ classycle {
         "org/gradle/nativeplatform/toolchain/internal/**"
     ))
 }
+
+integrationTestUsesSampleDir("subprojects/platform-native/src/main")

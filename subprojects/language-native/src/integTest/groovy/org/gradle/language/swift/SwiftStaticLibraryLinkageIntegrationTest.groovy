@@ -16,7 +16,7 @@
 
 package org.gradle.language.swift
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
 
@@ -55,7 +55,6 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
         return "library"
     }
 
-    @ToBeFixedForInstantExecution
     def "can create static only library"() {
         def library = new SwiftLib()
         buildFile << """
@@ -78,7 +77,6 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
         staticLibrary('build/lib/main/debug/Foo').assertExists()
     }
 
-    @ToBeFixedForInstantExecution
     def "can create debug and release variants"() {
         def library = new SwiftLib()
         buildFile << """
@@ -108,7 +106,6 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
         staticLibrary('build/lib/main/release/Foo').assertExists()
     }
 
-    @ToBeFixedForInstantExecution
     def "can use link file as task dependency"() {
         given:
         def lib = new SwiftLib()
@@ -122,7 +119,7 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
             library {
                 linkage = [Linkage.STATIC]
             }
-            
+
             task assembleLinkDebug {
                 dependsOn library.binaries.getByName('mainDebug').map { it.linkFile }
             }
@@ -131,10 +128,9 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
         expect:
         succeeds "assembleLinkDebug"
         result.assertTasksExecuted(":compileDebugSwift", ":createDebug", ":assembleLinkDebug")
-        staticLibrary("build/lib/main/debug/Foo" ).assertExists()
+        staticLibrary("build/lib/main/debug/Foo").assertExists()
     }
 
-    @ToBeFixedForInstantExecution
     def "can use objects as task dependency"() {
         given:
         def lib = new SwiftLib()
@@ -144,11 +140,11 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
         and:
         buildFile << """
             apply plugin: 'swift-library'
-            
+
             library {
                 linkage = [Linkage.STATIC]
             }
-            
+
             task compileDebug {
                 dependsOn library.binaries.getByName('mainDebug').map { it.objects }
             }
@@ -158,6 +154,6 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
         succeeds "compileDebug"
         result.assertTasksExecuted(":compileDebugSwift", ":compileDebug")
         objectFiles(lib)*.assertExists()
-        staticLibrary("build/lib/main/debug/Foo" ).assertDoesNotExist()
+        staticLibrary("build/lib/main/debug/Foo").assertDoesNotExist()
     }
 }

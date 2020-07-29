@@ -47,7 +47,7 @@ public class AmbiguousConfigurationSelectionException extends StyledException {
     }
 
     private static String generateMessage(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, Set<ConfigurationMetadata> discarded, ComponentResolveMetadata targetComponent, boolean variantAware) {
-        Map<String, ConfigurationMetadata> ambiguousConfigurations = new TreeMap<String, ConfigurationMetadata>();
+        Map<String, ConfigurationMetadata> ambiguousConfigurations = new TreeMap<>();
         for (ConfigurationMetadata match : matches) {
             ambiguousConfigurations.put(match.getName(), match);
         }
@@ -77,9 +77,7 @@ public class AmbiguousConfigurationSelectionException extends StyledException {
             formatter.startChildren();
             discarded.stream()
                 .sorted(Comparator.comparing(ConfigurationMetadata::getName))
-                .forEach(discardedConf -> {
-                    formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, discardedConf, variantAware, false, describer);
-                });
+                .forEach(discardedConf -> formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, discardedConf, variantAware, false, describer));
             formatter.endChildren();
         }
 
@@ -181,7 +179,7 @@ public class AmbiguousConfigurationSelectionException extends StyledException {
     }
 
     private static Map<String, Attribute<?>> collectAttributes(ImmutableAttributes consumerAttributes, ImmutableAttributes producerAttributes) {
-        Map<String, Attribute<?>> allAttributes = new TreeMap<String, Attribute<?>>();
+        Map<String, Attribute<?>> allAttributes = new TreeMap<>();
         for (Attribute<?> attribute : producerAttributes.keySet()) {
             allAttributes.put(attribute.getName(), attribute);
         }

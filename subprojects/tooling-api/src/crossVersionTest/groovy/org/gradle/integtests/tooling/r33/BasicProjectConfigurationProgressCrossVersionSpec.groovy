@@ -23,7 +23,7 @@ import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 
-@TargetGradleVersion(">=3.3 <5.1")
+@TargetGradleVersion(">=3.3")
 class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecification {
 
     def "generates project configuration events for single project build"() {

@@ -79,7 +79,8 @@ public class AndSpec<T> extends CompositeSpec<T> {
         return and(Cast.<Spec<? super T>[]>uncheckedNonnullCast(new Spec<?>[]{spec}));
     }
 
-    public AndSpec<T> and(Closure<T> spec) {
+    @SuppressWarnings("rawtypes")
+    public AndSpec<T> and(Closure spec) {
         return and(new ClosureSpec<>(spec));
     }
 

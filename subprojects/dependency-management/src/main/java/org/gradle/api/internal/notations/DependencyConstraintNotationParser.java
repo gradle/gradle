@@ -32,8 +32,8 @@ public class DependencyConstraintNotationParser {
     public static NotationParser<Object, DependencyConstraint> parser(Instantiator instantiator, DefaultProjectDependencyFactory dependencyFactory, Interner<String> stringInterner) {
         return NotationParserBuilder
             .toType(DependencyConstraint.class)
-            .fromCharSequence(new DependencyStringNotationConverter<DefaultDependencyConstraint>(instantiator, DefaultDependencyConstraint.class, stringInterner))
-            .converter(new DependencyMapNotationConverter<DefaultDependencyConstraint>(instantiator, DefaultDependencyConstraint.class))
+            .fromCharSequence(new DependencyStringNotationConverter<>(instantiator, DefaultDependencyConstraint.class, stringInterner))
+            .converter(new DependencyMapNotationConverter<>(instantiator, DefaultDependencyConstraint.class))
             .fromType(Project.class, new DependencyConstraintProjectNotationConverter(dependencyFactory))
             .converter(new ProjectDependencyNotationConverter())
             .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")

@@ -402,7 +402,14 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         ins.close()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = """
+        `ProviderBackedFileCollection#visitChildren` evaluates the provider after `stopCollectingValueSources()` thus
+        the system property below is not captured in the fingerprint.
+        There are two possible solutions:
+            1. Move the `stopCollectionValueSources()` call to happen after the task graph state has been captured;
+               This would allow the system property to be captured in the fingerprint.
+            2. Store `ProviderBackedFileCollection` as a spec so the provider is re-evaluated at every execution;
+    """)
     @Issue("https://github.com/gradle/gradle/issues/9586")
     def "change in case of input file will sync properly"() {
         given:

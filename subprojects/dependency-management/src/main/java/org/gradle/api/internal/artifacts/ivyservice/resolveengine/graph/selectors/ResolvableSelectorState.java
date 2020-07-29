@@ -21,8 +21,9 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
+
+import javax.annotation.Nullable;
 
 public interface ResolvableSelectorState {
     /**
@@ -34,6 +35,7 @@ public interface ResolvableSelectorState {
      * The version constraint that applies to this selector, if any.
      * Will return null for a project selector.
      */
+    @Nullable
     ResolvedVersionConstraint getVersionConstraint();
 
     /**
@@ -44,14 +46,8 @@ public interface ResolvableSelectorState {
     /**
      * Resolve the prefer constraint of the selector to a component identifier.
      */
+    @Nullable
     ComponentIdResolveResult resolvePrefer(VersionSelector allRejects);
-
-    /**
-     * Marks the selector as resolved with the passed in failure.
-     *
-     * @param failure the failure to record
-     */
-    void failed(ModuleVersionResolveException failure);
 
     /**
      * Mark the selector as resolved.

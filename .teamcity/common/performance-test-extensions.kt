@@ -28,6 +28,8 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.linux, timeout: Int = 30)
     detectHangingBuilds = false
     requirements {
         doesNotContain("teamcity.agent.name", "ec2")
+        // US region agents have name "EC2-XXX"
+        doesNotContain("teamcity.agent.name", "EC2")
     }
     params {
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
@@ -47,7 +49,7 @@ fun performanceTestCommandLine(task: String, baselines: String, extraParameters:
 )
 
 fun distributedPerformanceTestParameters(workerId: String = "Gradle_Check_IndividualPerformanceScenarioWorkersLinux") = listOf(
-        "-Porg.gradle.performance.buildTypeId=$workerId -Porg.gradle.performance.workerTestTaskName=fullPerformanceTest -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
+        "-Porg.gradle.performance.buildTypeId=$workerId -Porg.gradle.performance.workerTestTaskName=fullPerformanceTest -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id%"
 )
 
 val individualPerformanceTestArtifactRules = """

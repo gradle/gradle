@@ -15,30 +15,29 @@
  */
 
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
-description = "File-system watchers for keeping the VFS up-to-date"
+description = "File system watchers for keeping the VFS up-to-date"
 
 dependencies {
     api(project(":snapshots"))
 
     implementation(project(":baseAnnotations"))
 
-    implementation(library("guava"))
-    implementation(library("nativePlatform"))
-    implementation(library("slf4j_api"))
+    implementation(libs.guava)
+    implementation(libs.nativePlatform)
+    implementation(libs.slf4jApi)
 
     testImplementation(project(":processServices"))
     testImplementation(project(":resources"))
+    testImplementation(project(":persistentCache"))
+    testImplementation(project(":buildOption"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":fileCollections")))
+    testImplementation(libs.commonsIo)
 
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
-    integTestRuntimeOnly(project(":workers"))
-    integTestRuntimeOnly(project(":dependencyManagement"))
-    integTestRuntimeOnly(project(":apiMetadata"))
-    integTestRuntimeOnly(project(":kotlinDsl"))
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
-    integTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
+    integTestImplementation(libs.jetty)
+
+    integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }

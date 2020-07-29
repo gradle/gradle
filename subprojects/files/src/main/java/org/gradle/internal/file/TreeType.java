@@ -16,9 +16,12 @@
 
 package org.gradle.internal.file;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
 /**
  * Type of an existing file tree.
  */
+@UsedByScanPlugin("test-distribution")
 public enum TreeType {
     FILE,
     DIRECTORY

@@ -27,7 +27,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
@@ -45,6 +45,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 @NonNullApi
 public class DefaultTaskOutputs implements TaskOutputsInternal {
@@ -253,9 +254,9 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         }
 
         @Override
-        public void visitContents(FileCollectionResolveContext context) {
+        protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
             for (OutputFilePropertySpec propertySpec : getFileProperties()) {
-                context.add(propertySpec.getPropertyFiles());
+                visitor.accept(propertySpec.getPropertyFiles());
             }
         }
 

@@ -23,6 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
@@ -62,11 +63,13 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -85,6 +88,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import static org.gradle.util.ConfigureUtil.configureUsing;
 
@@ -150,6 +154,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private FileCollection testClassesDirs;
     private final PatternFilterable patternSet;
     private FileCollection classpath;
+    private final ConfigurableFileCollection stableClasspath;
     private TestFramework testFramework;
     private boolean scanForTestClasses = true;
     private long forkEvery;
@@ -158,6 +163,15 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     public Test() {
         patternSet = getPatternSetFactory().create();
+        classpath = getObjectFactory().fileCollection();
+        // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to the property
+        stableClasspath = getObjectFactory().fileCollection();
+        stableClasspath.from(new Callable<Object>() {
+            @Override
+            public Object call() {
+                return getClasspath();
+            }
+        });
         forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.setEnableAssertions(true);
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
@@ -173,9 +187,14 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         throw new UnsupportedOperationException();
     }
 
-    @Inject
+    @Internal
+    @Deprecated
     protected ClassLoaderCache getClassLoaderCache() {
-        throw new UnsupportedOperationException();
+        DeprecationLogger.deprecateMethod(Test.class, "getClassLoaderCache()")
+            .willBeRemovedInGradle7()
+            .undocumented()
+            .nagUser();
+        return getServices().get(ClassLoaderCache.class);
     }
 
     @Inject
@@ -606,8 +625,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         copyTo(javaForkOptions);
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
-        FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, getClasspath());
-        FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, getClasspath());
+        FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
+        FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
         return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses());
     }
 
@@ -985,13 +1004,24 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 3.5
      */
     public void useTestNG(Action<? super TestNGOptions> testFrameworkConfigure) {
-        useTestFramework(new TestNGTestFramework(this, (DefaultTestFilter) getFilter(), getInstantiator(), getClassLoaderCache()), testFrameworkConfigure);
+        useTestFramework(new TestNGTestFramework(this, stableClasspath, (DefaultTestFilter) getFilter(), getObjectFactory()), testFrameworkConfigure);
+    }
+
+    /**
+     * Returns the classpath to use to execute the tests.
+     *
+     * @since 6.6
+     */
+    @Incubating
+    @Classpath
+    protected FileCollection getStableClasspath() {
+        return stableClasspath;
     }
 
     /**
      * Returns the classpath to use to execute the tests.
      */
-    @Classpath
+    @Internal("captured by stableClasspath")
     public FileCollection getClasspath() {
         return classpath;
     }
@@ -1108,6 +1138,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @since 4.2
      */
+    @UsedByScanPlugin("test-distribution")
     void setTestExecuter(TestExecuter<JvmTestExecutionSpec> testExecuter) {
         this.testExecuter = testExecuter;
     }

@@ -22,6 +22,7 @@ import spock.lang.Unroll
 
 
 class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
+    @ToBeFixedForInstantExecution
     def "export fails when external dependency cannot be mapped to a git url"() {
         given:
         buildFile << """
@@ -41,6 +42,7 @@ class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftP
         failure.assertHasCause("Cannot determine the Git URL for dependency on dep:dep.")
     }
 
+    @ToBeFixedForInstantExecution
     def "export fails when file dependency is present"() {
         given:
         buildFile << """
@@ -60,6 +62,7 @@ class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftP
         failure.assertHasCause("Cannot map a dependency of type ")
     }
 
+    @ToBeFixedForInstantExecution
     def "export fails when external dependency defines both branch and version constraint"() {
         given:
         buildFile << """
@@ -402,6 +405,7 @@ let package = Package(
         '[1.0.0, 2.0.0)' | '"1.0.0"..<"2.0.0"'
     }
 
+    @ToBeFixedForInstantExecution
     @Unroll
     def "cannot map dependency #src"() {
         given:

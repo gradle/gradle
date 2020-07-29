@@ -17,11 +17,13 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Allows replacing dependencies with other dependencies.
+ *
  * @since 2.5
  */
 @HasInternalProtocol
@@ -71,6 +73,25 @@ public interface DependencySubstitutions {
     ComponentSelector project(String path);
 
     /**
+     * Transforms the supplied selector into a specific variant selector.
+     *
+     * @param selector the origin selector
+     * @param detailsAction the variant selection details configuration
+     * @since 6.6
+     */
+    @Incubating
+    ComponentSelector variant(ComponentSelector selector, Action<? super VariantSelectionDetails> detailsAction);
+
+    /**
+     * Transforms the provided selector into a platform selector.
+     *
+     * @param selector the original selector
+     * @since 6.6
+     */
+    @Incubating
+    ComponentSelector platform(ComponentSelector selector);
+
+    /**
      * DSL-friendly mechanism to construct a dependency substitution for dependencies matching the provided selector.
      * <p>
      * Examples:
@@ -94,17 +115,56 @@ public interface DependencySubstitutions {
     interface Substitution {
         /**
          * Specify a reason for the substitution. This is optional
+         *
          * @param reason the reason for the selection
-         *
-         * @since 4.5
-         *
          * @return the substitution
+         * @since 4.5
          */
         Substitution because(String reason);
+
+        /**
+         * Specifies that the substituted target dependency should use the specified classifier.
+         *
+         * This method assumes that the target dependency is a jar (type jar, extension jar).
+         *
+         * @since 6.6
+         */
+        @Incubating
+        Substitution withClassifier(String classifier);
+
+        /**
+         * Specifies that the substituted dependency mustn't have any classifier.
+         * It can be used whenever you need to substitute a dependency which uses a classifier into
+         * a dependency which doesn't.
+         *
+         * This method assumes that the target dependency is a jar (type jar, extension jar).
+         *
+         * @since 6.6
+         */
+        @Incubating
+        Substitution withoutClassifier();
+
+        /**
+         * Specifies that substituted dependencies must not carry any artifact selector.
+         *
+         * @since 6.6
+         */
+        @Incubating
+        Substitution withoutArtifactSelectors();
 
         /**
          * Specify the target of the substitution.
          */
         void with(ComponentSelector notation);
+
+
+        /**
+         * Specify the target of the substitution. This is a replacement for the {@link #with(ComponentSelector)}
+         * method which supports chaining.
+         *
+         * @since 6.6
+         */
+        @Incubating
+        Substitution using(ComponentSelector notation);
     }
 }

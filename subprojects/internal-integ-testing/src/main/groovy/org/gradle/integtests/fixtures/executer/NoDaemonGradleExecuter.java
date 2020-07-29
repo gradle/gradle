@@ -154,9 +154,9 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
             @Override
             public DefaultExecHandleBuilder create() {
                 TestFile gradleHomeDir = getDistribution().getGradleHomeDir();
-                if (!gradleHomeDir.isDirectory()) {
+                if (gradleHomeDir != null && !gradleHomeDir.isDirectory()) {
                     fail(gradleHomeDir + " is not a directory.\n"
-                        + "If you are running tests from IDE make sure that gradle tasks that prepare the test image were executed. Last time it was 'intTestImage' task.");
+                        + "The test is most likely not written in a way that it can run with the embedded executer.");
                 }
 
                 NativeServicesTestFixture.initialize();
@@ -198,12 +198,12 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected ExecutionResult doRun() {
-        return startHandle().waitForFinish();
+        return createGradleHandle().waitForFinish();
     }
 
     @Override
     protected ExecutionFailure doRunWithFailure() {
-        return start().waitForFailure();
+        return createGradleHandle().waitForFailure();
     }
 
     private interface ExecHandlerConfigurer {

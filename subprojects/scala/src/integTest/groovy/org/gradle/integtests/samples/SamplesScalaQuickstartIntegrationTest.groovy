@@ -33,10 +33,6 @@ class SamplesScalaQuickstartIntegrationTest extends AbstractSampleIntegrationTes
     @Rule public final Sample sample = new Sample(testDirectoryProvider)
     @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
 
-    def setup() {
-        executer.requireGradleDistribution()
-    }
-
     @Unroll
     @UsesSample('scala/quickstart')
     def "can build jar with #dsl dsl"() {

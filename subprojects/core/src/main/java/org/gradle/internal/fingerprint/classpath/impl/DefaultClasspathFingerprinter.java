@@ -17,6 +17,7 @@
 package org.gradle.internal.fingerprint.classpath.impl;
 
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
@@ -31,11 +32,15 @@ public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerp
         ResourceSnapshotterCacheService cacheService,
         FileCollectionSnapshotter fileCollectionSnapshotter,
         ResourceFilter classpathResourceFilter,
+        ResourceEntryFilter manifestAttributeResourceEntryFilter,
+        ResourceEntryFilter manifestPropertyResourceEntryFilter,
         StringInterner stringInterner
     ) {
         super(
             ClasspathFingerprintingStrategy.runtimeClasspath(
                 classpathResourceFilter,
+                manifestAttributeResourceEntryFilter,
+                manifestPropertyResourceEntryFilter,
                 new RuntimeClasspathResourceHasher(),
                 cacheService,
                 stringInterner

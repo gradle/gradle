@@ -21,15 +21,16 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.plugins.jvm.internal.JvmModelingServices;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 
+import javax.inject.Inject;
+
 import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.internal.JvmPluginsHelper.addApiToSourceSet;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_API;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_FEATURE_NAME;
-import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURE_SOURCESET_NAME;
 
 /**
  * Adds support for producing test fixtures. This plugin will automatically
@@ -45,15 +46,22 @@ import static org.gradle.internal.component.external.model.TestFixturesSupport.T
 @Incubating
 public class JavaTestFixturesPlugin implements Plugin<Project> {
 
+    private final JvmModelingServices jvmEcosystemUtilities;
+
+    @Inject
+    public JavaTestFixturesPlugin(JvmModelingServices jvmModelingServices) {
+        this.jvmEcosystemUtilities = jvmModelingServices;
+    }
+
     @Override
     public void apply(Project project) {
         project.getPluginManager().withPlugin("java", plugin -> {
-            JavaPluginConvention convention = findJavaConvention(project);
-            JavaPluginExtension extension = findJavaPluginExtension(project);
-            SourceSet testFixtures = convention.getSourceSets().create(TEST_FIXTURE_SOURCESET_NAME);
-            extension.registerFeature(TEST_FIXTURES_FEATURE_NAME, featureSpec -> featureSpec.usingSourceSet(testFixtures));
-            addApiToSourceSet(testFixtures, project.getConfigurations());
-            createImplicitTestFixturesDependencies(project, convention);
+            jvmEcosystemUtilities.createJvmVariant(TEST_FIXTURES_FEATURE_NAME, builder ->
+                builder
+                    .exposesApi()
+                    .published()
+            );
+            createImplicitTestFixturesDependencies(project, findJavaConvention(project));
         });
     }
 
@@ -74,10 +82,6 @@ public class JavaTestFixturesPlugin implements Plugin<Project> {
 
     private SourceSet findTestSourceSet(JavaPluginConvention convention) {
         return convention.getSourceSets().getByName("test");
-    }
-
-    private JavaPluginExtension findJavaPluginExtension(Project project) {
-        return project.getExtensions().getByType(JavaPluginExtension.class);
     }
 
     private JavaPluginConvention findJavaConvention(Project project) {

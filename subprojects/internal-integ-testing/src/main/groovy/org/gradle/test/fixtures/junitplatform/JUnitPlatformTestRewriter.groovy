@@ -49,6 +49,7 @@ class JUnitPlatformTestRewriter {
     static rewriteWithJupiter(File projectDir, String dependencyVersion) {
         rewriteBuildFileWithJupiter(projectDir, dependencyVersion)
         rewriteJavaFilesWithJupiterAnno(projectDir)
+        rewriteJavaModuleFileWithJupiterRequires(projectDir)
     }
 
     static replaceCategoriesWithTags(File projectDir) {
@@ -81,6 +82,13 @@ class JUnitPlatformTestRewriter {
                 text = text.replace(key, value)
             }
             it.text = text
+        }
+    }
+
+    static rewriteJavaModuleFileWithJupiterRequires(File rootProject) {
+        def moduleInfo = new File(rootProject, 'src/test/java/module-info.java')
+        if (moduleInfo.exists()) {
+            moduleInfo.text = moduleInfo.text.replace('requires junit', 'requires org.junit.jupiter.api')
         }
     }
 

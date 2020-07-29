@@ -18,16 +18,17 @@ package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class DistributionPropertiesLoaderIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/11173')
     @ToBeFixedForInstantExecution(because = "composite builds")
+    @IgnoreIf({ GradleContextualExecuter.embedded })
     def "System properties defined in gradle.properties are available in buildSrc and in included builds"() {
         given:
-        requireIsolatedGradleDistribution()
-
         settingsFile << '''
             includeBuild 'includedBuild'
             println("system_property_available in settings.gradle:          ${System.getProperty('system_property_available', 'false')} ")
@@ -84,8 +85,5 @@ class DistributionPropertiesLoaderIntegrationTest extends AbstractIntegrationSpe
         outputContains('project_property_available in settings.gradle:         true')
         outputContains('system_property_available in included settings.gradle: true')
         outputContains('project_property_available in included settings.gradle:false')
-
-        cleanup:
-        executer.withArguments("--stop", "--info").run()
     }
 }

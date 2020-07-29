@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -49,7 +49,6 @@ class MavenPublishLoggingIntegTest extends AbstractMavenPublishIntegTest {
         """
     }
 
-    @ToBeFixedForInstantExecution
     def "logging is associated to task"() {
         when:
         succeeds 'publish', "-i"
@@ -64,7 +63,6 @@ class MavenPublishLoggingIntegTest extends AbstractMavenPublishIntegTest {
         output.contains("Uploading maven-metadata.xml to ")
     }
 
-    @ToBeFixedForInstantExecution
     def "does not log uploads when installing to mavenLocal"() {
         when:
         succeeds 'publishToMavenLocal', '-i'

@@ -36,8 +36,15 @@ import org.gradle.jvm.internal.resolve.JvmVariantSelector;
 import org.gradle.jvm.internal.resolve.VariantAxisCompatibilityFactory;
 import org.gradle.jvm.internal.resolve.VariantsMetaData;
 import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultJavaInstallationRegistry;
+import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
+import org.gradle.jvm.toolchain.internal.JavaToolchainFactory;
+import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
+import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 import java.util.Collection;
@@ -55,10 +62,22 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         registration.add(JavaInstallationProbe.class);
     }
 
+
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(DefaultJavaInstallationRegistry.class);
         registration.addProvider(new BuildScopeServices());
+        registration.add(SharedJavaInstallationRegistry.class);
+        registration.add(LocationListInstallationSupplier.class);
+        registration.add(EnvironmentVariableListInstallationSupplier.class);
+        registration.add(CurrentInstallationSupplier.class);
+        registration.add(SdkmanInstallationSupplier.class);
+    }
+
+    @Override
+    public void registerProjectServices(ServiceRegistration registration) {
+        registration.add(JavaToolchainFactory.class);
+        registration.add(JavaToolchainQueryService.class);
     }
 
     private static class BuildScopeServices {

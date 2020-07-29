@@ -18,6 +18,7 @@ package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -68,7 +69,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         }
         if (match != null) {
             if (match instanceof ParameterizedToolingModelBuilder) {
-                return new ParameterizedBuildOperationWrappingToolingModelBuilder((ParameterizedToolingModelBuilder) match);
+                return new ParameterizedBuildOperationWrappingToolingModelBuilder<>(Cast.uncheckedNonnullCast(match));
             } else {
                 return new BuildOperationWrappingToolingModelBuilder(match);
             }
@@ -118,7 +119,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
     private class ParameterizedBuildOperationWrappingToolingModelBuilder<T> extends BuildOperationWrappingToolingModelBuilder implements ParameterizedToolingModelBuilder<T> {
         private final ParameterizedToolingModelBuilder<T> delegate;
 
-        private ParameterizedBuildOperationWrappingToolingModelBuilder(ParameterizedToolingModelBuilder delegate) {
+        private ParameterizedBuildOperationWrappingToolingModelBuilder(ParameterizedToolingModelBuilder<T> delegate) {
             super(delegate);
             this.delegate = delegate;
         }

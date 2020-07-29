@@ -25,10 +25,12 @@ public class TestStartEvent {
     private final long startTime;
     private final Object parentId;
 
+    @UsedByScanPlugin("test-distribution")
     public TestStartEvent(long startTime) {
         this(startTime, null);
     }
 
+    @UsedByScanPlugin("test-distribution")
     public TestStartEvent(long startTime, Object parentId) {
         this.startTime = startTime;
         this.parentId = parentId;

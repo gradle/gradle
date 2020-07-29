@@ -16,10 +16,10 @@
 package org.gradle.launcher.daemon.client
 
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.BasicGlobalScopeServices
+import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.registry.DaemonRegistry
@@ -30,14 +30,18 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DaemonClientServicesTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
-    final DaemonParameters parameters = new DaemonParameters(new BuildLayoutParameters(), TestFiles.fileCollectionFactory()).setBaseDir(tmp.testDirectory)
+    @Rule
+    TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
+    def buildLayoutResult = Stub(BuildLayoutResult) {
+        getGradleUserHomeDir() >> tmp.file("gradle-user-home")
+    }
+    final DaemonParameters parameters = new DaemonParameters(buildLayoutResult, TestFiles.fileCollectionFactory()).setBaseDir(tmp.testDirectory)
     final parentServices = ServiceRegistryBuilder.builder()
-            .parent(LoggingServiceRegistry.newEmbeddableLogging())
-            .parent(NativeServicesTestFixture.instance)
-            .provider(new BasicGlobalScopeServices())
-            .provider(new DaemonClientGlobalServices())
-            .build()
+        .parent(LoggingServiceRegistry.newEmbeddableLogging())
+        .parent(NativeServicesTestFixture.instance)
+        .provider(new BasicGlobalScopeServices())
+        .provider(new DaemonClientGlobalServices())
+        .build()
     final services = new DaemonClientServices(parentServices, parameters, System.in)
 
     def "makes a DaemonRegistry available"() {

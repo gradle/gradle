@@ -41,9 +41,9 @@ public class InjectedClasspathPluginResolver implements PluginResolver {
     private final ClassPath injectedClasspath;
     private final PluginRegistry pluginRegistry;
 
-    public InjectedClasspathPluginResolver(ClassLoaderScope parentScope, CachedClasspathTransformer classpathTransformer, PluginInspector pluginInspector, ClassPath injectedClasspath) {
+    public InjectedClasspathPluginResolver(ClassLoaderScope parentScope, CachedClasspathTransformer classpathTransformer, PluginInspector pluginInspector, ClassPath injectedClasspath, InjectedClasspathInstrumentationStrategy instrumentationStrategy) {
         this.injectedClasspath = injectedClasspath;
-        ClassPath cachedClassPath = classpathTransformer.transform(injectedClasspath, CachedClasspathTransformer.StandardTransform.BuildLogic);
+        ClassPath cachedClassPath = classpathTransformer.transform(injectedClasspath, instrumentationStrategy.getTransform());
         this.pluginRegistry = new DefaultPluginRegistry(pluginInspector,
             parentScope.createChild("injected-plugin")
                 .local(cachedClassPath)

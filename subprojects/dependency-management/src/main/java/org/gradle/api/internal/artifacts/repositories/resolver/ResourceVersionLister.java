@@ -156,7 +156,7 @@ public class ResourceVersionLister implements VersionLister {
     }
 
     private List<String> filterMatchedValues(List<String> all, final Pattern p) {
-        List<String> ret = new ArrayList<String>(all.size());
+        List<String> ret = new ArrayList<>(all.size());
         for (String path : all) {
             Matcher m = p.matcher(path);
             if (m.matches()) {
@@ -176,7 +176,7 @@ public class ResourceVersionLister implements VersionLister {
             namePattern = pattern.substring(prefixLastSlashIndex + 1);
         }
         namePattern = namePattern.replaceAll("\\.", "\\\\.");
-        String acceptNamePattern = namePattern.replaceAll("\\[revision\\]", "(.+)");
+        String acceptNamePattern = namePattern.replaceAll("\\[revision]", "(.+)");
         return Pattern.compile(acceptNamePattern);
     }
 
@@ -184,23 +184,20 @@ public class ResourceVersionLister implements VersionLister {
         pattern = pattern.replaceAll("\\.", "\\\\.");
 
         // Creates a control regexp pattern where extra revision tokens _must_ have the same value as the original one
-        String acceptNamePattern = pattern.replaceFirst("\\[revision\\]", "(.+)")
-            .replaceAll("\\[revision\\]", "\1");
+        String acceptNamePattern = pattern.replaceFirst("\\[revision]", "(.+)")
+            .replaceAll("\\[revision]", "\1");
         return Pattern.compile(acceptNamePattern);
     }
 
     private boolean revisionMatchesDirectoryName(String pattern) {
         int startToken = pattern.indexOf(REVISION_TOKEN);
-        if (startToken > 0 && !pattern.substring(startToken - 1, startToken).equals(fileSeparator)) {
+        if (startToken > 0 && !pattern.startsWith(fileSeparator, startToken - 1)) {
             // previous character is not a separator
             return false;
         }
         int endToken = startToken + REV_TOKEN_LENGTH;
-        if (endToken < pattern.length() && !pattern.substring(endToken, endToken + 1).equals(fileSeparator)) {
-            // next character is not a separator
-            return false;
-        }
-        return true;
+        // next character is not a separator
+        return endToken >= pattern.length() || pattern.startsWith(fileSeparator, endToken);
     }
 
     private List<String> listAll(ExternalResourceName parent, BuildableModuleVersionListingResolveResult result) {

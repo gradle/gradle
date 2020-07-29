@@ -84,6 +84,10 @@
                 <td>headerOutputDirectory</td>
                 <td><literal><replaceable>${project.buildDir}</replaceable>/generated/sources/headers/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
             </tr>
+            <tr>
+                <td>release</td>
+                <td/>
+            </tr>
         </table>
     </section>
     <section>

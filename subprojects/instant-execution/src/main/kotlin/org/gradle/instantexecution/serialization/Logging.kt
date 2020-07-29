@@ -17,6 +17,9 @@
 package org.gradle.instantexecution.serialization
 
 import org.gradle.api.internal.GeneratedSubclasses
+import org.gradle.instantexecution.problems.DocumentationSection
+import org.gradle.instantexecution.problems.DocumentationSection.NotYetImplemented
+import org.gradle.instantexecution.problems.DocumentationSection.RequirementsDisallowedTypes
 
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.StructuredMessage
@@ -28,37 +31,55 @@ import kotlin.reflect.KClass
 typealias StructuredMessageBuilder = StructuredMessage.Builder.() -> Unit
 
 
-fun IsolateContext.logPropertyProblem(action: String, exception: Throwable? = null, message: StructuredMessageBuilder) {
-    logPropertyProblem(action, PropertyProblem(trace, build(message), exception))
+fun IsolateContext.logPropertyProblem(
+    action: String,
+    exception: Throwable? = null,
+    documentationSection: DocumentationSection? = null,
+    message: StructuredMessageBuilder
+) {
+    logPropertyProblem(action, PropertyProblem(trace, build(message), exception, documentationSection))
 }
 
 
 fun IsolateContext.logPropertyInfo(action: String, value: Any?) {
-    logger.debug("instant-execution > {}d {} with value {}", action, trace, value)
+    logger.debug("configuration-cache > {}d {} with value {}", action, trace, value)
 }
 
 
-fun IsolateContext.logUnsupported(action: String, baseType: KClass<*>, actualType: Class<*>) {
-    logPropertyProblem {
-        text("cannot ")
-        text(action)
-        text(" object of type ")
-        reference(GeneratedSubclasses.unpack(actualType))
-        text(", a subtype of ")
-        reference(baseType)
-        text(", as these are not supported with instant execution.")
-    }
+internal
+fun IsolateContext.logUnsupported(
+    action: String,
+    baseType: KClass<*>,
+    actualType: Class<*>,
+    documentationSection: DocumentationSection = RequirementsDisallowedTypes
+) {
+    logPropertyProblem(action, PropertyProblem(trace,
+        build {
+            text("cannot ")
+            text(action)
+            text(" object of type ")
+            reference(GeneratedSubclasses.unpack(actualType))
+            text(", a subtype of ")
+            reference(baseType)
+            text(", as these are not supported with the configuration cache.")
+        }, null, documentationSection))
 }
 
 
-fun IsolateContext.logUnsupported(action: String, baseType: KClass<*>) {
-    logPropertyProblem {
-        text("cannot ")
-        text(action)
-        text(" object of type ")
-        reference(baseType)
-        text(" as these are not supported with instant execution.")
-    }
+internal
+fun IsolateContext.logUnsupported(
+    action: String,
+    baseType: KClass<*>,
+    documentationSection: DocumentationSection = RequirementsDisallowedTypes
+) {
+    logPropertyProblem(action, PropertyProblem(trace,
+        build {
+            text("cannot ")
+            text(action)
+            text(" object of type ")
+            reference(baseType)
+            text(" as these are not supported with the configuration cache.")
+        }, null, documentationSection))
 }
 
 
@@ -66,27 +87,28 @@ fun IsolateContext.logNotImplemented(baseType: Class<*>) {
     logPropertyProblem {
         text("objects of type ")
         reference(baseType)
-        text(" are not yet supported with instant execution.")
+        text(" are not yet supported with the configuration cache.")
     }
 }
 
 
-fun IsolateContext.logNotImplemented(feature: String) {
-    logPropertyProblem {
-        text("support for $feature is not yet implemented with instant execution.")
-    }
+internal
+fun IsolateContext.logNotImplemented(feature: String, documentationSection: DocumentationSection = NotYetImplemented) {
+    onProblem(PropertyProblem(trace, build {
+        text("support for $feature is not yet implemented with the configuration cache.")
+    }, null, documentationSection))
 }
 
 
 private
-fun IsolateContext.logPropertyProblem(message: StructuredMessageBuilder) {
-    val problem = PropertyProblem(trace, build(message))
+fun IsolateContext.logPropertyProblem(documentationSection: DocumentationSection? = null, message: StructuredMessageBuilder) {
+    val problem = PropertyProblem(trace, build(message), null, documentationSection)
     logPropertyProblem("serialize", problem)
 }
 
 
 private
 fun IsolateContext.logPropertyProblem(action: String, problem: PropertyProblem) {
-    logger.debug("instant-execution > failed to {} {} because {}", action, problem.trace, problem.message)
+    logger.debug("configuration-cache > failed to {} {} because {}", action, problem.trace, problem.message)
     onProblem(problem)
 }

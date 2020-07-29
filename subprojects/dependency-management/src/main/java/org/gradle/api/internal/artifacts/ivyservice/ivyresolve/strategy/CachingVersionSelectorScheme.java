@@ -16,15 +16,22 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.internal.FeaturePreviews;
 
 import java.util.Map;
 
 public class CachingVersionSelectorScheme implements VersionSelectorScheme {
     private final Map<String, VersionSelector> cachedSelectors = Maps.newConcurrentMap();
     private final VersionSelectorScheme delegate;
+    private final FeaturePreviews featurePreviews;
 
     public CachingVersionSelectorScheme(VersionSelectorScheme delegate) {
+        this(delegate, null);
+    }
+
+    public CachingVersionSelectorScheme(VersionSelectorScheme delegate, FeaturePreviews featurePreviews) {
         this.delegate = delegate;
+        this.featurePreviews = featurePreviews;
     }
 
     @Override
@@ -47,4 +54,9 @@ public class CachingVersionSelectorScheme implements VersionSelectorScheme {
         return delegate.complementForRejection(selector);
     }
 
+    public void configure() {
+        if (featurePreviews != null && featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.VERSION_ORDERING_V2)) {
+            cachedSelectors.clear();
+        }
+    }
 }

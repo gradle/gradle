@@ -197,12 +197,13 @@ class HtmlTestExecutionResult implements TestExecutionResult {
             if (testCase.isEmpty()) {
                 return false
             }
-            def messages = testCase.first().messages.collect { it.readLines().first() }
+            def fullMessages = testCase.first().messages
+            def messages = fullMessages.collect { it.readLines().first() }
             if (messages.size() != messageMatchers.length) {
                 return false
             }
             for (int i = 0; i < messageMatchers.length; i++) {
-                if (!messageMatchers[i].matches(messages[i])) {
+                if (!messageMatchers[i].matches(messages[i]) && !messageMatchers[i].matches(fullMessages[i])) {
                     return false
                 }
             }

@@ -41,6 +41,27 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("build dir 2: " + testDirectory.file("output"))
     }
 
+    def "can apply convention to build dir"() {
+        buildFile << """
+            println "build dir: " + project.buildDir
+            layout.buildDirectory.convention(layout.projectDirectory.dir("out"))
+            println "build dir 2: " + project.buildDir
+            layout.buildDirectory = layout.projectDirectory.dir("target")
+            println "build dir 3: " + project.buildDir
+            layout.buildDirectory.convention(layout.projectDirectory.dir("out"))
+            println "build dir 4: " + project.buildDir
+"""
+
+        when:
+        run()
+
+        then:
+        outputContains("build dir: " + testDirectory.file("build"))
+        outputContains("build dir 2: " + testDirectory.file("out"))
+        outputContains("build dir 3: " + testDirectory.file("target"))
+        outputContains("build dir 4: " + testDirectory.file("target"))
+    }
+
     def "layout is available for injection"() {
         buildFile << """
             import javax.inject.Inject

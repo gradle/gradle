@@ -1,10 +1,8 @@
 package org.gradle.kotlin.dsl.fixtures
 
-import org.gradle.util.TextUtil.normaliseFileSeparators
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 
 import org.junit.Before
-
-import java.io.File
 
 import java.util.Properties
 
@@ -74,7 +72,7 @@ open class AbstractPluginTest : AbstractKotlinIntegrationTest() {
     protected
     val futurePluginVersions by lazy {
         loadPropertiesFromResource("/future-plugin-versions.properties")
-            ?: throw IllegalStateException("/future-plugin-versions.properties resource not found. Run intTestImage.")
+            ?: throw IllegalStateException("/future-plugin-versions.properties resource not found.")
     }
 
     private
@@ -83,23 +81,11 @@ open class AbstractPluginTest : AbstractKotlinIntegrationTest() {
             Properties().apply { load(it) }
         }
 
-    protected
-    open val testRepositoryPaths: List<String>
-        get() = normalisedPathsOf("build/repository")
+    private
+    val testRepositoryPaths: List<String>
+        get() = IntegrationTestBuildContext().localRepository?.let { listOf(it.normalisedPath) } ?: emptyList()
 
     protected
     fun buildWithPlugin(vararg arguments: String) =
         build(*arguments)
-
-    protected
-    fun normalisedPathsOf(vararg paths: String) =
-        paths.map(::normalisedPathOf)
-
-    protected
-    fun normalisedPathOf(relativePath: String): String =
-        normaliseFileSeparators(absolutePathOf(relativePath))
-
-    private
-    fun absolutePathOf(path: String) =
-        File(path).absolutePath
 }

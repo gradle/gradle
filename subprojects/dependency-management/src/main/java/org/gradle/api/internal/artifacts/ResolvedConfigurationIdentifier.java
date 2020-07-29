@@ -67,11 +67,7 @@ public class ResolvedConfigurationIdentifier {
         if (!id.equals(that.id)) {
             return false;
         }
-        if (!configuration.equals(that.configuration)) {
-            return false;
-        }
-
-        return true;
+        return configuration.equals(that.configuration);
     }
 
     @Override

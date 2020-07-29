@@ -17,13 +17,11 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 class PluginApplicationErrorIntegrationTest extends AbstractIntegrationSpec {
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
-    @ToBeFixedForInstantExecution
     def "reports failure to apply plugin by id"() {
         given:
         pluginBuilder.addPlugin("throw new Exception('throwing plugin')", "broken")
@@ -42,7 +40,7 @@ apply plugin: 'broken'
         fails()
 
         then:
-        failure.assertHasCause("Failed to apply plugin [id 'broken']")
+        failure.assertHasCause("Failed to apply plugin 'broken'")
         failure.assertHasCause("throwing plugin")
     }
 
@@ -61,7 +59,7 @@ class BrokenPlugin implements Plugin<Project> {
         fails()
 
         then:
-        failure.assertHasCause("Failed to apply plugin [class 'BrokenPlugin']")
+        failure.assertHasCause("Failed to apply plugin class 'BrokenPlugin'")
         failure.assertHasCause("throwing plugin")
     }
 
@@ -79,7 +77,7 @@ class BrokenPlugin {
         fails()
 
         then:
-        failure.assertHasCause("Failed to apply plugin [class 'BrokenPlugin']")
+        failure.assertHasCause("Failed to apply plugin class 'BrokenPlugin'")
         failure.assertHasCause("'BrokenPlugin' is neither a plugin or a rule source and cannot be applied.")
     }
 }

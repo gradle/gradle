@@ -20,7 +20,7 @@ import com.google.common.base.Objects;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -70,7 +70,7 @@ public class CachingFileHasher implements FileHasher {
     }
 
     private FileInfo snapshot(File file) {
-        FileMetadataSnapshot fileMetadata = fileSystem.stat(file);
+        FileMetadata fileMetadata = fileSystem.stat(file);
         return snapshot(file, fileMetadata.getLength(), fileMetadata.getLastModified());
     }
 

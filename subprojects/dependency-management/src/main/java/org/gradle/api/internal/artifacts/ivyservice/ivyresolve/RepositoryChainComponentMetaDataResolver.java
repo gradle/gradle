@@ -40,8 +40,8 @@ import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFai
 public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDataResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryChainComponentMetaDataResolver.class);
 
-    private final List<ModuleComponentRepository> repositories = new ArrayList<ModuleComponentRepository>();
-    private final List<String> repositoryNames = new ArrayList<String>();
+    private final List<ModuleComponentRepository> repositories = new ArrayList<>();
+    private final List<String> repositoryNames = new ArrayList<>();
     private final VersionedComponentChooser versionedComponentChooser;
     private final Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory;
 
@@ -83,9 +83,9 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
     private void resolveModule(ModuleComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
         LOGGER.debug("Attempting to resolve component for {} using repositories {}", identifier, repositoryNames);
 
-        List<Throwable> errors = new ArrayList<Throwable>();
+        List<Throwable> errors = new ArrayList<>();
 
-        List<ComponentMetaDataResolveState> resolveStates = new ArrayList<ComponentMetaDataResolveState>();
+        List<ComponentMetaDataResolveState> resolveStates = new ArrayList<>();
         for (ModuleComponentRepository repository : repositories) {
             resolveStates.add(new ComponentMetaDataResolveState(identifier, componentOverrideMetadata, repository, versionedComponentChooser));
         }
@@ -111,10 +111,9 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
     }
 
     private RepositoryChainModuleResolution findBestMatch(List<ComponentMetaDataResolveState> resolveStates, Collection<Throwable> failures) {
-        LinkedList<ComponentMetaDataResolveState> queue = new LinkedList<ComponentMetaDataResolveState>();
-        queue.addAll(resolveStates);
+        LinkedList<ComponentMetaDataResolveState> queue = new LinkedList<>(resolveStates);
 
-        LinkedList<ComponentMetaDataResolveState> missing = new LinkedList<ComponentMetaDataResolveState>();
+        LinkedList<ComponentMetaDataResolveState> missing = new LinkedList<>();
 
         // A first pass to do local resolves only
         RepositoryChainModuleResolution best = findBestMatch(queue, failures, missing);

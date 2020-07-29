@@ -18,6 +18,8 @@ package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.specs.Spec
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -30,6 +32,15 @@ import org.gradle.util.TestPrecondition
 
 import java.text.SimpleDateFormat
 
+
+/**
+ * Smoke test building gradle/gradle with instant execution enabled.
+ *
+ * gradle/gradle requires Java >=9 and <=11 to build, see {@link GradleBuildJvmSpec}.
+ *
+ * This test takes a while to run so is disabled for the Java 8 smoke test CI job and
+ * only run on the Java 14 smoke test CI job, see the {@link Requires} annotation below.
+ */
 @Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
     GradleContextualExecuter.isNotInstant() && GradleBuildJvmSpec.isAvailable()
 })
@@ -54,23 +65,25 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
 
         and:
         def supportedTasks = [
-            ":distributions:binZip",
-            ":core:integTest", "--tests=NameValidationIntegrationTest"
+            ":distributionsFull:binDistributionZip",
+            ":core:embeddedIntegTest", "--tests=NameValidationIntegrationTest",
+            ":toolingApi:publishLocalPublicationToLocalRepository"
         ]
 
         when:
         instantRun(*supportedTasks)
 
         then:
-        result.output.count("Calculating task graph as no instant execution cache is available") == 1
+        result.output.count("Calculating task graph as no configuration cache is available") == 1
 
         when:
         instantRun(*supportedTasks)
 
         then:
-        result.output.count("Reusing instant execution cache") == 1
-        result.task(":distributions:binZip").outcome == TaskOutcome.UP_TO_DATE
-        result.task(":core:integTest").outcome == TaskOutcome.UP_TO_DATE
+        result.output.count("Reusing configuration cache") == 1
+        result.task(":distributionsFull:binDistributionZip").outcome == TaskOutcome.UP_TO_DATE
+        result.task(":core:embeddedIntegTest").outcome == TaskOutcome.UP_TO_DATE
+        result.task(":toolingApi:publishLocalPublicationToLocalRepository").outcome == TaskOutcome.SUCCESS
 
         when:
         run("clean")
@@ -79,19 +92,19 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
         instantRun(*supportedTasks)
 
         then:
-        result.output.count("Reusing instant execution cache") == 1
+        result.output.count("Reusing configuration cache") == 1
 
         and:
-        file("build/distributions").allDescendants().count { it ==~ /gradle-.*-bin.zip/ } == 1
-        result.task(":core:integTest").outcome == TaskOutcome.SUCCESS
-        new DefaultTestExecutionResult(file("subprojects/core"), "build", "", "", "integTest")
+        file("subprojects/distributions-full/build/distributions").allDescendants().count { it ==~ /gradle-.*-bin.zip/ } == 1
+        result.task(":core:embeddedIntegTest").outcome == TaskOutcome.SUCCESS
+        new DefaultTestExecutionResult(file("subprojects/core"), "build", "", "", "embeddedIntegTest")
             .assertTestClassesExecuted("org.gradle.NameValidationIntegrationTest")
     }
 
     private void instantRun(String... tasks) {
         result = run(
-            "-Dorg.gradle.unsafe.instant-execution=true",
-            "-Dorg.gradle.unsafe.instant-execution.fail-on-problems=false", // TODO remove
+            "--${ConfigurationCacheOption.LONG_OPTION}",
+            "--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn", // TODO remove
             *tasks
         )
     }

@@ -62,7 +62,7 @@ class StaticGroovyTaskSubclassingBinaryCompatibilityCrossVersionSpec extends Cro
         """
 
         then:
-        version previous requireGradleDistribution() withTasks 'assemble' inDirectory(file("producer")) run()
-        version current requireGradleDistribution() withTasks 'task' run()
+        version previous withTasks 'assemble' inDirectory(file("producer")) run()
+        version current requireDaemon() requireIsolatedDaemons() withTasks 'task' run()
     }
 }

@@ -226,7 +226,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
 
     class AuthSupportedRepository extends AbstractAuthenticationSupportedRepository {
         AuthSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer) {
-            super(instantiator, authenticationContainer, null)
+            super(instantiator, authenticationContainer, TestUtil.objectFactory(), null)
         }
 
         @Override

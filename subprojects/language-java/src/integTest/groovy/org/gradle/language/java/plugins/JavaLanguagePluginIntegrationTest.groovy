@@ -15,9 +15,12 @@
  */
 
 package org.gradle.language.java.plugins
+
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.language.AbstractJvmPluginLanguageIntegrationTest
 import org.gradle.language.java.JavaSourceSet
 
+@UnsupportedWithInstantExecution(because = "software model")
 class JavaLanguagePluginIntegrationTest extends AbstractJvmPluginLanguageIntegrationTest{
     String sourceSetTypeName = JavaSourceSet.class.simpleName
 }

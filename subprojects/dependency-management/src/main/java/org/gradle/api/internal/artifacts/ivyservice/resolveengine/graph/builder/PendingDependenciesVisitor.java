@@ -25,7 +25,7 @@ public interface PendingDependenciesVisitor {
         NOT_PENDING(false),
         NOT_PENDING_ACTIVATING(false);
 
-        private boolean pending;
+        private final boolean pending;
 
         PendingState(boolean pending) {
             this.pending = pending;

@@ -17,10 +17,11 @@ package org.gradle.internal.nativeintegration.filesystem;
 
 import com.google.common.collect.ImmutableMap;
 import net.rubygrapefruit.platform.file.Files;
-import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.file.FileMetadata;
+import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
-import org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7FileMetadataAccessor;
+import org.gradle.internal.nativeintegration.filesystem.jdk7.NioFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.FallbackFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.NativePlatformBackedFileMetadataAccessor;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -42,6 +43,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
 import java.util.UUID;
 
+@SuppressWarnings("Since15")
 @Threads(2)
 @Warmup(iterations = 5)
 @Measurement(iterations = 5)
@@ -93,51 +95,42 @@ public class FileMetadataAccessorBenchmark {
         realFile.delete();
     }
 
-    @SuppressWarnings("unchecked")
     private FileMetadataAccessor getAccessor(String name) {
         return ACCESSORS.get(name);
     }
 
     @Benchmark
-    public void stat_missing_file(Blackhole bh) throws IOException {
-        bh.consume(getAccessor(accessorClassName).stat(missingPath));
+    public void stat_missing_file(Blackhole bh) {
+        bh.consume(getAccessor(accessorClassName).stat(missing));
     }
 
     @Benchmark
-    public void stat_directory(Blackhole bh) throws IOException {
-        bh.consume(getAccessor(accessorClassName).stat(directoryPath));
+    public void stat_directory(Blackhole bh) {
+        bh.consume(getAccessor(accessorClassName).stat(directory));
     }
 
     @Benchmark
-    public void stat_existing(Blackhole bh) throws IOException {
-        bh.consume(getAccessor(accessorClassName).stat(realFilePath));
+    public void stat_existing(Blackhole bh) {
+        bh.consume(getAccessor(accessorClassName).stat(realFile));
     }
 
-    private static class NioFileMetadataAccessor implements FileMetadataAccessor {
-
+    private static class Jdk7FileMetadataAccessor implements FileMetadataAccessor {
         @Override
-        public FileMetadataSnapshot stat(File f) {
+        public FileMetadata stat(File f) {
+            if (!f.exists()) {
+                // This is really not cool, but we cannot rely on `readAttributes` because it will
+                // THROW AN EXCEPTION if the file is missing, which is really incredibly slow just
+                // to determine if a file exists or not.
+                return DefaultFileMetadata.missing(AccessType.DIRECT);
+            }
             try {
                 BasicFileAttributes bfa = java.nio.file.Files.readAttributes(f.toPath(), BasicFileAttributes.class);
                 if (bfa.isDirectory()) {
-                    return DefaultFileMetadata.directory();
+                    return DefaultFileMetadata.directory(AccessType.DIRECT);
                 }
-                return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
+                return DefaultFileMetadata.file(bfa.lastModifiedTime().toMillis(), bfa.size(), AccessType.DIRECT);
             } catch (IOException e) {
-                return DefaultFileMetadata.missing();
-            }
-        }
-
-        @Override
-        public FileMetadataSnapshot stat(Path path) throws IOException {
-            try {
-                BasicFileAttributes bfa = java.nio.file.Files.readAttributes(path, BasicFileAttributes.class);
-                if (bfa.isDirectory()) {
-                    return DefaultFileMetadata.directory();
-                }
-                return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
-            } catch (IOException e) {
-                return DefaultFileMetadata.missing();
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
     }

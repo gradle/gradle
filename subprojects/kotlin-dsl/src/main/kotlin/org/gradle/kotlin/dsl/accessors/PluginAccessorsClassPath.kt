@@ -172,8 +172,8 @@ class GeneratePluginAccessors(
 
     override fun validate(validationContext: UnitOfWork.WorkValidationContext) = Unit
 
-    override fun getChangingOutputs(): Optional<out Iterable<String>> =
-        Optional.of(listOf(sourcesOutputDir.absolutePath, classesOutputDir.absolutePath))
+    override fun getChangingOutputs(): Iterable<String> =
+        listOf(sourcesOutputDir.absolutePath, classesOutputDir.absolutePath)
 
     override fun fingerprintAndFilterOutputSnapshots(
         afterPreviousExecutionOutputFingerprints: ImmutableSortedMap<String, FileCollectionFingerprint>,

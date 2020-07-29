@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.vfs.AdditiveCacheLocations;
 
 import java.io.File;
 
@@ -29,17 +29,17 @@ import java.io.File;
 public class SplitFileHasher implements FileHasher {
     private final FileHasher globalHasher;
     private final FileHasher localHasher;
-    private final AdditiveCacheLocations additiveCacheLocations;
+    private final GlobalCacheLocations globalCacheLocations;
 
-    public SplitFileHasher(FileHasher globalHasher, FileHasher localHasher, AdditiveCacheLocations additiveCacheLocations) {
+    public SplitFileHasher(FileHasher globalHasher, FileHasher localHasher, GlobalCacheLocations globalCacheLocations) {
         this.globalHasher = globalHasher;
         this.localHasher = localHasher;
-        this.additiveCacheLocations = additiveCacheLocations;
+        this.globalCacheLocations = globalCacheLocations;
     }
 
     @Override
     public HashCode hash(File file) {
-        if (additiveCacheLocations.isInsideAdditiveCache(file.getPath())) {
+        if (globalCacheLocations.isInsideGlobalCache(file.getPath())) {
             return globalHasher.hash(file);
         } else {
             return localHasher.hash(file);
@@ -48,7 +48,7 @@ public class SplitFileHasher implements FileHasher {
 
     @Override
     public HashCode hash(File file, long length, long lastModified) {
-        if (additiveCacheLocations.isInsideAdditiveCache(file.getPath())) {
+        if (globalCacheLocations.isInsideGlobalCache(file.getPath())) {
             return globalHasher.hash(file, length, lastModified);
         } else {
             return localHasher.hash(file, length, lastModified);

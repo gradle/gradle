@@ -130,20 +130,33 @@ org.gradle.api.internal.tasks.CompileServices
         handleAsJarFile(outputJar) { JarFile file ->
             List<JarEntry> entries = file.entries() as List
             assert entries*.name == [
+                'org/',
+                'org/gradle/',
                 'org/gradle/MyClass.class',
                 'org/gradle/MySecondClass.class',
+                'net/',
+                'net/rubygrapefruit/',
+                'net/rubygrapefruit/platform/',
+                'net/rubygrapefruit/platform/osx-i386/',
                 'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib',
+                'org/gradle/reporting/',
                 'org/gradle/reporting/report.js',
+                'org/joda/',
+                'org/joda/time/',
+                'org/joda/time/tz/',
+                'org/joda/time/tz/data/',
+                'org/joda/time/tz/data/Africa/',
                 'org/joda/time/tz/data/Africa/Abidjan',
-                'org/gradle/internal/impldep/org/joda/time/tz/data/Africa/Abidjan',
                 'org/gradle/MyAClass.class',
                 'org/gradle/MyBClass.class',
                 'org/gradle/MyFirstClass.class',
+                'META-INF/',
+                'META-INF/services/',
                 'META-INF/services/org.gradle.internal.service.scopes.PluginServiceRegistry',
                 'META-INF/services/org.gradle.internal.other.Service',
                 'META-INF/.gradle-runtime-shaded']
         }
-        outputJar.md5Hash == "84791783853fcd2c66437a674c219bbe"
+        outputJar.md5Hash == "55b2497496d71392a4fa9010352aaf38"
     }
 
     def "excludes module-info.class from jar"() {
@@ -168,9 +181,12 @@ org.gradle.api.internal.tasks.CompileServices
         handleAsJarFile(outputJar) { JarFile file ->
             List<JarEntry> entries = file.entries() as List
             assert entries*.name == [
+                'org/',
+                'org/gradle/',
                 'org/gradle/MyClass.class',
                 'org/gradle/MySecondClass.class',
                 'org/gradle/MyFirstClass.class',
+                'META-INF/',
                 'META-INF/.gradle-runtime-shaded']
         }
     }
@@ -319,8 +335,8 @@ org.gradle.api.internal.tasks.CompileServices"""
 
         then:
         def bytecode = writer.toString()
-        !bytecode.contains('LDC "org/mozilla/javascript/Context"')
-        bytecode.contains('LDC "org/gradle/internal/impldep/org/mozilla/javascript/Context"')
+        !bytecode.contains('LDC "com/google/common/base/Joiner"')
+        bytecode.contains('LDC "org/gradle/internal/impldep/com/google/common/base/Joiner"')
     }
 
     def "ignores slf4j logger bindings"() {
@@ -341,11 +357,24 @@ org.gradle.api.internal.tasks.CompileServices"""
     def "remaps resources"() {
         given:
         def noRelocationResources = ['org/gradle/reporting/report.js',
-                                     'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib']
-        def duplicateResources = ['org/joda/time/tz/data/Africa/Abidjan']
+                                     'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib',
+                                     'org/joda/time/tz/data/Africa/Abidjan']
         def onlyRelocatedResources = [] // None
         def generatedFiles = [GradleRuntimeShadedJarDetector.MARKER_FILENAME]
-        def resources = noRelocationResources + duplicateResources + onlyRelocatedResources
+        def resources = noRelocationResources + onlyRelocatedResources
+        def directories = ['net/',
+                           'net/rubygrapefruit/',
+                           'net/rubygrapefruit/platform/',
+                           'net/rubygrapefruit/platform/osx-i386/',
+                           'org/',
+                           'org/gradle/',
+                           'org/gradle/reporting/',
+                           'org/joda/',
+                           'org/joda/time/',
+                           'org/joda/time/tz/',
+                           'org/joda/time/tz/data/',
+                           'org/joda/time/tz/data/Africa/',
+                           'META-INF/']
         def inputFilesDir = tmpDir.createDir('inputFiles')
         def jarFile = inputFilesDir.file('lib.jar')
         createJarFileWithResources(jarFile, resources)
@@ -362,15 +391,11 @@ org.gradle.api.internal.tasks.CompileServices"""
         handleAsJarFile(relocatedJar) { JarFile jar ->
             assert jar.entries().toList().size() ==
                 noRelocationResources.size() +
-                duplicateResources.size() * 2 +
                 onlyRelocatedResources.size() +
-                generatedFiles.size()
+                generatedFiles.size() +
+                directories.size()
             noRelocationResources.each { resourceName ->
                 assert jar.getEntry(resourceName)
-            }
-            duplicateResources.each { resourceName ->
-                assert jar.getEntry(resourceName)
-                assert jar.getEntry("org/gradle/internal/impldep/$resourceName")
             }
             onlyRelocatedResources.each { resourceName ->
                 assert jar.getEntry("org/gradle/internal/impldep/$resourceName")
@@ -455,9 +480,9 @@ org.gradle.api.internal.tasks.CompileServices"""
 
     static class JavaAdapter {
         // emulates what is found in org.mozilla.javascript.JavaAdapter
-        // (we can't use it directly because not found on test classpath)
+        // (we don't use it directly because we run this test against the 'core' distribution)
         void foo() {
-            String[] classes = ['org/mozilla/javascript/Context']
+            String[] classes = ['com/google/common/base/Joiner']
         }
     }
 }

@@ -28,7 +28,7 @@ class ModuleAtRepositoryKey {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || !(o instanceof ModuleAtRepositoryKey)) {
+        if (!(o instanceof ModuleAtRepositoryKey)) {
             return false;
         }
         ModuleAtRepositoryKey other = (ModuleAtRepositoryKey) o;

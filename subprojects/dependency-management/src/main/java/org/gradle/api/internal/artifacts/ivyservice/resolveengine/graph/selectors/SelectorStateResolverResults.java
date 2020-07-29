@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selecto
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -35,11 +34,12 @@ import java.util.Set;
 
 class SelectorStateResolverResults {
     private static final VersionParser VERSION_PARSER = new VersionParser();
-    private static final Comparator<Version> VERSION_COMPARATOR = new DefaultVersionComparator().asVersionComparator();
+    private final Comparator<Version> versionComparator;
     private final List<Registration> results;
 
-    public SelectorStateResolverResults(int size) {
+    public SelectorStateResolverResults(Comparator<Version> versionComparator, int size) {
         results = Lists.newArrayListWithCapacity(size);
+        this.versionComparator = versionComparator;
     }
 
     public <T extends ComponentResolutionState> List<T> getResolved(ComponentStateFactory<T> componentFactory) {
@@ -74,7 +74,7 @@ class SelectorStateResolverResults {
             throw failure;
         }
 
-        return resolved == null ? Collections.<T>emptyList() : resolved;
+        return resolved == null ? Collections.emptyList() : resolved;
     }
 
     static <T extends ComponentResolutionState> boolean isVersionAllowedByPlatform(T componentState) {
@@ -87,10 +87,8 @@ class SelectorStateResolverResults {
             }
         } else {
             VirtualPlatformState platform = componentState.getPlatformState();
-            if (platform != null && platform.isGreaterThanForcedVersion(componentState.getVersion())) {
-                // the platform itself is greater than the forced version
-                return false;
-            }
+            // the platform itself is greater than the forced version
+            return platform == null || !platform.isGreaterThanForcedVersion(componentState.getVersion());
         }
         return true;
     }
@@ -161,12 +159,12 @@ class SelectorStateResolverResults {
         return false;
     }
 
-    private static boolean lowerVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
+    private boolean lowerVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
         if (existing.getFailure() == null && resolveResult.getFailure() == null) {
             Version existingVersion = VERSION_PARSER.transform(existing.getModuleVersionId().getVersion());
             Version candidateVersion = VERSION_PARSER.transform(resolveResult.getModuleVersionId().getVersion());
 
-            int comparison = VERSION_COMPARATOR.compare(candidateVersion, existingVersion);
+            int comparison = versionComparator.compare(candidateVersion, existingVersion);
             return comparison < 0;
         }
         return false;

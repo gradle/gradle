@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradlebuild.cleanup.WhenNotEmpty
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -33,46 +34,45 @@ dependencies {
     implementation(project(":pluginUse"))
     implementation(project(":publish"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("groovy"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("inject"))
-    implementation(library("ant"))
-    implementation(library("ivy"))
-    implementation(library("maven3"))
-    implementation(library("pmaven_common"))
-    implementation(library("pmaven_groovy"))
-    implementation(library("maven3_wagon_file"))
-    implementation(library("maven3_wagon_http"))
-    implementation(library("plexus_container"))
-    implementation(library("aether_connector"))
+    implementation(libs.slf4jApi)
+    implementation(libs.groovy)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.inject)
+    implementation(libs.ant)
+    implementation(libs.ivy)
+    implementation(libs.maven3)
+    implementation(libs.pmavenCommon)
+    implementation(libs.pmavenGroovy)
+    implementation(libs.maven3WagonFile)
+    implementation(libs.maven3WagonHttp)
+    implementation(libs.plexusContainer)
+    implementation(libs.aetherConnector)
 
     testImplementation(project(":native"))
     testImplementation(project(":processServices"))
     testImplementation(project(":snapshots"))
     testImplementation(project(":resourcesHttp"))
-    testImplementation(testLibrary("xmlunit"))
+    testImplementation(libs.xmlunit)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":modelCore")))
     testImplementation(testFixtures(project(":dependencyManagement")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
     integTestImplementation(project(":ear"))
-    integTestImplementation(testLibrary("jetty"))
-    integTestRuntimeOnly(project(":resourcesS3"))
-    integTestRuntimeOnly(project(":resourcesSftp"))
-    integTestRuntimeOnly(project(":apiMetadata"))
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    integTestImplementation(libs.jetty)
 
     testFixturesApi(project(":baseServices")) {
         because("Test fixtures export the Action class")
     }
     testFixturesImplementation(project(":coreApi"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(project(":dependencyManagement"))
+
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributionsCore"))
 }
 
 strictCompile {
@@ -89,3 +89,5 @@ classycle {
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
+
+integrationTestUsesSampleDir("subprojects/maven/src/main")

@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -25,6 +24,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
 import org.gradle.launcher.daemon.client.DaemonStopClient;
@@ -50,7 +50,7 @@ public class ConnectionScopeServices {
     }
 
     ShutdownCoordinator createShutdownCoordinator(ListenerManager listenerManager, DaemonClientFactory daemonClientFactory, OutputEventListener outputEventListener, FileCollectionFactory fileCollectionFactory) {
-        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(outputEventListener, new DaemonParameters(new BuildLayoutParameters(), fileCollectionFactory));
+        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(outputEventListener, new DaemonParameters(new BuildLayoutConverter().defaultValues(), fileCollectionFactory));
         DaemonStopClient client = clientServices.get(DaemonStopClient.class);
         ShutdownCoordinator shutdownCoordinator = new ShutdownCoordinator(client);
         listenerManager.addListener(shutdownCoordinator);

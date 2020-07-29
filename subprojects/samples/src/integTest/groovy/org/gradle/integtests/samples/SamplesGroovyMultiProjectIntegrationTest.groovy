@@ -30,7 +30,7 @@ class SamplesGroovyMultiProjectIntegrationTest extends AbstractSampleIntegration
     private final static String TEST_PROJECT_NAME = "testproject"
 
     @LeaksFileHandles("Workaround till https://github.com/apache/groovy/pull/735 is merged")
-    @UsesSample("groovy/multiproject")
+    @UsesSample("groovy/multiproject/groovy")
     void groovyProjectSamples() {
         def groovySources = ["GroovyPerson", "GroovyJavaPerson"]
         def javaSources = ["JavaPerson"]

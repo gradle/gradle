@@ -61,4 +61,14 @@ public class TypeInspectorTestHelper {
         Parent getParent();
         Child getNextSibling();
     }
+
+    interface GenericItem1<T> {
+    }
+
+    interface GenericItem2<T> {
+    }
+
+    interface  GenericChild<T extends GenericItem1<? extends T>> extends GenericItem1<T> {
+        <U extends GenericItem2<? super U>> void method(GenericItem2<U> p);
+    }
 }

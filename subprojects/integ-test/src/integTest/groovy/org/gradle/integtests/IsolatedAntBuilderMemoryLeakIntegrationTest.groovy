@@ -86,7 +86,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "codenarc plugin")
     void 'CodeNarc does not fail with PermGen space error, Groovy #groovyVersion'() {
         given:
         withCodenarc(groovyVersion)
@@ -112,9 +112,10 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "checkstyle plugin")
     void "does not fail with a PermGen space error or a missing method exception"() {
         given:
+        initGitDir()
         buildFile << """
 buildscript {
   repositories {

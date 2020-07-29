@@ -40,7 +40,7 @@ public final class ResolveArtifactsBuildOperationType implements BuildOperationT
 
     public static class DetailsImpl implements Details {
 
-        private String configuration;
+        private final String configuration;
 
         public DetailsImpl(String configuration) {
             this.configuration = configuration;

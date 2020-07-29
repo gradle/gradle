@@ -1,32 +1,39 @@
 import org.gradle.internal.jvm.Jvm
 
+def guh = gradle.gradleUserHomeDir
+
 task checkGradleUserHomeViaSystemEnv {
+    def expectedGuh = file('customUserHome')
     doLast {
-        assert gradle.gradleUserHomeDir == file('customUserHome')
+        assert guh == expectedGuh
     }
 }
 
 task checkDefaultGradleUserHome {
     doLast {
-        assert gradle.gradleUserHomeDir == new File(System.properties['user.home'], ".gradle")
+        assert guh == new File(System.properties['user.home'], ".gradle")
     }
 }
 
 task checkSystemPropertyGradleUserHomeHasPrecedence {
+    def expectedGuh = file('systemPropCustomUserHome')
     doLast {
-        assert gradle.gradleUserHomeDir == file('systemPropCustomUserHome')
+        assert guh == expectedGuh
     }
 }
 
 task checkJavaHome {
+    def expectedJavaHome = providers.gradleProperty('expectedJavaHome')
     doLast {
-        assert Jvm.current().javaHome == file(expectedJavaHome)
+        assert Jvm.current().javaHome == new File(expectedJavaHome.get())
     }
 }
 
 task checkSystemProperty {
+    def custom1 = providers.systemProperty('customProp1')
+    def custom2 = providers.systemProperty('customProp2')
     doLast {
-        assert System.getProperty('customProp1') == 'custom-value'
-        assert System.getProperty('customProp2') == 'custom value'
+        assert custom1.orNull == 'custom-value'
+        assert custom2.orNull == 'custom value'
     }
 }

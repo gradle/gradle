@@ -3,6 +3,7 @@
     <option name="myName" value="Gradle" />
     <inspection_tool class="CatchMayIgnoreException" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="Convert2streamapi" enabled="false" level="INFORMATION" enabled_by_default="false" />
+    <inspection_tool class="EqualsBetweenInconvertibleTypes" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="FieldNamingConvention" enabled="true" level="ERROR" enabled_by_default="true">
       <extension name="InstanceVariableNamingConvention" enabled="true">
         <option name="m_regex" value="[a-z][A-Za-z\d]*" />

@@ -223,7 +223,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public Namer<T> getNamer() {
-        return (Namer) this.namer;
+        return Cast.uncheckedNonnullCast(this.namer);
     }
 
     protected Instantiator getInstantiator() {
@@ -239,7 +239,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
      */
     @Override
     protected <S extends T> DefaultNamedDomainObjectCollection<S> filtered(CollectionFilter<S> filter) {
-        return instantiator.newInstance(DefaultNamedDomainObjectCollection.class, this, filter, instantiator, namer);
+        return Cast.uncheckedNonnullCast(instantiator.newInstance(DefaultNamedDomainObjectCollection.class, this, filter, instantiator, namer));
     }
 
     public String getDisplayName() {
@@ -692,7 +692,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         public ProviderInternal<? extends T> getPending(String name) {
             ProviderInternal<?> provider = delegate.getPending(name);
             if (provider != null && provider.getType() != null && filter.getType().isAssignableFrom(provider.getType())) {
-                return (ProviderInternal<? extends T>) provider;
+                return Cast.uncheckedNonnullCast(provider);
             } else {
                 return null;
             }
@@ -736,11 +736,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     private static class ObjectBackedElementInfo<T> implements ElementInfo<T> {
         private final String name;
-        private final T o;
+        private final T obj;
 
-        ObjectBackedElementInfo(String name, T o) {
+        ObjectBackedElementInfo(String name, T obj) {
             this.name = name;
-            this.o = o;
+            this.obj = obj;
         }
 
         @Override
@@ -750,7 +750,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public Class<?> getType() {
-            return new DslObject(o).getDeclaredType();
+            return new DslObject(obj).getDeclaredType();
         }
     }
 
@@ -843,7 +843,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     protected class ExistingNamedDomainObjectProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
 
-        public ExistingNamedDomainObjectProvider(String name, Class type) {
+        public ExistingNamedDomainObjectProvider(String name, Class<I> type) {
             super(name, type);
         }
 

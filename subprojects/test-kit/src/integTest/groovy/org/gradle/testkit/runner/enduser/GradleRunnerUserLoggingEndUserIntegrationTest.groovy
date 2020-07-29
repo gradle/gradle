@@ -17,7 +17,10 @@
 package org.gradle.testkit.runner.enduser
 
 import groovy.transform.NotYetImplemented
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 
+@IgnoreIf({ GradleContextualExecuter.embedded }) // These tests run builds that themselves run a build in a test worker with 'gradleTestKit()' dependency, which needs to pick up Gradle modules from a real distribution
 class GradleRunnerUserLoggingEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
     @NotYetImplemented

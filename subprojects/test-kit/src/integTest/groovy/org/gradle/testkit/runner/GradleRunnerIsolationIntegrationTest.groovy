@@ -34,7 +34,7 @@ class GradleRunnerIsolationIntegrationTest extends BaseGradleRunnerIntegrationTe
             task check {
                 doLast {
                     // Uses testkit dir
-                    assert gradle.gradleUserHomeDir == file(new URI("${testKitDir.toURI()}")) 
+                    assert gradle.gradleUserHomeDir == file(new URI("${testKitDir.toURI()}"))
                     assert !project.ext.has('myProp1')
                     assert !project.ext.has('myProp2')
                 }

@@ -146,7 +146,7 @@ apply plugin: SomePlugin
 
         expect:
         version previous withTasks 'assemble' inDirectory(file("producer")) run()
-        version current withTasks 'tasks' requireGradleDistribution() run()
+        version current withTasks 'tasks' requireDaemon() requireIsolatedDaemons() run()
     }
 
     def "task can use all methods declared by Task interface that AbstractTask specialises"() {
@@ -185,7 +185,7 @@ apply plugin: SomePlugin
                     mapValues.put("mapInput", "mapValue");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.properties(mapValues);
                 }
-                
+
                 @TaskAction
                 public void doGet() {
                     // Note: not all of these specialise at time of writing, but may do in the future
@@ -209,8 +209,8 @@ apply plugin: SomePlugin
         """
 
         then:
-        version previous requireGradleDistribution() withTasks 'assemble' inDirectory(file("producer")) run()
-        version current requireGradleDistribution() withTasks 't' run()
+        version previous withTasks 'assemble' inDirectory(file("producer")) run()
+        version current requireDaemon() requireIsolatedDaemons() withTasks 't' run()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/11330")
@@ -234,17 +234,17 @@ apply plugin: SomePlugin
             import org.gradle.api.tasks.compile.JavaCompile;
             import java.util.List;
             import java.util.ArrayList;
-            
+
             public class MyCompileTask extends JavaCompile {
                 private List<Object> sources = new ArrayList<>();
-            
+
                 @PathSensitive(PathSensitivity.RELATIVE)
                 @InputFiles
                 @SkipWhenEmpty
                 public FileTree getSources() {
-                    return getProject().files(sources).getAsFileTree();        
+                    return getProject().files(sources).getAsFileTree();
                 }
-                
+
                 public void addSource(Object source) {
                     sources.add(source);
                 }
@@ -255,15 +255,15 @@ apply plugin: SomePlugin
             buildscript {
                 dependencies { classpath fileTree(dir: "producer/build/libs", include: '*.jar') }
             }
-            
+
             apply plugin: 'java'
-    
+
             task myJavaCompile(type: MyCompileTask) {
                 def sourceSet = sourceSets.main
                 def sourceDirectorySet = sourceSet.java
                 addSource(sourceDirectorySet)
                 classpath = sourceSet.compileClasspath
-                destinationDir = file('build/classes/my-java/main')            
+                destinationDir = file('build/classes/my-java/main')
             }
         """
 
@@ -271,10 +271,10 @@ apply plugin: SomePlugin
             public class MyClass {
             }
         """
-        version previous requireGradleDistribution() withTasks 'assemble' inDirectory(file("producer")) run()
+        version previous withTasks 'assemble' inDirectory(file("producer")) run()
 
         when:
-        version current requireGradleDistribution() withTasks 'myJavaCompile' run()
+        version current requireDaemon() requireIsolatedDaemons() withTasks 'myJavaCompile' run()
         then:
         file('build/classes/my-java/main/MyClass.class').isFile()
     }

@@ -16,27 +16,22 @@
 
 package org.gradle.process.internal;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.CommandLineArgumentProvider;
-import org.gradle.util.GUtil;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
 
 /**
  * Use {@link ExecHandleFactory} instead.
  */
-public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implements ExecHandleBuilder {
-    private final List<Object> arguments = new ArrayList<Object>();
-    private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
+public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implements ExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
+
+    private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
 
     public DefaultExecHandleBuilder(PathToFileResolver fileResolver, Executor executor) {
         this(fileResolver, executor, new DefaultBuildCancellationToken());
@@ -54,83 +49,68 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
 
     @Override
     public DefaultExecHandleBuilder commandLine(Object... arguments) {
-        commandLine(Arrays.asList(arguments));
+        argumentsSpec.commandLine(arguments);
         return this;
     }
 
     @Override
     public DefaultExecHandleBuilder commandLine(Iterable<?> args) {
-        List<Object> argsList = Lists.newArrayList(args);
-        executable(argsList.get(0));
-        setArgs(argsList.subList(1, argsList.size()));
+        argumentsSpec.commandLine(args);
         return this;
     }
 
     @Override
     public void setCommandLine(List<String> args) {
-        commandLine(args);
+        argumentsSpec.commandLine(args);
     }
 
     @Override
     public void setCommandLine(Object... args) {
-        commandLine(args);
+        argumentsSpec.commandLine(args);
     }
 
     @Override
     public void setCommandLine(Iterable<?> args) {
-        commandLine(args);
+        argumentsSpec.commandLine(args);
     }
 
     @Override
     public DefaultExecHandleBuilder args(Object... args) {
-        if (args == null) {
-            throw new IllegalArgumentException("args == null!");
-        }
-        this.arguments.addAll(Arrays.asList(args));
+        argumentsSpec.args(args);
         return this;
     }
 
     @Override
     public DefaultExecHandleBuilder args(Iterable<?> args) {
-        GUtil.addToCollection(arguments, args);
+        argumentsSpec.args(args);
         return this;
     }
 
     @Override
     public DefaultExecHandleBuilder setArgs(List<String> arguments) {
-        this.arguments.clear();
-        this.arguments.addAll(arguments);
+        argumentsSpec.setArgs(arguments);
         return this;
     }
 
     @Override
     public DefaultExecHandleBuilder setArgs(Iterable<?> arguments) {
-        this.arguments.clear();
-        GUtil.addToCollection(this.arguments, arguments);
+        argumentsSpec.setArgs(arguments);
         return this;
     }
 
     @Override
     public List<String> getArgs() {
-        List<String> args = new ArrayList<String>();
-        for (Object argument : arguments) {
-            args.add(argument.toString());
-        }
-        return args;
+        return argumentsSpec.getArgs();
     }
 
     @Override
     public List<CommandLineArgumentProvider> getArgumentProviders() {
-        return argumentProviders;
+        return argumentsSpec.getArgumentProviders();
     }
 
     @Override
     public List<String> getAllArguments() {
-        List<String> args = new ArrayList<String>(getArgs());
-        for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
-            Iterables.addAll(args, argumentProvider.asArguments());
-        }
-        return args;
+        return argumentsSpec.getAllArguments();
     }
 
     @Override

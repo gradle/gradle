@@ -76,7 +76,7 @@ class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
     // We need to make sure that the build operation ids of nested builds started by a GradleBuild task do not overlap.
     // Since we currently have no specific scope for "one build and the builds it started via GradleBuild tasks", we use the global scope.
     @Issue("https://github.com/gradle/gradle/issues/2622")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "GradleBuild task")
     def "build operations have unique ids within the global scope"() {
         when:
         settingsFile << ""
@@ -84,8 +84,9 @@ class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.internal.operations.BuildOperationExecutor
             
             task checkOpId() {
+                def buildOperationExecutor = gradle.services.get(BuildOperationExecutor)
                 doLast() {
-                    file(resultFile) << gradle.services.get(BuildOperationExecutor).currentOperation.id
+                    file(resultFile) << buildOperationExecutor.currentOperation.id
                 }
             }
             

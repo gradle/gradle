@@ -17,17 +17,17 @@
 package org.gradle.language.java
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.junit.Assume
 import spock.lang.Unroll
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 import static org.gradle.language.java.JavaIntegrationTesting.expectJavaLangPluginDeprecationWarnings
 
+@UnsupportedWithInstantExecution(because = "software model")
 class SingleBinaryTypeWithVariantsTest extends VariantAwareDependencyResolutionSpec {
 
     @Unroll("matching {jdk #jdk1, flavors #flavors1, builtTypes #buildTypes1} with {jdk #jdk2, flavors #flavors2, buildTypes #buildTypes2} #outcome")
-    @ToBeFixedForInstantExecution
     def "check resolution of a custom component onto a component of the same type (same class, same variant dimensions)"() {
         assertAllTargetVersionsAreSupported(jdk1)
 
@@ -147,7 +147,6 @@ model {
     }
 
     @Unroll("matching custom {jdk #jdk1, flavors #flavors1, builtTypes #buildTypes1} with Java {jdk #jdk2} #outcome")
-    @ToBeFixedForInstantExecution
     def "building a custom binary type and resolving against a library with standard JarBinarySpec instances"() {
         assertAllTargetVersionsAreSupported(jdk1)
 
@@ -229,7 +228,6 @@ model {
     }
 
     @Unroll("matching Java #jdk1 with custom {jdk #jdk2, flavors #flavors2, builtTypes #buildTypes2} #outcome")
-    @ToBeFixedForInstantExecution
     def "building a standard JarBinarySpec instance and resolving against a library with custom binary types. "() {
         assertAllTargetVersionsAreSupported(jdk1)
 
@@ -313,7 +311,6 @@ model {
     }
 
     @Unroll("matching custom1 {jdk #jdk1, flavors #flavors) with custom2 {jdk #jdk2, builtTypes #buildTypes} #outcome")
-    @ToBeFixedForInstantExecution
     def "building a custom JarBinarySpec type and resolving against a library with a different custom JarBinarySpec type"() {
         assertAllTargetVersionsAreSupported(jdk1)
 

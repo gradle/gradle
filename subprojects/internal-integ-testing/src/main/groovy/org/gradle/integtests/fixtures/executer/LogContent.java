@@ -124,6 +124,13 @@ public class LogContent {
     }
 
     /**
+     * Returns the first line. The text does not include the line separator.
+     */
+    public String getFirst() {
+        return lines.get(0);
+    }
+
+    /**
      * Visits each line in this content. The line does not include the line separator.
      */
     public void eachLine(Action<? super String> action) {
@@ -135,7 +142,7 @@ public class LogContent {
     /**
      * Locates the log content starting with the first line that matches the given pattern, or null if no such line.
      *
-     * @return a pair containing (content-before-matching-line, content-from-matching-line)
+     * @return a pair containing (content-before-matching-line, content-from-matching-line) or null if no match.
      */
     public @Nullable
     Pair<LogContent, LogContent> splitOnFirstMatchingLine(Pattern pattern) {

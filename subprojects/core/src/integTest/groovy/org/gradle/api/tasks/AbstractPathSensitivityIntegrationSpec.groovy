@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 import static org.gradle.api.tasks.PathSensitivity.ABSOLUTE
@@ -28,10 +27,6 @@ import static org.gradle.api.tasks.PathSensitivity.RELATIVE
 @Unroll
 abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution(
-        skip = ToBeFixedForInstantExecution.Skip.FLAKY,
-        bottomSpecs = "CachedPathSensitivityIntegrationTest"
-    )
     def "single source file renamed with #pathSensitive as input is loaded from cache: #expectedOutcome"() {
         given:
         file("sources/input.txt").text = "input"
@@ -66,10 +61,6 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         NONE          | statusForReusedOutput
     }
 
-    @ToBeFixedForInstantExecution(
-        skip = ToBeFixedForInstantExecution.Skip.FLAKY,
-        bottomSpecs = "CachedPathSensitivityIntegrationTest"
-    )
     def "single source file moved within hierarchy with #pathSensitive as input is loaded from cache: #expectedOutcome"() {
         given:
         file("src/data1").createDir()
@@ -105,7 +96,6 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         NONE          | statusForReusedOutput
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "source file hierarchy moved with #pathSensitive as input is loaded from cache: #expectSkipped"() {
         given:
         file("src/data/input.txt").text = "input"

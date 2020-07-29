@@ -10,7 +10,7 @@ object Gradle_Promotion__master_ : GitVcsRoot({
     agentGitPath = "%env.TEAMCITY_GIT_PATH%"
     useMirrors = false
     authMethod = password {
-        userName = "gradlewaregitbot"
-        password = "credentialsJSON:69f980df-e4d1-4622-9f0f-5be59df88a04"
+        userName = "bot-teamcity"
+        password = "%github.bot-teamcity.token%"
     }
 })

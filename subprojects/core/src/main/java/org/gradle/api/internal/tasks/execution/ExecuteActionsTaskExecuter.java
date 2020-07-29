@@ -28,6 +28,7 @@ import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction;
@@ -116,13 +117,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         APPLIED, NOT_APPLIED
     }
 
-    public enum VfsInvalidationStrategy {
-        COMPLETE, PARTIAL
-    }
-
     private final BuildCacheState buildCacheState;
     private final ScanPluginState scanPluginState;
-    private final VfsInvalidationStrategy vfsInvalidationStrategy;
 
     private final TaskSnapshotter taskSnapshotter;
     private final ExecutionHistoryStore executionHistoryStore;
@@ -142,7 +138,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     public ExecuteActionsTaskExecuter(
         BuildCacheState buildCacheState,
         ScanPluginState scanPluginState,
-        VfsInvalidationStrategy vfsInvalidationStrategy,
 
         TaskSnapshotter taskSnapshotter,
         ExecutionHistoryStore executionHistoryStore,
@@ -161,7 +156,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     ) {
         this.buildCacheState = buildCacheState;
         this.scanPluginState = scanPluginState;
-        this.vfsInvalidationStrategy = vfsInvalidationStrategy;
 
         this.taskSnapshotter = taskSnapshotter;
         this.executionHistoryStore = executionHistoryStore;
@@ -371,19 +365,12 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public Optional<? extends Iterable<String>> getChangingOutputs() {
-            switch (vfsInvalidationStrategy) {
-                case COMPLETE:
-                    return Optional.empty();
-                case PARTIAL:
-                    ImmutableList.Builder<String> builder = ImmutableList.builder();
-                    visitOutputProperties((propertyName, type, root) -> builder.add(root.getAbsolutePath()));
-                    context.getTaskProperties().getDestroyableFiles().forEach(file -> builder.add(file.getAbsolutePath()));
-                    context.getTaskProperties().getLocalStateFiles().forEach(file -> builder.add(file.getAbsolutePath()));
-                    return Optional.of(builder.build());
-                default:
-                    throw new AssertionError();
-            }
+        public Iterable<String> getChangingOutputs() {
+            ImmutableList.Builder<String> builder = ImmutableList.builder();
+            visitOutputProperties((propertyName, type, root) -> builder.add(root.getAbsolutePath()));
+            context.getTaskProperties().getDestroyableFiles().forEach(file -> builder.add(file.getAbsolutePath()));
+            context.getTaskProperties().getLocalStateFiles().forEach(file -> builder.add(file.getAbsolutePath()));
+            return builder.build();
         }
 
         @Override
@@ -555,9 +542,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor
-                        .displayName(actionDisplayName + " for " + task.getIdentityPath().getPath())
-                        .name(actionDisplayName)
-                        .details(ExecuteTaskActionBuildOperationType.DETAILS_INSTANCE);
+                    .displayName(actionDisplayName + " for " + task.getIdentityPath().getPath())
+                    .name(actionDisplayName)
+                    .details(ExecuteTaskActionBuildOperationType.DETAILS_INSTANCE);
             }
 
             @Override
@@ -623,7 +610,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public FileCollection createDelegate() {
+        public FileCollectionInternal createDelegate() {
             ImmutableCollection<FileCollectionFingerprint> outputFingerprints = previousExecution.getOutputFileProperties().values();
             Set<File> outputs = new HashSet<>();
             for (FileCollectionFingerprint fileCollectionFingerprint : outputFingerprints) {

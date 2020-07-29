@@ -40,6 +40,7 @@ public class BuildModelAction extends SubscribableBuildAction {
         return modelName;
     }
 
+    @Override
     public boolean isRunTasks() {
         return runTasks;
     }

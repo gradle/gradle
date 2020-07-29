@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -40,12 +41,12 @@ dependencies {
     implementation(project(":toolingApi"))
     implementation(project(":versionControl"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("commons_io"))
-    implementation(library("inject"))
+    implementation(libs.groovy)
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
+    implementation(libs.inject)
 
     testFixturesApi(project(":baseServices")) {
         because("Test fixtures export the Named class")
@@ -67,17 +68,20 @@ dependencies {
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":snapshots")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
     integTestImplementation(project(":native"))
     integTestImplementation(project(":resources"))
-    integTestImplementation(library("nativePlatform"))
-    integTestImplementation(library("ant"))
-    integTestImplementation(library("jgit"))
+    integTestImplementation(libs.nativePlatform)
+    integTestImplementation(libs.ant)
+    integTestImplementation(libs.jgit)
 
-    integTestRuntimeOnly(project(":ideNative"))
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsNative"))
 }
 
 classycle {
     excludePatterns.set(listOf("org/gradle/language/nativeplatform/internal/**"))
 }
+
+integrationTestUsesSampleDir("subprojects/language-native/src/main")

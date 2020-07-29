@@ -1,5 +1,6 @@
 package org.gradle.kotlin.dsl.tooling.builders
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.concurrent.CompositeStoppable
@@ -13,6 +14,7 @@ import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 
 import org.junit.Test
 
@@ -37,15 +39,19 @@ class KotlinBuildScriptTemplateModelIntegrationTest : AbstractKotlinIntegrationT
 
     private
     fun fetchKotlinScriptTemplateClassPathModelFor(projectDir: File): KotlinBuildScriptTemplateModel {
-        val connection = GradleConnector.newConnector()
+        val connector = GradleConnector.newConnector()
             .forProjectDirectory(projectDir)
             .useGradleUserHomeDir(buildContext.gradleUserHomeDir)
-            .useInstallation(distribution.gradleHomeDir)
-            .connect()
-        try {
-            return connection.getModel(KotlinBuildScriptTemplateModel::class.java)
-        } finally {
-            connection.close()
+        if (GradleContextualExecuter.isEmbedded()) {
+            (connector as DefaultGradleConnector).apply {
+                embedded(true)
+                useClasspathDistribution()
+            }
+        } else {
+            connector.useInstallation(distribution.gradleHomeDir)
+        }
+        connector.connect().use {
+            return it.getModel(KotlinBuildScriptTemplateModel::class.java)
         }
     }
 

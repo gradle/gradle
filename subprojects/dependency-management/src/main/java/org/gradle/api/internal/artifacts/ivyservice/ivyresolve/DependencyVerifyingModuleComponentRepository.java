@@ -197,9 +197,8 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
         }
 
         private boolean isNotChanging(ModuleSources moduleSources) {
-            return moduleSources.withSource(ModuleDescriptorHashModuleSource.class, source -> {
-                return source.map(cachingModuleSource -> !cachingModuleSource.isChangingModule()).orElse(true);
-            });
+            return moduleSources.withSource(ModuleDescriptorHashModuleSource.class, source ->
+                source.map(cachingModuleSource -> !cachingModuleSource.isChangingModule()).orElse(true));
         }
 
         private boolean isExternalArtifactId(ComponentArtifactIdentifier id) {
@@ -241,12 +240,11 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                 String fileName = artifactIdentifier.getFileName().replace("-" + artifactIdentifier.getComponentIdentifier().getVersion(), "");
                 fileName = Files.getNameWithoutExtension(fileName); // removes the .asc
                 DefaultIvyArtifactName base = DefaultIvyArtifactName.forFileName(fileName, null);
-                DefaultIvyArtifactName result = new DefaultIvyArtifactName(
+                return new DefaultIvyArtifactName(
                     base.getName(),
                     "asc",
                     base.getExtension() + ".asc"
                 );
-                return result;
             }
 
             @Override

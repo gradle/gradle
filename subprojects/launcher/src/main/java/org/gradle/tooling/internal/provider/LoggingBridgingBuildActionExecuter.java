@@ -46,7 +46,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
 
     @Override
     public BuildActionResult execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters actionParameters, ServiceRegistry contextServices) {
-        if (Boolean.TRUE.equals(actionParameters.isColorOutput(null)) && actionParameters.getStandardOutput() != null) {
+        if (Boolean.TRUE.equals(actionParameters.isColorOutput()) && actionParameters.getStandardOutput() != null) {
             loggingManager.attachConsole(actionParameters.getStandardOutput(), notNull(actionParameters.getStandardError()), ConsoleOutput.Rich);
         } else if (actionParameters.getStandardOutput() != null || actionParameters.getStandardError() != null) {
             loggingManager.attachConsole(notNull(actionParameters.getStandardOutput()), notNull(actionParameters.getStandardError()), ConsoleOutput.Plain);

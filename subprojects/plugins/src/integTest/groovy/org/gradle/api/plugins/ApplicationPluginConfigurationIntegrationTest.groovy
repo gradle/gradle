@@ -17,7 +17,6 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -25,7 +24,7 @@ import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
 class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeFixedForInstantExecution
+
     def "can configure using project extension"() {
         settingsFile << """
             rootProject.name = 'test'
@@ -63,7 +62,6 @@ class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationS
         out.toString() == TextUtil.toPlatformLineSeparators("all good\n")
     }
 
-    @ToBeFixedForInstantExecution
     @Requires(TestPrecondition.JDK9_OR_LATER)
     @Unroll
     def "can configure using project extension for main class and main module"() {

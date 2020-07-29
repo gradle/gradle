@@ -32,7 +32,7 @@ public class LegacyConfigurationsSupplier implements Supplier<ImmutableList<? ex
     @Override
     public ImmutableList<? extends ConfigurationMetadata> get() {
         Set<String> configurationNames = targetComponent.getConfigurationNames();
-        ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<ConfigurationMetadata>();
+        ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
         for (String configurationName : configurationNames) {
             ConfigurationMetadata configuration = targetComponent.getConfiguration(configurationName);
             if (configuration.isCanBeConsumed()) {

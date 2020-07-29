@@ -16,13 +16,11 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 class MavenPublishPomPackagingJavaIntegTest extends AbstractMavenPublishIntegTest {
     def javaLibrary = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
 
-    @ToBeFixedForInstantExecution
     def "can specify packaging for unknown packaging without changing artifact extension"() {
         given:
         createBuildScripts "foo"
@@ -38,7 +36,6 @@ class MavenPublishPomPackagingJavaIntegTest extends AbstractMavenPublishIntegTes
         javaLibrary.parsedModuleMetadata.variant("runtimeElements").files[0].url == "publishTest-1.9.jar"
     }
 
-    @ToBeFixedForInstantExecution
     def "can specify packaging for known jar packaging without changing artifact extension"() {
         given:
         createBuildScripts "ejb"
@@ -54,7 +51,6 @@ class MavenPublishPomPackagingJavaIntegTest extends AbstractMavenPublishIntegTes
         javaLibrary.parsedModuleMetadata.variant("runtimeElements").files[0].url == "publishTest-1.9.jar"
     }
 
-    @ToBeFixedForInstantExecution
     def "can align packaging and artifact extension by changing both the main artifact and the packaging"() {
         given:
         createBuildScripts "foo"

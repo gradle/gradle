@@ -93,11 +93,7 @@ public class DefaultMetadataFileSourceCodec implements PersistentModuleSource.Co
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        return true;
+        return o != null && getClass() == o.getClass();
     }
 
     @Override

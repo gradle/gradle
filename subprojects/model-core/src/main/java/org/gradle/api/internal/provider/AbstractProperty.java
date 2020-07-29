@@ -144,7 +144,6 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        beforeRead(producer, ValueConsumer.IgnoreUnsafeRead);
         ExecutionTimeValue<? extends T> value = calculateOwnExecutionTimeValue(this.value);
         if (getProducerTask() == null) {
             return value;
@@ -350,13 +349,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
             if (disallowUnsafeRead) {
                 String reason = host.beforeRead(producer);
                 if (reason != null) {
-                    TreeFormatter formatter = new TreeFormatter();
-                    formatter.node("Cannot finalize the value of ");
-                    formatter.append(displayName.getDisplayName());
-                    formatter.append(" because ");
-                    formatter.append(reason);
-                    formatter.append(".");
-                    throw new IllegalStateException(formatter.toString());
+                    throw new IllegalStateException(cannotFinalizeValueOf(displayName, reason));
                 }
             }
             return true;
@@ -372,13 +365,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
             if (disallowUnsafeRead || consumer == ValueConsumer.DisallowUnsafeRead) {
                 String reason = host.beforeRead(producer);
                 if (reason != null) {
-                    TreeFormatter formatter = new TreeFormatter();
-                    formatter.node("Cannot query the value of ");
-                    formatter.append(displayName.getDisplayName());
-                    formatter.append(" because ");
-                    formatter.append(reason);
-                    formatter.append(".");
-                    throw new IllegalStateException(formatter.toString());
+                    throw new IllegalStateException(cannotQueryValueOf(displayName, reason));
                 }
             }
             return finalizeOnNextGet || consumer == ValueConsumer.DisallowUnsafeRead;
@@ -449,6 +436,24 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         @Override
         void setConvention(S convention) {
             this.convention = convention;
+        }
+
+        private String cannotFinalizeValueOf(DisplayName displayName, String reason) {
+            return cannot("finalize", displayName, reason);
+        }
+
+        private String cannotQueryValueOf(DisplayName displayName, String reason) {
+            return cannot("query", displayName, reason);
+        }
+
+        private String cannot(String what, DisplayName displayName, String reason) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("Cannot " + what + " the value of ");
+            formatter.append(displayName.getDisplayName());
+            formatter.append(" because ");
+            formatter.append(reason);
+            formatter.append(".");
+            return formatter.toString();
         }
     }
 

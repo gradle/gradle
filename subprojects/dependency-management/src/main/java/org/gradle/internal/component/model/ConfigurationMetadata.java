@@ -24,6 +24,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
@@ -78,6 +79,7 @@ public interface ConfigurationMetadata extends HasAttributes {
 
     boolean isCanBeConsumed();
 
+    @Nullable
     List<String> getConsumptionAlternatives();
 
     boolean isCanBeResolved();

@@ -23,6 +23,8 @@ import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.util.Path;
 
+import java.io.File;
+
 /**
  * Encapsulates the identity and state of a particular build in a build tree.
  *
@@ -77,4 +79,9 @@ public interface BuildState {
      * Asserts that the given build can be included by this build.
      */
     void assertCanAdd(IncludedBuildSpec includedBuildSpec);
+
+    /**
+     * The root directory of the build.
+     */
+    File getBuildRootDir();
 }

@@ -33,14 +33,14 @@ This rule implementation can be neatly encapsulated in a corporate plugin, and s
 
 .Using a custom versioning scheme
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution/resolutionStrategy/groovy",files="build.gradle[tags=custom-versioning-scheme]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution/resolutionStrategy/kotlin",files="build.gradle.kts[tags=custom-versioning-scheme]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=custom-versioning-scheme]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/kotlin",files="build.gradle.kts[tags=custom-versioning-scheme]"]
 ====
 
-[[sec:blacklisting_version]]
-=== Blacklisting a particular version with a replacement
+[[sec:denying_version]]
+=== Denying a particular version with a replacement
 
-Dependency resolve rules provide a mechanism for blacklisting a particular version of a dependency and providing a replacement version.
+Dependency resolve rules provide a mechanism for denying a particular version of a dependency and providing a replacement version.
 This can be useful if a certain dependency version is broken and should not be used, where a dependency resolve rule causes this version to be replaced with a known good version.
 One example of a broken module is one that declares a dependency on a library that cannot be found in any of the public repositories, but there are many other reasons why a particular module version is unwanted and a different version is preferred.
 
@@ -51,8 +51,8 @@ This means that the 'newest' conflict resolution strategy would still select ver
 
 .Example: Blacklisting a version with a replacement
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution/resolutionStrategy/groovy",files="build.gradle[tags=blacklisting_version]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution/resolutionStrategy/kotlin",files="build.gradle.kts[tags=blacklisting_version]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=denying_version]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/kotlin",files="build.gradle.kts[tags=denying_version]"]
 ====
 
 [NOTE]
@@ -93,8 +93,8 @@ This enables organisations to include the information about module replacement i
 
 .Declaring a module replacement
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution/replacementRule/groovy",files="build.gradle[tags=module_replacement_declaration]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution/replacementRule/kotlin",files="build.gradle.kts[tags=module_replacement_declaration]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-replacementRule/groovy",files="build.gradle[tags=module_replacement_declaration]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-replacementRule/kotlin",files="build.gradle.kts[tags=module_replacement_declaration]"]
 ====
 
 For more examples and detailed API, refer to the DSL reference for link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html[ComponentMetadataHandler].
@@ -142,8 +142,8 @@ The module to be replaced can be declared with or without a version specified.
 
 .Substituting a module with a project
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution/substitutionRule/groovy",files="build.gradle[tags=module_to_project_substitution]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution/substitutionRule/kotlin",files="build.gradle.kts[tags=module_to_project_substitution]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-substitutionRule/groovy",files="build.gradle[tags=module_to_project_substitution]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-substitutionRule/kotlin",files="build.gradle.kts[tags=module_to_project_substitution]"]
 ====
 
 Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`).
@@ -159,8 +159,8 @@ The module to be used as a replacement must be declared with a version specified
 
 .Substituting a project with a module
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution/substitutionRule/groovy",files="build.gradle[tags=project_to_module_substitution]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution/substitutionRule/kotlin",files="build.gradle.kts[tags=project_to_module_substitution]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-substitutionRule/groovy",files="build.gradle[tags=project_to_module_substitution]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-substitutionRule/kotlin",files="build.gradle.kts[tags=project_to_module_substitution]"]
 ====
 
 When a project dependency has been replaced with a module dependency, that project is still included in the overall multi-project build.
@@ -176,12 +176,143 @@ The following example uses a dependency substitution rule to replace any module 
 
 .Conditionally substituting a dependency
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution/conditionalSubstitutionRule/groovy",files="build.gradle[tags=project_substitution]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution/conditionalSubstitutionRule/kotlin",files="build.gradle.kts[tags=project_substitution]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-conditionalSubstitutionRule/groovy",files="build.gradle[tags=project_substitution]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-conditionalSubstitutionRule/kotlin",files="build.gradle.kts[tags=project_substitution]"]
 ====
 
 Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`).
 Dependency substitution rules take care of replacing the module dependency with the project dependency, but do not implicitly include the project in the build.
+
+[[sec:variant_aware_substitutions]]
+=== Substituting a dependency with another variant
+
+Gradle's dependency management engine is <<variant_model.adoc#understanding-variant-selection,variant-aware>> meaning that for a single component, the engine may select different artifacts and transitive dependencies.
+
+What to select is determined by the attributes of the consumer configuration and the attributes of the variants found on the producer side.
+It is, however, possible that some specific dependencies override attributes from the configuration itself.
+This is typically the case when using the <<java_platform_plugin.adoc#java_platform_plugin,Java Platform plugin>>: this plugin builds a special kind of component which is called a "platform" and can be addressed by setting the component category attribute to `platform`, in opposition to typical dependencies which are targetting libraries.
+
+Therefore, you may face situations where you want to substitute a platform dependency with a regular dependency, or the other way around.
+
+[[sec:substitution_with_attributes]]
+==== Substituting a dependency with attributes
+
+Let's imagine that you want to substitute a platform dependency with a regular dependency.
+This means that the library you are consuming declared something like this:
+
+.An incorrect dependency on a platform
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="lib/build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/kotlin",files="lib/build.gradle.kts[tags=dependencies]"]
+====
+
+The `platform` keyword is actually a short-hand notation for a _dependency with attributes_.
+If we want to substitute this dependency with a regular dependency, then we need to select precisely the dependencies which have the `platform` attribute.
+
+This can be done by using a substitution rule:
+
+.Substitute a platform dependency with a regular dependency
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="build.gradle[tags=substitution_rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/kotlin",files="build.gradle.kts[tags=substitution_rule]"]
+====
+
+The same rule _without_ the `platform` keyword would try to substitute _regular dependencies_ with a regular dependency, which is not what you want, so it's important to understand that the substitution rules apply on a _dependency specification_: it matches the requested dependency (`substitute XXX`) with a substitute (`with YYY`).
+
+You can have attributes on both the requested dependency _or_ the substitute and the substitution is not limited to `platform`: you can actually specify the whole set of dependency attributes using the `variant` notation.
+The following rule is _strictly equivalent_ to the rule above:
+
+.Substitute a platform dependency with a regular dependency using the variant notation
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="build.gradle[tags=substitution_rule_alternative]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/kotlin",files="build.gradle.kts[tags=substitution_rule_alternative]"]
+====
+
+Please refer to the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.html#variant-org.gradle.api.artifacts.component.ComponentSelector-org.gradle.api.Action-[Substitution DSL API docs] for a complete reference of the variant substitution API.
+
+[WARNING]
+====
+In <<composite_builds.adoc#composite_build_intro,composite builds>>, the rule that you have to match the exact requested dependency attributes is not applied: when using composites, Gradle will automatically match the requested attributes. In other words, it is implicit that if you include another build, you are substituting _all variants__ of the substituted module with an equivalent variant in the included build.]
+====
+
+[[sec:substitution_with_capabilities]]
+==== Substituting a dependency with a dependency with capabilities
+
+Similarly to <<resolution_rules.adoc#sec:substitution_with_attributes,attributes substitution>>, Gradle lets you substitute a dependency with or without capabilities with another dependency with or without capabilities.
+
+For example, let's imagine that you need to substitute a regular dependency with its <<java_testing.adoc#sec:java_test_fixtures,test fixtures>> instead.
+You can achieve this by using the following dependency substitution rule:
+
+.Substitute a dependency with its test fixtures
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-capabilitySubstitutionRule/groovy",files="build.gradle[tags=substitution_rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-capabilitySubstitutionRule/kotlin",files="build.gradle.kts[tags=substitution_rule]"]
+====
+
+Capabilities which are declared in a substitution rule on the requested dependency constitute part of the dependency match specification, and therefore dependencies which do _not_ require the capabilities will not be matched.
+
+Please refer to the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.html#variant-org.gradle.api.artifacts.component.ComponentSelector-org.gradle.api.Action-[Substitution DSL API docs] for a complete reference of the variant substitution API.
+
+[WARNING]
+====
+In <<composite_builds.adoc#composite_build_intro,composite builds>>, the rule that you have to match the exact requested dependency capabilities is not applied: when using composites, Gradle will automatically match the requested capabilities. In other words, it is implicit that if you include another build, you are substituting _all variants__ of the substituted module with an equivalent variant in the included build.]
+====
+
+[[sec:substitution_with_classifier]]
+=== Substituting a dependency with a classifier or artifact
+
+While external modules are in general addressed via their group/artifact/version coordinates, it is common that such modules are published with additional artifacts that you may want to use in place of the main artifact.
+This is typically the case for _classified_ artifacts, but you may also need to select an artifact with a different file type or extension.
+Gradle discourages use of classifiers in dependencies and prefers to model such artifacts as <<variant_model.adoc#understanding-variant-selection,variants additional variants of a module>>.
+There are lots of advantages of using variants instead of classified artifacts, including, but not only, a different set of dependencies for those artifacts.
+
+However, in order to help bridging the two models, Gradle provides means to change or remove a classifier in a substitution rule.
+
+.Dependencies which will lead to a resolution error
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/kotlin",files="build.gradle.kts[tags=dependencies]"]
+====
+
+In the example above, the first level dependency on `quasar` makes us think that Gradle would resolve `quasar-core-0.8.0.jar` but it's not the case: the build would fail with this message:
+
+[source]
+----
+Execution failed for task ':resolve'.
+> Could not resolve all files for configuration ':runtimeClasspath'.
+   > Could not find quasar-core-0.8.0-jdk8.jar (co.paralleluniverse:quasar-core:0.8.0).
+     Searched in the following locations:
+         https://jcenter.bintray.com/co/paralleluniverse/quasar-core/0.8.0/quasar-core-0.8.0-jdk8.jar
+----
+
+That's because there's a dependency on another project, `lib`, which itself depends on a different version of `quasar-core`:
+
+.A "classified" dependency
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/groovy",files="lib/build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/kotlin",files="lib/build.gradle.kts[tags=dependencies]"]
+====
+
+What happens is that Gradle would perform conflict resolution between `quasar-core` 0.8.0 and `quasar-core` 0.7.12_r3.
+Because 0.8.0 is higher, we select this version, but the dependency in `lib` has a classifier, `jdk8` and this classifier _doesn't exist anymore_ in release 0.8.0.
+
+To fix this problem, you can ask Gradle to resolve both dependencies _without classifier_:
+
+.A resolution rule to disable selection of a classifier
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/groovy",files="build.gradle[tags=substitution_rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/kotlin",files="build.gradle.kts[tags=substitution_rule]"]
+====
+
+This rule effectively replaces any dependency on `quasar-core` found in the graph with a dependency without classifier.
+
+Alternatively, it's possible to select a dependency _with_ a specific classifier or, for more specific use cases, substitute with a very specific artifact (type, extension and classifier).
+
+For more information, please refer to the following API documentation:
+
+- artifact selection via the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.Substitution.html[Substitution DSL]
+- artifact selection via the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitution.html#artifactSelection-org.gradle.api.Action-[DependencySubstitution API]
+- artifact selection via the link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#dependencySubstitution-org.gradle.api.Action-[ResolutionStrategy API]
 
 [[sec:disabling_resolution_transitive_dependencies]]
 == Disabling transitive resolution
@@ -193,8 +324,8 @@ As a result only the main artifact will be resolved for the declared dependency.
 
 .Disabling transitive dependency resolution for a declared dependency
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies/disableForDependency/groovy",files="build.gradle[tags=transitive-per-dependency]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies/disableForDependency/kotlin",files="build.gradle.kts[tags=transitive-per-dependency]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForDependency/groovy",files="build.gradle[tags=transitive-per-dependency]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForDependency/kotlin",files="build.gradle.kts[tags=transitive-per-dependency]"]
 ====
 
 [NOTE]
@@ -208,8 +339,8 @@ For more information, see link:{javadocPath}/org/gradle/api/artifacts/Configurat
 
 .Disabling transitive dependency resolution on the configuration-level
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies/disableForConfiguration/groovy",files="build.gradle[tags=transitive-per-configuration]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies/disableForConfiguration/kotlin",files="build.gradle.kts[tags=transitive-per-configuration]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForConfiguration/groovy",files="build.gradle[tags=transitive-per-configuration]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForConfiguration/kotlin",files="build.gradle.kts[tags=transitive-per-configuration]"]
 ====
 
 == Changing configuration dependencies prior to resolution
@@ -219,8 +350,8 @@ The `withDependencies` method permits dependencies to be added, removed or modif
 
 .Modifying dependencies on a configuration
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution/withDependencies/groovy",files="build.gradle[tags=configuration-with-dependencies]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution/withDependencies/kotlin",files="build.gradle.kts[tags=configuration-with-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-withDependencies/groovy",files="build.gradle[tags=configuration-with-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-withDependencies/kotlin",files="build.gradle.kts[tags=configuration-with-dependencies]"]
 ====
 
 [[sec:configuration_defaults]]
@@ -232,8 +363,8 @@ By specifying default dependencies, the plugin can use a default version of the 
 
 .Specifying default dependencies on a configuration
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution/defaultDependency/groovy",files="build.gradle[tags=configuration-default-dependencies]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution/defaultDependency/kotlin",files="build.gradle.kts[tags=configuration-default-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-defaultDependency/groovy",files="build.gradle[tags=configuration-default-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-defaultDependency/kotlin",files="build.gradle.kts[tags=configuration-default-dependencies]"]
 ====
 
 == Excluding a dependency from a configuration completely
@@ -243,8 +374,8 @@ This will automatically exclude the transitive dependency for all dependencies d
 
 .Excluding transitive dependency for a particular configuration
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration/groovy",files="build.gradle[tags=exclude-transitive-dependencies]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForConfiguration/groovy",files="build.gradle[tags=exclude-transitive-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForConfiguration/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies]"]
 ====
 
 == Matching dependencies to repositories
@@ -269,6 +400,6 @@ It is not available for Maven repositories, or custom Ivy `DependencyResolver` i
 
 .Enabling dynamic resolve mode
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution/ivyDynamicMode/groovy",files="build.gradle[tags=ivy-repo-dynamic-mode]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution/ivyDynamicMode/kotlin",files="build.gradle.kts[tags=ivy-repo-dynamic-mode]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyDynamicMode/groovy",files="build.gradle[tags=ivy-repo-dynamic-mode]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyDynamicMode/kotlin",files="build.gradle.kts[tags=ivy-repo-dynamic-mode]"]
 ====

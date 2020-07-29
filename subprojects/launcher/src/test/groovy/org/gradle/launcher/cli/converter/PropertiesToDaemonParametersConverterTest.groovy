@@ -17,27 +17,28 @@
 package org.gradle.launcher.cli.converter
 
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.internal.jvm.Jvm
+import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-@UsesNativeServices
 class PropertiesToDaemonParametersConverterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
+    def buildLayoutResult = Stub(BuildLayoutResult) {
+        getGradleUserHomeDir() >> temp.file("gradle-user-home")
+    }
 
-    def converter = new PropertiesToDaemonParametersConverter()
-    def params = new DaemonParameters(new BuildLayoutParameters(), TestFiles.fileCollectionFactory())
+    def converter = new DaemonBuildOptions().propertiesConverter()
+    def params = new DaemonParameters(buildLayoutResult, TestFiles.fileCollectionFactory())
 
     def "allows whitespace around boolean properties"() {
         when:
-        converter.convert([ (DaemonBuildOptions.DaemonOption.GRADLE_PROPERTY): 'false ' ], params)
+        converter.convert([(DaemonBuildOptions.DaemonOption.GRADLE_PROPERTY): 'false '], params)
         then:
         !params.enabled
     }
@@ -64,13 +65,13 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
     def "configures from gradle properties"() {
         when:
         converter.convert([
-            (DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY)     : '-Xmx256m',
-            (DaemonBuildOptions.JavaHomeOption.GRADLE_PROPERTY)    : Jvm.current().javaHome.absolutePath,
-            (DaemonBuildOptions.DaemonOption.GRADLE_PROPERTY)      : "false",
-            (DaemonBuildOptions.BaseDirOption.GRADLE_PROPERTY)     : new File("baseDir").absolutePath,
-            (DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY) : "115",
-            (DaemonBuildOptions.HealthCheckOption.GRADLE_PROPERTY) : "42",
-            (DaemonBuildOptions.DebugOption.GRADLE_PROPERTY)       : "true",
+            (DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY): '-Xmx256m',
+            (DaemonBuildOptions.JavaHomeOption.GRADLE_PROPERTY): Jvm.current().javaHome.absolutePath,
+            (DaemonBuildOptions.DaemonOption.GRADLE_PROPERTY): "false",
+            (DaemonBuildOptions.BaseDirOption.GRADLE_PROPERTY): new File("baseDir").absolutePath,
+            (DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY): "115",
+            (DaemonBuildOptions.HealthCheckOption.GRADLE_PROPERTY): "42",
+            (DaemonBuildOptions.DebugOption.GRADLE_PROPERTY): "true",
         ], params)
 
         then:

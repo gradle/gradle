@@ -18,16 +18,20 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
 import org.gradle.api.Buildable
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.internal.Describables
+import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
 
 class ArtifactBackedResolvedVariantTest extends Specification {
     def variant = Mock(AttributeContainerInternal)
     def variantDisplayName = Describables.of("<variant>")
+    def id = Mock(ResolvedVariant.Identifier)
     def queue = new TestBuildOperationExecutor.TestBuildOperationQueue()
     def artifact1 = Mock(TestArtifact)
     def artifact2 = Mock(TestArtifact)
@@ -148,15 +152,17 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         set1.artifacts.visitLocalArtifacts(visitor)
 
         then:
-        1 * visitor.visitArtifact(artifact1)
-        1 * visitor.visitArtifact(artifact2)
+        1 * artifact1.id >> new ComponentFileArtifactIdentifier(Stub(ProjectComponentIdentifier), "some-file")
+        1 * artifact2.id >> new ComponentFileArtifactIdentifier(Stub(ModuleComponentIdentifier), "some-file")
+        1 * visitor.visitArtifact({it.artifact == artifact1})
         0 * _
 
         when:
         set2.artifacts.visitLocalArtifacts(visitor)
 
         then:
-        1 * visitor.visitArtifact(artifact1)
+        1 * artifact1.id >> new ComponentFileArtifactIdentifier(Stub(ProjectComponentIdentifier), "some-file")
+        1 * visitor.visitArtifact({it.artifact == artifact1})
         0 * _
     }
 
@@ -182,7 +188,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
     }
 
     ResolvedVariant of(artifacts) {
-        return ArtifactBackedResolvedVariant.create(variantDisplayName, variant, artifacts)
+        return ArtifactBackedResolvedVariant.create(id, variantDisplayName, variant, artifacts)
     }
 
     interface TestArtifact extends ResolvableArtifact, Buildable { }

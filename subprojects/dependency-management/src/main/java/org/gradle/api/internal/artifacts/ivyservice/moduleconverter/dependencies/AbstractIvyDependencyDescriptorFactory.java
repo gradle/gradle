@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDependencyDescriptorFactory {
-    private ExcludeRuleConverter excludeRuleConverter;
+    private final ExcludeRuleConverter excludeRuleConverter;
 
     public AbstractIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
         this.excludeRuleConverter = excludeRuleConverter;
@@ -39,7 +39,7 @@ public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDepen
         return artifact.getExtension() != null ? artifact.getExtension() : artifact.getType();
     }
 
-    protected List<ExcludeMetadata> convertExcludeRules(final String configuration, Set<ExcludeRule> excludeRules) {
+    protected List<ExcludeMetadata> convertExcludeRules(Set<ExcludeRule> excludeRules) {
         return CollectionUtils.collect((Iterable<ExcludeRule>) excludeRules, excludeRuleConverter::convertExcludeRule);
     }
 

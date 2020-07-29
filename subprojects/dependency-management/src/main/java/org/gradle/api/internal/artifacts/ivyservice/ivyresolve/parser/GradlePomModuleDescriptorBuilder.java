@@ -51,15 +51,15 @@ import java.util.Map;
 public class GradlePomModuleDescriptorBuilder {
     public static final ImmutableMap<String, Configuration> MAVEN2_CONFIGURATIONS = ImmutableMap.<String, Configuration>builder()
         .put("default", new Configuration("default", true, true, ImmutableSet.of("runtime", "master")))
-        .put("master", new Configuration("master", true, true, ImmutableSet.<String>of()))
-        .put("compile", new Configuration("compile", true, true, ImmutableSet.<String>of()))
-        .put("provided", new Configuration("provided", true, true, ImmutableSet.<String>of()))
+        .put("master", new Configuration("master", true, true, ImmutableSet.of()))
+        .put("compile", new Configuration("compile", true, true, ImmutableSet.of()))
+        .put("provided", new Configuration("provided", true, true, ImmutableSet.of()))
         .put("runtime", new Configuration("runtime", true, true, ImmutableSet.of("compile")))
         .put("test", new Configuration("test", true, false, ImmutableSet.of("runtime")))
-        .put("system", new Configuration("system", true, true, ImmutableSet.<String>of()))
-        .put("sources", new Configuration("sources", true, true, ImmutableSet.<String>of()))
-        .put("javadoc", new Configuration("javadoc", true, true, ImmutableSet.<String>of()))
-        .put("optional", new Configuration("optional", true, true, ImmutableSet.<String>of())).build();
+        .put("system", new Configuration("system", true, true, ImmutableSet.of()))
+        .put("sources", new Configuration("sources", true, true, ImmutableSet.of()))
+        .put("javadoc", new Configuration("javadoc", true, true, ImmutableSet.of()))
+        .put("optional", new Configuration("optional", true, true, ImmutableSet.of())).build();
 
     private static final Map<String, MavenScope> SCOPES = ImmutableMap.<String, MavenScope>builder()
         .put("compile", MavenScope.Compile)
@@ -72,7 +72,7 @@ public class GradlePomModuleDescriptorBuilder {
     private final VersionSelectorScheme defaultVersionSelectorScheme;
     private final VersionSelectorScheme mavenVersionSelectorScheme;
 
-    private List<MavenDependencyDescriptor> dependencies = Lists.newArrayList();
+    private final List<MavenDependencyDescriptor> dependencies = Lists.newArrayList();
     private final PomReader pomReader;
     private String status;
     private ModuleComponentIdentifier componentIdentifier;
@@ -120,12 +120,8 @@ public class GradlePomModuleDescriptorBuilder {
                 scopeString = getDefaultScope(dep);
             }
 
-            if (SCOPES.containsKey(scopeString)) {
-                scope = SCOPES.get(scopeString);
-            } else {
-                // unknown scope, defaulting to 'compile'
-                scope = MavenScope.Compile;
-            }
+            // unknown scope, defaulting to 'compile'
+            scope = SCOPES.getOrDefault(scopeString, MavenScope.Compile);
         }
 
         String version = determineVersion(dep);
@@ -207,7 +203,7 @@ public class GradlePomModuleDescriptorBuilder {
         private static final Map<String, JarDependencyType> TYPES;
 
         static {
-            TYPES = new HashMap<String, JarDependencyType>();
+            TYPES = new HashMap<>();
 
             for(JarDependencyType type : values()) {
                 TYPES.put(type.name, type);
@@ -253,7 +249,7 @@ public class GradlePomModuleDescriptorBuilder {
             return;
         }
 
-        dependencies.add(new MavenDependencyDescriptor(MavenScope.Compile, MavenDependencyType.RELOCATION, selector, null, ImmutableList.<ExcludeMetadata>of()));
+        dependencies.add(new MavenDependencyDescriptor(MavenScope.Compile, MavenDependencyType.RELOCATION, selector, null, ImmutableList.of()));
     }
 
     private String getDefaultVersion(PomDependencyMgt dep) {

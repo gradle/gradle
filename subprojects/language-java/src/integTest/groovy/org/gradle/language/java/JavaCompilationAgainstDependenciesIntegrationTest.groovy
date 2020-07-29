@@ -17,16 +17,16 @@
 package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import spock.lang.Unroll
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 import static org.gradle.language.java.JavaIntegrationTesting.expectJavaLangPluginDeprecationWarnings
 
+@UnsupportedWithInstantExecution(because = "software model")
 class JavaCompilationAgainstDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "#scope dependencies are visible from all source sets"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -58,7 +58,6 @@ class JavaCompilationAgainstDependenciesIntegrationTest extends AbstractIntegrat
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "resolved classpath for jvm library includes transitive api-scoped dependencies and not #scope dependencies"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -115,7 +114,6 @@ model {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "when a library dependency is declared at both #scope1 and #scope2 levels, its API is #exportedOrNot"() {
         given:
         applyJavaPlugin(buildFile, executer)

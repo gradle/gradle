@@ -34,10 +34,9 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.ScalaRuntime;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.language.scala.internal.DefaultScalaPlatform;
-import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
@@ -142,13 +141,14 @@ public class IdeaScalaConfigurer {
         return files;
     }
 
+    @SuppressWarnings("deprecation")
     private static ProjectLibrary createScalaSdkLibrary(Project scalaProject, Iterable<File> files, boolean useScalaSdk, IdeaModule ideaModule) {
         ScalaRuntime runtime = scalaProject.getExtensions().findByType(ScalaRuntime.class);
         if (runtime != null) {
             // Old Scala Plugin does not specify a ScalaPlatform
             FileCollection scalaClasspath = runtime.inferScalaClasspath(files);
             File compilerJar = runtime.findScalaJar(scalaClasspath, "compiler");
-            ScalaPlatform scalaPlatform = compilerJar != null ? new DefaultScalaPlatform(runtime.getScalaVersion(compilerJar)) : new DefaultScalaPlatform();
+            org.gradle.language.scala.ScalaPlatform scalaPlatform = compilerJar != null ? new DefaultScalaPlatform(runtime.getScalaVersion(compilerJar)) : new DefaultScalaPlatform();
             return createScalaSdkFromPlatform(scalaPlatform, scalaClasspath, useScalaSdk);
         } else if (ideaModule.getScalaPlatform() != null) {
             // TODO: Wrong, using the full classpath of the application
@@ -160,7 +160,8 @@ public class IdeaScalaConfigurer {
         }
     }
 
-    private static ProjectLibrary createScalaSdkFromPlatform(ScalaPlatform platform, FileCollection scalaClasspath, boolean useScalaSdk) {
+    @SuppressWarnings("deprecation")
+    private static ProjectLibrary createScalaSdkFromPlatform(org.gradle.language.scala.ScalaPlatform platform, FileCollection scalaClasspath, boolean useScalaSdk) {
         String version = platform.getScalaVersion();
         if (useScalaSdk) {
             return createScalaSdkLibrary("scala-sdk-" + version, scalaClasspath);
@@ -182,12 +183,7 @@ public class IdeaScalaConfigurer {
     }
 
     private static boolean containsLibraryWithSameName(Set<ProjectLibrary> libraries, final String name) {
-        return Iterables.any(libraries, new Predicate<ProjectLibrary>() {
-            @Override
-            public boolean apply(ProjectLibrary library) {
-                return Objects.equal(library.getName(), name);
-            }
-        });
+        return libraries.stream().anyMatch(library -> Objects.equal(library.getName(), name));
     }
 
     private static void declareScalaSdk(ProjectLibrary scalaSdkLibrary, Node iml) {
@@ -196,8 +192,8 @@ public class IdeaScalaConfigurer {
             Node newModuleRootManager = findOrCreateFirstChildWithAttributeValue(iml, "component", "name", "NewModuleRootManager");
 
             Node sdkLibrary = findOrCreateFirstChildWithAttributeValue(newModuleRootManager, "orderEntry", "name", scalaSdkLibrary.getName());
-            sdkLibrary.attributes().put("type", "library");
-            sdkLibrary.attributes().put("level", "project");
+            setNodeAttribute(sdkLibrary, "type", "library");
+            setNodeAttribute(sdkLibrary, "level", "project");
         }
     }
 
@@ -205,23 +201,32 @@ public class IdeaScalaConfigurer {
         Node facetManager = findOrCreateFirstChildWithAttributeValue(iml, "component", "name", "FacetManager");
 
         Node scalaFacet = findOrCreateFirstChildWithAttributeValue(facetManager, "facet", "type", "scala");
-        scalaFacet.attributes().put("name", "Scala");
+        setNodeAttribute(scalaFacet, "name", "Scala");
 
 
         Node configuration = findOrCreateFirstChildNamed(scalaFacet, "configuration");
 
         Node libraryLevel = findOrCreateFirstChildWithAttributeValue(configuration, "option", "name", "compilerLibraryLevel");
-        libraryLevel.attributes().put("value", "Project");
+        setNodeAttribute(libraryLevel, "value", "Project");
 
         Node libraryName = findOrCreateFirstChildWithAttributeValue(configuration, "option", "name", "compilerLibraryName");
-        libraryName.attributes().put("value", scalaCompilerLibrary.getName());
+        setNodeAttribute(libraryName, "value", scalaCompilerLibrary.getName());
+    }
+
+    private static void setNodeAttribute(Node node, String key, String value) {
+        final Map<String, String> attributes = Cast.uncheckedCast(node.attributes());
+        attributes.put(key, value);
     }
 
     private Collection<Project> findProjectsApplyingIdeaAndScalaPlugins() {
         return Collections2.filter(rootProject.getAllprojects(), new Predicate<Project>() {
+            @SuppressWarnings("deprecation")
             @Override
             public boolean apply(Project project) {
-                return project.getPlugins().hasPlugin(IdeaPlugin.class) && (project.getPlugins().hasPlugin(ScalaBasePlugin.class) || project.getPlugins().hasPlugin(ScalaLanguagePlugin.class));
+                final boolean hasIdeaPlugin = project.getPlugins().hasPlugin(IdeaPlugin.class);
+                final boolean hasScalaPlugin = project.getPlugins().hasPlugin(ScalaBasePlugin.class);
+                final boolean hasLegacyScalaPlugin = project.getPlugins().hasPlugin(org.gradle.language.scala.plugins.ScalaLanguagePlugin.class);
+                return hasIdeaPlugin && (hasScalaPlugin || hasLegacyScalaPlugin);
             }
         });
     }
@@ -232,7 +237,7 @@ public class IdeaScalaConfigurer {
         if (targetVersionString != null) {
             targetVersion = VersionNumber.parse(targetVersionString);
             if (targetVersion.equals(VersionNumber.UNKNOWN)) {
-                throw new GradleScriptException("String \'" + targetVersionString + "\' is not a valid value for IdeaModel.targetVersion.", null);
+                throw new GradleScriptException("String '" + targetVersionString + "' is not a valid value for IdeaModel.targetVersion.", null);
             }
         }
         return targetVersion;

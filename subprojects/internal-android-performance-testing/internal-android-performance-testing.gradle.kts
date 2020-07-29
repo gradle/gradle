@@ -1,5 +1,5 @@
 plugins {
-    gradlebuild.internal.java
+    id("gradlebuild.internal.java")
     application
 }
 
@@ -38,7 +38,7 @@ tasks.register("buildDists") {
 
 open class BuildClassPath : DefaultTask() {
     @get:InputFiles
-    val classpath: ConfigurableFileCollection = project.files()
+    val classpath: ConfigurableFileCollection = project.objects.fileCollection()
 
     @get:OutputFile
     val outputFile: RegularFileProperty = project.objects.fileProperty()

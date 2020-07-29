@@ -18,12 +18,8 @@ package org.gradle.integtests.resolve.http
 
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.keystore.TestKeyStore
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-// Remove when https://bugs.openjdk.java.net/browse/JDK-8219658 is fixed in JDK 12
-@Requires(TestPrecondition.JDK11_OR_EARLIER)
 class HttpsToHttpsRedirectResolveIntegrationTest extends AbstractRedirectResolveIntegrationTest {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)

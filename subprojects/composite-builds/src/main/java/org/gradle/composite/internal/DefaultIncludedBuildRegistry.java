@@ -24,6 +24,7 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
@@ -34,6 +35,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.scopes.BuildTreeScopeServices;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
@@ -43,13 +45,14 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.Map;
 
-@ServiceScope(ServiceScope.Value.BuildTree)
+@ServiceScope(Scopes.BuildTree)
 public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppable {
     private final IncludedBuildFactory includedBuildFactory;
     private final IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder;
     private final GradleLauncherFactory gradleLauncherFactory;
     private final ListenerManager listenerManager;
     private final BuildTreeScopeServices rootServices;
+    private final BuildAddedListener buildAddedBroadcaster;
 
     // TODO: Locking around this state
     private RootBuildState rootBuild;
@@ -64,6 +67,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.listenerManager = listenerManager;
         this.rootServices = rootServices;
+        this.buildAddedBroadcaster = listenerManager.getBroadcaster(BuildAddedListener.class);
     }
 
     @Override
@@ -98,6 +102,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         if (before != null) {
             throw new IllegalArgumentException("Build is already registered: " + build.getBuildIdentifier());
         }
+        buildAddedBroadcaster.buildAdded(build);
     }
 
     public boolean hasIncludedBuilds() {
@@ -188,7 +193,10 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         validateNameIsNotBuildSrc(name, dir);
         Path identityPath = assignPath(owner, name, dir);
         BuildIdentifier buildIdentifier = idFor(name);
-        return new RootOfNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner);
+        RootOfNestedBuildTree rootOfNestedBuildTree = new RootOfNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner);
+        // Attach the build only after it has been fully constructed.
+        rootOfNestedBuildTree.attach();
+        return rootOfNestedBuildTree;
     }
 
     private void validateNameIsNotBuildSrc(String name, File dir) {

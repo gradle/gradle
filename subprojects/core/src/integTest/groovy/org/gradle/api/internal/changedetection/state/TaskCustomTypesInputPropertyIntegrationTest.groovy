@@ -352,7 +352,7 @@ task someTask {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(iterationMatchers = '.*\\[2\\]$')
+    @ToBeFixedForInstantExecution(because = "ClassNotFoundException: ArrayList1_groovyProxy", iterationMatchers = '.*\\[2\\]$')
     def "task can take as input a collection of custom types from various sources"() {
         def buildSrcType = file("buildSrc/src/main/java/CustomType.java")
         buildSrcType << customSerializableType()

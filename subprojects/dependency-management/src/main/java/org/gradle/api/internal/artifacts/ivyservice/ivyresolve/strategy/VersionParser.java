@@ -36,7 +36,7 @@ public class VersionParser implements Transformer<Version, String> {
     }
 
     private Version parse(String original) {
-        List<String> parts = new ArrayList<String>();
+        List<String> parts = new ArrayList<>();
         boolean digit = false;
         int startPart = 0;
         int pos = 0;

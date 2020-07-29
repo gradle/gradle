@@ -20,7 +20,6 @@ import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDepe
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Unroll
 
@@ -75,7 +74,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         setup:
         def module = mavenHttpRepo.module('org', 'foo')
         module.pom.expectGetBroken()
-        buildFile << """     
+        buildFile << """
             buildscript {
                 repositories { maven { url '${mavenHttpRepo.uri}' } }
                 dependencies { classpath 'org:foo:1.0' }
@@ -141,7 +140,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "repositories shared across repository container types are stable"() {
         setup:
         publishTestPlugin('plugin', 'org.example.plugin', 'org.example.plugin:plugin:1.0')
@@ -180,7 +178,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             include 'child'
         """
         buildFile << """
-            allprojects { 
+            allprojects {
                 apply plugin: 'java'
                 repositories { jcenter() }
                 task resolve { doLast { configurations.compileClasspath. resolve() } }

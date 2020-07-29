@@ -36,7 +36,7 @@ class SamplesJavaBaseIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void canBuildAndUploadJar() {
-        TestFile javaprojectDir = sample.dir
+        TestFile javaprojectDir = sample.dir.file('groovy')
 
         // Build and test projects
         executer.inDirectory(javaprojectDir).withTasks('clean', 'build').run()

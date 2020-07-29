@@ -19,6 +19,7 @@ package org.gradle.internal.filewatch.jdk7;
 import com.google.common.base.Throwables;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.filewatch.FileWatcherEvent;
@@ -82,7 +83,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
 
     private static WatchEvent.Modifier instantiateEnum(String className, String enumName) {
         try {
-            return (WatchEvent.Modifier) Enum.valueOf((Class<Enum>) Class.forName(className), enumName);
+            return (WatchEvent.Modifier) Enum.valueOf(Cast.uncheckedNonnullCast(Class.forName(className)), enumName);
         } catch (ClassNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

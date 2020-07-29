@@ -62,9 +62,13 @@ class BeanCodec : Codec<Any> {
 
     private
     suspend fun ReadContext.readBeanOf(beanType: Class<*>, generated: Boolean, id: Int): Any {
-        // TODO - do a single lookup of reader rather than 2
-        val bean = beanStateReaderFor(beanType).run { newBeanWithId(generated, id) }
-        beanStateReaderFor(bean.javaClass).run {
+        val beanReader = beanStateReaderFor(beanType)
+        val bean = beanReader.run { newBeanWithId(generated, id) }
+        val effectiveBeanType = bean.javaClass
+        val effectiveBeanReader =
+            if (beanType === effectiveBeanType) beanReader
+            else beanStateReaderFor(effectiveBeanType)
+        effectiveBeanReader.run {
             readStateOf(bean)
         }
         return bean

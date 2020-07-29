@@ -26,8 +26,7 @@ val slowSubprojects = listOf("platformPlay")
 
 val ignoredSubprojects = listOf(
     "soak", // soak test
-    "distributions", // build distributions
-    "docs", // sanity check
+    "distributionsIntegTests", // build distribution testing
     "architectureTest" // sanity check
 )
 

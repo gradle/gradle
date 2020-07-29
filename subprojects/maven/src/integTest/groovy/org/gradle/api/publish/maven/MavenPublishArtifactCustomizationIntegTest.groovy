@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import spock.lang.Issue
 
 class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishIntegTest {
 
@@ -183,7 +184,6 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
      * Cannot publish module metadata for component when artifacts are modified.
      * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
      */
-    @ToBeFixedForInstantExecution
     def "fails when publishing module metadata for component with modified artifacts"() {
         given:
         createBuildScripts("""
@@ -332,7 +332,6 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "can configure custom artifacts post creation"() {
         given:
         createBuildScripts("""
@@ -360,7 +359,6 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-docs.html", "projectText-1.0-customjar.jar")
     }
 
-    @ToBeFixedForInstantExecution
     def "can attach artifact with no extension"() {
         given:
         createBuildScripts("""
@@ -384,7 +382,6 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
 //        resolveArtifact(module, '', 'classified') == ["projectText-1.0-classifier"]
     }
 
-    @ToBeFixedForInstantExecution
     def "reports failure publishing when validation fails"() {
         given:
         file("a-directory.dir").createDir()
@@ -405,7 +402,6 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         failure.assertHasCause("Invalid publication 'mavenCustom': artifact file is a directory")
     }
 
-    @ToBeFixedForInstantExecution
     def "artifact coordinates are evaluated lazily"() {
         given:
         createBuildScripts("""
@@ -464,4 +460,139 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
             $append
         """
     }
+
+    def "can attach a task provider as an artifact"() {
+        createBuildScripts("""
+            def customJar = tasks.register("myJar", Jar) {
+                classifier = 'classy'
+            }
+            publications {
+                mavenCustom(MavenPublication) {
+                    artifact(customJar)
+                }
+            }
+        """)
+
+        when:
+        succeeds(":publish")
+
+        then:
+        executedAndNotSkipped ":myJar", ":publish"
+    }
+
+    def "can attach an arbitrary task provider as an artifact if it has a single output file"() {
+        createBuildScripts("""
+            def customTask = tasks.register("myTask") {
+                outputs.file("\${buildDir}/output.txt")
+                doLast {
+                    file("\${buildDir}/output.txt") << 'custom task'
+                }
+            }
+            publications {
+                mavenCustom(MavenPublication) {
+                    artifact(customTask)
+                }
+            }
+        """)
+
+        when:
+        succeeds(":publish")
+
+        then:
+        executedAndNotSkipped ":myTask", ":publish"
+    }
+
+    @ToBeFixedForInstantExecution
+    def "reasonable error message when an arbitrary task provider as an artifact has more than one output file"() {
+        createBuildScripts("""
+            def customTask = tasks.register("myTask") {
+                outputs.file("\${buildDir}/output.txt")
+                outputs.file("\${buildDir}/output2.txt")
+                doLast {
+                    file("\${buildDir}/output.txt") << 'custom task'
+                    file("\${buildDir}/output2.txt") << 'custom task'
+                }
+            }
+            publications {
+                mavenCustom(MavenPublication) {
+                    artifact(customTask)
+                }
+            }
+        """)
+
+        when:
+        fails(":publish")
+
+        then:
+        failure.assertHasCause "Expected task 'myTask' output files to contain exactly one file, however, it contains more than one file."
+    }
+
+    def "can attach a mapped task provider output as an artifact"() {
+        createBuildScripts("""
+            def customJar = tasks.register("myJar", Jar) {
+                classifier = 'classy'
+            }
+            publications {
+                mavenCustom(MavenPublication) {
+                    artifact(customJar.flatMap { it.archiveFile })
+                }
+            }
+        """)
+
+        when:
+        succeeds(":publish")
+
+        then:
+        executedAndNotSkipped ":myJar", ":publish"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/10960")
+    def "can consume an arbitrary output from another project using the artifact notation"() {
+        settingsFile << """
+            rootProject.name = 'repro'
+            include 'lib'
+        """
+
+        file('lib/build.gradle') << '''
+            plugins {
+                id 'java'
+            }
+
+            configurations.create("srcLicense") {
+                canBeResolved = false
+                canBeConsumed = true
+            }
+
+            def srcLicenseDir = tasks.register("srcLicenseDir", Sync) {
+                into("$buildDir/$name")
+                from("$rootDir/gradle")
+            }
+
+            artifacts {
+                srcLicense(srcLicenseDir)
+            }
+        '''
+
+        file("build.gradle") << """
+            configurations {
+                foo
+            }
+            dependencies {
+                foo(project(path: ':lib', configuration: 'srcLicense'))
+            }
+
+            task resolve {
+                doLast {
+                    println "Output: \${configurations.foo.files.name}"
+                }
+            }
+        """
+
+        when:
+        succeeds ':resolve'
+
+        then:
+        outputContains('Output: [srcLicenseDir]')
+    }
+
 }

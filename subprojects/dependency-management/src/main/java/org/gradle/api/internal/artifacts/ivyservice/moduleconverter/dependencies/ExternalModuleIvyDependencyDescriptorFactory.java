@@ -28,6 +28,7 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
@@ -36,7 +37,7 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
     }
 
     @Override
-    public LocalOriginDependencyMetadata createDependencyDescriptor(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
+    public LocalOriginDependencyMetadata createDependencyDescriptor(ComponentIdentifier componentId, @Nullable String clientConfiguration, @Nullable AttributeContainer clientAttributes, ModuleDependency dependency) {
         ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) dependency;
         boolean force = externalModuleDependency.isForce();
         boolean changing = externalModuleDependency.isChanging();
@@ -48,7 +49,7 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
                 dependency.getAttributes(),
                 dependency.getRequestedCapabilities());
 
-        List<ExcludeMetadata> excludes = convertExcludeRules(clientConfiguration, dependency.getExcludeRules());
+        List<ExcludeMetadata> excludes = convertExcludeRules(dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
                 componentId, selector, clientConfiguration, clientAttributes,
                 dependency.getAttributes(),
@@ -58,7 +59,7 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);
     }
 
-    private String nullToEmpty(String input) {
+    private String nullToEmpty(@Nullable String input) {
         return input == null ? "" : input;
     }
 

@@ -44,7 +44,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
     @Rule public final Sample pch = sample(testDirProvider, 'pre-compiled-headers')
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
-        return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
+        return new Sample(testDirectoryProvider, "native-binaries/${name}/groovy", name)
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32_AND_64)

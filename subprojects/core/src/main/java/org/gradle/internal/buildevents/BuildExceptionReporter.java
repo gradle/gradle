@@ -232,11 +232,15 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     private static String getMessage(Throwable throwable) {
-        String message = throwable.getMessage();
-        if (GUtil.isTrue(message)) {
-            return message;
+        try {
+            String message = throwable.getMessage();
+            if (GUtil.isTrue(message)) {
+                return message;
+            }
+            return String.format("%s (no error message)", throwable.getClass().getName());
+        } catch (Throwable t) {
+            return String.format("Unable to get message for failure of type %s due to %s", throwable.getClass().getSimpleName(), t.getMessage());
         }
-        return String.format("%s (no error message)", throwable.getClass().getName());
     }
 
     private void writeFailureDetails(StyledTextOutput output, FailureDetails details) {

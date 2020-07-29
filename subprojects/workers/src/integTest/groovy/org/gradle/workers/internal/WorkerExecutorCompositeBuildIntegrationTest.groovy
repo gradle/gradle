@@ -29,7 +29,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
 
     @Unroll
     @Issue("https://github.com/gradle/gradle/issues/10317")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "can use worker api with composite builds using #pluginId"() {
         settingsFile << """
             rootProject.name = "app"

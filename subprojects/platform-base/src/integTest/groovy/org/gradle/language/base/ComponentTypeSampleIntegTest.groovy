@@ -23,7 +23,7 @@ import org.junit.Rule
 
 @UnsupportedWithInstantExecution(because = "software model")
 class ComponentTypeSampleIntegTest extends AbstractIntegrationSpec {
-    @Rule Sample componentTypeSample = new Sample(temporaryFolder, "customModel/componentType")
+    @Rule Sample componentTypeSample = new Sample(temporaryFolder, "customModel/componentType/groovy")
 
     def "can create custom component with binaries"() {
         given:

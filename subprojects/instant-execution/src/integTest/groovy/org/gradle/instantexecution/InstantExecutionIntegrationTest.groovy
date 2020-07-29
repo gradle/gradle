@@ -19,9 +19,11 @@ package org.gradle.instantexecution
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
+import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.model.ObjectFactory
 import org.gradle.initialization.LoadProjectsBuildOperationType
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.event.ListenerManager
 import org.gradle.jvm.toolchain.JavaInstallationRegistry
@@ -36,42 +38,18 @@ import javax.inject.Inject
 
 class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    def "--scan works"() {
-        given:
-        settingsKotlinFile << '''
-            plugins {
-                `gradle-enterprise`
-            }
-
-            gradleEnterprise.buildScan {
-                termsOfServiceUrl = "https://gradle.com/terms-of-service"
-                termsOfServiceAgree = "yes"
-            }
-        '''
-
-        when:
-        instantRun "help", "--scan", "-Dscan.dump"
-
-        then:
-        postBuildOutputContains("Build scan written to")
-
-        when:
-        instantRun "help", "--scan", "-Dscan.dump"
-
-        then:
-        postBuildOutputContains("Build scan written to")
-    }
-
     def "instant execution for help on empty project"() {
         given:
         instantRun "help"
         def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
-            .replaceAll(/Calculating task graph as no instant execution cache is available for tasks: help\n/, '')
+            .replaceAll(/Calculating task graph as no configuration cache is available for tasks: help\n/, '')
+            .replaceAll(/Configuration cache entry stored.\n/, '')
 
         when:
         instantRun "help"
         def secondRunOutput = removeVfsLogOutput(result.normalizedOutput)
-            .replaceAll(/Reusing instant execution cache. This is not guaranteed to work in any way.\n/, '')
+            .replaceAll(/Reusing configuration cache.\n/, '')
+            .replaceAll(/Configuration cache entry reused.\n/, '')
 
         then:
         firstRunOutput == secondRunOutput
@@ -84,6 +62,24 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             .replaceAll(/Watching \d+ (directory hierarchies to track changes between builds in \d+ directories|directories to track changes between builds)\n/, '')
             .replaceAll(/Spent \d+ ms registering watches for file system events\n/, '')
             .replaceAll(/Virtual file system .*\n/, '')
+    }
+
+    def "can request to recreate the cache"() {
+        given:
+        def fixture = newInstantExecutionFixture()
+
+        when:
+        instantRun "help", "-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
+
+        then:
+        fixture.assertStateStored()
+
+        when:
+        instantRun "help", "-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
+
+        then:
+        fixture.assertStateStored()
+        outputContains("Recreating configuration cache")
     }
 
     def "restores some details of the project structure"() {
@@ -197,7 +193,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         instantExecution.assertStateStored()
-        outputContains("Calculating task graph as no instant execution cache is available for tasks: a")
+        outputContains("Calculating task graph as no configuration cache is available for tasks: a")
         outputContains("running build script")
         outputContains("create task")
         outputContains("configure task")
@@ -208,7 +204,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         instantExecution.assertStateLoaded()
-        outputContains("Reusing instant execution cache. This is not guaranteed to work in any way.")
+        outputContains("Reusing configuration cache.")
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")
@@ -219,7 +215,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         instantExecution.assertStateStored()
-        outputContains("Calculating task graph as no instant execution cache is available for tasks: b")
+        outputContains("Calculating task graph as no configuration cache is available for tasks: b")
         outputContains("running build script")
         outputContains("create task")
         outputContains("configure task")
@@ -230,7 +226,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         instantExecution.assertStateLoaded()
-        outputContains("Reusing instant execution cache. This is not guaranteed to work in any way.")
+        outputContains("Reusing configuration cache.")
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")
@@ -561,6 +557,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         ToolingModelBuilderRegistry.name | "project.services.get(${ToolingModelBuilderRegistry.name})" | "toString()"
         WorkerExecutor.name              | "project.services.get(${WorkerExecutor.name})"              | "noIsolation()"
         FileSystemOperations.name        | "project.services.get(${FileSystemOperations.name})"        | "toString()"
+        ArchiveOperations.name           | "project.services.get(${ArchiveOperations.name})"           | "toString()"
         ExecOperations.name              | "project.services.get(${ExecOperations.name})"              | "toString()"
         ListenerManager.name             | "project.services.get(${ListenerManager.name})"             | "toString()"
         JavaInstallationRegistry.name    | "project.services.get(${JavaInstallationRegistry.name})"    | "installationForCurrentVirtualMachine"
@@ -667,8 +664,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         """
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantFails "broken"
+        instantFails WARN_PROBLEMS_CLI_OPT, "broken"
 
         then:
         problems.assertResultHasProblems(result) {
@@ -911,6 +907,53 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         kind                     | expression
         "instance capturing"     | "setInstanceCapturingLambda()"
         "non-instance capturing" | "setNonInstanceCapturingLambda()"
+    }
+
+    @Unroll
+    def "restores task with action and spec that are Java lambdas"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaPlugin.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import org.gradle.api.*;
+                import org.gradle.api.tasks.*;
+
+                public class LambdaPlugin implements Plugin<Project> {
+                    public void apply(Project project) {
+                        $type value = $expression;
+                        project.getTasks().register("ok", task -> {
+                            task.doLast(t -> {
+                                System.out.println(task.getName() + " action value is " + value);
+                            });
+                            task.onlyIf(t -> {
+                                System.out.println(task.getName() + " spec value is " + value);
+                                return true;
+                            });
+                        });
+                    }
+                }
+            """
+        }
+
+        buildFile << """
+            apply plugin: my.LambdaPlugin
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("ok action value is ${value}")
+        outputContains("ok spec value is ${value}")
+
+        where:
+        type      | expression | value
+        "String"  | '"value"'  | "value"
+        "int"     | "12"       | "12"
+        "boolean" | "true"     | "true"
     }
 
     @Unroll

@@ -134,12 +134,10 @@ public class ReadOnlyArtifactCacheLockingManager implements ArtifactCacheLocking
 
         @Override
         public void put(K key, V value) {
-            failSafe(() -> delegate.put(key, value));
         }
 
         @Override
         public void remove(K key) {
-            failSafe(() -> delegate.remove(key));
         }
 
         private <T> T failSafe(Factory<T> operation) {
@@ -155,17 +153,6 @@ public class ReadOnlyArtifactCacheLockingManager implements ArtifactCacheLocking
             return null;
         }
 
-        private void failSafe(Runnable operation) {
-            if (failed) {
-                return;
-            }
-            try {
-                operation.run();
-            } catch (Exception ex) {
-                failed = true;
-                LOGGER.debug("Error accessing read-only cache", ex);
-            }
-        }
     }
 
     private class TransparentCacheLockingPersistentCache<K, V> implements PersistentIndexedCache<K, V> {

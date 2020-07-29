@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -35,29 +36,29 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":reporting"))
     implementation(project(":dependencyManagement"))
+    implementation(project(":processServices"))
 
-    implementation(library("groovy"))
-    implementation(library("guava"))
-    implementation(library("inject"))
+    implementation(libs.groovy)
+    implementation(libs.guava)
+    implementation(libs.inject)
 
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(project(":files"))
-    testImplementation(project(":processServices"))
     testImplementation(project(":resources"))
-    testImplementation(library("slf4j_api"))
-    testImplementation(library("commons_io"))
+    testImplementation(libs.slf4jApi)
+    testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":plugins")))
     testImplementation(testFixtures(project(":languageJvm")))
     testImplementation(testFixtures(project(":languageJava")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(testFixtures(project(":languageScala")))
-    integTestRuntimeOnly(project(":ide"))
-    integTestRuntimeOnly(project(":maven"))
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
+
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
 }
 
 classycle {
@@ -66,6 +67,4 @@ classycle {
         "org/gradle/api/tasks/ScalaRuntime*"))
 }
 
-tasks.named<Test>("integTest") {
-    jvmArgs("-XX:MaxPermSize=1500m") // AntInProcessScalaCompilerIntegrationTest needs lots of permgen
-}
+integrationTestUsesSampleDir("subprojects/scala/src/main")

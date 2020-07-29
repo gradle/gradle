@@ -28,7 +28,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.Factory;
 import org.gradle.internal.resources.ResourceLock;
-import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 
@@ -54,7 +53,7 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     @Internal
     @SuppressWarnings("deprecation")
-    StandardOutputCapture getStandardOutputCapture();
+    org.gradle.logging.StandardOutputCapture getStandardOutputCapture();
 
     @Override
     TaskInputsInternal getInputs();

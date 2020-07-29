@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
+
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -31,16 +33,20 @@ dependencies {
     implementation(project(":maven"))
     implementation(project(":security"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("inject"))
+    implementation(libs.groovy)
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.inject)
 
     testImplementation(project(":ivy"))
     testImplementation(testFixtures(project(":core")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
     testRuntimeOnly(testFixtures(project(":security")))
+    testRuntimeOnly(project(":distributionsPublishing")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+
+    integTestDistributionRuntimeOnly(project(":distributionsPublishing"))
 }
 
 strictCompile {
@@ -50,3 +56,5 @@ strictCompile {
 classycle {
     excludePatterns.set(listOf("org/gradle/plugins/signing/**"))
 }
+
+integrationTestUsesSampleDir("subprojects/signing/src/main")

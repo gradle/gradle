@@ -17,7 +17,9 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 public interface VariantSelector {
     /**
@@ -25,5 +27,9 @@ public interface VariantSelector {
      *
      * On failure, returns a set that forwards the failure to the {@link org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor}.
      */
-    ResolvedArtifactSet select(ResolvedVariantSet candidates);
+    ResolvedArtifactSet select(ResolvedVariantSet candidates, Factory factory);
+
+    interface Factory {
+        ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, ImmutableAttributes targetAttributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformedVariantFactory transformedVariantFactory);
+    }
 }

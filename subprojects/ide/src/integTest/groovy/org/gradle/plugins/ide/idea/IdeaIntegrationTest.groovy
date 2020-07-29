@@ -367,6 +367,7 @@ idea.project {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void showDecentMessageWhenInputFileWasTinkeredWith() {
         //given
         file('root.iml') << 'messed up iml file'

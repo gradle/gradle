@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.validation
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.gradle.GradleFileModuleAdapter
 import spock.lang.Issue
@@ -55,6 +56,7 @@ class GradleMetadataValidationResolveIntegrationTest extends AbstractModuleDepen
         GradleFileModuleAdapter.printComponentGAV = true
     }
 
+    @ToBeFixedForInstantExecution
     def "fails with proper error if a mandatory attribute is not defined"() {
         buildFile << """
             dependencies {
@@ -82,6 +84,7 @@ class GradleMetadataValidationResolveIntegrationTest extends AbstractModuleDepen
     }
 
     @Issue("gradle/gradle#7888")
+    @ToBeFixedForInstantExecution
     def "fails with reasonable error message if Gradle Module Metadata doesn't declare any variant"() {
         buildFile << """
             dependencies {

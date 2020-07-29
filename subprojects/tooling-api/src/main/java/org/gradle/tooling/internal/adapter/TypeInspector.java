@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.adapter;
 
 import javax.annotation.concurrent.ThreadSafe;
-
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -66,41 +65,47 @@ class TypeInspector {
             return;
         }
 
+        Set<Type> preventEndlessRecursiveSetInClassDefinition = new HashSet<>();
         for (Type superType : type.getGenericInterfaces()) {
-            visit(superType, types);
+            visit(superType, types, preventEndlessRecursiveSetInClassDefinition);
         }
+
         for (Method method : type.getDeclaredMethods()) {
-            visit(method.getGenericReturnType(), types);
+            Set<Type> methodSet = new HashSet<>();
+            visit(method.getGenericReturnType(), types, methodSet);
             for (TypeVariable<Method> typeVariable : method.getTypeParameters()) {
-                visit(typeVariable, types);
+                visit(typeVariable, types, methodSet);
             }
         }
     }
 
-    private void visit(Type type, Set<Class<?>> types) {
+    private void visit(Type type, Set<Class<?>> types, Set<Type> preventEndlessRecursiveSet) {
+        if (!preventEndlessRecursiveSet.add(type)) {
+            return;
+        }
         if (type instanceof Class) {
             visit((Class) type, types);
         } else if (type instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) type;
-            visit(parameterizedType.getRawType(), types);
+            visit(parameterizedType.getRawType(), types, preventEndlessRecursiveSet);
             for (Type typeArg : parameterizedType.getActualTypeArguments()) {
-                visit(typeArg, types);
+                visit(typeArg, types, preventEndlessRecursiveSet);
             }
         } else if (type instanceof WildcardType) {
             WildcardType wildcardType = (WildcardType) type;
             for (Type bound : wildcardType.getUpperBounds()) {
-                visit(bound, types);
+                visit(bound, types, preventEndlessRecursiveSet);
             }
             for (Type bound : wildcardType.getLowerBounds()) {
-                visit(bound, types);
+                visit(bound, types, preventEndlessRecursiveSet);
             }
         } else if (type instanceof GenericArrayType) {
             GenericArrayType arrayType = (GenericArrayType) type;
-            visit(arrayType.getGenericComponentType(), types);
+            visit(arrayType.getGenericComponentType(), types, preventEndlessRecursiveSet);
         } else if (type instanceof TypeVariable) {
             TypeVariable<?> typeVariable = (TypeVariable) type;
             for (Type bound : typeVariable.getBounds()) {
-                visit(bound, types);
+                visit(bound, types, preventEndlessRecursiveSet);
             }
         }
     }

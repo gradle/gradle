@@ -108,13 +108,13 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
         // TODO - should defer execution of the action, to match behaviour for other container `register()` methods.
 
-        DefaultServiceSpec<P> spec = specInstantiator.newInstance(DefaultServiceSpec.class, parameters);
+        DefaultServiceSpec<P> spec = Cast.uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceSpec.class, parameters));
         configureAction.execute(spec);
         Integer maxParallelUsages = spec.getMaxParallelUsages().getOrNull();
 
         // TODO - finalize the parameters during isolation
         // TODO - need to lock the project during isolation - should do this the same way as artifact transforms
-        return doRegister(name, implementationType, parameterType, parameters, maxParallelUsages);
+        return doRegister(name, implementationType, parameters, maxParallelUsages);
     }
 
     @Override
@@ -122,19 +122,18 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         if (registrations.findByName(name) != null) {
             throw new IllegalArgumentException(String.format("Service '%s' has already been registered.", name));
         }
-        return doRegister(name, implementationType, isolationScheme.parameterTypeFor(implementationType), parameters, maxUsages <= 0 ? null : maxUsages);
+        return doRegister(name, Cast.uncheckedNonnullCast(implementationType), parameters, maxUsages <= 0 ? null : maxUsages);
     }
 
     private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(
         String name,
         Class<T> implementationType,
-        Class<P> parameterType,
         P parameters,
         @Nullable Integer maxParallelUsages
     ) {
         BuildServiceProvider<T, P> provider = new BuildServiceProvider<>(name, implementationType, parameters, isolationScheme, instantiatorFactory.injectScheme(), isolatableFactory, services);
 
-        DefaultServiceRegistration<T, P> registration = specInstantiator.newInstance(DefaultServiceRegistration.class, name, parameters, provider);
+        DefaultServiceRegistration<T, P> registration = Cast.uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceRegistration.class, name, parameters, provider));
         registration.getMaxParallelUsages().set(maxParallelUsages);
         registrations.add(registration);
 

@@ -1,1 +1,1 @@
-rootProject = "bom-import"
+rootProject.name = "bom-import"

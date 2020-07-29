@@ -30,13 +30,13 @@ class SamplesOrganizingGradleProjectsIntegrationTest extends AbstractSampleInteg
 
     @UsesSample("organizingGradleProjects/customGradleDistribution")
     def "can build custom gradle distribution"() {
-        executer.inDirectory(sample.dir)
+        executer.inDirectory(sample.dir.file('groovy'))
 
         when:
         succeeds('createCustomGradleDistribution')
 
         then:
-        def customDistribution = sample.dir.file('build/distributions/mycompany-gradle-4.6-0.1-bin.zip')
+        def customDistribution = sample.dir.file('groovy/build/distributions/mycompany-gradle-4.6-0.1-bin.zip')
         customDistribution.assertExists()
         new ZipTestFixture(customDistribution).assertContainsFile("gradle-4.6/init.d/repositories.gradle")
     }

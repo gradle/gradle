@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder;
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
+import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.test.fixtures.file.TestFile;
@@ -44,7 +45,7 @@ public abstract class AbstractIntegrationTest {
     public final ToBeFixedForInstantExecutionRule toBeFixedForInstantExecution = new ToBeFixedForInstantExecutionRule();
 
     @Rule
-    public final ToBeFixedForVfsRetentionRule toBeFixedForVfsRetention = new ToBeFixedForVfsRetentionRule();
+    public final ToBeFixedForFileSystemWatchingRule toBeFixedForFileSystemWatching = new ToBeFixedForFileSystemWatchingRule();
 
     public final GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext());
     public final GradleContextualExecuter executer = createExecuter();
@@ -109,7 +110,7 @@ public abstract class AbstractIntegrationTest {
     }
 
     protected ArtifactBuilder artifactBuilder() {
-        GradleExecuter gradleExecuter = getDistribution().executer(testDirectoryProvider, getBuildContext());
+        GradleExecuter gradleExecuter = new InProcessGradleExecuter(distribution, testDirectoryProvider);
         gradleExecuter.withGradleUserHomeDir(getExecuter().getGradleUserHomeDir());
         return new GradleBackedArtifactBuilder(gradleExecuter, getTestDirectory().file("artifacts"));
     }

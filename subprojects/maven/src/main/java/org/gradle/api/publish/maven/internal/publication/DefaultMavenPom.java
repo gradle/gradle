@@ -48,7 +48,7 @@ import java.util.Set;
 
 public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, MavenPomDeveloperSpec, MavenPomContributorSpec, MavenPomMailingListSpec {
 
-    private final MutableActionSet<XmlProvider> xmlAction = new MutableActionSet<XmlProvider>();
+    private final MutableActionSet<XmlProvider> xmlAction = new MutableActionSet<>();
     private final MavenPublicationInternal mavenPublication;
     private final Instantiator instantiator;
     private final ObjectFactory objectFactory;
@@ -57,15 +57,15 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     private Property<String> description;
     private Property<String> url;
     private Property<String> inceptionYear;
-    private final List<MavenPomLicense> licenses = new ArrayList<MavenPomLicense>();
+    private final List<MavenPomLicense> licenses = new ArrayList<>();
     private MavenPomOrganization organization;
-    private final List<MavenPomDeveloper> developers = new ArrayList<MavenPomDeveloper>();
-    private final List<MavenPomContributor> contributors = new ArrayList<MavenPomContributor>();
+    private final List<MavenPomDeveloper> developers = new ArrayList<>();
+    private final List<MavenPomContributor> contributors = new ArrayList<>();
     private MavenPomScm scm;
     private MavenPomIssueManagement issueManagement;
     private MavenPomCiManagement ciManagement;
     private MavenPomDistributionManagementInternal distributionManagement;
-    private final List<MavenPomMailingList> mailingLists = new ArrayList<MavenPomMailingList>();
+    private final List<MavenPomMailingList> mailingLists = new ArrayList<>();
     private final MapProperty<String, String> properties;
 
     public DefaultMavenPom(MavenPublicationInternal mavenPublication, Instantiator instantiator, ObjectFactory objectFactory) {
@@ -81,7 +81,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
 
     @Override
     public void withXml(Action<? super XmlProvider> action) {
-        xmlAction.add(new UserCodeAction<XmlProvider>("Could not apply withXml() to generated POM", action));
+        xmlAction.add(new UserCodeAction<>("Could not apply withXml() to generated POM", action));
     }
 
     @Override

@@ -1,10 +1,10 @@
+import gradlebuild.basics.googleApisJs
+
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
-configurations {
-    create("reports")
-}
+val implementationResources: Configuration by configurations.creating
 
 repositories {
     googleApisJs()
@@ -18,26 +18,24 @@ dependencies {
     implementation(project(":modelCore"))
     implementation(project(":core"))
 
-    implementation(library("groovy"))
-    implementation(library("guava"))
-    implementation(library("inject"))
-    implementation(library("jatl"))
+    implementation(libs.groovy)
+    implementation(libs.guava)
+    implementation(libs.inject)
+    implementation(libs.jatl)
+
+    implementationResources("jquery:jquery.min:3.4.1@js")
 
     testImplementation(project(":processServices"))
     testImplementation(project(":baseServicesGroovy"))
-    testImplementation(testLibrary("jsoup"))
+    testImplementation(libs.jsoup)
     testImplementation(testFixtures(project(":core")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-    testRuntimeOnly(project(":workers"))
-    testRuntimeOnly(project(":dependencyManagement"))
-
-    integTestRuntimeOnly(project(":codeQuality"))
-    integTestRuntimeOnly(project(":jacoco"))
-
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
-
-    add("reports", "jquery:jquery.min:3.4.1@js")
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsJvm")) {
+        because("BuildDashboard has specific support for JVM plugins (CodeNarc, JaCoCo)")
+    }
 }
 
 strictCompile {
@@ -49,12 +47,11 @@ classycle {
     excludePatterns.set(listOf("org/gradle/api/reporting/internal/**"))
 }
 
-val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
-
-val reportResources by tasks.registering(Copy::class) {
-    from(configurations["reports"])
-    into("$generatedResourcesDir/org/gradle/reporting")
+val reportResources = tasks.register<Copy>("reportResources") {
+    from(implementationResources)
+    into(layout.buildDirectory.file("generated-resources/report-resources/org/gradle/reporting"))
 }
+
 sourceSets.main {
-    output.dir(generatedResourcesDir, "builtBy" to reportResources)
+    output.dir(reportResources.map { it.destinationDir.parentFile.parentFile.parentFile })
 }

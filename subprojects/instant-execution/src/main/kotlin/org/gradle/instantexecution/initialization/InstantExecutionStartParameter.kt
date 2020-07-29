@@ -17,38 +17,47 @@
 package org.gradle.instantexecution.initialization
 
 import org.gradle.StartParameter
+import org.gradle.api.internal.StartParameterInternal
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLayout
-import org.gradle.instantexecution.SystemProperties
 import org.gradle.instantexecution.extensions.unsafeLazy
-import org.gradle.internal.hash.HashUtil.createCompactMD5
-import org.gradle.util.GFileUtils
+import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
 
 
+@ServiceScope(Scopes.BuildTree)
 class InstantExecutionStartParameter(
     private val buildLayout: BuildLayout,
-    private val startParameter: StartParameter
+    startParameter: StartParameter
 ) {
 
-    val isEnabled: Boolean by unsafeLazy {
-        systemPropertyFlag(SystemProperties.isEnabled)
-    }
+    private
+    val startParameter = startParameter as StartParameterInternal
+
+    val isEnabled: Boolean
+        get() = startParameter.isConfigurationCache
 
     val isQuiet: Boolean
-        get() = systemPropertyFlag(SystemProperties.isQuiet)
+        get() = startParameter.isConfigurationCacheQuiet
 
-    val maxProblems: Int by unsafeLazy {
-        systemProperty(SystemProperties.maxProblems)
-            ?.let(Integer::valueOf)
-            ?: 512
-    }
+    val maxProblems: Int
+        get() = startParameter.configurationCacheMaxProblems
 
-    val failOnProblems: Boolean by unsafeLazy {
-        systemPropertyFlag(SystemProperties.failOnProblems, true)
-    }
+    val failOnProblems: Boolean
+        get() = startParameter.configurationCacheProblems == ConfigurationCacheProblemsOption.Value.FAIL
 
     val recreateCache: Boolean
-        get() = systemPropertyFlag(SystemProperties.recreateCache)
+        get() = startParameter.isConfigurationCacheRecreateCache
+
+    /**
+     * See [StartParameter.getProjectDir].
+     */
+    val projectDirectory: File?
+        get() = startParameter.projectDir
+
+    val currentDirectory: File
+        get() = startParameter.currentDir
 
     val settingsDirectory: File
         get() = buildLayout.settingsDir
@@ -59,51 +68,22 @@ class InstantExecutionStartParameter(
     val isRefreshDependencies
         get() = startParameter.isRefreshDependencies
 
+    val isWriteDependencyLocks
+        get() = startParameter.isWriteDependencyLocks && !isUpdateDependencyLocks
+
+    val isUpdateDependencyLocks
+        get() = startParameter.lockedDependenciesToUpdate.isNotEmpty()
+
     val requestedTaskNames: List<String> by unsafeLazy {
         startParameter.taskNames
     }
 
-    val instantExecutionCacheKey: String by unsafeLazy {
-        // The following characters are not valid in task names
-        // and can be used as separators: /, \, :, <, >, ", ?, *, |
-        // except we also accept qualified task names with :, so colon is out.
-        val cacheKey = StringBuilder()
-        requestedTaskNames.joinTo(cacheKey, separator = "/")
-        val excludedTaskNames = startParameter.excludedTaskNames
-        if (excludedTaskNames.isNotEmpty()) {
-            excludedTaskNames.joinTo(cacheKey, prefix = "<", separator = "/")
-        }
-        val taskNames = requestedTaskNames.asSequence() + excludedTaskNames.asSequence()
-        val hasRelativeTaskName = taskNames.any { !it.startsWith(':') }
-        if (hasRelativeTaskName) {
-            // Because unqualified task names are resolved relative to the enclosing
-            // sub-project according to `invocationDirectory`,
-            // the relative invocation directory information must be part of the key.
-            relativeChildPathOrNull(startParameter.currentDir, rootDirectory)?.let { relativeSubDir ->
-                cacheKey.append('*')
-                cacheKey.append(relativeSubDir)
-            }
-        }
-        createCompactMD5(cacheKey.toString())
-    }
+    val excludedTaskNames: Set<String>
+        get() = startParameter.excludedTaskNames
 
     val allInitScripts: List<File>
         get() = startParameter.allInitScripts
 
-    /**
-     * Returns the path of [target] relative to [base] if
-     * [target] is a child of [base] or `null` otherwise.
-     */
-    private
-    fun relativeChildPathOrNull(target: File, base: File): String? =
-        GFileUtils.relativePathOf(target, base)
-            .takeIf { !it.startsWith('.') }
-
-    private
-    fun systemPropertyFlag(propertyName: String, defaultValue: Boolean = false): Boolean =
-        systemProperty(propertyName)?.toBoolean() ?: defaultValue
-
-    private
-    fun systemProperty(propertyName: String) =
-        startParameter.systemPropertiesArgs[propertyName] ?: System.getProperty(propertyName)
+    val gradleUserHomeDir: File
+        get() = startParameter.gradleUserHomeDir
 }

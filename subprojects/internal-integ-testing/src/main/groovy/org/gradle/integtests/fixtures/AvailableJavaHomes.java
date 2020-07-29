@@ -27,6 +27,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.integtests.fixtures.jvm.InstalledJvmLocator;
 import org.gradle.integtests.fixtures.jvm.JvmInstallation;
+import org.gradle.integtests.fixtures.jvm.JvmInstallation.Arch;
 import org.gradle.integtests.fixtures.jvm.SdkManJvmLocator;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jre;
@@ -49,6 +50,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static org.gradle.integtests.fixtures.jvm.JvmInstallation.Arch.Unknown;
+import static org.gradle.integtests.fixtures.jvm.JvmInstallation.Arch.i386;
+import static org.gradle.integtests.fixtures.jvm.JvmInstallation.Arch.x86_64;
 
 /**
  * Allows the tests to get hold of an alternative Java installation when needed.
@@ -190,6 +196,7 @@ public abstract class AvailableJavaHomes {
             jvms = new ArrayList<>();
             jvms.addAll(new DevInfrastructureJvmLocator(fileCanonicalizer).findJvms());
             InstalledJvmLocator installedJvmLocator = new InstalledJvmLocator(OperatingSystem.current(), Jvm.current(), nativeServices.get(WindowsRegistry.class), nativeServices.get(SystemInfo.class), fileCanonicalizer);
+            jvms.addAll(new DevInfrastructureJvmLocator(fileCanonicalizer).findJvms());
             jvms.addAll(installedJvmLocator.findJvms());
             if (OperatingSystem.current().isLinux()) {
                 jvms.addAll(new BaseDirJvmLocator(fileCanonicalizer, new File("/opt")).findJvms());
@@ -198,6 +205,7 @@ public abstract class AvailableJavaHomes {
                 jvms.addAll(new SdkManJvmLocator(fileCanonicalizer).findJvms());
             }
             jvms.addAll(new HomeDirJvmLocator(fileCanonicalizer).findJvms());
+            jvms.addAll(new EnvVariableJvmLocator().findJvms());
             // Order from most recent to least recent
             Collections.sort(jvms, (o1, o2) -> o2.getVersion().compareTo(o1.getVersion()));
         }
@@ -206,6 +214,23 @@ public abstract class AvailableJavaHomes {
             System.out.println("    " + jvm);
         }
         return jvms;
+    }
+
+    /**
+     * Locate Java installations based on environment variables such as "JDK8", "JDK11", "JDK14", etc.
+     * This is a convention from https://docs.gradle.com/enterprise/test-distribution-agent/#capabilities
+     */
+    private static class EnvVariableJvmLocator {
+        private static final Pattern JDK_PATTERN = Pattern.compile("JDK\\d\\d?");
+
+        public List<JvmInstallation> findJvms() {
+            return System.getenv().entrySet()
+                .stream()
+                .filter(it -> JDK_PATTERN.matcher(it.getKey()).matches())
+                .filter(it -> new File(it.getValue()).exists())
+                .map(it -> new JvmInstallation(JavaVersion.toVersion(it.getKey().substring(3)), it.getKey().substring(3), new File(it.getValue()), true, x86_64))
+                .collect(Collectors.toList());
+        }
     }
 
     private static class DevInfrastructureJvmLocator {
@@ -218,17 +243,17 @@ public abstract class AvailableJavaHomes {
         public List<JvmInstallation> findJvms() {
             List<JvmInstallation> jvms = new ArrayList<>();
             if (OperatingSystem.current().isLinux()) {
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_5, "1.5.0", new File("/opt/jdk/sun-jdk-5"), true, JvmInstallation.Arch.i386);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_6, "1.6.0", new File("/opt/jdk/sun-jdk-6"), true, JvmInstallation.Arch.x86_64);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_6, "1.6.0", new File("/opt/jdk/ibm-jdk-6"), true, JvmInstallation.Arch.x86_64);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_7, "1.7.0", new File("/opt/jdk/oracle-jdk-7"), true, JvmInstallation.Arch.x86_64);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_8, "1.8.0", new File("/opt/jdk/oracle-jdk-8"), true, JvmInstallation.Arch.x86_64);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_9, "1.9.0", new File("/opt/jdk/oracle-jdk-9"), true, JvmInstallation.Arch.x86_64);
+                jvms = addJvm(jvms, JavaVersion.VERSION_1_5, "1.5.0", new File("/opt/jdk/sun-jdk-5"), true, i386);
+                jvms = addJvm(jvms, JavaVersion.VERSION_1_6, "1.6.0", new File("/opt/jdk/sun-jdk-6"), true, x86_64);
+                jvms = addJvm(jvms, JavaVersion.VERSION_1_6, "1.6.0", new File("/opt/jdk/ibm-jdk-6"), true, x86_64);
+                jvms = addJvm(jvms, JavaVersion.VERSION_1_7, "1.7.0", new File("/opt/jdk/oracle-jdk-7"), true, x86_64);
+                jvms = addJvm(jvms, JavaVersion.VERSION_1_8, "1.8.0", new File("/opt/jdk/oracle-jdk-8"), true, x86_64);
+                jvms = addJvm(jvms, JavaVersion.VERSION_1_9, "1.9.0", new File("/opt/jdk/oracle-jdk-9"), true, x86_64);
             }
             return CollectionUtils.filter(jvms, element -> element.getJavaHome().isDirectory());
         }
 
-        private List<JvmInstallation> addJvm(List<JvmInstallation> jvms, JavaVersion javaVersion, String versionString, File javaHome, boolean jdk, JvmInstallation.Arch arch) {
+        private List<JvmInstallation> addJvm(List<JvmInstallation> jvms, JavaVersion javaVersion, String versionString, File javaHome, boolean jdk, Arch arch) {
             if (javaHome.exists()) {
                 jvms.add(new JvmInstallation(javaVersion, versionString, fileCanonicalizer.canonicalize(javaHome), jdk, arch));
             }
@@ -262,7 +287,7 @@ public abstract class AvailableJavaHomes {
                     continue;
                 }
                 String version = matcher.group(1);
-                jvms.add(new JvmInstallation(JavaVersion.toVersion(version), version, file, true, JvmInstallation.Arch.Unknown));
+                jvms.add(new JvmInstallation(JavaVersion.toVersion(version), version, file, true, Unknown));
             }
             return jvms;
         }

@@ -17,6 +17,7 @@
 package org.gradle.language.scala.internal.toolchain
 
 import org.gradle.api.internal.ClassPathRegistry
+import org.gradle.api.internal.tasks.scala.HashedClasspath
 import org.gradle.initialization.ClassLoaderRegistry
 import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.process.internal.JavaForkOptionsFactory
@@ -30,7 +31,7 @@ class DefaultScalaToolProviderTest extends Specification {
     ClassLoaderRegistry classLoaderRegistry = Mock()
     WorkerDaemonFactory workerDaemonFactory = Mock()
     ActionExecutionSpecFactory actionExecutionSpecFactory = Mock()
-    Set<File> scalacClasspath = Mock()
+    HashedClasspath scalacClasspath = Mock()
     Set<File> zincClasspath = Mock()
     File rootProjectDir = Mock()
 

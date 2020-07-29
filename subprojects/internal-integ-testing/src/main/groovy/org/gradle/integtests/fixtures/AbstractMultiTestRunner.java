@@ -316,7 +316,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
             for (Description child : source.getChildren()) {
                 Description mappedChild;
                 if (child.getMethodName() != null) {
-                    mappedChild = Description.createSuiteDescription(String.format("%s [%s](%s)", child.getMethodName(), getDisplayName(), child.getClassName()));
+                    mappedChild = Description.createSuiteDescription(String.format("%s <%s>(%s)", child.getMethodName(), getDisplayName(), child.getClassName()));
                     parent.addChild(mappedChild);
                     if (!isTestEnabled(new TestDescriptionBackedTestDetails(source, child))) {
                         disabledTests.add(child);

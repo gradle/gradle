@@ -17,6 +17,7 @@
 package org.gradle.internal.resource;
 
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
@@ -32,6 +33,16 @@ public interface TextResource extends Resource {
      * Returns the location of this resource.
      */
     ResourceLocation getLocation();
+
+    /**
+     * A long display name for this resource. The display name must use absolute paths and assume no context.
+     */
+    DisplayName getLongDisplayName();
+
+    /**
+     * A short display name for this resource. The display name may use relative paths.
+     */
+    DisplayName getShortDisplayName();
 
     /**
      * Returns a file that contains the same content as this resource, encoded using the charset specified by {@link #getCharset()}.

@@ -47,6 +47,7 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void buildStarted(Gradle gradle) {
         StartParameter startParameter = gradle.getStartParameter();
         logger.info("Starting Build");

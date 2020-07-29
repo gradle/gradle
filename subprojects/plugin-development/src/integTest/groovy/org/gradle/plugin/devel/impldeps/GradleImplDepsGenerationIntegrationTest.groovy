@@ -16,11 +16,14 @@
 
 package org.gradle.plugin.devel.impldeps
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
+
+@IgnoreIf({ GradleContextualExecuter.embedded }) // Gradle API and TestKit JARs are not generated when running embedded
 class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     def "Gradle API is not generated if not declared by build"() {
         given:
-        requireOwnGradleUserHomeDir()
         buildFile << applyJavaPlugin()
 
         when:
@@ -32,7 +35,6 @@ class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrat
 
     def "buildSrc project implicitly forces generation of Gradle API JAR"() {
         given:
-        requireOwnGradleUserHomeDir()
         buildFile << applyJavaPlugin()
         temporaryFolder.createFile('buildSrc/src/main/groovy/MyPlugin.groovy') << customGroovyPlugin()
 

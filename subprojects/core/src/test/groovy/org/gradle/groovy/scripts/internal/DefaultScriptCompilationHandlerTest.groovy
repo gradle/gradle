@@ -35,13 +35,17 @@ import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.configuration.ImportsReader
 import org.gradle.groovy.scripts.ScriptCompilationException
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.groovy.scripts.StringScriptSource
+import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.groovy.scripts.Transformer
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.internal.Actions
+import org.gradle.internal.Describables
+import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.reflect.JavaReflectionUtil
+import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Serializer
@@ -55,9 +59,9 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.instanceOf
+import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertFalse
-import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertTrue
 
 class DefaultScriptCompilationHandlerTest extends Specification {
@@ -70,6 +74,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
     private File scriptCacheDir
     private File metadataCacheDir
     private File cachedFile
+    private ClassPath scriptClassPath
 
     private String scriptText
     private String scriptClassName
@@ -96,6 +101,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
             importsReader
         )
         scriptCacheDir = new File(testProjectDir, "cache")
+        scriptClassPath = DefaultClassPath.of(scriptCacheDir)
         metadataCacheDir = new File(testProjectDir, "metadata")
         scriptText = "System.setProperty('" + TEST_EXPECTED_SYSTEM_PROP_KEY + "', '" + TEST_EXPECTED_SYSTEM_PROP_VALUE + "')"
 
@@ -111,6 +117,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         _ * source.className >> scriptClassName
         _ * source.fileName >> scriptFileName
         _ * source.displayName >> "script-display-name"
+        _ * source.longDisplayName >> Describables.of("script-display-name")
         _ * source.resource >> resource
         _ * resource.text >> scriptText
         return source
@@ -127,7 +134,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         checkScriptClassesInCache()
 
         when:
-        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, null, expectedScriptClass)
+        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, null, expectedScriptClass)
 
         then:
         compiledScript.runDoesSomething
@@ -160,7 +167,7 @@ println 'hi'
         checkEmptyScriptInCache()
 
         when:
-        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, null, expectedScriptClass)
+        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, null, expectedScriptClass)
 
         then:
         !compiledScript.runDoesSomething
@@ -188,7 +195,7 @@ println 'hi'
         checkEmptyScriptInCache()
 
         when:
-        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, null, expectedScriptClass)
+        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, null, expectedScriptClass)
 
         then:
         !compiledScript.runDoesSomething
@@ -208,7 +215,7 @@ println 'hi'
         checkScriptClassesInCache(true)
 
         when:
-        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, null, expectedScriptClass)
+        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, null, expectedScriptClass)
 
         then:
         !compiledScript.runDoesSomething
@@ -233,7 +240,7 @@ println 'hi'
         checkScriptClassesInCache(true)
 
         when:
-        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, null, expectedScriptClass)
+        def compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, null, expectedScriptClass)
 
         then:
         !compiledScript.runDoesSomething
@@ -250,7 +257,7 @@ println 'hi'
         scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, Script.class, verifier)
 
         when:
-        scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, null, expectedScriptClass).loadClass()
+        scriptCompilationHandler.loadFromDir(scriptSource, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, null, expectedScriptClass).loadClass()
 
         then:
         GradleException e = thrown()
@@ -259,7 +266,7 @@ println 'hi'
     }
 
     def testCompileToDirWithSyntaxError() {
-        ScriptSource source = new StringScriptSource("script.gradle", "\n\nnew invalid syntax")
+        ScriptSource source = new TextResourceScriptSource(new StringTextResource("script.gradle", "\n\nnew invalid syntax"))
 
         when:
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
@@ -328,7 +335,7 @@ println 'hi'
 
         when:
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, transformer, expectedScriptClass, verifier)
-        def compiledScript = scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, transformer, expectedScriptClass)
+        def compiledScript = scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, transformer, expectedScriptClass)
 
         then:
         compiledScript.runDoesSomething
@@ -384,7 +391,7 @@ println 'hi'
 
         when:
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, transformer, expectedScriptClass, verifier)
-        def compiledScript = scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, transformer, expectedScriptClass)
+        def compiledScript = scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, scriptClassPath, metadataCacheDir, transformer, expectedScriptClass)
 
         then:
         !compiledScript.runDoesSomething
@@ -406,7 +413,7 @@ println 'hi'
     @Unroll
     @Issue('GRADLE-3382')
     def "test compile with #unknownClass"() {
-        ScriptSource source = new StringScriptSource("script.gradle", "new ${unknownClass}()")
+        ScriptSource source = new TextResourceScriptSource(new StringTextResource("script.gradle", "new ${unknownClass}()"))
 
         when:
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
@@ -420,12 +427,12 @@ println 'hi'
         checkScriptCacheEmpty()
 
         where:
-        unknownClass << [ 'unknownClass', 'fully.qualified.unknownClass', 'not.java.util.Map.Entry' ]
+        unknownClass << ['unknownClass', 'fully.qualified.unknownClass', 'not.java.util.Map.Entry']
     }
 
     @Issue('GRADLE-3423')
     def testCompileWithInnerClassReference() {
-        ScriptSource source = new StringScriptSource("script.gradle", innerClass)
+        ScriptSource source = new TextResourceScriptSource(new StringTextResource("script.gradle", innerClass))
 
         when:
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
@@ -453,7 +460,7 @@ Outer.Inner entry = null
     @Issue('GRADLE-3423')
     @Ignore
     def testCompileWithInnerInnerClassReference() {
-        ScriptSource source = new StringScriptSource("script.gradle", innerClass)
+        ScriptSource source = new TextResourceScriptSource(new StringTextResource("script.gradle", innerClass))
 
         when:
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)

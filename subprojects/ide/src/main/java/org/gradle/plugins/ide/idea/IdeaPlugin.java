@@ -44,7 +44,6 @@ import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.xml.XmlTransformer;
-import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleMetadata;
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer;
@@ -478,6 +477,8 @@ public class IdeaPlugin extends IdePlugin {
         return !moduleLanguageLevel.equals(ideaProject.getLanguageLevel());
     }
 
+
+    @SuppressWarnings("deprecation")
     private void configureForScalaPlugin() {
         project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
             @Override
@@ -485,9 +486,9 @@ public class IdeaPlugin extends IdePlugin {
                 ideaModuleDependsOnRoot();
             }
         });
-        project.getPlugins().withType(ScalaLanguagePlugin.class, new Action<ScalaLanguagePlugin>() {
+        project.getPlugins().withType(org.gradle.language.scala.plugins.ScalaLanguagePlugin.class, new Action<org.gradle.language.scala.plugins.ScalaLanguagePlugin>() {
             @Override
-            public void execute(ScalaLanguagePlugin scalaLanguagePlugin) {
+            public void execute(org.gradle.language.scala.plugins.ScalaLanguagePlugin scalaLanguagePlugin) {
                 ideaModuleDependsOnRoot();
             }
 

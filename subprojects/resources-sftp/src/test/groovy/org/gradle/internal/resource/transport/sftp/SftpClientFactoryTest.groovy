@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.transport.sftp
 
-import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 

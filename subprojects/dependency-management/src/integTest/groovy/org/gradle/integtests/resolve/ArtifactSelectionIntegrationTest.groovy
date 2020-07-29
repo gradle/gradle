@@ -319,7 +319,6 @@ task show {
         outputContains("variants: [{artifactType=jar, buildType=profile, flavor=tasty, usage=api}]")
     }
 
-    @ToBeFixedForInstantExecution
     def "applies producer's disambiguation rules when selecting variant"() {
         buildFile << """
 class FlavorCompatibilityRule implements AttributeCompatibilityRule<String> {
@@ -458,7 +457,6 @@ task show {
         outputContains("variants: [{artifactType=jar, buildType=debug, extra=good, usage=api}]")
     }
 
-    @ToBeFixedForInstantExecution
     def "can select the implicit variant of a configuration"() {
         buildFile << """
 

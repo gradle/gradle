@@ -16,10 +16,13 @@
 package org.gradle.api.execution;
 
 import org.gradle.api.Task;
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
 
 /**
  * <p>A {@code TaskActionListener} is notified of the actions that a task performs.</p>
  */
+@EventScope(Scopes.Build)
 public interface TaskActionListener {
     /**
      * This method is called immediately before the task starts performing its actions.

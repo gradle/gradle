@@ -49,7 +49,7 @@ import java.util.Map;
  * new contents.
  */
 class HtmlDependencyVerificationReportRenderer implements DependencyVerificationReportRenderer {
-    private Map<String, Section> sections = Maps.newTreeMap();
+    private final Map<String, Section> sections = Maps.newTreeMap();
     private Section currentSection;
     private final StringBuilder contents = new StringBuilder();
     private final DocumentationRegistry documentationRegistry;

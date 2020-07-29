@@ -17,6 +17,7 @@
 package org.gradle.instantexecution.serialization
 
 import org.gradle.instantexecution.extensions.uncheckedCast
+import org.gradle.instantexecution.problems.DocumentationSection
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.serialize.BaseSerializerFactory
@@ -25,8 +26,6 @@ import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.Serializer
 
 import java.io.File
-
-import java.util.ArrayDeque
 
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
@@ -46,12 +45,12 @@ inline fun <reified T> ownerServiceCodec() =
 
 
 internal
-inline fun <reified T : Any> unsupported(): Codec<T> = codec(
+inline fun <reified T : Any> unsupported(documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes): Codec<T> = codec(
     encode = { value ->
-        logUnsupported("serialize", T::class, value.javaClass)
+        logUnsupported("serialize", T::class, value.javaClass, documentationSection)
     },
     decode = {
-        logUnsupported("deserialize", T::class)
+        logUnsupported("deserialize", T::class, documentationSection)
         null
     }
 )
@@ -80,18 +79,18 @@ fun <T> ReadContext.ownerService(serviceType: Class<T>) =
 internal
 fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
 
-    val encodeStack = ArrayDeque<EncodeFrame<T>>()
+    var encodeCall: EncodeFrame<T>? = null
 
-    val decodeStack = ArrayDeque<DecodeFrame<T?>>()
+    var decodeCall: DecodeFrame<T?>? = null
 
     override suspend fun WriteContext.encode(value: T) {
-        when {
-            encodeStack.isEmpty() -> {
-                encodeStack.push(EncodeFrame(value, null))
+        when (encodeCall) {
+            null -> {
+                encodeCall = EncodeFrame(value, null)
                 encodeLoop(coroutineContext)
             }
             else -> suspendCoroutine<Unit> { k ->
-                encodeStack.push(EncodeFrame(value, k))
+                encodeCall = EncodeFrame(value, k)
             }
         }
     }
@@ -101,56 +100,63 @@ fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
             immediateMode -> {
                 codec.run { decode() }
             }
-            decodeStack.isEmpty() -> {
-                decodeStack.push(DecodeFrame(null))
+            decodeCall == null -> {
+                decodeCall = DecodeFrame(null)
                 decodeLoop(coroutineContext)
             }
             else -> suspendCoroutine { k ->
-                decodeStack.push(DecodeFrame(k))
+                decodeCall = DecodeFrame(k)
             }
         }
 
     private
     fun WriteContext.encodeLoop(coroutineContext: CoroutineContext) {
         do {
+            val call = encodeCall!!
             suspend {
                 codec.run {
-                    encode(encodeStack.peek().value)
+                    encode(call.value)
                 }
             }.startCoroutine(
                 Continuation(coroutineContext) {
-                    when (val k = encodeStack.pop().k) {
-                        null -> it.getOrThrow()
+                    when (val k = call.k) {
+                        null -> {
+                            encodeCall = null
+                            it.getOrThrow()
+                        }
                         else -> k.resumeWith(it)
                     }
                 }
             )
-        } while (encodeStack.isNotEmpty())
+        } while (encodeCall != null)
     }
 
     private
     fun ReadContext.decodeLoop(coroutineContext: CoroutineContext): T? {
         var result: T? = null
         do {
+            val call = decodeCall!!
             suspend {
                 codec.run { decode() }
             }.startCoroutine(
                 Continuation(coroutineContext) {
-                    when (val k = decodeStack.pop().k) {
-                        null -> result = it.getOrThrow()
+                    when (val k = call.k) {
+                        null -> {
+                            decodeCall = null
+                            result = it.getOrThrow()
+                        }
                         else -> k.resumeWith(it)
                     }
                 }
             )
-        } while (decodeStack.isNotEmpty())
+        } while (decodeCall != null)
         return result
     }
 }
 
 
-@Suppress("experimental_feature_warning")
 private
-inline class DecodeFrame<T>(val k: Continuation<T>?)
+class DecodeFrame<T>(val k: Continuation<T>?)
 
 
 private
@@ -340,37 +346,42 @@ inline fun <T : Any?> ReadContext.readArray(readElement: () -> T): Array<T> {
 }
 
 
-fun <E : Enum<E>> WriteContext.writeEnum(value: E) {
+fun <E : Enum<E>> Encoder.writeEnum(value: E) {
     writeSmallInt(value.ordinal)
 }
 
 
-inline fun <reified E : Enum<E>> ReadContext.readEnum(): E =
+inline fun <reified E : Enum<E>> Decoder.readEnum(): E =
     readSmallInt().let { ordinal -> enumValues<E>()[ordinal] }
 
 
-fun WriteContext.writeShort(value: Short) {
+fun Encoder.writeShort(value: Short) {
     BaseSerializerFactory.SHORT_SERIALIZER.write(this, value)
 }
 
 
-fun ReadContext.readShort(): Short =
+fun Decoder.readShort(): Short =
     BaseSerializerFactory.SHORT_SERIALIZER.read(this)
 
 
-fun WriteContext.writeFloat(value: Float) {
+fun Encoder.writeFloat(value: Float) {
     BaseSerializerFactory.FLOAT_SERIALIZER.write(this, value)
 }
 
 
-fun ReadContext.readFloat(): Float =
+fun Decoder.readFloat(): Float =
     BaseSerializerFactory.FLOAT_SERIALIZER.read(this)
 
 
-fun WriteContext.writeDouble(value: Double) {
+fun Encoder.writeDouble(value: Double) {
     BaseSerializerFactory.DOUBLE_SERIALIZER.write(this, value)
 }
 
 
-fun ReadContext.readDouble(): Double =
+fun Decoder.readDouble(): Double =
     BaseSerializerFactory.DOUBLE_SERIALIZER.read(this)
+
+
+inline
+fun <reified T : Any> ReadContext.readClassOf() =
+    readClass().asSubclass(T::class.java)

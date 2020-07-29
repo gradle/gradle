@@ -106,7 +106,7 @@ public abstract class TransformationSubject implements Describable {
 
         @Override
         public String getDisplayName() {
-            return "artifact " + artifactId.getDisplayName();
+            return artifactId.getDisplayName();
         }
 
         @Override

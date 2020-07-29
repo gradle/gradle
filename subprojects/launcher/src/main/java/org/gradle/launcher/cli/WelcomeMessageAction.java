@@ -23,9 +23,9 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.IoActions;
 import org.gradle.launcher.bootstrap.ExecutionListener;
+import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
@@ -38,13 +38,13 @@ import java.io.StringWriter;
 class WelcomeMessageAction implements Action<ExecutionListener> {
 
     private final Logger logger;
-    private final BuildLayoutParameters buildLayoutParameters;
+    private final BuildLayoutResult buildLayout;
     private final GradleVersion gradleVersion;
     private final Function<String, InputStream> inputStreamProvider;
     private final Action<ExecutionListener> action;
 
-    WelcomeMessageAction(BuildLayoutParameters buildLayoutParameters, Action<ExecutionListener> action) {
-        this(Logging.getLogger(WelcomeMessageAction.class), buildLayoutParameters, GradleVersion.current(), new Function<String, InputStream>() {
+    WelcomeMessageAction(BuildLayoutResult buildLayout, Action<ExecutionListener> action) {
+        this(Logging.getLogger(WelcomeMessageAction.class), buildLayout, GradleVersion.current(), new Function<String, InputStream>() {
             @Nullable
             @Override
             public InputStream apply(@Nullable String input) {
@@ -54,9 +54,9 @@ class WelcomeMessageAction implements Action<ExecutionListener> {
     }
 
     @VisibleForTesting
-    WelcomeMessageAction(Logger logger, BuildLayoutParameters buildLayoutParameters, GradleVersion gradleVersion, Function<String, InputStream> inputStreamProvider, Action<ExecutionListener> action) {
+    WelcomeMessageAction(Logger logger, BuildLayoutResult buildLayout, GradleVersion gradleVersion, Function<String, InputStream> inputStreamProvider, Action<ExecutionListener> action) {
         this.logger = logger;
-        this.buildLayoutParameters = buildLayoutParameters;
+        this.buildLayout = buildLayout;
         this.gradleVersion = gradleVersion;
         this.inputStreamProvider = inputStreamProvider;
         this.action = action;
@@ -107,7 +107,7 @@ class WelcomeMessageAction implements Action<ExecutionListener> {
     }
 
     private File getMarkerFile() {
-        File gradleUserHomeDir = buildLayoutParameters.getGradleUserHomeDir();
+        File gradleUserHomeDir = buildLayout.getGradleUserHomeDir();
         File notificationsDir = new File(gradleUserHomeDir, "notifications");
         File versionedNotificationsDir = new File(notificationsDir, gradleVersion.getVersion());
         return new File(versionedNotificationsDir, "release-features.rendered");

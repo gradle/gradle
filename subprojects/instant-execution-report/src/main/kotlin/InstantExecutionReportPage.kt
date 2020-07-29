@@ -22,7 +22,6 @@ import elmish.code
 import elmish.div
 import elmish.empty
 import elmish.h1
-import elmish.h2
 import elmish.ol
 import elmish.pre
 import elmish.small
@@ -37,9 +36,9 @@ import kotlin.browser.window
 internal
 sealed class ProblemNode {
 
-    data class Error(val label: ProblemNode) : ProblemNode()
+    data class Error(val label: ProblemNode, val docLink: ProblemNode?) : ProblemNode()
 
-    data class Warning(val label: ProblemNode) : ProblemNode()
+    data class Warning(val label: ProblemNode, val docLink: ProblemNode?) : ProblemNode()
 
     data class Task(val path: String, val type: String) : ProblemNode()
 
@@ -48,6 +47,8 @@ sealed class ProblemNode {
     data class Property(val kind: String, val name: String, val owner: String) : ProblemNode()
 
     data class Label(val text: String) : ProblemNode()
+
+    data class Link(val href: String, val label: String) : ProblemNode()
 
     data class Message(val prettyText: PrettyText) : ProblemNode()
 
@@ -76,17 +77,30 @@ typealias ProblemTreeIntent = TreeView.Intent<ProblemNode>
 
 
 internal
+val ProblemTreeModel.problemCount: Int
+    get() = tree.children.size
+
+
+internal
 object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, InstantExecutionReportPage.Intent> {
 
     data class Model(
+        val cacheAction: String,
+        val documentationLink: String,
         val totalProblems: Int,
         val messageTree: ProblemTreeModel,
         val taskTree: ProblemTreeModel,
-        val displayFilter: DisplayFilter = DisplayFilter.All
+        val displayFilter: DisplayFilter = DisplayFilter.All,
+        val tab: Tab = Tab.ByMessage
     )
 
     enum class DisplayFilter {
         All, Errors, Warnings
+    }
+
+    enum class Tab(val text: String) {
+        ByMessage("Problems grouped by message"),
+        ByTask("Problems grouped by tasks")
     }
 
     sealed class Intent {
@@ -98,6 +112,8 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         data class Copy(val text: String) : Intent()
 
         data class SetFilter(val displayFilter: DisplayFilter) : Intent()
+
+        data class SetTab(val tab: Tab) : Intent()
     }
 
     override fun step(intent: Intent, model: Model): Model = when (intent) {
@@ -114,25 +130,63 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         is Intent.SetFilter -> model.copy(
             displayFilter = intent.displayFilter
         )
+        is Intent.SetTab -> model.copy(
+            tab = intent.tab
+        )
     }
 
     override fun view(model: Model): View<Intent> = div(
-        attributes { className("container") },
+        attributes { className("report-wrapper") },
         div(
+            attributes { className("header") },
+            div(attributes { className("gradle-logo") }),
+            learnMore(model.documentationLink),
             div(
-                attributes { className("right") },
+                attributes { className("title") },
+                h1("${model.totalProblems} problems were found ${model.cacheAction} the configuration cache"),
                 div(
-                    displayFilterButton(DisplayFilter.All, model.displayFilter),
-                    displayFilterButton(DisplayFilter.Errors, model.displayFilter),
-                    displayFilterButton(DisplayFilter.Warnings, model.displayFilter)
+                    attributes { className("filters") },
+                    div(
+                        span("View"),
+                        div(
+                            attributes { className("filters-group") },
+                            displayFilterButton(DisplayFilter.All, model.displayFilter),
+                            displayFilterButton(DisplayFilter.Errors, model.displayFilter),
+                            displayFilterButton(DisplayFilter.Warnings, model.displayFilter)
+                        )
+                    )
                 )
             ),
             div(
-                attributes { className("left") },
-                h1("${model.totalProblems} instant execution problems were found"),
-                learnMore(),
-                viewTree(model.messageTree, Intent::MessageTreeIntent, model.displayFilter),
-                viewTree(model.taskTree, Intent::TaskTreeIntent, model.displayFilter)
+                attributes { className("groups") },
+                displayTabButton(Tab.ByMessage, model.tab, model.messageTree.problemCount),
+                displayTabButton(Tab.ByTask, model.tab, model.taskTree.problemCount)
+            )
+        ),
+        div(
+            attributes { className("content") },
+            when (model.tab) {
+                Tab.ByMessage -> viewTree(model.messageTree, Intent::MessageTreeIntent, model.displayFilter)
+                Tab.ByTask -> viewTree(model.taskTree, Intent::TaskTreeIntent, model.displayFilter)
+            }
+        )
+    )
+
+    private
+    fun displayTabButton(tab: Tab, activeTab: Tab, problemsCount: Int): View<Intent> = div(
+        attributes {
+            className("group-selector")
+            if (tab == activeTab) {
+                className("group-selector--active")
+            } else {
+                onClick { Intent.SetTab(tab) }
+            }
+        },
+        span(
+            tab.text,
+            span(
+                attributes { className("group-selector__count") },
+                "$problemsCount"
             )
         )
     )
@@ -150,26 +204,26 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
     )
 
     private
-    fun learnMore(): View<Intent> = div(
-        span("Learn more about "),
+    fun learnMore(documentationLink: String): View<Intent> = div(
+        attributes { className("learn-more") },
+        span("Learn more about the "),
         a(
-            attributes { href("https://gradle.github.io/instant-execution/") },
-            "Gradle Instant Execution"
+            attributes { href(documentationLink) },
+            "Gradle Configuration Cache"
         ),
         span(".")
     )
 
     private
     fun viewTree(model: ProblemTreeModel, treeIntent: (ProblemTreeIntent) -> Intent, displayFilter: DisplayFilter): View<Intent> = div(
-        h2(model.tree.label.unsafeCast<ProblemNode.Label>().text),
         ol(
             viewSubTrees(applyFilter(displayFilter, model)) { child ->
                 when (val node = child.tree.label) {
                     is ProblemNode.Error -> {
-                        viewLabel(treeIntent, child, node.label, errorIcon)
+                        viewLabel(treeIntent, child, node.label, node.docLink, errorIcon)
                     }
                     is ProblemNode.Warning -> {
-                        viewLabel(treeIntent, child, node.label, warningIcon)
+                        viewLabel(treeIntent, child, node.label, node.docLink, warningIcon)
                     }
                     is ProblemNode.Exception -> {
                         viewException(treeIntent, child, node)
@@ -216,6 +270,13 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         is ProblemNode.Message -> viewPrettyText(
             node.prettyText
         )
+        is ProblemNode.Link -> a(
+            attributes {
+                className("documentation-button")
+                href(node.href)
+            },
+            node.label
+        )
         else -> span(
             node.toString()
         )
@@ -226,13 +287,18 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
         treeIntent: (ProblemTreeIntent) -> Intent,
         child: Tree.Focus<ProblemNode>,
         label: ProblemNode,
+        docLink: ProblemNode? = null,
         decoration: View<Intent> = empty
     ): View<Intent> = div(
-        treeButtonFor(child, treeIntent),
-        decoration,
-        span(" "),
-        viewNode(label)
-    )
+        listOf(
+            treeButtonFor(child, treeIntent),
+            decoration,
+            viewNode(label)
+        ) + if (docLink == null) {
+            emptyList()
+        } else {
+            listOf(viewNode(docLink))
+        })
 
     private
     fun treeButtonFor(child: Tree.Focus<ProblemNode>, treeIntent: (ProblemTreeIntent) -> Intent): View<Intent> =
@@ -245,25 +311,37 @@ object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, 
     fun viewTreeButton(child: Tree.Focus<ProblemNode>, treeIntent: (ProblemTreeIntent) -> Intent): View<Intent> = span(
         attributes {
             className("tree-btn")
+            if (child.tree.state === Tree.ViewState.Collapsed) {
+                className("collapsed")
+            }
+            if (child.tree.state === Tree.ViewState.Expanded) {
+                className("expanded")
+            }
             title("Click to ${toggleVerb(child.tree.state)}")
             onClick { treeIntent(TreeView.Intent.Toggle(child)) }
         },
         when (child.tree.state) {
-            Tree.ViewState.Collapsed -> "► "
-            Tree.ViewState.Expanded -> "▼ "
+            Tree.ViewState.Collapsed -> "› "
+            Tree.ViewState.Expanded -> "⌄ "
         }
     )
 
     private
-    val errorIcon = span<Intent>(" ❌")
+    val errorIcon = span<Intent>(
+        attributes { className("error-icon") },
+        "⨉"
+    )
 
     private
-    val warningIcon = span<Intent>(" ⚠️")
+    val warningIcon = span<Intent>(
+        attributes { className("warning-icon") },
+        "⚠️"
+    )
 
     private
     val emptyTreeIcon = span<Intent>(
         attributes { className("tree-icon") },
-        "■ "
+        "■"
     )
 
     private

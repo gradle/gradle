@@ -19,6 +19,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.DefaultUserCodeApplicationContext;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -26,20 +27,20 @@ import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.DefaultBuildOperationExecutor;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
 import org.gradle.internal.operations.DelegatingBuildOperationExecutor;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
-import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -73,14 +74,14 @@ public class CrossBuildSessionScopeServices implements Closeable {
     private final Services services;
 
     public CrossBuildSessionScopeServices(ServiceRegistry parent, StartParameter startParameter) {
-        this.services = new Services(parent);
+        this.services = new Services(parent, startParameter);
 
         this.buildOperationListenerManager = parent.get(BuildOperationListenerManager.class);
 
         ListenerManager generalListenerManager = parent.get(ListenerManager.class);
         this.buildOperationTrace = new BuildOperationTrace(startParameter, buildOperationListenerManager);
         this.buildOperationNotificationBridge = new BuildOperationNotificationBridge(buildOperationListenerManager, generalListenerManager);
-        this.loggingBuildOperationProgressBroadcaster = new LoggingBuildOperationProgressBroadcaster(parent.get(OutputEventListenerManager.class), buildOperationListenerManager.getBroadcaster());
+        this.loggingBuildOperationProgressBroadcaster = new LoggingBuildOperationProgressBroadcaster(parent.get(OutputEventListenerManager.class), parent.get(BuildOperationProgressEventEmitter.class));
     }
 
     GradleLauncherFactory createGradleLauncherFactory() {
@@ -112,8 +113,8 @@ public class CrossBuildSessionScopeServices implements Closeable {
         return services.get(UserCodeApplicationContext.class);
     }
 
-    BuildOperationNotificationListenerRegistrar createBuildOperationNotificationListenerRegistrar() {
-        return buildOperationNotificationBridge.getRegistrar();
+    BuildOperationNotificationBridge createBuildOperationNotificationBridge() {
+        return buildOperationNotificationBridge;
     }
 
     BuildOperationNotificationValve createBuildOperationNotificationValve() {
@@ -136,8 +137,15 @@ public class CrossBuildSessionScopeServices implements Closeable {
 
     private class Services extends DefaultServiceRegistry {
 
-        public Services(ServiceRegistry parent) {
+        private final StartParameter startParameter;
+
+        public Services(ServiceRegistry parent, StartParameter startParameter) {
             super(parent);
+            this.startParameter = startParameter;
+        }
+
+        ParallelismConfiguration createParallelismConfiguration() {
+            return new DefaultParallelismConfiguration(startParameter.isParallelProjectExecutionEnabled(), startParameter.getMaxWorkerCount());
         }
 
         GradleLauncherFactory createGradleLauncherFactory(GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry) {
@@ -147,8 +155,8 @@ public class CrossBuildSessionScopeServices implements Closeable {
             );
         }
 
-        WorkerLeaseService createWorkerLeaseService(ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfigurationManager parallelismConfigurationManager) {
-            return new DefaultWorkerLeaseService(resourceLockCoordinationService, parallelismConfigurationManager);
+        WorkerLeaseService createWorkerLeaseService(ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfiguration parallelismConfiguration) {
+            return new DefaultWorkerLeaseService(resourceLockCoordinationService, parallelismConfiguration);
         }
 
         BuildOperationExecutor createBuildOperationExecutor(
@@ -156,7 +164,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
             ProgressLoggerFactory progressLoggerFactory,
             WorkerLeaseService workerLeaseService,
             ExecutorFactory executorFactory,
-            ParallelismConfigurationManager parallelismConfigurationManager,
+            ParallelismConfiguration parallelismConfiguration,
             BuildOperationIdFactory buildOperationIdFactory
         ) {
             return new DefaultBuildOperationExecutor(
@@ -165,7 +173,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
                 progressLoggerFactory,
                 new DefaultBuildOperationQueueFactory(workerLeaseService),
                 executorFactory,
-                parallelismConfigurationManager,
+                parallelismConfiguration,
                 buildOperationIdFactory
             );
         }

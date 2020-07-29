@@ -219,6 +219,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
+        @SuppressWarnings("rawtypes")
         public void allDependencies(Closure closure) {
             resolutionResult.allDependencies(closure);
         }
@@ -238,6 +239,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
+        @SuppressWarnings("rawtypes")
         public void allComponents(Closure closure) {
             resolutionResult.allComponents(closure);
         }
@@ -328,11 +330,11 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
     }
 
     private static class BrokenResolvedConfiguration implements ResolvedConfiguration, VisitedArtifactSet, SelectedArtifactSet {
-        private final Throwable e;
+        private final Throwable ex;
         private final ConfigurationInternal configuration;
 
-        public BrokenResolvedConfiguration(Throwable e, ConfigurationInternal configuration) {
-            this.e = e;
+        public BrokenResolvedConfiguration(Throwable ex, ConfigurationInternal configuration) {
+            this.ex = ex;
             this.configuration = configuration;
         }
 
@@ -343,37 +345,37 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
 
         @Override
         public LenientConfiguration getLenientConfiguration() {
-            throw wrapException(e, configuration);
+            throw wrapException(ex, configuration);
         }
 
         @Override
         public void rethrowFailure() throws ResolveException {
-            throw wrapException(e, configuration);
+            throw wrapException(ex, configuration);
         }
 
         @Override
         public Set<File> getFiles() throws ResolveException {
-            throw wrapException(e, configuration);
+            throw wrapException(ex, configuration);
         }
 
         @Override
         public Set<File> getFiles(Spec<? super Dependency> dependencySpec) throws ResolveException {
-            throw wrapException(e, configuration);
+            throw wrapException(ex, configuration);
         }
 
         @Override
         public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
-            throw wrapException(e, configuration);
+            throw wrapException(ex, configuration);
         }
 
         @Override
         public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
-            throw wrapException(e, configuration);
+            throw wrapException(ex, configuration);
         }
 
         @Override
         public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
-            throw wrapException(e, configuration);
+            throw wrapException(ex, configuration);
         }
 
         @Override
@@ -383,12 +385,12 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            context.visitFailure(e);
+            context.visitFailure(ex);
         }
 
         @Override
         public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
-            visitor.visitFailure(e);
+            visitor.visitFailure(ex);
         }
 
     }

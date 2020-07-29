@@ -829,11 +829,11 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         filtered(b)
     }
 
-    def "nodes added to the graph are executed in dependency order"() {
+    def "required nodes added to the graph are executed in dependency order"() {
         given:
-        def node1 = node()
-        def node2 = node(node1)
-        def node3 = node(node2)
+        def node1 = requiredNode()
+        def node2 = requiredNode(node1)
+        def node3 = requiredNode(node2)
         executionPlan.addNodes([node3, node1, node2])
 
         when:
@@ -841,6 +841,14 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
         then:
         executesNodes(node1, node2, node3)
+    }
+
+
+    private Node requiredNode(Node... dependencies) {
+        node(dependencies).tap {
+            require()
+            dependenciesProcessed()
+        }
     }
 
     private Node node(Node... dependencies) {

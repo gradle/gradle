@@ -21,6 +21,7 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.collections.CollectionFilter;
+import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -81,7 +82,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
      * @param instantiator The instantiator to use to create any other collections based on this one
      * @param factoryClosure The closure responsible for creating new instances on demand
      */
-    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, final Closure factoryClosure, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, final Closure<?> factoryClosure, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         this(type, instantiator, Named.Namer.forType(type), factoryClosure, MutationGuards.identity(), collectionCallbackActionDecorator);
     }
 
@@ -93,13 +94,13 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
      * @param namer The naming strategy to use
      * @param factoryClosure The factory responsible for creating new instances on demand
      */
-    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, final Closure factoryClosure, MutationGuard mutationGuard, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        this(type, instantiator, namer, new ClosureObjectFactory<T>(type, factoryClosure), mutationGuard, collectionCallbackActionDecorator);
+    public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, final Closure<?> factoryClosure, MutationGuard mutationGuard, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        this(type, instantiator, namer, new ClosureObjectFactory<>(type, factoryClosure), mutationGuard, collectionCallbackActionDecorator);
     }
 
     @Override
     protected <S extends T> DefaultNamedDomainObjectSet<S> filtered(CollectionFilter<S> filter) {
-        return getInstantiator().newInstance(DefaultNamedDomainObjectSet.class, this, filter, getInstantiator(), getNamer(), crossProjectConfiguratorMutationGuard);
+        return Cast.uncheckedNonnullCast(getInstantiator().newInstance(DefaultNamedDomainObjectSet.class, this, filter, getInstantiator(), getNamer(), crossProjectConfiguratorMutationGuard));
     }
 
     @Override
@@ -114,9 +115,9 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
 
     private static class ClosureObjectFactory<T> implements NamedDomainObjectFactory<T> {
         private final Class<T> type;
-        private final Closure factoryClosure;
+        private final Closure<?> factoryClosure;
 
-        public ClosureObjectFactory(Class<T> type, Closure factoryClosure) {
+        public ClosureObjectFactory(Class<T> type, Closure<?> factoryClosure) {
             this.type = type;
             this.factoryClosure = factoryClosure;
         }

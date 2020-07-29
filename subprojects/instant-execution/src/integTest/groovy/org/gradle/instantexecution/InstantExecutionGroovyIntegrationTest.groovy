@@ -99,8 +99,7 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantRun "build"
+        instantRunLenient "build"
 
         then:
         instantExecution.assertStateStored()
@@ -133,8 +132,7 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantFails "assemble"
+        instantFails WARN_PROBLEMS_CLI_OPT, "assemble"
 
         then:
         instantExecution.assertStateStored()

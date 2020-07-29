@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class DefaultCompositeFileTree extends CompositeFileTree {
     private final Collection<? extends FileTreeInternal> fileTrees;
@@ -32,8 +32,10 @@ public class DefaultCompositeFileTree extends CompositeFileTree {
     }
 
     @Override
-    public void visitContents(FileCollectionResolveContext context) {
-        context.addAll(fileTrees);
+    protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
+        for (FileTreeInternal fileTree : fileTrees) {
+            visitor.accept(fileTree);
+        }
     }
 
     @Override

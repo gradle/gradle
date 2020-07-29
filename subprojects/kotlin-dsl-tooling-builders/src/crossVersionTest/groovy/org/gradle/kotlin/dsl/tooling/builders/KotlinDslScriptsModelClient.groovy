@@ -22,6 +22,7 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 import javax.annotation.Nullable
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 import static org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequestKt.newCorrelationId
 
 
@@ -52,7 +53,10 @@ class KotlinDslScriptsModelClient {
 
             forTasks(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
 
-            def arguments = request.options + "-P${KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME}=${request.correlationId}".toString()
+            def arguments = request.options +
+                "-P${KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME}=${request.correlationId}".toString() +
+                "-Dorg.gradle.internal.plugins.portal.url.override=${gradlePluginRepositoryMirrorUrl()}".toString()
+
             if (!request.scripts.isEmpty()) {
                 arguments += "-P${KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME}=${request.scripts.collect { it.canonicalPath }.join("|")}".toString()
             }

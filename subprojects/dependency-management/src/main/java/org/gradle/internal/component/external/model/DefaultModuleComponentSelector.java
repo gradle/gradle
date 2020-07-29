@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
@@ -150,11 +151,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         if (!attributes.equals(that.attributes)) {
             return false;
         }
-        if (!requestedCapabilities.equals(that.requestedCapabilities)) {
-            return false;
-        }
-
-        return true;
+        return requestedCapabilities.equals(that.requestedCapabilities);
     }
 
     @Override
@@ -193,5 +190,25 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
 
     public static ModuleComponentSelector newSelector(ModuleVersionSelector selector) {
         return new DefaultModuleComponentSelector(selector.getModule(), DefaultImmutableVersionConstraint.of(selector.getVersion()), ImmutableAttributes.EMPTY, ImmutableList.of());
+    }
+
+    public static ModuleComponentSelector withAttributes(ModuleComponentSelector selector, ImmutableAttributes attributes) {
+        DefaultModuleComponentSelector cs = (DefaultModuleComponentSelector) selector;
+        return new DefaultModuleComponentSelector(
+            cs.moduleIdentifier,
+            cs.versionConstraint,
+            attributes,
+            cs.requestedCapabilities
+        );
+    }
+
+    public static ComponentSelector withCapabilities(ModuleComponentSelector selector, List<Capability> requestedCapabilities) {
+        DefaultModuleComponentSelector cs = (DefaultModuleComponentSelector) selector;
+        return new DefaultModuleComponentSelector(
+            cs.moduleIdentifier,
+            cs.versionConstraint,
+            cs.attributes,
+            ImmutableList.copyOf(requestedCapabilities)
+        );
     }
 }

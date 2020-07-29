@@ -49,7 +49,7 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         output =~ /> Outer\s+< Outer\s+Inner/
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "captures lifecycle operations"() {
         given:
         file('buildSrc/buildSrcWhenReady.gradle') << ""
@@ -114,43 +114,47 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         with(operations.only(NotifyProjectBeforeEvaluatedBuildOperationType, { it.details.projectPath == ':foo' })) {
             displayName == 'Notify beforeEvaluate listeners of :foo'
             children*.displayName == ["Execute Project.beforeEvaluate listener"]
-            children.first().children*.displayName == ["Apply script before.gradle to project ':foo'"]
+            children.first().children*.displayName == ["Apply script '${relativePath('foo/before.gradle')}' to project ':foo'"]
             parentId == configOp.id
         }
         with(operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':foo' })) {
             displayName == 'Notify afterEvaluate listeners of :foo'
             children*.displayName == ["Execute Project.afterEvaluate listener"]
-            children.first().children*.displayName == ["Apply script after.gradle to project ':foo'"]
+            children.first().children*.displayName == ["Apply script '${relativePath('foo/after.gradle')}' to project ':foo'"]
             parentId == configOp.id
         }
 
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':buildSrc' })) {
             displayName == 'Notify task graph whenReady listeners (:buildSrc)'
             children*.displayName == ["Execute TaskExecutionGraph.whenReady listener"]
-            children.first().children*.displayName == ["Apply script buildSrcWhenReady.gradle to project ':buildSrc'"]
+            children.first().children*.displayName == ["Apply script '${relativePath('buildSrc/buildSrcWhenReady.gradle')}' to project ':buildSrc'"]
             parentId == operations.first("Calculate task graph (:buildSrc)").id
         }
 
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':included-build' })) {
             displayName == 'Notify task graph whenReady listeners (:included-build)'
             children*.displayName == ["Execute TaskExecutionGraph.whenReady listener"]
-            children.first().children*.displayName == ["Apply script includedWhenReady.gradle to project ':included-build'"]
+            children.first().children*.displayName == ["Apply script '${relativePath('included-build/includedWhenReady.gradle')}' to project ':included-build'"]
             parentId == operations.first("Calculate task graph (:included-build)").id
         }
 
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':' })) {
             displayName == 'Notify task graph whenReady listeners'
             children*.displayName == ["Execute TaskExecutionGraph.whenReady listener"]
-            children.first().children*.displayName == ["Apply script whenReady.gradle to project ':foo'"]
+            children.first().children*.displayName == ["Apply script '${relativePath('foo/whenReady.gradle')}' to project ':foo'"]
             parentId == operations.first("Calculate task graph").id
         }
 
-        def configureIncludedBuild = operations.only(ConfigureProjectBuildOperationType, {it.details.buildPath== ':included-build'})
+        def configureIncludedBuild = operations.only(ConfigureProjectBuildOperationType, { it.details.buildPath == ':included-build' })
 
-        with(operations.only(NotifyProjectAfterEvaluatedBuildOperationType, {it.details.buildPath == ':included-build'})) {
+        with(operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.buildPath == ':included-build' })) {
             displayName == 'Notify afterEvaluate listeners of :included-build'
             // parent is not the plugin application operation, as we fire the build op when hooks are executed, not registered.
             parentId == configureIncludedBuild.id
         }
+    }
+
+    String relativePath(String path) {
+        return path.replace('/', File.separator)
     }
 }

@@ -24,16 +24,13 @@ import org.gradle.performance.fixture.GradleProfilerBuildExperimentRunner
 import org.gradle.performance.fixture.GradleProfilerCrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
-import org.gradle.performance.results.CompositeDataReporter
 import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.performance.results.GradleProfilerReporter
-import org.gradle.performance.results.SlackReporter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.experimental.categories.Category
 import spock.lang.Specification
-
 /**
  * A base class for cross version performance tests.
  *
@@ -45,7 +42,6 @@ import spock.lang.Specification
 class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
 
     private static def resultStore = new CrossVersionResultsStore()
-    private static def reporter = SlackReporter.wrap(resultStore)
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider(getClass())
@@ -59,12 +55,10 @@ class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
 
     def setup() {
         def gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
-        def slackReporter = reporter
-        def compositeReporter = CompositeDataReporter.of(slackReporter, gradleProfilerReporter)
         runner = new GradleProfilerCrossVersionPerformanceTestRunner(
             new GradleProfilerBuildExperimentRunner(gradleProfilerReporter.getResultCollector()),
             resultStore,
-            compositeReporter,
+            resultStore,
             new ReleasedVersionDistributions(buildContext),
             buildContext
         )
@@ -81,7 +75,6 @@ class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
         // TODO - find a better way to cleanup
         System.addShutdownHook {
             resultStore.close()
-            reporter.close()
         }
     }
 }

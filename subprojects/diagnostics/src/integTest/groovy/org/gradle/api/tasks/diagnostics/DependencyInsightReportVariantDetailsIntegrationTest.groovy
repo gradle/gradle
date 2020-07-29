@@ -56,9 +56,9 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
         then:
         outputContains """project :$expectedProject
    variant "$expectedVariant" [
-      $expectedAttributes
-      org.gradle.dependency.bundling = external
       org.gradle.category            = library
+      org.gradle.dependency.bundling = external
+      $expectedAttributes
       org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]
 

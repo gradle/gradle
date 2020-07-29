@@ -147,6 +147,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "core-platform",
+    "name": "corePlatform",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "dependency-management",
     "name": "dependencyManagement",
     "unitTests": true,
@@ -161,10 +168,17 @@
     "crossVersionTests": false
   },
   {
-    "dirName": "distributions",
-    "name": "distributions",
+    "dirName": "distributions-basics",
+    "name": "distributionsBasics",
     "unitTests": false,
-    "functionalTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-core",
+    "name": "distributionsCore",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -175,15 +189,57 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "distributions-full",
+    "name": "distributionsFull",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-integ-tests",
+    "name": "distributionsIntegTests",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-jvm",
+    "name": "distributionsJvm",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-native",
+    "name": "distributionsNative",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-publishing",
+    "name": "distributionsPublishing",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "docs",
     "name": "docs",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "dirName": "ear",
     "name": "ear",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "enterprise",
+    "name": "enterprise",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -256,12 +312,12 @@
     "name": "instantExecution",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "dirName": "instant-execution-report",
     "name": "instantExecutionReport",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -479,7 +535,7 @@
     "dirName": "native",
     "name": "native",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -606,13 +662,6 @@
     "name": "resourcesSftp",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "dirName": "runtime-api-info",
-    "name": "runtimeApiInfo",
-    "unitTests": false,
-    "functionalTests": false,
     "crossVersionTests": false
   },
   {

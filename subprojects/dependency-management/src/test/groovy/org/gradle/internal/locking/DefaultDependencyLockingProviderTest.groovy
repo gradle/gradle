@@ -25,11 +25,14 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
+import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
@@ -51,8 +54,10 @@ class DefaultDependencyLockingProviderTest extends Specification {
     StartParameter startParameter = Mock()
     DomainObjectContext context = Mock()
     DependencySubstitutionRules dependencySubstitutionRules = Mock()
+    FileResourceListener listener = Mock()
     FeaturePreviews featurePreviews = new FeaturePreviews()
     PropertyFactory propertyFactory = new DefaultPropertyFactory(Stub(PropertyHost))
+    FilePropertyFactory filePropertyFactory = TestFiles.filePropertyFactory()
 
     @Subject
     DefaultDependencyLockingProvider provider
@@ -120,6 +125,8 @@ empty=
         then:
         result.mustValidateLockState()
         result.getLockedDependencies() == [newId(DefaultModuleIdentifier.newId('org', 'bar'), '1.3'), newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.0')] as Set
+
+        1 * listener.fileObserved(_)
 
         where:
         unique << [true, false]
@@ -269,7 +276,7 @@ empty=
     }
 
     private DefaultDependencyLockingProvider newProvider() {
-        new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, featurePreviews, propertyFactory)
+        new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, featurePreviews, propertyFactory, filePropertyFactory, listener)
     }
 
     def writeLockFile(List<String> modules, boolean unique = true, String configuration = 'conf') {

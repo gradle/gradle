@@ -17,13 +17,14 @@
 package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 import static org.gradle.language.java.JavaIntegrationTesting.expectJavaLangPluginDeprecationWarnings
 
+@UnsupportedWithInstantExecution(because = "software model")
 class JavaLanguageCustomLibraryDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     def theModel(String model) {
@@ -32,7 +33,6 @@ class JavaLanguageCustomLibraryDependencyResolutionIntegrationTest extends Abstr
         buildFile << model
     }
 
-    @ToBeFixedForInstantExecution
     def "can depend on a custom component producing a JVM library"() {
         given:
         theModel '''
@@ -76,7 +76,6 @@ model {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "can depend on a custom component producing a JVM library in another project with dependency {#dependency}"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -140,7 +139,6 @@ model {
         dependency << ["project ':sub' library 'zdep'", "project ':sub'"]
     }
 
-    @ToBeFixedForInstantExecution
     def "can depend on a custom component producing a JVM library with corresponding platform"() {
         given:
         theModel '''
@@ -199,7 +197,6 @@ model {
         executedAndNotSkipped ':zdep8ApiJar', ':mainJava8Jar'
     }
 
-    @ToBeFixedForInstantExecution
     def "should fail resolving dependencies only for the missing dependency variant"() {
         given:
         theModel '''
@@ -253,7 +250,6 @@ model {
         failure.assertHasCause(TextUtil.normaliseLineSeparators("Cannot find a compatible variant for library 'zdep'.\n    Required platform 'java6', available: 'java7'"))
     }
 
-    @ToBeFixedForInstantExecution
     def "should choose the highest compatible platform variant of the target binary when dependency is a JVM component"() {
         given:
         theModel '''
@@ -296,7 +292,6 @@ model {
         executedAndNotSkipped ':zdepJava7ApiJar', ':mainJar'
     }
 
-    @ToBeFixedForInstantExecution
     def "should choose the highest compatible platform variant of the target binary when dependency is a custom component"() {
         given:
         theModel '''
@@ -341,7 +336,6 @@ model {
         executedAndNotSkipped ':zdep7ApiJar', ':mainJar'
     }
 
-    @ToBeFixedForInstantExecution
     def "custom component can consume a JVM library"() {
         given:
         theModel '''
@@ -379,7 +373,6 @@ model {
         executedAndNotSkipped ':tasks', ':mainApiJar', ':zdepJar'
     }
 
-    @ToBeFixedForInstantExecution
     def "Java consumes custom component consuming Java component"() {
         given:
         theModel '''
@@ -430,7 +423,6 @@ model {
         executedAndNotSkipped ':secondApiJar', ':thirdApiJar', ':mainJar'
     }
 
-    @ToBeFixedForInstantExecution
     def "Custom consumes Java component consuming custom component"() {
         given:
         theModel '''
@@ -485,7 +477,6 @@ model {
         executedAndNotSkipped ':secondApiJar', ':thirdApiJar', ':mainJar'
     }
 
-    @ToBeFixedForInstantExecution
     def "Cannot build all variants of main component because of missing dependency variant"() {
         given:
         theModel '''
@@ -550,7 +541,6 @@ model {
         failure.assertHasCause(TextUtil.normaliseLineSeparators("Cannot find a compatible variant for library 'second'.\n    Required platform 'java6', available: 'java7'"))
     }
 
-    @ToBeFixedForInstantExecution
     def "Not all components target the same Java platforms"() {
         given:
         theModel '''
@@ -635,7 +625,6 @@ model {
         succeeds ':thirdJar'
     }
 
-    @ToBeFixedForInstantExecution
     def "all components should depend on the corresponding variants"() {
         given:
         theModel '''
@@ -781,7 +770,6 @@ model {
         failure.assertHasDescription 'Circular dependency between the following tasks:'
     }
 
-    @ToBeFixedForInstantExecution
     def "Fails if one of the dependencies provides more than one binary for the selected variant"() {
         given:
         theModel '''
@@ -857,7 +845,6 @@ model {
         succeeds ':thirdJava7Jar'
     }
 
-    @ToBeFixedForInstantExecution
     def "complex graph of dependencies without variants"() {
         given:
         /*

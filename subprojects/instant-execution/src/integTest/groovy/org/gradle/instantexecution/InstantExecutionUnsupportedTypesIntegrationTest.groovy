@@ -136,29 +136,29 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         """
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantRun "broken"
+        instantRunLenient "broken"
 
         then:
         problems.assertResultHasProblems(result) {
             withTotalProblemsCount(3)
             withUniqueProblems(
-                "field 'badReference' from type 'SomeTask': cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with instant execution.",
-                "field 'badReference' from type 'SomeBean': cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with instant execution."
+                "field 'badReference' from type 'SomeTask': cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with the configuration cache.",
+                "field 'badReference' from type 'SomeBean': cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with the configuration cache."
             )
+            withProblemsWithStackTraceCount(0)
         }
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantRun "broken"
+        instantRunLenient "broken"
 
         then:
         problems.assertResultHasProblems(result) {
             withTotalProblemsCount(3)
             withUniqueProblems(
-                "field 'badReference' from type 'SomeTask': cannot deserialize object of type '${baseType.name}' as these are not supported with instant execution.",
-                "field 'badReference' from type 'SomeBean': cannot deserialize object of type '${baseType.name}' as these are not supported with instant execution."
+                "field 'badReference' from type 'SomeTask': cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
+                "field 'badReference' from type 'SomeBean': cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache."
             )
+            withProblemsWithStackTraceCount(0)
         }
 
         and:
@@ -254,31 +254,31 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         """
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantRun "broken"
+        instantRunLenient "broken"
 
         then:
         problems.assertResultHasProblems(result) {
             withTotalProblemsCount(3)
             withUniqueProblems(
-                "field 'badField' from type 'SomeTask': cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with instant execution.",
-                "field 'badField' from type 'SomeBean': cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with instant execution."
+                "field 'badField' from type 'SomeTask': cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with the configuration cache.",
+                "field 'badField' from type 'SomeBean': cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with the configuration cache."
             )
+            withProblemsWithStackTraceCount(0)
         }
 
         when:
-        problems.withDoNotFailOnProblems()
-        instantRun "broken"
+        instantRunLenient "broken"
 
         then:
         problems.assertResultHasProblems(result) {
             withTotalProblemsCount(6)
             withUniqueProblems(
-                "field 'badField' from type 'SomeTask': cannot deserialize object of type '${baseType.name}' as these are not supported with instant execution.",
+                "field 'badField' from type 'SomeTask': cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
                 "field 'badField' from type 'SomeTask': value '$deserializedValue' is not assignable to '${baseType.name}'",
-                "field 'badField' from type 'SomeBean': cannot deserialize object of type '${baseType.name}' as these are not supported with instant execution.",
+                "field 'badField' from type 'SomeBean': cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
                 "field 'badField' from type 'SomeBean': value '$deserializedValue' is not assignable to '${baseType.name}'"
             )
+            withProblemsWithStackTraceCount(0)
         }
 
         and:

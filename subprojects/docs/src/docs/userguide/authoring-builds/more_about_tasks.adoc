@@ -84,8 +84,8 @@ And finally, there are language specific syntaxes for the Groovy and Kotlin DSL:
 
 .Defining tasks using a DSL specific syntax
 ====
-include::sample[dir="snippets/tasks/defineAsGroovyExpression",files="build.gradle[]"]
-include::sample[dir="snippets/tasks/defineAsKotlinDelegatedProperty",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/defineAsGroovyExpression/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/tasks/defineAsKotlinDelegatedProperty/kotlin",files="build.gradle.kts[]"]
 
 [.multi-language-text.lang-kotlin]
 Note that the Kotlin link:https://kotlinlang.org/docs/reference/delegated-properties.html[delegated properties] syntax is particularly useful if you need the created task for further reference.
@@ -98,8 +98,8 @@ You often need to locate the tasks that you have defined in the build file, for 
 
 .Accessing tasks using a DSL specific syntax
 ====
-include::sample[dir="snippets/tasks/accessAsGroovyProperty",files="build.gradle[]"]
-include::sample[dir="snippets/tasks/accessAsKotlinDelegatedProperty",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/accessAsGroovyProperty/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/tasks/accessAsKotlinDelegatedProperty/kotlin",files="build.gradle.kts[]"]
 ====
 
 Tasks are also available through the `tasks` collection.
@@ -120,7 +120,7 @@ include::sample[dir="snippets/tasks/accessUsingPath/kotlin",files="build.gradle.
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{snippetsPath}/tasks/accessUsingPath/accessUsingPath.out[]
+include::{snippetsPath}/tasks/accessUsingPath/tests/accessUsingPath.out[]
 ----
 ====
 
@@ -191,24 +191,24 @@ In order to pass values to the `Task` constructor, you must annotate the relevan
 
 .Task class with `@Inject` constructor
 ====
-include::sample[dir="snippets/tasks/taskConstructorArgs/onTaskContainer/groovy",files="build.gradle[tags=inject-task-constructor]"]
-include::sample[dir="snippets/tasks/taskConstructorArgs/onTaskContainer/kotlin",files="build.gradle.kts[tags=inject-task-constructor]"]
+include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/groovy",files="build.gradle[tags=inject-task-constructor]"]
+include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/kotlin",files="build.gradle.kts[tags=inject-task-constructor]"]
 ====
 
 You can then create a task, passing the constructor arguments at the end of the parameter list.
 
 .Creating a task with constructor arguments using TaskContainer
 ====
-include::sample[dir="snippets/tasks/taskConstructorArgs/onTaskContainer/groovy",files="build.gradle[tags=on-task-container]"]
-include::sample[dir="snippets/tasks/taskConstructorArgs/onTaskContainer/kotlin",files="build.gradle.kts[tags=on-task-container]"]
+include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/groovy",files="build.gradle[tags=on-task-container]"]
+include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/kotlin",files="build.gradle.kts[tags=on-task-container]"]
 ====
 
 You can also create the task using a `constructorArgs` Map argument using the Project API:
 
 .Creating a task with constructor arguments using Map
 ====
-include::sample[dir="snippets/tasks/taskConstructorArgs/onProject/groovy",files="build.gradle[tags=on-project]"]
-include::sample[dir="snippets/tasks/taskConstructorArgs/onProject/kotlin",files="build.gradle.kts[tags=on-project]"]
+include::sample[dir="snippets/tasks/taskConstructorArgs-onProject/groovy",files="build.gradle[tags=on-project]"]
+include::sample[dir="snippets/tasks/taskConstructorArgs-onProject/kotlin",files="build.gradle.kts[tags=on-project]"]
 ====
 
 [NOTE]
@@ -233,7 +233,7 @@ include::sample[dir="snippets/tasks/addDependencyUsingPath/kotlin",files="build.
 .Output of **`gradle -q taskX`**
 ----
 > gradle -q taskX
-include::{snippetsPath}/tasks/addDependencyUsingPath/addDependencyUsingPath.out[]
+include::{snippetsPath}/tasks/addDependencyUsingPath/tests/addDependencyUsingPath.out[]
 ----
 ====
 
@@ -247,7 +247,7 @@ include::sample[dir="snippets/tasks/addDependencyUsingTask/kotlin",files="build.
 .Output of **`gradle -q taskX`**
 ----
 > gradle -q taskX
-include::{snippetsPath}/tasks/addDependencyUsingTask/addDependencyUsingTask.out[]
+include::{snippetsPath}/tasks/addDependencyUsingTask/tests/addDependencyUsingTask.out[]
 ----
 ====
 
@@ -261,7 +261,7 @@ include::sample[dir="snippets/tasks/addDependencyUsingClosure/kotlin",files="bui
 .Output of **`gradle -q taskX`**
 ----
 > gradle -q taskX
-include::{snippetsPath}/tasks/addDependencyUsingClosure/addDependencyUsingClosure.out[]
+include::{snippetsPath}/tasks/addDependencyUsingClosure/tests/addDependencyUsingClosure.out[]
 ----
 ====
 
@@ -293,7 +293,7 @@ include::sample[dir="snippets/tasks/mustRunAfter/kotlin",files="build.gradle.kts
 .Output of **`gradle -q taskY taskX`**
 ----
 > gradle -q taskY taskX
-include::{snippetsPath}/tasks/mustRunAfter/mustRunAfter.out[]
+include::{snippetsPath}/tasks/mustRunAfter/tests/mustRunAfter.out[]
 ----
 ====
 
@@ -305,7 +305,7 @@ include::sample[dir="snippets/tasks/shouldRunAfter/kotlin",files="build.gradle.k
 .Output of **`gradle -q taskY taskX`**
 ----
 > gradle -q taskY taskX
-include::{snippetsPath}/tasks/shouldRunAfter/shouldRunAfter.out[]
+include::{snippetsPath}/tasks/shouldRunAfter/tests/shouldRunAfter.out[]
 ----
 ====
 
@@ -316,7 +316,7 @@ In the examples above, it is still possible to execute `taskY` without causing `
 .Output of **`gradle -q taskY`**
 ----
 > gradle -q taskY
-include::{snippetsPath}/tasks/mustRunAfter/mustRunAfterSingleTask.out[]
+include::{snippetsPath}/tasks/mustRunAfter/tests/mustRunAfterSingleTask.out[]
 ----
 ====
 
@@ -338,7 +338,7 @@ include::sample[dir="snippets/tasks/shouldRunAfterWithCycle/kotlin",files="build
 .Output of **`gradle -q taskX`**
 ----
 > gradle -q taskX
-include::{snippetsPath}/tasks/shouldRunAfterWithCycle/shouldRunAfterWithCycle.out[]
+include::{snippetsPath}/tasks/shouldRunAfterWithCycle/tests/shouldRunAfterWithCycle.out[]
 ----
 ====
 
@@ -372,7 +372,7 @@ include::sample[dir="snippets/tutorial/taskOnlyIf/kotlin",files="build.gradle.kt
 .Output of **`gradle hello -PskipHello`**
 ----
 > gradle hello -PskipHello
-include::{snippetsPath}/tutorial/taskOnlyIf/taskOnlyIf.out[]
+include::{snippetsPath}/tutorial/taskOnlyIf/tests/taskOnlyIf.out[]
 ----
 ====
 
@@ -390,7 +390,7 @@ include::sample[dir="snippets/tutorial/stopExecutionException/kotlin",files="bui
 .Output of **`gradle -q myTask`**
 ----
 > gradle -q myTask
-include::{snippetsPath}/tutorial/stopExecutionException/stopExecutionException.out[]
+include::{snippetsPath}/tutorial/stopExecutionException/tests/stopExecutionException.out[]
 ----
 ====
 
@@ -409,7 +409,7 @@ include::sample[dir="snippets/tutorial/disableTask/kotlin",files="build.gradle.k
 .Output of **`gradle disableMe`**
 ----
 > gradle disableMe
-include::{snippetsPath}/tutorial/disableTask/disableTask.out[]
+include::{snippetsPath}/tutorial/disableTask/tests/disableTask.out[]
 ----
 ====
 
@@ -498,25 +498,25 @@ When you’re writing a custom task class, it’s easy to register properties as
 [source,java]
 .buildSrc/src/main/java/org/example/ProcessTemplates.java
 ----
-include::{snippetsPath}/tasks/incrementalBuild/customTaskClass/groovy/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=custom-task-class]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/groovy/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=custom-task-class]
 ----
 
 [source,java]
 .buildSrc/src/main/java/org/example/TemplateData.java
 ----
-include::{snippetsPath}/tasks/incrementalBuild/customTaskClass/groovy/buildSrc/src/main/java/org/example/TemplateData.java[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/groovy/buildSrc/src/main/java/org/example/TemplateData.java[]
 ----
 
 .Output of `gradle processTemplates`
 ----
 > gradle processTemplates
-include::{snippetsPath}/tasks/incrementalBuild/customTaskClass/customTaskClassWithInputOutputAnnotations.out[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskClassWithInputOutputAnnotations.out[]
 ----
 
 .Output of `gradle processTemplates` (run again)
 ----
 > gradle processTemplates
-include::{snippetsPath}/tasks/incrementalBuild/customTaskClass/customTaskClassWithInputOutputAnnotationsUpToDate.out[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskClassWithInputOutputAnnotationsUpToDate.out[]
 ----
 ====
 
@@ -762,7 +762,7 @@ These problems are then turned into deprecation warnings when the task is execut
 .Example output with a task having undeclared inputs and outputs
 ----
 > gradle processTemplatesRuntime
-include::{snippetsPath}/tasks/incrementalBuild/customTaskClass/customTaskClassWithoutInputOutputAnnotations.out[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskClassWithoutInputOutputAnnotations.out[]
 ----
 
 [[sec:task_input_output_runtime_api]]
@@ -790,13 +790,13 @@ Let’s take the template processing example from before and see how it would lo
 
 .Ad-hoc task
 ====
-include::sample[dir="snippets/tasks/incrementalBuild/customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task]"]
-include::sample[dir="snippets/tasks/incrementalBuild/customTaskClass/kotlin",files="build.gradle.kts[tags=ad-hoc-task]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=ad-hoc-task]"]
 
 .Output of **`gradle processTemplatesAdHoc`**
 ----
 > gradle processTemplatesAdHoc
-include::{snippetsPath}/tasks/incrementalBuild/customTaskClass/incrementalAdHocTask.out[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/incrementalAdHocTask.out[]
 ----
 ====
 
@@ -810,8 +810,8 @@ The files that a task removes can be specified through `destroyables.register()`
 
 .Ad-hoc task declaring a destroyable
 ====
-include::sample[dir="snippets/tasks/incrementalBuild/customTaskClass/groovy",files="build.gradle[tags=adhoc-destroyable-task]"]
-include::sample[dir="snippets/tasks/incrementalBuild/customTaskClass/kotlin",files="build.gradle.kts[tags=adhoc-destroyable-task]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=adhoc-destroyable-task]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=adhoc-destroyable-task]"]
 ====
 
 One notable difference between the runtime API and the annotations is the lack of a method that corresponds directly to `@Nested`. That’s why the example uses two `property()` declarations for the template data, one for each `TemplateData` property. You should utilize the same technique when using the runtime API with nested values.  Any given task can either declare destroyables or inputs/outputs, but cannot declare both.
@@ -827,13 +827,13 @@ Let’s say we don’t want to run the `processTemplates` task if there are no s
 
 .Using skipWhenEmpty() via the runtime API
 ====
-include::sample[dir="snippets/tasks/incrementalBuild/customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task-skip-when-empty]"]
-include::sample[dir="snippets/tasks/incrementalBuild/customTaskClass/kotlin",files="build.gradle.kts[tags=ad-hoc-task-skip-when-empty]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task-skip-when-empty]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=ad-hoc-task-skip-when-empty]"]
 
 .Output of **`gradle clean processTemplatesAdHocSkipWhenEmpty`**
 ----
 > gradle clean processTemplatesAdHocSkipWhenEmpty
-include::{snippetsPath}/tasks/incrementalBuild/customTaskClass/incrementalAdHocTaskNoSource.out[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/incrementalAdHocTaskNoSource.out[]
 ----
 ====
 
@@ -851,8 +851,8 @@ With the runtime API you can do just that:
 
 .Using runtime API with custom task type
 ====
-include::sample[dir="snippets/tasks/incrementalBuild/customTaskClass/groovy",files="build.gradle[tags=custom-class-runtime-api]"]
-include::sample[dir="snippets/tasks/incrementalBuild/customTaskClass/kotlin",files="build.gradle.kts[tags=custom-class-runtime-api]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=custom-class-runtime-api]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=custom-class-runtime-api]"]
 ====
 
 Using the runtime API like this is a little like using `doLast()` and `doFirst()` to attach extra actions to a task, except in this case we’re attaching information about inputs and outputs.
@@ -877,13 +877,13 @@ Consider an archive task that packages the output of the `processTemplates` task
 
 .Inferred task dependency via task outputs
 ====
-include::sample[dir="snippets/tasks/incrementalBuild/customTaskClass/groovy",files="build.gradle[tags=inferred-task-dep-via-outputs]"]
-include::sample[dir="snippets/tasks/incrementalBuild/customTaskClass/kotlin",files="build.gradle.kts[tags=inferred-task-dep-via-outputs]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=inferred-task-dep-via-outputs]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=inferred-task-dep-via-outputs]"]
 
 .Output of **`gradle clean packageFiles`**
 ----
 > gradle clean packageFiles
-include::{snippetsPath}/tasks/incrementalBuild/customTaskClass/inferredTaskDep.out[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/inferredTaskDep.out[]
 ----
 ====
 
@@ -893,13 +893,13 @@ The above example can also be written as
 
 .Inferred task dependency via a task argument
 ====
-include::sample[dir="snippets/tasks/incrementalBuild/customTaskClass/groovy",files="build.gradle[tags=inferred-task-dep-via-task]"]
-include::sample[dir="snippets/tasks/incrementalBuild/customTaskClass/kotlin",files="build.gradle.kts[tags=inferred-task-dep-via-task]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=inferred-task-dep-via-task]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=inferred-task-dep-via-task]"]
 
 .Output of **`gradle clean packageFiles2`**
 ----
 > gradle clean packageFiles2
-include::{snippetsPath}/tasks/incrementalBuild/customTaskClass/inferredTaskDep2.out[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/inferredTaskDep2.out[]
 ----
 ====
 
@@ -990,19 +990,19 @@ The implementation is quite simple and you can use the same technique for your o
 
 .Declaring a method to add task inputs
 ====
-include::sample[dir="snippets/tasks/incrementalBuild/incrementalBuildAdvanced/groovy",files="build.gradle[tags=custom-task-class]"]
-include::sample[dir="snippets/tasks/incrementalBuild/incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=custom-task-class]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=custom-task-class]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=custom-task-class]"]
 
 .ProcessTemplates.java
 [source,java]
 ----
-include::{snippetsPath}/tasks/incrementalBuild/incrementalBuildAdvanced/groovy/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=custom-task-class]
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/groovy/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=custom-task-class]
 ----
 
 .Output of `gradle processTemplates`
 ----
 > gradle processTemplates
-include::{snippetsPath}/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildCustomMethods.out[]
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildCustomMethods.out[]
 ----
 ====
 
@@ -1012,19 +1012,19 @@ If we want to support tasks as arguments as well and treat their outputs as the 
 
 .Declaring a method to add a task as an input
 ====
-include::sample[dir="snippets/tasks/incrementalBuild/incrementalBuildAdvanced/groovy",files="build.gradle[tags=task-arg-method]"]
-include::sample[dir="snippets/tasks/incrementalBuild/incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=task-arg-method]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=task-arg-method]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=task-arg-method]"]
 
 .ProcessTemplates.java
 [source,java]
 ----
-include::{snippetsPath}/tasks/incrementalBuild/incrementalBuildAdvanced/groovy/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=task-arg-method]
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/groovy/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=task-arg-method]
 ----
 
 .Output of `gradle processTemplates2`
 ----
 > gradle processTemplates2
-include::{snippetsPath}/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildCustomMethodsWithTaskArg.out[]
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildCustomMethodsWithTaskArg.out[]
 ----
 ====
 
@@ -1044,13 +1044,13 @@ As an example, imagine you want to use the output of a Java compilation task —
 
 .Failed attempt at setting up an inferred task dependency
 ====
-include::sample[dir="snippets/tasks/incrementalBuild/incrementalBuildAdvanced/groovy",files="build.gradle[tags=failed-inferred-task-dep]"]
-include::sample[dir="snippets/tasks/incrementalBuild/incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=failed-inferred-task-dep]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=failed-inferred-task-dep]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=failed-inferred-task-dep]"]
 
 .Output of **`gradle clean badInstrumentClasses`**
 ----
 > gradle clean badInstrumentClasses
-include::{snippetsPath}/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildBadInputFilesConfig.out[]
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildBadInputFilesConfig.out[]
 ----
 ====
 
@@ -1060,13 +1060,13 @@ One solution is to use the `TaskOutputs.files` property, as demonstrated by the 
 
 .Setting up an inferred task dependency between output dir and input files
 ====
-include::sample[dir="snippets/tasks/incrementalBuild/incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep]"]
-include::sample[dir="snippets/tasks/incrementalBuild/incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=inferred-task-dep]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=inferred-task-dep]"]
 
 .Output of **`gradle clean instrumentClasses`**
 ----
 > gradle clean instrumentClasses
-include::{snippetsPath}/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildInputFilesConfig.out[]
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildInputFilesConfig.out[]
 ----
 ====
 
@@ -1074,13 +1074,13 @@ Alternatively, you can get Gradle to access the appropriate property itself by u
 
 .Setting up an inferred task dependency with `layout.files()`
 ====
-include::sample[dir="snippets/tasks/incrementalBuild/incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep-with-files]"]
-include::sample[dir="snippets/tasks/incrementalBuild/incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=inferred-task-dep-with-files]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep-with-files]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=inferred-task-dep-with-files]"]
 
 .Output of **`gradle clean instrumentClasses2`**
 ----
 > gradle clean instrumentClasses2
-include::{snippetsPath}/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildInputFilesConfigUsingTask.out[]
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildInputFilesConfigUsingTask.out[]
 ----
 ====
 
@@ -1090,13 +1090,13 @@ The downside of this approach is that all file outputs of the source task become
 
 .Setting up an inferred task dependency with builtBy()
 ====
-include::sample[dir="snippets/tasks/incrementalBuild/incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep-with-builtby]"]
-include::sample[dir="snippets/tasks/incrementalBuild/incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=inferred-task-dep-with-builtby]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep-with-builtby]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=inferred-task-dep-with-builtby]"]
 
 .Output of **`gradle clean instrumentClassesBuiltBy`**
 ----
 > gradle clean instrumentClassesBuiltBy
-include::{snippetsPath}/tasks/incrementalBuild/incrementalBuildAdvanced/inferredTaskDependencyWithBuiltBy.out[]
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/inferredTaskDependencyWithBuiltBy.out[]
 ----
 ====
 
@@ -1111,19 +1111,19 @@ That’s where the `upToDateWhen()` method on `TaskOutputs` comes in. This takes
 
 .Ignoring up-to-date checks
 ====
-include::sample[dir="snippets/tasks/incrementalBuild/incrementalBuildAdvanced/groovy",files="build.gradle[tags=up-to-date-when]"]
-include::sample[dir="snippets/tasks/incrementalBuild/incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=up-to-date-when]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=up-to-date-when]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=up-to-date-when]"]
 
 .Output of `gradle clean alwaysInstrumentClasses`
 ----
 > gradle clean alwaysInstrumentClasses
-include::{snippetsPath}/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildUpToDateWhen.out[]
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildUpToDateWhen.out[]
 ----
 
 .Output of `gradle alwaysInstrumentClasses`
 ----
 > gradle alwaysInstrumentClasses
-include::{snippetsPath}/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildUpToDateWhenAgain.out[]
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildUpToDateWhenAgain.out[]
 ----
 ====
 
@@ -1160,6 +1160,38 @@ If adding such a file to your jar files is something you do for all of the proje
 The effect of this configuration would be that changes to `build-info.properties` would be ignored for up-to-date checks and <<build_cache.adoc#build_cache,build cache>> key calculations.
 Note that this will not change the runtime behavior of the `test` task — i.e. any test is still able to load `build-info.properties` and the runtime classpath is still the same as before.
 
+[[sec:meta_inf_normalization]]
+===== Java `META-INF` normalization
+
+For files in the `META-INF` directory of jar archives it's not always possible to ignore files completely due to their runtime impact.
+
+Manifests and properties files within `META-INF` are normalized to ignore comments, whitespace and order differences. Manifest attribute names are compared case-and-order insensitively. Properties file keys are order insensitive.
+
+.Ignore `META-INF` manifest attributes
+====
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="build.gradle[tags=ignore-metainf-attribute]"]
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/kotlin",files="build.gradle.kts[tags=ignore-metainf-attribute]"]
+====
+
+.Ignore `META-INF` property keys
+====
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="build.gradle[tags=ignore-metainf-properties]"]
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/kotlin",files="build.gradle.kts[tags=ignore-metainf-properties]"]
+====
+
+.Ignore `META-INF/MANIFEST.MF`
+====
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="build.gradle[tags=ignore-metainf-manifest]"]
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/kotlin",files="build.gradle.kts[tags=ignore-metainf-manifest]"]
+====
+
+.Ignore all files and directories inside `META-INF`
+====
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="build.gradle[tags=ignore-metainf-completely]"]
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/kotlin",files="build.gradle.kts[tags=ignore-metainf-completely]"]
+====
+
+
 [[sec:stale_task_outputs]]
 === Stale task outputs
 
@@ -1183,7 +1215,7 @@ include::sample[dir="snippets/tasks/addRules/kotlin",files="build.gradle.kts[tag
 .Output of **`gradle -q pingServer1`**
 ----
 > gradle -q pingServer1
-include::{snippetsPath}/tasks/addRules/taskRule.out[]
+include::{snippetsPath}/tasks/addRules/tests/taskRule.out[]
 ----
 ====
 
@@ -1199,7 +1231,7 @@ include::sample[dir="snippets/tasks/addRules/kotlin",files="build.gradle.kts[tag
 .Output of **`gradle -q groupPing`**
 ----
 > gradle -q groupPing
-include::{snippetsPath}/tasks/addRules/taskRuleDependsOn.out[]
+include::{snippetsPath}/tasks/addRules/tests/taskRuleDependsOn.out[]
 ----
 ====
 
@@ -1218,7 +1250,7 @@ include::sample[dir="snippets/tasks/finalizers/kotlin",files="build.gradle.kts[]
 .Output of **`gradle -q taskX`**
 ----
 > gradle -q taskX
-include::{snippetsPath}/tasks/finalizers/taskFinalizers.out[]
+include::{snippetsPath}/tasks/finalizers/tests/taskFinalizers.out[]
 ----
 ====
 
@@ -1232,7 +1264,7 @@ include::sample[dir="snippets/tasks/finalizersWithFailure/kotlin",files="build.g
 .Output of **`gradle -q taskX`**
 ----
 > gradle -q taskX
-include::{snippetsPath}/tasks/finalizersWithFailure/taskFinalizersWithFailureGroovy.out[]
+include::{snippetsPath}/tasks/finalizersWithFailure/tests-groovy/taskFinalizersWithFailureGroovy.out[]
 ----
 ====
 

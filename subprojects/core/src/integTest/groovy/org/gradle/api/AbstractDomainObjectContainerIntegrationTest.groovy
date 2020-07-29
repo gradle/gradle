@@ -21,10 +21,10 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
-// Ignored for VFS retention since the test
+// Ignored for file system watching since the test
 //  - takes very long
 //  - never runs any tasks
-@IgnoreIf({ GradleContextualExecuter.vfsRetention })
+@IgnoreIf({ GradleContextualExecuter.watchFs })
 abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractIntegrationSpec {
     abstract String makeContainer()
     abstract String getContainerStringRepresentation()

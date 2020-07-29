@@ -60,7 +60,7 @@ subprojects {
             }
         }
 
-        tasks.withType<ValidatePlugins> {
+        tasks.withType<ValidatePlugins>().configureEach {
             failOnWarning.set(true)
             enableStricterValidation.set(true)
         }
@@ -89,10 +89,6 @@ allprojects {
             }
         }
         maven {
-            name = "Gradle Enterprise Gradle plugin RC"
-            url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local")
-        }
-        maven {
             name = "kotlinx"
             url = uri("https://dl.bintray.com/kotlin/kotlinx")
         }
@@ -103,6 +99,10 @@ allprojects {
         maven {
             name = "kotlin-eap"
             url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
+        }
+        maven {
+            name = "ge-release-candidates"
+            url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local")
         }
     }
 }

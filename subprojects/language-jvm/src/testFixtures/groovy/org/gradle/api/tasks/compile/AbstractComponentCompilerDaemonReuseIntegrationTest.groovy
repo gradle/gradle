@@ -16,7 +16,10 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+
+@UnsupportedWithInstantExecution(because = "software model")
 abstract class AbstractComponentCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuseIntegrationTest {
     @Override
     String newSourceSet(String name) {

@@ -18,13 +18,16 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.internal.component.model.DependencyMetadata;
 
+import javax.annotation.Nullable;
+
 /**
  * A dependency substitution applicator is responsible for applying substitution rules to dependency metadata.
  * Substitution result may either be the same module (no substitution), a different module (target of the substitution
  * is going to be different) or a failure.
  */
 public interface DependencySubstitutionApplicator {
-    DependencySubstitutionApplicator NO_OP = dependency -> SubstitutionResult.of(new DefaultDependencySubstitution(dependency.getSelector()));
+    SubstitutionResult NO_OP_SUBSTITUTION_RESULT = SubstitutionResult.of(NoOpSubstitution.INSTANCE);
+    DependencySubstitutionApplicator NO_OP = dependency -> NO_OP_SUBSTITUTION_RESULT;
 
     SubstitutionResult apply(DependencyMetadata dependency);
 
@@ -32,7 +35,7 @@ public interface DependencySubstitutionApplicator {
         private final DependencySubstitutionInternal result;
         private final Throwable failure;
 
-        private SubstitutionResult(DependencySubstitutionInternal result, Throwable failure) {
+        private SubstitutionResult(@Nullable DependencySubstitutionInternal result, @Nullable Throwable failure) {
             this.result = result;
             this.failure = failure;
         }
@@ -45,10 +48,12 @@ public interface DependencySubstitutionApplicator {
             return new SubstitutionResult(null, err);
         }
 
+        @Nullable
         public DependencySubstitutionInternal getResult() {
             return result;
         }
 
+        @Nullable
         public Throwable getFailure() {
             return failure;
         }
@@ -57,4 +62,5 @@ public interface DependencySubstitutionApplicator {
             return failure != null;
         }
     }
+
 }

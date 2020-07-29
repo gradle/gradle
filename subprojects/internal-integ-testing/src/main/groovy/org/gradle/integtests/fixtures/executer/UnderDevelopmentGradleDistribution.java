@@ -33,7 +33,7 @@ public class UnderDevelopmentGradleDistribution extends DefaultGradleDistributio
         super(
             buildContext.getVersion(),
             gradleHomeDir,
-            buildContext.getDistributionsDir().file(String.format("gradle-%s-bin.zip", buildContext.getVersion().getBaseVersion().getVersion()))
+            buildContext.getNormalizedBinDistribution()
         );
     }
 

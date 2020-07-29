@@ -32,9 +32,6 @@ import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.service.ServiceRegistry
 import java.io.IOException
 import java.lang.reflect.Field
-import java.util.concurrent.Callable
-import java.util.function.Supplier
-import kotlin.reflect.KClass
 
 
 class BeanPropertyReader(
@@ -47,16 +44,14 @@ class BeanPropertyReader(
     val instantiationScheme: InstantiationScheme = instantiatorFactory.decorateScheme()
 
     private
-    val fieldSetters = relevantStateOf(beanType).map {
-        FieldSetter(it.field.name, it.unsupportedFieldType, setterFor(it.field))
-    }
+    val relevantFields = relevantStateOf(beanType)
 
     private
     val constructorForSerialization by unsafeLazy {
         constructors.constructorForSerialization(beanType)
     }
 
-    override suspend fun ReadContext.newBean(generated: Boolean) = if (generated) {
+    override fun ReadContext.newBean(generated: Boolean): Any = if (generated) {
         val services = ownerService<ServiceRegistry>()
         instantiationScheme.withServices(services).deserializationInstantiator().newInstance(beanType, Any::class.java)
     } else {
@@ -64,43 +59,30 @@ class BeanPropertyReader(
     }
 
     override suspend fun ReadContext.readStateOf(bean: Any) {
-        for (fieldSetter in fieldSetters) {
-            val fieldName = fieldSetter.fieldName
-            val setter = fieldSetter.setter
-            fieldSetter.unsupportedFieldType?.let {
+        for (relevantField in relevantFields) {
+            val field = relevantField.field
+            val fieldName = field.name
+            relevantField.unsupportedFieldType?.let {
                 reportUnsupportedFieldType(it, "deserialize", fieldName)
             }
             readPropertyValue(PropertyKind.Field, fieldName) { fieldValue ->
-                setter(bean, fieldValue)
+                set(bean, field, fieldValue)
             }
         }
     }
 
     private
-    fun setterFor(field: Field): ReadContext.(Any, Any?) -> Unit = when (val type = field.type) {
-        Callable::class.java -> { bean, value ->
-            field.set(bean, Callable { value })
-        }
-        Supplier::class.java -> { bean, value ->
-            field.set(bean, Supplier { value })
-        }
-        Function0::class.java -> { bean, value ->
-            field.set(bean, { value })
-        }
-        Lazy::class.java -> { bean, value ->
-            field.set(bean, lazyOf(value))
-        }
-        else -> { bean, value ->
-            if (isAssignableTo(type, value)) {
-                field.set(bean, value)
-            } else if (value != null) {
-                logPropertyProblem("deserialize") {
-                    text("value ")
-                    reference(value.toString())
-                    text(" is not assignable to ")
-                    reference(type)
-                }
-            } // else null value -> ignore
+    fun ReadContext.set(bean: Any, field: Field, value: Any?) {
+        val type = field.type
+        if (isAssignableTo(type, value)) {
+            field.set(bean, value)
+        } else if (value != null) {
+            logPropertyProblem("deserialize") {
+                text("value ")
+                reference(value.toString())
+                text(" is not assignable to ")
+                reference(type)
+            }
         }
     }
 
@@ -109,14 +91,6 @@ class BeanPropertyReader(
         type.isInstance(value) ||
             type.isPrimitive && JavaReflectionUtil.getWrapperTypeForPrimitiveType(type).isInstance(value)
 }
-
-
-private
-class FieldSetter(
-    val fieldName: String,
-    val unsupportedFieldType: KClass<*>?,
-    val setter: ReadContext.(Any, Any?) -> Unit
-)
 
 
 /**

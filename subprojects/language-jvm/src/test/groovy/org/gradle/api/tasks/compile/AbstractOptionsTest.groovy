@@ -19,7 +19,7 @@ package org.gradle.api.tasks.compile
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-public class AbstractOptionsTest extends Specification {
+class AbstractOptionsTest extends Specification {
     def "options map contains all properties with non-null values"() {
         expect:
         options.optionMap() == map
@@ -101,11 +101,6 @@ public class AbstractOptionsTest extends Specification {
 
     static class DeeplyInheritedOptions extends TestOptions {
       String deepProp
-    }
-
-    @SuppressWarnings("ClassName")
-    static class TestOptions_Decorated extends TestOptions {
-        String decoratedProp
     }
 }
 

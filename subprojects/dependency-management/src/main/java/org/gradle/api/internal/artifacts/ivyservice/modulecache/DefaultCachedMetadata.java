@@ -18,10 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,7 +35,11 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
     private volatile Map<Integer, ModuleComponentResolveMetadata> processedMetadataByRules;
 
     DefaultCachedMetadata(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metadata, BuildCommencedTimeProvider timeProvider) {
-        this.ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
+        this(timeProvider.getCurrentTime() - entry.createTimestamp, metadata);
+    }
+
+    private DefaultCachedMetadata(long age, ModuleComponentResolveMetadata metadata) {
+        this.ageMillis = age;
         this.metadata = metadata;
     }
 
@@ -58,8 +64,8 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
     }
 
     @Override
-    public long getAgeMillis() {
-        return ageMillis;
+    public Duration getAge() {
+        return Duration.ofMillis(ageMillis);
     }
 
     @Nullable
@@ -80,5 +86,16 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
             processedMetadataByRules = new ConcurrentHashMap<>(processedMetadataByRules);
         }
         processedMetadataByRules.put(hash, processed);
+    }
+
+    @Override
+    public ModuleMetadataCache.CachedMetadata dehydrate() {
+        if (metadata == null) {
+            return this;
+        }
+        MutableModuleComponentResolveMetadata copy = this.metadata.asMutable();
+
+        ModuleComponentResolveMetadata asImmutable = copy.asImmutable();
+        return new DefaultCachedMetadata(ageMillis, asImmutable);
     }
 }

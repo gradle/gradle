@@ -41,7 +41,7 @@ class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void canBuildJar() {
-        TestFile projectDir = sample.dir
+        TestFile projectDir = sample.dir.file('groovy')
 
         // Build and test projects
         executer.inDirectory(projectDir).withTasks('clean', 'build').run()
@@ -72,7 +72,7 @@ class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationTest {
             executer.withBuildJvmOpts('-XX:MaxPermSize=128m')
         }
 
-        TestFile projectDir = sample.dir
+        TestFile projectDir = sample.dir.file('groovy')
         executer.inDirectory(projectDir).withTasks('clean', 'javadoc', 'scaladoc').run()
 
         TestFile javadocsDir = projectDir.file("build/docs/javadoc")

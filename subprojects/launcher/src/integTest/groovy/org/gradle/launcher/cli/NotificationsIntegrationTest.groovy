@@ -33,7 +33,7 @@ class NotificationsIntegrationTest extends AbstractIntegrationSpec {
     def welcomeMessage
 
     def setup() {
-        executer.requireGradleDistribution()
+        executer.requireDaemon().requireIsolatedDaemons()
         executer.withGradleUserHomeDir(customGradleUserHomeDir)
         executer.withWelcomeMessageEnabled()
         markerFile = new File(executer.gradleUserHomeDir, "notifications/$distribution.version.version/release-features.rendered")

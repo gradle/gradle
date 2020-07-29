@@ -17,11 +17,9 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class BuildSrcVisibilityIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution
     def "buildSrc classes are not visible in settings"() {
         file('buildSrc/build.gradle') << """
             apply plugin: 'groovy'
@@ -78,7 +76,7 @@ class BuildSrcVisibilityIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds("tasks")
+        succeeds("help")
 
         then:
         outputContains("NOT FOUND [settings] $localClassName")

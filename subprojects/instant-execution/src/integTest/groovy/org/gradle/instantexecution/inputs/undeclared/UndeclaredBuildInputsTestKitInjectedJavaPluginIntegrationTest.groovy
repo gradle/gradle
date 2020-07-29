@@ -20,23 +20,36 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
+import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.Requires
+import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
+import org.junit.Rule
 
-@Ignore
 @Requires(TestPrecondition.NOT_WINDOWS)
 class UndeclaredBuildInputsTestKitInjectedJavaPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements JavaPluginImplementation {
     TestFile jar
     TestFile testKitDir
+
+    @Override
+    String getLocation() {
+        return "plugin 'sneaky'"
+    }
+
+    @Rule
+    SetSystemProperties setSystemProperties = new SetSystemProperties(
+        (NativeServices.NATIVE_DIR_OVERRIDE): buildContext.nativeServicesDir.absolutePath
+    )
 
     @Override
     GradleExecuter createExecuter() {
@@ -52,9 +65,9 @@ class UndeclaredBuildInputsTestKitInjectedJavaPluginIntegrationTest extends Abst
     }
 
     @Override
-    void buildLogicApplication() {
+    void buildLogicApplication(SystemPropertyRead read) {
         def builder = artifactBuilder()
-        javaPlugin(builder.sourceFile("SneakyPlugin.java"))
+        javaPlugin(builder.sourceFile("SneakyPlugin.java"), read)
         builder.resourceFile("META-INF/gradle-plugins/sneaky.properties") << """
 implementation-class: SneakyPlugin
         """
@@ -81,8 +94,21 @@ implementation-class: SneakyPlugin
 
         @Override
         protected ExecutionResult doRun() {
+            def runnerResult = createRunner().build()
+            return OutputScrapingExecutionResult.from(runnerResult.output, "")
+        }
+
+        @Override
+        protected ExecutionFailure doRunWithFailure() {
+            def runnerResult = createRunner().buildAndFail()
+            return OutputScrapingExecutionFailure.from(runnerResult.output, "")
+        }
+
+        private GradleRunner createRunner() {
             def runner = GradleRunner.create()
-            runner.withGradleInstallation(buildContext.gradleHomeDir)
+            if (!GradleContextualExecuter.embedded) {
+                runner.withGradleInstallation(buildContext.gradleHomeDir)
+            }
             runner.withTestKitDir(testKitDir)
             runner.withProjectDir(workingDir)
             def args = allArgs
@@ -90,13 +116,7 @@ implementation-class: SneakyPlugin
             runner.withArguments(args)
             runner.withPluginClasspath(pluginClasspath)
             runner.forwardOutput()
-            def runnerResult = runner.build()
-            return OutputScrapingExecutionResult.from(runnerResult.output, "")
-        }
-
-        @Override
-        protected ExecutionFailure doRunWithFailure() {
-            throw new UnsupportedOperationException()
+            runner
         }
     }
 }

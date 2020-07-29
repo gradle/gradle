@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -44,34 +45,33 @@ dependencies {
     implementation(project(":modelGroovy"))
     implementation(project(":resources"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("groovy"))
-    implementation(library("commons_io"))
-    implementation(library("guava"))
-    implementation(library("inject"))
-    implementation(library("asm"))
+    implementation(libs.slf4jApi)
+    implementation(libs.groovy)
+    implementation(libs.commonsIo)
+    implementation(libs.guava)
+    implementation(libs.inject)
+    implementation(libs.asm)
 
     testImplementation(project(":fileCollections"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
 
-    testRuntimeOnly(project(":toolingApi"))
-    testRuntimeOnly(project(":testKit"))
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
     integTestImplementation(project(":baseServicesGroovy"))
-    integTestImplementation(library("jetbrains_annotations"))
+    integTestImplementation(libs.jetbrainsAnnotations)
 
-    integTestRuntimeOnly(project(":toolingApiBuilders"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
-    integTestRuntimeOnly(project(":codeQuality"))
+    integTestLocalRepository(project(":toolingApi")) {
+        because("Required by GradleImplDepsCompatibilityIntegrationTest")
+    }
 
-    integTestRuntimeOnly(project(":kotlinDsl"))
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
-    integTestRuntimeOnly(project(":apiMetadata"))
+    testRuntimeOnly(project(":distributionsBasics")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributionsBasics"))
 }
 
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
+
+integrationTestUsesSampleDir("subprojects/plugin-development/src/main")

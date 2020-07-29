@@ -54,7 +54,7 @@ public class FileCollectionBackedTextResource implements TextResourceInternal {
     public String asString() {
         File file = asFile();
         try {
-            return Files.toString(file, charset);
+            return Files.asCharSource(file, charset).read();
         } catch (FileNotFoundException e) {
             throw ResourceExceptions.readMissing(file, e);
         } catch (IOException e) {

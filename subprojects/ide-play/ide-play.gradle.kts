@@ -1,4 +1,3 @@
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -14,8 +13,10 @@ import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradlebuild.integrationtests.tasks.IntegrationTest
+
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 val integTestRuntimeResources by configurations.creating {
@@ -47,17 +48,15 @@ dependencies {
     implementation(project(":platformJvm"))
     implementation(project(":platformPlay"))
 
-    implementation(library("groovy"))
-    implementation(library("guava"))
+    implementation(libs.groovy)
+    implementation(libs.guava)
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":platformPlay")))
-    testImplementation(testFixtures(project(":ide")))
-
-    integTestRuntimeOnly(project(":compositeBuilds"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestImplementation(testFixtures(project(":platformPlay")))
+    integTestImplementation(testFixtures(project(":ide")))
 
     integTestRuntimeResources(testFixtures(project(":platformPlay")))
+
+    integTestDistributionRuntimeOnly(project(":distributionsFull"))
 }
 
 strictCompile {

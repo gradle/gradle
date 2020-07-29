@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 
 public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryLocator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultLocalMavenRepositoryLocator.class);
-    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{([^\\}]*)\\}");
+    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{([^}]*)}");
 
     private final MavenSettingsProvider settingsProvider;
     private final SystemPropertyAccess system;

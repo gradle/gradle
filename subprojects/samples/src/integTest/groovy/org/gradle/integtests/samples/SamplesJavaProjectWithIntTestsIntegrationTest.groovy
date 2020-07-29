@@ -35,7 +35,7 @@ class SamplesJavaProjectWithIntTestsIntegrationTest extends AbstractIntegrationT
 
     @Test
     void canRunIntegrationTests() {
-        TestFile javaprojectDir = sample.dir
+        TestFile javaprojectDir = sample.dir.file('groovy')
 
         // Run int tests
         executer.inDirectory(javaprojectDir).withTasks('clean', 'integrationTest').run()

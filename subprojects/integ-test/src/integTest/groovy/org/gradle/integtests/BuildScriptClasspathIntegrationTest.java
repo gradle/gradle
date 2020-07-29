@@ -16,7 +16,6 @@
 package org.gradle.integtests;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest;
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution;
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder;
 import org.gradle.integtests.fixtures.executer.ExecutionFailure;
 import org.junit.Ignore;
@@ -27,15 +26,13 @@ import static org.junit.Assert.fail;
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest {
     @Test
-    @ToBeFixedForInstantExecution
     public void providesADefaultBuildForBuildSrcProject() {
         testFile("buildSrc/src/main/java/BuildClass.java").writelns("public class BuildClass { }");
         testFile("build.gradle").writelns("new BuildClass()");
-        inTestDirectory().withTaskList().run();
+        inTestDirectory().withTasks("help").run();
     }
 
     @Test
-    @ToBeFixedForInstantExecution
     public void canExtendTheDefaultBuildForBuildSrcProject() {
         ArtifactBuilder builder = artifactBuilder();
         builder.sourceFile("org/gradle/test/DepClass.java").writelns(
@@ -49,7 +46,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
                 "dependencies { implementation name: 'test', version: '1.3' }");
         testFile("buildSrc/src/main/java/BuildClass.java").writelns("public class BuildClass extends org.gradle.test.DepClass { }");
         testFile("build.gradle").writelns("new BuildClass()");
-        inTestDirectory().withTaskList().run();
+        inTestDirectory().withTasks("help").run();
     }
 
     @Test
@@ -72,7 +69,6 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
     public void gradleImplementationClassesDoNotLeakOntoBuildScriptClassPathWhenUsingBuildSrc() {
         testFile("buildSrc/src/main/java/BuildClass.java").writelns("public class BuildClass { }");
 
@@ -83,7 +79,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
                 "} catch(ClassNotFoundException e) { /* expected */ }",
                 "gradle.class.classLoader.loadClass('com.google.common.collect.Multimap')");
 
-        inTestDirectory().withTaskList().run();
+        inTestDirectory().withTasks("help").run();
     }
 
     @Test

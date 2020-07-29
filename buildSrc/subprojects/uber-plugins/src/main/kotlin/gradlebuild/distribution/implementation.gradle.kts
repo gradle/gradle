@@ -14,3 +14,9 @@
  * limitations under the License.
  */
 package gradlebuild.distribution
+
+import gradlebuild.basics.GradleModuleApiAttribute
+
+configurations["runtimeElements"].attributes {
+    attribute(GradleModuleApiAttribute.attribute, GradleModuleApiAttribute.IMPLEMENTATION)
+}

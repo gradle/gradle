@@ -51,7 +51,7 @@ class OutputFilterUtilTest extends Specification {
         when:
         def filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, beforeExecution)
         then:
-        filteredOutputs.empty
+        collectFiles(filteredOutputs) == [outputDir]
 
         when:
         def outputDirFile = outputDir.file("in-output-dir").createFile()
@@ -70,7 +70,7 @@ class OutputFilterUtilTest extends Specification {
         when:
         def filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, beforeExecution)
         then:
-        filteredOutputs.empty
+        collectFiles(filteredOutputs) == [outputDir]
 
         when:
         def outputOfCurrent = outputDir.file("outputOfCurrent").createFile()
@@ -106,7 +106,7 @@ class OutputFilterUtilTest extends Specification {
         def beforeExecution = FileSystemSnapshot.EMPTY
         expect:
         collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)) == [emptyDir]
-        filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, afterExecution, afterExecution).empty
+        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, afterExecution, afterExecution)) == [emptyDir]
     }
 
     def "updated files in output directory are part of the output"() {
@@ -138,7 +138,7 @@ class OutputFilterUtilTest extends Specification {
 
         expect:
         collectFiles(filterOutputSnapshotAfterExecution(afterPreviousExecutionFingerprint, beforeExecutionSnapshot, afterExecution)) == [outputDir]
-        filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, afterPreviousExecutionFingerprint, afterExecution).empty
+        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, afterPreviousExecutionFingerprint, afterExecution)) == [outputDir]
     }
 
     def "overlapping directories are not included"() {

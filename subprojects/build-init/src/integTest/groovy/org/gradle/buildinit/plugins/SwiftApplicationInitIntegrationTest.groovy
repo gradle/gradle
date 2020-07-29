@@ -43,7 +43,7 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "swift-application plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'swift-application', '--dsl', scriptDsl.id)
@@ -69,7 +69,7 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "swift-application plugin")
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'swift-application', '--project-name', 'app', '--dsl', scriptDsl.id)
@@ -95,7 +95,7 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "swift-application plugin")
     def "source generation is skipped when swift sources detected with #scriptDsl build scripts"() {
         setup:
         targetDir.file("src/main/swift/main.swift") << """

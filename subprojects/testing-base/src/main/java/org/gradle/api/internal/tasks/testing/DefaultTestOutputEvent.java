@@ -17,12 +17,15 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
+@UsedByScanPlugin("test-distribution")
 public class DefaultTestOutputEvent implements TestOutputEvent {
 
     private final Destination destination;
     private final String message;
 
+    @UsedByScanPlugin("test-distribution")
     public DefaultTestOutputEvent(Destination destination, String message) {
         this.destination = destination;
         this.message = message;

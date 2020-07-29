@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 description = "Shared classes for projects requiring GPG support"
@@ -26,24 +26,25 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":processServices"))
     implementation(project(":resourcesHttp"))
-    implementation(library("guava"))
+    implementation(libs.guava)
 
-    api(library("bouncycastle_pgp"))
+    api(libs.bouncycastlePgp)
 
-    implementation(library("groovy")) {
+    implementation(libs.groovy) {
         because("Project.exec() depends on Groovy")
     }
 
     testImplementation(testFixtures(project(":core")))
-    testRuntimeOnly(project(":dependencyManagement"))
-    testRuntimeOnly(project(":workers"))
-    testRuntimeOnly(project(":runtimeApiInfo"))
 
     testFixturesImplementation(project(":baseServices"))
-    testFixturesImplementation(library("slf4j_api"))
-    testFixturesImplementation(testLibrary("jetty"))
+    testFixturesImplementation(libs.slf4jApi)
+    testFixturesImplementation(libs.jetty)
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":internalIntegTesting"))
+
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
+    }
 }
 
 classycle {

@@ -16,8 +16,10 @@
 
 package org.gradle.language.jvm
 
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
+@UnsupportedWithInstantExecution(because = "software model")
 class JvmResourcesPluginIntegrationTest extends WellBehavedPluginTest {
 
     def setup() {

@@ -74,9 +74,10 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
 
     @Override
     public ResourceLockState getCurrent() {
-        if (!currentState.get().isEmpty()) {
-            int numStates = currentState.get().size();
-            return currentState.get().get(numStates - 1);
+        List<ResourceLockState> current = currentState.get();
+        if (!current.isEmpty()) {
+            int numStates = current.size();
+            return current.get(numStates - 1);
         } else {
             return null;
         }

@@ -1,5 +1,6 @@
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.jmh")
 }
 
 description = "This project contains various native operating system integration utilities"
@@ -11,11 +12,11 @@ dependencies {
 
     implementation(project(":baseServices"))
 
-    implementation(library("nativePlatform"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_io"))
-    implementation(library("jansi"))
+    implementation(libs.nativePlatform)
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.commonsIo)
+    implementation(libs.jansi)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
@@ -57,7 +58,9 @@ val convertCSV by tasks.registering {
 
                 val (benchmark, mode, threads, samples, score) = tokens.subList(0, 5)
                 val (error, unit, accessor) = tokens.subList(5, tokens.size)
-                benchmarks.getValue(benchToScenarioName.getValue(benchmark)).add(Pair(accessor.replace("FileMetadataAccessor", ""), score.toDouble().toInt()))
+                val benchmarksValue = benchmarks.getValue(benchToScenarioName.getValue(benchmark))
+                benchmarksValue.add(Pair(accessor.replace("FileMetadataAccessor", ""), score.toDouble().toInt()))
+                benchmarks.put(benchToScenarioName.getValue(benchmark), benchmarksValue)
             }
         }
         outputFile.parentFile.mkdirs()

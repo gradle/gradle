@@ -22,7 +22,7 @@ public class ParsedModuleStringNotation {
     private String name;
     private String version;
     private String classifier;
-    private String artifactType;
+    private final String artifactType;
 
     public ParsedModuleStringNotation(String moduleNotation, String artifactType) {
         assignValuesFromModuleNotation(moduleNotation);

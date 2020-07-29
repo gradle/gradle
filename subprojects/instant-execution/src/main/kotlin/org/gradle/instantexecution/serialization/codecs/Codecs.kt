@@ -16,12 +16,13 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
+import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileFactory
@@ -41,10 +42,23 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.BuildRequestMetaData
+import org.gradle.instantexecution.problems.DocumentationSection.NotYetImplementedJavaSerialization
+import org.gradle.instantexecution.serialization.codecs.jos.JavaObjectSerializationCodec
+import org.gradle.instantexecution.serialization.codecs.transform.ChainedTransformationNodeCodec
+import org.gradle.instantexecution.serialization.codecs.transform.DefaultTransformerCodec
+import org.gradle.instantexecution.serialization.codecs.transform.InitialTransformationNodeCodec
+import org.gradle.instantexecution.serialization.codecs.transform.LegacyTransformerCodec
+import org.gradle.instantexecution.serialization.codecs.transform.TransformDependenciesCodec
+import org.gradle.instantexecution.serialization.codecs.transform.TransformationChainCodec
+import org.gradle.instantexecution.serialization.codecs.transform.TransformationNodeReferenceCodec
+import org.gradle.instantexecution.serialization.codecs.transform.TransformationStepCodec
+import org.gradle.instantexecution.serialization.codecs.transform.TransformedExternalArtifactSetCodec
 import org.gradle.instantexecution.serialization.ownerServiceCodec
 import org.gradle.instantexecution.serialization.reentrant
+import org.gradle.instantexecution.serialization.unsupported
 import org.gradle.internal.Factory
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
@@ -68,10 +82,12 @@ import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.state.ManagedFactoryRegistry
+import org.gradle.jvm.toolchain.internal.JavaCompilerFactory
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
+import java.io.Externalizable
 
 
 class Codecs(
@@ -86,7 +102,6 @@ class Codecs(
     projectStateRegistry: ProjectStateRegistry,
     taskNodeFactory: TaskNodeFactory,
     fingerprinterRegistry: FileCollectionFingerprinterRegistry,
-    projectFinder: ProjectFinder,
     buildOperationExecutor: BuildOperationExecutor,
     classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     isolatableFactory: IsolatableFactory,
@@ -97,6 +112,7 @@ class Codecs(
     actionScheme: ArtifactTransformActionScheme,
     attributesFactory: ImmutableAttributesFactory,
     transformListener: ArtifactTransformListener,
+    transformationNodeRegistry: TransformationNodeRegistry,
     valueSourceProviderFactory: ValueSourceProviderFactory,
     patternSetFactory: Factory<PatternSet>,
     fileOperations: FileOperations,
@@ -127,64 +143,26 @@ class Codecs(
 
         // Dependency management types
         bind(ArtifactCollectionCodec(fileCollectionFactory))
-        bind(ImmutableAttributeCodec(attributesFactory))
-        bind(AttributeContainerCodec(attributesFactory))
+        bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
+        bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
         bind(TransformationNodeReferenceCodec)
+        bind(TransformationStepCodec(projectStateRegistry, fingerprinterRegistry))
+        bind(TransformationChainCodec())
+        bind(DefaultTransformerCodec(buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, parameterScheme, actionScheme))
+        bind(LegacyTransformerCodec(actionScheme))
+        bind(ResolvableArtifactCodec)
+        bind(TransformDependenciesCodec)
+        bind(PublishArtifactLocalArtifactMetadataCodec)
+        bind(TransformedExternalArtifactSetCodec(transformationNodeRegistry))
 
         bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, instantiator))
         bind(DestinationRootCopySpecCodec(fileResolver))
 
         bind(TaskReferenceCodec)
 
-        bind(ownerServiceCodec<ProviderFactory>())
-        bind(ownerServiceCodec<ObjectFactory>())
-        bind(ownerServiceCodec<WorkerExecutor>())
-        bind(ownerServiceCodec<ProjectLayout>())
-        bind(ownerServiceCodec<PatternSpecFactory>())
-        bind(ownerServiceCodec<FileResolver>())
-        bind(ownerServiceCodec<Instantiator>())
-        bind(ownerServiceCodec<FileCollectionFactory>())
-        bind(ownerServiceCodec<FileSystemOperations>())
-        bind(ownerServiceCodec<FileOperations>())
-        bind(ownerServiceCodec<BuildOperationExecutor>())
-        bind(ownerServiceCodec<ToolingModelBuilderRegistry>())
-        bind(ownerServiceCodec<ExecOperations>())
-        bind(ownerServiceCodec<ExecActionFactory>())
-        bind(ownerServiceCodec<BuildOperationListenerManager>())
-        bind(ownerServiceCodec<BuildRequestMetaData>())
-        bind(ownerServiceCodec<ListenerManager>())
-        bind(ownerServiceCodec<TemporaryFileProvider>())
-        bind(ServicesCodec())
-
-        bind(ProxyCodec)
-
-        bind(SerializableWriteObjectCodec())
-        bind(SerializableWriteReplaceCodec())
-
-        // This protects the BeanCodec against StackOverflowErrors but
-        // we can still get them for the other codecs, for instance,
-        // with deeply nested Lists, deeply nested Maps, etc.
-        bind(reentrant(BeanCodec()))
-    }
-
-    val internalTypesCodec = BindingsBackedCodec {
-
-        baseTypes()
-
-        providerTypes(propertyFactory, filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileSystem, fileFactory, patternSetFactory)
-
-        bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
-        bind(InitialTransformationNodeCodec(buildOperationExecutor, transformListener))
-        bind(ChainedTransformationNodeCodec(buildOperationExecutor, transformListener))
-        bind(ActionNodeCodec)
-        bind(ResolvableArtifactCodec)
-        bind(TransformationStepCodec(projectStateRegistry, fingerprinterRegistry, projectFinder))
-        bind(DefaultTransformerCodec(userTypesCodec, buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, parameterScheme, actionScheme))
-        bind(LegacyTransformerCodec(actionScheme))
-
         bind(IsolatedManagedValueCodec(managedFactoryRegistry))
         bind(IsolatedImmutableManagedValueCodec(managedFactoryRegistry))
+        bind(IsolatedSerializedValueSnapshotCodec)
         bind(IsolatedArrayCodec)
         bind(IsolatedSetCodec)
         bind(IsolatedListCodec)
@@ -196,6 +174,55 @@ class Codecs(
         bind(FileValueSnapshotCodec)
         bind(BooleanValueSnapshotCodec)
         bind(NullValueSnapshotCodec)
+
+        bind(ownerServiceCodec<ProviderFactory>())
+        bind(ownerServiceCodec<ObjectFactory>())
+        bind(ownerServiceCodec<WorkerExecutor>())
+        bind(ownerServiceCodec<ProjectLayout>())
+        bind(ownerServiceCodec<PatternSpecFactory>())
+        bind(ownerServiceCodec<FileResolver>())
+        bind(ownerServiceCodec<Instantiator>())
+        bind(ownerServiceCodec<FileCollectionFactory>())
+        bind(ownerServiceCodec<FileSystemOperations>())
+        bind(ownerServiceCodec<FileOperations>())
+        bind(ownerServiceCodec<ArchiveOperations>())
+        bind(ownerServiceCodec<BuildOperationExecutor>())
+        bind(ownerServiceCodec<ToolingModelBuilderRegistry>())
+        bind(ownerServiceCodec<ExecOperations>())
+        bind(ownerServiceCodec<ExecActionFactory>())
+        bind(ownerServiceCodec<BuildOperationListenerManager>())
+        bind(ownerServiceCodec<BuildRequestMetaData>())
+        bind(ownerServiceCodec<ListenerManager>())
+        bind(ownerServiceCodec<TemporaryFileProvider>())
+        bind(ownerServiceCodec<OutputChangeListener>())
+        bind(ownerServiceCodec<JavaCompilerFactory>())
+        bind(ServicesCodec())
+
+        bind(ProxyCodec)
+
+        // Java serialization integration
+        bind(unsupported<Externalizable>(NotYetImplementedJavaSerialization))
+        bind(JavaObjectSerializationCodec())
+
+        // This protects the BeanCodec against StackOverflowErrors but
+        // we can still get them for the other codecs, for instance,
+        // with deeply nested Lists, deeply nested Maps, etc.
+        bind(reentrant(BeanCodec()))
+    }
+
+    val internalTypesCodec = BindingsBackedCodec {
+        baseTypes()
+
+        providerTypes(propertyFactory, filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileSystem, fileFactory, patternSetFactory)
+
+        bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
+        bind(InitialTransformationNodeCodec(userTypesCodec, buildOperationExecutor, transformListener))
+        bind(ChainedTransformationNodeCodec(userTypesCodec, buildOperationExecutor, transformListener))
+        bind(ActionNodeCodec)
+
+        bind(ResolvableArtifactCodec)
+        bind(TransformDependenciesCodec)
 
         bind(NotImplementedCodec)
     }
@@ -249,7 +276,6 @@ class Codecs(
         bind(ImmutableListCodec)
 
         // Only serialize certain Set implementations for now, as some custom types extend Set (eg DomainObjectContainer)
-        bind(linkedHashSetCodec)
         bind(hashSetCodec)
         bind(treeSetCodec)
         bind(ImmutableSetCodec)

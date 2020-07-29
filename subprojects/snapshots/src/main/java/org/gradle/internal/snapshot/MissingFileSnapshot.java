@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
+import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
@@ -28,12 +29,12 @@ import java.util.Optional;
 public class MissingFileSnapshot extends AbstractCompleteFileSystemLocationSnapshot {
     private static final HashCode SIGNATURE = Hashing.signature(MissingFileSnapshot.class);
 
-    public MissingFileSnapshot(String absolutePath, String name) {
-        super(absolutePath, name);
+    public MissingFileSnapshot(String absolutePath, String name, AccessType accessType) {
+        super(absolutePath, name, accessType);
     }
 
-    public MissingFileSnapshot(String absolutePath) {
-        super(absolutePath, PathUtil.getFileName(absolutePath));
+    public MissingFileSnapshot(String absolutePath, AccessType accessType) {
+        this(absolutePath, PathUtil.getFileName(absolutePath), accessType);
     }
 
     @Override

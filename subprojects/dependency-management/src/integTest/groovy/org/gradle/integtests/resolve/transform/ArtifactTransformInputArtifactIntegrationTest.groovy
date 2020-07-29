@@ -66,7 +66,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     // Documents existing behaviour. The absolute path of the input artifact is baked into the workspace identity
     // and so when the path changes the outputs are invalidated
     @Unroll
-    @ToBeFixedForInstantExecution
     def "can attach #description to input artifact property with project artifact file but it has no effect when not caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction()
@@ -179,7 +178,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "can attach #description to input artifact property with project artifact directory but it has no effect when not caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {
@@ -414,7 +412,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         output.contains("Build cache key for MakeGreen")
     }
 
-    @ToBeFixedForInstantExecution
     def "honors @PathSensitive(NONE) on input artifact property for project artifact file when caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction()
@@ -495,7 +492,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "honors @PathSensitive(#sensitivity) to input artifact property for project artifact directory when caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {
@@ -590,7 +586,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "honors @PathSensitive(#sensitivity) on input artifact property for project artifact file when caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction()
@@ -673,7 +668,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         sensitivity << [PathSensitivity.RELATIVE, PathSensitivity.NAME_ONLY]
     }
 
-    @ToBeFixedForInstantExecution
     def "honors content changes for @PathSensitive(NONE) on input artifact property for project artifact directory when not caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {
@@ -763,7 +757,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
     }
 
-    @ToBeFixedForInstantExecution
     def "honors @PathSensitive(NONE) on input artifact property for project artifact directory when caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {
@@ -854,7 +847,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
     }
 
-    @ToBeFixedForInstantExecution
     def "can attach @PathSensitive(NONE) to input artifact property for external artifact"() {
         setupBuildWithColorTransformAction()
         def lib1 = mavenRepo.module("group1", "lib", "1.0").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
@@ -874,11 +866,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
             dependencies {
-                if (project.hasProperty('externalCoords')) {
-                    implementation project.externalCoords
-                } else {
-                    implementation 'group1:lib:1.0'
-                }
+                implementation providers.gradleProperty('externalCoords').forUseAtConfigurationTime().orElse('group1:lib:1.0')
                 implementation 'group2:lib2:1.0'
             }
 
@@ -942,7 +930,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "can attach @PathSensitive(#sensitivity) to input artifact property for external artifact"() {
         setupBuildWithColorTransformAction()
         def lib1 = withColorVariants(mavenRepo.module("group1", "lib", "1.0")).publish()
@@ -962,11 +949,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
             dependencies {
-                if (project.hasProperty('externalCoords')) {
-                    implementation project.externalCoords
-                } else {
-                    implementation 'group1:lib:1.0'
-                }
+                implementation providers.gradleProperty('externalCoords').forUseAtConfigurationTime().orElse('group1:lib:1.0')
                 implementation 'group2:lib2:1.0'
             }
 
@@ -1025,7 +1008,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "honors content changes with @#annotation on input artifact property with project artifact file when not caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {
@@ -1126,7 +1108,6 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "honors @#annotation on input artifact property with project artifact file when caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {
@@ -1227,7 +1208,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         annotation << ["Classpath", "CompileClasspath"]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "classpath normalization configuration is not serialized")
     def "honors runtime classpath normalization for input artifact"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {

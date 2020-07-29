@@ -15,9 +15,11 @@
  */
 package org.gradle.internal.nativeintegration.filesystem
 
+import org.gradle.api.JavaVersion
 import org.gradle.internal.file.FileException
+import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.FileType
-import org.gradle.internal.file.impl.DefaultFileMetadata
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
@@ -170,10 +172,18 @@ class CommonFileSystemTest extends Specification {
     }
 
     def lastModified(File file) {
-        return Files.getFileAttributeView(file.toPath(), BasicFileAttributeView, LinkOption.NOFOLLOW_LINKS).readAttributes().lastModifiedTime().toMillis()
+        return maybeRoundLastModified(Files.getFileAttributeView(file.toPath(), BasicFileAttributeView, LinkOption.NOFOLLOW_LINKS).readAttributes().lastModifiedTime().toMillis())
     }
 
-    def lastModified(DefaultFileMetadata file) {
-        return file.lastModified
+    def lastModified(FileMetadata fileMetadata) {
+        return maybeRoundLastModified(fileMetadata.lastModified)
+    }
+
+    private static maybeRoundLastModified(long lastModified) {
+        // Some Java 8 versions on Unix only capture the seconds in lastModified, so we cut off the milliseconds returned from the filesystem as well.
+        // For example, Oracle JDK 1.8.0_181-b13 does not capture milliseconds, while OpenJDK 1.8.0_242-b08 does.
+        return (JavaVersion.current().java9Compatible || OperatingSystem.current().windows)
+            ? lastModified
+            : lastModified.intdiv(1000) * 1000
     }
 }

@@ -265,7 +265,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "included build is used but not detected by problem reporting")
     def "transform can receive a file collection containing substituted external dependencies as parameter"() {
         file("tools/settings.gradle") << """
             include 'tool-a', 'tool-b'
@@ -461,7 +461,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "file collection containing a String provider is not serialized correctly")
     def "can use input path sensitivity #pathSensitivity for parameter object"() {
         settingsFile << """
                 include 'a', 'b', 'c'
@@ -469,7 +469,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         setupBuildWithTransformFileInputs("@PathSensitive(PathSensitivity.$pathSensitivity) @InputFiles")
         buildFile << """
             allprojects {
-                ext.inputFiles = files(rootProject.file(project.property('fileName')))
+                ext.inputFiles = rootProject.files(providers.gradleProperty('fileName'))
             }
 
             project(':a') {
@@ -516,7 +516,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         PathSensitivity.ABSOLUTE  | [['first/input', 'foo'], ['first/input', 'foo'], ['third/input', 'foo']]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "classpath normalization configuration is not serialized")
     def "can use classpath normalization for parameter object"() {
         settingsFile << """
                 include 'a', 'b', 'c'

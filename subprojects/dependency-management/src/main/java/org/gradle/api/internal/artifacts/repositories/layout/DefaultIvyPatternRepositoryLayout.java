@@ -29,8 +29,8 @@ import java.util.Set;
  * Optionally supports a Maven style layout for the 'organisation' part, replacing any dots with forward slashes.
  */
 public class DefaultIvyPatternRepositoryLayout extends AbstractRepositoryLayout implements IvyPatternRepositoryLayout {
-    private final Set<String> artifactPatterns = new LinkedHashSet<String>();
-    private final Set<String> ivyPatterns = new LinkedHashSet<String>();
+    private final Set<String> artifactPatterns = new LinkedHashSet<>();
+    private final Set<String> ivyPatterns = new LinkedHashSet<>();
     private boolean m2compatible;
 
     /**

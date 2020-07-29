@@ -17,23 +17,18 @@
 package org.gradle.instantexecution.inputs.undeclared
 
 class UndeclaredBuildInputsDynamicGroovyScriptPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
+    def script = file("plugin.gradle")
+
     @Override
-    void buildLogicApplication() {
-        def script = file("plugin.gradle")
-        dynamicGroovyPlugin(script)
-
-        script << """
-            apply plugin: SneakyPlugin
-            println("apply SCRIPT = " + System.getProperty("SCRIPT"))
-        """
-
-        buildFile << """
-            apply from: "plugin.gradle"
-        """
+    String getLocation() {
+        return "script 'plugin.gradle'"
     }
 
     @Override
-    void additionalProblems() {
-        outputContains("- unknown location: read system property 'SCRIPT' from '")
+    void buildLogicApplication(SystemPropertyRead read) {
+        groovyDsl(script, read)
+        buildFile << """
+            apply from: "plugin.gradle"
+        """
     }
 }

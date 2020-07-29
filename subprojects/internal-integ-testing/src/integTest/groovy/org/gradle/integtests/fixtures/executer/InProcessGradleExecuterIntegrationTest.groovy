@@ -25,10 +25,10 @@ import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Unroll
 
-// Ignored for VFS retention since
-// - For VFS retention, we start an isolated daemon, which by definition is not an in process daemon, so the test doesn't make much sense.
+// Ignored for file system watching since
+// - For file system watching, we start an isolated daemon, which by definition is not an in process daemon, so the test doesn't make much sense.
 // - The daemon then leaves back some running daemons which write to the registry and cause an error for `verifyTestFilesCleanup`.
-@IgnoreIf({ GradleContextualExecuter.vfsRetention })
+@IgnoreIf({ GradleContextualExecuter.watchFs })
 class InProcessGradleExecuterIntegrationTest extends Specification {
     @Rule
     RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()

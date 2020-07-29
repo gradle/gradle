@@ -65,6 +65,7 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -138,7 +139,7 @@ public class DependencyGraphBuilder {
         int graphSize = estimateSize(resolveContext);
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
 
-        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, componentSelectorConverter, attributesFactory, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser, moduleConflictHandler.getResolver(), resolutionStrategy.isFailingOnDynamicVersions(), graphSize);
+        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, componentSelectorConverter, attributesFactory, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser, moduleConflictHandler.getResolver(), graphSize, resolveContext.getResolutionStrategy().getConflictResolution());
 
         Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache = Maps.newHashMapWithExpectedSize(graphSize / 2);
         traverseGraph(resolveState, componentIdentifierCache);
@@ -395,7 +396,11 @@ public class DependencyGraphBuilder {
     }
 
     private static boolean isDynamic(SelectorState selector) {
-        return selector.getVersionConstraint().isDynamic();
+        ResolvedVersionConstraint versionConstraint = selector.getVersionConstraint();
+        if (versionConstraint != null) {
+            return versionConstraint.isDynamic();
+        }
+        return false;
     }
 
     private void validateDynamicSelectors(ComponentState selected) {
@@ -507,7 +512,7 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private static boolean compatible(CompatibilityRule<Object> rule, Object v1, Object v2) {
+    private static boolean compatible(CompatibilityRule<Object> rule, @Nullable Object v1, @Nullable Object v2) {
         if (Objects.equals(v1, v2)) {
             // Equal values are compatible
             return true;

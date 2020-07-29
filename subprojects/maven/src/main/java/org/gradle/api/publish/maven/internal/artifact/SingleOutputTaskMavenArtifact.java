@@ -39,7 +39,11 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
 
     @Override
     public File getFile() {
-        return generator.get().getOutputs().getFiles().getSingleFile();
+        return getGenerator().getOutputs().getFiles().getSingleFile();
+    }
+
+    private Task getGenerator() {
+        return generator.get();
     }
 
     @Override
@@ -58,13 +62,13 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
     }
 
     public boolean isEnabled() {
-        return generator.get().getEnabled();
+        return getGenerator().getEnabled();
     }
 
     private class GeneratorTaskDependency extends AbstractTaskDependency {
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            context.add(generator.get());
+            context.add(getGenerator());
         }
     }
 

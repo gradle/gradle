@@ -16,19 +16,23 @@
 
 package org.gradle.internal.snapshot;
 
+import org.gradle.internal.file.FileMetadata.AccessType;
+
 import java.util.Optional;
 
 public abstract class AbstractCompleteFileSystemLocationSnapshot implements CompleteFileSystemLocationSnapshot {
     private final String absolutePath;
     private final String name;
+    private final AccessType accessType;
 
-    public AbstractCompleteFileSystemLocationSnapshot(String absolutePath, String name) {
+    public AbstractCompleteFileSystemLocationSnapshot(String absolutePath, String name, AccessType accessType) {
         this.absolutePath = absolutePath;
         this.name = name;
+        this.accessType = accessType;
     }
 
     protected static MissingFileSnapshot missingSnapshotForAbsolutePath(String filePath) {
-        return new MissingFileSnapshot(filePath);
+        return new MissingFileSnapshot(filePath, AccessType.DIRECT);
     }
 
     @Override
@@ -39,6 +43,11 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public AccessType getAccessType() {
+        return accessType;
     }
 
     @Override

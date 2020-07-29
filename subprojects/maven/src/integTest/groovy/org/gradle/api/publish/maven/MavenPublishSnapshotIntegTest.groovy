@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
  * Tests publishing of maven snapshots
  */
 class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
-    @ToBeFixedForInstantExecution
     def "can publish snapshot versions"() {
         settingsFile << 'rootProject.name = "snapshotPublish"'
         buildFile << """

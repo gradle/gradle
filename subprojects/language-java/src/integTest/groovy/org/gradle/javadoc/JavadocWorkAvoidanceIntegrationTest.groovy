@@ -17,14 +17,13 @@
 package org.gradle.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-@IgnoreIf({GradleContextualExecuter.parallel})
+@IgnoreIf({ GradleContextualExecuter.parallel })
 class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << "include 'a', 'b'"
@@ -60,7 +59,6 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         '''
     }
 
-    @ToBeFixedForInstantExecution
     def "does not regenerate javadoc when the upstream jar is just rebuilt without changes"() {
         given:
         succeeds(":a:javadoc")
@@ -93,7 +91,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
                 from("external/b")
                 from("external/c")
                 from("external/d")
-                
+
                 archiveFileName = "external.jar"
             }
             task reverseAlphabetic(type: Jar) {
@@ -101,7 +99,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
                 from("external/c")
                 from("external/b")
                 from("external/a")
-                
+
                 archiveFileName = "external.jar"
             }
         """
@@ -138,7 +136,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
                 from("external/b")
                 from("external/c")
                 from("external/d")
-                
+
                 archiveFileName = "external.jar"
             }
             task oldTime(type: Jar) {
@@ -146,7 +144,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
                 from("external/b")
                 from("external/c")
                 from("external/d")
-                
+
                 archiveFileName = "external.jar"
                 preserveFileTimestamps = false
             }

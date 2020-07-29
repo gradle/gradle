@@ -141,6 +141,21 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
         noExceptionThrown()
     }
 
+    def "can overwrite gradle user home via system property build argument"() {
+        given:
+        file('.myGradle').createDir()
+        file('build.gradle') << "assert gradle.gradleUserHomeDir.name.endsWith('.myGradle')"
+        toolingApi.requireIsolatedDaemons()
+
+        when:
+        withConnection {
+            it.newBuild().withArguments('-Dgradle.user.home=.myGradle').run()
+        }
+
+        then:
+        noExceptionThrown()
+    }
+
     @TargetGradleVersion(">=2.6 <5.0")
     def "can configure searchUpwards via build arguments"() {
         given:

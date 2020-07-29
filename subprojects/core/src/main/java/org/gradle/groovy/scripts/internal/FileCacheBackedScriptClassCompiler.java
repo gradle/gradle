@@ -34,6 +34,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.hash.PrimitiveHasher;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
@@ -50,7 +51,8 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
+
+import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic;
 
 /**
  * A {@link ScriptClassCompiler} which compiles scripts to a cache directory, and loads them from there.
@@ -86,14 +88,18 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
         ClassLoader classLoader = targetScope.getExportClassLoader();
         HashCode sourceHashCode = source.getResource().getContentHash();
-        final String sourceHash = HashUtil.compactStringFor(sourceHashCode.toByteArray());
         final String dslId = operation.getId();
         HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(classLoader);
         if (classLoaderHash == null) {
             throw new IllegalArgumentException("Unknown classloader: " + classLoader);
         }
-        final String classpathHash = dslId + classLoaderHash;
         final RemappingScriptSource remapped = new RemappingScriptSource(source);
+
+        PrimitiveHasher hasher = Hashing.newPrimitiveHasher();
+        hasher.putString(dslId);
+        hasher.putHash(sourceHashCode);
+        hasher.putHash(classLoaderHash);
+        String key = HashUtil.compactStringFor(hasher.hash().toByteArray());
 
         // Caching involves 2 distinct caches, so that 2 scripts with the same (hash, classpath) do not get compiled twice
         // 1. First, we look for a cache script which (path, hash) matches. This cache is invalidated when the compile classpath of the script changes
@@ -101,19 +107,18 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         // Both caches can be closed directly after use because:
         // For 1, if the script changes or its compile classpath changes, a different directory will be used
         // For 2, if the script changes, a different cache is used. If the classpath changes, the cache is invalidated, but classes are remapped to 1. anyway so never directly used
-        final PersistentCache cache = cacheRepository.cache("scripts/" + sourceHash + "/" + classpathHash)
+        final PersistentCache cache = cacheRepository.cache("scripts/" + key)
             .withDisplayName(dslId + " generic class cache for " + source.getDisplayName())
             .withInitializer(new ProgressReportingInitializer(
                 progressLoggerFactory,
                 new CompileToCrossBuildCacheAction(remapped, classLoader, operation, verifier, scriptBaseClass),
-                "Compiling script into cache",
-                "Compiling " + source.getDisplayName()))
+                "Compiling " + source.getShortDisplayName()))
             .open();
         try {
             File genericClassesDir = classesDir(cache, operation);
             File metadataDir = metadataDir(cache);
-            File remappedClassesDir = remapClasses(genericClassesDir, remapped);
-            return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClassesDir, metadataDir, operation, scriptBaseClass);
+            ClassPath remappedClasses = remapClasses(genericClassesDir, remapped);
+            return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClasses, metadataDir, operation, scriptBaseClass);
         } finally {
             cache.close();
         }
@@ -123,10 +128,10 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         return new EmptyCompiledScript<>(operation);
     }
 
-    private File remapClasses(File genericClassesDir, RemappingScriptSource source) {
+    private ClassPath remapClasses(File genericClassesDir, RemappingScriptSource source) {
         ScriptSource origin = source.getSource();
         String className = origin.getClassName();
-        ClassPath transformed = classpathTransformer.transform(DefaultClassPath.of(genericClassesDir), CachedClasspathTransformer.StandardTransform.BuildLogic, new CachedClasspathTransformer.Transform() {
+        return classpathTransformer.transform(DefaultClassPath.of(genericClassesDir), BuildLogic, new CachedClasspathTransformer.Transform() {
             @Override
             public void applyConfigurationTo(Hasher hasher) {
                 hasher.putString(FileCacheBackedScriptClassCompiler.class.getSimpleName());
@@ -148,11 +153,6 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                 return Pair.of(entry.getPath().getParent().append(true, renamed), remapper);
             }
         });
-        List<File> transformedFiles = transformed.getAsFiles();
-        if (transformedFiles.size() != 1) {
-            throw new IllegalStateException("Expected a single classpath entry, found: " + transformedFiles);
-        }
-        return transformedFiles.get(0);
     }
 
     @Override
@@ -195,22 +195,18 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         private final ProgressLoggerFactory progressLoggerFactory;
         private final Action<? super PersistentCache> delegate;
         private final String shortDescription;
-        private final String longDescription;
 
         public ProgressReportingInitializer(ProgressLoggerFactory progressLoggerFactory,
                                             Action<PersistentCache> delegate,
-                                            String shortDescription,
-                                            String longDescription) {
+                                            String shortDescription) {
             this.progressLoggerFactory = progressLoggerFactory;
             this.delegate = delegate;
             this.shortDescription = shortDescription;
-            this.longDescription = longDescription;
         }
 
         @Override
         public void execute(PersistentCache cache) {
-            ProgressLogger op = progressLoggerFactory.newOperation(FileCacheBackedScriptClassCompiler.class)
-                .start(shortDescription, longDescription);
+            ProgressLogger op = progressLoggerFactory.newOperation(FileCacheBackedScriptClassCompiler.class).start(shortDescription, shortDescription);
             try {
                 delegate.execute(cache);
             } finally {

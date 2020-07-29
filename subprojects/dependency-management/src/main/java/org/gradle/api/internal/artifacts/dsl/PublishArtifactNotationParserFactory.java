@@ -108,9 +108,10 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         }
     }
 
-    private class FileProviderNotationConverter extends TypedNotationConverter<Provider, ConfigurablePublishArtifact> {
+    private class FileProviderNotationConverter extends TypedNotationConverter<Provider<?>, ConfigurablePublishArtifact> {
+        @SuppressWarnings("unchecked")
         FileProviderNotationConverter() {
-            super(Provider.class);
+            super((Class)Provider.class);
         }
 
         @Override
@@ -121,7 +122,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         }
 
         @Override
-        protected ConfigurablePublishArtifact parseType(Provider notation) {
+        protected ConfigurablePublishArtifact parseType(Provider<?> notation) {
             Module module = metaDataProvider.getModule();
             return instantiator.newInstance(DecoratingPublishArtifact.class, new LazyPublishArtifact(notation, module.getVersion()));
         }

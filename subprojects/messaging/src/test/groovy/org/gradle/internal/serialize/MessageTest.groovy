@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.serialize
 
+import groovy.transform.CompileStatic
 import org.gradle.internal.exceptions.Contextual
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import spock.lang.Issue
@@ -325,8 +326,19 @@ class MessageTest extends Specification {
         looksLike(notOk, transported)
     }
 
+    def "preserves assertion errors"() {
+        def assertionError = new CustomAssertionError("true == false")
+
+        when:
+        def transported = transport(assertionError)
+
+        then:
+        transported instanceof PlaceholderAssertionError
+        looksLike(assertionError, transported)
+    }
+
     void looksLike(Throwable original, Throwable transported) {
-        assert transported instanceof PlaceholderException
+        assert transported instanceof PlaceholderExceptionSupport
         assert transported.exceptionClassName == original.class.name
         assert transported.message == original.message
         assert transported.toString() == original.toString()
@@ -465,6 +477,17 @@ class MessageTest extends Specification {
 
         private Object readResolve() {
             return singleton
+        }
+    }
+
+    @CompileStatic
+    static class CustomAssertionError extends AssertionError {
+        CustomAssertionError(Object message) {
+            super(message)
+        }
+
+        private void readObject(ObjectInputStream outstr) {
+            throw new RuntimeException("broken readObject()")
         }
     }
 }

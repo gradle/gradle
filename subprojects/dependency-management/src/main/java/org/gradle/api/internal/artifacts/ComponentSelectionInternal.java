@@ -18,8 +18,11 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ComponentSelection;
 
+import javax.annotation.Nullable;
+
 public interface ComponentSelectionInternal extends ComponentSelection {
     boolean isRejected();
-    
+
+    @Nullable
     String getRejectionReason();
 }

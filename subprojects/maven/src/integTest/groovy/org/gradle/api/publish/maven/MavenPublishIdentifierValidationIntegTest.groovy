@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.encoding.Identifier
 import spock.lang.Unroll
@@ -28,7 +27,6 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
     def artifactId = 'valid_artifact.name'
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "can publish with version and description containing #identifier characters"() {
         given:
         def version = identifier.safeForFileName().decorate("version")
@@ -71,7 +69,6 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "can publish artifacts with version, extension and classifier containing #identifier characters"() {
         given:
         file("content-file") << "some content"
@@ -118,7 +115,6 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         identifier << Identifier.all
     }
 
-    @ToBeFixedForInstantExecution
     def "fails with reasonable error message for invalid identifier value"() {
         buildFile << """
             apply plugin: 'maven-publish'
@@ -157,9 +153,9 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
 
             publishing {
                 repositories {
-                    maven { 
+                    maven {
                         name '${repoName}'
-                        url "${mavenRepo.uri}" 
+                        url "${mavenRepo.uri}"
                     }
                 }
                 publications {

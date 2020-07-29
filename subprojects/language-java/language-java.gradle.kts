@@ -1,7 +1,8 @@
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -27,40 +28,38 @@ dependencies {
     implementation(project(":buildEvents"))
     implementation(project(":toolingApi"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("fastutil"))
-    implementation(library("ant")) // for 'ZipFile' and 'ZipEntry'
-    implementation(library("asm"))
-    implementation(library("asm_commons"))
-    implementation(library("inject"))
+    implementation(libs.groovy)
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.fastutil)
+    implementation(libs.ant) // for 'ZipFile' and 'ZipEntry'
+    implementation(libs.asm)
+    implementation(libs.asmCommons)
+    implementation(libs.inject)
 
     runtimeOnly(project(":javaCompilerPlugin"))
 
     testImplementation(project(":baseServicesGroovy"))
-    testImplementation(library("commons_io"))
+    testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":platformBase")))
-
-    testRuntimeOnly(project(":runtimeApiInfo"))
 
     testFixturesApi(testFixtures(project(":languageJvm")))
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":modelCore"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(project(":platformBase"))
     testFixturesImplementation(project(":persistentCache"))
-    testFixturesImplementation(library("slf4j_api"))
+    testFixturesImplementation(libs.slf4jApi)
 
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
-
-    // TODO - get rid of this cycle
-    integTestRuntimeOnly(project(":plugins"))
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder test (JavaLanguagePluginTest) loads services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributionsBasics"))
 }
 
 strictCompile {
@@ -78,3 +77,5 @@ classycle {
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
+
+integrationTestUsesSampleDir("subprojects/language-java/src/main")

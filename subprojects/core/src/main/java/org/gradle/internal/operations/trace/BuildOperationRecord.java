@@ -184,5 +184,10 @@ public final class BuildOperationRecord {
             Class<?> detailsType = getDetailsType();
             return detailsType != null && clazz.isAssignableFrom(detailsType);
         }
+
+        @Override
+        public String toString() {
+            return "Progress{details=" + details + ", detailsClassName='" + detailsClassName + '\'' + '}';
+        }
     }
 }

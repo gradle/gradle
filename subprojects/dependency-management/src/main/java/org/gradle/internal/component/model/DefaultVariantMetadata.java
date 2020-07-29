@@ -21,13 +21,15 @@ import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.DisplayName;
 
+import javax.annotation.Nullable;
+
 public class DefaultVariantMetadata implements VariantResolveMetadata {
     private final DisplayName displayName;
     private final AttributeContainerInternal attributes;
     private final ImmutableList<? extends ComponentArtifactMetadata> artifacts;
     private final CapabilitiesMetadata capabilitiesMetadata;
 
-    public DefaultVariantMetadata(DisplayName displayName, AttributeContainerInternal attributes, ImmutableList<? extends ComponentArtifactMetadata> artifacts, CapabilitiesMetadata capabilitiesMetadata) {
+    public DefaultVariantMetadata(DisplayName displayName, AttributeContainerInternal attributes, ImmutableList<? extends ComponentArtifactMetadata> artifacts, @Nullable CapabilitiesMetadata capabilitiesMetadata) {
         this.displayName = displayName;
         this.attributes = attributes;
         this.artifacts = artifacts;

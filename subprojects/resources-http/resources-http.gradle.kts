@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -22,27 +22,28 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":coreApi"))
     implementation(project(":core"))
+    implementation(project(":modelCore"))
     implementation(project(":logging"))
 
-    implementation(library("commons_httpclient"))
-    implementation(library("slf4j_api"))
-    implementation(library("jcl_to_slf4j"))
-    implementation(library("jcifs"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("commons_io"))
-    implementation(library("xerces"))
-    implementation(library("nekohtml"))
+    implementation(libs.commonsHttpclient)
+    implementation(libs.slf4jApi)
+    implementation(libs.jclToSlf4j)
+    implementation(libs.jcifs)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
+    implementation(libs.xerces)
+    implementation(libs.nekohtml)
 
     testImplementation(project(":internalIntegTesting"))
-    testImplementation(testLibrary("jetty"))
+    testImplementation(libs.jetty)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
 
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":logging"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("slf4j_api"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    testFixturesImplementation(libs.slf4jApi)
+
+    integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }

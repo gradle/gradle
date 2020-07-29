@@ -21,7 +21,6 @@ import org.gradle.api.tasks.TasksWithInputsAndOutputs
 class InstantExecutionScriptTaskDefinitionIntegrationTest extends AbstractInstantExecutionIntegrationTest implements TasksWithInputsAndOutputs {
 
     def "task can have doFirst/doLast Groovy script closures"() {
-
         given:
         settingsFile << """
             include 'a', 'b'
@@ -84,7 +83,6 @@ class InstantExecutionScriptTaskDefinitionIntegrationTest extends AbstractInstan
     }
 
     def "task can have doFirst/doLast anonymous Groovy script actions"() {
-
         given:
         buildFile << """
             tasks.register("some") {
@@ -136,7 +134,6 @@ class InstantExecutionScriptTaskDefinitionIntegrationTest extends AbstractInstan
     }
 
     def "task can have doFirst/doLast Kotlin script lambdas"() {
-
         given:
         settingsFile << """
             include 'a', 'b'
@@ -216,13 +213,13 @@ class InstantExecutionScriptTaskDefinitionIntegrationTest extends AbstractInstan
         then:
         problems.assertFailureHasProblems(failure) {
             withUniqueProblems(
-                "field 'this${'$'}0' from type 'Build_gradle${'$'}1': cannot serialize object of type 'Build_gradle', a subtype of 'org.gradle.kotlin.dsl.KotlinScript', as these are not supported with instant execution."
+                "field 'this${'$'}0' from type 'Build_gradle${'$'}1': cannot serialize object of type 'Build_gradle', a subtype of 'org.gradle.kotlin.dsl.KotlinScript', as these are not supported with the configuration cache."
             )
+            withProblemsWithStackTraceCount(0)
         }
     }
 
     def "task with type declared in Groovy script is up-to-date when no inputs have changed"() {
-
         given:
         taskTypeWithOutputFileProperty()
         buildFile << """
@@ -255,7 +252,6 @@ class InstantExecutionScriptTaskDefinitionIntegrationTest extends AbstractInstan
     }
 
     def "task with type declared in Kotlin script is up-to-date when no inputs have changed"() {
-
         given:
         kotlinTaskTypeWithOutputFileProperty()
         buildKotlinFile << """
@@ -288,7 +284,6 @@ class InstantExecutionScriptTaskDefinitionIntegrationTest extends AbstractInstan
     }
 
     def "name conflicts of types declared in Groovy scripts"() {
-
         given:
         settingsFile << """include("a", "b")"""
         file("a/build.gradle") << """
@@ -320,7 +315,6 @@ class InstantExecutionScriptTaskDefinitionIntegrationTest extends AbstractInstan
     }
 
     def "name conflicts of types declared in Kotlin scripts"() {
-
         given:
         settingsFile << """include("a", "b")"""
         file("a/build.gradle.kts") << """

@@ -20,18 +20,19 @@ import com.google.common.collect.ImmutableBiMap
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
+import org.gradle.internal.file.FileMetadata.AccessType
+import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.FileMetadata
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import spock.lang.Specification
 
 class NonIncrementalInputChangesTest extends Specification {
 
     def "can iterate changes more than once"() {
-        def fingerprint = DefaultCurrentFileCollectionFingerprint.from([new RegularFileSnapshot("/some/where", "where", HashCode.fromInt(1234), new FileMetadata(4, 5))], AbsolutePathFingerprintingStrategy.INCLUDE_MISSING)
+        def fingerprint = DefaultCurrentFileCollectionFingerprint.from([new RegularFileSnapshot("/some/where", "where", HashCode.fromInt(1234), DefaultFileMetadata.file(4, 5, AccessType.DIRECT))], AbsolutePathFingerprintingStrategy.INCLUDE_MISSING)
 
         Provider<FileSystemLocation> value = Mock()
         def changes = new NonIncrementalInputChanges(ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of("input", fingerprint), new DefaultIncrementalInputProperties(ImmutableBiMap.of("input", value)))

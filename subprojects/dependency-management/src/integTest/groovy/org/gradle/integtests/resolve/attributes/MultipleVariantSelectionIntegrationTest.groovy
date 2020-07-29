@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -101,6 +102,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         }
     }
 
+    @ToBeFixedForInstantExecution
     void "fails selecting distinct variants of the same component by using attributes if they have different capabilities but incompatible values"() {
         given:
         repository {
@@ -159,6 +161,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
    - Variant org:test:1.0 variant runtime2 has attributes {custom=c2, org.gradle.status=${defaultStatus()}}""")
     }
 
+    @ToBeFixedForInstantExecution
     void "cannot select distinct variants of the same component by using different attributes if they have the same capabilities"() {
         given:
         repository {
@@ -201,6 +204,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
     }
 
     @Unroll("can select distinct variants of the same component by using different attributes with capabilities (conflict=#conflict)")
+    @ToBeFixedForInstantExecution(iterationMatchers = [".*conflict=true.*"])
     void "can select distinct variants of the same component by using different attributes with capabilities"() {
         given:
         repository {
@@ -211,7 +215,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                 }
                 variant('runtime') {
                     attribute('custom', 'c2')
-                    capability('org.test', 'cap', conflict?'1.0':'1.1')
+                    capability('org.test', 'cap', conflict ? '1.0' : '1.1')
                 }
             }
         }
@@ -371,6 +375,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
     }
 
+    @ToBeFixedForInstantExecution
     def "prevents selection of 2 variants of the same component with transitive dependency if they have different capabilities but incompatible attributes"() {
         given:
         repository {
@@ -452,6 +457,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
     }
 
+    @ToBeFixedForInstantExecution
     def "cannot select 2 variants of the same component with transitive dependency if they use the same capability"() {
         given:
         repository {
@@ -646,6 +652,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "detects conflicts between component with a capability and a variant with the same capability"() {
         given:
         repository {
@@ -686,10 +693,11 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
    Cannot select module with conflict on capability 'org:foo:1.0' also provided by [org:foo:1.0(runtime)]""")
     }
 
+    @ToBeFixedForInstantExecution
     def "detects conflicts between 2 variants of 2 different components with the same capability"() {
         given:
         repository {
-            'org:foo:1.0'{
+            'org:foo:1.0' {
                 variant('api') {
                     capability('org', 'foo', '1.0')
                     capability('org', 'blah', '1.0')

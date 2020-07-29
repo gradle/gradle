@@ -18,7 +18,6 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
@@ -56,7 +55,6 @@ try {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
     void buildScriptCanContainATaskDefinition() {
 
         testFile('build.gradle') << '''
@@ -66,11 +64,10 @@ try {
             }
 '''
 
-        inTestDirectory().withTaskList().run()
+        inTestDirectory().withTasks("help").run()
     }
 
     @Test
-    @ToBeFixedForInstantExecution
     void buildScriptCanContainOnlyClassDefinitions() {
 
         testFile('build.gradle') << '''
@@ -86,6 +83,6 @@ try {
             }
 '''
 
-        inTestDirectory().withTaskList().run()
+        inTestDirectory().withTasks("help").run()
     }
 }

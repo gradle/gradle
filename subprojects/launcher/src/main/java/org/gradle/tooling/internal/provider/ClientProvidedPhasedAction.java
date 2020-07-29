@@ -41,6 +41,7 @@ public class ClientProvidedPhasedAction extends SubscribableBuildAction {
         return phasedAction;
     }
 
+    @Override
     public boolean isRunTasks() {
         return runTasks;
     }

@@ -16,9 +16,7 @@
 
 package org.gradle.smoketests
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -31,9 +29,6 @@ import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
-import static org.hamcrest.CoreMatchers.equalTo
-import static org.hamcrest.CoreMatchers.not
-import static org.junit.Assume.assumeThat
 
 class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
@@ -271,12 +266,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
         then:
         buildResult.task(':build').outcome == SUCCESS
-
-        // https://github.com/spring-projects/spring-boot/issues/20759
-        expectDeprecationWarnings(buildResult,
-            "Property 'mainClassName' is annotated with @Optional that is not allowed for @Internal properties. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        expectNoDeprecationWarnings(buildResult)
 
         when:
         def runResult = runner('bootRun').build()
@@ -460,10 +450,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     @Issue("https://github.com/gradle/gradle/issues/9897")
     def 'errorprone plugin'() {
 
-        if (GradleContextualExecuter.isInstant()) {
-            // errorprone plugin use a task that has a Configuration field on Java 8
-            assumeThat(JavaVersion.current().majorVersion, not(equalTo("8")))
-        }
+        // TODO comment on https://github.com/gradle/gradle/commit/c45540059cef1e72254188c636e8ca68aba7a369#commitcomment-39777864
 
         given:
         buildFile << """

@@ -34,6 +34,7 @@ import org.gradle.internal.Cast;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -203,7 +204,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
         Set<ExcludeSpec> elements = builder.build();
         if (elements.size() > 1) {
             // try simplify
-            ExcludeSpec[] asArray = elements.toArray(new ExcludeSpec[elements.size()]);
+            ExcludeSpec[] asArray = elements.toArray(new ExcludeSpec[0]);
             boolean simplified = false;
             for (int i = 0; i < asArray.length; i++) {
                 ExcludeSpec left = asArray[i];
@@ -226,8 +227,28 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
                 }
             }
             if (simplified) {
-                Set<ExcludeSpec> tmp = Arrays.stream(asArray).filter(Objects::nonNull).collect(toSet());
-                elements = tmp;
+                elements = Arrays.stream(asArray).filter(Objects::nonNull).collect(toSet());
+            }
+        }
+        if (elements.size() == 2) {
+            // Corner case to handle one of the two elements being an anyOf
+            Iterator<ExcludeSpec> specIterator = elements.iterator();
+            ExcludeSpec first = specIterator.next();
+            ExcludeSpec second = specIterator.next();
+
+            if (first instanceof ExcludeAnyOf || second instanceof ExcludeAnyOf) {
+                ImmutableSet.Builder<ExcludeSpec> newBuilder = ImmutableSet.builder();
+                if (first instanceof ExcludeAnyOf) {
+                    newBuilder.addAll(((ExcludeAnyOf)first).getComponents());
+                } else {
+                    builder.add(first);
+                }
+                if (second instanceof ExcludeAnyOf) {
+                    newBuilder.addAll(((ExcludeAnyOf)second).getComponents());
+                } else {
+                    builder.add(second);
+                }
+                elements = builder.build();
             }
         }
         return Optimizations.optimizeCollection(this, elements, delegate::anyOf);
@@ -304,7 +325,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
         }
         if (result.size() > 1) {
             // try simplify
-            ExcludeSpec[] asArray = result.toArray(new ExcludeSpec[result.size()]);
+            ExcludeSpec[] asArray = result.toArray(new ExcludeSpec[0]);
             boolean simplified = false;
             for (int i = 0; i < asArray.length; i++) {
                 ExcludeSpec left = asArray[i];
@@ -327,8 +348,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
                 }
             }
             if (simplified) {
-                Set<ExcludeSpec> tmp = Arrays.stream(asArray).filter(Objects::nonNull).collect(toSet());
-                result = tmp;
+                result = Arrays.stream(asArray).filter(Objects::nonNull).collect(toSet());
             }
         }
         return Optimizations.optimizeCollection(this, result, delegate::allOf);

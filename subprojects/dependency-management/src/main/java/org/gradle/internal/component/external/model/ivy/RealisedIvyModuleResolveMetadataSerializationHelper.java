@@ -120,21 +120,19 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
         ImmutableMap<String, Configuration> configurationDefinitions = metadata.getConfigurationDefinitions();
         int configurationsCount = decoder.readSmallInt();
         Map<String, ConfigurationMetadata> configurations = Maps.newHashMapWithExpectedSize(configurationsCount);
-        Map<String, ImmutableSet<String>> configurationsHierarchies = Maps.newHashMap();
 
         for (int i = 0; i < configurationsCount; i++) {
             String configurationName = decoder.readString();
             boolean transitive = true;
             boolean visible = true;
             ImmutableSet<String> hierarchy = ImmutableSet.of(configurationName);
-            ImmutableList<ExcludeMetadata> excludes = null;
+            ImmutableList<ExcludeMetadata> excludes;
 
             Configuration configuration = configurationDefinitions.get(configurationName);
             if (configuration != null) { // if the configuration represents a variant added by a rule, it is not in the definition list
                 transitive = configuration.isTransitive();
                 visible = configuration.isVisible();
                 hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
-                configurationsHierarchies.put(configurationName, hierarchy);
                 excludes = configurationHelper.filterExcludes(hierarchy);
             } else {
                 excludes = ImmutableList.of();

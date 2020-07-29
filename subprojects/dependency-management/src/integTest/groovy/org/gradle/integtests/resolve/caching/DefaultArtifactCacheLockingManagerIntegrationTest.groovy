@@ -39,7 +39,6 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         requireOwnGradleUserHomeDir()
     }
 
-    @ToBeFixedForInstantExecution
     def "does not clean up resources and files that were recently used from caches"() {
         given:
         buildscriptWithDependency(snapshotModule)
@@ -56,7 +55,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         forceCleanup(gcFile)
 
         and:
-        succeeds 'tasks'
+        succeeds 'help'
 
         then:
         resource.assertExists()
@@ -64,7 +63,6 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         files[1].assertExists()
     }
 
-    @ToBeFixedForInstantExecution
     def "cleans up resources and files that were not recently used from caches"() {
         given:
         buildscriptWithDependency(snapshotModule)
@@ -91,7 +89,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
 
         and:
         // start as new process so journal is not restored from in-memory cache
-        executer.withTasks('tasks').start().waitForFinish()
+        executer.withTasks('help').start().waitForFinish()
 
         then:
         resource.assertDoesNotExist()
@@ -248,7 +246,6 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         jarFile.assertExists()
     }
 
-    @ToBeFixedForInstantExecution
     def "cleans up unused versions of caches"() {
         given:
         requireOwnGradleUserHomeDir() // messes with caches
@@ -260,7 +257,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         gcFile.createFile().lastModified = daysAgo(2)
 
         when:
-        succeeds("tasks")
+        succeeds("help")
 
         then:
         oldCacheDirs.each {

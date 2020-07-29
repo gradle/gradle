@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
@@ -26,7 +25,6 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppTest.groovy"
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'groovy-application', '--dsl', scriptDsl.id)
@@ -90,7 +88,6 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "creates sample source with package and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'groovy-application', '--package', 'my.app', '--dsl', scriptDsl.id)

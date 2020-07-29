@@ -33,8 +33,8 @@ public class DefaultIvyContextManager implements IvyContextManager {
     private static final int MAX_CACHED_IVY_INSTANCES = 4;
     private final Lock lock = new ReentrantLock();
     private boolean messageAdapterAttached;
-    private final LinkedList<Ivy> cached = new LinkedList<Ivy>();
-    private final ThreadLocal<Integer> depth = new ThreadLocal<Integer>();
+    private final LinkedList<Ivy> cached = new LinkedList<>();
+    private final ThreadLocal<Integer> depth = new ThreadLocal<>();
 
     @Override
     public void withIvy(final Action<? super Ivy> action) {
@@ -66,7 +66,7 @@ public class DefaultIvyContextManager implements IvyContextManager {
                     releaseIvy(ivy);
                 }
             } finally {
-                depth.set(null);
+                depth.remove();
             }
         } finally {
             IvyContext.popContext();

@@ -18,17 +18,17 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import spock.lang.Unroll
 
 class SamplesCustomExternalTaskIntegrationTest extends AbstractSampleIntegrationTest {
-    @Rule public final Sample sample = new Sample(temporaryFolder)
+    @Rule
+    public final Sample sample = new Sample(temporaryFolder)
 
     @Unroll
-    @UsesSample("customExternalTask")
+    @UsesSample("base/customExternalTask")
     def "can test task implementation with #dsl dsl"() {
         when:
         TestFile dslDir = sample.dir.file("$dsl/task")
@@ -42,9 +42,8 @@ class SamplesCustomExternalTaskIntegrationTest extends AbstractSampleIntegration
         dsl << ['groovy', 'kotlin']
     }
 
-    @ToBeFixedForInstantExecution
     @Unroll
-    @UsesSample("customExternalTask")
+    @UsesSample("base/customExternalTask")
     def "can publish and use task implementations for #dsl dsl"() {
         given:
         TestFile dslDir = sample.dir.file(dsl)

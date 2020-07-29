@@ -16,10 +16,10 @@
 
 package org.gradle.internal.logging
 
-import groovy.transform.CompileStatic;
-import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLogger;
+import groovy.transform.CompileStatic
+import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLogger
 import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLoggerContext
-import org.gradle.internal.time.MockClock;
+import org.gradle.internal.time.MockClock
 
 @CompileStatic
 class ToStringLogger extends OutputEventListenerBackedLogger {
@@ -32,12 +32,20 @@ class ToStringLogger extends OutputEventListenerBackedLogger {
 
     @Override
     void lifecycle(String message) {
-        log.append(message)
-        log.append('\n')
+        log(message)
     }
 
     @Override
-    void debug(String message){
+    void debug(String message) {
+        log(message)
+    }
+
+    @Override
+    void warn(String message) {
+        log(message)
+    }
+
+    private void log(String message) {
         log.append(message)
         log.append('\n')
     }

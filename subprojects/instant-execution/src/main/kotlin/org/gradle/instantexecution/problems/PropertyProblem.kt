@@ -16,6 +16,8 @@
 
 package org.gradle.instantexecution.problems
 
+import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.internal.DisplayName
 import kotlin.reflect.KClass
 
 
@@ -25,8 +27,23 @@ import kotlin.reflect.KClass
 data class PropertyProblem internal constructor(
     val trace: PropertyTrace,
     val message: StructuredMessage,
-    val exception: Throwable? = null
+    val exception: Throwable? = null,
+    val documentationSection: DocumentationSection? = null
 )
+
+
+enum class DocumentationSection(val anchor: String) {
+    NotYetImplemented("config_cache:not_yet_implemented"),
+    NotYetImplementedCompositeBuilds("config_cache:not_yet_implemented:composite_builds"),
+    NotYetImplementedSourceDependencies("config_cache:not_yet_implemented:source_dependencies"),
+    NotYetImplementedJavaSerialization("config_cache:not_yet_implemented:java_serialization"),
+    NotYetImplementedTestKitJavaAgent("config_cache:not_yet_implemented:testkit_build_with_java_agent"),
+    RequirementsBuildListeners("config_cache:requirements:build_listeners"),
+    RequirementsDisallowedTypes("config_cache:requirements:disallowed_types"),
+    RequirementsTaskAccess("config_cache:requirements:task_access"),
+    RequirementsUndeclaredSysPropRead("config_cache:requirements:undeclared_sys_prop_read"),
+    RequirementsUseProjectDuringExecution("config_cache:requirements:use_project_during_execution")
+}
 
 
 data class StructuredMessage(val fragments: List<Fragment>) {
@@ -82,6 +99,14 @@ sealed class PropertyTrace {
 
     object Gradle : PropertyTrace()
 
+    class BuildLogic(
+        val displayName: DisplayName
+    ) : PropertyTrace()
+
+    class BuildLogicClass(
+        val name: String
+    ) : PropertyTrace()
+
     class Task(
         val type: Class<*>,
         val path: String
@@ -127,6 +152,13 @@ sealed class PropertyTrace {
                 append(" of type ")
                 quoted(trace.type.name)
             }
+            is BuildLogic -> {
+                append(trace.displayName.displayName)
+            }
+            is BuildLogicClass -> {
+                append("class ")
+                quoted(trace.name)
+            }
             is Unknown -> {
                 append("unknown location")
             }
@@ -156,6 +188,18 @@ sealed class PropertyTrace {
             is Property -> trace
             else -> null
         }
+}
+
+
+fun UserCodeApplicationContext.location(consumer: String?): PropertyTrace {
+    val currentApplication = current()
+    return if (currentApplication != null) {
+        PropertyTrace.BuildLogic(currentApplication.displayName)
+    } else if (consumer != null) {
+        PropertyTrace.BuildLogicClass(consumer)
+    } else {
+        PropertyTrace.Unknown
+    }
 }
 
 

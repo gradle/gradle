@@ -62,33 +62,24 @@ public class JavaPlatformPlugin implements Plugin<Project> {
     // Resolvable configurations
     public static final String CLASSPATH_CONFIGURATION_NAME = "classpath";
 
-    private static final Action<Configuration> AS_CONSUMABLE_CONFIGURATION = new Action<Configuration>() {
-        @Override
-        public void execute(Configuration conf) {
-            conf.setCanBeResolved(false);
-            conf.setCanBeConsumed(true);
-        }
+    private static final Action<Configuration> AS_CONSUMABLE_CONFIGURATION = conf -> {
+        conf.setCanBeResolved(false);
+        conf.setCanBeConsumed(true);
     };
 
-    private static final Action<Configuration> AS_BUCKET = new Action<Configuration>() {
-        @Override
-        public void execute(Configuration conf) {
-            conf.setCanBeResolved(false);
-            conf.setCanBeConsumed(false);
-        }
+    private static final Action<Configuration> AS_BUCKET = conf -> {
+        conf.setCanBeResolved(false);
+        conf.setCanBeConsumed(false);
     };
 
-    private static final Action<Configuration> AS_RESOLVABLE_CONFIGURATION = new Action<Configuration>() {
-        @Override
-        public void execute(Configuration conf) {
-            conf.setCanBeResolved(true);
-            conf.setCanBeConsumed(false);
-        }
+    private static final Action<Configuration> AS_RESOLVABLE_CONFIGURATION = conf -> {
+        conf.setCanBeResolved(true);
+        conf.setCanBeConsumed(false);
     };
     private static final String DISALLOW_DEPENDENCIES = "Adding dependencies to platforms is not allowed by default.\n" +
-            "Most likely you want to add constraints instead.\n" +
-            "If you did this intentionally, you need to configure the platform extension to allow dependencies:\n    javaPlatform.allowDependencies()\n" +
-            "Found dependencies in the '%s' configuration.";
+        "Most likely you want to add constraints instead.\n" +
+        "If you did this intentionally, you need to configure the platform extension to allow dependencies:\n    javaPlatform.allowDependencies()\n" +
+        "Found dependencies in the '%s' configuration.";
 
     private final SoftwareComponentFactory softwareComponentFactory;
 
@@ -101,8 +92,10 @@ public class JavaPlatformPlugin implements Plugin<Project> {
     public void apply(Project project) {
         if (project.getPluginManager().hasPlugin("java")) {
             // This already throws when creating `apiElements` so be eager to have a clear error message
-            throw new IllegalStateException("The \"java-platform\" plugin cannot be applied together with the \"java\" (or \"java-library\") plugin. " +
-                "A project is either a platform or a library but cannot be both at the same time.");
+            throw new IllegalStateException(
+                "The \"java-platform\" plugin cannot be applied together with the \"java\" (or \"java-library\") plugin. " +
+                    "A project is either a platform or a library but cannot be both at the same time."
+            );
         }
         project.getPluginManager().apply(BasePlugin.class);
         createConfigurations(project);
@@ -177,12 +170,9 @@ public class JavaPlatformPlugin implements Plugin<Project> {
 
     private void configureExtension(Project project) {
         final DefaultJavaPlatformExtension platformExtension = (DefaultJavaPlatformExtension) project.getExtensions().create(JavaPlatformExtension.class, "javaPlatform", DefaultJavaPlatformExtension.class);
-        project.afterEvaluate(new Action<Project>() {
-            @Override
-            public void execute(Project project) {
-                if (!platformExtension.isAllowDependencies()) {
-                    checkNoDependencies(project);
-                }
+        project.afterEvaluate(project1 -> {
+            if (!platformExtension.isAllowDependencies()) {
+                checkNoDependencies(project1);
             }
         });
     }

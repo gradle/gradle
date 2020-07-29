@@ -107,6 +107,11 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
         return startParameter;
     }
 
+    @Override
+    public boolean isRunTasks() {
+        return true;
+    }
+
     public Collection<String> getTestClassNames() {
         return classNames;
     }

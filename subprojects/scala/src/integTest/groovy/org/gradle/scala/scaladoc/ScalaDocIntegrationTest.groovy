@@ -27,6 +27,7 @@ class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements Directo
     String scaladoc = ":${ScalaPlugin.SCALA_DOC_TASK_NAME}"
     ScalaCompilationFixture classes = new ScalaCompilationFixture(testDirectory)
 
+
     @ToBeFixedForInstantExecution
     def "changing the Scala version makes Scaladoc out of date"() {
         classes.baseline()
@@ -70,5 +71,19 @@ class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements Directo
         then:
         skipped scaladoc
     }
+    
+    def "scaladoc uses maxMemory"() {
+        classes.baseline()
+        buildScript(classes.buildScript())
+        buildFile << """
+            scaladoc.maxMemory = '234M'
+        """
+        when:
+        succeeds scaladoc, "-i"
 
+        then:
+        // Looks like
+        // Started Gradle worker daemon (0.399 secs) with fork options DaemonForkOptions{executable=/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home/bin/java, minHeapSize=null, maxHeapSize=234M, jvmArgs=[], keepAliveMode=DAEMON}.
+        outputContains("maxHeapSize=234M")
+    }
 }

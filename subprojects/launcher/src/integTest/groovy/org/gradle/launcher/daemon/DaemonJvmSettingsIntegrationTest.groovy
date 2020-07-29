@@ -18,6 +18,8 @@ package org.gradle.launcher.daemon
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 class DaemonJvmSettingsIntegrationTest extends DaemonIntegrationSpec {
@@ -34,6 +36,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         succeeds()
     }
 
+    @IgnoreIf({ GradleContextualExecuter.embedded })
     def "JVM args from gradle.properties packaged in distribution override defaults"() {
         setup:
         requireIsolatedGradleDistribution()
@@ -57,7 +60,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
     @Unroll
     def "uses defaults for max/min heap size when JAVA_TOOL_OPTIONS is set (#javaToolOptions)"() {
         setup:
-        executer.requireGradleDistribution()
+        executer.requireDaemon().requireIsolatedDaemons()
         boolean java9orAbove = JavaVersion.current().java9Compatible
 
         buildScript """

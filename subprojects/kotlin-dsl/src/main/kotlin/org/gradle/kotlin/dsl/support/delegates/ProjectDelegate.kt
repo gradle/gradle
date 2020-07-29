@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.support.delegates
 
 import groovy.lang.Closure
-
 import org.gradle.api.Action
 import org.gradle.api.AntBuilder
 import org.gradle.api.NamedDomainObjectContainer
@@ -57,11 +56,8 @@ import org.gradle.normalization.InputNormalizationHandler
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec
-
 import java.io.File
-
 import java.net.URI
-
 import java.util.concurrent.Callable
 
 

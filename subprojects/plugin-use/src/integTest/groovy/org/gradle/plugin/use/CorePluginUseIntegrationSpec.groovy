@@ -17,7 +17,6 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 import static org.hamcrest.CoreMatchers.startsWith
 
@@ -59,7 +58,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "tasks"
+        fails "help"
 
         then:
         failure.assertHasDescription("Error resolving plugin [id: 'java', version: '1.0']")
@@ -77,7 +76,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "tasks"
+        fails "help"
 
         then:
         failure.assertHasDescription("Error resolving plugin [id: 'org.gradle.java', version: '1.0']")
@@ -95,7 +94,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "tasks"
+        fails "help"
 
         then:
         failure.assertHasDescription("Error resolving plugin [id: 'java', apply: false]")
@@ -114,7 +113,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "tasks"
+        fails "help"
 
         then:
         failure.assertThatDescription(startsWith("Plugin with id 'java' was already requested at line 3"))
@@ -133,7 +132,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "tasks"
+        fails "help"
 
         then:
         failure.assertThatDescription(startsWith("Plugin with id 'java' was already requested at line 4"))
@@ -141,7 +140,6 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(5)
     }
 
-    @ToBeFixedForInstantExecution
     def "can reapply core plugin applied via plugins block"() {
         when:
         buildScript """
@@ -155,10 +153,9 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         then:
-        succeeds "tasks"
+        succeeds "help"
     }
 
-    @ToBeFixedForInstantExecution
     def "can reapply core plugin applied via qualified id in plugins block"() {
         when:
         buildScript """
@@ -172,10 +169,9 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         then:
-        succeeds "tasks"
+        succeeds "help"
     }
 
-    @ToBeFixedForInstantExecution
     def "can use qualified and unqualified ids to detect core plugins"() {
         when:
         buildScript """
@@ -197,7 +193,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         then:
-        succeeds "tasks"
+        succeeds "help"
 
         where:
         pluginId << [QUALIFIED_JAVA, UNQUALIFIED_JAVA]

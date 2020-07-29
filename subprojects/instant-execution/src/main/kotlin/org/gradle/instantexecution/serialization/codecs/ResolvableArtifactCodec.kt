@@ -24,9 +24,10 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readFile
+import org.gradle.instantexecution.serialization.writeFile
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
-import java.io.File
 
 
 object ResolvableArtifactCodec : Codec<ResolvableArtifact> {
@@ -39,7 +40,7 @@ object ResolvableArtifactCodec : Codec<ResolvableArtifact> {
             throw UnsupportedOperationException("Don't know how to serialize for ${value.javaClass.name}.")
         }
         // Write the source artifact
-        writeString(value.file.absolutePath)
+        writeFile(value.file)
         writeString(value.artifactName.name)
         writeString(value.artifactName.type)
         writeNullableString(value.artifactName.extension)
@@ -50,7 +51,7 @@ object ResolvableArtifactCodec : Codec<ResolvableArtifact> {
     }
 
     override suspend fun ReadContext.decode(): ResolvableArtifact {
-        val file = File(readString())
+        val file = readFile()
         val artifactName = DefaultIvyArtifactName(readString(), readString(), readNullableString(), readNullableString())
         val componentId = componentIdSerializer.read(this)
         return PreResolvedResolvableArtifact(null, artifactName, ComponentFileArtifactIdentifier(componentId, file.name), file, TaskDependencyContainer.EMPTY)

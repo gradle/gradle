@@ -17,14 +17,14 @@
 package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.testkit.runner.fixtures.CustomDaemonDirectory
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
 @NoDebug
-@LeaksFileHandles
 class GradleRunnerDaemonIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     def setup() {
@@ -59,6 +59,7 @@ class GradleRunnerDaemonIntegrationTest extends BaseGradleRunnerIntegrationTest 
         testKitDaemons().daemon.context.pid == pid
     }
 
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // TestKit needs a real Gradle distribution here
     @CustomDaemonDirectory
     def "user daemon process does not reuse existing daemon process intended for test execution even when using same gradle user home"() {
         given:

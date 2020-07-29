@@ -65,7 +65,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
     }
 
     public IvyDependencyDescriptor(ModuleComponentSelector requested, ListMultimap<String, String> confMappings) {
-        this(requested, requested.getVersion(), false, true, false, confMappings, Collections.<Artifact>emptyList(), Collections.<Exclude>emptyList());
+        this(requested, requested.getVersion(), false, true, false, confMappings, Collections.emptyList(), Collections.emptyList());
     }
 
     @Override

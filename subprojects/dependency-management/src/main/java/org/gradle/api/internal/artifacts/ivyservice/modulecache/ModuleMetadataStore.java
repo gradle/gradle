@@ -54,11 +54,8 @@ public class ModuleMetadataStore {
         LocallyAvailableResource resource = metaDataStore.get(filePath);
         if (resource != null) {
             try {
-                StringDeduplicatingDecoder decoder = new StringDeduplicatingDecoder(new KryoBackedDecoder(new FileInputStream(resource.getFile())), stringInterner);
-                try {
+                try (StringDeduplicatingDecoder decoder = new StringDeduplicatingDecoder(new KryoBackedDecoder(new FileInputStream(resource.getFile())), stringInterner)) {
                     return moduleMetadataSerializer.read(decoder, moduleIdentifierFactory, Maps.newHashMap());
-                } finally {
-                    decoder.close();
                 }
             } catch (Exception e) {
                 throw new RuntimeException("Could not load module metadata from " + resource.getDisplayName(), e);
@@ -71,11 +68,8 @@ public class ModuleMetadataStore {
         String[] filePath = getFilePath(component);
         return metaDataStore.add(PATH_JOINER.join(filePath), moduleDescriptorFile -> {
             try {
-                KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(moduleDescriptorFile));
-                try {
+                try (KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(moduleDescriptorFile))) {
                     moduleMetadataSerializer.write(encoder, metadata, Maps.newHashMap());
-                } finally {
-                    encoder.close();
                 }
             } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);

@@ -20,8 +20,11 @@ import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.PrimitiveHasher;
@@ -64,34 +67,46 @@ public class UriTextResource implements TextResource {
             javaVendorVersion);
     }
 
+    private final String description;
     private final File sourceFile;
     private final URI sourceUri;
-    private final String description;
-    private String displayName;
+    private final RelativeFilePathResolver resolver;
 
-    public UriTextResource(String description, File sourceFile) {
+    public UriTextResource(String description, File sourceFile, RelativeFilePathResolver resolver) {
         this.description = description;
         this.sourceFile = FileUtils.normalize(sourceFile);
         this.sourceUri = sourceFile.toURI();
+        this.resolver = resolver;
     }
 
-    public UriTextResource(String description, URI sourceUri) {
+    public UriTextResource(String description, URI sourceUri, RelativeFilePathResolver resolver) {
         this.description = description;
         this.sourceFile = sourceUri.getScheme().equals("file") ? FileUtils.normalize(new File(sourceUri.getPath())) : null;
         this.sourceUri = sourceUri;
+        this.resolver = resolver;
     }
 
     @Override
     public String getDisplayName() {
-        if (displayName == null) {
-            StringBuilder builder = new StringBuilder();
-            builder.append(description);
-            builder.append(" '");
-            builder.append(sourceFile != null ? sourceFile.getAbsolutePath() : sourceUri);
-            builder.append("'");
-            displayName = builder.toString();
+        return getLongDisplayName().getDisplayName();
+    }
+
+    @Override
+    public DisplayName getLongDisplayName() {
+        if (sourceFile != null) {
+            return Describables.quoted(description, sourceFile.getAbsolutePath());
+        } else {
+            return Describables.quoted(description, sourceUri);
         }
-        return displayName;
+    }
+
+    @Override
+    public DisplayName getShortDisplayName() {
+        if (sourceFile != null) {
+            return Describables.quoted(description, resolver.resolveAsRelativePath(sourceFile));
+        } else {
+            return Describables.quoted(description, sourceUri);
+        }
     }
 
     @Override

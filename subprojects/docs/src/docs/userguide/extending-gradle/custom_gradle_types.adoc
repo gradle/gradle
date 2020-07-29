@@ -51,17 +51,7 @@ Here is an example of a task type with a `uri` property:
 [source.multi-language-sample,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/mutableManagedProperty/java/buildSrc/src/main/java/Download.java[]
-----
-[source.multi-language-sample,kotlin]
-.Download.kt
-----
-include::{snippetsPath}/plugins/mutableManagedProperty/kotlin/buildSrc/src/main/kotlin/Download.kt[]
-----
-[source.multi-language-sample,groovy]
-.Download.groovy
-----
-include::{snippetsPath}/plugins/mutableManagedProperty/groovy/buildSrc/src/main/groovy/Download.groovy[]
+include::{snippetsPath}/plugins/mutableManagedProperty/groovy/buildSrc/src/main/java/Download.java[]
 ----
 ====
 
@@ -83,17 +73,7 @@ Here is an example of a task type with a `uri` property:
 [source.multi-language-sample,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/readOnlyManagedProperty/java/buildSrc/src/main/java/Download.java[]
-----
-[source.multi-language-sample,kotlin]
-.Download.kt
-----
-include::{snippetsPath}/plugins/readOnlyManagedProperty/kotlin/buildSrc/src/main/kotlin/Download.kt[]
-----
-[source.multi-language-sample,groovy]
-.Download.groovy
-----
-include::{snippetsPath}/plugins/readOnlyManagedProperty/groovy/buildSrc/src/main/groovy/Download.groovy[]
+include::{snippetsPath}/plugins/readOnlyManagedProperty/groovy/buildSrc/src/main/java/Download.java[]
 ----
 ====
 
@@ -132,18 +112,8 @@ Here is an example of a task type with a `resource` property. The `Resource` typ
 [source.multi-language-sample,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/readOnlyNestedProperty/java/buildSrc/src/main/java/Download.java[tags=download]
-include::{snippetsPath}/plugins/readOnlyNestedProperty/java/buildSrc/src/main/java/Resource.java[tags=resource]
-----
-[source.multi-language-sample,kotlin]
-.Download.kt
-----
-include::{snippetsPath}/plugins/readOnlyNestedProperty/kotlin/buildSrc/src/main/kotlin/Download.kt[tags=download]
-----
-[source.multi-language-sample,groovy]
-.Download.groovy
-----
-include::{snippetsPath}/plugins/readOnlyNestedProperty/groovy/buildSrc/src/main/groovy/Download.groovy[tags=download]
+include::{snippetsPath}/plugins/readOnlyNestedProperty/groovy/buildSrc/src/main/java/Download.java[tags=download]
+include::{snippetsPath}/plugins/readOnlyNestedProperty/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
 ----
 ====
 
@@ -183,6 +153,7 @@ The following services are available for injection:
 - link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html[ProviderFactory] - Creates `Provider` instances. See <<lazy_configuration.adoc#lazy_configuration,lazy configuration>> for more details.
 - link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] - Allows a task to run work in parallel. See <<custom_tasks.adoc#worker_api,the worker API>> for more details.
 - link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[FileSystemOperations] - Allows a task to run operations on the filesystem such as deleting files, copying files or syncing directories.
+- link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html[ArchiveOperations] - Allows a task to run operations on archive files such as ZIP or TAR files.
 - link:{javadocPath}/org/gradle/process/ExecOperations.html[ExecOperations] - Allows a task to run external processes with dedicated support for running external `java` programs.
 
 Out of the above, `ProjectLayout` and `WorkerExecutor` services are only available for injection in project plugins.
@@ -201,17 +172,7 @@ Here is an example that shows a task type that receives an `ObjectFactory` via i
 [source.multi-language-sample,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/constructorServiceInjection/java/buildSrc/src/main/java/Download.java[]
-----
-[source.multi-language-sample,kotlin]
-.Download.kt
-----
-include::{snippetsPath}/plugins/constructorServiceInjection/kotlin/buildSrc/src/main/kotlin/Download.kt[]
-----
-[source.multi-language-sample,groovy]
-.Download.groovy
-----
-include::{snippetsPath}/plugins/constructorServiceInjection/groovy/buildSrc/src/main/groovy/Download.groovy[]
+include::{snippetsPath}/plugins/constructorServiceInjection/groovy/buildSrc/src/main/java/Download.java[]
 ----
 ====
 
@@ -232,17 +193,7 @@ Here is an example that shows a task type that receives a two services via prope
 [source.multi-language-sample,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/propertyServiceInjection/java/buildSrc/src/main/java/Download.java[]
-----
-[source.multi-language-sample,kotlin]
-.Download.kt
-----
-include::{snippetsPath}/plugins/propertyServiceInjection/kotlin/buildSrc/src/main/kotlin/Download.kt[]
-----
-[source.multi-language-sample,groovy]
-.Download.groovy
-----
-include::{snippetsPath}/plugins/propertyServiceInjection/groovy/buildSrc/src/main/groovy/Download.groovy[]
+include::{snippetsPath}/plugins/propertyServiceInjection/groovy/buildSrc/src/main/java/Download.java[]
 ----
 ====
 
@@ -262,20 +213,8 @@ The constructor uses this to create a nested `Resource` object (also a custom Gr
 [source.multi-language-sample,java]
 .DownloadExtension.java
 ----
-include::{snippetsPath}/plugins/nestedObjects/java/buildSrc/src/main/java/DownloadExtension.java[]
-include::{snippetsPath}/plugins/nestedObjects/java/buildSrc/src/main/java/Resource.java[tags=resource]
-----
-[source.multi-language-sample,kotlin]
-.DownloadExtension.kt
-----
-include::{snippetsPath}/plugins/nestedObjects/kotlin/buildSrc/src/main/kotlin/DownloadExtension.kt[]
-include::{snippetsPath}/plugins/nestedObjects/kotlin/buildSrc/src/main/kotlin/Resource.kt[tags=resource]
-----
-[source.multi-language-sample,groovy]
-.DownloadExtension.groovy
-----
-include::{snippetsPath}/plugins/nestedObjects/groovy/buildSrc/src/main/groovy/DownloadExtension.groovy[]
-include::{snippetsPath}/plugins/nestedObjects/groovy/buildSrc/src/main/groovy/Resource.groovy[tags=resource]
+include::{snippetsPath}/plugins/nestedObjects/groovy/buildSrc/src/main/java/DownloadExtension.java[]
+include::{snippetsPath}/plugins/nestedObjects/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
 ----
 ====
 
@@ -310,20 +249,8 @@ See the above link for `domainObjectContainer()` method variants that allow cust
 [source.multi-language-sample,java]
 .DownloadExtension.java
 ----
-include::{snippetsPath}/plugins/namedDomainObjectContainer/java/buildSrc/src/main/java/DownloadExtension.java[]
-include::{snippetsPath}/plugins/namedDomainObjectContainer/java/buildSrc/src/main/java/Resource.java[tags=resource]
-----
-[source.multi-language-sample,kotlin]
-.DownloadExtension.kt
-----
-include::{snippetsPath}/plugins/namedDomainObjectContainer/kotlin/buildSrc/src/main/kotlin/DownloadExtension.kt[]
-include::{snippetsPath}/plugins/namedDomainObjectContainer/kotlin/buildSrc/src/main/kotlin/Resource.kt[tags=resource]
-----
-[source.multi-language-sample,groovy]
-.DownloadExtension.groovy
-----
-include::{snippetsPath}/plugins/namedDomainObjectContainer/groovy/buildSrc/src/main/groovy/DownloadExtension.groovy[]
-include::{snippetsPath}/plugins/namedDomainObjectContainer/groovy/buildSrc/src/main/groovy/Resource.groovy[tags=resource]
+include::{snippetsPath}/plugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/DownloadExtension.java[]
+include::{snippetsPath}/plugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
 ----
 ====
 

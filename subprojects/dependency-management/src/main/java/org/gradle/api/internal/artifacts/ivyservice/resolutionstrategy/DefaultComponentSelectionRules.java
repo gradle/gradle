@@ -80,7 +80,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
 
     @Override
     public Collection<SpecRuleAction<? super ComponentSelection>> getRules() {
-        return rules != null ? rules : Collections.<SpecRuleAction<? super ComponentSelection>>emptySet();
+        return rules != null ? rules : Collections.emptySet();
     }
 
     @Override
@@ -117,7 +117,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     public ComponentSelectionRules addRule(SpecRuleAction<? super ComponentSelection> specRuleAction) {
         mutationValidator.validateMutation(STRATEGY);
         if (rules == null) {
-            rules = new LinkedHashSet<SpecRuleAction<? super ComponentSelection>>();
+            rules = new LinkedHashSet<>();
         }
         rules.add(specRuleAction);
         return this;
@@ -138,11 +138,11 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         }
 
         Spec<ComponentSelection> spec = new ComponentSelectionMatchingSpec(moduleIdentifier);
-        return new SpecRuleAction<ComponentSelection>(ruleAction, spec);
+        return new SpecRuleAction<>(ruleAction, spec);
     }
 
     private SpecRuleAction<? super ComponentSelection> createAllSpecRulesAction(RuleAction<? super ComponentSelection> ruleAction) {
-        return new SpecRuleAction<ComponentSelection>(ruleAction, Specs.<ComponentSelection>satisfyAll());
+        return new SpecRuleAction<>(ruleAction, Specs.satisfyAll());
     }
 
     static class ComponentSelectionMatchingSpec implements Spec<ComponentSelection> {

@@ -2,7 +2,7 @@
  * Process execution abstractions.
  */
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 gradlebuildJava.usedInWorkers()
@@ -13,13 +13,13 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":native"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("nativePlatform"))
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.nativePlatform)
 
     testImplementation(testFixtures(project(":core")))
 
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }
 
 classycle {

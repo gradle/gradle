@@ -47,6 +47,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final ImmutableAttributes attributes;
     private final ImmutableList<? extends VirtualComponentIdentifier> platformOwners;
     private final AttributesSchemaInternal schema;
+    private final VariantDerivationStrategy variantDerivationStrategy;
 
     public AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         this.componentIdentifier = metadata.getId();
@@ -60,6 +61,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         attributes = extractAttributes(metadata);
         variants = metadata.getVariants();
         platformOwners = metadata.getPlatformOwners() == null ? ImmutableList.of() : ImmutableList.copyOf(metadata.getPlatformOwners());
+        variantDerivationStrategy = metadata.getVariantDerivationStrategy();
     }
 
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants) {
@@ -74,6 +76,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         attributes = metadata.getAttributes();
         this.variants = variants;
         this.platformOwners = metadata.getPlatformOwners();
+        this.variantDerivationStrategy = metadata.getVariantDerivationStrategy();
     }
 
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata) {
@@ -88,9 +91,10 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         attributes = metadata.attributes;
         variants = metadata.variants;
         platformOwners = metadata.platformOwners;
+        variantDerivationStrategy = metadata.getVariantDerivationStrategy();
     }
 
-    public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ModuleSources sources) {
+    public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
         this.componentIdentifier = metadata.componentIdentifier;
         this.moduleVersionIdentifier = metadata.moduleVersionIdentifier;
         changing = metadata.changing;
@@ -102,6 +106,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         variants = metadata.variants;
         platformOwners = metadata.platformOwners;
         moduleSources = ImmutableModuleSources.of(sources);
+        variantDerivationStrategy = derivationStrategy;
     }
 
     private static ImmutableAttributes extractAttributes(AbstractMutableModuleComponentResolveMetadata metadata) {
@@ -186,6 +191,11 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     @Override
     public ImmutableList<? extends VirtualComponentIdentifier> getPlatformOwners() {
         return platformOwners;
+    }
+
+    @Override
+    public VariantDerivationStrategy getVariantDerivationStrategy() {
+        return variantDerivationStrategy;
     }
 
     @Override

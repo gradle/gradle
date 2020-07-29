@@ -85,8 +85,7 @@ class ConflictContainer<K, T> {
         Collection<? extends T> candidates = elements.get(replacedBy);
         assert candidates != null;
 
-        Set<K> participants = new LinkedHashSet<K>();
-        participants.addAll(targets);
+        Set<K> participants = new LinkedHashSet<>(targets);
         participants.add(replacedBy);
 
         //We need to ensure that the conflict is orderly injected to the list of conflicts
@@ -135,7 +134,7 @@ class ConflictContainer<K, T> {
     }
 
     class Conflict {
-        Set<K> participants;
+        final Set<K> participants;
         Collection<? extends T> candidates;
 
         public Conflict(Set<K> participants, Collection<? extends T> candidates) {

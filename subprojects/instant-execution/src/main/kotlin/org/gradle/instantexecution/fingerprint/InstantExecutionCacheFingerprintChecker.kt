@@ -35,7 +35,9 @@ internal
 class InstantExecutionCacheFingerprintChecker(private val host: Host) {
 
     interface Host {
+        val gradleUserHomeDir: File
         val allInitScripts: List<File>
+        val buildStartTime: Long
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
         fun displayNameOf(fileOrDirectory: File): String
@@ -69,7 +71,25 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
                         return reason
                     }
                 }
-                else -> throw IllegalStateException("Unexpected instant execution cache fingerprint: $input")
+                is InstantExecutionCacheFingerprint.UndeclaredSystemProperty -> input.run {
+                    if (isDefined(key)) {
+                        return "system property '$key' has changed"
+                    }
+                }
+                is InstantExecutionCacheFingerprint.ChangingDependencyResolutionValue -> input.run {
+                    if (host.buildStartTime >= expireAt) {
+                        return input.reason
+                    }
+                }
+                is InstantExecutionCacheFingerprint.GradleEnvironment -> input.run {
+                    if (host.gradleUserHomeDir != gradleUserHomeDir) {
+                        return "Gradle user home directory has changed"
+                    }
+                    if (jvmFingerprint() != jvm) {
+                        return "JVM has changed"
+                    }
+                }
+                else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
             }
         }
     }
@@ -119,6 +139,11 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
             return buildLogicInputHasChanged(valueSource)
         }
         return null
+    }
+
+    private
+    fun isDefined(key: String): Boolean {
+        return System.getProperty(key) != null
     }
 
     private

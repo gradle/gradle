@@ -58,9 +58,10 @@ public interface ProviderOperationParameters {
 
     /**
      * @return When null, use the provider's default environment variables. When empty, use no environment variables.
+     * @since 3.5-rc-1
      */
     @Nullable
-    Map<String, String> getEnvironmentVariables();
+    Map<String, String> getEnvironmentVariables(@Nullable Map<String, String> defaultValue);
 
     /**
      * @since 1.0-milestone-3
@@ -97,8 +98,7 @@ public interface ProviderOperationParameters {
      * @return When null, use the provider's default value for color output.
      * @since 2.3-rc-1
      */
-    @Nullable
-    Boolean isColorOutput(Boolean defaultValue);
+    Boolean isColorOutput();
 
     /**
      * @return When null, discard the stdout (rather than forward to the current process' stdout)
@@ -133,7 +133,7 @@ public interface ProviderOperationParameters {
      * @since 2.2-rc-1
      */
     @Nullable
-    File getDaemonBaseDir(File defaultDaemonBaseDir);
+    File getDaemonBaseDir();
 
     /**
      * @since 1.0-milestone-3
@@ -145,7 +145,7 @@ public interface ProviderOperationParameters {
      * @since 2.4-rc-1
      */
     @Nullable
-    InternalBuildProgressListener getBuildProgressListener(InternalBuildProgressListener defaultListener);
+    InternalBuildProgressListener getBuildProgressListener();
 
     /**
      * @return When null, assume no arguments.
@@ -162,11 +162,11 @@ public interface ProviderOperationParameters {
     /**
      * @since 1.12-rc-1
      */
-    List<InternalLaunchable> getLaunchables(List<InternalLaunchable> defaultLaunchables);
+    List<InternalLaunchable> getLaunchables();
 
     /**
      * @return When empty, do not inject a plugin classpath.
      * @since 2.8-rc-1
      */
-    List<File> getInjectedPluginClasspath(List<File> defaultClasspath);
+    List<File> getInjectedPluginClasspath();
 }

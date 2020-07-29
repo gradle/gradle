@@ -17,9 +17,10 @@
 package org.gradle.language.jvm
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.test.fixtures.archive.JarTestFixture
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ResourceOnlyJvmLibraryIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -29,7 +30,6 @@ class ResourceOnlyJvmLibraryIntegrationTest extends AbstractIntegrationSpec {
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
     }
 
-    @ToBeFixedForInstantExecution
     def "can define a library containing resources only"() {
         buildFile << '''
 plugins {

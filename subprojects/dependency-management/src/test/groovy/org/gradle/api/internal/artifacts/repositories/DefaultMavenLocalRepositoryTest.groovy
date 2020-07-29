@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore
-import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
 import org.gradle.internal.isolation.IsolatableFactory
@@ -47,7 +46,6 @@ class DefaultMavenLocalRepositoryTest extends Specification {
     final AuthenticationContainer authenticationContainer = Stub()
     final FileResourceRepository fileResourceRepository = Mock()
     final MavenMutableModuleMetadataFactory mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
-    final ObjectFactory objectFactory = Mock()
     final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(resolver)
 
     final DefaultMavenArtifactRepository repository = createRepository()
@@ -66,7 +64,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
             fileResourceRepository,
             mavenMetadataFactory,
             (IsolatableFactory) SnapshotTestUtil.valueSnapshotter(),
-            objectFactory,
+            TestUtil.objectFactory(),
             urlArtifactRepositoryFactory,
             TestUtil.checksumService
         )

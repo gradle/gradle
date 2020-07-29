@@ -39,10 +39,10 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
     private final IvyArtifactName artifact;
     private final ComponentArtifactIdentifier artifactId;
     private final TaskDependencyContainer buildDependencies;
-    private volatile Factory<File> artifactSource;
+    private final Factory<File> artifactSource;
     private volatile File file;
     private volatile Throwable failure;
-    private volatile FinalizeAction resolvedArtifactDependency;
+    private final FinalizeAction resolvedArtifactDependency;
 
     public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependencyContainer builtBy, Factory<File> artifactSource) {
         this.owner = owner;

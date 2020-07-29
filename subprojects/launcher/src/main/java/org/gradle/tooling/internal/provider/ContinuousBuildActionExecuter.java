@@ -61,18 +61,18 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     private final StyledTextOutput logger;
 
     public ContinuousBuildActionExecuter(
-        BuildActionExecuter<BuildActionParameters> delegate,
         FileSystemChangeWaiterFactory changeWaiterFactory,
         TaskInputsListeners inputsListeners,
         StyledTextOutputFactory styledTextOutputFactory,
-        ExecutorFactory executorFactory
+        ExecutorFactory executorFactory,
+        BuildActionExecuter<BuildActionParameters> delegate
     ) {
-        this.delegate = delegate;
         this.inputsListeners = inputsListeners;
         this.operatingSystem = OperatingSystem.current();
         this.executorFactory = executorFactory;
         this.changeWaiterFactory = changeWaiterFactory;
         this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecuter.class, LogLevel.QUIET);
+        this.delegate = delegate;
     }
 
     @Override

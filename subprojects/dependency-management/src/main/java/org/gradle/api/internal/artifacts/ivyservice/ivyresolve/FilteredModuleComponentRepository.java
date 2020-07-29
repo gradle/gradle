@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingC
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
@@ -52,7 +53,7 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
     private final ImmutableAttributes consumerAttributes;
 
     public static ModuleComponentRepository of(ModuleComponentRepository delegate, Action<? super ArtifactResolutionDetails> action, String consumerName, AttributeContainer attributes) {
-        if (action == null) {
+        if (action == Actions.doNothing()) {
             return delegate;
         }
         return new FilteredModuleComponentRepository(delegate, action, consumerName, attributes);
@@ -148,7 +149,7 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
                     () -> MetadataFetchingCost.FAST);
         }
 
-        private void whenModulePresent(ModuleIdentifier id, ModuleComponentIdentifier moduleComponentIdentifier, Runnable present, Runnable absent) {
+        private void whenModulePresent(ModuleIdentifier id, @Nullable ModuleComponentIdentifier moduleComponentIdentifier, Runnable present, Runnable absent) {
             DefaultArtifactResolutionDetails details = new DefaultArtifactResolutionDetails(id, moduleComponentIdentifier, consumerName, consumerAttributes);
             filterAction.execute(details);
             if (details.notFound) {
@@ -175,7 +176,7 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         private final ImmutableAttributes consumerAttributes;
         private boolean notFound;
 
-        private DefaultArtifactResolutionDetails(ModuleIdentifier moduleIdentifier, ModuleComponentIdentifier componentId, String consumerName, ImmutableAttributes consumerAttributes) {
+        private DefaultArtifactResolutionDetails(ModuleIdentifier moduleIdentifier, @Nullable ModuleComponentIdentifier componentId, String consumerName, ImmutableAttributes consumerAttributes) {
             this.consumerName = consumerName;
             this.moduleIdentifier = moduleIdentifier;
             this.moduleComponentIdentifier = componentId;

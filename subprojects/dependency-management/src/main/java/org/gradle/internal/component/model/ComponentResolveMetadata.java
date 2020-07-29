@@ -54,6 +54,7 @@ public interface ComponentResolveMetadata extends HasAttributes {
     /**
      * @return the sources information for this component.
      */
+    @Nullable
     ModuleSources getSources();
 
     /**
@@ -64,6 +65,7 @@ public interface ComponentResolveMetadata extends HasAttributes {
     /**
      * Returns the schema used by this component.
      */
+    @Nullable
     AttributesSchemaInternal getAttributesSchema();
 
     /**
@@ -91,8 +93,10 @@ public interface ComponentResolveMetadata extends HasAttributes {
 
     boolean isChanging();
 
+    @Nullable
     String getStatus();
 
+    @Nullable
     List<String> getStatusScheme();
 
     ImmutableList<? extends VirtualComponentIdentifier> getPlatformOwners();

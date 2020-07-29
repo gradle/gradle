@@ -23,7 +23,6 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.io.StreamByteBuffer;
-import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.process.ArgWriter;
 import org.gradle.internal.remote.Address;
@@ -73,20 +72,14 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
     private final ClassPathRegistry classPathRegistry;
     private final TemporaryFileProvider temporaryFileProvider;
     private final JvmVersionDetector jvmVersionDetector;
-    private final JavaModuleDetector javaModuleDetector;
     private final File gradleUserHomeDir;
 
     public ApplicationClassesInSystemClassLoaderWorkerImplementationFactory(ClassPathRegistry classPathRegistry, TemporaryFileProvider temporaryFileProvider,
-                                                                            JvmVersionDetector jvmVersionDetector, JavaModuleDetector javaModuleDetector, File gradleUserHomeDir) {
+                                                                            JvmVersionDetector jvmVersionDetector, File gradleUserHomeDir) {
         this.classPathRegistry = classPathRegistry;
         this.temporaryFileProvider = temporaryFileProvider;
         this.jvmVersionDetector = jvmVersionDetector;
-        this.javaModuleDetector = javaModuleDetector;
         this.gradleUserHomeDir = gradleUserHomeDir;
-    }
-
-    public JavaModuleDetector getJavaModuleDetector() {
-        return javaModuleDetector;
     }
 
     @Override

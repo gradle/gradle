@@ -18,20 +18,29 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.ImplementationAwareTaskAction;
+import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.lang.reflect.Method;
 
-class StandardTaskAction implements ImplementationAwareTaskAction, Describable {
+class StandardTaskAction implements InputChangesAwareTaskAction, Describable {
     private final Class<? extends Task> type;
     private final Method method;
 
     public StandardTaskAction(Class<? extends Task> type, Method method) {
         this.type = type;
         this.method = method;
+    }
+
+    @Override
+    public void setInputChanges(InputChangesInternal inputChanges) {
+    }
+
+    @Override
+    public void clearInputChanges() {
     }
 
     @Override

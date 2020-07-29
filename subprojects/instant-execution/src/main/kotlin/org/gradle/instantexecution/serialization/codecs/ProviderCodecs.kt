@@ -44,6 +44,7 @@ import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.decodePreservingSharedIdentity
 import org.gradle.instantexecution.serialization.encodePreservingSharedIdentityOf
 import org.gradle.instantexecution.serialization.logPropertyProblem
+import org.gradle.instantexecution.serialization.readClassOf
 
 
 /**
@@ -128,9 +129,9 @@ class
 BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInternal) : Codec<BuildServiceProvider<*, *>> {
     override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
         encodePreservingSharedIdentityOf(value) {
-            writeString(value.getName())
-            writeClass(value.getImplementationType())
-            write(value.getParameters())
+            writeString(value.name)
+            writeClass(value.implementationType)
+            write(value.parameters)
             writeInt(serviceRegistry.forService(value).maxUsages)
         }
     }
@@ -138,7 +139,7 @@ BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInter
     override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? =
         decodePreservingSharedIdentity {
             val name = readString()
-            val implementationType = readClass().uncheckedCast<Class<BuildService<*>>>()
+            val implementationType = readClassOf<BuildService<*>>()
             val parameters = read() as BuildServiceParameters?
             val maxUsages = readInt()
             serviceRegistry.register(name, implementationType, parameters, maxUsages)
@@ -181,7 +182,7 @@ ValueSourceProviderCodec(
         encodePreservingSharedIdentityOf(value) {
             value.run {
                 writeClass(valueSourceType)
-                writeClass(parametersType)
+                writeClass(parametersType as Class<*>)
                 write(parameters)
             }
         }

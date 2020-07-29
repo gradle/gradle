@@ -596,14 +596,16 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "the order of classpath items is unchanged"() {
         source api: ["class A {}"], impl: ["class B {}"]
         file("impl/build.gradle") << """
             dependencies { implementation "org.mockito:mockito-core:1.9.5", "junit:junit:4.13" }
-            ${language.compileTaskName}.doFirst {
-                file("classpath.txt").createNewFile();
-                file("classpath.txt").text = classpath.files*.name.findAll { !it.startsWith('groovy') }.join(', ')
+            tasks.named('${language.compileTaskName}') {
+                def classpathTxt = file("classpath.txt")
+                doFirst {
+                    classpathTxt.createNewFile();
+                    classpathTxt.text = classpath.files*.name.findAll { !it.startsWith('groovy') }.join(', ')
+                }
             }
         """
 

@@ -37,10 +37,7 @@ public class DefaultResolverResults implements ResolverResults {
         if (fatalFailure != null || nonFatalFailure != null) {
             return true;
         }
-        if (resolvedConfiguration != null && resolvedConfiguration.hasError()) {
-            return true;
-        }
-        return false;
+        return resolvedConfiguration != null && resolvedConfiguration.hasError();
     }
 
     @Override

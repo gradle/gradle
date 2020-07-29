@@ -23,7 +23,7 @@ import static org.gradle.integtests.fixtures.UrlValidator.*
 
 class AdvancedPlaySampleIntegrationTest extends AbstractPlaySampleIntegrationTest {
     @Rule
-    Sample advancedPlaySample = new Sample(temporaryFolder, "play/advanced")
+    Sample advancedPlaySample = new Sample(temporaryFolder, "play/advanced/groovy")
 
     Sample getPlaySample() {
         return advancedPlaySample

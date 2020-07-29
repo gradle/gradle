@@ -17,13 +17,16 @@
 package org.gradle.testkit.runner.enduser
 
 import groovy.io.FileType
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.util.GFileUtils
+import spock.lang.IgnoreIf
 
 /**
  * Miscellaneous usage scenarios that don't have more specific homes.
  */
+@IgnoreIf({ GradleContextualExecuter.embedded }) // These tests run builds that themselves run a build in a test worker with 'gradleTestKit()' dependency, which needs to pick up Gradle modules from a real distribution
 class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
     def setup() {

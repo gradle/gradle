@@ -339,6 +339,8 @@ public class EclipseClasspath {
         return classpathFactory.createEntries();
     }
 
+
+    @SuppressWarnings("unchecked")
     public void mergeXmlClasspath(Classpath xmlClasspath) {
         file.getBeforeMerged().execute(xmlClasspath);
         List<ClasspathEntry> entries = resolveDependencies();

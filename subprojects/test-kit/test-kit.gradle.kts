@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
+import gradlebuild.integrationtests.getIncludeCategories
+import org.gradle.api.internal.runtimeshaded.PackageListGenerator
 
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    id("gradlebuild.distribution.implementation-java")
 }
 
 dependencies {
@@ -25,11 +27,9 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":wrapper"))
     implementation(project(":toolingApi"))
-    implementation(library("commons_io"))
+    implementation(libs.commonsIo)
 
-    runtimeOnly(project(":native"))
-
-    testImplementation(library("guava"))
+    testImplementation(libs.guava)
     testImplementation(testFixtures(project(":core")))
 
     integTestImplementation(project(":native"))
@@ -37,11 +37,22 @@ dependencies {
     integTestImplementation(project(":launcher"))
     integTestImplementation(project(":buildOption"))
     integTestImplementation(project(":jvmServices"))
-    integTestImplementation(library("slf4j_api"))
-    integTestRuntimeOnly(project(":toolingApiBuilders"))
-    integTestRuntimeOnly(project(":pluginDevelopment"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
+    integTestImplementation(libs.slf4jApi)
+
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
+}
+
+val generateTestKitPackageList by tasks.registering(PackageListGenerator::class) {
+    classpath = sourceSets.main.get().runtimeClasspath
+    outputFile = file(layout.buildDirectory.file("runtime-api-info/test-kit-relocated.txt"))
+}
+tasks.jar {
+    into("org/gradle/api/internal/runtimeshaded") {
+        from(generateTestKitPackageList)
+    }
 }
 
 classycle {
@@ -51,7 +62,7 @@ classycle {
 tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
     // TestKit multi version tests are not using JUnit categories
-    (options as JUnitOptions).includeCategories.clear()
+    getIncludeCategories().clear()
 }
 
 testFilesCleanup {

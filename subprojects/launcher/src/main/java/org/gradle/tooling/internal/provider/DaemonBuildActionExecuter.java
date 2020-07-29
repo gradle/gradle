@@ -29,9 +29,6 @@ import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
-import java.io.File;
-import java.util.Collections;
-
 public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOperationParameters> {
     private final BuildActionExecuter<BuildActionParameters> executer;
     private final DaemonParameters daemonParameters;
@@ -44,10 +41,10 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
     @Override
     public BuildActionResult execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters parameters, ServiceRegistry contextServices) {
         boolean continuous = action.getStartParameter() != null && action.getStartParameter().isContinuous() && isNotBuildingModel(action);
-        ClassPath classPath = DefaultClassPath.of(parameters.getInjectedPluginClasspath(Collections.<File>emptyList()));
+        ClassPath classPath = DefaultClassPath.of(parameters.getInjectedPluginClasspath());
 
         BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
-                daemonParameters.getEnvironmentVariables(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.isEnabled(), continuous, classPath);
+            daemonParameters.getEnvironmentVariables(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.isEnabled(), continuous, classPath);
         return executer.execute(action, buildRequestContext, actionParameters, contextServices);
     }
 

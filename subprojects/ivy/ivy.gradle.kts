@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
+
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -33,11 +35,11 @@ dependencies {
     implementation(project(":pluginUse"))
     implementation(project(":dependencyManagement"))
 
-    implementation(library("groovy")) // for 'Closure' and 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("inject"))
-    implementation(library("ivy"))
+    implementation(libs.groovy) // for 'Closure' and 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.inject)
+    implementation(libs.ivy)
 
     testImplementation(project(":native"))
     testImplementation(project(":processServices"))
@@ -47,11 +49,10 @@ dependencies {
     testImplementation(testFixtures(project(":modelCore")))
     testImplementation(testFixtures(project(":platformBase")))
     testImplementation(testFixtures(project(":dependencyManagement")))
-    testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestImplementation(project(":ear"))
-    integTestImplementation(library("slf4j_api"))
-    integTestImplementation(testLibrary("jetty"))
+    integTestImplementation(libs.slf4jApi)
+    integTestImplementation(libs.jetty)
 
     integTestRuntimeOnly(project(":resourcesS3"))
     integTestRuntimeOnly(project(":resourcesSftp"))
@@ -65,14 +66,22 @@ dependencies {
     }
     testFixturesImplementation(project(":logging"))
     testFixturesImplementation(project(":dependencyManagement"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("slf4j_api"))
-    testLibraries("sshd").forEach { testFixturesImplementation(it) }
+    testFixturesImplementation(libs.slf4jApi)
+    testFixturesImplementation(libs.sshdCore)
+    testFixturesImplementation(libs.sshdScp)
+    testFixturesImplementation(libs.sshdSftp)
 
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributionsCore"))
 }
 
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
+
+
+integrationTestUsesSampleDir("subprojects/ivy/src/main")

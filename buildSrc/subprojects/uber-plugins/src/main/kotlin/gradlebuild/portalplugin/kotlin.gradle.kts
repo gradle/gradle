@@ -17,5 +17,5 @@ package gradlebuild.portalplugin
 
 plugins {
     id("gradlebuild.kotlin-library")
-    id("kotlin-dsl-plugin-bundle")
+    id("gradlebuild.kotlin-dsl-plugin-bundle")
 }

@@ -121,7 +121,7 @@ public class NameMatcherTest {
         assertDoesNotMatch("name", "other");
         assertDoesNotMatch("name", "na");
         assertDoesNotMatch("sN", "otherName");
-        assertDoesNotMatch("sN", "someThing");
+        assertDoesNotMatch("sA", "someThing");
         assertDoesNotMatch("soN", "saN");
         assertDoesNotMatch("soN", "saName");
     }

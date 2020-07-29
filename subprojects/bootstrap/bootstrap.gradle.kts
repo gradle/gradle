@@ -1,5 +1,5 @@
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 gradlebuildJava.usedForStartup()

@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ArtifactAtRepositoryKey;
@@ -61,6 +62,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -86,12 +88,16 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final CachePolicy cachePolicy;
     private final BuildCommencedTimeProvider timeProvider;
     private final ComponentMetadataProcessor metadataProcessor;
-    private LocateInCacheRepositoryAccess locateInCacheRepositoryAccess = new LocateInCacheRepositoryAccess();
-    private ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
+    private final ChangingValueDependencyResolutionListener listener;
+    private final LocateInCacheRepositoryAccess locateInCacheRepositoryAccess = new LocateInCacheRepositoryAccess();
+    private final ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
 
-    public CachingModuleComponentRepository(ModuleComponentRepository delegate, ModuleRepositoryCaches caches,
-                                            CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider,
-                                            ComponentMetadataProcessor metadataProcessor) {
+    public CachingModuleComponentRepository(ModuleComponentRepository delegate,
+                                            ModuleRepositoryCaches caches,
+                                            CachePolicy cachePolicy,
+                                            BuildCommencedTimeProvider timeProvider,
+                                            ComponentMetadataProcessor metadataProcessor,
+                                            ChangingValueDependencyResolutionListener listener) {
         this.delegate = delegate;
         this.moduleMetadataCache = caches.moduleMetadataCache;
         this.moduleVersionsCache = caches.moduleVersionsCache;
@@ -100,6 +106,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         this.cachePolicy = cachePolicy;
         this.timeProvider = timeProvider;
         this.metadataProcessor = metadataProcessor;
+        this.listener = listener;
     }
 
     @Override
@@ -137,10 +144,6 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         return delegate.getComponentMetadataSupplier();
     }
 
-    private ModuleIdentifier getCacheKey(ModuleComponentSelector requested) {
-        return requested.getModuleIdentifier();
-    }
-
     private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
         @Override
         public String toString() {
@@ -160,7 +163,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         private void listModuleVersionsFromCache(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
             ModuleComponentSelector requested = dependency.getSelector();
-            final ModuleIdentifier moduleId = getCacheKey(requested);
+            final ModuleIdentifier moduleId = requested.getModuleIdentifier();
             ModuleVersionsCache.CachedModuleVersionList cachedModuleVersionList = moduleVersionsCache.getCachedModuleResolution(delegate, moduleId);
             if (cachedModuleVersionList != null) {
                 Set<String> versionList = cachedModuleVersionList.getModuleVersions();
@@ -168,12 +171,14 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     .stream()
                     .map(original -> DefaultModuleVersionIdentifier.newId(moduleId, original))
                     .collect(Collectors.toSet());
-                if (cachePolicy.mustRefreshVersionList(moduleId, versions, cachedModuleVersionList.getAgeMillis())) {
+                Expiry expiry = cachePolicy.versionListExpiry(moduleId, versions, cachedModuleVersionList.getAge());
+                if (expiry.isMustCheck()) {
                     LOGGER.debug("Version listing in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", requested, delegate.getName());
                 } else {
+                    listener.onDynamicVersionSelection(requested, expiry);
                     result.listed(versionList);
                     // When age == 0, verified since the start of this build, assume listing hasn't changed
-                    result.setAuthoritative(cachedModuleVersionList.getAgeMillis() == 0);
+                    result.setAuthoritative(cachedModuleVersionList.getAge().toMillis() == 0);
                 }
             }
         }
@@ -195,25 +200,27 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 return;
             }
             if (cachedMetadata.isMissing()) {
-                if (cachePolicy.mustRefreshMissingModule(moduleComponentIdentifier, cachedMetadata.getAgeMillis())) {
+                if (cachePolicy.missingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getAge()).isMustCheck()) {
                     LOGGER.debug("Cached meta-data for missing module is expired: will perform fresh resolve of '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
                     return;
                 }
                 LOGGER.debug("Detected non-existence of module '{}' in resolver cache '{}'", moduleComponentIdentifier, delegate.getName());
                 result.missing();
                 // When age == 0, verified since the start of this build, assume still missing
-                result.setAuthoritative(cachedMetadata.getAgeMillis() == 0);
+                result.setAuthoritative(cachedMetadata.getAge().toMillis() == 0);
                 return;
             }
             ModuleComponentResolveMetadata metadata = getProcessedMetadata(metadataProcessor.getRulesHash(), cachedMetadata);
             if (requestMetaData.isChanging() || metadata.isChanging()) {
-                if (cachePolicy.mustRefreshChangingModule(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAgeMillis())) {
+                Expiry expiry = cachePolicy.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAge());
+                if (expiry.isMustCheck()) {
                     LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
                     return;
                 }
                 LOGGER.debug("Found cached version of changing module '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
+                listener.onChangingModuleResolve(moduleComponentIdentifier, expiry);
             } else {
-                if (cachePolicy.mustRefreshModule(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAgeMillis())) {
+                if (cachePolicy.moduleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAge()).isMustCheck()) {
                     LOGGER.debug("Cached meta-data for module must be refreshed: will perform fresh resolve of '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
                     return;
                 }
@@ -222,7 +229,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             LOGGER.debug("Using cached module metadata for module '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
             result.resolved(metadata);
             // When age == 0, verified since the start of this build, assume the meta-data hasn't changed
-            result.setAuthoritative(cachedMetadata.getAgeMillis() == 0);
+            result.setAuthoritative(cachedMetadata.getAge().toMillis() == 0);
         }
 
         private ModuleComponentResolveMetadata getProcessedMetadata(int key, ModuleMetadataCache.CachedMetadata cachedMetadata) {
@@ -269,8 +276,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             HashCode moduleDescriptorHash = cachingModuleSource.getDescriptorHash();
 
             if (cachedModuleArtifacts != null) {
-                if (!cachePolicy.mustRefreshModuleArtifacts(component.getModuleVersionId(), null, cachedModuleArtifacts.getAgeMillis(),
-                    cachingModuleSource.isChangingModule(), moduleDescriptorHash.equals(cachedModuleArtifacts.getDescriptorHash()))) {
+                if (!cachePolicy.moduleArtifactsExpiry(component.getModuleVersionId(), null, Duration.ofMillis(cachedModuleArtifacts.getAgeMillis()),
+                    cachingModuleSource.isChangingModule(), moduleDescriptorHash.equals(cachedModuleArtifacts.getDescriptorHash())).isMustCheck()) {
                     result.resolved(cachedModuleArtifacts.getArtifacts());
                     return;
                 }
@@ -297,18 +304,18 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 return estimateCostViaRemoteAccess(moduleComponentIdentifier);
             }
             if (cachedMetadata.isMissing()) {
-                if (cachePolicy.mustRefreshMissingModule(moduleComponentIdentifier, cachedMetadata.getAgeMillis())) {
+                if (cachePolicy.missingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getAge()).isMustCheck()) {
                     return estimateCostViaRemoteAccess(moduleComponentIdentifier);
                 }
                 return MetadataFetchingCost.CHEAP;
             }
             ModuleComponentResolveMetadata metaData = getProcessedMetadata(metadataProcessor.getRulesHash(), cachedMetadata);
             if (metaData.isChanging()) {
-                if (cachePolicy.mustRefreshChangingModule(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAgeMillis())) {
+                if (cachePolicy.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAge()).isMustCheck()) {
                     return estimateCostViaRemoteAccess(moduleComponentIdentifier);
                 }
             } else {
-                if (cachePolicy.mustRefreshModule(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAgeMillis())) {
+                if (cachePolicy.moduleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAge()).isMustCheck()) {
                     return estimateCostViaRemoteAccess(moduleComponentIdentifier);
                 }
             }
@@ -324,11 +331,13 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             if (cached != null) {
                 ModuleDescriptorHashModuleSource moduleSource = findCachingModuleSource(moduleSources);
                 final HashCode descriptorHash = moduleSource.getDescriptorHash();
-                long age = timeProvider.getCurrentTime() - cached.getCachedAt();
+                Duration age = Duration.ofMillis(timeProvider.getCurrentTime() - cached.getCachedAt());
                 final boolean isChangingModule = moduleSource.isChangingModule();
-                ArtifactIdentifier artifactIdentifier = ((ModuleComponentArtifactMetadata) artifact).toArtifactIdentifier();
+                ModuleComponentArtifactMetadata moduleComponentArtifactMetadata = (ModuleComponentArtifactMetadata) artifact;
+                ArtifactIdentifier artifactIdentifier = moduleComponentArtifactMetadata.toArtifactIdentifier();
                 if (cached.isMissing()) {
-                    if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
+                    Expiry expiry = cachePolicy.artifactExpiry(artifactIdentifier, null, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()));
+                    if (!expiry.isMustCheck()) {
                         LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact);
                         for (String location : cached.attemptedLocations()) {
                             result.attempted(location);
@@ -337,7 +346,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     }
                 } else {
                     File cachedArtifactFile = cached.getCachedFile();
-                    if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
+                    Expiry expiry = cachePolicy.artifactExpiry(artifactIdentifier, cachedArtifactFile, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()));
+                    if (!expiry.isMustCheck()) {
                         LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact, cachedArtifactFile);
                         result.resolved(cachedArtifactFile);
                     }
@@ -362,9 +372,14 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             delegate.getRemoteAccess().listModuleVersions(dependency, result);
             switch (result.getState()) {
                 case Listed:
-                    ModuleIdentifier moduleId = getCacheKey(dependency.getSelector());
+                    ModuleIdentifier moduleId = dependency.getSelector().getModuleIdentifier();
                     Set<String> versionList = result.getVersions();
+                    Set<ModuleVersionIdentifier> versions = versionList
+                        .stream()
+                        .map(original -> DefaultModuleVersionIdentifier.newId(moduleId, original))
+                        .collect(Collectors.toSet());
                     moduleVersionsCache.cacheModuleVersionList(delegate, moduleId, versionList);
+                    listener.onDynamicVersionSelection(dependency.getSelector(), cachePolicy.versionListExpiry(moduleId, versions, Duration.ZERO));
                     break;
                 case Failed:
                     break;
@@ -390,6 +405,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     ModuleComponentResolveMetadata processedMetadata = metadataProcessor.processMetadata(resolvedMetadata);
                     if (processedMetadata.isChanging() || requestMetaData.isChanging()) {
                         processedMetadata = makeChanging(resolvedMetadata, processedMetadata);
+                        Expiry expiry = cachePolicy.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), Duration.ZERO);
+                        listener.onChangingModuleResolve(moduleComponentIdentifier, expiry);
                     }
                     cachedMetadata.putProcessedMetadata(metadataProcessor.getRulesHash(), processedMetadata);
                     result.resolved(processedMetadata);

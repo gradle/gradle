@@ -24,7 +24,7 @@ import org.junit.Test
 
 class SamplesCustomBuildLanguageIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'customBuildLanguage')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'base/customBuildLanguage')
 
     @Before
     void setup() {
@@ -33,7 +33,8 @@ class SamplesCustomBuildLanguageIntegrationTest extends AbstractIntegrationTest 
 
     @Test
     void testBuildProductDistributions() {
-        TestFile rootDir = sample.dir
+
+        TestFile rootDir = sample.dir.file('groovy')
         executer.inDirectory(rootDir).withTasks('clean', 'dist').run()
 
         TestFile expandDir = file('expand-basic')

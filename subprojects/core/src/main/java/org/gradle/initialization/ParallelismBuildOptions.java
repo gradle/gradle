@@ -20,6 +20,7 @@ import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
+import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
@@ -28,7 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class ParallelismBuildOptions {
+public class ParallelismBuildOptions extends BuildOptionSet<ParallelismConfiguration> {
 
     private static List<BuildOption<ParallelismConfiguration>> options;
 
@@ -43,7 +44,9 @@ public class ParallelismBuildOptions {
         return options;
     }
 
-    private ParallelismBuildOptions() {
+    @Override
+    public List<? extends BuildOption<? super ParallelismConfiguration>> getAllOptions() {
+        return options;
     }
 
     public static class ParallelOption extends BooleanBuildOption<ParallelismConfiguration> {

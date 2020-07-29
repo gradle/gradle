@@ -18,7 +18,7 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.internal.reflect.TypeValidationContext
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
@@ -137,14 +137,13 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         annotation << [InputArtifact, InputArtifactDependencies]
     }
 
-    @ToBeFixedForInstantExecution
     def "can enable stricter validation"() {
         buildFile << """
             dependencies {
                 implementation localGroovy()
             }
-
-            validatePlugins.enableStricterValidation = project.hasProperty('strict')
+            def strictProp = providers.gradleProperty("strict").forUseAtConfigurationTime()
+            validatePlugins.enableStricterValidation = strictProp.present
         """
 
         groovyTaskSource << """
@@ -388,7 +387,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         )
     }
 
-    @ToBeFixedForInstantExecution
+    @UnsupportedWithInstantExecution(because = "validateTaskProperties references validatePlugins")
     def "can run old task"() {
         executer.expectDocumentedDeprecationWarning("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
             "Please use the validatePlugins task instead. " +

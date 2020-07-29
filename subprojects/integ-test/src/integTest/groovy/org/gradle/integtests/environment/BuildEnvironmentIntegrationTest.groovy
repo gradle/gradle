@@ -18,7 +18,6 @@ package org.gradle.integtests.environment
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
@@ -71,9 +70,8 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-1762")
-    @ToBeFixedForInstantExecution
     def "build uses environment variables from where the build was launched"() {
-        file('build.gradle') << "println System.getenv('foo')"
+        file('build.gradle') << "println providers.environmentVariable('foo').forUseAtConfigurationTime().orNull"
 
         when:
         def out = executer.withEnvironmentVars(foo: "gradle rocks!").run().output
@@ -123,7 +121,7 @@ assert classesDir.directory
 
     def "system properties should be made available to build"() {
         file('build.gradle') << """
-            println('prop1=' + providers.systemProperty('prop1').get())
+            println('prop1=' + providers.systemProperty('prop1').forUseAtConfigurationTime().get())
             task show {
                 doLast {
                     println('prop1=' + System.getProperty('prop1'))
@@ -136,7 +134,7 @@ assert classesDir.directory
             """
         } else {
             buildFile << """
-                println('prop2=' + providers.systemProperty('prop2').orNull)
+                println('prop2=' + providers.systemProperty('prop2').forUseAtConfigurationTime().orNull)
             """
         }
 
@@ -158,20 +156,25 @@ assert classesDir.directory
     }
 
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
-    @ToBeFixedForInstantExecution
     def "java home from environment should be used to run build"() {
         def alternateJavaHome = AvailableJavaHomes.differentJdk.javaHome
 
-        file('build.gradle') << "println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.canonicalPath"
+        buildFile << """
+            task printJavaHome {
+                doLast {
+                    println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.canonicalPath
+                }
+            }
+        """
 
         when:
-        def out = executer.run().output
+        def out = executer.withTasks('printJavaHome').run().output
 
         then:
         out.contains("javaHome=" + Jvm.current().javaHome.canonicalPath)
 
         when:
-        out = executer.withJavaHome(alternateJavaHome).run().output
+        out = executer.withJavaHome(alternateJavaHome).withTasks('printJavaHome').run().output
 
         then:
         out.contains("javaHome=" + alternateJavaHome.canonicalPath)
@@ -198,7 +201,7 @@ org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}
 
         file('build.gradle') << """
             assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx52m')
-            println('prop1=' + providers.systemProperty('prop1').get())
+            println('prop1=' + providers.systemProperty('prop1').forUseAtConfigurationTime().get())
             task show {
                 doLast {
                     println('prop1=' + System.getProperty('prop1'))
@@ -211,7 +214,7 @@ org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}
             """
         } else {
             buildFile << """
-                println('prop2=' + providers.systemProperty('prop2').orNull)
+                println('prop2=' + providers.systemProperty('prop2').forUseAtConfigurationTime().orNull)
             """
         }
 

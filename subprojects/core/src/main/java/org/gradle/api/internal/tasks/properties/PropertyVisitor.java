@@ -17,12 +17,14 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 
 /**
  * Visits properties of beans which are inputs, outputs, destroyables or local state.
  */
+@UsedByScanPlugin("test-distribution")
 public interface PropertyVisitor {
     void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType);
 
@@ -34,8 +36,10 @@ public interface PropertyVisitor {
 
     void visitLocalStateProperty(Object value);
 
+    @UsedByScanPlugin("test-distribution")
     class Adapter implements PropertyVisitor {
         @Override
+        @UsedByScanPlugin("test-distribution")
         public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
         }
 
@@ -44,6 +48,7 @@ public interface PropertyVisitor {
         }
 
         @Override
+        @UsedByScanPlugin("test-distribution")
         public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
         }
 

@@ -433,7 +433,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
     def "transform parameters type cannot use caching annotations"() {
         settingsFile << """
-            include 'a', 'b', 'c'
+            include 'a', 'b'
         """
         setupBuildWithColorTransform {
             params("""
@@ -444,7 +444,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             project(':a') {
                 dependencies {
                     implementation project(':b')
-                    implementation project(':c')
                 }
             }
 

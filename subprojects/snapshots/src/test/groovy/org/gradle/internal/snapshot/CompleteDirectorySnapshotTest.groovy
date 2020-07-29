@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot
 
+import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import spock.lang.Unroll
@@ -26,7 +27,7 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<FileSystemNode, CompleteFileSystemLocationSnapshot> {
     @Override
     protected FileSystemNode createInitialRootNode(String pathToParent, List<CompleteFileSystemLocationSnapshot> children) {
-        return new CompleteDirectorySnapshot("/root/${pathToParent}", PathUtil.getFileName(pathToParent), children, HashCode.fromInt(1234)).asFileSystemNode(pathToParent)
+        return new CompleteDirectorySnapshot("/root/${pathToParent}", PathUtil.getFileName(pathToParent), children, HashCode.fromInt(1234), AccessType.DIRECT).asFileSystemNode(pathToParent)
     }
 
     @Override

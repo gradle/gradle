@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
 
 import java.util.Comparator;
@@ -24,7 +25,18 @@ import java.util.Comparator;
  * @see StaticVersionComparator
  */
 public class DefaultVersionComparator implements VersionComparator {
-    private final Comparator<Version> baseComparator = new StaticVersionComparator();
+    private Comparator<Version> baseComparator;
+    private final FeaturePreviews featurePreviews;
+
+    public DefaultVersionComparator() {
+        // We preserve the no-arg constructor since this change is temporary
+        // and there is a chance this class is used in plugins out there
+        this(null);
+    }
+    public DefaultVersionComparator(FeaturePreviews featurePreviews) {
+        this.featurePreviews = featurePreviews;
+        computeBaseComparator();
+    }
 
     @Override
     public int compare(Versioned element1, Versioned element2) {
@@ -36,5 +48,18 @@ public class DefaultVersionComparator implements VersionComparator {
     @Override
     public Comparator<Version> asVersionComparator() {
         return baseComparator;
+    }
+
+    public void configure() {
+        computeBaseComparator();
+    }
+
+    // To be removed once the feature preview disappears
+    private void computeBaseComparator() {
+        if (featurePreviews != null && featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.VERSION_ORDERING_V2)) {
+            baseComparator = new StaticVersionComparator(StaticVersionComparator.UPDATED_SPECIAL_MEANINGS);
+        } else {
+            baseComparator = new StaticVersionComparator(StaticVersionComparator.SPECIAL_MEANINGS);
+        }
     }
 }

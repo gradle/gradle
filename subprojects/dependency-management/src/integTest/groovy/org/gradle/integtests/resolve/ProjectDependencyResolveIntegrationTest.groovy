@@ -362,6 +362,7 @@ project(":b") {
         executedAndNotSkipped ":a:yJar"
     }
 
+    @ToBeFixedForInstantExecution
     def "reports project dependency that refers to an unknown artifact"() {
         given:
         file('settings.gradle') << """

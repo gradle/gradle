@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.execution
 import org.gradle.api.DefaultTask
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
 class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSpec {
 
@@ -67,6 +68,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
         op.failure == "org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':t'."
     }
 
+    @UnsupportedWithInstantExecution
     def "does not emit result for beforeTask failure"() {
         when:
         buildScript """
@@ -89,6 +91,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
         op.failure == "org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':t'."
     }
 
+    @UnsupportedWithInstantExecution
     def "does emit result for afterTask failure"() {
         when:
         buildScript """
@@ -111,6 +114,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
         op.failure == "org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':t'."
     }
 
+    @UnsupportedWithInstantExecution
     def "afterTask failure is included with task failure"() {
         when:
         buildScript """

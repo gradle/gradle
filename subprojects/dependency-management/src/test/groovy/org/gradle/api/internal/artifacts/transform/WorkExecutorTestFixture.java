@@ -23,6 +23,8 @@ import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.OutputChangeListener;
@@ -35,13 +37,11 @@ import org.gradle.internal.fingerprint.overlap.impl.DefaultOverlappingOutputDete
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.TestBuildOperationExecutor;
-import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.scopes.ExecutionGradleServices;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.vfs.VirtualFileSystem;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -86,17 +86,7 @@ public class WorkExecutorTestFixture {
         BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
         BuildCancellationToken cancellationToken = new DefaultBuildCancellationToken();
         BuildCacheCommandFactory buildCacheCommandFactory = null;
-        OutputChangeListener outputChangeListener = new OutputChangeListener() {
-            @Override
-            public void beforeOutputChange() {
-                virtualFileSystem.invalidateAll();
-            }
-
-            @Override
-            public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-                virtualFileSystem.update(affectedOutputPaths, () -> {});
-            }
-        };
+        OutputChangeListener outputChangeListener = affectedOutputPaths -> virtualFileSystem.update(affectedOutputPaths, () -> {});
         OutputFilesRepository outputFilesRepository = new OutputFilesRepository() {
             @Override
             public boolean isGeneratedByGradle(File file) {
@@ -105,12 +95,6 @@ public class WorkExecutorTestFixture {
 
             @Override
             public void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints) {
-            }
-        };
-        BuildScanPluginApplied buildScanPluginApplied = new BuildScanPluginApplied() {
-            @Override
-            public boolean isBuildScanPluginApplied() {
-                return false;
             }
         };
         Deleter deleter = new Deleter() {
@@ -152,7 +136,7 @@ public class WorkExecutorTestFixture {
             cancellationToken,
             buildInvocationScopeId,
             new TestBuildOperationExecutor(),
-            buildScanPluginApplied,
+            new GradleEnterprisePluginManager(),
             classLoaderHierarchyHasher,
             deleter,
             new DefaultExecutionStateChangeDetector(),

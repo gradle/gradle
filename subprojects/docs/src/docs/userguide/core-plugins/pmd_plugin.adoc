@@ -24,8 +24,8 @@ To use the PMD plugin, include the following in your build script:
 
 .Using the PMD plugin
 ====
-include::sample[dir="snippets/codeQuality/groovy",files="build.gradle[tags=use-pmd-plugin]"]
-include::sample[dir="snippets/codeQuality/kotlin",files="build.gradle.kts[tags=use-pmd-plugin]"]
+include::sample[dir="snippets/codeQuality/codeQuality/groovy",files="build.gradle[tags=use-pmd-plugin]"]
+include::sample[dir="snippets/codeQuality/codeQuality/kotlin",files="build.gradle.kts[tags=use-pmd-plugin]"]
 ====
 
 The plugin adds a number of tasks to the project that perform the quality checks. You can execute the checks by running `gradle check`.
@@ -74,8 +74,8 @@ The PMD plugin adds the following dependency configurations:
 == Configuration
 
 ====
-include::sample[dir="snippets/codeQuality/groovy",files="build.gradle[tags=customize-pmd]"]
-include::sample[dir="snippets/codeQuality/kotlin",files="build.gradle.kts[tags=customize-pmd]"]
+include::sample[dir="snippets/codeQuality/codeQuality/groovy",files="build.gradle[tags=customize-pmd]"]
+include::sample[dir="snippets/codeQuality/codeQuality/kotlin",files="build.gradle.kts[tags=customize-pmd]"]
 ====
 
 See the link:{groovyDslPath}/org.gradle.api.plugins.quality.PmdExtension.html[PmdExtension] class in the API documentation.

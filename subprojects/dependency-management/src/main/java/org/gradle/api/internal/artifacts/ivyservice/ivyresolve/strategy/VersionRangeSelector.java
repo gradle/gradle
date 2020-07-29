@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -106,10 +107,15 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
     private final boolean lowerInclusive;
     private final Version lowerBoundVersion;
     private final Comparator<Version> comparator;
+    private final boolean smartExcludeUpperBound;
 
     public VersionRangeSelector(String selector, Comparator<Version> comparator, VersionParser versionParser) {
+        this(selector, comparator, versionParser, false);
+    }
+    public VersionRangeSelector(String selector, Comparator<Version> comparator, VersionParser versionParser, boolean smartExcludeUpperBound) {
         super(versionParser, selector);
         this.comparator = comparator;
+        this.smartExcludeUpperBound = smartExcludeUpperBound;
 
         Matcher matcher;
         matcher = FINITE_RANGE.matcher(selector);
@@ -169,10 +175,7 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
         if (lowerBound != null && !isHigher(candidate, lowerBoundVersion, lowerInclusive)) {
             return false;
         }
-        if (upperBound != null && !isLower(candidate, upperBoundVersion, upperInclusive)) {
-            return false;
-        }
-        return true;
+        return upperBound == null || isLower(candidate, upperBoundVersion, upperInclusive);
     }
 
     /**
@@ -180,7 +183,20 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
      */
     private boolean isLower(Version version1, Version version2, boolean inclusive) {
         int result = comparator.compare(version1, version2);
-        return result <= (inclusive ? 0 : -1);
+        if (inclusive) {
+            return result <= 0;
+        } else {
+            // For non inclusive upper bound, we also check that the prefix does not match
+            if (result <= -1) {
+                if (smartExcludeUpperBound) {
+                    return !version1.toString().startsWith(version2.toString());
+                } else {
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        }
     }
 
     /**
@@ -237,16 +253,16 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
         if (lowerInclusive != that.lowerInclusive) {
             return false;
         }
-        if (upperBound != null ? !upperBound.equals(that.upperBound) : that.upperBound != null) {
+        if (!Objects.equals(upperBound, that.upperBound)) {
             return false;
         }
-        if (upperBoundVersion != null ? !upperBoundVersion.equals(that.upperBoundVersion) : that.upperBoundVersion != null) {
+        if (!Objects.equals(upperBoundVersion, that.upperBoundVersion)) {
             return false;
         }
-        if (lowerBound != null ? !lowerBound.equals(that.lowerBound) : that.lowerBound != null) {
+        if (!Objects.equals(lowerBound, that.lowerBound)) {
             return false;
         }
-        if (lowerBoundVersion != null ? !lowerBoundVersion.equals(that.lowerBoundVersion) : that.lowerBoundVersion != null) {
+        if (!Objects.equals(lowerBoundVersion, that.lowerBoundVersion)) {
             return false;
         }
         return comparator.equals(that.comparator);

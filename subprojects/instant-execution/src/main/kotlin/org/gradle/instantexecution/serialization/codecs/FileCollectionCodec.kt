@@ -18,8 +18,13 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
-import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFiles
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
+import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
+import org.gradle.api.internal.artifacts.transform.Transformation
 import org.gradle.api.internal.artifacts.transform.TransformationNode
+import org.gradle.api.internal.artifacts.transform.TransformationSubject
+import org.gradle.api.internal.artifacts.transform.TransformedExternalArtifactSet
+import org.gradle.api.internal.artifacts.transform.TransformedProjectArtifactSet
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
@@ -33,6 +38,7 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.codecs.transform.FixedDependenciesResolver
 import org.gradle.instantexecution.serialization.decodePreservingIdentity
 import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
 import org.gradle.instantexecution.serialization.logPropertyProblem
@@ -44,6 +50,9 @@ internal
 class FileCollectionCodec(
     private val fileCollectionFactory: FileCollectionFactory
 ) : Codec<FileCollectionInternal> {
+
+    private
+    val noDependencies = FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty()))
 
     override suspend fun WriteContext.encode(value: FileCollectionInternal) {
         encodePreservingIdentityOf(value) {
@@ -78,6 +87,12 @@ class FileCollectionCodec(
                         is SubtractingFileCollectionSpec -> element.left.minus(element.right)
                         is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
                         is FileTree -> element
+                        is TransformedExternalArtifactSet -> Callable {
+                            element.calculateResult()
+                        }
+                        is TransformedLocalFileSpec -> Callable {
+                            element.transformation.createInvocation(TransformationSubject.initial(element.origin), noDependencies, null).invoke().get().files
+                        }
                         else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
                     }
                 })
@@ -102,36 +117,56 @@ FilteredFileCollectionSpec(val collection: FileCollection, val filter: Spec<in F
 
 
 private
+class
+TransformedLocalFileSpec(val origin: File, val transformation: Transformation)
+
+
+private
 class CollectingVisitor : FileCollectionStructureVisitor {
     val elements: MutableSet<Any> = mutableSetOf()
-    override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean {
-        if (fileCollection is SubtractingFileCollection) {
-            // TODO - when left and right are both static then we should serialize the current contents of the collection
-            elements.add(SubtractingFileCollectionSpec(fileCollection.left, fileCollection.right))
-            return false
-        } else if (fileCollection is FilteredFileCollection) {
-            // TODO - when the collection is static then we should serialize the current contents of the collection
-            elements.add(FilteredFileCollectionSpec(fileCollection.collection, fileCollection.filterSpec))
-            return false
-        } else {
-            return true
+    override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean =
+        when (fileCollection) {
+            is SubtractingFileCollection -> {
+                // TODO - when left and right are both static then we should serialize the current contents of the collection
+                elements.add(SubtractingFileCollectionSpec(fileCollection.left, fileCollection.right))
+                false
+            }
+            is FilteredFileCollection -> {
+                // TODO - when the collection is static then we should serialize the current contents of the collection
+                elements.add(FilteredFileCollectionSpec(fileCollection.collection, fileCollection.filterSpec))
+                false
+            }
+            else -> {
+                true
+            }
         }
-    }
 
-    override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType {
-        return if (source is ConsumerProvidedVariantFiles && source.scheduledNodes.isNotEmpty()) {
-            // Visit the source only for scheduled transforms
+    override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType =
+        if (source is TransformedProjectArtifactSet || source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet || source is TransformedExternalArtifactSet) {
+            // Represents artifact transform outputs. Visit the source rather than the files
+            // Transforms may have inputs or parameters that are task outputs or other changing files
+            // When this is not the case, we should run the transform now and write the result.
+            // However, currently it is not easy to determine whether or not this is the case so assume that all transforms
+            // have changing inputs
             FileCollectionStructureVisitor.VisitType.NoContents
         } else {
             FileCollectionStructureVisitor.VisitType.Visit
         }
-    }
 
     override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) {
-        if (source is ConsumerProvidedVariantFiles) {
-            elements.addAll(source.scheduledNodes)
-        } else {
-            elements.addAll(contents)
+        when (source) {
+            is TransformedProjectArtifactSet -> {
+                elements.addAll(source.scheduledNodes)
+            }
+            is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet -> {
+                elements.add(TransformedLocalFileSpec(source.file, source.transformation))
+            }
+            is TransformedExternalArtifactSet -> {
+                elements.add(source)
+            }
+            else -> {
+                elements.addAll(contents)
+            }
         }
     }
 

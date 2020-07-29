@@ -18,7 +18,6 @@ package org.gradle.java.compile.incremental
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -82,7 +81,6 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
 
     // This behavior is kept for backward compatibility - may be removed in the future
     @Requires(TestPrecondition.JDK9_OR_LATER)
-    @ToBeFixedForInstantExecution
     def "recompiles when upstream module-info changes with manual module path"() {
         file("api/src/main/${language.name}/a/A.${language.name}").text = "package a; public class A {}"
         file("impl/src/main/${language.name}/b/B.${language.name}").text = "package b; import a.A; class B extends A {}"
@@ -98,9 +96,10 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
             }
         """
         file("impl/build.gradle") << """
+            def layout = project.layout
             compileJava.doFirst {
                 options.compilerArgs << "--module-path" << classpath.join(File.pathSeparator)
-                classpath = files()
+                classpath = layout.files()
             }
         """
         succeeds "impl:${language.compileTaskName}"

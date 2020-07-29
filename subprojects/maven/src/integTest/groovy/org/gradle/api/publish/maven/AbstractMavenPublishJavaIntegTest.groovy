@@ -36,7 +36,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
 
     abstract List<String> features()
 
-    @ToBeFixedForInstantExecution
     def "can publish java-library with no dependencies"() {
         createBuildScripts("""
             publishing {
@@ -110,7 +109,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "can publish java-library with dependencies and excludes"() {
         requiresExternalDependencies = true
 
@@ -178,7 +176,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "can publish java-library with strict dependencies"() {
         requiresExternalDependencies = true
 
@@ -245,7 +242,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "can publish java-library with dependency constraints"() {
         requiresExternalDependencies = true
 
@@ -333,7 +329,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "can publish java-library with rejected versions"() {
         requiresExternalDependencies = true
 
@@ -409,7 +404,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
 
     }
 
-    @ToBeFixedForInstantExecution
     def "can publish java-library with dependencies without version"() {
         requiresExternalDependencies = true
 
@@ -465,7 +459,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
     }
 
     @Unroll('can publish java-library with dependencies with maven incompatible version notation: #version')
-    @ToBeFixedForInstantExecution
     def "can publish java-library with dependencies with maven incompatible version notation: #version"() {
 
         given:
@@ -513,7 +506,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         version << ['1.+', 'latest.milestone']
     }
 
-    @ToBeFixedForInstantExecution
     def "can publish java-library with attached artifacts"() {
         given:
         createBuildScripts("""
@@ -551,7 +543,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
     }
 
     @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
-    @ToBeFixedForInstantExecution
     void "maps dependencies in the correct Maven scope"() {
         if (deprecatedConfiguration) {
             executer.expectDeprecationWarning()
@@ -608,7 +599,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
 
     }
 
-    @ToBeFixedForInstantExecution
     def "can publish java-library with capabilities"() {
         given:
         createBuildScripts("""
@@ -699,7 +689,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "does not warn for the default capability if it was declared explicitly"() {
         given:
         createBuildScripts("""
@@ -744,7 +733,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "can ignore publication warnings"() {
         given:
         def silenceMethod = "suppressPomMetadataWarningsFor"
@@ -775,7 +763,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         javaLibrary.assertPublished()
     }
 
-    @ToBeFixedForInstantExecution
     def "can ignore all publication warnings"() {
         given:
         createBuildScripts("""
@@ -846,7 +833,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         javaLibrary.assertApiDependencies("org.test:a:1.0", "org.gradle.test:subproject:1.2")
         javaLibrary.assertRuntimeDependencies("org.test:b:2.0")
         with(javaLibrary.parsedPom) {
-            with (scopes.compile) {
+            with(scopes.compile) {
                 hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("apiElements-group", "apiElements-module"))
                 hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("runtime-group", "runtime-module"))
                 hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("api-group", "api-module"))
@@ -854,7 +841,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                 hasDependencyExclusion("org.gradle.test:subproject:1.2", new MavenDependencyExclusion("runtime-group", "runtime-module"))
                 hasDependencyExclusion("org.gradle.test:subproject:1.2", new MavenDependencyExclusion("api-group", "api-module"))
             }
-            with (scopes.runtime) {
+            with(scopes.runtime) {
                 hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("runtimeElements-group", "runtimeElements-module"))
                 hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("implementation-group", "implementation-module"))
                 hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("api-group", "api-module"))
@@ -977,7 +964,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     }
 
     @Issue("gradle/gradle#5450")
-    @ToBeFixedForInstantExecution
     def "doesn't fail with NPE if no component is attached to a publication"() {
         createBuildScripts("""
         publishing {
@@ -1232,7 +1218,6 @@ include(':platform')
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:
         createBuildScripts("""
@@ -1279,7 +1264,6 @@ include(':platform')
         failure.assertHasCause("Variant for configuration annotationProcessor does not exist in component java")
     }
 
-    @ToBeFixedForInstantExecution
     def "fails if trying to publish a component with all variants filtered"() {
         createBuildScripts("""
             publishing {
@@ -1321,7 +1305,7 @@ include(':platform')
             }
 
             java {
-                ${features().findAll { it != MavenJavaModule.MAIN_FEATURE }.collect { "registerFeature('$it') { usingSourceSet(sourceSets.${it}SourceSet); ${withDocs() ? 'withJavadocJar(); withSourcesJar()' : ''} }"}.join('\n')}
+                ${features().findAll { it != MavenJavaModule.MAIN_FEATURE }.collect { "registerFeature('$it') { usingSourceSet(sourceSets.${it}SourceSet); ${withDocs() ? 'withJavadocJar(); withSourcesJar()' : ''} }" }.join('\n')}
                 ${withDocs() ? 'withJavadocJar(); withSourcesJar()' : ''}
             }
 

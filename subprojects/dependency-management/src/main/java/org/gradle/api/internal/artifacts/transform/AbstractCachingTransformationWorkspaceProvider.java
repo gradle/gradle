@@ -52,9 +52,7 @@ public abstract class AbstractCachingTransformationWorkspaceProvider implements 
     @Override
     public Try<ImmutableList<File>> withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction workspaceAction) {
         try {
-            return inMemoryResultCache.get(identity, () -> {
-                    return delegate.withWorkspace(identity, workspaceAction);
-                });
+            return inMemoryResultCache.get(identity, () -> delegate.withWorkspace(identity, workspaceAction));
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

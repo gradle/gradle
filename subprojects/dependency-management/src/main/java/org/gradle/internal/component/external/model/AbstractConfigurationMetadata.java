@@ -43,7 +43,7 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     private final ImmutableList<ExcludeMetadata> excludes;
     private final ImmutableAttributes attributes;
     private final ImmutableCapabilities capabilities;
-    private boolean mavenArtifactDiscovery;
+    private final boolean mavenArtifactDiscovery;
 
     // Should be final, and set in constructor
     private ImmutableList<ModuleDependencyMetadata> configDependencies;

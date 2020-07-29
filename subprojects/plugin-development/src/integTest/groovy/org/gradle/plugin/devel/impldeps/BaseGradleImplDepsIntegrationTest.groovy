@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
-        executer.requireGradleDistribution()
+        executer.requireOwnGradleUserHomeDir()
     }
 
     static String applyJavaPlugin() {

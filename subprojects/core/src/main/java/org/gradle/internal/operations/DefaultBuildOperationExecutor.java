@@ -28,12 +28,12 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.concurrent.ManagedExecutor;
-import org.gradle.internal.concurrent.ParallelismConfigurationListener;
-import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Clock;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -45,8 +45,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-//TODO move to base-services once the ProgressLogger dependency is removed
-public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable, ParallelismConfigurationListener {
+@ServiceScope(Scopes.BuildSession)
+public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
@@ -55,26 +55,18 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final ManagedExecutor fixedSizePool;
-    private final ParallelismConfigurationManager parallelismConfigurationManager;
     private final BuildOperationIdFactory buildOperationIdFactory;
 
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
     private final RunnableBuildOperationWorker runnableBuildOperationWorker = new RunnableBuildOperationWorker();
 
-    public DefaultBuildOperationExecutor(BuildOperationListener listener, Clock clock, ProgressLoggerFactory progressLoggerFactory, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, ParallelismConfigurationManager parallelismConfigurationManager, BuildOperationIdFactory buildOperationIdFactory) {
+    public DefaultBuildOperationExecutor(BuildOperationListener listener, Clock clock, ProgressLoggerFactory progressLoggerFactory, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, ParallelismConfiguration parallelismConfiguration, BuildOperationIdFactory buildOperationIdFactory) {
         this.listener = listener;
         this.clock = clock;
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
-        this.fixedSizePool = executorFactory.create("Build operations", parallelismConfigurationManager.getParallelismConfiguration().getMaxWorkerCount());
-        this.parallelismConfigurationManager = parallelismConfigurationManager;
+        this.fixedSizePool = executorFactory.create("Build operations", parallelismConfiguration.getMaxWorkerCount());
         this.buildOperationIdFactory = buildOperationIdFactory;
-        parallelismConfigurationManager.addListener(this);
-    }
-
-    @Override
-    public void onParallelismConfigurationChange(ParallelismConfiguration parallelismConfiguration) {
-        fixedSizePool.setFixedPoolSize(parallelismConfiguration.getMaxWorkerCount());
     }
 
     @Override
@@ -284,7 +276,9 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     private interface BuildOperationExecutionListener {
         void start();
+
         void stop();
+
         void close();
     }
 
@@ -360,7 +354,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public void stop() {
-        parallelismConfigurationManager.removeListener(this);
         fixedSizePool.stop();
     }
 

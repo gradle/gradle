@@ -19,6 +19,9 @@ import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
 
+import javax.annotation.Nullable;
+import java.util.Objects;
+
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId;
 
 public class DefaultArtifactIdentifier implements ArtifactIdentifier {
@@ -28,7 +31,7 @@ public class DefaultArtifactIdentifier implements ArtifactIdentifier {
     private final String extension;
     private final String classifier;
 
-    public DefaultArtifactIdentifier(ModuleVersionIdentifier moduleVersionIdentifier, String name, String type, String extension, String classifier) {
+    public DefaultArtifactIdentifier(ModuleVersionIdentifier moduleVersionIdentifier, String name, String type, @Nullable String extension, @Nullable String classifier) {
         this.moduleVersionIdentifier = moduleVersionIdentifier;
         this.name = name;
         this.type = type;
@@ -81,23 +84,19 @@ public class DefaultArtifactIdentifier implements ArtifactIdentifier {
 
         DefaultArtifactIdentifier that = (DefaultArtifactIdentifier) o;
 
-        if (classifier != null ? !classifier.equals(that.classifier) : that.classifier != null) {
+        if (!Objects.equals(classifier, that.classifier)) {
             return false;
         }
-        if (extension != null ? !extension.equals(that.extension) : that.extension != null) {
+        if (!Objects.equals(extension, that.extension)) {
             return false;
         }
-        if (moduleVersionIdentifier != null ? !moduleVersionIdentifier.equals(that.moduleVersionIdentifier) : that.moduleVersionIdentifier != null) {
+        if (!Objects.equals(moduleVersionIdentifier, that.moduleVersionIdentifier)) {
             return false;
         }
-        if (name != null ? !name.equals(that.name) : that.name != null) {
+        if (!Objects.equals(name, that.name)) {
             return false;
         }
-        if (type != null ? !type.equals(that.type) : that.type != null) {
-            return false;
-        }
-
-        return true;
+        return Objects.equals(type, that.type);
     }
 
     @Override

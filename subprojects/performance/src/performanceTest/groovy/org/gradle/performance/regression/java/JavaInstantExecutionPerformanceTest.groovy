@@ -16,13 +16,13 @@
 
 package org.gradle.performance.regression.java
 
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
 import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.measure.MeasuredOperation
-import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -35,23 +35,21 @@ import static org.junit.Assert.assertTrue
 @Category(PerformanceRegressionTest)
 class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
-    public static final String INSTANT_EXECUTION_ENABLED_PROPERTY = "org.gradle.unsafe.instant-execution"
-
-    private TestFile instantExecutionStateDir
+    private File stateDirectory
 
     def setup() {
-        instantExecutionStateDir = temporaryFolder.file(".instant-execution-state")
+        stateDirectory = temporaryFolder.file(".gradle/configuration-cache")
     }
 
     @Unroll
     def "assemble on #testProject #action instant execution state with #daemon daemon"() {
 
         given:
-        runner.targetVersions = ["6.5-20200424145747+0000"]
-        runner.minimumBaseVersion = "5.6"
+        runner.targetVersions = ["6.7-20200723220251+0000"]
+        runner.minimumBaseVersion = "6.6"
         runner.testProject = testProject.projectName
         runner.tasksToRun = ["assemble"]
-        runner.args = ["-D${INSTANT_EXECUTION_ENABLED_PROPERTY}=true"]
+        runner.args = ["-D${ConfigurationCacheOption.PROPERTY_NAME}=true"]
 
         and:
         runner.useDaemon = daemon == hot
@@ -78,7 +76,7 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
     }
 
     private BuildExperimentListener listenerFor(String action) {
-        return instantInvocationListenerFor(action, instantExecutionStateDir)
+        return instantInvocationListenerFor(action, stateDirectory)
     }
 
     static String loading = "loading"
@@ -86,13 +84,13 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
     static String hot = "hot"
     static String cold = "cold"
 
-    static BuildExperimentListener instantInvocationListenerFor(String action, File stateDir) {
+    static BuildExperimentListener instantInvocationListenerFor(String action, File stateDirectory) {
         return new BuildExperimentListenerAdapter() {
 
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
                 if (action == storing) {
-                    stateDir.deleteDir()
+                    stateDirectory.deleteDir()
                 }
             }
 
@@ -100,13 +98,13 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
                 if (invocationInfo.iterationNumber > 1) {
                     def tag = action == storing
-                        ? "Calculating task graph as no instant execution cache is available"
-                        : "Reusing instant execution cache"
+                        ? "Calculating task graph as no configuration cache is available"
+                        : "Reusing configuration cache"
                     def found = Files.lines(invocationInfo.buildLog.toPath()).withCloseable { lines ->
                         lines.anyMatch { line -> line.contains(tag) }
                     }
                     if (!found) {
-                        assertTrue("Instant Execution log '$tag' not found in '$invocationInfo.buildLog'\n\n$invocationInfo.buildLog.text", found)
+                        assertTrue("Configuration cache log '$tag' not found in '$invocationInfo.buildLog'\n\n$invocationInfo.buildLog.text", found)
                     }
                 }
             }

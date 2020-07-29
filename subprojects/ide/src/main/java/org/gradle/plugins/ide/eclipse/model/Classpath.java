@@ -84,7 +84,7 @@ public class Classpath extends XmlPersistableConfigurationObject {
         }
     }
 
-    // TODO: Change this signature once we can break compatibility
+    @SuppressWarnings({"unchecked"}) // TODO: Change this signature once we can break compatibility
     public Object configure(List newEntries) {
         Set<ClasspathEntry> updatedEntries = Sets.newLinkedHashSet();
         for (ClasspathEntry entry : entries) {

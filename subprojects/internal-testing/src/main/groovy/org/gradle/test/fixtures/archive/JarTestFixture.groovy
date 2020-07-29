@@ -25,8 +25,6 @@ import java.util.jar.JarFile
 import java.util.jar.Manifest
 
 class JarTestFixture extends ZipTestFixture {
-    final int classFileDescriptor = 0xCAFEBABE
-
     File file
 
     /**

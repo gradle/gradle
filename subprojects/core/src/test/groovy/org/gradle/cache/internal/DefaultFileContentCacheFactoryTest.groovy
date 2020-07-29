@@ -25,6 +25,7 @@ import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.BaseSerializerFactory
+import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
@@ -37,7 +38,7 @@ import spock.lang.Specification
 class DefaultFileContentCacheFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    def listenerManager = new DefaultListenerManager()
+    def listenerManager = new DefaultListenerManager(Scopes.Build)
     def virtualFileSystem = Mock(VirtualFileSystem)
     def cacheRepository = new DefaultCacheRepository(new DefaultCacheScopeMapping(tmpDir.file("user-home"), tmpDir.file("build-dir"), GradleVersion.current()), new InMemoryCacheFactory())
     def inMemoryTaskArtifactCache = new DefaultInMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory()) {
@@ -178,7 +179,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         0 * _
 
         when:
-        listenerManager.getBroadcaster(OutputChangeListener).beforeOutputChange()
+        listenerManager.getBroadcaster(OutputChangeListener).beforeOutputChange([])
         result = cache.get(file)
 
         then:
@@ -207,7 +208,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         0 * _
 
         when:
-        listenerManager.getBroadcaster(OutputChangeListener).beforeOutputChange()
+        listenerManager.getBroadcaster(OutputChangeListener).beforeOutputChange([])
         result = cache.get(file)
 
         then:
@@ -237,7 +238,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         0 * _
 
         when:
-        listenerManager.getBroadcaster(OutputChangeListener).beforeOutputChange()
+        listenerManager.getBroadcaster(OutputChangeListener).beforeOutputChange([])
         result = cache.get(file)
 
         then:

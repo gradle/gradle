@@ -1,15 +1,16 @@
-import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
+import gradlebuild.basics.BuildEnvironment
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
+import gradlebuild.integrationtests.tasks.IntegrationTest
 
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
-val integTestRuntimeResources by configurations.creating {
+val integTestRuntimeResources: Configuration by configurations.creating {
     isCanBeResolved = false
     isCanBeConsumed = false
 }
-val integTestRuntimeResourcesClasspath by configurations.creating {
+val integTestRuntimeResourcesClasspath: Configuration by configurations.creating {
     extendsFrom(integTestRuntimeResources)
     isCanBeResolved = true
     isCanBeConsumed = false
@@ -47,19 +48,17 @@ dependencies {
     implementation(project(":diagnostics"))
     implementation(project(":reporting"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("inject"))
+    implementation(libs.groovy)
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.inject)
 
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
     testImplementation(project(":baseServicesGroovy"))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
-    integTestImplementation(library("ant"))
+    integTestImplementation(libs.ant)
     integTestRuntimeOnly(project(":compositeBuilds"))
     integTestRuntimeOnly(project(":idePlay"))
     integTestRuntimeOnly(project(":testingJunitPlatform"))
@@ -71,11 +70,10 @@ dependencies {
     testFixturesApi(testFixtures(project(":platformNative")))
     testFixturesApi(testFixtures(project(":languageJvm")))
     testFixturesApi(project(":internalIntegTesting"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":processServices"))
-    testFixturesImplementation(library("commons_io"))
-    testFixturesImplementation(library("commons_httpclient"))
-    testFixturesImplementation(library("slf4j_api"))
+    testFixturesImplementation(libs.commonsIo)
+    testFixturesImplementation(libs.commonsHttpclient)
+    testFixturesImplementation(libs.slf4jApi)
     testFixturesApi(testFixtures(project(":languageScala")))
     testFixturesApi(testFixtures(project(":languageJava")))
 
@@ -83,6 +81,11 @@ dependencies {
     testImplementation(testFixtures(project(":diagnostics")))
     testImplementation(testFixtures(project(":platformBase")))
 
+    integTestDistributionRuntimeOnly(project(":distributionsFull"))
+
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
+    }
     integTestRuntimeResources(testFixtures(project(":platformPlay")))
 }
 
@@ -90,15 +93,10 @@ strictCompile {
     ignoreRawTypes() // deprecated raw types
     ignoreDeprecations() // uses deprecated software model types
 }
-
-tasks.named<Test>("integTest") {
-    exclude("org/gradle/play/prepare/**")
-}
-
 val integTestPrepare by tasks.registering(IntegrationTest::class) {
-    systemProperties.put("org.gradle.integtest.executer", "embedded")
+    systemProperties["org.gradle.integtest.executer"] = "embedded"
     if (BuildEnvironment.isCiServer) {
-        systemProperties.put("org.gradle.integtest.multiversion", "all")
+        systemProperties["org.gradle.integtest.multiversion"] = "all"
     }
     include("org/gradle/play/prepare/**")
     maxParallelForks = 1
@@ -107,6 +105,7 @@ val integTestPrepare by tasks.registering(IntegrationTest::class) {
 tasks.withType<IntegrationTest>().configureEach {
     if (name != "integTestPrepare") {
         dependsOn(integTestPrepare)
+        exclude("org/gradle/play/prepare/**")
         // this is a workaround for which we need a better fix:
         // it sets the platform play test fixtures resources directory in front
         // of the classpath, so that we can find them when executing tests in
@@ -114,3 +113,5 @@ tasks.withType<IntegrationTest>().configureEach {
         classpath = integTestRuntimeResourcesClasspath + classpath
     }
 }
+
+integrationTestUsesSampleDir("subprojects/platform-play/src/main")

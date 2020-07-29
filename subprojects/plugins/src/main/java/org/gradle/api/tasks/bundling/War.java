@@ -28,6 +28,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.internal.Transformers;
 import org.gradle.util.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -35,6 +36,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.Callable;
+
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
  * Assembles a WAR archive.
@@ -46,7 +49,6 @@ public class War extends Jar {
     private FileCollection classpath;
     private final DefaultCopySpec webInf;
 
-
     public War() {
         getArchiveExtension().set(WAR_EXTENSION);
         setMetadataCharset("UTF-8");
@@ -55,17 +57,17 @@ public class War extends Jar {
         webInf = (DefaultCopySpec) getRootSpec().addChildBeforeSpec(getMainSpec()).into("WEB-INF");
         webInf.into("classes", spec -> spec.from((Callable<Iterable<File>>) () -> {
             FileCollection classpath = getClasspath();
-            return classpath != null ? classpath.filter(File::isDirectory) : Collections.<File>emptyList();
+            return classpath != null ? classpath.filter(spec(File::isDirectory)) : Collections.<File>emptyList();
         }));
         webInf.into("lib", spec -> spec.from((Callable<Iterable<File>>) () -> {
             FileCollection classpath = getClasspath();
-            return classpath != null ? classpath.filter(File::isFile) : Collections.<File>emptyList();
+            return classpath != null ? classpath.filter(spec(File::isFile)) : Collections.<File>emptyList();
         }));
 
         CopySpecInternal renameSpec = webInf.addChild();
         renameSpec.into("");
         renameSpec.from((Callable<File>) War.this::getWebXml);
-        renameSpec.appendCachingSafeCopyAction(new RenamingCopyAction(name -> "web.xml"));
+        renameSpec.appendCachingSafeCopyAction(new RenamingCopyAction(Transformers.constant("web.xml")));
     }
 
     @Internal

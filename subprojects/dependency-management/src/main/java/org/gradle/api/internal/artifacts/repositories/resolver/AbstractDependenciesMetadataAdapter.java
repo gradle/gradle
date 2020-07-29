@@ -35,7 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractDependenciesMetadataAdapter<T extends DependencyMetadata> extends AbstractList<T> implements DependenciesMetadata<T> {
+public abstract class AbstractDependenciesMetadataAdapter<T extends DependencyMetadata<T>> extends AbstractList<T> implements DependenciesMetadata<T> {
     private final List<org.gradle.internal.component.model.DependencyMetadata> dependenciesMetadata;
     protected final Map<Integer, T> dependencyMetadataAdapters;
     private final Instantiator instantiator;
@@ -104,7 +104,7 @@ public abstract class AbstractDependenciesMetadataAdapter<T extends DependencyMe
             // and assume a constructor with 3 arguments (Group, Name, Version) which is suitable for
             // most cases. We could create an empty attribute set directly in the AbstractDependencyImpl,
             // but then it wouldn't be mutable. Therefore we proceed with "late injection" of the attributes
-            ((AbstractDependencyImpl) dependencyMetadata).setAttributes(attributesFactory.mutable());
+            ((AbstractDependencyImpl<?>) dependencyMetadata).setAttributes(attributesFactory.mutable());
         }
         if (configureAction != null) {
             configureAction.execute(dependencyMetadata);

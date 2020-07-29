@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
@@ -67,7 +66,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @ToBeFixedForInstantExecution
     def "java exec is not incremental by default"() {
         when:
         run "run"
@@ -82,7 +80,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":run"
     }
 
-    @ToBeFixedForInstantExecution
     def 'arguments passed via command line take precedence and is not incremental by default'() {
         when:
         run("run", "--args", "2 '3' \"4\"")
@@ -108,7 +105,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue(["GRADLE-1483", "GRADLE-3528"])
-    @ToBeFixedForInstantExecution
     def "when the user declares outputs it becomes incremental"() {
         given:
         buildFile << """
@@ -137,7 +133,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":run"
     }
 
-    @ToBeFixedForInstantExecution
     def 'arguments passed via command line matter in incremental check'() {
         given:
         buildFile << """
@@ -168,37 +163,48 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         assertOutputFileIs("2\n")
     }
 
-    @ToBeFixedForInstantExecution
     def "arguments can be passed by using argument providers"() {
         given:
         def inputFile = file("input.txt")
         def outputFile = file("out.txt")
         buildFile << """
-            class MyApplicationJvmArguments implements CommandLineArgumentProvider {
+            abstract class MyApplicationJvmArguments implements CommandLineArgumentProvider {
                 @InputFile
                 @PathSensitive(PathSensitivity.NONE)
-                File inputFile
-            
-                @Override
-                Iterable<String> asArguments() {
-                    return ["-Dinput.file=\${inputFile.absolutePath}".toString()]
-                }            
-            }
-            
-            class MyApplicationCommandLineArguments implements CommandLineArgumentProvider {
-                @OutputFile
-                File outputFile
+                abstract RegularFileProperty getInputFile()
 
                 @Override
                 Iterable<String> asArguments() {
-                    return [outputFile.absolutePath]
-                }            
+                    return ["-Dinput.file=\${inputFile.get().asFile.absolutePath}".toString()]
+                }
             }
-            
-            run.jvmArgumentProviders << new MyApplicationJvmArguments(inputFile: new File(project.property('inputFile')))
-            
-            run.argumentProviders << new MyApplicationCommandLineArguments(outputFile: new File(project.property('outputFile')))
-             
+
+            abstract class MyApplicationCommandLineArguments implements CommandLineArgumentProvider {
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @Override
+                Iterable<String> asArguments() {
+                    return [outputFile.get().asFile.absolutePath]
+                }
+            }
+
+            def projectDir = layout.projectDirectory
+
+            def input = providers.gradleProperty('inputFile').forUseAtConfigurationTime().map {
+                projectDir.file(it)
+            }
+            run.jvmArgumentProviders << objects.newInstance(MyApplicationJvmArguments).tap {
+                it.inputFile.set(input)
+            }
+
+            def output = providers.gradleProperty('outputFile').forUseAtConfigurationTime().map {
+                projectDir.file(it)
+            }
+            run.argumentProviders << objects.newInstance(MyApplicationCommandLineArguments).tap {
+                it.outputFile.set(output)
+            }
+
         """
         inputFile.text = "first"
         mainJavaFile.text = mainClass("""
@@ -213,7 +219,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            
+
         """)
 
         when:
@@ -237,7 +243,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         outputFile.text == "different"
     }
 
-    @ToBeFixedForInstantExecution
     def "main class can be configured through a convention mapping"() {
         given:
         buildFile.text = """
@@ -257,7 +262,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
 
-    @ToBeFixedForInstantExecution
     @Issue("https://github.com/gradle/gradle/issues/12832")
     def "classpath can be replaced with a file collection including the replaced value"() {
         given:
@@ -266,7 +270,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
             task run(type: JavaExec) {
                 classpath = project.layout.files(compileJava)
-                classpath = files(classpath, "someOtherFile.jar").filter { true }
+                classpath = files(classpath, "someOtherFile.jar").filter(Specs.SATISFIES_ALL)
                 mainClass = "driver.Driver"
             }
         """

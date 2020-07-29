@@ -17,20 +17,50 @@
 package org.gradle.configuration.internal;
 
 import org.gradle.api.Action;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 
 /**
  * Assigns and stores an ID for the application of some user code (e.g. scripts and plugins).
  */
+@ServiceScope(Scopes.BuildSession)
 public interface UserCodeApplicationContext {
+    /**
+     * Applies some user code, assigning an ID for this particular application.
+     *
+     * @param displayName A display name for the user code.
+     * @param action The action to run to apply the user code.
+     */
+    void apply(DisplayName displayName, Action<? super UserCodeApplicationId> action);
 
-    void apply(Action<? super UserCodeApplicationId> action);
-
-    void reapply(UserCodeApplicationId id, Runnable runnable);
-
-    <T> Action<T> decorateWithCurrent(Action<T> action);
+    /**
+     * Returns an action that represents some deferred execution of the current application. While the returned action is running, the details of the current application are restored.
+     * Returns the given action when there is no current application.
+     */
+    <T> Action<T> reapplyCurrentLater(Action<T> action);
 
     @Nullable
-    UserCodeApplicationId current();
+    Application current();
+
+    /**
+     * Immutable representation of a user code application.
+     */
+    interface Application {
+        UserCodeApplicationId getId();
+
+        DisplayName getDisplayName();
+
+        /**
+         * Returns an action that represents some deferred execution of this application. While the returned action is running, the details of this application are restored.
+         */
+        <T> Action<T> reapplyLater(Action<T> action);
+
+        /**
+         * Runs an action that represents some deferred execution of this application. While the action is running, the details of this application are restored.
+         */
+        void reapply(Runnable runnable);
+    }
 }

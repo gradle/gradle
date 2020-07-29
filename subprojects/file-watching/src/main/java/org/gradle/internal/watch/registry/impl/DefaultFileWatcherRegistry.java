@@ -25,9 +25,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.CREATED;
@@ -90,13 +92,14 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                             }
 
                             @Override
-                            public void handleTerminated(boolean successful) {
+                            public void handleTerminated() {
                                 consumeEvents = false;
                             }
                         });
                     }
                 }
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 // stop thread
             }
         });
@@ -135,7 +138,13 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     public void close() throws IOException {
         stopping = true;
         try {
-            watcher.close();
+            watcher.shutdown();
+            if (!watcher.awaitTermination(5, TimeUnit.SECONDS)) {
+                throw new RuntimeException("Watcher did not terminate withing 5 seconds");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new InterruptedIOException("Awaiting termination of watcher was interrupted");
         } finally {
             consumeEvents = false;
             eventConsumerThread.interrupt();

@@ -801,6 +801,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can make #thing strict"() {
         given:
         repository {
@@ -865,6 +866,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can add rejections to #thing"() {
         given:
         repository {

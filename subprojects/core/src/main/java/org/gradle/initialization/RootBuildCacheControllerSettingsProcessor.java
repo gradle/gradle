@@ -39,7 +39,7 @@ public class RootBuildCacheControllerSettingsProcessor implements SettingsProces
         // requires that the cache configuration be finalized (and cache controller available)
         // before configuring them. This achieves that.
 
-        if (gradle.getParent() == null) {
+        if (gradle.isRootBuild()) {
             BuildCacheController rootController = gradle.getServices().get(BuildCacheController.class);
             RootBuildCacheControllerRef rootControllerRef = gradle.getServices().get(RootBuildCacheControllerRef.class);
             rootControllerRef.set(rootController);

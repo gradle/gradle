@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -28,12 +27,8 @@ import java.util.Set;
 public class ListBackedFileSet implements MinimalFileSet {
     private final ImmutableSet<File> files;
 
-    public ListBackedFileSet(File... files) {
-        this.files = ImmutableSet.copyOf(files);
-    }
-
-    public ListBackedFileSet(Collection<File> files) {
-        this.files = ImmutableSet.copyOf(files);
+    public ListBackedFileSet(ImmutableSet<File> files) {
+        this.files = files;
     }
 
     @Override

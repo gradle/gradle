@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.jvm.Jvm
@@ -54,7 +53,7 @@ class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
         windowsStartScriptContentText.contains('set DEFAULT_JVM_OPTS=')
         windowsStartScriptContentText.contains('set CLASSPATH=%APP_HOME%\\lib\\sample.jar')
         !windowsStartScriptContentText.contains('set MODULE_PATH=')
-        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SAMPLE_OPTS%  -classpath "%CLASSPATH%" org.gradle.test.Main %CMD_LINE_ARGS%')
+        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SAMPLE_OPTS%  -classpath "%CLASSPATH%" org.gradle.test.Main %*')
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
@@ -80,7 +79,7 @@ class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
         windowsStartScriptContentText.contains('set DEFAULT_JVM_OPTS=')
         windowsStartScriptContentText.contains('set CLASSPATH=')
         windowsStartScriptContentText.contains('set MODULE_PATH=%APP_HOME%\\lib\\sample.jar')
-        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SAMPLE_OPTS%  -classpath "%CLASSPATH%" --module-path "%MODULE_PATH%" --module org.gradle.test.main/org.gradle.test.Main %CMD_LINE_ARGS%')
+        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SAMPLE_OPTS%  -classpath "%CLASSPATH%" --module-path "%MODULE_PATH%" --module org.gradle.test.main/org.gradle.test.Main %*')
     }
 
     def "can generate starts script generation with custom user configuration"() {
@@ -106,7 +105,7 @@ applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name 
         windowsStartScriptContentText.contains('@rem  myApp startup script for Windows')
         windowsStartScriptContentText.contains('set DEFAULT_JVM_OPTS="-Dgreeting.language=en" "-DappId=sample"')
         windowsStartScriptContentText.contains('set CLASSPATH=%APP_HOME%\\lib\\sample.jar')
-        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %MY_APP_OPTS%  -classpath "%CLASSPATH%" org.gradle.test.Main %CMD_LINE_ARGS%')
+        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %MY_APP_OPTS%  -classpath "%CLASSPATH%" org.gradle.test.Main %*')
     }
 
     def "can change template file for default start script generators"() {
@@ -163,7 +162,6 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
     }
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
-    @ToBeFixedForInstantExecution
     def "can execute generated Unix start script"() {
         when:
         succeeds('installDist')
@@ -179,7 +177,6 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
     }
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
-    @ToBeFixedForInstantExecution
     def "can execute generated Unix start script using JAVA_HOME with spaces"() {
         given:
         def testJavaHome = file("javahome/java home with spaces")
@@ -202,7 +199,6 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
     }
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
-    @ToBeFixedForInstantExecution
     def "java PID equals script PID"() {
         given:
         succeeds('installDist')
@@ -241,6 +237,7 @@ $binFile.text
 task execStartScript(type: Exec) {
     workingDir '$startScriptDir.canonicalPath'
     commandLine './sample'
+    environment JAVA_OPTS: ''
 }
 """
         return succeeds('execStartScript')
@@ -254,6 +251,7 @@ task execStartScript(type: Exec) {
     workingDir '$startScriptDir.canonicalPath'
     commandLine './sample'
     environment JAVA_HOME: "$javaHome"
+    environment JAVA_OPTS: ''
 }
 """
         return succeeds('execStartScript')
@@ -265,12 +263,12 @@ task execStartScript(type: Exec) {
 task execStartScript(type: Exec) {
     workingDir '$escapedStartScriptDir'
     commandLine 'cmd', '/c', 'sample.bat'
+    environment JAVA_OPTS: ''
 }
 """
         return succeeds('execStartScript')
     }
 
-    @ToBeFixedForInstantExecution
     def "compile only dependencies are not included in distribution"() {
         given:
         mavenRepo.module('org.gradle.test', 'compile', '1.0').publish()
@@ -294,7 +292,6 @@ dependencies {
         file('build/install/sample/lib').allDescendants() == ['sample.jar', 'compile-1.0.jar'] as Set
     }
 
-    @ToBeFixedForInstantExecution
     def "executables can be placed at the root of the distribution"() {
         given:
         buildFile << """
@@ -313,7 +310,6 @@ executableDir = ''
         outputContains("Hello World")
     }
 
-    @ToBeFixedForInstantExecution
     def "executables can be placed in a custom directory"() {
         given:
         buildFile << """
@@ -332,7 +328,6 @@ executableDir = 'foo/bar'
         outputContains("Hello World")
     }
 
-    @ToBeFixedForInstantExecution
     def "includes transitive implementation dependencies in distribution"() {
         mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
 
@@ -496,7 +491,6 @@ dependencies {
         (lines.find { it.startsWith 'set CLASSPATH='} - 'set CLASSPATH=').split(';').collect([] as Set) { it - '%APP_HOME%\\lib\\'}
     }
 
-    @ToBeFixedForInstantExecution
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script"() {
         given:
         buildFile << """
@@ -630,7 +624,6 @@ rootProject.name = 'sample'
 
     @Issue("https://github.com/gradle/gradle/issues/4627")
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @ToBeFixedForInstantExecution
     def "distribution not in root directory has correct permissions set"() {
         given:
         buildFile << """
@@ -651,7 +644,6 @@ rootProject.name = 'sample'
         assert file("build/install/sample/not-the-root/bin/sample").permissions == "rwxr-xr-x"
     }
 
-    @ToBeFixedForInstantExecution
     def "runs the classes folder for traditional applications"() {
         when:
         succeeds("run")
@@ -661,7 +653,6 @@ rootProject.name = 'sample'
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
-    @ToBeFixedForInstantExecution
     def "runs the jar for modular applications"() {
         given:
         configureMainModule()

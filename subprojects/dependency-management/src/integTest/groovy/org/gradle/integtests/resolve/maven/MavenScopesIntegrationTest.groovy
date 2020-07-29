@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class MavenScopesIntegrationTest extends AbstractDependencyResolutionTest {
@@ -365,6 +366,7 @@ dependencies {
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "fails when referencing a scope that does not exist"() {
         mavenRepo.module('test', 'target', '1.0')
             .publish()

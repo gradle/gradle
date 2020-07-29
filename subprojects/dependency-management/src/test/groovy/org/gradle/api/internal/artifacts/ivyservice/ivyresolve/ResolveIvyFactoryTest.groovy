@@ -47,7 +47,6 @@ import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.internal.Factory
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
-import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
@@ -62,7 +61,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class ResolveIvyFactoryTest extends Specification {
-    @Subject ResolveIvyFactory resolveIvyFactory
+    @Subject
+    ResolveIvyFactory resolveIvyFactory
     ModuleVersionsCache moduleVersionsCache
     ModuleMetadataCache moduleMetaDataCache
     ModuleArtifactsCache moduleArtifactsCache
@@ -72,10 +72,10 @@ class ResolveIvyFactoryTest extends Specification {
     BuildCommencedTimeProvider buildCommencedTimeProvider
     VersionComparator versionComparator
     ImmutableModuleIdentifierFactory moduleIdentifierFactory
-    RepositoryBlacklister repositoryBlacklister
+    RepositoryDisabler repositoryBlacklister
     VersionParser versionParser
-    InstantiatorFactory instantiatorFactory
     BuildOperationExecutor buildOperationExecutor
+    ChangingValueDependencyResolutionListener listener
 
     def setup() {
         moduleVersionsCache = Mock(AbstractModuleVersionsCache)
@@ -91,15 +91,15 @@ class ResolveIvyFactoryTest extends Specification {
         buildCommencedTimeProvider = Mock(BuildCommencedTimeProvider)
         moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
         versionComparator = Mock(VersionComparator)
-        repositoryBlacklister = Mock(RepositoryBlacklister)
+        repositoryBlacklister = Mock(RepositoryDisabler)
         versionParser = new VersionParser()
-        instantiatorFactory = Mock()
         buildOperationExecutor = Mock()
+        listener = Mock()
 
-        resolveIvyFactory = new ResolveIvyFactory(cacheProvider, startParameterResolutionOverride, startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, TestUtil.checksumService, Mock(SignatureVerificationServiceFactory), new DocumentationRegistry(), buildCommencedTimeProvider, (Factory<GradleProperties>) Mock(Factory)), buildCommencedTimeProvider, versionComparator, moduleIdentifierFactory, repositoryBlacklister, versionParser, instantiatorFactory)
+        resolveIvyFactory = new ResolveIvyFactory(cacheProvider, startParameterResolutionOverride, startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, TestUtil.checksumService, Mock(SignatureVerificationServiceFactory), new DocumentationRegistry(), buildCommencedTimeProvider, (Factory<GradleProperties>) Mock(Factory)), buildCommencedTimeProvider, versionComparator, moduleIdentifierFactory, repositoryBlacklister, versionParser, listener)
     }
 
-    def "returns an empty resolver when no repositories are configured" () {
+    def "returns an empty resolver when no repositories are configured"() {
         when:
         def resolver = resolveIvyFactory.create("test", Stub(ResolutionStrategyInternal), Collections.emptyList(), Stub(ComponentMetadataProcessorFactory), ImmutableAttributes.EMPTY, Stub(AttributesSchemaInternal), AttributeTestUtil.attributesFactory(), Stub(ComponentMetadataSupplierRuleExecutor))
 
@@ -107,7 +107,7 @@ class ResolveIvyFactoryTest extends Specification {
         resolver instanceof NoRepositoriesResolver
     }
 
-    def "sets parent resolver with different selection rules when repository is external" () {
+    def "sets parent resolver with different selection rules when repository is external"() {
         def componentSelectionRules = Stub(ComponentSelectionRulesInternal)
 
         def resolutionStrategy = Stub(ResolutionStrategyInternal) {
@@ -162,7 +162,7 @@ class ResolveIvyFactoryTest extends Specification {
                 TestUtil.checksumService
             ]
         ) {
-            appendId(_) >> { }
+            appendId(_) >> {}
             getLocalAccess() >> Stub(ModuleComponentRepositoryAccess)
             getRemoteAccess() >> Stub(ModuleComponentRepositoryAccess)
             isM2compatible() >> true

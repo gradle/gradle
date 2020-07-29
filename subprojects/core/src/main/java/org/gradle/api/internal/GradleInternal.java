@@ -51,6 +51,8 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     GradleInternal getRoot();
 
+    boolean isRootBuild();
+
     /**
      * Returns the {@link BuildState} that manages the state of this instance.
      */
@@ -75,8 +77,8 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     /**
      * The settings for this build.
      *
-     * @throws IllegalStateException when the build is not loaded yet, see {@link #setSettings(SettingsInternal)}
      * @return the settings for this build
+     * @throws IllegalStateException when the build is not loaded yet, see {@link #setSettings(SettingsInternal)}
      */
     SettingsInternal getSettings() throws IllegalStateException;
 
@@ -129,16 +131,6 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     PublicBuildPath getPublicBuildPath();
 
-    enum BuildType {
-        NONE,
-        TASKS,
-        MODEL
-    }
-
-    void setBuildType(BuildType buildType);
-
-    BuildType getBuildType();
-
     /**
      * The basis for project build scripts.
      *
@@ -159,5 +151,8 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
      * @throws IllegalStateException if called more than once
      */
     void setBaseProjectClassLoaderScope(ClassLoaderScope classLoaderScope);
+
+    @Override
+    StartParameterInternal getStartParameter();
 
 }

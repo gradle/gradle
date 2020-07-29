@@ -40,21 +40,21 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class DefaultResolvedDependency implements ResolvedDependency, DependencyGraphNodeResult {
-    private final Set<DefaultResolvedDependency> children = new LinkedHashSet<DefaultResolvedDependency>();
-    private final Set<ResolvedDependency> parents = new LinkedHashSet<ResolvedDependency>();
+    private final Set<DefaultResolvedDependency> children = new LinkedHashSet<>();
+    private final Set<ResolvedDependency> parents = new LinkedHashSet<>();
     private final ListMultimap<ResolvedDependency, ResolvedArtifactSet> parentArtifacts = ArrayListMultimap.create();
     private final String name;
     private final ResolvedConfigurationIdentifier resolvedConfigId;
     private final BuildOperationExecutor buildOperationProcessor;
     private final Set<ResolvedArtifactSet> moduleArtifacts;
-    private final Map<ResolvedDependency, Set<ResolvedArtifact>> allArtifactsCache = new HashMap<ResolvedDependency, Set<ResolvedArtifact>>();
+    private final Map<ResolvedDependency, Set<ResolvedArtifact>> allArtifactsCache = new HashMap<>();
     private Set<ResolvedArtifact> allModuleArtifactsCache;
 
     public DefaultResolvedDependency(ResolvedConfigurationIdentifier resolvedConfigurationIdentifier, BuildOperationExecutor buildOperationProcessor) {
         this.name = String.format("%s:%s:%s", resolvedConfigurationIdentifier.getModuleGroup(), resolvedConfigurationIdentifier.getModuleName(), resolvedConfigurationIdentifier.getModuleVersion());
         this.resolvedConfigId = resolvedConfigurationIdentifier;
         this.buildOperationProcessor = buildOperationProcessor;
-        this.moduleArtifacts = new LinkedHashSet<ResolvedArtifactSet>();
+        this.moduleArtifacts = new LinkedHashSet<>();
     }
 
     @Override
@@ -94,7 +94,7 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
 
     @Override
     public Set<ResolvedDependency> getChildren() {
-        return ImmutableSet.<ResolvedDependency>copyOf(children);
+        return ImmutableSet.copyOf(children);
     }
 
     @Override
@@ -110,8 +110,7 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     @Override
     public Set<ResolvedArtifact> getAllModuleArtifacts() {
         if (allModuleArtifactsCache == null) {
-            Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<ResolvedArtifact>();
-            allArtifacts.addAll(getModuleArtifacts());
+            Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<>(getModuleArtifacts());
             for (ResolvedDependency childResolvedDependency : getChildren()) {
                 allArtifacts.addAll(childResolvedDependency.getAllModuleArtifacts());
             }
@@ -126,7 +125,7 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     }
 
     private Set<ResolvedArtifact> sort(ResolvedArtifactSet artifacts) {
-        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor(new TreeSet<ResolvedArtifact>(new ResolvedArtifactComparator()));
+        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor(new TreeSet<>(new ResolvedArtifactComparator()));
         ParallelResolveArtifactSet.wrap(artifacts, buildOperationProcessor).visit(visitor);
         return visitor.getArtifacts();
     }
@@ -151,8 +150,7 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     @Override
     public Set<ResolvedArtifact> getAllArtifacts(ResolvedDependency parent) {
         if (allArtifactsCache.get(parent) == null) {
-            Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<ResolvedArtifact>();
-            allArtifacts.addAll(getArtifacts(parent));
+            Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<>(getArtifacts(parent));
             for (ResolvedDependency childResolvedDependency : getChildren()) {
                 for (ResolvedDependency childParent : childResolvedDependency.getParents()) {
                     allArtifacts.addAll(childResolvedDependency.getAllArtifacts(childParent));

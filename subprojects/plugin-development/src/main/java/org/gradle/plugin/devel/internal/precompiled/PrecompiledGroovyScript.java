@@ -21,11 +21,12 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.configuration.ScriptTarget;
+import org.gradle.groovy.scripts.DelegatingScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.initialization.DefaultSettings;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.resource.UriTextResource;
+import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
@@ -71,12 +72,12 @@ class PrecompiledGroovyScript {
         }
     }
 
-    PrecompiledGroovyScript(File scriptFile) {
+    PrecompiledGroovyScript(File scriptFile, TextFileResourceLoader resourceLoader) {
         String fileName = scriptFile.getName();
         this.type = Type.getType(fileName);
         this.pluginId = type.toPluginId(fileName);
         this.precompiledScriptClassName = toJavaIdentifier(kebabCaseToPascalCase(pluginId.getId().replace('.', '-')));
-        this.scriptSource = new PrecompiledScriptPluginSource(scriptFile, precompiledScriptClassName);
+        this.scriptSource = new PrecompiledScriptPluginSource(scriptFile, precompiledScriptClassName, resourceLoader);
         this.scriptTarget = new PrecompiledScriptTarget(type != Type.INIT);
     }
 
@@ -140,12 +141,12 @@ class PrecompiledGroovyScript {
         return sb.toString();
     }
 
-    private static class PrecompiledScriptPluginSource extends TextResourceScriptSource {
+    private static class PrecompiledScriptPluginSource extends DelegatingScriptSource {
         private final File scriptFile;
         private final String className;
 
-        public PrecompiledScriptPluginSource(File scriptFile, String className) {
-            super(new UriTextResource("script", scriptFile));
+        public PrecompiledScriptPluginSource(File scriptFile, String className, TextFileResourceLoader resourceLoader) {
+            super(new TextResourceScriptSource(resourceLoader.loadFile("script", scriptFile)));
             this.scriptFile = scriptFile;
             this.className = "precompiled_" + className;
         }

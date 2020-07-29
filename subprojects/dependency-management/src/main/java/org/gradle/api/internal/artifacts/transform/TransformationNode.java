@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.SelfExecutingNode;
@@ -36,7 +36,6 @@ import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -56,8 +55,8 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         return new ChainedTransformationNode(current, previous, executionGraphDependenciesResolver, buildOperationExecutor, transformListener);
     }
 
-    public static InitialTransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
-        return new InitialTransformationNode(initial, artifact, executionGraphDependenciesResolver, buildOperationExecutor, transformListener);
+    public static InitialTransformationNode initial(TransformationStep initial, ResolvedArtifactSet.LocalArtifactSet localArtifacts, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
+        return new InitialTransformationNode(initial, localArtifacts, executionGraphDependenciesResolver, buildOperationExecutor, transformListener);
     }
 
     protected TransformationNode(TransformationStep transformationStep, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
@@ -67,11 +66,11 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         this.transformListener = transformListener;
     }
 
-    public abstract ResolvableArtifact getInputArtifact();
+    public abstract ResolvedArtifactSet.LocalArtifactSet getInputArtifacts();
 
     @Nullable
     @Override
-    public Project getOwningProject() {
+    public ProjectInternal getOwningProject() {
         return transformationStep.getOwningProject();
     }
 
@@ -121,7 +120,7 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
 
     @Nullable
     @Override
-    public Project getProjectToLock() {
+    public ResourceLock getProjectToLock() {
         // Transforms do not require project state
         return null;
     }
@@ -163,16 +162,16 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     }
 
     public static class InitialTransformationNode extends TransformationNode {
-        private final ResolvableArtifact artifact;
+        private final ResolvedArtifactSet.LocalArtifactSet artifacts;
 
-        public InitialTransformationNode(TransformationStep transformationStep, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
+        public InitialTransformationNode(TransformationStep transformationStep, ResolvedArtifactSet.LocalArtifactSet localArtifacts, ExecutionGraphDependenciesResolver dependenciesResolver, BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
             super(transformationStep, dependenciesResolver, buildOperationExecutor, transformListener);
-            this.artifact = artifact;
+            this.artifacts = localArtifacts;
         }
 
         @Override
-        public ResolvableArtifact getInputArtifact() {
-            return artifact;
+        public ResolvedArtifactSet.LocalArtifactSet getInputArtifacts() {
+            return artifacts;
         }
 
         @Override
@@ -180,9 +179,9 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
             this.transformedSubject = buildOperationExecutor.call(new ArtifactTransformationStepBuildOperation() {
                 @Override
                 protected Try<TransformationSubject> transform() {
-                    File file;
+                    TransformationSubject initialArtifactTransformationSubject;
                     try {
-                        file = artifact.getFile();
+                        initialArtifactTransformationSubject = artifacts.calculateSubject();
                     } catch (ResolveException e) {
                         return Try.failure(e);
                     } catch (RuntimeException e) {
@@ -190,13 +189,12 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
                             new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformationStep.getDisplayName(), "artifact transform", Collections.singleton(e)));
                     }
 
-                    TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), file);
                     return transformationStep.createInvocation(initialArtifactTransformationSubject, dependenciesResolver, context).invoke();
                 }
 
                 @Override
                 protected String describeSubject() {
-                    return "artifact " + artifact.getId().getDisplayName();
+                    return artifacts.getDisplayName();
                 }
             });
         }
@@ -204,7 +202,7 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         @Override
         public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
             super.resolveDependencies(dependencyResolver, processHardSuccessor);
-            processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, artifact));
+            processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, artifacts.getTaskDependencies()));
         }
     }
 
@@ -217,8 +215,8 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         }
 
         @Override
-        public ResolvableArtifact getInputArtifact() {
-            return previousTransformationNode.getInputArtifact();
+        public ResolvedArtifactSet.LocalArtifactSet getInputArtifacts() {
+            return previousTransformationNode.getInputArtifacts();
         }
 
         public TransformationNode getPreviousTransformationNode() {

@@ -63,7 +63,7 @@ abstract class AbstractConsoleCompositeBuildGroupedTaskFunctionalTest extends Ab
         file("$PROJECT_B_NAME/src/main/java/MyClass.java") << javaSourceFile()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "can group task output in composite build"() {
         when:
         def result = executer.inDirectory(file(PROJECT_B_NAME)).withTasks('compileJava').run()
@@ -73,7 +73,7 @@ abstract class AbstractConsoleCompositeBuildGroupedTaskFunctionalTest extends Ab
         result.groupedOutput.task(':byeWorld').output == BYE_WORLD_MESSAGE
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "does not execute task actions when dry run specified on composite build"() {
         when:
         def result = executer.inDirectory(file(PROJECT_B_NAME)).withArgument("--dry-run").withTasks('compileJava').run()

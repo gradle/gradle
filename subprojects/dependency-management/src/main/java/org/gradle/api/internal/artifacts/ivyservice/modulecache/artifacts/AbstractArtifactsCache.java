@@ -63,7 +63,7 @@ public abstract class AbstractArtifactsCache implements ModuleArtifactsCache {
         protected final long createTimestamp;
 
         ModuleArtifactsCacheEntry(Set<? extends ComponentArtifactMetadata> artifacts, long createTimestamp, HashCode moduleDescriptorHash) {
-            this.artifacts = new LinkedHashSet<ComponentArtifactMetadata>(artifacts);
+            this.artifacts = new LinkedHashSet<>(artifacts);
             this.createTimestamp = createTimestamp;
             this.moduleDescriptorHash = moduleDescriptorHash;
         }

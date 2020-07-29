@@ -44,10 +44,10 @@ public class OutputFilterUtil {
 
     public static ImmutableList<FileSystemSnapshot> filterOutputSnapshotBeforeExecution(FileCollectionFingerprint afterLastExecutionFingerprint, FileSystemSnapshot beforeExecutionOutputSnapshot) {
         Map<String, FileSystemLocationFingerprint> fingerprints = afterLastExecutionFingerprint.getFingerprints();
-        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((snapshot, isRoot) -> {
-            return (!isRoot || snapshot.getType() != FileType.Missing)
-                && fingerprints.containsKey(snapshot.getAbsolutePath());
-        });
+        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((snapshot, isRoot) ->
+            (!isRoot || snapshot.getType() != FileType.Missing)
+                && fingerprints.containsKey(snapshot.getAbsolutePath())
+        );
         beforeExecutionOutputSnapshot.accept(filteringVisitor);
         return filteringVisitor.getNewRoots();
     }
@@ -62,9 +62,9 @@ public class OutputFilterUtil {
             ? afterLastExecutionFingerprint.getFingerprints()
             : ImmutableMap.of();
 
-        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((afterExecutionSnapshot, isRoot) -> {
-            return isOutputEntry(afterLastExecutionFingerprints, beforeExecutionSnapshots, afterExecutionSnapshot, isRoot);
-        });
+        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((afterExecutionSnapshot, isRoot) ->
+            isOutputEntry(afterLastExecutionFingerprints, beforeExecutionSnapshots, afterExecutionSnapshot, isRoot)
+        );
         afterExecutionOutputSnapshot.accept(filteringVisitor);
 
         // Are all file snapshots after execution accounted for as new entries?
@@ -85,8 +85,16 @@ public class OutputFilterUtil {
      * Decide whether an entry should be considered to be part of the output. See class Javadoc for definition of what is considered output.
      */
     private static boolean isOutputEntry(Map<String, FileSystemLocationFingerprint> afterPreviousExecutionFingerprints, Map<String, CompleteFileSystemLocationSnapshot> beforeExecutionSnapshots, CompleteFileSystemLocationSnapshot afterExecutionSnapshot, Boolean isRoot) {
-        if (isRoot && afterExecutionSnapshot.getType() == FileType.Missing) {
-            return false;
+        if (isRoot) {
+            switch (afterExecutionSnapshot.getType()) {
+                case Missing:
+                    return false;
+                case Directory:
+                    return true;
+                default:
+                    // continue
+                    break;
+            }
         }
         CompleteFileSystemLocationSnapshot beforeSnapshot = beforeExecutionSnapshots.get(afterExecutionSnapshot.getAbsolutePath());
         // Was it created during execution?
@@ -102,7 +110,7 @@ public class OutputFilterUtil {
     }
 
     private static class GetAllSnapshotsVisitor implements FileSystemSnapshotVisitor {
-        private final Map<String, CompleteFileSystemLocationSnapshot> snapshots = new HashMap<String, CompleteFileSystemLocationSnapshot>();
+        private final Map<String, CompleteFileSystemLocationSnapshot> snapshots = new HashMap<>();
 
         @Override
         public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
@@ -168,7 +176,7 @@ public class OutputFilterUtil {
         public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             treeDepth--;
             boolean isOutputDir = predicate.test(directorySnapshot, isRoot());
-            boolean includedDir = merkleBuilder.postVisitDirectory(isOutputDir);
+            boolean includedDir = merkleBuilder.postVisitDirectory(isOutputDir, directorySnapshot.getAccessType());
             if (!includedDir) {
                 currentRootFiltered = true;
                 hasBeenFiltered = true;

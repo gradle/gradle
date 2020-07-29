@@ -39,6 +39,8 @@ public class WrapUtil {
     /**
      * Wraps the given items in a mutable unordered set.
      */
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public static <T> Set<T> toSet(T... items) {
         Set<T> coll = new HashSet<T>();
         Collections.addAll(coll, items);
@@ -48,6 +50,8 @@ public class WrapUtil {
     /**
      * Wraps the given items in a mutable domain object set.
      */
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public static <T> DomainObjectSet<T> toDomainObjectSet(Class<T> type, T... items) {
         DefaultDomainObjectSet<T> set = new DefaultDomainObjectSet<T>(type, CollectionCallbackActionDecorator.NOOP);
         set.addAll(Arrays.asList(items));
@@ -57,6 +61,8 @@ public class WrapUtil {
     /**
      * Wraps the given items in a mutable ordered set.
      */
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public static <T> Set<T> toLinkedSet(T... items) {
         Set<T> coll = new LinkedHashSet<T>();
         Collections.addAll(coll, items);
@@ -66,6 +72,8 @@ public class WrapUtil {
     /**
      * Wraps the given items in a mutable sorted set.
      */
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public static <T> SortedSet<T> toSortedSet(T... items) {
         SortedSet<T> coll = new TreeSet<T>();
         Collections.addAll(coll, items);
@@ -75,6 +83,8 @@ public class WrapUtil {
     /**
      * Wraps the given items in a mutable sorted set using the given comparator.
      */
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public static <T> SortedSet<T> toSortedSet(Comparator<T> comp, T... items) {
         SortedSet<T> coll = new TreeSet<T>(comp);
         Collections.addAll(coll, items);
@@ -84,6 +94,8 @@ public class WrapUtil {
     /**
      * Wraps the given items in a mutable list.
      */
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public static <T> List<T> toList(T... items) {
         ArrayList<T> coll = new ArrayList<T>();
         Collections.addAll(coll, items);
@@ -110,6 +122,8 @@ public class WrapUtil {
         return map;
     }
 
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public static <T> T[] toArray(T... items) {
         return items;
     }

@@ -1,5 +1,8 @@
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
+
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.jmh")
 }
 
 dependencies {
@@ -17,26 +20,31 @@ dependencies {
     implementation(project(":diagnostics"))
     implementation(project(":normalizationJava"))
 
-    implementation(library("groovy"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("commons_io"))
-    implementation(library("inject"))
-    implementation(library("asm"))
+    implementation(libs.groovy)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
+    implementation(libs.inject)
+    implementation(libs.asm)
 
-    testImplementation(project(":native"))
     testImplementation(project(":snapshots"))
-    testImplementation(library("ant"))
+    testImplementation(libs.ant)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":diagnostics")))
+    testImplementation(testFixtures(project(":logging")))
     testImplementation(testFixtures(project(":platformBase")))
     testImplementation(testFixtures(project(":platformNative")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
+    integTestImplementation(libs.slf4jApi)
 
-    integTestImplementation(library("slf4j_api"))
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }
 
 strictCompile {
     ignoreDeprecations() // most of this project has been deprecated
 }
+
+integrationTestUsesSampleDir("subprojects/platform-jvm/src/main")

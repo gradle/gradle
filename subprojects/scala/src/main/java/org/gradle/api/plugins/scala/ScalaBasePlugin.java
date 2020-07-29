@@ -35,7 +35,6 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.tasks.DefaultScalaSourceSet;
@@ -44,6 +43,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.jvm.JvmEcosystemUtilities;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.specs.Spec;
@@ -63,6 +63,7 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Scala sources.</p>
@@ -90,10 +91,12 @@ public class ScalaBasePlugin implements Plugin<Project> {
 
 
     private final ObjectFactory objectFactory;
+    private final JvmEcosystemUtilities jvmEcosystemUtilities;
 
     @Inject
-    public ScalaBasePlugin(ObjectFactory objectFactory) {
+    public ScalaBasePlugin(ObjectFactory objectFactory, JvmEcosystemUtilities jvmEcosystemUtilities) {
         this.objectFactory = objectFactory;
+        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
     }
 
     @Override
@@ -117,7 +120,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
         ConfigurationInternal plugins = (ConfigurationInternal) project.getConfigurations().create(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME);
         plugins.setTransitive(false);
         plugins.setCanBeConsumed(false);
-        JvmPluginsHelper.configureAttributesForRuntimeClasspath(plugins, objectFactory);
+        jvmEcosystemUtilities.configureAsRuntimeClasspath(plugins);
 
         Configuration zinc = project.getConfigurations().create(ZINC_CONFIGURATION_NAME);
         zinc.setVisible(false);
@@ -173,8 +176,12 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 scalaDirectorySet.srcDir(project.file("src/" + sourceSet.getName() + "/scala"));
                 sourceSet.getAllJava().source(scalaDirectorySet);
                 sourceSet.getAllSource().source(scalaDirectorySet);
+
+                // Explicitly capture only a FileCollection in the lambda below for compatibility with instant-execution.
                 FileCollection scalaSource = scalaDirectorySet;
-                sourceSet.getResources().getFilter().exclude(new IsScalaSourceSpec(scalaSource));
+                sourceSet.getResources().getFilter().exclude(
+                    spec(element -> scalaSource.contains(element.getFile()))
+                );
 
                 Configuration classpath = project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName());
                 Configuration incrementalAnalysis = project.getConfigurations().create("incrementalScalaAnalysisFor" + sourceSet.getName());
@@ -208,6 +215,10 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
                 incrementalOptions.getAnalysisFile().set(
                     project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".analysis")
+                );
+
+                incrementalOptions.getClassfileBackupDir().set(
+                    project.getLayout().getBuildDirectory().file("tmp/scala/classfileBackup/" + scalaCompile.getName() + ".bak")
                 );
 
                 final Jar jarTask = (Jar) project.getTasks().findByName(sourceSet.getJarTaskName());
@@ -313,19 +324,6 @@ public class ScalaBasePlugin implements Plugin<Project> {
                     details.closestMatch(javaRuntime);
                 }
             }
-        }
-    }
-
-    private static class IsScalaSourceSpec implements Spec<FileTreeElement> {
-        private final FileCollection scalaSource;
-
-        public IsScalaSourceSpec(FileCollection scalaSource) {
-            this.scalaSource = scalaSource;
-        }
-
-        @Override
-        public boolean isSatisfiedBy(FileTreeElement element) {
-            return scalaSource.contains(element.getFile());
         }
     }
 }

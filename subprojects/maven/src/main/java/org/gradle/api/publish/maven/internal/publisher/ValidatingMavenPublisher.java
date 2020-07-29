@@ -86,11 +86,8 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     }
 
     private Model readModelFromPom(File pomFile) throws IOException, XmlPullParserException {
-        FileReader reader = new FileReader(pomFile);
-        try {
+        try (FileReader reader = new FileReader(pomFile)) {
             return new MavenXpp3Reader().read(reader);
-        } finally {
-            reader.close();
         }
     }
 
@@ -108,7 +105,7 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     }
 
     private void checkNoDuplicateArtifacts(MavenNormalizedPublication publication) {
-        Set<MavenArtifact> verified = new HashSet<MavenArtifact>();
+        Set<MavenArtifact> verified = new HashSet<>();
         for (MavenArtifact artifact : publication.getAllArtifacts()) {
             checkNotDuplicate(publication, verified, artifact.getExtension(), artifact.getClassifier());
             verified.add(artifact);

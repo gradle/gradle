@@ -37,12 +37,12 @@ public class ResolutionResultsStoreFactory implements Closeable {
     private static final int DEFAULT_MAX_SIZE = 2000000000; //2 gigs
 
     private final TemporaryFileProvider temp;
-    private int maxSize;
+    private final int maxSize;
 
     private CachedStoreFactory<TransientConfigurationResults> oldModelCache;
     private CachedStoreFactory<ResolvedComponentResult> newModelCache;
 
-    private AtomicInteger storeSetBaseId = new AtomicInteger(0);
+    private final AtomicInteger storeSetBaseId = new AtomicInteger(0);
 
     public ResolutionResultsStoreFactory(TemporaryFileProvider temp) {
         this(temp, DEFAULT_MAX_SIZE);
@@ -57,7 +57,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
         this.maxSize = maxSize;
     }
 
-    private final Map<String, DefaultBinaryStore> stores = new HashMap<String, DefaultBinaryStore>();
+    private final Map<String, DefaultBinaryStore> stores = new HashMap<>();
     private final CompositeStoppable cleanUpLater = new CompositeStoppable();
 
     private synchronized DefaultBinaryStore createBinaryStore(String storeKey) {
@@ -74,7 +74,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
 
     private synchronized CachedStoreFactory<TransientConfigurationResults> getOldModelCache() {
         if (oldModelCache == null) {
-            oldModelCache = new CachedStoreFactory<TransientConfigurationResults>("Resolution result");
+            oldModelCache = new CachedStoreFactory<>("Resolution result");
             cleanUpLater.add(oldModelCache);
         }
         return oldModelCache;
@@ -82,7 +82,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
 
     private synchronized CachedStoreFactory<ResolvedComponentResult> getNewModelCache() {
         if (newModelCache == null) {
-            newModelCache = new CachedStoreFactory<ResolvedComponentResult>("Resolution result");
+            newModelCache = new CachedStoreFactory<>("Resolution result");
             cleanUpLater.add(newModelCache);
         }
         return newModelCache;
@@ -90,7 +90,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
 
     public StoreSet createStoreSet() {
         return new StoreSet() {
-            int storeSetId = storeSetBaseId.getAndIncrement();
+            final int storeSetId = storeSetBaseId.getAndIncrement();
             int binaryStoreId;
             @Override
             public DefaultBinaryStore nextBinaryStore() {

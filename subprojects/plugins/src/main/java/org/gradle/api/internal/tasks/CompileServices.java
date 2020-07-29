@@ -23,11 +23,11 @@ import org.gradle.api.internal.tasks.compile.incremental.cache.DefaultUserHomeSc
 import org.gradle.api.internal.tasks.compile.incremental.cache.UserHomeScopedCompileCaches;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.internal.vfs.AdditiveCacheLocations;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 public class CompileServices extends AbstractPluginServiceRegistry {
@@ -53,7 +53,7 @@ public class CompileServices extends AbstractPluginServiceRegistry {
         }
 
         DefaultGeneralCompileCaches createGeneralCompileCaches(
-            AdditiveCacheLocations additiveCacheLocations,
+            GlobalCacheLocations globalCacheLocations,
             CacheRepository cacheRepository,
             Gradle gradle,
             InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
@@ -62,7 +62,7 @@ public class CompileServices extends AbstractPluginServiceRegistry {
             VirtualFileSystem virtualFileSystem
         ) {
             return new DefaultGeneralCompileCaches(
-                additiveCacheLocations,
+                globalCacheLocations,
                 cacheRepository,
                 gradle,
                 inMemoryCacheDecoratorFactory,

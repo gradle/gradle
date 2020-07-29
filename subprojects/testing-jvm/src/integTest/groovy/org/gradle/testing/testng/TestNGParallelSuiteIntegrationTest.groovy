@@ -18,7 +18,6 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
@@ -64,7 +63,6 @@ class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue("GRADLE-3190")
-    @ToBeFixedForInstantExecution
     def "runs with multiple parallel threads"() {
         given:
         createTests(200, 20)
@@ -79,7 +77,6 @@ class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4457")
-    @ToBeFixedForInstantExecution
     def "can persist configurations in xml"() {
         given:
         createTests(3, 3)

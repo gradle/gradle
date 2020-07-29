@@ -23,7 +23,7 @@ import org.gradle.process.ExecResult;
 import java.util.concurrent.Executor;
 
 /**
- * Use {@link ExecActionFactory} or {@link DslExecActionFactory} instead.
+ * Use {@link ExecActionFactory} (for core code) or {@link org.gradle.process.ExecOperations} (for plugin code) instead.
  */
 public class DefaultExecAction extends DefaultExecHandleBuilder implements ExecAction {
     public DefaultExecAction(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {

@@ -27,8 +27,8 @@ import java.io.File;
  */
 @UsedByScanPlugin
 public class BuildLayoutConfiguration {
-    private File currentDir;
-    private boolean searchUpwards;
+    private final File currentDir;
+    private final boolean searchUpwards;
     private final File settingsFile;
     private final boolean useEmptySettings;
 

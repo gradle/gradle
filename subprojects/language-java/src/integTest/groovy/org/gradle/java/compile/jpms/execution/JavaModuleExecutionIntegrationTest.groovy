@@ -168,13 +168,18 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
     def "runs a module using the module path in a generic task with main class defined in compile task"() {
         given:
         buildFile << """
+            interface Services {
+                @javax.inject.Inject ExecOperations getExec()
+            }
+
             task run {
                 dependsOn jar
+                def execOperations = project.objects.newInstance(Services).exec
                 doLast {
-                    project.javaexec {
-                        modularity.inferModulePath.set(true)
-                        classpath = files(jar) + configurations.runtimeClasspath
-                        mainModule.set('consumer')
+                    execOperations.javaexec { action ->
+                        action.modularity.inferModulePath.set(true)
+                        action.classpath = files(jar) + configurations.runtimeClasspath
+                        action.mainModule.set('consumer')
                     }
                 }
             }
@@ -197,14 +202,19 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
     def "runs a module using the module path with main class defined in a generic task"() {
         given:
         buildFile << """
+            interface Services {
+                @javax.inject.Inject ExecOperations getExec()
+            }
+
             task run {
                 dependsOn jar
+                def execOperations = project.objects.newInstance(Services).exec
                 doLast {
-                    project.javaexec {
-                        modularity.inferModulePath.set(true)
-                        classpath = files(jar) + configurations.runtimeClasspath
-                        mainModule.set('consumer')
-                        mainClass.set('consumer.MainModule')
+                    execOperations.javaexec { action ->
+                        action.modularity.inferModulePath.set(true)
+                        action.classpath = files(jar) + configurations.runtimeClasspath
+                        action.mainModule.set('consumer')
+                        action.mainClass.set('consumer.MainModule')
                     }
                 }
             }

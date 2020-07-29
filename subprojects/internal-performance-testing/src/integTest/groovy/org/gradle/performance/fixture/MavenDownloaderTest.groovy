@@ -16,7 +16,7 @@
 
 package org.gradle.performance.fixture
 
-import org.apache.commons.lang3.exception.ExceptionUtils
+import org.apache.commons.lang.exception.ExceptionUtils
 import org.gradle.api.JavaVersion
 import org.gradle.api.UncheckedIOException
 import org.gradle.util.Requires

@@ -16,6 +16,7 @@
 package org.gradle.internal.resource;
 
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 
@@ -27,8 +28,8 @@ import java.nio.charset.Charset;
 public class EmptyFileTextResource extends UriTextResource {
     private static final HashCode SIGNATURE = Hashing.signature(EmptyFileTextResource.class);
 
-    EmptyFileTextResource(String description, File sourceFile) {
-        super(description, sourceFile);
+    EmptyFileTextResource(String description, File sourceFile, RelativeFilePathResolver resolver) {
+        super(description, sourceFile, resolver);
     }
 
     @Override

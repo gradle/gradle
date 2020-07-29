@@ -18,6 +18,7 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
@@ -25,6 +26,8 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.internal.tasks.TaskDestroyablesInternal
+import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType
 import org.gradle.api.internal.tasks.properties.InputParameterUtils
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
@@ -34,7 +37,6 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
-import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.problems.PropertyKind
 import org.gradle.instantexecution.problems.PropertyTrace
@@ -47,9 +49,12 @@ import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.instantexecution.serialization.beans.readPropertyValue
 import org.gradle.instantexecution.serialization.beans.writeNextProperty
+import org.gradle.instantexecution.serialization.readClassOf
 import org.gradle.instantexecution.serialization.readCollection
+import org.gradle.instantexecution.serialization.readCollectionInto
 import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.readNonNull
+import org.gradle.instantexecution.serialization.runWriteOperation
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.instantexecution.serialization.writeCollection
@@ -65,7 +70,7 @@ class TaskNodeCodec(
 
     override suspend fun WriteContext.encode(value: LocalTaskNode) {
         val task = value.task
-        runToCompletionWithMutableStateOf(task.project) {
+        runWriteOperationWithMutableStateOf(task.project) {
             writeTask(task)
         }
     }
@@ -86,9 +91,13 @@ class TaskNodeCodec(
 
         withTaskOf(taskType, task, userTypesCodec) {
             writeUpToDateSpec(task)
+            writeCollection(task.outputs.cacheIfSpecs)
+            writeCollection(task.outputs.doNotCacheIfSpecs)
             beanStateWriterFor(task.javaClass).run {
                 writeStateOf(task)
                 writeRegisteredPropertiesOf(task, this as BeanPropertyWriter)
+                writeDestroyablesOf(task)
+                writeLocalStateOf(task)
             }
             writeRegisteredServicesOf(task)
         }
@@ -96,7 +105,7 @@ class TaskNodeCodec(
 
     private
     suspend fun ReadContext.readTask(): Task {
-        val taskType = readClass().asSubclass(Task::class.java)
+        val taskType = readClassOf<Task>()
         val projectPath = readString()
         val taskName = readString()
 
@@ -104,9 +113,13 @@ class TaskNodeCodec(
 
         withTaskOf(taskType, task, userTypesCodec) {
             readUpToDateSpec(task)
+            readCollectionInto { task.outputs.cacheIfSpecs.uncheckedCast() }
+            readCollectionInto { task.outputs.doNotCacheIfSpecs.uncheckedCast() }
             beanStateReaderFor(task.javaClass).run {
                 readStateOf(task)
                 readRegisteredPropertiesOf(task)
+                readDestroyablesOf(task)
+                readLocalStateOf(task)
             }
             readRegisteredServicesOf(task)
         }
@@ -144,13 +157,49 @@ class TaskNodeCodec(
         }
     }
 
+    private
+    suspend fun WriteContext.writeDestroyablesOf(task: TaskInternal) {
+        val destroyables = (task.destroyables as TaskDestroyablesInternal).registeredFiles
+        if (destroyables.isEmpty) {
+            writeBoolean(false)
+        } else {
+            writeBoolean(true)
+            write(destroyables)
+        }
+    }
+
+    private
+    suspend fun ReadContext.readDestroyablesOf(task: TaskInternal) {
+        if (readBoolean()) {
+            task.destroyables.register(readNonNull<FileCollection>())
+        }
+    }
+
+    private
+    suspend fun WriteContext.writeLocalStateOf(task: TaskInternal) {
+        val localState = (task.localState as TaskLocalStateInternal).registeredFiles
+        if (localState.isEmpty) {
+            writeBoolean(false)
+        } else {
+            writeBoolean(true)
+            write(localState)
+        }
+    }
+
+    private
+    suspend fun ReadContext.readLocalStateOf(task: TaskInternal) {
+        if (readBoolean()) {
+            task.localState.register(readNonNull<FileCollection>())
+        }
+    }
+
     /**
-     * Runs the suspending [block] to completion against the [public mutable state][ProjectState.withMutableState] of [project].
+     * Runs the suspending [operation] against the [public mutable state][ProjectState.withMutableState] of [project].
      */
     private
-    fun runToCompletionWithMutableStateOf(project: Project, block: suspend () -> Unit) {
+    fun WriteContext.runWriteOperationWithMutableStateOf(project: Project, operation: suspend WriteContext.() -> Unit) {
         projectStateRegistry.stateFor(project).withMutableState {
-            runToCompletion(block)
+            runWriteOperation(operation)
         }
     }
 }

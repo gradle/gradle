@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
+
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 gradlebuildJava.usedInWorkers()
@@ -33,14 +35,14 @@ dependencies {
     implementation(project(":reporting"))
     implementation(project(":platformBase"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("groovy"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("commons_io"))
-    implementation(library("kryo"))
-    implementation(library("inject"))
-    implementation(library("ant")) // only used for DateUtils
+    implementation(libs.slf4jApi)
+    implementation(libs.groovy)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
+    implementation(libs.kryo)
+    implementation(libs.inject)
+    implementation(libs.ant) // only used for DateUtils
 
     testImplementation(project(":fileCollections"))
     testImplementation(testFixtures(project(":core")))
@@ -49,16 +51,16 @@ dependencies {
     testImplementation(testFixtures(project(":logging")))
     testImplementation(testFixtures(project(":baseServices")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":modelCore"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("guava"))
-    testFixturesImplementation(testLibrary("jsoup"))
+    testFixturesImplementation(libs.guava)
+    testFixturesImplementation(libs.jsoup)
 
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsCore"))
 }
 
 strictCompile {
@@ -68,3 +70,5 @@ strictCompile {
 classycle {
     excludePatterns.set(listOf("org/gradle/api/internal/tasks/testing/**"))
 }
+
+integrationTestUsesSampleDir("subprojects/testing-base/src/main")

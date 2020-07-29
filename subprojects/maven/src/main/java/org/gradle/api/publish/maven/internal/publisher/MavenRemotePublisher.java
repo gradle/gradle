@@ -50,16 +50,15 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
 
     @Override
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
-        LOGGER.info("Publishing to repository '{}' ({})", artifactRepository.getName(), artifactRepository.getUrl());
+        URI repositoryUrl = artifactRepository.getUrl();
+        LOGGER.info("Publishing to repository '{}' ({})", artifactRepository.getName(), repositoryUrl);
 
-        String protocol = artifactRepository.getUrl().getScheme().toLowerCase();
+        String protocol = repositoryUrl.getScheme().toLowerCase();
         DefaultMavenArtifactRepository realRepository = (DefaultMavenArtifactRepository) artifactRepository;
         RepositoryTransport transport = realRepository.getTransport(protocol);
         ExternalResourceRepository repository = transport.getRepository();
 
-        URI rootUri = artifactRepository.getUrl();
-
-        publish(publication, repository, rootUri, false);
+        publish(publication, repository, repositoryUrl, false);
     }
 
     @Override

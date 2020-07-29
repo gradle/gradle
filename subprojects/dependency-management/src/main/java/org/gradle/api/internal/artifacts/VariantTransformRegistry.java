@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.TransformSpec;
-import org.gradle.api.artifacts.transform.VariantTransform;
 
 import java.util.List;
 
@@ -29,10 +28,18 @@ public interface VariantTransformRegistry {
     /**
      * Register an artifact transformation.
      *
-     * @see VariantTransform
+     * @see org.gradle.api.artifacts.transform.VariantTransform
+     * @deprecated Use {@link #registerTransform(Class, Action)} instead
      */
-    void registerTransform(Action<? super VariantTransform> registrationAction);
+    @Deprecated
+    @SuppressWarnings("deprecation")
+    void registerTransform(Action<? super org.gradle.api.artifacts.transform.VariantTransform> registrationAction);
 
+    /**
+     * Register an artifact transformation.
+     *
+     * @see TransformAction
+     */
     <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
     List<ArtifactTransformRegistration> getTransforms();

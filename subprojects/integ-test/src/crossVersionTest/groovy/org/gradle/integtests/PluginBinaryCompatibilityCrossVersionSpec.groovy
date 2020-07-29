@@ -77,6 +77,6 @@ apply plugin: SomePlugin
 
         expect:
         version previous withTasks 'assemble' inDirectory(file("producer")) run()
-        version current withTasks 'tasks' requireGradleDistribution() run()
+        version current withTasks 'tasks' requireDaemon() requireIsolatedDaemons() run()
     }
 }

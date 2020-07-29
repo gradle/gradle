@@ -25,7 +25,7 @@ import java.util.Set;
 class BuildableIvyArtifact {
 
     private final IvyArtifactName ivyArtifactName;
-    private final Set<String> configurations = new LinkedHashSet<String>();
+    private final Set<String> configurations = new LinkedHashSet<>();
 
     public BuildableIvyArtifact(String name, String type, String ext, String classifier) {
         this.ivyArtifactName = new DefaultIvyArtifactName(name, type, ext, classifier);

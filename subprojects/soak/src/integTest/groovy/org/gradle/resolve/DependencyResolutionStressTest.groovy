@@ -16,15 +16,14 @@
 
 package org.gradle.resolve
 
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
-import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import org.junit.experimental.categories.Category
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.Connector
 import org.mortbay.jetty.HttpHeaders
@@ -38,7 +37,6 @@ import javax.servlet.http.HttpServletResponse
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-@Category(SoakTest)
 class DependencyResolutionStressTest extends Specification {
     @Rule TestNameTestDirectoryProvider workspace = new TestNameTestDirectoryProvider(getClass())
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution()
@@ -47,6 +45,10 @@ class DependencyResolutionStressTest extends Specification {
 
     def setup() {
         concurrent.shortTimeout = 180000
+    }
+
+    def cleanup() {
+        new DaemonLogsAnalyzer(workspace.file("daemon")).daemons.each { it.kill() }
     }
 
     def "handles concurrent access to changing artifacts"() {
@@ -88,7 +90,7 @@ task check {
         """
 
                 GradleExecuter executer = distribution.executer(workspace, IntegrationTestBuildContext.INSTANCE).
-                        requireGradleDistribution().
+                        requireDaemon().requireIsolatedDaemons().
                         withGradleUserHomeDir(workspace.file("user-home"))
                 8.times {
                     executer.inDirectory(buildDir).withArgument("--refresh-dependencies").withTasks('check').run()

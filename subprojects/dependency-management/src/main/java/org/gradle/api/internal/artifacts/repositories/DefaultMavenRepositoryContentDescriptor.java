@@ -19,12 +19,14 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
 import org.gradle.internal.Actions;
 
+import java.util.function.Supplier;
+
 class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDescriptor implements MavenRepositoryContentDescriptor {
     private boolean snapshots = true;
     private boolean releases = true;
 
-    public DefaultMavenRepositoryContentDescriptor(String repositoryName) {
-        super(repositoryName);
+    public DefaultMavenRepositoryContentDescriptor(Supplier<String> repositoryNameSupplier) {
+        super(repositoryNameSupplier);
     }
 
     @Override
@@ -52,11 +54,10 @@ class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDe
                     }
                     if (releases && version.endsWith("-SNAPSHOT")) {
                         details.notFound();
-                        return;
                     }
                 }
             };
-            if (filter == null) {
+            if (filter == Actions.doNothing()) {
                 return action;
             }
             return Actions.composite(filter, action);

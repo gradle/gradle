@@ -31,11 +31,12 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.NoOpDerivationStrategy;
 import org.gradle.internal.component.external.model.RealisedConfigurationMetadata;
+import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 
 import javax.annotation.Nullable;
@@ -92,7 +93,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     @Override
     public ConfigurationMetadata getConfiguration(String name) {
         if ("default".equals(name)) {
-            ImmutableList.Builder<ModuleDependencyMetadata> dependencies = new ImmutableList.Builder<ModuleDependencyMetadata>();
+            ImmutableList.Builder<ModuleDependencyMetadata> dependencies = new ImmutableList.Builder<>();
             Set<ModuleResolveState> participatingModules = platformState.getParticipatingModules();
             for (ModuleResolveState module : participatingModules) {
                 dependencies.add(new LenientPlatformDependencyMetadata(
@@ -107,7 +108,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
             }
             return new RealisedConfigurationMetadata(
                 moduleComponentIdentifier, name, false, false,
-                ImmutableSet.of(name), ImmutableList.<ModuleComponentArtifactMetadata>of(), ImmutableList.<ExcludeMetadata>of(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, false, dependencies.build(), false
+                ImmutableSet.of(name), ImmutableList.of(), ImmutableList.of(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, false, dependencies.build(), false
             );
         }
         throw new IllegalArgumentException("Undefined configuration '" + name + "'");
@@ -151,6 +152,16 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     @Override
     public ModuleComponentResolveMetadata withSources(ModuleSources sources) {
         return this;
+    }
+
+    @Override
+    public ModuleComponentResolveMetadata withDerivationStrategy(VariantDerivationStrategy derivationStrategy) {
+        return this;
+    }
+
+    @Override
+    public VariantDerivationStrategy getVariantDerivationStrategy() {
+        return NoOpDerivationStrategy.getInstance();
     }
 
     @Override

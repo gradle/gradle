@@ -78,7 +78,7 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails()
-        failure.assertHasCause("Failed to apply plugin [class 'CustomPlugin']")
+        failure.assertHasCause("Failed to apply plugin class 'CustomPlugin'")
         failure.assertHasCause("Could not create plugin of type 'CustomPlugin'.")
         failure.assertHasCause("The constructor for type CustomPlugin should be annotated with @Inject.")
     }
@@ -101,7 +101,7 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails()
-        failure.assertHasCause("Failed to apply plugin [class 'CustomPlugin']")
+        failure.assertHasCause("Failed to apply plugin class 'CustomPlugin'")
         failure.assertHasCause("Could not create plugin of type 'CustomPlugin'.")
         failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of type Unknown, or no service of type Unknown")
     }

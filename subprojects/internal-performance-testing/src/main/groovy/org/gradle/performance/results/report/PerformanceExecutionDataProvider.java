@@ -22,7 +22,6 @@ import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.performance.results.PerformanceTestExecution;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ScenarioBuildResultData;
-import org.gradle.performance.util.Git;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +40,7 @@ public abstract class PerformanceExecutionDataProvider {
     protected TreeSet<ScenarioBuildResultData> scenarioExecutionData;
     protected final ResultsStore resultsStore;
     private final File resultsJson;
-    protected final String commitId = Git.current().getCommitId();
+    protected final String commitId = "testCommitId";
 
     public PerformanceExecutionDataProvider(ResultsStore resultsStore, File resultsJson) {
         this.resultsJson = resultsJson;

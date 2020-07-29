@@ -391,7 +391,6 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         hasModules([])
     }
 
-    @ToBeFixedForInstantExecution
     def "writes checksums of plugins using plugins block"() {
         given:
         addPlugin()
@@ -419,7 +418,6 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         hasModules(["test-plugin:test-plugin.gradle.plugin", "com:myplugin"])
     }
 
-    @ToBeFixedForInstantExecution
     def "writes checksums of plugins using buildscript block"() {
         given:
         addPlugin()

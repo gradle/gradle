@@ -49,9 +49,9 @@ public class DefaultIvyModulePublishMetadata implements IvyModulePublishMetadata
     private static final Transformer<String, String> VERSION_TRANSFORMER = new IvyVersionTransformer();
     private final ModuleComponentIdentifier id;
     private final String status;
-    private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata> artifactsById = new LinkedHashMap<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata>();
-    private final Map<String, Configuration> configurations = new LinkedHashMap<String, Configuration>();
-    private final Set<LocalOriginDependencyMetadata> dependencies = new LinkedHashSet<LocalOriginDependencyMetadata>();
+    private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata> artifactsById = new LinkedHashMap<>();
+    private final Map<String, Configuration> configurations = new LinkedHashMap<>();
+    private final Set<LocalOriginDependencyMetadata> dependencies = new LinkedHashSet<>();
     private final List<Pair<ExcludeMetadata, String>> excludes = Lists.newArrayList();
 
     public DefaultIvyModulePublishMetadata(ModuleComponentIdentifier id, String status) {

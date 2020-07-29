@@ -17,42 +17,86 @@
 package org.gradle.instantexecution
 
 import org.gradle.api.InvalidUserCodeException
+import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.instantexecution.problems.DocumentationSection.RequirementsUndeclaredSysPropRead
 import org.gradle.instantexecution.problems.InstantExecutionProblems
 import org.gradle.instantexecution.problems.PropertyProblem
-import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.problems.StructuredMessage
+import org.gradle.instantexecution.problems.location
 import org.gradle.instantexecution.serialization.Workarounds
 import org.gradle.internal.classpath.Instrumented
+import org.gradle.internal.event.ListenerManager
+
+
+private
+val allowedProperties = setOf(
+    "os.name",
+    "os.version",
+    "os.arch",
+    "java.version",
+    "java.version.date",
+    "java.vendor",
+    "java.vendor.url",
+    "java.vendor.version",
+    "java.specification.version",
+    "java.specification.vendor",
+    "java.specification.name",
+    "java.vm.version",
+    "java.vm.specification.version",
+    "java.vm.specification.vendor",
+    "java.vm.specification.name",
+    "java.vm.version",
+    "java.vm.vendor",
+    "java.vm.name",
+    "java.class.version",
+    "java.home",
+    "java.class.path",
+    "java.library.path",
+    "java.compiler",
+    "file.separator",
+    "path.separator",
+    "line.separator",
+    "user.name",
+    "user.home",
+    "java.runtime.version"
+    // Not java.io.tmpdir and user.dir at this stage
+)
 
 
 class SystemPropertyAccessListener(
-    private val problems: InstantExecutionProblems
+    private val problems: InstantExecutionProblems,
+    private val userCodeContext: UserCodeApplicationContext,
+    listenerManager: ListenerManager
 ) : Instrumented.Listener {
     private
-    val whitelistedProperties = setOf(
-        "os.name",
-        "os.version",
-        "java.version",
-        "java.vm.version",
-        "java.runtime.version",
-        "java.specification.version",
-        "java.home",
-        "line.separator",
-        "user.name",
-        "user.home"
-    )
+    val broadcast = listenerManager.getBroadcaster(UndeclaredBuildInputListener::class.java)
 
-    override fun systemPropertyQueried(key: String, consumer: String) {
-        if (whitelistedProperties.contains(key) || Workarounds.canReadSystemProperty(consumer)) {
+    private
+    val nullProperties = mutableSetOf<String>()
+
+    override fun systemPropertyQueried(key: String, value: Any?, consumer: String) {
+        if (allowedProperties.contains(key) || Workarounds.canReadSystemProperty(consumer)) {
+            return
+        }
+        if (value == null) {
+            if (nullProperties.add(key)) {
+                broadcast.systemPropertyRead(key)
+            }
             return
         }
         val message = StructuredMessage.build {
-            text("read system property '")
-            text(key)
-            text("' from ")
-            reference(consumer)
+            text("read system property ")
+            reference(key)
         }
+        val location = userCodeContext.location(consumer)
         val exception = InvalidUserCodeException(message.toString().capitalize())
-        problems.onProblem(PropertyProblem(PropertyTrace.Unknown, message, exception))
+        problems.onProblem(
+            PropertyProblem(
+                location,
+                message,
+                exception,
+                documentationSection = RequirementsUndeclaredSysPropRead
+            )
+        )
     }
 }

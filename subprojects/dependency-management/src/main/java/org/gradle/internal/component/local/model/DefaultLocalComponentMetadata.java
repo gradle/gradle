@@ -97,7 +97,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
         // Artifacts
         // Keep track of transformed artifacts as a given artifact may appear in multiple variants
-        Map<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformedArtifacts = new HashMap<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata>();
+        Map<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformedArtifacts = new HashMap<>();
         for (Map.Entry<String, LocalComponentArtifactMetadata> entry : allArtifacts.entries()) {
             LocalComponentArtifactMetadata oldArtifact = entry.getValue();
             LocalComponentArtifactMetadata newArtifact = copyArtifact(oldArtifact, artifacts, transformedArtifacts);
@@ -231,7 +231,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     @Override
     public synchronized Optional<ImmutableList<? extends ConfigurationMetadata>> getVariantsForGraphTraversal() {
         if (consumableConfigurations == null) {
-            ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<ConfigurationMetadata>();
+            ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
             boolean hasAtLeastOneConsumableConfiguration = false;
             for (DefaultLocalConfigurationMetadata configuration : allConfigurations.values()) {
                 if (configuration.isCanBeConsumed() && !configuration.getAttributes().isEmpty()) {
@@ -240,7 +240,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                 }
             }
             if (hasAtLeastOneConsumableConfiguration) {
-                consumableConfigurations = Optional.<ImmutableList<? extends ConfigurationMetadata>>of(builder.build());
+                consumableConfigurations = Optional.of(builder.build());
             } else {
                 consumableConfigurations = Optional.absent();
             }
@@ -281,9 +281,9 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         private ConfigurationInternal backingConfiguration;
         private LocalConfigurationMetadataBuilder configurationMetadataBuilder;
 
-        private List<LocalOriginDependencyMetadata> definedDependencies = Lists.newArrayList();
-        private List<ExcludeMetadata> definedExcludes = Lists.newArrayList();
-        private List<LocalFileDependencyMetadata> definedFiles= Lists.newArrayList();
+        private final List<LocalOriginDependencyMetadata> definedDependencies = Lists.newArrayList();
+        private final List<ExcludeMetadata> definedExcludes = Lists.newArrayList();
+        private final List<LocalFileDependencyMetadata> definedFiles= Lists.newArrayList();
 
         private ImmutableList<LocalOriginDependencyMetadata> configurationDependencies;
         private ImmutableSet<LocalFileDependencyMetadata> configurationFileDependencies;

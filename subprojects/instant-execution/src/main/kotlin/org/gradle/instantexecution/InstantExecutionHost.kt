@@ -22,14 +22,13 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.project.DefaultProjectRegistry
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.execution.plan.Node
-import org.gradle.groovy.scripts.StringScriptSource
+import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.BuildLoader
 import org.gradle.initialization.BuildOperatingFiringSettingsPreparer
 import org.gradle.initialization.BuildOperatingFiringTaskExecutionPreparer
@@ -40,7 +39,6 @@ import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.NotifyingBuildLoader
 import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.SettingsPreparer
-import org.gradle.initialization.SettingsProcessor
 import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.internal.Factory
@@ -52,9 +50,8 @@ import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry
-import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.util.Path
 import java.io.File
 
@@ -97,6 +94,8 @@ class InstantExecutionHost internal constructor(
         private val fileResolver: PathToFileResolver,
         private val rootProjectName: String
     ) : InstantExecutionBuild {
+        private
+        val buildDirs = mutableMapOf<Path, File>()
 
         init {
             gradle.run {
@@ -117,7 +116,7 @@ class InstantExecutionHost internal constructor(
             }
         }
 
-        override fun createProject(path: String, dir: File) {
+        override fun createProject(path: String, dir: File, buildDir: File) {
             val projectPath = Path.path(path)
             val name = projectPath.name
             val projectDescriptor = DefaultProjectDescriptor(
@@ -128,6 +127,7 @@ class InstantExecutionHost internal constructor(
                 fileResolver
             )
             projectDescriptorRegistry.addProject(projectDescriptor)
+            buildDirs[projectPath] = buildDir
         }
 
         override fun registerProjects() {
@@ -160,6 +160,8 @@ class InstantExecutionHost internal constructor(
         private
         fun createProject(descriptor: ProjectDescriptor, parent: ProjectInternal?): ProjectInternal {
             val project = projectFactory.createProject(gradle, descriptor, parent, coreAndPluginsScope, coreAndPluginsScope)
+            // Build dir is restored in order to use the correct workspace directory for transforms of project dependencies when the build dir has been customized
+            buildDirs.get(project.identityPath)?.let { project.setBuildDir(it) }
             for (child in descriptor.children) {
                 createProject(child, project)
             }
@@ -193,11 +195,7 @@ class InstantExecutionHost internal constructor(
             // It may be better to instead point GE at the origin build that produced the cached task graph,
             // or replace this with a different event/op that carries this information and wraps some actual work
             return BuildOperationSettingsProcessor(
-                SettingsProcessor { _, _, _, _ ->
-                    createSettings().also {
-                        applyAutoPluginRequestsTo(it)
-                    }
-                },
+                { _, _, _, _ -> createSettings() },
                 service()
             ).process(
                 gradle,
@@ -211,7 +209,7 @@ class InstantExecutionHost internal constructor(
         fun createSettings(): SettingsInternal {
             val baseClassLoaderScope = gradle.classLoaderScope
             val classLoaderScope = baseClassLoaderScope.createChild("settings")
-            return StringScriptSource("settings", "").let { settingsSource ->
+            return TextResourceScriptSource(StringTextResource("settings", "")).let { settingsSource ->
                 service<Instantiator>().newInstance(
                     DefaultSettings::class.java,
                     service<BuildScopeServiceRegistryFactory>(),
@@ -225,20 +223,6 @@ class InstantExecutionHost internal constructor(
                 )
             }
         }
-
-        private
-        fun applyAutoPluginRequestsTo(settingsInternal: SettingsInternal) {
-            service<PluginRequestApplicator>().applyPlugins(
-                autoAppliedPluginRequestsFor(settingsInternal),
-                settingsInternal.buildscript as ScriptHandlerInternal?,
-                settingsInternal.pluginManager,
-                settingsInternal.classLoaderScope
-            )
-        }
-
-        private
-        fun autoAppliedPluginRequestsFor(settingsInternal: SettingsInternal) =
-            service<AutoAppliedPluginRegistry>().getAutoAppliedPlugins(settingsInternal)
     }
 
     private

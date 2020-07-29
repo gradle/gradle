@@ -72,10 +72,14 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
                 describeCategory(category, sb);
             }
         } else {
-            sb.append("a component");
+            if (docsType != null && category == null) {
+                describeDocsType(docsType, sb);
+            } else {
+                sb.append("a component");
+            }
         }
         if (status != null) {
-            sb.append("with a ");
+            sb.append(" with a ");
             describeStatus(status, sb);
         }
         if (targetJvm != null) {

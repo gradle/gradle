@@ -40,4 +40,13 @@ class TypeInspectorTest extends Specification {
         def types2 = inspector.getReachableTypes(Child)
         types2 == types
     }
+
+    def "inspects cyclic generic types"() {
+        expect:
+        def types = inspector.getReachableTypes(GenericChild)
+        types == [GenericItem1, GenericItem2, GenericChild] as Set
+
+        def types2 = inspector.getReachableTypes(GenericChild)
+        types2.is(types)
+    }
 }

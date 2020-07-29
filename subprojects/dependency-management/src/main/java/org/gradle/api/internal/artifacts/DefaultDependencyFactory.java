@@ -85,6 +85,7 @@ public class DefaultDependencyFactory implements DependencyFactory {
 
 
     @Override
+    @SuppressWarnings("rawtypes")
     public ClientModule createModule(Object dependencyNotation, Closure configureClosure) {
         ClientModule clientModule = clientModuleNotationParser.parseNotation(dependencyNotation);
         if (configureClosure != null) {
@@ -98,6 +99,7 @@ public class DefaultDependencyFactory implements DependencyFactory {
         return projectDependencyFactory.createFromMap(projectFinder, map);
     }
 
+    @SuppressWarnings("rawtypes")
     private void configureModule(ClientModule clientModule, Closure configureClosure) {
         ModuleFactoryDelegate moduleFactoryDelegate = new ModuleFactoryDelegate(clientModule, this);
         moduleFactoryDelegate.prepareDelegation(configureClosure);

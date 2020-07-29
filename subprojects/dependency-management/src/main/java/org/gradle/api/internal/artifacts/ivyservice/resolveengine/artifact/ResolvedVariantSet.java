@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Describable;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
@@ -27,11 +26,6 @@ import java.util.Set;
  * Represents some provider of {@link ResolvedVariant} instances to select from.
  */
 public interface ResolvedVariantSet {
-    /**
-     * The id of the component that owns this set of variants.
-     */
-    ComponentIdentifier getComponentId();
-
     Describable asDescribable();
 
     AttributesSchemaInternal getSchema();

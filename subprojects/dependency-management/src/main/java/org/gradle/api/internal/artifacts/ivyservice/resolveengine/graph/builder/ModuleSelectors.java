@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
@@ -28,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selector
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -37,24 +37,27 @@ import java.util.function.Function;
 public class ModuleSelectors<T extends ResolvableSelectorState> implements Iterable<T> {
     private static final VersionParser VERSION_PARSER = new VersionParser();
     private static final Version EMPTY_VERSION = VERSION_PARSER.transform("");
-    private static final Comparator<Version> VERSION_COMPARATOR = (new DefaultVersionComparator().asVersionComparator()).reversed();
 
     private static <T, U extends Comparable<? super U>> Comparator<T> reverse(
         Function<? super T, ? extends U> keyExtractor) {
         return Cast.uncheckedCast(Comparator.comparing(keyExtractor).reversed());
     }
 
-    final static Comparator<ResolvableSelectorState> SELECTOR_COMPARATOR =
-        reverse(ResolvableSelectorState::isProject)
-            .thenComparing(reverse(ResolvableSelectorState::isFromLock))
-            .thenComparing(reverse(ModuleSelectors::hasLatestSelector))
-            .thenComparing(ModuleSelectors::isDynamicSelector)
-            .thenComparing(ModuleSelectors::requiredVersion, VERSION_COMPARATOR)
-            .thenComparing(ModuleSelectors::preferredVersion, VERSION_COMPARATOR);
 
     private final List<T> selectors = Lists.newArrayList();
     private boolean deferSelection;
     private boolean forced;
+    final Comparator<ResolvableSelectorState> selectorComparator;
+
+    public ModuleSelectors(Comparator<Version> versionComparator) {
+        Comparator<Version> reversed = versionComparator.reversed();
+        selectorComparator = reverse(ResolvableSelectorState::isProject)
+            .thenComparing(reverse(ResolvableSelectorState::isFromLock))
+            .thenComparing(reverse(ModuleSelectors::hasLatestSelector))
+            .thenComparing(ModuleSelectors::isDynamicSelector)
+            .thenComparing(ModuleSelectors::requiredVersion, reversed)
+            .thenComparing(ModuleSelectors::preferredVersion, reversed);
+    }
 
     public boolean checkDeferSelection() {
         if (deferSelection) {
@@ -64,7 +67,6 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         return false;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Iterator<T> iterator() {
         return selectors.iterator();
@@ -89,8 +91,8 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         }
     }
 
-    private static <T extends ResolvableSelectorState> void doAddWhenListHasManyElements(List<T> selectors, T selector, int size) {
-        int insertionPoint = Collections.binarySearch(selectors, selector, SELECTOR_COMPARATOR);
+    private <T extends ResolvableSelectorState> void doAddWhenListHasManyElements(List<T> selectors, T selector, int size) {
+        int insertionPoint = Collections.binarySearch(selectors, selector, selectorComparator);
         insertionPoint = advanceToPreserveOrder(selectors, selector, size, insertionPoint);
         if (insertionPoint < 0) {
             insertionPoint = ~insertionPoint;
@@ -98,8 +100,8 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         selectors.add(insertionPoint, selector);
     }
 
-    private static <T extends ResolvableSelectorState> int advanceToPreserveOrder(List<T> selectors, T selector, int size, int insertionPoint) {
-        while (insertionPoint > 0 && insertionPoint < size && SELECTOR_COMPARATOR.compare(selectors.get(insertionPoint), selector) == 0) {
+    private <T extends ResolvableSelectorState> int advanceToPreserveOrder(List<T> selectors, T selector, int size, int insertionPoint) {
+        while (insertionPoint > 0 && insertionPoint < size && selectorComparator.compare(selectors.get(insertionPoint), selector) == 0) {
             insertionPoint++;
         }
         return insertionPoint;
@@ -107,7 +109,7 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
 
     private void doAddWhenListHasOneElement(T selector) {
         T first = selectors.get(0);
-        int c = SELECTOR_COMPARATOR.compare(first, selector);
+        int c = selectorComparator.compare(first, selector);
         if (c <= 0) {
             selectors.add(selector);
         } else {
@@ -133,7 +135,7 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         return hasLatestSelector(vc.getRequiredSelector());
     }
 
-    private static boolean hasLatestSelector(VersionSelector versionSelector) {
+    private static boolean hasLatestSelector(@Nullable VersionSelector versionSelector) {
         return versionSelector instanceof LatestVersionSelector;
     }
 
@@ -153,7 +155,7 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         return versionOf(versionConstraint.getPreferredSelector());
     }
 
-    private static Version versionOf(VersionSelector selector) {
+    private static Version versionOf(@Nullable VersionSelector selector) {
         if (!(selector instanceof ExactVersionSelector)) {
             return EMPTY_VERSION;
         }
@@ -164,20 +166,20 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         return selectors.size();
     }
 
+    @Nullable
     public T first() {
         if (size() == 0) {
             return null;
         }
-        if (size() == 1) {
-            return selectors.get(0);
-        }
         return selectors.get(0);
     }
 
+    @Nullable
     public IvyArtifactName getFirstDependencyArtifact() {
         for (T selector: selectors) {
-            if (selector.getFirstDependencyArtifact() != null) {
-                return selector.getFirstDependencyArtifact();
+            IvyArtifactName artifact = selector.getFirstDependencyArtifact();
+            if (artifact != null) {
+                return artifact;
             }
         }
         return null;

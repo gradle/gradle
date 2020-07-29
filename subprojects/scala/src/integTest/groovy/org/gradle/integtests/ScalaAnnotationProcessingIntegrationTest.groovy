@@ -17,7 +17,6 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
@@ -41,7 +40,6 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause('javac returned non-zero exit code')
     }
 
-    @ToBeFixedForInstantExecution
     def "does not process annotation for Java class if annotation processor is only available on classpath"() {
         when:
         AnnotationProcessorPublisher annotationProcessorPublisher = new AnnotationProcessorPublisher()
@@ -65,7 +63,6 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         new TestFile(testDirectory, 'generated.txt').assertDoesNotExist()
     }
 
-    @ToBeFixedForInstantExecution
     def "processes annotation for Java class if annotation processor is available on processor path"() {
         when:
         AnnotationProcessorPublisher annotationProcessorPublisher = new AnnotationProcessorPublisher()
@@ -128,7 +125,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: 'scala'
 
             ${mavenCentralRepository()}
-            
+
             dependencies {
                 implementation 'org.scala-lang:scala-library:2.11.12'
             }
@@ -171,7 +168,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
             @lombok.Value
             public class Test {
                 String test;
-                
+
                 static {
                     new Test("test").getTest();
                 }
@@ -243,10 +240,10 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         private void writeProcessorSourceFile() {
             file("$name/src/main/java/org/gradle/Custom.java") << """
                 package org.gradle;
-                
+
                 import java.lang.annotation.*;
-                
-                @Target(ElementType.TYPE) 
+
+                @Target(ElementType.TYPE)
                 @Retention(RetentionPolicy.CLASS)
                 public @interface Custom {}
             """

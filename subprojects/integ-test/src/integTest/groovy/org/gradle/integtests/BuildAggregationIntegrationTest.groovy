@@ -23,7 +23,7 @@ import spock.lang.Issue
 
 class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "GradleBuild task")
     def canExecuteAnotherBuildFromBuild() {
         when:
         buildFile << '''
@@ -70,7 +70,7 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "build"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "GradleBuild task")
     def reportsNestedBuildFailure() {
         when:
         file('other/settings.gradle') << "rootProject.name = 'other'"
@@ -106,7 +106,7 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org//browse/GRADLE-3052")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "GradleBuild task")
     def buildTaskCanHaveInputsAndOutputs() {
         file("input") << "foo"
         settingsFile << "rootProject.name = 'proj'"

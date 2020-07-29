@@ -16,15 +16,17 @@
 
 package org.gradle.plugin.use.internal
 
-import org.gradle.groovy.scripts.StringScriptSource
+
+import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.internal.exceptions.LocationAwareException
+import org.gradle.internal.resource.StringTextResource
 import org.gradle.plugin.management.internal.InvalidPluginRequestException
 import org.gradle.plugin.use.PluginDependenciesSpec
 import spock.lang.Specification
 
 class PluginRequestCollectorTest extends Specification {
 
-    final scriptSource = new StringScriptSource("d", "c")
+    final scriptSource = new TextResourceScriptSource(new StringTextResource("d", "c"))
     static final int LINE_NUMBER = 10
 
     List<Map> plugins(@DelegatesTo(PluginDependenciesSpec) Closure<?> closure) {
@@ -45,7 +47,7 @@ class PluginRequestCollectorTest extends Specification {
 
     def "version is optional"() {
         expect:
-        [[id: 'foo', version : null]] == plugins {
+        [[id: 'foo', version: null]] == plugins {
             id "foo"
         }
     }

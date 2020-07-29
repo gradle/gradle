@@ -21,14 +21,14 @@ import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 
 class SamplesClientModuleDependenciesIntegrationTest extends AbstractIntegrationSpec {
-    @Rule Sample sample = new Sample(temporaryFolder, "clientModuleDependencies")
+    @Rule Sample sample = new Sample(temporaryFolder, "dependencyManagement/clientModuleDependencies")
 
     def setup() {
         executer.withRepositoryMirrors()
     }
 
     def "resolve shared"() {
-        inDirectory(sample.dir.file("shared"))
+        inDirectory(sample.dir.file("groovy/shared"))
 
         expect:
         // the actual testing is done in the build script
@@ -36,7 +36,7 @@ class SamplesClientModuleDependenciesIntegrationTest extends AbstractIntegration
     }
 
     def "resolve api"() {
-        inDirectory(sample.dir.file("api"))
+        inDirectory(sample.dir.file("groovy/api"))
 
         expect:
         // the actual testing is done in the build script

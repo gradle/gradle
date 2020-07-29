@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selecto
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
@@ -26,7 +27,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
@@ -35,8 +35,9 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResu
 public class TestModuleSelectorState implements ResolvableSelectorState {
 
     private static final VersionParser VERSION_PARSER = new VersionParser();
-    private static final DefaultVersionComparator VERSION_COMPARATOR = new DefaultVersionComparator();
-    private static final VersionSelectorScheme VERSION_SELECTOR_SCHEME = new DefaultVersionSelectorScheme(VERSION_COMPARATOR, VERSION_PARSER);
+    private static final FeaturePreviews FEATURE_PREVIEWS = new FeaturePreviews();
+    private static final DefaultVersionComparator VERSION_COMPARATOR = new DefaultVersionComparator(FEATURE_PREVIEWS);
+    private static final VersionSelectorScheme VERSION_SELECTOR_SCHEME = new DefaultVersionSelectorScheme(VERSION_COMPARATOR, VERSION_PARSER, FEATURE_PREVIEWS);
 
     private final DependencyToComponentIdResolver resolver;
     private final DefaultResolvedVersionConstraint resolvedVersionConstraint;
@@ -89,11 +90,6 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
         BuildableComponentIdResolveResult result = new DefaultBuildableComponentIdResolveResult();
         resolver.resolve(null, acceptor, rejector, result);
         return result;
-    }
-
-    @Override
-    public void failed(ModuleVersionResolveException failure) {
-        throw new UnsupportedOperationException("To be implemented");
     }
 
     @Override

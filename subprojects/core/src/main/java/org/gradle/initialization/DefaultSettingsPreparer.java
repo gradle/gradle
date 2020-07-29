@@ -32,7 +32,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
         // Evaluate init scripts
         initScriptHandler.executeScripts(gradle);
         // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
-        SettingsLoader settingsLoader = gradle.getParent() != null ? settingsLoaderFactory.forNestedBuild() : settingsLoaderFactory.forTopLevelBuild();
+        SettingsLoader settingsLoader = gradle.isRootBuild() ? settingsLoaderFactory.forTopLevelBuild() : settingsLoaderFactory.forNestedBuild();
         settingsLoader.findAndLoadSettings(gradle);
     }
 }

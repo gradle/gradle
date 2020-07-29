@@ -30,12 +30,11 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.xml.XmlTransformer;
-import org.gradle.internal.MutableActionSet;
 import org.gradle.util.ConfigureUtil;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
@@ -47,7 +46,7 @@ public class DefaultMavenPom implements MavenPom {
     private PathToFileResolver fileResolver;
     private Model model = new MavenProject().getModel();
     private Conf2ScopeMappingContainer scopeMappings;
-    private MutableActionSet<MavenPom> whenConfiguredActions = new MutableActionSet<MavenPom>();
+    private MutableActionSet<MavenPom> whenConfiguredActions = new MutableActionSet<>();
     private XmlTransformer withXmlActions = new XmlTransformer();
     private ConfigurationContainer configurations;
 
@@ -217,12 +216,7 @@ public class DefaultMavenPom implements MavenPom {
 
     @Override
     public DefaultMavenPom writeTo(Object path) {
-        IoActions.writeTextFile(fileResolver.resolve(path), POM_FILE_ENCODING, new Action<BufferedWriter>() {
-            @Override
-            public void execute(BufferedWriter writer) {
-                writeTo(writer);
-            }
-        });
+        IoActions.writeTextFile(fileResolver.resolve(path), POM_FILE_ENCODING, this::writeTo);
         return this;
     }
 

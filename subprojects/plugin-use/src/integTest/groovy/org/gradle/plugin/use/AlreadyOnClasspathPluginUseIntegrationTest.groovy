@@ -18,6 +18,9 @@ package org.gradle.plugin.use
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.util.TextUtil
+import spock.lang.IgnoreIf
 
 class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec {
 
@@ -55,7 +58,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "maven-publish plugin")
     def "can request non-core plugin already applied to parent project"() {
 
         given:
@@ -84,7 +87,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "maven-publish plugin")
     def "can request non-core plugin already applied to grand-parent project"() {
 
         given:
@@ -115,7 +118,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a:b'")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "maven-publish plugin")
     def "can request non-core plugin already requested on parent project but not applied"() {
 
         given:
@@ -144,7 +147,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "maven-publish plugin")
     def "can request non-core plugin already on the classpath when a plugin resolution strategy sets a version"() {
 
         given:
@@ -174,6 +177,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // TestKit usage inside of the test requires distribution
     def "can request plugin from TestKit injected classpath"() {
 
         given:
@@ -190,7 +194,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         succeeds "test"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "maven-publish plugin")
     def "cannot request plugin version of plugin already requested on parent project"() {
 
         given:
@@ -238,6 +242,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         failureHasCause("Plugin request for plugin already on the classpath must not include a version")
     }
 
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // TestKit usage inside of the test requires distribution
     def "cannot request plugin version of plugin from TestKit injected classpath"() {
 
         given:
@@ -355,7 +360,8 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
 
                         //when:
                         def runner = GradleRunner.create()
-                            .withGradleInstallation(new File("${distribution.gradleHomeDir.absolutePath.replace("\\", "\\\\")}"))
+                            .withGradleInstallation(new File("${TextUtil.normaliseFileSeparators(distribution.gradleHomeDir.absolutePath)}"))
+                            .withTestKitDir(new File("${TextUtil.normaliseFileSeparators(executer.gradleUserHomeDir.absolutePath)}"))
                             .withPluginClasspath()
                             .withProjectDir(rootDir)
                             .withArguments("help")

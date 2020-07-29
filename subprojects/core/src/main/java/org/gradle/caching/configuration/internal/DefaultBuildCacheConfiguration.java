@@ -31,6 +31,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
@@ -39,7 +40,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     private final Instantiator instantiator;
 
-    private final DirectoryBuildCache local;
+    private DirectoryBuildCache local;
     private BuildCache remote;
 
     private final Set<BuildCacheServiceRegistration> registrations;
@@ -56,6 +57,12 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     }
 
     @Override
+    public void setLocal(DirectoryBuildCache local) {
+        this.local = local;
+    }
+
+    @Override
+    @Deprecated
     public <T extends DirectoryBuildCache> T local(Class<T> type) {
         DeprecationLogger.deprecateMethod(BuildCacheConfiguration.class, "local(Class)").replaceWith("getLocal()")
             .willBeRemovedInGradle7()
@@ -65,6 +72,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     }
 
     @Override
+    @Deprecated
     public <T extends DirectoryBuildCache> T local(Class<T> type, Action<? super T> configuration) {
         DeprecationLogger.deprecateMethod(BuildCacheConfiguration.class, "local(Class, Action)").replaceWith("local(Action)")
             .willBeRemovedInGradle7()
@@ -87,9 +95,15 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
         configuration.execute(local);
     }
 
+    @Nullable
     @Override
     public BuildCache getRemote() {
         return remote;
+    }
+
+    @Override
+    public void setRemote(@Nullable BuildCache remote) {
+        this.remote = remote;
     }
 
     @Override

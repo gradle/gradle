@@ -26,10 +26,10 @@ import org.gradle.util.CollectionUtils;
 import java.util.List;
 
 class DynamicAddDependencyMethods implements MethodAccess {
-    private ConfigurationContainer configurationContainer;
-    private DependencyAdder dependencyAdder;
+    private final ConfigurationContainer configurationContainer;
+    private final DependencyAdder<?> dependencyAdder;
 
-    DynamicAddDependencyMethods(ConfigurationContainer configurationContainer, DependencyAdder dependencyAdder) {
+    DynamicAddDependencyMethods(ConfigurationContainer configurationContainer, DependencyAdder<?> dependencyAdder) {
         this.configurationContainer = configurationContainer;
         this.dependencyAdder = dependencyAdder;
     }
@@ -63,6 +63,7 @@ class DynamicAddDependencyMethods implements MethodAccess {
     }
 
     interface DependencyAdder<T> {
+        @SuppressWarnings("rawtypes")
         T add(Configuration configuration, Object dependencyNotation, Closure configureAction);
     }
 }

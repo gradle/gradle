@@ -16,7 +16,8 @@
 
 package org.gradle.testkit.runner.fixtures
 
-import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -83,11 +84,16 @@ class PluginUnderTest {
     PluginUnderTest build() {
         writeSourceFiles()
         writeBuildScript()
-        new NoDaemonGradleExecuter(new UnderDevelopmentGradleDistribution(), testDirectoryProvider)
-            .usingProjectDirectory(projectDir)
-            .withArguments('classes', '--no-daemon')
-            .withWarningMode(null)
-            .run()
+        def executer = new GradleContextualExecuter(new UnderDevelopmentGradleDistribution(), testDirectoryProvider, IntegrationTestBuildContext.INSTANCE)
+        try {
+            executer
+                .usingProjectDirectory(projectDir)
+                .withArguments('classes')
+                .withWarningMode(null)
+                .run()
+        } finally {
+            executer.stop()
+        }
         this
     }
 

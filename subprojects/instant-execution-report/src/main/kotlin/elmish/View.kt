@@ -159,6 +159,8 @@ class Attributes<I>(private val add: (Attribute<I>) -> Unit) {
     fun title(value: String) = add(Attribute.Named("title", value))
 
     fun href(value: String) = add(Attribute.Named("href", value))
+
+    fun src(value: String) = add(Attribute.Named("src", value))
 }
 
 

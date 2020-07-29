@@ -17,6 +17,7 @@
 package org.gradle.internal.resource;
 
 import com.google.common.base.Objects;
+import org.gradle.api.Describable;
 import org.gradle.internal.UncheckedException;
 
 import java.net.URI;
@@ -27,7 +28,7 @@ import java.util.List;
 /**
  * An immutable resource name. Resources are arranged in a hierarchy. Names may be relative, or absolute with some opaque root resource.
  */
-public class ExternalResourceName {
+public class ExternalResourceName implements Describable {
     private final String encodedRoot;
     private final String path;
 

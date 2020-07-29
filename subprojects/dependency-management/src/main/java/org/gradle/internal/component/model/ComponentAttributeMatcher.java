@@ -73,8 +73,8 @@ public class ComponentAttributeMatcher {
         return true;
     }
 
-    @SuppressWarnings("unchecked")
-    public List<AttributeMatcher.MatchingDescription> describeMatching(AttributeSelectionSchema schema, AttributeContainerInternal candidate, AttributeContainerInternal requested) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public List<AttributeMatcher.MatchingDescription<?>> describeMatching(AttributeSelectionSchema schema, AttributeContainerInternal candidate, AttributeContainerInternal requested) {
         if (requested.isEmpty() || candidate.isEmpty()) {
             return Collections.emptyList();
         }
@@ -83,7 +83,7 @@ public class ComponentAttributeMatcher {
         ImmutableAttributes candidateAttributes = candidate.asImmutable();
 
         ImmutableSet<Attribute<?>> attributes = requestedAttributes.keySet();
-        List<AttributeMatcher.MatchingDescription> result = Lists.newArrayListWithCapacity(attributes.size());
+        List<AttributeMatcher.MatchingDescription<?>> result = Lists.newArrayListWithCapacity(attributes.size());
         for (Attribute<?> attribute : attributes) {
             AttributeValue<?> requestedValue = requestedAttributes.findEntry(attribute);
             AttributeValue<?> candidateValue = candidateAttributes.findEntry(attribute.getName());

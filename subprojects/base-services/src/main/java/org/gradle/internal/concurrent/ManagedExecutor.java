@@ -35,11 +35,6 @@ public interface ManagedExecutor extends AsyncStoppable, ExecutorService {
     void stop(int timeoutValue, TimeUnit timeoutUnits) throws IllegalStateException;
 
     /**
-     * Sets the fixed size of the thread pool for the executor.
-     */
-    void setFixedPoolSize(int numThreads);
-
-    /**
      * Sets the keep alive time for the thread pool of the executor.
      */
     void setKeepAlive(int timeout, TimeUnit timeUnit);

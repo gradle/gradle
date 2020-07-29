@@ -30,6 +30,7 @@ import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
+import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
@@ -278,7 +279,7 @@ class StandardKotlinScriptEvaluator(
             className: String,
             accessorsClassPath: ClassPath?
         ): CompiledScript {
-            val instrumentedClasses = cachedClasspathTransformer.transform(DefaultClassPath.of(location), CachedClasspathTransformer.StandardTransform.BuildLogic)
+            val instrumentedClasses = cachedClasspathTransformer.transform(DefaultClassPath.of(location), BuildLogic)
             val classpath = instrumentedClasses.plus(accessorsClassPath ?: ClassPath.EMPTY)
             return ScopeBackedCompiledScript(classLoaderScope, childScopeId, classpath, className)
         }

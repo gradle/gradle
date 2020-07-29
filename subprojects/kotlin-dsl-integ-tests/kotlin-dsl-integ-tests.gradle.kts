@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
-import plugins.futurePluginVersionsFile
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
 
 plugins {
-    gradlebuild.internal.kotlin
+    id("gradlebuild.internal.kotlin")
 }
 
 description = "Kotlin DSL Integration Tests"
@@ -32,9 +30,10 @@ dependencies {
     integTestImplementation(project(":core"))
     integTestImplementation(project(":internalTesting"))
     integTestImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
-}
-configurations.integTestRuntimeClasspath {
-    extendsFrom(configurations.fullGradleRuntime.get())
+
+    integTestDistributionRuntimeOnly(project(":distributionsFull"))
+
+    integTestLocalRepository(project(":kotlinDslPlugins"))
 }
 
 val pluginBundles = listOf(
@@ -45,16 +44,6 @@ pluginBundles.forEach {
 }
 
 tasks {
-    val testEnvironment by registering {
-        pluginBundles.forEach {
-            dependsOn("$it:publishPluginsToTestRepository")
-        }
-    }
-
-    withType<IntegrationTest>().configureEach {
-        dependsOn(testEnvironment)
-    }
-
     val writeFuturePluginVersions by registering {
 
         group = "build"
@@ -67,7 +56,7 @@ tasks {
 
         dependsOn(futurePluginVersionsTasks)
         inputs.files(futurePluginVersionsTasks.map { it.outputFile })
-        outputs.file(processIntegTestResources.get().futurePluginVersionsFile)
+        outputs.file(layout.buildDirectory.file("generated-resources/future-plugin-versions/future-plugin-versions.properties"))
 
         doLast {
             outputs.files.singleFile.bufferedWriter().use { writer ->
@@ -77,10 +66,9 @@ tasks {
             }
         }
     }
-
-    processIntegTestResources {
-        dependsOn(writeFuturePluginVersions)
-    }
+    sourceSets.integTest.get().output.dir(
+        writeFuturePluginVersions.map { it.outputs.files.singleFile.parentFile }
+    )
 }
 
 testFilesCleanup {

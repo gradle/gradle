@@ -21,7 +21,7 @@ import org.gradle.util.BuildCommencedTimeProvider;
 import java.util.Map;
 
 public class InMemoryModuleMetadataCache extends AbstractModuleMetadataCache {
-    private Map<ModuleComponentAtRepositoryKey, CachedMetadata> inMemoryCache = Maps.newConcurrentMap();
+    private final Map<ModuleComponentAtRepositoryKey, CachedMetadata> inMemoryCache = Maps.newConcurrentMap();
     private final AbstractModuleMetadataCache delegate;
 
     public InMemoryModuleMetadataCache(BuildCommencedTimeProvider timeProvider) {
@@ -47,11 +47,13 @@ public class InMemoryModuleMetadataCache extends AbstractModuleMetadataCache {
     }
 
     @Override
-    protected void store(ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetaData) {
-        inMemoryCache.put(key, cachedMetaData);
+    protected CachedMetadata store(ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetaData) {
+        CachedMetadata dehydrated = cachedMetaData.dehydrate();
+        inMemoryCache.put(key, dehydrated);
         if (delegate != null) {
-            delegate.store(key, entry, cachedMetaData);
+            delegate.store(key, entry, dehydrated);
         }
+        return dehydrated;
     }
 
 }

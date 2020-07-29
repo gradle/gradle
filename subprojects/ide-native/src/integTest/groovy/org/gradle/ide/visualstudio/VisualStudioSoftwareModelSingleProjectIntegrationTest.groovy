@@ -49,7 +49,7 @@ class VisualStudioSoftwareModelSingleProjectIntegrationTest extends AbstractVisu
         buildFile << """
             apply plugin: 'cpp'
             apply plugin: 'visual-studio'
-            
+
             model {
                 platforms {
                     win32 {
@@ -902,7 +902,7 @@ model {
                     both(NativeLibrarySpec) {
                         binaries.all {
                             if (buildType == buildTypes.debug) {
-                                buildable = false 
+                                buildable = false
                             }
                         }
                     }
@@ -957,7 +957,7 @@ model {
 
     @Unroll
     @ToBeFixedForInstantExecution
-    def "can detect the language standard for Visual Studio IntelliSense [#expectedLanguageStandard]"() {
+    def "can detect the language standard for Visual Studio IntelliSense [#expectedLanguageStandard] #uniqueIndex"() {
         given:
         app.writeSources(file("src/main"))
         buildFile << """
@@ -986,13 +986,14 @@ model {
         }
 
         where:
-        compilerFlag     | expectedLanguageStandard
-        '/std:cpp14'     | 'stdcpp14'
-        '-std:cpp14'     | 'stdcpp14'
-        '/std:cpp17'     | 'stdcpp17'
-        '-std:cpp17'     | 'stdcpp17'
-        '/std:cpplatest' | 'stdcpplatest'
-        '-std:cpplatest' | 'stdcpplatest'
+        // uniqueIndex: https://github.com/gradle/gradle/issues/8787
+        compilerFlag     | expectedLanguageStandard | uniqueIndex
+        '/std:cpp14'     | 'stdcpp14'               | 1
+        '-std:cpp14'     | 'stdcpp14'               | 2
+        '/std:cpp17'     | 'stdcpp17'               | 3
+        '-std:cpp17'     | 'stdcpp17'               | 4
+        '/std:cpplatest' | 'stdcpplatest'           | 5
+        '-std:cpplatest' | 'stdcpplatest'           | 6
     }
 
     @ToBeFixedForInstantExecution

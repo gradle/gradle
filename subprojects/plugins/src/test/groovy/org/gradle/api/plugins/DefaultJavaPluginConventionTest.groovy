@@ -17,19 +17,17 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Action
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import spock.lang.Specification
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import org.junit.Test
+import spock.lang.Specification
 
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
@@ -38,17 +36,17 @@ class DefaultJavaPluginConventionTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def project = TestUtil.create(tmpDir).rootProject()
-    def objectFactory = project.services.get(ObjectFactory)
+    def sourceSets = Stub(SourceSetContainer)
     private JavaPluginConvention convention
 
     def setup() {
         project.pluginManager.apply(ReportingBasePlugin)
-        convention = new DefaultJavaPluginConvention(project, objectFactory)
+        convention = new DefaultJavaPluginConvention(project, sourceSets)
     }
 
     def defaultValues() {
         expect:
-        convention.sourceSets instanceof DefaultSourceSetContainer
+        convention.sourceSets.is(sourceSets)
         convention.docsDirName == 'docs'
         convention.testResultsDirName == 'test-results'
         convention.testReportDirName == 'tests'
@@ -170,15 +168,6 @@ class DefaultJavaPluginConventionTest extends Specification {
     def createsEmptyManifest() {
         expect:
         convention.manifest() instanceof DefaultManifest
-    }
-
-    def cannotCreateSourceSetWithEmptyName() {
-        when:
-        convention.sourceSets.create('')
-
-        then:
-        def e = thrown(InvalidUserDataException)
-        e.message == "The SourceSet name must not be empty."
     }
 
 }

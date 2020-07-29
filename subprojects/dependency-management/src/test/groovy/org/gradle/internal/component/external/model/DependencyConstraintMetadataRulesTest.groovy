@@ -46,10 +46,9 @@ class DependencyConstraintMetadataRulesTest extends AbstractDependencyMetadataRu
         def mavenMetadata = mavenMetadataFactory.create(componentIdentifier, [
             new MavenDependencyDescriptor(MavenScope.Compile, MavenDependencyType.DEPENDENCY, newSelector(DefaultModuleIdentifier.newId("org", "notOptional"), "1.0"), null, []),
             new MavenDependencyDescriptor(MavenScope.Compile, MavenDependencyType.OPTIONAL_DEPENDENCY, newSelector(DefaultModuleIdentifier.newId("org", "optional"), "1.0"), null, [])
-        ])
+        ]).asImmutable().withDerivationStrategy(JavaEcosystemVariantDerivationStrategy.instance).asMutable()
 
         when:
-        mavenMetadata.variantMetadataRules.setVariantDerivationStrategy(JavaEcosystemVariantDerivationStrategy.instance)
         mavenMetadata.variantMetadataRules.addDependencyAction(instantiator, notationParser, constraintNotationParser, variantAction("default", {
             assert it.size() == 1
             assert it[0].name == "notOptional"

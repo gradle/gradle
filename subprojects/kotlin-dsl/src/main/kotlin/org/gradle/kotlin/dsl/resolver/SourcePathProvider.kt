@@ -20,6 +20,7 @@ import org.gradle.internal.classpath.ClassPath
 
 import org.gradle.kotlin.dsl.support.filter
 import org.gradle.kotlin.dsl.support.isGradleKotlinDslJar
+import org.gradle.kotlin.dsl.support.listFilesOrdered
 
 import java.io.File
 
@@ -74,5 +75,5 @@ object SourcePathProvider {
 
 internal
 fun subDirsOf(dir: File): Collection<File> =
-    if (dir.isDirectory) dir.listFiles().filter { it.isDirectory }.sortedBy { it.name }
+    if (dir.isDirectory) dir.listFilesOrdered { it.isDirectory }
     else emptyList()

@@ -81,7 +81,7 @@ public class ComponentModuleMetadataContainer implements ModuleReplacementsData 
 
     @Override
     public boolean participatesInReplacements(ModuleIdentifier moduleId) {
-        return targets.contains(moduleId) || replacements.keySet().contains(moduleId);
+        return targets.contains(moduleId) || replacements.containsKey(moduleId);
     }
 
     private static void detectCycles(Map<ModuleIdentifier, Replacement> replacements, ModuleIdentifier source, ModuleIdentifier target) {
@@ -94,7 +94,7 @@ public class ComponentModuleMetadataContainer implements ModuleReplacementsData 
             //target does not exist in the map, there's no cycle for sure
             return;
         }
-        Set<ModuleIdentifier> visited = new LinkedHashSet<ModuleIdentifier>();
+        Set<ModuleIdentifier> visited = new LinkedHashSet<>();
         visited.add(source);
         visited.add(target);
 

@@ -41,16 +41,18 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         def pluginIdByClass = plugins.details.collectEntries ( { [it.pluginClass, it.pluginId ] })
         def expectedPlugins = [
             "org.gradle.api.plugins.HelpTasksPlugin": "org.gradle.help-tasks",
-            "org.gradle.buildinit.plugins.BuildInitPlugin": "org.gradle.build-init",
-            "org.gradle.buildinit.plugins.WrapperPlugin": "org.gradle.wrapper",
+            // This tests runs in :core using a reduced distribution
+            // "org.gradle.buildinit.plugins.BuildInitPlugin": "org.gradle.build-init",
+            // "org.gradle.buildinit.plugins.WrapperPlugin": "org.gradle.wrapper",
             "org.gradle.api.plugins.JavaPlugin": "org.gradle.java",
             "org.gradle.api.plugins.JavaBasePlugin": null,
+            "org.gradle.api.plugins.JvmEcosystemPlugin": null,
             "org.gradle.api.plugins.BasePlugin": null,
             "org.gradle.language.base.plugins.LifecycleBasePlugin": null,
             "org.gradle.api.plugins.ReportingBasePlugin": null,
         ]
 
-        pluginIdByClass.size() == expectedPlugins.size()
+        pluginIdByClass.size() == expectedPlugins.size() || pluginIdByClass.size() == expectedPlugins.size() + 2 // +2 if we run against the full distribution
         pluginIdByClass.entrySet().containsAll(expectedPlugins.entrySet())
     }
 

@@ -1,9 +1,9 @@
 package projects
 
 import Gradle_Check.model.GradleBuildBucketProvider
+import common.failedTestArtifactDestination
 import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.projectFeatures.VersionedSettings
 import jetbrains.buildServer.configs.kotlin.v2019_2.projectFeatures.versionedSettings
@@ -29,7 +29,7 @@ class RootProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBuc
     }
 
     params {
-        password("teamcity.user.bot-gradle.token", "credentialsJSON:6b612db7-378d-4c16-adeb-f74543ff29ae", display = ParameterDisplay.HIDDEN)
+        param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
     }
 
     var prevStage: Stage? = null
@@ -47,4 +47,16 @@ class RootProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBuc
 
     buildTypesOrder = buildTypes
     subProjectsOrder = subProjects
+
+    cleanup {
+        baseRule {
+            history(days = 7)
+        }
+        baseRule {
+            artifacts(days = 7, artifactPatterns = """
+                +:**/*
+                +:$failedTestArtifactDestination/**/*"
+            """.trimIndent())
+        }
+    }
 })

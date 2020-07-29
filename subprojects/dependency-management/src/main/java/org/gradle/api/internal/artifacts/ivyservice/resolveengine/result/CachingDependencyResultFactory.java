@@ -34,8 +34,8 @@ import static java.util.Arrays.asList;
 
 public class CachingDependencyResultFactory {
 
-    private final Map<List, DefaultUnresolvedDependencyResult> unresolvedDependencies = new HashMap<List, DefaultUnresolvedDependencyResult>();
-    private final Map<List, DefaultResolvedDependencyResult> resolvedDependencies = new HashMap<List, DefaultResolvedDependencyResult>();
+    private final Map<List<Object>, DefaultUnresolvedDependencyResult> unresolvedDependencies = new HashMap<>();
+    private final Map<List<Object>, DefaultResolvedDependencyResult> resolvedDependencies = new HashMap<>();
 
     public UnresolvedDependencyResult createUnresolvedDependency(ComponentSelector requested, ResolvedComponentResult from, boolean constraint,
                                                                  ComponentSelectionReason reason, ModuleVersionResolveException failure) {

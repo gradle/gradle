@@ -16,7 +16,6 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.scripts.ScriptExecutionListener;
 
@@ -79,7 +78,7 @@ public class ScriptUsageLocationReporter implements ScriptExecutionListener, Usa
 
     private void reportStackTraceElement(StackTraceElement stackTraceElement, StringBuilder target) {
         ScriptSource scriptSource = scripts.get(stackTraceElement.getFileName());
-        target.append(StringUtils.capitalize(scriptSource.getDisplayName()));
+        target.append(scriptSource.getLongDisplayName().getCapitalizedDisplayName());
         if (stackTraceElement.getLineNumber() > 0) {
             target.append(": line ");
             target.append(stackTraceElement.getLineNumber());

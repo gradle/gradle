@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.eclipse.jgit.api.Git
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
@@ -25,6 +26,7 @@ import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
@@ -60,7 +62,18 @@ class AbstractIntegrationSpec extends Specification {
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
-    GradleExecuter executer = createExecuter()
+    private GradleExecuter executor
+    private boolean ignoreCleanupAssertions
+
+    GradleExecuter getExecuter() {
+        if (executor == null) {
+            executor = createExecuter()
+            if (ignoreCleanupAssertions) {
+                executor.ignoreCleanupAssertions()
+            }
+        }
+        return executor
+    }
 
     BuildTestFixture buildTestFixture = new BuildTestFixture(temporaryFolder)
 
@@ -92,8 +105,27 @@ class AbstractIntegrationSpec extends Specification {
         executer.cleanup()
     }
 
+    private void recreateExecuter() {
+        if (executor != null) {
+            executor.cleanup()
+        }
+        executor = null
+    }
+
     GradleExecuter createExecuter() {
         new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
+    }
+
+    /**
+     * Some integration tests need to run git commands in test directory,
+     * but distributed-test-remote-executor has no .git directory so we init a "dummy .git dir".
+     */
+    void initGitDir() {
+        Git.init().setDirectory(testDirectory).call().withCloseable { Git git ->
+            testDirectory.file('initial-commit').createNewFile()
+            git.add().addFilepattern("initial-commit").call()
+            git.commit().setMessage("Initial commit").call()
+        }
     }
 
     TestFile getBuildFile() {
@@ -217,11 +249,6 @@ class AbstractIntegrationSpec extends Specification {
         executer
     }
 
-    protected GradleExecuter requireGradleDistribution() {
-        executer.requireGradleDistribution()
-        executer
-    }
-
     /**
      * This is expensive as it creates a complete copy of the distribution inside the test directory.
      * Only use this for testing custom modifications of a distribution.
@@ -230,8 +257,7 @@ class AbstractIntegrationSpec extends Specification {
         def isolatedGradleHomeDir = getTestDirectory().file("gradle-home")
         getBuildContext().gradleHomeDir.copyTo(isolatedGradleHomeDir)
         distribution = new UnderDevelopmentGradleDistribution(getBuildContext(), isolatedGradleHomeDir)
-        executer = createExecuter()
-        executer.requireGradleDistribution()
+        recreateExecuter()
         executer.requireIsolatedDaemons() //otherwise we might connect to a running daemon from the original installation location
         executer
     }
@@ -340,7 +366,7 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     ArtifactBuilder artifactBuilder() {
-        def executer = distribution.executer(temporaryFolder, getBuildContext())
+        def executer = new InProcessGradleExecuter(distribution, temporaryFolder)
         executer.withGradleUserHomeDir(this.executer.getGradleUserHomeDir())
         for (int i = 1; ; i++) {
             def dir = getTestDirectory().file("artifacts-$i")
@@ -478,5 +504,15 @@ class AbstractIntegrationSpec extends Specification {
 
     static String googleRepository() {
         RepoScriptBlockUtil.googleRepository()
+    }
+
+    /**
+     * Called by {@link ToBeFixedForInstantExecutionExtension} when a test fails as expected so no further checks are applied.
+     */
+    void ignoreCleanupAssertions() {
+        this.ignoreCleanupAssertions = true
+        if (executor != null) {
+            executor.ignoreCleanupAssertions()
+        }
     }
 }

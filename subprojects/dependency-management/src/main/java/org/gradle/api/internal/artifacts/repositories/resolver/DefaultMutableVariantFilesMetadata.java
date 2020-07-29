@@ -27,7 +27,7 @@ import static com.google.common.collect.Lists.newArrayList;
 public class DefaultMutableVariantFilesMetadata implements MutableVariantFilesMetadata {
 
     private boolean clearExistingFiles = false;
-    private List<VariantFileMetadata> files = newArrayList();
+    private final List<VariantFileMetadata> files = newArrayList();
 
     @Override
     public void removeAllFiles() {

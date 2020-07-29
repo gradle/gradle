@@ -266,7 +266,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
 
     @Unroll
     @ToBeFixedForInstantExecution
-    def "can detect the language standard for Visual Studio IntelliSense [#expectedLanguageStandard]"() {
+    def "can detect the language standard for Visual Studio IntelliSense [#expectedLanguageStandard] #uniqueIndex"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
 
         given:
@@ -291,13 +291,14 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         }
 
         where:
-        compilerFlag     | expectedLanguageStandard
-        '/std:cpp14'     | 'stdcpp14'
-        '-std:cpp14'     | 'stdcpp14'
-        '/std:cpp17'     | 'stdcpp17'
-        '-std:cpp17'     | 'stdcpp17'
-        '/std:cpplatest' | 'stdcpplatest'
-        '-std:cpplatest' | 'stdcpplatest'
+        // UniqueIndex: // uniqueIndex: https://github.com/gradle/gradle/issues/8787
+        compilerFlag     | expectedLanguageStandard | uniqueIndex
+        '/std:cpp14'     | 'stdcpp14'               | 1
+        '-std:cpp14'     | 'stdcpp14'               | 2
+        '/std:cpp17'     | 'stdcpp17'               | 3
+        '-std:cpp17'     | 'stdcpp17'               | 4
+        '/std:cpplatest' | 'stdcpplatest'           | 5
+        '-std:cpplatest' | 'stdcpplatest'           | 6
     }
 
     @ToBeFixedForInstantExecution

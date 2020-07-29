@@ -19,6 +19,7 @@ package org.gradle.internal.classpath;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.objectweb.asm.ClassVisitor;
 
@@ -29,7 +30,7 @@ import java.util.Collection;
 /**
  * Represents a transformer that takes a given ClassPath and transforms it to a ClassPath with cached jars
  */
-@ServiceScope(ServiceScope.Value.UserHome)
+@ServiceScope(Scopes.UserHome)
 public interface CachedClasspathTransformer {
     enum StandardTransform {
         BuildLogic, None

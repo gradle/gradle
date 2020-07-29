@@ -49,19 +49,6 @@ class FileTreeAdapterTest extends Specification {
         0 * _._
     }
 
-    def resolveAddsTargetTreeToContext() {
-        MinimalFileTree tree = Mock()
-        FileTreeAdapter adapter = new FileTreeAdapter(tree, TestFiles.patternSetFactory)
-        FileCollectionResolveContext context = Mock()
-
-        when:
-        adapter.visitContents(context)
-
-        then:
-        1 * context.add(tree)
-        0 * _._
-    }
-
     def visitDependenciesDelegatesToTargetTreeWhenItImplementsBuildable() {
         TestFileTree tree = Mock()
         TaskDependencyResolveContext context = Mock()

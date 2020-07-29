@@ -22,4 +22,6 @@ import org.gradle.api.internal.StartParameterInternal;
  */
 public interface BuildAction {
     StartParameterInternal getStartParameter();
+
+    boolean isRunTasks();
 }

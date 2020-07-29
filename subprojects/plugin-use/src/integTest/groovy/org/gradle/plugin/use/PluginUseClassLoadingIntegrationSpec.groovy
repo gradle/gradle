@@ -16,18 +16,12 @@
 
 package org.gradle.plugin.use
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
 @LeaksFileHandles
 class PluginUseClassLoadingIntegrationSpec extends AbstractPluginSpec {
 
-    def setup() {
-        executer.requireGradleDistribution() // need accurate classloading
-    }
-
-    @ToBeFixedForInstantExecution
     def "plugin classes are reused if possible"() {
         given:
         publishPlugin()
@@ -43,8 +37,10 @@ class PluginUseClassLoadingIntegrationSpec extends AbstractPluginSpec {
         buildScript """
             evaluationDependsOnChildren()
             task verify {
+                def p1PluginClass = project(":p1").pluginClass
+                def p2PluginClass = project(":p2").pluginClass
                 doLast {
-                    project(":p1").pluginClass.is(project(":p2").pluginClass)
+                    p1PluginClass.is(p2PluginClass)
                 }
             }
         """
@@ -54,7 +50,6 @@ class PluginUseClassLoadingIntegrationSpec extends AbstractPluginSpec {
     }
 
     @Issue("GRADLE-3503")
-    @ToBeFixedForInstantExecution
     def "Context classloader contains plugin classpath during application"() {
         publishPlugin("""
             def className = getClass().getName()

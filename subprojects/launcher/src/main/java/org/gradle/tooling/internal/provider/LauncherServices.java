@@ -20,7 +20,6 @@ import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
@@ -71,37 +70,27 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                           ExecutorFactory executorFactory,
                                           LoggingManagerInternal loggingManager,
                                           GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
-                                          FileSystemChangeWaiterFactory fileSystemChangeWaiterFactory,
-                                          ParallelismConfigurationManager parallelismConfigurationManager
+                                          FileSystemChangeWaiterFactory fileSystemChangeWaiterFactory
         ) {
-            return new SetupLoggingActionExecuter(
-                new SessionFailureReportingActionExecuter(
-                    new StartParamsValidatingActionExecuter(
-                        new ParallelismConfigurationBuildActionExecuter(
-                            new GradleThreadBuildActionExecuter(
-                                new SessionScopeBuildActionExecuter(
-                                    new SubscribableBuildActionExecuter(
-                                        new ContinuousBuildActionExecuter(
-                                            new BuildTreeScopeBuildActionExecuter(
-                                                new InProcessBuildActionExecuter(
-                                                    new RunAsBuildOperationBuildActionRunner(
-                                                        new BuildCompletionNotifyingBuildActionRunner(
-                                                            new ValidatingBuildActionRunner(
-                                                                new BuildOutcomeReportingBuildActionRunner(
-                                                                    new ChainingBuildActionRunner(buildActionRunners),
-                                                                    styledTextOutputFactory)))))),
-                                            fileSystemChangeWaiterFactory,
-                                            inputsListeners,
-                                            styledTextOutputFactory,
-                                            executorFactory),
-                                        listenerManager,
-                                        buildOperationListenerManager,
-                                        registrations),
-                                    userHomeServiceRegistry)),
-                            parallelismConfigurationManager)),
-                    styledTextOutputFactory,
-                    Time.clock()),
-                loggingManager);
+            // @formatter:off
+            return
+                new SetupLoggingActionExecuter(loggingManager,
+                new SessionFailureReportingActionExecuter(styledTextOutputFactory, Time.clock(),
+                new StartParamsValidatingActionExecuter(
+                new GradleThreadBuildActionExecuter(
+                new SessionScopeBuildActionExecuter(userHomeServiceRegistry,
+                new SubscribableBuildActionExecuter(listenerManager, buildOperationListenerManager, registrations,
+                new ContinuousBuildActionExecuter(fileSystemChangeWaiterFactory, inputsListeners, styledTextOutputFactory, executorFactory,
+                new BuildTreeScopeBuildActionExecuter(
+                new InProcessBuildActionExecuter(
+                new RunAsBuildOperationBuildActionRunner(
+                new BuildCompletionNotifyingBuildActionRunner(
+                new FileSystemWatchingBuildActionRunner(
+                new ValidatingBuildActionRunner(
+                new BuildOutcomeReportingBuildActionRunner(styledTextOutputFactory,
+                new ChainingBuildActionRunner(buildActionRunners
+            )))))))))))))));
+            // @formatter:on
         }
 
         FileSystemChangeWaiterFactory createFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory) {

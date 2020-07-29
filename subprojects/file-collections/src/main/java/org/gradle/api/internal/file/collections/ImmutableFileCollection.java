@@ -99,13 +99,11 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
             return files;
         }
 
-
         @Override
         public String toString() {
             if (files.size() == 1) {
                 return String.format("file '%s'", files.iterator().next().getAbsolutePath());
             }
-
             return super.toString();
         }
     }

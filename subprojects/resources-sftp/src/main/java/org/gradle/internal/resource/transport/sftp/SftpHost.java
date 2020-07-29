@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.transport.sftp;
 
-import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.credentials.PasswordCredentials;
 
 import java.net.URI;
 

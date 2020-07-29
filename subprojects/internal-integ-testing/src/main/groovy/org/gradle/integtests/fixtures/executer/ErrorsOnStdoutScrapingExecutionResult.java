@@ -170,4 +170,9 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
         delegate.assertTasksNotSkipped(taskPath);
         return this;
     }
+
+    @Override
+    public void assertResultVisited() {
+        delegate.assertResultVisited();
+    }
 }

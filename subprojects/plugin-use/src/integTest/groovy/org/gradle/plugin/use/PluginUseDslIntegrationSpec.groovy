@@ -17,7 +17,6 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
@@ -41,7 +40,6 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         succeeds "help"
     }
 
-    @ToBeFixedForInstantExecution
     def "buildscript blocks are allowed before plugin statements"() {
         when:
         buildScript """
@@ -50,7 +48,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         then:
-        succeeds "tasks"
+        succeeds "help"
     }
 
     def "buildscript blocks are not allowed after plugin blocks"() {
@@ -61,7 +59,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         then:
-        fails "tasks"
+        fails "help"
 
         and:
         failure.assertHasLineNumber 3
@@ -82,7 +80,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         then:
-        fails "tasks"
+        fails "help"
 
         and:
         failure.assertHasLineNumber 3
@@ -100,7 +98,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         then:
-        fails "tasks"
+        fails "help"
 
         and:
         failure.assertHasLineNumber 4

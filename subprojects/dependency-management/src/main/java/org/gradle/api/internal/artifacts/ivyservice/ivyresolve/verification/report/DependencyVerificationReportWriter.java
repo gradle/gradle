@@ -60,7 +60,7 @@ public class DependencyVerificationReportWriter {
 
     private static boolean isVerboseConsoleReport(GradleProperties gradleProperties) {
         String param = gradleProperties.find(VERBOSE_CONSOLE);
-        return param != null && VERBOSE_VALUE.equals(param);
+        return VERBOSE_VALUE.equals(param);
     }
 
     private AbstractTextDependencyVerificationReportRenderer createConsoleRenderer(Path gradleUserHome, DocumentationRegistry documentationRegistry, GradleProperties gradleProperties) {

@@ -19,7 +19,7 @@ import com.google.common.net.UrlEscapers
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import groovy.xml.MarkupBuilder
-import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.internal.BiAction
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.internal.hash.HashUtil

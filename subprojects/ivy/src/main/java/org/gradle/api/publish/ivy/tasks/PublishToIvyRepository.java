@@ -19,16 +19,21 @@ package org.gradle.api.publish.ivy.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Property;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublisher;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -42,16 +47,14 @@ public class PublishToIvyRepository extends DefaultTask {
 
     private IvyPublicationInternal publication;
     private IvyArtifactRepository repository;
+    private final Property<Credentials> credentials = getProject().getObjects().property(Credentials.class);
 
     public PublishToIvyRepository() {
 
         // Allow the publication to participate in incremental build
-        getInputs().files(new Callable<FileCollection>() {
-            @Override
-            public FileCollection call() throws Exception {
-                IvyPublicationInternal publicationInternal = getPublicationInternal();
-                return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
-            }
+        getInputs().files((Callable<FileCollection>) () -> {
+            IvyPublicationInternal publicationInternal = getPublicationInternal();
+            return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
         })
             .withPropertyName("publication.publishableFiles")
             .withPathSensitivity(PathSensitivity.NAME_ONLY);
@@ -93,11 +96,11 @@ public class PublishToIvyRepository extends DefaultTask {
             return (IvyPublicationInternal) publication;
         } else {
             throw new InvalidUserDataException(
-                    String.format(
-                            "publication objects must implement the '%s' interface, implementation '%s' does not",
-                            IvyPublicationInternal.class.getName(),
-                            publication.getClass().getName()
-                    )
+                String.format(
+                    "publication objects must implement the '%s' interface, implementation '%s' does not",
+                    IvyPublicationInternal.class.getName(),
+                    publication.getClass().getName()
+                )
             );
         }
     }
@@ -112,6 +115,12 @@ public class PublishToIvyRepository extends DefaultTask {
         return repository;
     }
 
+    @Input
+    @Optional
+    Property<Credentials> getCredentials() {
+        return credentials;
+    }
+
     /**
      * Sets the repository to publish to.
      *
@@ -119,6 +128,7 @@ public class PublishToIvyRepository extends DefaultTask {
      */
     public void setRepository(IvyArtifactRepository repository) {
         this.repository = repository;
+        this.credentials.set(((AuthenticationSupportedInternal) repository).getConfiguredCredentials());
     }
 
     @TaskAction
@@ -145,7 +155,7 @@ public class PublishToIvyRepository extends DefaultTask {
     private void doPublish(final IvyPublicationInternal publication, final IvyArtifactRepository repository) {
         new PublishOperation(publication, repository.getName()) {
             @Override
-            protected void publish() throws Exception {
+            protected void publish() {
                 IvyNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
                 IvyPublisher publisher = getIvyPublisher();
                 publisher.publish(normalizedPublication, repository);

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.execution.plan.Node;
 import org.gradle.internal.Try;
@@ -36,7 +37,12 @@ public interface ExecutionGraphDependenciesResolver {
     TaskDependencyContainer computeDependencyNodes(TransformationStep transformationStep);
 
     /**
-     * Computes the dependency artifacts for the given transformation step.
+     * Returns a collection containing the future dependency artifacts for the given transformation step.
      */
-    Try<ArtifactTransformDependencies> forTransformer(Transformer transformer);
+    FileCollection selectedArtifacts(Transformer transformer);
+
+    /**
+     * Computes the finalized dependency artifacts for the given transformation step.
+     */
+    Try<ArtifactTransformDependencies> computeArtifacts(Transformer transformer);
 }

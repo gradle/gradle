@@ -61,7 +61,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     }
 
     @Override
-    public ComponentResolveMetadata selectNewestComponent(ComponentResolveMetadata one, ComponentResolveMetadata two) {
+    public ComponentResolveMetadata selectNewestComponent(@Nullable ComponentResolveMetadata one, @Nullable ComponentResolveMetadata two) {
         if (one == null || two == null) {
             return two == null ? one : two;
         }
@@ -149,6 +149,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         return out;
     }
 
+    @Nullable
     private RejectedByAttributesVersion tryRejectByAttributes(ModuleComponentIdentifier id, MetadataProvider provider, ImmutableAttributes consumerAttributes) {
         if (consumerAttributes.isEmpty()) {
             return null;
@@ -192,9 +193,6 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         BuildableModuleComponentMetaDataResolveResult metaDataResult = provider.getResult();
         switch (metaDataResult.getState()) {
             case Unknown:
-                // For example, when using a local access to resolve something remote
-                result.noMatchFound();
-                break;
             case Missing:
                 result.noMatchFound();
                 break;
@@ -220,6 +218,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         return isRejectedByRule(candidateIdentifier, componentSelectionRules.getRules(), metadataProvider);
     }
 
+    @Nullable
     private RejectedByRuleVersion isRejectedByRule(ModuleComponentIdentifier candidateIdentifier, Collection<SpecRuleAction<? super ComponentSelection>> rules, MetadataProvider metadataProvider) {
         ComponentSelectionInternal selection = new DefaultComponentSelection(candidateIdentifier, metadataProvider);
         rulesProcessor.apply(selection, rules, metadataProvider);

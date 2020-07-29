@@ -17,9 +17,9 @@
 package org.gradle.api.plugins.quality.codenarc
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.quality.integtest.fixtures.CodeNarcCoverage
 import org.gradle.test.fixtures.file.TestFile
@@ -209,9 +209,9 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
         then:
         // TODO These should match
-        !!! skipped(':codenarcMain')
-        !!! output.contains('CodeNarc Report')
-        !!! output.contains('CodeNarc completed: (p1=0; p2=0; p3=0)')
+        !!!skipped(':codenarcMain')
+        !!!output.contains('CodeNarc Report')
+        !!!output.contains('CodeNarc completed: (p1=0; p2=0; p3=0)')
     }
 
     private goodCode() {

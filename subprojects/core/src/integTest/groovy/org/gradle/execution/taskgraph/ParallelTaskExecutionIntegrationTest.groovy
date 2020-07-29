@@ -17,7 +17,6 @@
 package org.gradle.execution.taskgraph
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -164,6 +163,23 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    def "tasks that should run after are chosen last when there are more tasks than workers"() {
+        given:
+        withParallelThreads(2)
+
+        when:
+        buildFile << """
+            aPing.shouldRunAfter bPing, cPing
+        """
+
+        then:
+        2.times {
+            blockingServer.expectConcurrent(":bPing", ":cPing")
+            blockingServer.expectConcurrent(":aPing")
+            run ":aPing", ":bPing", ":cPing"
+        }
+    }
+
     def "two tasks that are dependencies of another task are executed in parallel"() {
         given:
         withParallelThreads(2)
@@ -198,7 +214,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "different task ordering", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "the number of tasks executed in parallel is limited by the number of parallel threads"() {
         given:
         withParallelThreads(2)
@@ -237,14 +252,15 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.destroyables", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "tasks are not run in parallel if destroy files overlap with output files"() {
         given:
         withParallelThreads(2)
         buildFile << """
-            aPing.destroyables.register rootProject.file("dir")
+            def dir = rootProject.file("dir")
 
-            bPing.outputs.file rootProject.file("dir")
+            aPing.destroyables.register dir
+
+            bPing.outputs.file dir
         """
 
         expect:
@@ -255,14 +271,15 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.destroyables", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "tasks are not run in parallel if destroy files overlap with output files in multiproject build"() {
         given:
         withParallelThreads(2)
         buildFile << """
-            project(':a') { aPing.destroyables.register rootProject.file("dir") }
+            def dir = rootProject.file("dir")
 
-            project(':b') { bPing.outputs.file rootProject.file("dir") }
+            project(':a') { aPing.destroyables.register dir }
+
+            project(':b') { bPing.outputs.file dir }
         """
 
         expect:
@@ -273,18 +290,19 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.destroyables")
     def "tasks are not run in parallel if destroy files overlap with input files (destroy first)"() {
         given:
         withParallelThreads(2)
 
         buildFile << """
-            aPing.destroyables.register file("foo")
+            def foo = file("foo")
 
-            bPing.outputs.file file("foo")
-            bPing.doLast { file("foo") << "foo" }
+            aPing.destroyables.register foo
 
-            cPing.inputs.file file("foo")
+            bPing.outputs.file foo
+            bPing.doLast { foo << "foo" }
+
+            cPing.inputs.file foo
             cPing.dependsOn bPing
         """
 
@@ -297,18 +315,19 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.destroyables")
     def "tasks are not run in parallel if destroy files overlap with input files (create/use first)"() {
         given:
         withParallelThreads(2)
 
         buildFile << """
-            aPing.destroyables.register file("foo")
+            def foo = file("foo")
 
-            bPing.outputs.file file("foo")
-            bPing.doLast { file("foo") << "foo" }
+            aPing.destroyables.register foo
 
-            cPing.inputs.file file("foo")
+            bPing.outputs.file foo
+            bPing.doLast { foo << "foo" }
+
+            cPing.inputs.file foo
             cPing.dependsOn bPing
         """
 
@@ -321,21 +340,22 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.destroyables")
     def "tasks are not run in parallel if destroy files overlap with input files (destroy first) in multi-project build"() {
         given:
         withParallelThreads(2)
 
         buildFile << """
-            project(':a') {
-                aPing.destroyables.register rootProject.file("foo")
+            def foo = rootProject.file("foo")
 
-                bPing.outputs.file rootProject.file("foo")
-                bPing.doLast { rootProject.file("foo") << "foo" }
+            project(':a') {
+                aPing.destroyables.register foo
+
+                bPing.outputs.file foo
+                bPing.doLast { foo << "foo" }
             }
 
             project(':b') {
-                cPing.inputs.file rootProject.file("foo")
+                cPing.inputs.file foo
                 cPing.dependsOn ":a:bPing"
             }
         """
@@ -349,21 +369,22 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.destroyables")
     def "explicit task dependency relationships are honored even if it violates destroys/creates/consumes relationships"() {
         given:
         withParallelThreads(2)
 
         buildFile << """
-            aPing.destroyables.register file("foo")
+            def foo = file("foo")
+
+            aPing.destroyables.register foo
             aPing.dependsOn ":bPing"
 
             task aIntermediate { dependsOn aPing }
 
-            bPing.outputs.file file("foo")
-            bPing.doLast { file("foo") << "foo" }
+            bPing.outputs.file foo
+            bPing.doLast { foo << "foo" }
 
-            cPing.inputs.file file("foo")
+            cPing.inputs.file foo
             cPing.dependsOn bPing, aIntermediate
         """
 
@@ -376,21 +397,22 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.destroyables")
     def "explicit ordering relationships are honored even if it violates destroys/creates/consumes relationships"() {
         given:
         withParallelThreads(2)
 
         buildFile << """
-            aPing.destroyables.register file("foo")
+            def foo = file("foo")
+
+            aPing.destroyables.register foo
             aPing.mustRunAfter ":bPing"
 
             task aIntermediate { dependsOn aPing }
 
-            bPing.outputs.file file("foo")
-            bPing.doLast { file("foo") << "foo" }
+            bPing.outputs.file foo
+            bPing.doLast { foo << "foo" }
 
-            cPing.inputs.file file("foo")
+            cPing.inputs.file foo
             cPing.dependsOn bPing
             cPing.mustRunAfter aPing
         """

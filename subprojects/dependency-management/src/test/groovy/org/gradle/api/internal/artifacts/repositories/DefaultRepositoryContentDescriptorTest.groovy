@@ -25,7 +25,7 @@ import spock.lang.Unroll
 class DefaultRepositoryContentDescriptorTest extends Specification {
 
     @Subject
-    DefaultRepositoryContentDescriptor descriptor = new DefaultMavenRepositoryContentDescriptor("repoName")
+    DefaultRepositoryContentDescriptor descriptor = new DefaultMavenRepositoryContentDescriptor({ throw new RuntimeException("only required in error cases") })
 
     @Unroll
     def "reasonable error message when input is incorrect (include string)"() {
@@ -355,6 +355,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
 
     def "cannot update repository content filter after resolution happens"() {
         given:
+        def descriptor = new DefaultRepositoryContentDescriptor({ "repoName" })
         descriptor.toContentFilter()
 
         when:

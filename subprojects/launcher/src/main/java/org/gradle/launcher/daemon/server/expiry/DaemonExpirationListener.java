@@ -16,10 +16,14 @@
 
 package org.gradle.launcher.daemon.server.expiry;
 
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
+
 /**
  * Represents an event where a daemon expiration condition was detected and the daemon
  * should now stop.
  */
+@EventScope(Scopes.Global)
 public interface DaemonExpirationListener {
     /**
      * Will be fired when the daemon expiration event occurs.

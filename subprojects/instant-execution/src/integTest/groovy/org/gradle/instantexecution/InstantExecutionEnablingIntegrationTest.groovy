@@ -16,81 +16,119 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
-import org.gradle.util.ToBeImplemented
-
-import javax.annotation.Nullable
-
-import spock.lang.Ignore
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
+import spock.lang.Unroll
 
 
 class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    def "can enable instant execution from the command line"() {
+    @Unroll
+    def "can enable with a command line #origin"() {
 
         given:
         def fixture = newInstantExecutionFixture()
 
         when:
-        run 'help', "-D${SystemProperties.isEnabled}=true"
+        run 'help', argument
 
         then:
+        outputContainsIncubatingFeatureUsage()
         fixture.assertStateStored()
-    }
-
-    def "can enable instant execution from the client jvm"() {
-
-        setup:
-        AbstractGradleExecuter.propagateSystemProperty(SystemProperties.isEnabled)
-        def previousProp = System.getProperty(SystemProperties.isEnabled)
-        System.setProperty(SystemProperties.isEnabled, "true")
-
-        and:
-        def fixture = newInstantExecutionFixture()
 
         when:
-        run 'help'
+        run 'help', argument
 
         then:
-        fixture.assertStateStored()
+        outputContainsIncubatingFeatureUsage()
+        fixture.assertStateLoaded()
 
-        cleanup:
-        setOrClearProperty(SystemProperties.isEnabled, previousProp)
-        AbstractGradleExecuter.doNotPropagateSystemProperty(SystemProperties.isEnabled)
+        where:
+        origin            | argument
+        "long option"     | ENABLE_CLI_OPT
+        "system property" | ENABLE_SYS_PROP
     }
 
-    @Ignore
-    @ToBeImplemented
-    def "can enable instant execution from gradle.properties"() {
-        setup:
-        def previousProp = System.getProperty(SystemProperties.isEnabled)
-        if (GradleContextualExecuter.isEmbedded()) {
-            System.clearProperty(SystemProperties.isEnabled)
-        }
+    def "can enable with a property in root directory gradle.properties"() {
+
+        given:
+        def fixture = newInstantExecutionFixture()
 
         and:
         file('gradle.properties') << """
-            systemProp.${SystemProperties.isEnabled}=true
+            $ENABLE_GRADLE_PROP
         """
-
-        and:
-        def fixture = newInstantExecutionFixture()
 
         when:
         run 'help'
 
-        then: 'instant execution is enabled'
+        then:
+        outputContainsIncubatingFeatureUsage()
         fixture.assertStateStored()
 
-        cleanup:
-        setOrClearProperty(SystemProperties.isEnabled, previousProp)
+        when:
+        run 'help'
+
+        then:
+        outputContainsIncubatingFeatureUsage()
+        fixture.assertStateLoaded()
     }
 
-    private static void setOrClearProperty(String name, @Nullable String value) {
-        if (value != null) {
-            System.setProperty(name, value)
-        } else {
-            System.clearProperty(name)
+    def "can enable with a property in gradle user home gradle.properties"() {
+
+        given:
+        def fixture = newInstantExecutionFixture()
+
+        and:
+        executer.requireOwnGradleUserHomeDir()
+        executer.gradleUserHomeDir.file('gradle.properties') << """
+            $ENABLE_GRADLE_PROP
+        """
+
+        when:
+        run 'help'
+
+        then:
+        outputContainsIncubatingFeatureUsage()
+        fixture.assertStateStored()
+
+        when:
+        run 'help'
+
+        then:
+        outputContainsIncubatingFeatureUsage()
+        fixture.assertStateLoaded()
+    }
+
+    @Unroll
+    def "can disable with a command line #cliOrigin when enabled in gradle.properties"() {
+
+        given:
+        def fixture = newInstantExecutionFixture()
+
+        and:
+        file('gradle.properties') << """
+            ${ConfigurationCacheOption.PROPERTY_NAME}=true
+        """
+
+        when:
+        run 'help', cliArgument
+
+        then:
+        fixture.assertNoInstantExecution()
+
+        where:
+        cliOrigin         | cliArgument
+        "long option"     | DISABLE_CLI_OPT
+        "system property" | DISABLE_SYS_PROP
+    }
+
+    private void outputContainsIncubatingFeatureUsage() {
+        outputContains("Configuration cache is an incubating feature.")
+    }
+
+    private void expectDeprecatedProperty(String name, String value) {
+        executer.beforeExecute {
+            expectDeprecationWarning("Property '$name' with value '$value' has been deprecated. This is scheduled to be removed in Gradle 7.0.")
         }
     }
 }

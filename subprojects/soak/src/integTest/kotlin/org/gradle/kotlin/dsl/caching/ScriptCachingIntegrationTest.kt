@@ -33,13 +33,10 @@ import org.gradle.kotlin.dsl.execution.ProgramParser
 import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 import org.gradle.kotlin.dsl.fixtures.DeepThought
-import org.gradle.soak.categories.SoakTest
 import org.junit.Test
-import org.junit.experimental.categories.Category
 import java.util.UUID
 
 
-@Category(SoakTest::class)
 class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
     @Test

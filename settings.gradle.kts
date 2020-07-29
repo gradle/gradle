@@ -20,35 +20,34 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
-        maven { url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local") }
-    }
-
-    // No plugin marker for plugin RC - can be removed when going to a final version
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.id == "com.gradle.enterprise") {
-                useModule("com.gradle:gradle-enterprise-gradle-plugin:${requested.version}")
-            }
-        }
     }
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.3-rc-1")
+    id("com.gradle.enterprise").version("3.4")
+    id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.6")
 }
 
-apply(from = "gradle/build-cache-configuration.settings.gradle.kts")
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 // If you include a new subproject here, you will need to execute the
 // ./gradlew generateSubprojectsInfo
 // task to update metadata about the build for CI
 
+include("distributionsDependencies") // platform for dependency versions
+include("corePlatform")              // platform for Gradle distribution core
+
+// Gradle Distributions - for testing and for publishing a full distribution
+include("distributionsCore")
+include("distributionsBasics")
+include("distributionsPublishing")
+include("distributionsJvm")
+include("distributionsNative")
+include("distributionsFull")
+
+// Gradle implementation projects
 include("instantExecution")
-include("instantExecutionReport")
 include("apiMetadata")
-include("distributionsDependencies")
-include("distributions")
 include("baseServices")
 include("baseServicesGroovy")
 include("logging")
@@ -77,18 +76,9 @@ include("antlr")
 include("toolingApi")
 include("buildEvents")
 include("toolingApiBuilders")
-include("docs")
-include("integTest")
 include("signing")
 include("ear")
 include("native")
-include("internalTesting")
-include("internalIntegTesting")
-include("internalPerformanceTesting")
-include("internalAndroidPerformanceTesting")
-include("internalBuildReports")
-include("performance")
-include("buildScanPerformance")
 include("javascript")
 include("reporting")
 include("diagnostics")
@@ -119,11 +109,8 @@ include("testingJunitPlatform")
 include("platformPlay")
 include("testKit")
 include("installationBeacon")
-include("soak")
-include("smokeTest")
 include("compositeBuilds")
 include("workers")
-include("runtimeApiInfo")
 include("persistentCache")
 include("buildCacheBase")
 include("buildCache")
@@ -134,23 +121,41 @@ include("files")
 include("hashing")
 include("snapshots")
 include("fileWatching")
-include("architectureTest")
 include("buildCachePackaging")
 include("execution")
 include("buildProfile")
 include("kotlinCompilerEmbeddable")
 include("kotlinDsl")
 include("kotlinDslProviderPlugins")
-include("kotlinDslPlugins")
 include("kotlinDslToolingModels")
 include("kotlinDslToolingBuilders")
-include("kotlinDslTestFixtures")
-include("kotlinDslIntegTests")
 include("workerProcesses")
 include("baseAnnotations")
-include("samples")
 include("security")
 include("normalizationJava")
+include("enterprise")
+
+// Plugin portal projects
+include("kotlinDslPlugins")
+
+// Internal utility and verification projects
+include("docs")
+include("samples")
+include("architectureTest")
+include("internalTesting")
+include("internalIntegTesting")
+include("internalPerformanceTesting")
+include("internalAndroidPerformanceTesting")
+include("internalBuildReports")
+include("kotlinDslTestFixtures")
+include("integTest")
+include("kotlinDslIntegTests")
+include("distributionsIntegTests")
+include("soak")
+include("smokeTest")
+include("performance")
+include("buildScanPerformance")
+include("instantExecutionReport")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 
@@ -162,8 +167,7 @@ rootProject.name = "gradle"
 // List of sub-projects that have a Groovy DSL build script.
 // The intent is for this list to diminish until it disappears.
 val groovyBuildScriptProjects = hashSetOf(
-    "docs",
-    "performance"
+    "docs"
 )
 
 fun buildFileNameFor(projectDirName: String) =
@@ -185,6 +189,7 @@ for (project in rootProject.children) {
 }
 
 FeaturePreviews.Feature.values().forEach { feature ->
-    if (feature.isActive) { enableFeaturePreview(feature.name) }
+    if (feature.isActive) {
+        enableFeaturePreview(feature.name)
+    }
 }
-

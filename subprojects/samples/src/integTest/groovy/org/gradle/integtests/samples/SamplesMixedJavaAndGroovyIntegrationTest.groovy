@@ -37,7 +37,7 @@ class SamplesMixedJavaAndGroovyIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void canBuildJar() {
-        TestFile projectDir = sample.dir
+        TestFile projectDir = sample.dir.file('groovy')
         executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
@@ -58,7 +58,7 @@ class SamplesMixedJavaAndGroovyIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void canBuildDocs() {
-        TestFile projectDir = sample.dir
+        TestFile projectDir = sample.dir.file('groovy')
         executer.inDirectory(projectDir).withTasks('clean', 'javadoc', 'groovydoc').run()
 
         TestFile javadocsDir = projectDir.file("build/docs/javadoc")

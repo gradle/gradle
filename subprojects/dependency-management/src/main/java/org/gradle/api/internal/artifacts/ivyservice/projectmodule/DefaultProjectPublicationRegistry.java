@@ -37,7 +37,7 @@ public class DefaultProjectPublicationRegistry implements ProjectPublicationRegi
             if (projectPublications.isEmpty()) {
                 return Collections.emptyList();
             }
-            List<T> result = new ArrayList<T>(projectPublications.size());
+            List<T> result = new ArrayList<>(projectPublications.size());
             for (Reference<?> reference : projectPublications) {
                 if (type.isInstance(reference.get())) {
                     result.add(type.cast(reference.get()));
@@ -54,7 +54,7 @@ public class DefaultProjectPublicationRegistry implements ProjectPublicationRegi
             if (allPublications.isEmpty()) {
                 return Collections.emptyList();
             }
-            List<Reference<T>> result = new ArrayList<Reference<T>>(allPublications.size());
+            List<Reference<T>> result = new ArrayList<>(allPublications.size());
             for (Reference<?> reference : allPublications) {
                 if (type.isInstance(reference.get())) {
                     result.add(Cast.uncheckedCast(reference));
@@ -71,7 +71,7 @@ public class DefaultProjectPublicationRegistry implements ProjectPublicationRegi
         }
     }
 
-    private static class ReferenceImpl implements Reference {
+    private static class ReferenceImpl implements Reference<ProjectPublication> {
         private final ProjectPublication publication;
         private final ProjectInternal project;
 

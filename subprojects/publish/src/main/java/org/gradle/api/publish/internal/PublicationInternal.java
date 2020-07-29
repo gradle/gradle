@@ -72,6 +72,8 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
     @Nullable
     VersionMappingStrategyInternal getVersionMappingStrategy();
 
+    boolean isPublishBuildId();
+
     interface PublishedFile {
         String getName();
 

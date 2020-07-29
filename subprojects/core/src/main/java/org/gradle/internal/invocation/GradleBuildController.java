@@ -53,29 +53,24 @@ public class GradleBuildController implements BuildController {
 
     @Override
     public GradleInternal run() {
-        return doBuild(GradleInternal.BuildType.TASKS, GradleLauncher::executeTasks);
+        return doBuild(GradleLauncher::executeTasks);
     }
 
     @Override
     public GradleInternal configure() {
-        return doBuild(GradleInternal.BuildType.MODEL, GradleLauncher::getConfiguredBuild);
+        return doBuild(GradleLauncher::getConfiguredBuild);
     }
 
-    private GradleInternal doBuild(final GradleInternal.BuildType buildType, final Action<? super GradleLauncher> build) {
+    private GradleInternal doBuild(final Action<? super GradleLauncher> build) {
         try {
             // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
             return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), new Factory<GradleInternal>() {
                 @Override
                 public GradleInternal create() {
                     GradleInternal gradle = getGradle();
-                    try {
-                        gradle.setBuildType(buildType);
-                        GradleLauncher launcher = getLauncher();
-                        build.execute(launcher);
-                        launcher.finishBuild();
-                    } finally {
-                        gradle.setBuildType(GradleInternal.BuildType.NONE);
-                    }
+                    GradleLauncher launcher = getLauncher();
+                    build.execute(launcher);
+                    launcher.finishBuild();
                     return gradle;
                 }
             });

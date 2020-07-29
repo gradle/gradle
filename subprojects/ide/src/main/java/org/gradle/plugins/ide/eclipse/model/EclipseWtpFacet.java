@@ -144,6 +144,7 @@ public class EclipseWtpFacet {
         ));
     }
 
+    @SuppressWarnings("unchecked")
     public void mergeXmlFacet(WtpFacet xmlFacet) {
         file.getBeforeMerged().execute(xmlFacet);
         xmlFacet.configure(getFacets());

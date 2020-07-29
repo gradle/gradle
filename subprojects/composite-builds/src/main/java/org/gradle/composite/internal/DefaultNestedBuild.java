@@ -30,6 +30,8 @@ import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.util.Path;
 
+import java.io.File;
+
 class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedBuild, Stoppable {
     private final Path identityPath;
     private final BuildState owner;
@@ -42,7 +44,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         this.identityPath = identityPath;
         this.buildDefinition = buildDefinition;
         this.owner = owner;
-        gradleLauncher = owner.getNestedBuildFactory().nestedInstance(buildDefinition, this);
+        this.gradleLauncher = owner.getNestedBuildFactory().nestedInstance(buildDefinition, this);
     }
 
     @Override
@@ -93,5 +95,10 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     @Override
     public Path getIdentityPathForProject(Path projectPath) {
         return gradleLauncher.getGradle().getIdentityPath().append(projectPath);
+    }
+
+    @Override
+    public File getBuildRootDir() {
+        return gradleLauncher.getBuildRootDir();
     }
 }

@@ -27,9 +27,9 @@ import org.junit.Rule
 @UnsupportedWithInstantExecution(because = "software model")
 class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule
-    Sample internalViewsSample = new Sample(temporaryFolder, "customModel/internalViews")
+    Sample internalViewsSample = new Sample(temporaryFolder, "customModel/internalViews/groovy")
 
-    // NOTE If you change this, you'll also need to change subprojects/docs/src/doc/snippets/customModel/languageType/softwareModelExtend-iv-model.out
+    // NOTE If you change this, you'll also need to change subprojects/docs/src/doc/snippets/customModel/languageType/groovy/softwareModelExtend-iv-model.out
     def "show mutated public view data but no internal view data in model report"() {
         given:
         sample internalViewsSample

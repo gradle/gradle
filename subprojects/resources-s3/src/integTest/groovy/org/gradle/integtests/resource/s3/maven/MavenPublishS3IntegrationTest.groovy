@@ -16,12 +16,14 @@
 
 package org.gradle.integtests.resource.s3.maven
 
+import org.gradle.api.credentials.AwsCredentials
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository
 import org.gradle.integtests.resource.s3.fixtures.S3Artifact
 import org.gradle.integtests.resource.s3.fixtures.S3IntegrationTestPrecondition
 import org.gradle.integtests.resource.s3.fixtures.S3Server
+import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.junit.Rule
 import spock.lang.Requires
 
@@ -31,40 +33,21 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
     public S3Server server = new S3Server(temporaryFolder)
 
     def setup() {
+        settingsFile << 'rootProject.name = "publishS3Test"'
+
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.getUri()}")
-        .withArgument("-Daws.accessKeyId=someKey")
-        .withArgument("-Daws.secretKey=someSecret");
     }
 
     @ToBeFixedForInstantExecution
     def "can publish to a S3 Maven repository"() {
         given:
         def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", "tests3Bucket")
-        settingsFile << 'rootProject.name = "publishS3Test"'
-        buildFile << """
-apply plugin: 'java'
-apply plugin: 'maven-publish'
-
-group = 'org.gradle.test'
-version = '1.0'
-
-publishing {
-    repositories {
-        maven {
-            url "${mavenRepo.uri}"
+        buildFile << publicationBuild(mavenRepo.uri, """
             credentials(AwsCredentials) {
                 accessKey "someKey"
                 secretKey "someSecret"
             }
-        }
-    }
-    publications {
-        maven(MavenPublication) {
-            from components.java
-        }
-    }
-}
-"""
+            """)
 
         when:
         def module = mavenRepo.module('org.gradle.test', 'publishS3Test', '1.0').withModuleMetadata()
@@ -81,36 +64,57 @@ publishing {
         module.parsedPom.scopes.isEmpty()
     }
 
+    @ToBeFixedForInstantExecution
+    def "can publish to a S3 Maven repository using provided access and secret keys"() {
+        given:
+        AwsCredentials credentials = new DefaultAwsCredentials()
+        credentials.setAccessKey("someAccessKey")
+        credentials.setSecretKey("someSecretKey")
+        def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", "tests3Bucket")
+        buildFile << publicationBuild(mavenRepo.uri, "credentials(AwsCredentials)")
+
+        when:
+        def module = mavenRepo.module('org.gradle.test', 'publishS3Test', '1.0').withModuleMetadata()
+        expectPublish(module.artifact)
+        expectPublish(module.pom)
+        expectPublish(module.moduleMetadata)
+        module.rootMetaData.expectDownloadMissing()
+        expectPublish(module.rootMetaData)
+
+        executer.withArgument("-PmavenAccessKey=${credentials.accessKey}")
+        executer.withArgument("-PmavenSecretKey=${credentials.secretKey}")
+        succeeds 'publish'
+
+        then:
+        module.assertPublishedAsJavaModule()
+        module.parsedPom.scopes.isEmpty()
+    }
+
+    def "fails at configuration time with helpful error when credentials provider can not be resolved"() {
+        given:
+        def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", "tests3Bucket")
+        buildFile << publicationBuild(mavenRepo.uri, "credentials(AwsCredentials)")
+
+        when:
+        fails 'publish'
+
+        then:
+        notExecuted('jar', 'generatePomFileForMavenPublication')
+        failure.assertHasDescription("Credentials required for this build could not be resolved.")
+        failure.assertHasCause("The following Gradle properties are missing for 'maven' credentials:")
+        failure.assertHasErrorOutput("- mavenAccessKey")
+        failure.assertHasErrorOutput("- mavenSecretKey")
+    }
 
     @ToBeFixedForInstantExecution
     def "can publish to a S3 Maven repository with IAM"() {
         given:
         def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", "tests3Bucket")
-        settingsFile << 'rootProject.name = "publishS3Test"'
-        buildFile << """
-apply plugin: 'java'
-apply plugin: 'maven-publish'
-
-group = 'org.gradle.test'
-version = '1.0'
-
-publishing {
-    repositories {
-        maven {
-            url "${mavenRepo.uri}"
+        buildFile << publicationBuild(mavenRepo.uri, """
             authentication {
                awsIm(AwsImAuthentication)
             }
-        }
-    }
-
-    publications {
-        maven(MavenPublication) {
-            from components.java
-        }
-    }
-}
-"""
+            """)
 
         when:
         def module = mavenRepo.module('org.gradle.test', 'publishS3Test', '1.0').withModuleMetadata()
@@ -133,5 +137,32 @@ publishing {
         artifact.sha256.expectUpload()
         artifact.sha512.expectUpload()
         artifact.md5.expectUpload()
+    }
+
+    private static String publicationBuild(URI repoUrl, String authentication) {
+        return """
+            plugins {
+                id 'java'
+                id 'maven-publish'
+            }
+
+            group = 'org.gradle.test'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven {
+                        url "${repoUrl}"
+                        ${authentication}
+                    }
+                }
+
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
     }
 }

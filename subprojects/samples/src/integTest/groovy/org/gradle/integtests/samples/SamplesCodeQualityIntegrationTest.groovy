@@ -29,7 +29,7 @@ class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
     Sample sample = new Sample(testDirectoryProvider)
 
     @Unroll
-    @UsesSample('codeQuality')
+    @UsesSample('codeQuality/codeQuality')
     @ToBeFixedForInstantExecution
     def "can generate reports with #dsl dsl"() {
         TestFile projectDir = sample.dir.file(dsl)
@@ -38,7 +38,6 @@ class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
         when:
         executer
             .inDirectory(projectDir)
-            .requireGradleDistribution()
             .withTasks('check')
             .run()
 

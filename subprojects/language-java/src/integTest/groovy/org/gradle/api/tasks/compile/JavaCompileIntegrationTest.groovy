@@ -845,9 +845,9 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             apply plugin: 'java'
 
             compileJava {
-                if (providers.gradleProperty("java7").isPresent()) {
+                if (providers.gradleProperty("java7").forUseAtConfigurationTime().isPresent()) {
                     options.bootstrapClasspath = files("$jdk7bootClasspath")
-                } else if (providers.gradleProperty("java8").isPresent()) {
+                } else if (providers.gradleProperty("java8").forUseAtConfigurationTime().isPresent()) {
                     options.bootstrapClasspath = files("$jdk8bootClasspath")
                 }
                 options.fork = true

@@ -22,6 +22,9 @@ import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.api.provider.ValueSourceSpec;
 import org.gradle.internal.Try;
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 
@@ -32,6 +35,7 @@ import javax.annotation.Nullable;
  *
  * @since 6.1
  */
+@ServiceScope(Scopes.Build)
 public interface ValueSourceProviderFactory {
 
     <T, P extends ValueSourceParameters> Provider<T> createProviderOf(
@@ -45,10 +49,11 @@ public interface ValueSourceProviderFactory {
 
     <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProvider(
         Class<? extends ValueSource<T, P>> valueSourceType,
-        Class<P> parametersType,
-        P parameters
+        @Nullable Class<P> parametersType,
+        @Nullable P parameters
     );
 
+    @EventScope(Scopes.Build)
     interface Listener {
 
         <T, P extends ValueSourceParameters> void valueObtained(

@@ -71,7 +71,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "does not shows deprecation warning when executing #flag in undefined build"() {
         when:
-        executer.requireGradleDistribution()
+        executer.requireDaemon().requireIsolatedDaemons()
         succeeds(flag)
 
         then:

@@ -16,8 +16,6 @@
 
 package org.gradle.api.plugins.antlr
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-
 import static org.gradle.integtests.fixtures.WaitAtEndOfBuildFixture.buildLogicForMinimumBuildTime
 
 class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
@@ -35,7 +33,6 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
         buildFile << buildLogicForMinimumBuildTime(2000)
     }
 
-    @ToBeFixedForInstantExecution
     def "changed task inputs handled incrementally"() {
         when:
         grammar("Test1", "Test2")
@@ -64,7 +61,6 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
         test2ParserFile.assertHasChangedSince(test2ParserFileSnapshot)
     }
 
-    @ToBeFixedForInstantExecution
     def "added grammar is handled incrementally"() {
         when:
         grammar("Test1")
@@ -120,7 +116,6 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
         test1ParserFile.assertHasChangedSince(test1ParserFileSnapshot)
     }
 
-    @ToBeFixedForInstantExecution
     def "output for removed grammar file is handled correctly"() {
         when:
         grammar("Test1", "Test2")

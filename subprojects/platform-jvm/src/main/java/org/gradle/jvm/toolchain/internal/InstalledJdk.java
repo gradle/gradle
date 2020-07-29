@@ -18,6 +18,7 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.model.Managed;
 
 @Managed
+@Deprecated
 public interface InstalledJdk extends LocalJavaInstallation {
 
 }

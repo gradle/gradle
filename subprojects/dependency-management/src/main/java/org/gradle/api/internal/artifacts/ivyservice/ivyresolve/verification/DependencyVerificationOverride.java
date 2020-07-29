@@ -45,7 +45,7 @@ public interface DependencyVerificationOverride {
     /**
      * This method is called after we know artifacts have been resolved
      * and that something is actually trying to get the files of an artifact set
-     * @param displayName
+     * @param displayName the name of what accessed the artifact
      */
     default void artifactsAccessed(String displayName) {
 

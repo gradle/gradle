@@ -17,14 +17,18 @@
 package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
-import org.gradle.internal.deprecation.Deprecatable;
-import org.gradle.internal.deprecation.LoggingDeprecatable;
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
 
 import java.io.File;
-import java.util.Set;
 
-public class StartParameterInternal extends StartParameter implements Deprecatable {
-    private final Deprecatable deprecationHandler = new LoggingDeprecatable();
+public class StartParameterInternal extends StartParameter {
+    private boolean watchFileSystem;
+
+    private boolean configurationCache;
+    private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
+    private int configurationCacheMaxProblems = 512;
+    private boolean configurationCacheRecreateCache;
+    private boolean configurationCacheQuiet;
 
     @Override
     public StartParameter newInstance() {
@@ -37,18 +41,15 @@ public class StartParameterInternal extends StartParameter implements Deprecatab
     }
 
     @Override
-    public void addDeprecation(String deprecation) {
-        deprecationHandler.addDeprecation(deprecation);
-    }
-
-    @Override
-    public Set<String> getDeprecations() {
-        return deprecationHandler.getDeprecations();
-    }
-
-    @Override
-    public void checkDeprecation() {
-        deprecationHandler.checkDeprecation();
+    protected StartParameter prepareNewBuild(StartParameter startParameter) {
+        StartParameterInternal p = (StartParameterInternal) super.prepareNewBuild(startParameter);
+        p.watchFileSystem = watchFileSystem;
+        p.configurationCache = configurationCache;
+        p.configurationCacheProblems = configurationCacheProblems;
+        p.configurationCacheMaxProblems = configurationCacheMaxProblems;
+        p.configurationCacheRecreateCache = configurationCacheRecreateCache;
+        p.configurationCacheQuiet = configurationCacheQuiet;
+        return p;
     }
 
     public File getGradleHomeDir() {
@@ -73,5 +74,53 @@ public class StartParameterInternal extends StartParameter implements Deprecatab
 
     public void setSearchUpwardsWithoutDeprecationWarning(boolean searchUpwards) {
         super.searchUpwards = searchUpwards;
+    }
+
+    public boolean isWatchFileSystem() {
+        return watchFileSystem;
+    }
+
+    public void setWatchFileSystem(boolean watchFileSystem) {
+        this.watchFileSystem = watchFileSystem;
+    }
+
+    public boolean isConfigurationCache() {
+        return configurationCache;
+    }
+
+    public void setConfigurationCache(boolean configurationCache) {
+        this.configurationCache = configurationCache;
+    }
+
+    public ConfigurationCacheProblemsOption.Value getConfigurationCacheProblems() {
+        return configurationCacheProblems;
+    }
+
+    public void setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value configurationCacheProblems) {
+        this.configurationCacheProblems = configurationCacheProblems;
+    }
+
+    public int getConfigurationCacheMaxProblems() {
+        return configurationCacheMaxProblems;
+    }
+
+    public void setConfigurationCacheMaxProblems(int configurationCacheMaxProblems) {
+        this.configurationCacheMaxProblems = configurationCacheMaxProblems;
+    }
+
+    public boolean isConfigurationCacheRecreateCache() {
+        return configurationCacheRecreateCache;
+    }
+
+    public void setConfigurationCacheRecreateCache(boolean configurationCacheRecreateCache) {
+        this.configurationCacheRecreateCache = configurationCacheRecreateCache;
+    }
+
+    public boolean isConfigurationCacheQuiet() {
+        return configurationCacheQuiet;
+    }
+
+    public void setConfigurationCacheQuiet(boolean configurationCacheQuiet) {
+        this.configurationCacheQuiet = configurationCacheQuiet;
     }
 }

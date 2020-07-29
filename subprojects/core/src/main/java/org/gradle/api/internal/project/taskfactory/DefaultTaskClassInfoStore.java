@@ -26,7 +26,6 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -93,7 +92,9 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
                 }
                 if (taskActionFactory instanceof AbstractIncrementalTaskActionFactory) {
                     if (foundIncrementalTaskActionFactory != null) {
-                        throw new GradleException(String.format("Cannot have multiple @TaskAction methods accepting an %s or %s parameter.", InputChanges.class.getSimpleName(), IncrementalTaskInputs.class.getSimpleName()));
+                        @SuppressWarnings("deprecation")
+                        Class<?> incrementalTaskInputsClass = org.gradle.api.tasks.incremental.IncrementalTaskInputs.class;
+                        throw new GradleException(String.format("Cannot have multiple @TaskAction methods accepting an %s or %s parameter.", InputChanges.class.getSimpleName(), incrementalTaskInputsClass.getSimpleName()));
                     }
                     foundIncrementalTaskActionFactory = (AbstractIncrementalTaskActionFactory) taskActionFactory;
                     continue;
@@ -159,9 +160,10 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
     }
 
     @Nullable
+    @SuppressWarnings("deprecation")
     private Method getIncrementalTaskInputsMethod(Class<?> type, String methodName) {
         try {
-            return type.getDeclaredMethod(methodName, IncrementalTaskInputs.class);
+            return type.getDeclaredMethod(methodName, org.gradle.api.tasks.incremental.IncrementalTaskInputs.class);
         } catch (NoSuchMethodException e) {
             return null;
         }
@@ -191,7 +193,9 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         TaskActionFactory taskActionFactory;
         if (parameterTypes.length == 1) {
             Class<?> parameterType = parameterTypes[0];
-            if (parameterType.equals(IncrementalTaskInputs.class)) {
+            @SuppressWarnings("deprecation")
+            Class<?> incrementalTaskInputsClass = org.gradle.api.tasks.incremental.IncrementalTaskInputs.class;
+            if (parameterType.equals(incrementalTaskInputsClass)) {
                 taskActionFactory = new IncrementalTaskInputsTaskActionFactory(taskType, method);
             } else if (parameterType.equals(InputChanges.class)) {
                 taskActionFactory = new IncrementalInputsTaskActionFactory(taskType, method);

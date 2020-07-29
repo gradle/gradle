@@ -19,7 +19,6 @@ package org.gradle.internal.scopeids
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.ScopeIdsFixture
-import org.gradle.internal.scan.scopeids.BuildScanScopeIds
 import org.gradle.util.TextUtil
 import org.junit.Rule
 
@@ -43,7 +42,7 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         scopeIds.lastBuildPaths() == [":", ":buildSrc"]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "composite participants inherit the same ids"() {
         when:
         settingsFile << """
@@ -71,7 +70,7 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         scopeIds.lastBuildPaths() == [":", ":a", ":a:buildSrc", ":b", ":b:buildSrc"]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "GradleBuild")
     def "gradle-build builds with different root does not inherit workspace id"() {
         given:
         // GradleBuild launched builds with a different root dir
@@ -93,7 +92,7 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         ids[":"].workspace != ids[":other"].workspace
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "GradleBuild")
     def "gradle-build builds with different gradle user home does not inherit user id"() {
         given:
         scopeIds.disableConsistentUserIdCheck = true
@@ -115,7 +114,7 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         ids[":"].user != ids[buildPaths[1]].user
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "GradleBuild")
     def "gradle-build with same root and user dir inherits all"() {
         when:
         settingsFile << "rootProject.name = 'root'"
@@ -141,7 +140,6 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         scopeIds.userIds.unique().size() == 1
     }
 
-    @ToBeFixedForInstantExecution
     def "changing gradle user home changes user id"() {
         when:
         file("build.gradle") << ""
@@ -153,22 +151,6 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         then:
         scopeIds.workspaceIds.unique().size() == 1
         scopeIds.userIds.unique().size() == 2
-    }
-
-    def "exposes scans view of scope IDs"() {
-        when:
-        buildScript """
-            def ids = project.gradle.services.get($BuildScanScopeIds.name)
-            println "ids: [buildInvocation: \$ids.buildInvocationId, workspace: \$ids.workspaceId, user: \$ids.userId]"
-        """
-        succeeds("help")
-
-        then:
-        def buildInvocationId = scopeIds.buildInvocationId.asString()
-        def workspaceId = scopeIds.workspaceId.asString()
-        def userId = scopeIds.userId.asString()
-
-        output.contains "ids: [buildInvocation: $buildInvocationId, workspace: $workspaceId, user: $userId]"
     }
 
 }

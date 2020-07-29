@@ -25,6 +25,8 @@ import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 
+import javax.annotation.Nullable;
+
 public interface ModuleComponentResolveState extends Versioned {
     ModuleComponentIdentifier getId();
 
@@ -34,6 +36,7 @@ public interface ModuleComponentResolveState extends Versioned {
 
     ImmutableAttributesFactory getAttributesFactory();
 
+    @Nullable
     InstantiatingAction<ComponentMetadataSupplierDetails> getComponentMetadataSupplier();
 
     ComponentMetadataSupplierRuleExecutor getComponentMetadataSupplierExecutor();

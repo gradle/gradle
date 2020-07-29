@@ -29,6 +29,7 @@ public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec imp
     private Iterable<File> scalaCompilerPlugins;
     private Map<File, File> analysisMap;
     private File analysisFile;
+    private File classfileBackupDir;
     private long buildStartTimestamp;
 
     @Override
@@ -48,6 +49,16 @@ public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec imp
 
     public void setScalaCompileOptions(BaseScalaCompileOptions options) {
         this.options = options;
+    }
+
+    @Override
+    public File getClassfileBackupDir() {
+        return classfileBackupDir;
+    }
+
+    @Override
+    public void setClassfileBackupDir(File classfileBackupDir) {
+        this.classfileBackupDir = classfileBackupDir;
     }
 
     public Iterable<File> getScalaClasspath() {

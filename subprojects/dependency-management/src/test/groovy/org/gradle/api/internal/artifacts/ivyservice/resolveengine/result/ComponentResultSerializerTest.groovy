@@ -21,6 +21,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.serialize.SerializerSpec
@@ -32,10 +33,10 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.n
 class ComponentResultSerializerTest extends SerializerSpec {
 
     def serializer = new ComponentResultSerializer(
-        new DefaultImmutableModuleIdentifierFactory(),
-        new ResolvedVariantResultSerializer(
-            new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator())
-        )
+            new DefaultImmutableModuleIdentifierFactory(),
+            new ResolvedVariantResultSerializer(
+                    new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator())
+            ), DependencyManagementTestUtil.componentSelectionDescriptorFactory()
     )
 
     def "serializes"() {

@@ -27,7 +27,6 @@ import org.gradle.util.TestUtil
 class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDomainObjectContainerSpec<Person> {
     def fred = new DefaultPerson(name: "fred")
     def barney = new DefaultPerson(name: "barney")
-    def agedFred = new DefaultAgeAwarePerson(name: "fred", age: 42)
     def agedBarney = new DefaultAgeAwarePerson(name: "barney", age: 42)
 
     def container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, TestUtil.instantiatorFactory().decorateLenient(), callbackActionDecorator)
@@ -49,7 +48,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
 
     @Override
     void setupContainerDefaults() {
-        container.registerDefaultFactory({ new DefaultPerson(name: it) } as NamedDomainObjectFactory )
+        container.registerDefaultFactory({ new DefaultPerson(name: it) } as NamedDomainObjectFactory)
     }
 
     @Override
@@ -61,6 +60,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
 
     static abstract class AbstractPerson implements Person {
         String name
+
         String toString() { name }
 
 
@@ -114,7 +114,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     }
 
     def "create elements without specifying type"() {
-        container.registerDefaultFactory({ new DefaultPerson(name: it) } as NamedDomainObjectFactory )
+        container.registerDefaultFactory({ new DefaultPerson(name: it) } as NamedDomainObjectFactory)
 
         when:
         container.create("fred")
@@ -130,7 +130,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     }
 
     def "maybe create elements without specifying type"() {
-        container.registerDefaultFactory({ new DefaultPerson(name: it) } as NamedDomainObjectFactory )
+        container.registerDefaultFactory({ new DefaultPerson(name: it) } as NamedDomainObjectFactory)
 
         when:
         def first = container.maybeCreate("fred")
@@ -151,7 +151,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
         then:
         InvalidUserDataException e = thrown()
         e.message == "Cannot create a Person named 'fred' because this container does not support creating " +
-                "elements by name alone. Please specify which subtype of Person to create. Known subtypes are: (None)"
+            "elements by name alone. Please specify which subtype of Person to create. Known subtypes are: (None)"
     }
 
     def "create elements with specified type based on NamedDomainObjectFactory"() {
@@ -188,7 +188,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
 
     def "create elements with specified type based on type binding"() {
         container = new DefaultPolymorphicDomainObjectContainer<?>(Object, TestUtil.instantiatorFactory().decorateLenient(),
-                { it instanceof Named ? it.name : "unknown" } as Named.Namer, CollectionCallbackActionDecorator.NOOP)
+            { it instanceof Named ? it.name : "unknown" } as Named.Namer, CollectionCallbackActionDecorator.NOOP)
 
         container.registerBinding(UnnamedPerson, DefaultUnnamedPerson)
         container.registerBinding(CtorNamedPerson, DefaultCtorNamedPerson)
@@ -254,7 +254,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
         then:
         IllegalArgumentException e = thrown()
         e.message == "Cannot register a factory for type String because it is not a subtype of " +
-                "container element type Person."
+            "container element type Person."
     }
 
     def "fires events when elements are added"() {
@@ -446,7 +446,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     protected void assertSchemaIs(Map<String, String> expectedSchema) {
         def actualSchema = container.collectionSchema
         Map<String, String> actualSchemaMap = actualSchema.elements.collectEntries { schema ->
-            [ schema.name, schema.publicType.simpleName ]
+            [schema.name, schema.publicType.simpleName]
         }.sort()
         def expectedSchemaMap = expectedSchema.sort()
         assert expectedSchemaMap == actualSchemaMap

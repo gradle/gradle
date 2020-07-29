@@ -66,20 +66,21 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
     @Override
     public <T> Action<T> decorate(String registrationPoint, Action<T> action) {
-        UserCodeApplicationId applicationId = userCodeApplicationContext.current();
-        if (applicationId == null || action instanceof InternalListener) {
+        UserCodeApplicationContext.Application application = userCodeApplicationContext.current();
+        if (application == null || action instanceof InternalListener) {
             return action;
         }
-        return new BuildOperationEmittingAction<>(applicationId, registrationPoint, action);
+        Action<T> decorated = application.reapplyLater(action);
+        return new BuildOperationEmittingAction<>(application.getId(), registrationPoint, decorated);
     }
 
     @Override
     public <T> Closure<T> decorate(String registrationPoint, Closure<T> closure) {
-        UserCodeApplicationId applicationId = userCodeApplicationContext.current();
-        if (applicationId == null) {
+        UserCodeApplicationContext.Application application = userCodeApplicationContext.current();
+        if (application == null) {
             return closure;
         }
-        return new BuildOperationEmittingClosure<>(applicationId, registrationPoint, closure);
+        return new BuildOperationEmittingClosure<>(application, registrationPoint, closure);
     }
 
     @Override
@@ -89,14 +90,14 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
             return listener;
         }
 
-        UserCodeApplicationId applicationId = userCodeApplicationContext.current();
-        if (applicationId == null) {
+        UserCodeApplicationContext.Application application = userCodeApplicationContext.current();
+        if (application == null) {
             return listener;
         }
 
         Class<?> listenerClass = listener.getClass();
         List<Class<?>> allInterfaces = ClassUtils.getAllInterfaces(listenerClass);
-        BuildOperationEmittingInvocationHandler handler = new BuildOperationEmittingInvocationHandler(applicationId, registrationPoint, listener);
+        BuildOperationEmittingInvocationHandler handler = new BuildOperationEmittingInvocationHandler(application, registrationPoint, listener);
         return targetClass.cast(Proxy.newProxyInstance(listenerClass.getClassLoader(), allInterfaces.toArray(new Class[0]), handler));
     }
 
@@ -149,7 +150,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
             buildOperationExecutor.run(new Operation(applicationId, registrationPoint) {
                 @Override
                 public void run(final BuildOperationContext context) {
-                    userCodeApplicationContext.reapply(applicationId, () -> delegate.execute(arg));
+                    delegate.execute(arg);
                     context.setResult(RESULT);
                 }
             });
@@ -158,23 +159,23 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
     private class BuildOperationEmittingClosure<T> extends Closure<T> {
 
-        private final UserCodeApplicationId applicationId;
+        private final UserCodeApplicationContext.Application application;
         private final String registrationPoint;
         private final Closure<T> delegate;
 
-        private BuildOperationEmittingClosure(UserCodeApplicationId application, String registrationPoint, Closure<T> delegate) {
+        private BuildOperationEmittingClosure(UserCodeApplicationContext.Application application, String registrationPoint, Closure<T> delegate) {
             super(delegate.getOwner(), delegate.getThisObject());
-            this.applicationId = application;
+            this.application = application;
             this.delegate = delegate;
             this.registrationPoint = registrationPoint;
         }
 
         @SuppressWarnings("unused")
         public void doCall(final Object... args) {
-            buildOperationExecutor.run(new Operation(applicationId, registrationPoint) {
+            buildOperationExecutor.run(new Operation(application.getId(), registrationPoint) {
                 @Override
                 public void run(final BuildOperationContext context) {
-                    userCodeApplicationContext.reapply(applicationId, () -> {
+                    application.reapply(() -> {
                         int numClosureArgs = delegate.getMaximumNumberOfParameters();
                         Object[] finalArgs = numClosureArgs < args.length ? Arrays.copyOf(args, numClosureArgs) : args;
                         delegate.call(finalArgs);
@@ -202,12 +203,12 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
     private class BuildOperationEmittingInvocationHandler implements InvocationHandler {
 
-        private final UserCodeApplicationId applicationId;
+        private final UserCodeApplicationContext.Application application;
         private final String registrationPoint;
         private final Object delegate;
 
-        private BuildOperationEmittingInvocationHandler(UserCodeApplicationId applicationId, String registrationPoint, Object delegate) {
-            this.applicationId = applicationId;
+        private BuildOperationEmittingInvocationHandler(UserCodeApplicationContext.Application application, String registrationPoint, Object delegate) {
+            this.application = application;
             this.registrationPoint = registrationPoint;
             this.delegate = delegate;
         }
@@ -228,10 +229,10 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
                     throw UncheckedException.unwrapAndRethrow(e);
                 }
             } else {
-                buildOperationExecutor.run(new Operation(applicationId, registrationPoint) {
+                buildOperationExecutor.run(new Operation(application.getId(), registrationPoint) {
                     @Override
                     public void run(final BuildOperationContext context) {
-                        userCodeApplicationContext.reapply(applicationId, () -> {
+                        application.reapply(() -> {
                             try {
                                 method.invoke(delegate, args);
                                 context.setResult(RESULT);

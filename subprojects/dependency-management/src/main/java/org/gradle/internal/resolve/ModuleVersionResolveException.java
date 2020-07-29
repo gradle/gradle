@@ -29,14 +29,14 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseExceptionNoStackTrace;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Formatter;
 import java.util.List;
 
 @Contextual
 public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoStackTrace {
-    private final List<List<? extends ComponentIdentifier>> paths = new ArrayList<List<? extends ComponentIdentifier>>();
+    private final List<List<? extends ComponentIdentifier>> paths = new ArrayList<>();
     private final ComponentSelector selector;
 
     public ModuleVersionResolveException(ComponentSelector selector, Factory<String> message, Throwable cause) {
@@ -72,7 +72,7 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, Throwable cause) {
-        this(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()), DefaultImmutableVersionConstraint.of(id.getVersion())), Arrays.asList(cause));
+        this(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()), DefaultImmutableVersionConstraint.of(id.getVersion())), Collections.singletonList(cause));
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, Iterable<? extends Throwable> causes) {

@@ -49,6 +49,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
 
@@ -150,13 +151,14 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         });
     }
 
+    @Nullable
     private HashCode getResourceSha1(ExternalResourceName location, boolean revalidate) {
         try {
             ExternalResourceName sha1Location = location.append(".sha1");
             ExternalResource resource = delegate.resource(sha1Location, revalidate);
             ExternalResourceReadResult<HashCode> result = resource.withContentIfPresent(inputStream -> {
                 try {
-                    String sha = IOUtils.toString(inputStream, "us-ascii");
+                    String sha = IOUtils.toString(inputStream, StandardCharsets.US_ASCII);
                     if (sha.length() < 40) {
                         // servers may return sha-1 with leading 0 stripped, which is not
                         // supported by HashCode.fromString
@@ -174,6 +176,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
     }
 
+    @Nullable
     private LocallyAvailableExternalResource copyCandidateToCache(ExternalResourceName source, ResourceFileStore fileStore, ExternalResourceMetaData remoteMetaData, HashCode remoteChecksum, LocallyAvailableResource local) throws IOException {
         final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
@@ -188,6 +191,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
     }
 
+    @Nullable
     private LocallyAvailableExternalResource copyToCache(final ExternalResourceName source, final ResourceFileStore fileStore, final ExternalResource resource) {
         // Download to temporary location
         DownloadAction downloadAction = new DownloadAction(source);
@@ -238,11 +242,8 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             if (destination.getParentFile() != null) {
                 GFileUtils.mkdirs(destination.getParentFile());
             }
-            FileOutputStream outputStream = new FileOutputStream(destination);
-            try {
+            try (FileOutputStream outputStream = new FileOutputStream(destination)) {
                 IOUtils.copyLarge(inputStream, outputStream);
-            } finally {
-                outputStream.close();
             }
             return null;
         }

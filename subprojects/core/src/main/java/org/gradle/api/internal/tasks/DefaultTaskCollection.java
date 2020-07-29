@@ -64,7 +64,7 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
 
     @Override
     protected <S extends T> DefaultTaskCollection<S> filtered(CollectionFilter<S> filter) {
-        return getInstantiator().newInstance(DefaultTaskCollection.class, this, filter, getInstantiator(), project, parentMutationGuard);
+        return Cast.uncheckedNonnullCast(getInstantiator().newInstance(DefaultTaskCollection.class, this, filter, getInstantiator(), project, parentMutationGuard));
     }
 
     @Override
@@ -198,7 +198,7 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
 
     // Cannot be private due to reflective instantiation
     public class ExistingTaskProvider<I extends T> extends ExistingNamedDomainObjectProvider<I> implements TaskProvider<I> {
-        public ExistingTaskProvider(String name, Class type) {
+        public ExistingTaskProvider(String name, Class<I> type) {
             super(name, type);
         }
 

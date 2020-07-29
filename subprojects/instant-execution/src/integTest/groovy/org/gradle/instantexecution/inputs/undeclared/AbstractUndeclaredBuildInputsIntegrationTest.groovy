@@ -17,48 +17,79 @@
 package org.gradle.instantexecution.inputs.undeclared
 
 import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
+import spock.lang.Unroll
 
 abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
-    abstract void buildLogicApplication()
+    abstract void buildLogicApplication(SystemPropertyRead read)
 
-    void additionalProblems() {
-    }
+    abstract String getLocation()
 
-    def "reports undeclared use of system property prior to task execution from plugin"() {
-        buildLogicApplication()
+    @Unroll
+    def "reports undeclared system property read using #propertyRead.groovyExpression prior to task execution from plugin"() {
+        buildLogicApplication(propertyRead)
         def fixture = newInstantExecutionFixture()
 
         when:
-        run("thing")
-
-        then:
-        outputContains("apply CI = null")
-        outputContains("apply CI2 = null")
-        outputContains("apply CI3 = null")
-        outputContains("task CI = null")
-
-        when:
-        problems.withDoNotFailOnProblems()
-        instantRun("thing")
+        instantFails("thing", "-DCI=$value")
 
         then:
         fixture.assertStateStored()
-        // TODO - use problems fixture, need to be able to tweak the problem matching as build script class name is included in the message and this is generated
-        outputContains("- unknown location: read system property 'CI' from '")
-        outputContains("- unknown location: read system property 'CI2' from '")
-        outputContains("- unknown location: read system property 'CI3' from '")
-        additionalProblems()
-        outputContains("apply CI = null")
-        outputContains("apply CI2 = null")
-        outputContains("apply CI3 = null")
-        outputContains("task CI = null")
+        // TODO - use problems fixture, need to be able to ignore problems from the Kotlin plugin
+        failure.assertThatDescription(containsNormalizedString("$location: read system property 'CI'"))
+        outputContains("apply = $value")
+        outputContains("task = $value")
 
         when:
-        instantRun("thing", "-DCI=true")
+        instantRun WARN_PROBLEMS_CLI_OPT, "thing", "-DCI=$value"
 
         then:
-        fixture.assertStateLoaded() // undeclared properties are not considered build inputs
+        fixture.assertStateLoaded()
         problems.assertResultHasProblems(result)
-        outputContains("task CI = true")
+        outputDoesNotContain("apply =")
+        outputContains("task = $value")
+
+        when:
+        instantRun("thing", "-DCI=$newValue")
+
+        then:
+        fixture.assertStateLoaded() // undeclared properties are not considered build inputs, but probably should be
+        problems.assertResultHasProblems(result)
+        outputDoesNotContain("apply =")
+        outputContains("task = $newValue")
+
+        where:
+        propertyRead                                                                  | value  | newValue
+        SystemPropertyRead.systemGetProperty("CI")                                    | "true" | "false"
+        SystemPropertyRead.systemGetPropertyWithDefault("CI", "default")              | "true" | "false"
+        SystemPropertyRead.systemGetPropertiesGet("CI")                               | "true" | "false"
+        SystemPropertyRead.systemGetPropertiesGetProperty("CI")                       | "true" | "false"
+        SystemPropertyRead.systemGetPropertiesGetPropertyWithDefault("CI", "default") | "true" | "false"
+        SystemPropertyRead.integerGetInteger("CI")                                    | "12"   | "45"
+        SystemPropertyRead.integerGetIntegerWithPrimitiveDefault("CI", 123)           | "12"   | "45"
+        SystemPropertyRead.integerGetIntegerWithIntegerDefault("CI", 123)             | "12"   | "45"
+        SystemPropertyRead.longGetLong("CI")                                          | "12"   | "45"
+        SystemPropertyRead.longGetLongWithPrimitiveDefault("CI", 123)                 | "12"   | "45"
+        SystemPropertyRead.longGetLongWithLongDefault("CI", 123)                      | "12"   | "45"
+        SystemPropertyRead.booleanGetBoolean("CI")                                    | "true" | "false"
+    }
+
+    @Unroll
+    def "reports undeclared system property read using when iterating over system properties"() {
+        buildLogicApplication(propertyRead)
+        def fixture = newInstantExecutionFixture()
+
+        when:
+        instantFails("thing", "-DCI=$value")
+
+        then:
+        fixture.assertStateStored()
+        // TODO - use the fixture, need to be able to ignore other problems
+        failure.assertHasDescription("Configuration cache problems found in this build.")
+        outputContains("apply = $value")
+        outputContains("task = $value")
+
+        where:
+        propertyRead                                              | value  | newValue
+        SystemPropertyRead.systemGetPropertiesFilterEntries("CI") | "true" | "false"
     }
 }

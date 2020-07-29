@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -84,6 +85,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "fails single application dependency resolution if #protocol connection exceeds timeout (retries = #maxRetries)"() {
         maxHttpRetries = maxRetries
 
@@ -113,6 +115,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "fails concurrent application dependency resolution if #protocol connection exceeds timeout"() {
         given:
         MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
@@ -137,7 +140,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         protocol << ['http', 'https']
     }
 
-    def "blacklists repository from later resolution within the same build on HTTP timeout "() {
+    def "prevents using repository in later resolution within the same build on HTTP timeout"() {
         given:
         MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
         MavenHttpModule moduleC = publishMavenModule(mavenHttpRepo, 'c')
@@ -179,7 +182,8 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         output.contains "Resolved: [a-1.0.jar] [] []"
     }
 
-    def "repository is blacklisted only for the current build execution"() {
+    @ToBeFixedForInstantExecution
+    def "repository is disabled only for the current build execution"() {
         given:
 
         buildFile << """
@@ -229,6 +233,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "fails build and #abortDescriptor repository search if HTTP connection #reason when resolving metadata"() {
         given:
         MavenHttpRepository backupMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
@@ -262,6 +267,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "fails build and aborts repository search if HTTP connection #reason when resolving artifact for found module"() {
         given:
         MavenHttpRepository backupMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
@@ -291,6 +297,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "fails build and #abortDescriptor repository search if HTTP connection #reason when resolving dynamic version"() {
         given:
         MavenHttpRepository backupMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))

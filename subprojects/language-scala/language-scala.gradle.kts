@@ -1,5 +1,5 @@
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -18,11 +18,11 @@ dependencies {
     implementation(project(":languageJava"))
     implementation(project(":languageJvm"))
 
-    implementation(library("groovy")) // for 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
-    implementation(library("ant"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("inject"))
+    implementation(libs.groovy) // for 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
+    implementation(libs.ant)
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.inject)
 
     testImplementation(project(":fileCollections"))
     testImplementation(project(":files"))
@@ -30,20 +30,22 @@ dependencies {
     testImplementation(testFixtures(project(":platformBase")))
     testImplementation(testFixtures(project(":plugins")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-
-    integTestImplementation(library("commons_lang"))
-    integTestImplementation(library("ant"))
+    integTestImplementation(libs.commonsLang)
+    integTestImplementation(libs.ant)
 
     testFixturesApi(testFixtures(project(":languageJvm")))
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":modelCore"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":platformBase"))
     testFixturesImplementation(testFixtures(project(":languageJvm")))
 
     compileOnly("org.scala-sbt:zinc_2.12:1.3.5")
+
+    testRuntimeOnly(project(":distributionsJvm")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
 }
 
 strictCompile {

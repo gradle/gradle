@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.verification
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.internal.Fingerprint
@@ -178,7 +177,6 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
     }
 
     // plugins do not publish signatures so we expect the checksums to be present
-    @ToBeFixedForInstantExecution
     def "writes checksums of plugins using plugins block"() {
         given:
         addPlugin()
@@ -208,7 +206,6 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
     }
 
     // plugins do not publish signatures so we expect the checksums to be present
-    @ToBeFixedForInstantExecution
     def "writes checksums of plugins using buildscript block"() {
         given:
         addPlugin()
@@ -286,7 +283,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         javaLibrary()
         uncheckedModule("org", "foo", "1.0") {
             withSignature {
-                keyring.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword] )
+                keyring.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword])
             }
         }
         buildFile << """

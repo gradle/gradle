@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * A non-functional, immutable, description of a {@link ResolutionAwareRepository} at a point in time.
  *
- * @see org.gradle.api.internal.artifacts.configurations.ResolveConfigurationResolutionBuildOperationDetails.RepositoryImpl
+ * See org.gradle.api.internal.artifacts.configurations.ResolveConfigurationResolutionBuildOperationDetails.RepositoryImpl
  */
 public abstract class RepositoryDescriptor {
 
@@ -50,7 +50,7 @@ public abstract class RepositoryDescriptor {
             addProperties(builder);
             properties = builder.build();
         }
-        
+
         return properties;
     }
 

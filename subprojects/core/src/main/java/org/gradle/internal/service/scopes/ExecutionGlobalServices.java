@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DefaultDomainObjectCollection;
 import org.gradle.api.internal.DefaultDomainObjectSet;
@@ -123,6 +122,8 @@ public class ExecutionGlobalServices {
     );
 
     TypeAnnotationMetadataStore createAnnotationMetadataStore(CrossBuildInMemoryCacheFactory cacheFactory) {
+        @SuppressWarnings("deprecation")
+        Class<?> deprecatedAbstractTask = org.gradle.api.internal.AbstractTask.class;
         return new DefaultTypeAnnotationMetadataStore(
             ImmutableSet.of(
                 CacheableTask.class,
@@ -135,7 +136,7 @@ public class ExecutionGlobalServices {
                 "kotlin"
             ),
             ImmutableSet.of(
-                AbstractTask.class,
+                deprecatedAbstractTask,
                 ClosureBackedAction.class,
                 ConfigureUtil.WrappedConfigureAction.class,
                 ConventionTask.class,

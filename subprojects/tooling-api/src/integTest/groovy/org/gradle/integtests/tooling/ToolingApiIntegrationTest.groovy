@@ -17,7 +17,6 @@ package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
@@ -138,7 +137,6 @@ allprojects {
     }
 
     def "can specify a gradle installation to use"() {
-        toolingApi.requireDaemons()
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
@@ -152,7 +150,6 @@ allprojects {
     }
 
     def "can specify a gradle distribution to use"() {
-        toolingApi.requireDaemons()
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
@@ -166,7 +163,6 @@ allprojects {
     }
 
     def "can specify a gradle version to use"() {
-        toolingApi.requireDaemons()
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
@@ -180,7 +176,6 @@ allprojects {
     }
 
     @Issue("GRADLE-2419")
-    @ToBeFixedForInstantExecution
     def "tooling API does not hold JVM open"() {
         given:
         def buildFile = projectDir.file("build.gradle")
@@ -190,21 +185,19 @@ allprojects {
         def retryIntervalMs = 500
 
         def gradleUserHomeDirPath = executer.gradleUserHomeDir.absolutePath
-        def gradleHomeDirPath = distribution.gradleHomeDir.absolutePath
+        def gradleHomeDirPath = otherVersion.gradleHomeDir.absolutePath
 
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'application'
 
             repositories {
-                maven { url "${buildContext.libsRepo.toURI()}" }
+                maven { url "${buildContext.localRepository.toURI()}" }
                 ${RepoScriptBlockUtil.gradleRepositoryDefinition()}
             }
 
             dependencies {
-                // If this test fails due to a missing tooling API jar
-                // re-run `gradle prepareVersionsInfo toolingApi:intTestImage publishGradleDistributionPublicationToLocalRepository`
-                implementation "org.gradle:gradle-tooling-api:${distribution.version.version}"
+                implementation "org.gradle:gradle-tooling-api:${distribution.version.baseVersion.version}"
                 runtimeOnly 'org.slf4j:slf4j-simple:1.7.10'
             }
 

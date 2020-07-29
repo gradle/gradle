@@ -27,12 +27,12 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
-import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
+import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.SourceFolder;
@@ -307,7 +307,7 @@ public class SourceFoldersCreator {
         });
     }
 
-    private static Comparable toComparable(SourceSet sourceSet) {
+    private static Integer toComparable(SourceSet sourceSet) {
         String name = sourceSet.getName();
         if (SourceSet.MAIN_SOURCE_SET_NAME.equals(name)) {
             return 0;
@@ -318,7 +318,7 @@ public class SourceFoldersCreator {
         }
     }
 
-    private static Comparable toComparable(DirectoryTree tree) {
+    private static Integer toComparable(DirectoryTree tree) {
         String path = tree.getDir().getPath();
         if (path.endsWith("java")) {
             return 0;

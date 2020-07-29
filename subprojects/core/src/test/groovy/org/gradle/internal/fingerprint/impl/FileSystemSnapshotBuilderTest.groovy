@@ -17,7 +17,8 @@
 package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.internal.file.FileType
+import org.gradle.internal.file.FileMetadata
+import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
@@ -27,10 +28,21 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker
+import org.gradle.test.fixtures.file.CleanupTestDirectory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
+@CleanupTestDirectory(fieldName = "tmpDir")
 class FileSystemSnapshotBuilderTest extends Specification {
+
+    @Rule
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def stringInterner = Stub(StringInterner) {
             intern(_) >> { String string -> string }
@@ -41,7 +53,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
         }
     }
 
-    String basePath = new File("some/path").absolutePath
+    String basePath = tmpDir.file("some/path").absolutePath
 
     def "can rebuild tree from relative paths"() {
         def builder = new FileSystemSnapshotBuilder(stringInterner, hasher)
@@ -135,7 +147,44 @@ class FileSystemSnapshotBuilderTest extends Specification {
         builder.build() == FileSystemSnapshot.EMPTY
     }
 
-    private static DefaultFileMetadata fileMetadata() {
-        new DefaultFileMetadata(FileType.RegularFile, 0, 5)
+    @Requires(TestPrecondition.SYMLINKS)
+    def "can add symlinked files"() {
+        def builder = new FileSystemSnapshotBuilder(stringInterner, hasher)
+        def symlink = fileMetadata(AccessType.VIA_SYMLINK)
+
+        when:
+        builder.addFile(new File(basePath), [] as String[], "path", symlink)
+        def result = builder.build()
+
+        then:
+        result instanceof RegularFileSnapshot
+        result.accessType == AccessType.VIA_SYMLINK
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "detects symlinked directories"() {
+        def builder = new FileSystemSnapshotBuilder(stringInterner, hasher)
+        def actualRootDir = tmpDir.file("actualDir").createDir()
+        def actualSubDir = tmpDir.file("actualSubDir").createDir()
+        def rootDir = tmpDir.file("rootDir")
+        def subDir = rootDir.file("subDir")
+        rootDir.createLink(actualRootDir)
+        subDir.createLink(actualSubDir)
+
+        when:
+        builder.addDir(subDir, ["subDir"] as String[])
+        def result = builder.build()
+        then:
+        result instanceof CompleteDirectorySnapshot
+        result.accessType == AccessType.VIA_SYMLINK
+        result.absolutePath == rootDir.absolutePath
+        result.children.size() == 1
+        CompleteDirectorySnapshot subDirSnapshot = result.children[0] as CompleteDirectorySnapshot
+        subDirSnapshot.accessType == AccessType.VIA_SYMLINK
+        subDirSnapshot.absolutePath == subDir.absolutePath
+    }
+
+    private static FileMetadata fileMetadata(AccessType accessType = AccessType.DIRECT) {
+        DefaultFileMetadata.file(0, 5, accessType)
     }
 }

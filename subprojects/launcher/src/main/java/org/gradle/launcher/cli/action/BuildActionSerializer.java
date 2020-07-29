@@ -23,6 +23,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.serialize.BaseSerializerFactory;
@@ -114,6 +115,12 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isRefreshDependencies());
             encoder.writeBoolean(startParameter.isBuildCacheEnabled());
             encoder.writeBoolean(startParameter.isBuildCacheDebugLogging());
+            encoder.writeBoolean(startParameter.isWatchFileSystem());
+            encoder.writeBoolean(startParameter.isConfigurationCache());
+            encoder.writeString(startParameter.getConfigurationCacheProblems().name());
+            encoder.writeSmallInt(startParameter.getConfigurationCacheMaxProblems());
+            encoder.writeBoolean(startParameter.isConfigurationCacheRecreateCache());
+            encoder.writeBoolean(startParameter.isConfigurationCacheQuiet());
             encoder.writeBoolean(startParameter.isConfigureOnDemand());
             encoder.writeBoolean(startParameter.isContinuous());
             encoder.writeBoolean(startParameter.isBuildScan());
@@ -123,9 +130,6 @@ public class BuildActionSerializer {
             encoder.writeString(startParameter.getDependencyVerificationMode().name());
             encoder.writeBoolean(startParameter.isRefreshKeys());
             encoder.writeBoolean(startParameter.isExportKeys());
-
-            // Deprecations (these should just be rendered on the client instead of being sent to the daemon to send them back again)
-            stringSetSerializer.write(encoder, startParameter.getDeprecations());
         }
 
         private void writeTaskRequests(Encoder encoder, List<TaskExecutionRequest> taskRequests) throws Exception {
@@ -188,6 +192,12 @@ public class BuildActionSerializer {
             startParameter.setRefreshDependencies(decoder.readBoolean());
             startParameter.setBuildCacheEnabled(decoder.readBoolean());
             startParameter.setBuildCacheDebugLogging(decoder.readBoolean());
+            startParameter.setWatchFileSystem(decoder.readBoolean());
+            startParameter.setConfigurationCache(decoder.readBoolean());
+            startParameter.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.valueOf(decoder.readString()));
+            startParameter.setConfigurationCacheMaxProblems(decoder.readSmallInt());
+            startParameter.setConfigurationCacheRecreateCache(decoder.readBoolean());
+            startParameter.setConfigurationCacheQuiet(decoder.readBoolean());
             startParameter.setConfigureOnDemand(decoder.readBoolean());
             startParameter.setContinuous(decoder.readBoolean());
             startParameter.setBuildScan(decoder.readBoolean());
@@ -200,10 +210,6 @@ public class BuildActionSerializer {
             startParameter.setDependencyVerificationMode(DependencyVerificationMode.valueOf(decoder.readString()));
             startParameter.setRefreshKeys(decoder.readBoolean());
             startParameter.setExportKeys(decoder.readBoolean());
-
-            for (String warning : stringSetSerializer.read(decoder)) {
-                startParameter.addDeprecation(warning);
-            }
 
             return new ExecuteBuildAction(startParameter);
         }

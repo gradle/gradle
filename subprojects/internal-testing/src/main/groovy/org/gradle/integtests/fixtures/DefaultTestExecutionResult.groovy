@@ -22,16 +22,24 @@ import org.hamcrest.Matcher
 class DefaultTestExecutionResult implements TestExecutionResult {
 
     List<TestExecutionResult> results = []
+    HtmlTestExecutionResult htmlResult
+    JUnitXmlTestExecutionResult xmlResult
 
     DefaultTestExecutionResult(TestFile projectDir, String buildDirName = 'build', String binary='', String testedBinary = '', String testTaskName = 'test') {
         String binaryPath = binary?"/$binary":''
         binaryPath = testedBinary?"$binaryPath/$testedBinary":"$binaryPath";
         if(binary){
-            results << new HtmlTestExecutionResult(projectDir, "$buildDirName/reports${binaryPath}/tests/")
-            results << new JUnitXmlTestExecutionResult(projectDir, "$buildDirName/test-results${binaryPath}")
+            htmlResult = new HtmlTestExecutionResult(projectDir, "$buildDirName/reports${binaryPath}/tests/")
+            xmlResult = new JUnitXmlTestExecutionResult(projectDir, "$buildDirName/test-results${binaryPath}")
+
+            results << htmlResult
+            results << xmlResult
         }else{
-            results << new HtmlTestExecutionResult(projectDir, "$buildDirName/reports/tests/${testTaskName}")
-            results << new JUnitXmlTestExecutionResult(projectDir, "$buildDirName/test-results/${testTaskName}")
+            htmlResult = new HtmlTestExecutionResult(projectDir, "$buildDirName/reports/tests/${testTaskName}")
+            xmlResult = new JUnitXmlTestExecutionResult(projectDir, "$buildDirName/test-results/${testTaskName}")
+
+            results << htmlResult
+            results << xmlResult
         }
     }
 
@@ -42,6 +50,16 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         this
     }
 
+    DefaultTestExecutionResult assertTestClassesExecutedJudgementByHtml(String... testClasses) {
+        htmlResult.assertTestClassesExecuted(testClasses)
+        this
+    }
+
+    DefaultTestExecutionResult assertTestClassesExecutedJudgementByXml(String... testClasses) {
+        xmlResult.assertTestClassesExecuted(testClasses)
+        this
+    }
+
     boolean testClassExists(String testClass) {
         List<Boolean> testClassResults = results*.testClassExists(testClass)
         return testClassResults.inject { a, b -> a && b }
@@ -49,6 +67,14 @@ class DefaultTestExecutionResult implements TestExecutionResult {
 
     TestClassExecutionResult testClass(String testClass) {
         new DefaultTestClassExecutionResult(results.collect {it.testClass(testClass)})
+    }
+
+    TestClassExecutionResult testClassByHtml(String testClass) {
+        htmlResult.testClass(testClass)
+    }
+
+    TestClassExecutionResult testClassByXml(String testClass) {
+        xmlResult.testClass(testClass)
     }
 
     TestClassExecutionResult testClassStartsWith(String testClass) {
@@ -79,9 +105,9 @@ class DefaultTestExecutionResult implements TestExecutionResult {
     }
 
     private class DefaultTestClassExecutionResult implements TestClassExecutionResult {
-        def testClassResults
+        List<TestClassExecutionResult> testClassResults
 
-        private DefaultTestClassExecutionResult(def classExecutionResults) {
+        private DefaultTestClassExecutionResult(List<TestClassExecutionResult> classExecutionResults) {
             this.testClassResults = classExecutionResults;
         }
 

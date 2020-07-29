@@ -30,7 +30,7 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
     @Rule
     HttpServer server
 
-    String groovyAllVersion = "1.3-2.5.11"
+    String groovyAllVersion = "1.3-2.5.12"
 
     def setup() {
         server.start()
@@ -305,10 +305,9 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    @IgnoreIf({ GradleContextualExecuter.noDaemon })
+    @IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.embedded })
     def "does not download gradleApi() sources when sources download is disabled"() {
         given:
-        requireGradleDistribution()
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
 
         buildScript """
@@ -332,10 +331,9 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    @IgnoreIf({ GradleContextualExecuter.noDaemon })
+    @IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.embedded })
     def "does not download gradleApi() sources when offline"() {
         given:
-        requireGradleDistribution()
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
 
         buildScript """
@@ -403,9 +401,9 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
+    @IgnoreIf({ GradleContextualExecuter.embedded })
     def "sources for localGroovy() are downloaded and attached when using gradleTestKit()"() {
         given:
-        requireGradleDistribution()
         def repo = givenGroovyAllExistsInGradleRepo()
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 

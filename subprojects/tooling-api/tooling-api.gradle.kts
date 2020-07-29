@@ -13,29 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.build.BuildReceipt
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
+import gradlebuild.cleanup.WhenNotEmpty
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.distribution.`core-api-java`
-    gradlebuild.`publish-public-libraries`
-    gradlebuild.`shaded-jar`
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.publish-public-libraries")
+    id("gradlebuild.shaded-jar")
 }
-
-val buildReceipt: Provider<RegularFile> = rootProject.tasks.named<BuildReceipt>("createBuildReceipt").map { layout.file(provider { it.receiptFile }).get() }
 
 shadedJar {
     shadedConfiguration.exclude(mapOf("group" to "org.slf4j", "module" to "slf4j-api"))
     keepPackages.set(listOf("org.gradle.tooling"))
     unshadedPackages.set(listOf("org.gradle", "org.slf4j", "sun.misc"))
     ignoredPackages.set(setOf("org.gradle.tooling.provider.model"))
-    buildReceiptFile.set(buildReceipt)
 }
 
 dependencies {
-    "shadedImplementation"(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
+    shadedImplementation(libs.slf4jApi)
 
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
@@ -43,37 +38,26 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":core"))
     implementation(project(":wrapper"))
+    implementation(project(":persistentCache"))
 
-    implementation(library("guava"))
+    implementation(libs.guava)
 
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":modelCore"))
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":baseServicesGroovy"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("commons_io"))
-    testFixturesImplementation(library("slf4j_api"))
+    testFixturesImplementation(libs.commonsIo)
+    testFixturesImplementation(libs.slf4jApi)
 
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":persistentCache"))
-    integTestRuntimeOnly(project(":toolingApiBuilders"))
-    integTestRuntimeOnly(project(":ivy"))
 
     crossVersionTestImplementation(project(":jvmServices"))
-    crossVersionTestImplementation(testLibrary("jetty"))
-    crossVersionTestImplementation(library("commons_io"))
-
-    crossVersionTestRuntimeOnly(project(":kotlinDsl"))
-    crossVersionTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
-    crossVersionTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
-    crossVersionTestRuntimeOnly(project(":ivy"))
-    crossVersionTestRuntimeOnly(project(":maven"))
-    crossVersionTestRuntimeOnly(project(":apiMetadata"))
-    crossVersionTestRuntimeOnly(project(":runtimeApiInfo"))
-    crossVersionTestRuntimeOnly(project(":testingJunitPlatform"))
-    crossVersionTestRuntimeOnly(testLibrary("cglib")) {
+    crossVersionTestImplementation(libs.jetty)
+    crossVersionTestImplementation(libs.commonsIo)
+    crossVersionTestRuntimeOnly(libs.cglib) {
         because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
     }
 
@@ -83,11 +67,19 @@ dependencies {
     testImplementation(testFixtures(project(":ide")))
     testImplementation(testFixtures(project(":workers")))
 
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
-    integTestRuntimeOnly(project(":kotlinDsl"))
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
-    integTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
-    integTestRuntimeOnly(project(":apiMetadata"))
+    integTestNormalizedDistribution(project(":distributionsFull")) {
+        because("Used by ToolingApiRemoteIntegrationTest")
+    }
+
+    integTestDistributionRuntimeOnly(project(":distributionsFull"))
+    integTestLocalRepository(project(path)) {
+        because("ToolingApiResolveIntegrationTest and ToolingApiClasspathIntegrationTest use the Tooling API Jar")
+    }
+
+    crossVersionTestDistributionRuntimeOnly(project(":distributionsFull"))
+    crossVersionTestLocalRepository(project(path)) {
+        because("ToolingApiVersionSpecification uses the Tooling API Jar")
+    }
 }
 
 strictCompile {
@@ -100,11 +92,7 @@ classycle {
 
 apply(from = "buildship.gradle")
 
-tasks.withType<IntegrationTest>().configureEach {
-    binaryDistributions.binZipRequired = true
-    libsRepository.required = true
-}
-
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
+integrationTestUsesSampleDir("subprojects/tooling-api/src/main")

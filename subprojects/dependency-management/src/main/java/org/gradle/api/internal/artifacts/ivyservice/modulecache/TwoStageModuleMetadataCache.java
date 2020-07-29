@@ -28,8 +28,9 @@ public class TwoStageModuleMetadataCache extends AbstractModuleMetadataCache {
     }
 
     @Override
-    protected void store(ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetaData) {
+    protected CachedMetadata store(ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetaData) {
         writableCache.store(key, entry, cachedMetaData);
+        return cachedMetaData;
     }
 
     @Override

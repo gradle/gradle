@@ -817,6 +817,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * }
      * </pre>
      *
+     * <p>The order of the files in a {@code FileTree} is not stable, even on a single computer.
+     *
      * @param baseDir The base directory of the file tree. Evaluated as per {@link #file(Object)}.
      * @return the file tree. Never returns null.
      */
@@ -841,6 +843,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
+     *
+     * <p>The order of the files in a {@code FileTree} is not stable, even on a single computer.
      *
      * @param baseDir The base directory of the file tree. Evaluated as per {@link #file(Object)}.
      * @param configureClosure Closure to configure the {@code ConfigurableFileTree} object.
@@ -867,6 +871,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
      *
+     * <p>The order of the files in a {@code FileTree} is not stable, even on a single computer.
+     *
      * @param baseDir The base directory of the file tree. Evaluated as per {@link #file(Object)}.
      * @param configureAction Action to configure the {@code ConfigurableFileTree} object.
      * @return the configured file tree. Never returns null.
@@ -889,6 +895,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
+     *
+     * <p>The order of the files in a {@code FileTree} is not stable, even on a single computer.
      *
      * @param args map of property assignments to {@code ConfigurableFileTree} object
      * @return the configured file tree. Never returns null.

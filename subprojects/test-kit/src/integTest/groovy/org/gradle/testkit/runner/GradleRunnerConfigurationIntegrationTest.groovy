@@ -25,7 +25,7 @@ class GradleRunnerConfigurationIntegrationTest extends BaseGradleRunnerIntegrati
 
     def "throws exception if no project dir was specified"() {
         given:
-        def runner = GradleRunner.create()
+        def runner = GradleRunner.create().withTestKitDir(testKitDir)
 
         when:
         runner.build()

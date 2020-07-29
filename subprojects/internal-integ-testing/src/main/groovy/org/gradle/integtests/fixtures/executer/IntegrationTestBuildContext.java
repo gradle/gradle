@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import com.google.common.base.CaseFormat;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
 
@@ -31,20 +30,43 @@ public class IntegrationTestBuildContext {
     public static final TestFile TEST_DIR = new TestFile(new File(".").toURI());
     public static final IntegrationTestBuildContext INSTANCE = new IntegrationTestBuildContext();
 
+    @Nullable
     public TestFile getGradleHomeDir() {
-        return file("integTest.gradleHomeDir", null);
+        return optionalFile("integTest.gradleHomeDir");
     }
 
     public TestFile getSamplesDir() {
         return file("integTest.samplesdir", null);
     }
 
-    public TestFile getDistributionsDir() {
-        return file("integTest.distsDir", "build/distributions");
+    @Nullable
+    public TestFile getNormalizedBinDistribution() {
+        return optionalFile("integTest.normalizedDistribution");
     }
 
-    public TestFile getLibsRepo() {
-        return file("integTest.libsRepo", "build/repo");
+    @Nullable
+    public TestFile getBinDistribution() {
+        return optionalFile("integTest.binDistribution");
+    }
+
+    @Nullable
+    public TestFile getAllDistribution() {
+        return optionalFile("integTest.allDistribution");
+    }
+
+    @Nullable
+    public TestFile getDocsDistribution() {
+        return optionalFile("integTest.docsDistribution");
+    }
+
+    @Nullable
+    public TestFile getSrcDistribution() {
+        return optionalFile("integTest.srcDistribution");
+    }
+
+    @Nullable
+    public TestFile getLocalRepository() {
+        return optionalFile("integTest.localRepository");
     }
 
     public TestFile getDaemonBaseDir() {
@@ -52,12 +74,7 @@ public class IntegrationTestBuildContext {
     }
 
     public TestFile getGradleUserHomeDir() {
-        return file("integTest.gradleUserHomeDir", "intTestHomeDir").file("worker-1");
-    }
-
-    @Nullable
-    public TestFile getGradleGeneratedApiJarCacheDir() {
-        return optionalFile("integTest.gradleGeneratedApiJarCacheDir");
+        return file("integTest.gradleUserHomeDir", "intTestHomeDir/distributions-unknown");
     }
 
     public TestFile getTmpDir() {
@@ -72,29 +89,11 @@ public class IntegrationTestBuildContext {
         return GradleVersion.current();
     }
 
-    public String getCurrentSubprojectName() {
-        return CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, getGradleHomeDir().getParentFile().getParentFile().getName());
-    }
-
     /**
      * The timestamped version used in the docs and the bin and all zips. This should be different to {@link GradleVersion#getVersion()}.
-     * Note that the binary distribution used for testing (binZip and intTestImage) has {@link GradleVersion#getVersion()} as version.
-     *
-     * @return timestamped version
      */
     public GradleVersion getDistZipVersion() {
         return GradleVersion.version(System.getProperty("integTest.distZipVersion", GradleVersion.current().getVersion()));
-    }
-
-    public TestFile getFatToolingApiJar() {
-        TestFile toolingApiShadedJarDir = file("integTest.toolingApiShadedJarDir", "subprojects/tooling-api/build/shaded-jar");
-        TestFile fatToolingApiJar = new TestFile(toolingApiShadedJarDir, String.format("gradle-tooling-api-shaded-%s.jar", getVersion().getBaseVersion().getVersion()));
-
-        if (!fatToolingApiJar.exists()) {
-            throw new IllegalStateException(String.format("The fat Tooling API JAR file does not exist: %s", fatToolingApiJar.getAbsolutePath()));
-        }
-
-        return fatToolingApiJar;
     }
 
     public GradleDistribution distribution(String version) {

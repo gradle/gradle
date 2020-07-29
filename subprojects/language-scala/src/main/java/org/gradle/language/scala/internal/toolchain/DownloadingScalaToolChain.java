@@ -23,7 +23,11 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.tasks.scala.HashedClasspath;
 import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.internal.classloader.ClasspathHasher;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
 import org.gradle.process.internal.JavaForkOptionsFactory;
@@ -44,8 +48,9 @@ public class DownloadingScalaToolChain implements ScalaToolChainInternal {
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
+    private final ClasspathHasher classpathHasher;
 
-    public DownloadingScalaToolChain(File gradleUserHomeDir, File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+    public DownloadingScalaToolChain(File gradleUserHomeDir, File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory, ClasspathHasher classpathHasher) {
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.daemonWorkingDir = daemonWorkingDir;
         this.workerDaemonFactory = workerDaemonFactory;
@@ -56,6 +61,7 @@ public class DownloadingScalaToolChain implements ScalaToolChainInternal {
         this.classLoaderRegistry = classLoaderRegistry;
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
         this.javaVersion = JavaVersion.current();
+        this.classpathHasher = classpathHasher;
     }
 
     @Override
@@ -75,11 +81,12 @@ public class DownloadingScalaToolChain implements ScalaToolChainInternal {
             Dependency compilerBridge = dependencyHandler.create("org.scala-sbt:compiler-bridge_" + targetPlatform.getScalaCompatibilityVersion() + ":" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION + ":sources@jar");
             Dependency compilerInterface = dependencyHandler.create("org.scala-sbt:compiler-interface:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
             Configuration scalaClasspath = resolveDependency(scalaCompiler, compilerBridge, compilerInterface);
-            Set<File> resolvedScalaClasspath = scalaClasspath.resolve();
+            ClassPath resolvedScalaClasspath = DefaultClassPath.of(scalaClasspath.resolve());
+            HashedClasspath hashedScalaClasspath = new HashedClasspath(resolvedScalaClasspath, classpathHasher);
 
             Configuration zincClasspath = resolveDependency(dependencyHandler.create("org.scala-sbt:zinc_2.12:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION));
             Set<File> resolvedZincClasspath = zincClasspath.resolve();
-            return new DefaultScalaToolProvider(daemonWorkingDir, workerDaemonFactory, forkOptionsFactory, resolvedScalaClasspath, resolvedZincClasspath, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory);
+            return new DefaultScalaToolProvider(daemonWorkingDir, workerDaemonFactory, forkOptionsFactory, hashedScalaClasspath, resolvedZincClasspath, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory);
 
         } catch(ResolveException resolveException) {
             return new NotFoundScalaToolProvider(resolveException);

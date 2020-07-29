@@ -17,7 +17,6 @@
 package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.fixtures.HelperProcessorFixture
 
 abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaGroovyCompileAvoidanceIntegrationSpec {
@@ -115,7 +114,6 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
         skipped ":b:${language.compileTaskName}"
     }
 
-    @ToBeFixedForInstantExecution
     def "recompiles source when annotation processor implementation on annotation processor classpath changes"() {
         given:
         settingsFile << "include 'c'"

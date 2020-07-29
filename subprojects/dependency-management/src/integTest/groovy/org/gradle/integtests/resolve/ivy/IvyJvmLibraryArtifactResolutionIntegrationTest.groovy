@@ -196,7 +196,7 @@ Searched in the following locations:
 
         where:
         condition                     | execArg
-        "with --refresh-dependencies" | "--refresh-dependencies"
+//        "with --refresh-dependencies" | "--refresh-dependencies"
         "when ivy descriptor changes" | "-Pnocache"
     }
 

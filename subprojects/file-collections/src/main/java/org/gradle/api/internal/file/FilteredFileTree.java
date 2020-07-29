@@ -16,21 +16,21 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
+import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class FilteredFileTree extends CompositeFileTree implements FileCollectionInternal.Source {
-    private final CompositeFileTree tree;
+    private final FileTreeInternal tree;
     private final Supplier<? extends PatternSet> patternSupplier;
 
-    public FilteredFileTree(CompositeFileTree tree, Supplier<? extends PatternSet> patternSupplier) {
-        super(tree.patternSetFactory);
+    public FilteredFileTree(FileTreeInternal tree, Factory<PatternSet> patternSetFactory, Supplier<? extends PatternSet> patternSupplier) {
+        super(patternSetFactory);
         this.tree = tree;
         this.patternSupplier = patternSupplier;
     }
@@ -40,7 +40,15 @@ public class FilteredFileTree extends CompositeFileTree implements FileCollectio
         return tree.getDisplayName();
     }
 
-    public CompositeFileTree getTree() {
+    @Override
+    protected void appendContents(TreeFormatter formatter) {
+        formatter.node("backing tree");
+        formatter.startChildren();
+        tree.describeContents(formatter);
+        formatter.endChildren();
+    }
+
+    public FileTreeInternal getTree() {
         return tree;
     }
 
@@ -52,14 +60,10 @@ public class FilteredFileTree extends CompositeFileTree implements FileCollectio
     }
 
     @Override
-    public void visitContents(FileCollectionResolveContext context) {
+    protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
         // For backwards compatibility, need to calculate the patterns on each query
         PatternFilterable patterns = getPatterns();
-        ResolvableFileCollectionResolveContext nestedContext = context.newContext();
-        tree.visitContents(nestedContext);
-        for (FileTree set : nestedContext.resolveAsFileTrees()) {
-            context.add(set.matching(patterns));
-        }
+        tree.visitContentsAsFileTrees(child -> visitor.accept(child.matching(patterns)));
     }
 
     @Override

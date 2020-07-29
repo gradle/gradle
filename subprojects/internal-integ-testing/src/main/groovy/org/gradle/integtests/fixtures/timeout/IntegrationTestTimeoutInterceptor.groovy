@@ -63,7 +63,7 @@ class IntegrationTestTimeoutInterceptor extends TimeoutInterceptor {
         } catch (Throwable e) {
             def stream = new ByteArrayOutputStream()
             e.printStackTrace(new PrintStream(stream))
-            return "Error in attempt to fetch  stacktraces: ${stream.toString()}"
+            return "Error in attempt to fetch stacktraces: ${stream.toString()}"
         }
     }
 }

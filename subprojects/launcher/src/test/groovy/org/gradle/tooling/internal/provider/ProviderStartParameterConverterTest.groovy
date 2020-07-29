@@ -17,6 +17,8 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.TaskExecutionRequest
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.launcher.cli.converter.BuildLayoutConverter
+import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
@@ -24,55 +26,31 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class ProviderStartParameterConverterTest extends Specification {
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
     def params = Stub(ProviderOperationParameters)
+    def layout = Stub(BuildLayoutConverter.Result)
+    def properties = Stub(LayoutToPropertiesConverter.Result)
 
     def "allows configuring the start parameter with build arguments"() {
         params.getArguments() >> ['-PextraProperty=foo', '-m']
 
         when:
-        def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
+        def start = new ProviderStartParameterConverter().toStartParameter(params, layout, properties)
 
         then:
         start.projectProperties['extraProperty'] == 'foo'
         start.dryRun
     }
 
-    def "can overwrite project dir via build arguments"() {
-        given:
-        def projectDir = temp.createDir('projectDir')
-        params.getProjectDir() >> projectDir
-        params.getArguments() >> ['-p', 'otherDir']
-
-        when:
-        def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
-
-        then:
-        start.projectDir == new File(projectDir, "otherDir")
-    }
-
-    def "can overwrite gradle user home via build arguments"() {
-        given:
-        def dotGradle = temp.createDir('.gradle')
-        def projectDir = temp.createDir('projectDir')
-        params.getGradleUserHomeDir() >> dotGradle
-        params.getProjectDir() >> projectDir
-        params.getArguments() >> ['-g', 'otherDir']
-
-        when:
-        def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
-
-        then:
-        start.gradleUserHomeDir == new File(projectDir, "otherDir")
-    }
-
     def "the start parameter is configured from properties"() {
-        when:
-        def properties = [
+        given:
+        _ * properties.properties >> [
             (StartParameterBuildOptions.ConfigureOnDemandOption.GRADLE_PROPERTY): "true",
         ]
 
-        def start = new ProviderStartParameterConverter().toStartParameter(params, properties)
+        when:
+        def start = new ProviderStartParameterConverter().toStartParameter(params, layout, properties)
 
         then:
         start.configureOnDemand
@@ -86,10 +64,10 @@ class ProviderStartParameterConverterTest extends Specification {
         _ * selector.args >> ['myTask']
         _ * selector.projectPath >> ':child'
 
-        params.getLaunchables(_) >> [selector]
+        params.getLaunchables() >> [selector]
 
         when:
-        def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
+        def start = new ProviderStartParameterConverter().toStartParameter(params, layout, properties)
 
         then:
         start.taskRequests.size() == 1

@@ -197,7 +197,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 channel: ResultsStoreHelper.determineChannel(),
                 teamCityBuildId: ResultsStoreHelper.determineTeamCityBuildId()
             )
-            def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
+            def resolver = new ToolingApiDistributionResolver().withDefaultRepository().withExternalToolingApiDistribution()
             try {
                 List<String> baselines = AbstractCrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experiment.targetVersions, experiment.minimumBaseVersion).toList()
                 [*baselines, 'current'].each { String version ->
@@ -205,7 +205,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory, version)
                     GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)
                     println "Testing ${dist.version}..."
-                    def toolingApiDistribution = new PerformanceTestToolingApiDistribution(resolver.resolve(dist.version.version), workingDirProvider.testDirectory)
+                    def toolingApiDistribution = new PerformanceTestToolingApiDistribution(resolver.resolve(dist == CURRENT ? dist.version.baseVersion.version : dist.version.version), workingDirProvider.testDirectory)
                     List<File> testClassPath = [*experiment.extraTestClassPath]
                     // add TAPI test fixtures to classpath
                     testClassPath << ClasspathUtil.getClasspathForClass(ToolingApi)

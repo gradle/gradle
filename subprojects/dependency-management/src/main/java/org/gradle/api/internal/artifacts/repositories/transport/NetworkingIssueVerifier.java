@@ -17,10 +17,10 @@
 package org.gradle.api.internal.artifacts.repositories.transport;
 
 import org.apache.http.HttpStatus;
-import org.apache.http.conn.HttpHostConnectException;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
 
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.List;
 
@@ -35,7 +35,7 @@ public class NetworkingIssueVerifier {
      * </ul>
      */
     public static <E extends Throwable> boolean isLikelyTransientNetworkingIssue(E failure) {
-        if (failure instanceof SocketTimeoutException || failure instanceof HttpHostConnectException) {
+        if (failure instanceof SocketException || failure instanceof SocketTimeoutException) {
             return true;
         }
         if (failure instanceof DefaultMultiCauseException) {

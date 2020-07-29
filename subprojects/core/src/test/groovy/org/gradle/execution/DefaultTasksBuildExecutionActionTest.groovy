@@ -15,8 +15,9 @@
  */
 package org.gradle.execution
 
-import org.gradle.StartParameter
+
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.DefaultTaskExecutionRequest
 import spock.lang.Specification
@@ -25,7 +26,7 @@ class DefaultTasksBuildExecutionActionTest extends Specification {
     final projectConfigurer = Mock(ProjectConfigurer)
     final DefaultTasksBuildExecutionAction action = new DefaultTasksBuildExecutionAction(projectConfigurer)
     final context = Mock(BuildExecutionContext)
-    final startParameter = Mock(StartParameter)
+    final startParameter = Mock(StartParameterInternal)
     final defaultProject = Mock(ProjectInternal)
 
     def setup() {

@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 abstract class AbstractExecutionResultExecTaskIntegrationTest extends AbstractIntegrationSpec {
     protected abstract void makeExecProject()
@@ -50,7 +49,6 @@ abstract class AbstractExecutionResultExecTaskIntegrationTest extends AbstractIn
         result.assertTasksExecutedAndNotSkipped(':verify')
     }
 
-    @ToBeFixedForInstantExecution
     def "returns ExecResult when is executed"() {
         makeExecProject()
         writeSucceedingExec()
@@ -71,7 +69,6 @@ abstract class AbstractExecutionResultExecTaskIntegrationTest extends AbstractIn
         result.assertTasksExecutedAndNotSkipped(':compileJava', ":$taskNameUnderTest", ':verify')
     }
 
-    @ToBeFixedForInstantExecution
     def "execute with non-zero exit value and ignore exit value should not throw exception"() {
         makeExecProject()
         writeFailingExec()

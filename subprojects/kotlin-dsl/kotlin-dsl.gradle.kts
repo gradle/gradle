@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-import build.futureKotlin
-import build.kotlin
-import build.kotlinVersion
-import codegen.GenerateKotlinDependencyExtensions
-import org.gradle.build.ReproduciblePropertiesWriter
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-
+import gradlebuild.basics.accessors.kotlin
+import gradlebuild.basics.util.ReproduciblePropertiesWriter
+import gradlebuild.cleanup.WhenNotEmpty
+import gradlebuild.kotlindsl.tasks.GenerateKotlinDependencyExtensions
 
 plugins {
-    gradlebuild.distribution.`core-api-kotlin`
+    id("gradlebuild.distribution.api-kotlin")
 }
 
 description = "Kotlin DSL Provider"
@@ -31,7 +28,7 @@ description = "Kotlin DSL Provider"
 dependencies {
     api(project(":kotlinDslToolingModels"))
     api(project(":kotlinCompilerEmbeddable"))
-    api(futureKotlin("stdlib-jdk8"))
+    api(libs.futureKotlin("stdlib-jdk8"))
 
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
@@ -50,27 +47,27 @@ dependencies {
     implementation(project(":toolingApi"))
     implementation(project(":execution"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("inject"))
+    implementation(libs.groovy)
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.inject)
 
-    implementation(futureKotlin("scripting-common")) {
+    implementation(libs.futureKotlin("scripting-common")) {
         isTransitive = false
     }
-    implementation(futureKotlin("scripting-jvm")) {
+    implementation(libs.futureKotlin("scripting-jvm")) {
         isTransitive = false
     }
-    implementation(futureKotlin("scripting-jvm-host-embeddable")) {
+    implementation(libs.futureKotlin("scripting-jvm-host-embeddable")) {
         isTransitive = false
     }
-    implementation(futureKotlin("scripting-compiler-embeddable")) {
+    implementation(libs.futureKotlin("scripting-compiler-embeddable")) {
         isTransitive = false
     }
-    implementation(futureKotlin("scripting-compiler-impl-embeddable")) {
+    implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
         isTransitive = false
     }
-    implementation(futureKotlin("sam-with-receiver-compiler-plugin")) {
+    implementation(libs.futureKotlin("sam-with-receiver-compiler-plugin")) {
         isTransitive = false
     }
     implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.1.0") {
@@ -81,30 +78,31 @@ dependencies {
     testImplementation(project(":buildCacheHttp"))
     testImplementation(project(":buildInit"))
     testImplementation(project(":jacoco"))
-    testImplementation(project(":platformNative"))
+    testImplementation(project(":platformNative")) {
+        because("BuildType from platform-native is used in ProjectAccessorsClassPathTest")
+    }
     testImplementation(project(":plugins"))
     testImplementation(project(":versionControl"))
-    testImplementation(library("ant"))
-    testImplementation(library("asm"))
-    testImplementation(testLibrary("mockito_kotlin"))
-    testImplementation(testLibrary("jackson_kotlin"))
+    testImplementation(libs.ant)
+    testImplementation(libs.asm)
+    testImplementation(libs.mockitoKotlin)
+    testImplementation(libs.jacksonKotlin)
 
-    testImplementation(testLibrary("archunit"))
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.3")
-    testImplementation("org.awaitility:awaitility-kotlin:3.1.6")
-
-    testRuntimeOnly(project(":runtimeApiInfo"))
+    testImplementation(libs.archunit)
+    testImplementation(libs.kotlinCoroutines)
+    testImplementation(libs.awaitility)
 
     integTestImplementation(project(":languageGroovy"))
+    integTestImplementation(project(":languageGroovy")) {
+        because("ClassBytesRepositoryTest makes use of Groovydoc task.")
+    }
     integTestImplementation(project(":internalTesting"))
-    integTestImplementation(testLibrary("mockito_kotlin"))
+    integTestImplementation(libs.mockitoKotlin)
 
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
-    integTestRuntimeOnly(project(":apiMetadata"))
-    integTestRuntimeOnly(project(":pluginDevelopment"))
-    integTestRuntimeOnly(project(":toolingApiBuilders"))
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
+    testRuntimeOnly(project(":distributionsNative")) {
+        because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt) and BuildType from platform-native is used in ProjectAccessorsClassPathTest.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
 }
 
 classycle {
@@ -119,7 +117,7 @@ val publishedKotlinDslPluginVersion = "1.3.6" // TODO:kotlin-dsl
 tasks {
     val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
         outputDir.set(apiExtensionsOutputDir)
-        embeddedKotlinVersion.set(kotlinVersion)
+        embeddedKotlinVersion.set(libs.kotlinVersion)
         kotlinDslPluginsVersion.set(publishedKotlinDslPluginVersion)
     }
 
@@ -134,7 +132,7 @@ tasks {
 // -- Version manifest properties --------------------------------------
     val writeVersionsManifest by registering(WriteProperties::class) {
         outputFile = buildDir.resolve("versionsManifest/gradle-kotlin-dsl-versions.properties")
-        property("kotlin", kotlinVersion)
+        property("kotlin", libs.kotlinVersion)
     }
 
     processResources {
@@ -152,8 +150,8 @@ testFilesCleanup {
 val embeddedKotlinBaseDependencies by configurations.creating
 
 dependencies {
-    embeddedKotlinBaseDependencies(futureKotlin("stdlib-jdk8"))
-    embeddedKotlinBaseDependencies(futureKotlin("reflect"))
+    embeddedKotlinBaseDependencies(libs.futureKotlin("stdlib-jdk8"))
+    embeddedKotlinBaseDependencies(libs.futureKotlin("reflect"))
 }
 
 val writeEmbeddedKotlinDependencies by tasks.registering {

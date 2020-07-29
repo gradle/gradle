@@ -16,8 +16,8 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftTaskNames
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -212,7 +212,6 @@ dependencies {
         result.assertTasksSkipped(":assemble")
     }
 
-    @ToBeFixedForInstantExecution
     def "skips test tasks when no source is available for Swift library"() {
         given:
         buildFile << "apply plugin: 'swift-library'"
@@ -225,7 +224,6 @@ dependencies {
         result.assertTasksSkipped(tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
     }
 
-    @ToBeFixedForInstantExecution
     def "skips test tasks when no source is available for Swift application"() {
         given:
         buildFile << """
@@ -463,20 +461,20 @@ apply plugin: 'swift-library'
         file('src/test/swift/MainTest.swift') << """
             import XCTest
             import App
-            
+
             public class MainTest : XCTestCase {
                 public func testMain() {
                     XCTAssert(main() == 0)
                 }
-            } 
+            }
         """
         when:
         succeeds 'test'
 
         then:
         result.assertTasksExecuted(tasks(':log').debug.allToLink,
-                tasks(':hello').debug.allToLink,
-                tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ':xcTest', ':test')
+            tasks(':hello').debug.allToLink,
+            tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ':xcTest', ':test')
     }
 
     @ToBeFixedForInstantExecution
@@ -498,7 +496,7 @@ apply plugin: 'swift-library'
             dependencies {
                 implementation project(':hello')
             }
-            
+
             project(':hello') {
                 apply plugin: 'swift-library'
                 library {
@@ -523,19 +521,19 @@ apply plugin: 'swift-library'
         file('Tests/AppTests/UtilTest.swift') << """
             import XCTest
             import App
-            
+
             public class MainTest : XCTestCase {
                 public func testMain() {
                     XCTAssert(main() == 0)
                 }
-            } 
+            }
         """
         when:
         succeeds 'test'
 
         then:
         result.assertTasksExecuted(tasks(':log').debug.allToLink,
-                tasks(':hello').debug.allToLink,
+            tasks(':hello').debug.allToLink,
             tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ':xcTest', ':test')
     }
 

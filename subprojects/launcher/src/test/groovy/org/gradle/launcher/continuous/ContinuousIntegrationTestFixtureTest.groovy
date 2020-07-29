@@ -24,9 +24,11 @@ import spock.lang.Specification
 
 
 class ContinuousIntegrationTestFixtureTest extends Specification {
+    def gradleExecuter = Stub(GradleExecuter)
+
     def "successful build should be parsed"() {
         given:
-        def sampleTest = new AbstractContinuousIntegrationTest() {}
+        def sampleTest = testCase()
         def gradleHandle = setupStubs(sampleTest)
         gradleHandle.getStandardOutput() >> '''
 :sometask
@@ -43,7 +45,7 @@ Waiting for changes to input files of tasks... (ctrl-d then enter to exit)
 
     def "failure output should be parsed"() {
         given:
-        def sampleTest = new AbstractContinuousIntegrationTest() {}
+        def sampleTest = testCase()
         def gradleHandle = setupStubs(sampleTest)
         gradleHandle.getStandardOutput() >> '''
 FAILURE: Build failed with an exception.
@@ -64,7 +66,7 @@ BUILD FAILED in 0s
 
     def "output parsing with info logging after 'waiting for changes' line"() {
         given:
-        def sampleTest = new AbstractContinuousIntegrationTest() {}
+        def sampleTest = testCase()
         def gradleHandle = setupStubs(sampleTest)
         gradleHandle.getStandardOutput() >> '''
 :sometask
@@ -82,7 +84,7 @@ Waiting for changes to input files of tasks... (ctrl-d then enter to exit)
 
     def "output parsing of multiple continuous builds"() {
         given:
-        def sampleTest = new AbstractContinuousIntegrationTest() {}
+        def sampleTest = testCase()
         def gradleHandle = setupStubs(sampleTest)
         gradleHandle.getStandardOutput() >> '''
 :sometask
@@ -106,18 +108,25 @@ Waiting for changes to input files of tasks... (ctrl-d then enter to exit)
         results[1].output.startsWith("new file:")
     }
 
+    private AbstractContinuousIntegrationTest testCase() {
+        new AbstractContinuousIntegrationTest() {
+            @Override
+            GradleExecuter createExecuter() {
+                return gradleExecuter
+            }
+        }
+    }
+
     private GradleHandle setupStubs(AbstractContinuousIntegrationTest sampleTest) {
         sampleTest.results = [] // fields are null for some reason, perhaps Spock internally modifies constructors
         def gradleHandle = Stub(GradleHandle)
-        def gradleExecuter = Stub(GradleExecuter)
-        sampleTest.executer = gradleExecuter
         gradleExecuter.withStdinPipe() >> gradleExecuter
         gradleExecuter.withTasks(_) >> gradleExecuter
         gradleExecuter.withForceInteractive(_) >> gradleExecuter
         gradleExecuter.withArgument(_) >> gradleExecuter
         gradleExecuter.start() >> gradleHandle
         gradleHandle.getErrorOutput() >> ''
-        gradleHandle.isRunning() >>>  [true, false]
+        gradleHandle.isRunning() >>> [true, false]
         gradleHandle
     }
 }

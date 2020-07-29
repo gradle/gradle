@@ -16,7 +16,6 @@
 
 package org.gradle.configuration;
 
-import org.gradle.api.Action;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.configuration.internal.UserCodeApplicationId;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -60,31 +59,26 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
             //no operation, if there is no script code provided
             decorated.apply(target);
         } else {
-            userCodeApplicationContext.apply(new Action<UserCodeApplicationId>() {
+            userCodeApplicationContext.apply(getSource().getShortDisplayName(), userCodeApplicationId -> buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
-                public void execute(final UserCodeApplicationId userCodeApplicationId) {
-                    buildOperationExecutor.run(new RunnableBuildOperation() {
-                        @Override
-                        public void run(BuildOperationContext context) {
-                            decorated.apply(target);
-                            context.setResult(OPERATION_RESULT);
-                        }
-
-                        @Override
-                        public BuildOperationDescriptor.Builder description() {
-                            final ScriptSource source = getSource();
-                            final ResourceLocation resourceLocation = source.getResource().getLocation();
-                            final File file = resourceLocation.getFile();
-                            String name = "Apply script " + (file != null ? file.getName() : source.getDisplayName());
-                            final String displayName = name + " to " + target;
-
-                            return BuildOperationDescriptor.displayName(displayName)
-                                .name(name)
-                                .details(new OperationDetails(file, resourceLocation, ConfigurationTargetIdentifier.of(target), userCodeApplicationId));
-                        }
-                    });
+                public void run(BuildOperationContext context) {
+                    decorated.apply(target);
+                    context.setResult(OPERATION_RESULT);
                 }
-            });
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    final ScriptSource source = getSource();
+                    final ResourceLocation resourceLocation = source.getResource().getLocation();
+                    final File file = resourceLocation.getFile();
+                    String name = "Apply " + source.getShortDisplayName();
+                    final String displayName = name + " to " + target;
+
+                    return BuildOperationDescriptor.displayName(displayName)
+                        .name(name)
+                        .details(new OperationDetails(file, resourceLocation, ConfigurationTargetIdentifier.of(target), userCodeApplicationId));
+                }
+            }));
         }
     }
 

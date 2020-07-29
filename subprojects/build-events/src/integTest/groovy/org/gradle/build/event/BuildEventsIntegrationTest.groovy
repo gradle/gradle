@@ -17,6 +17,7 @@
 package org.gradle.build.event
 
 import org.gradle.api.services.BuildServiceParameters
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InstantExecutionRunner
 import org.gradle.integtests.fixtures.RequiredFeature
@@ -130,7 +131,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("EVENT: finish :b:thing")
     }
 
-    @RequiredFeature(feature = "org.gradle.unsafe.instant-execution", value = "false")
+    @RequiredFeature(feature = ConfigurationCacheOption.PROPERTY_NAME, value = "false")
     @UnsupportedWithInstantExecution
     def "listener receives task completion events from included builds"() {
         settingsFile << """

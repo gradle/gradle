@@ -59,6 +59,7 @@ public class FileContentMerger {
      *
      * @param action The action to execute.
      */
+    @SuppressWarnings("unchecked")
     public void beforeMerged(Action<?> action) {
         beforeMerged.add(action);
     }
@@ -74,6 +75,7 @@ public class FileContentMerger {
      *
      * @param action The action to execute.
      */
+    @SuppressWarnings("unchecked")
     public void whenMerged(Action<?> action) {
         whenMerged.add(action);
     }
@@ -89,6 +91,7 @@ public class FileContentMerger {
      *
      * @param closure The closure to execute.
      */
+    @SuppressWarnings("unchecked")
     public void beforeMerged(Closure closure) {
         beforeMerged.add(ConfigureUtil.configureUsing(closure));
     }
@@ -104,6 +107,7 @@ public class FileContentMerger {
      *
      * @param closure The closure to execute.
      */
+    @SuppressWarnings("unchecked")
     public void whenMerged(Closure closure) {
         whenMerged.add(ConfigureUtil.configureUsing(closure));
     }

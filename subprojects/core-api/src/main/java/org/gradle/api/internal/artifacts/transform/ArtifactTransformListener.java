@@ -17,7 +17,10 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Describable;
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
 
+@EventScope(Scopes.Build)
 public interface ArtifactTransformListener {
 
     /**

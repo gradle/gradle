@@ -25,12 +25,13 @@ import javax.annotation.Nullable;
  * A {@code PlaceholderException} is used when an exception cannot be serialized or deserialized.
  */
 @UsedByScanPlugin
-public class PlaceholderException extends RuntimeException {
+public class PlaceholderException extends RuntimeException implements PlaceholderExceptionSupport {
     private final String exceptionClassName;
     private final Throwable getMessageException;
     private final String toString;
     private final Throwable toStringRuntimeEx;
 
+    @UsedByScanPlugin("test-distribution")
     public PlaceholderException(String exceptionClassName, @Nullable String message, @Nullable Throwable getMessageException, @Nullable String toString,
                                 @Nullable Throwable toStringException, @Nullable Throwable cause) {
         super(message, cause);
@@ -40,6 +41,7 @@ public class PlaceholderException extends RuntimeException {
         this.toStringRuntimeEx = toStringException;
     }
 
+    @Override
     public String getExceptionClassName() {
         return exceptionClassName;
     }

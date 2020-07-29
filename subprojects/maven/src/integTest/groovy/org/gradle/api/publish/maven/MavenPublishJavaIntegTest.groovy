@@ -30,7 +30,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
         [MavenJavaModule.MAIN_FEATURE]
     }
 
-    @ToBeFixedForInstantExecution
     def "can publish java-library without warning when dependency with maven incompatible version and using versionMapping"() {
         given:
         createBuildScripts("""
@@ -114,7 +113,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "can ignore all publication warnings by variant name"() {
         given:
         def silenceMethod = "suppressPomMetadataWarningsFor"

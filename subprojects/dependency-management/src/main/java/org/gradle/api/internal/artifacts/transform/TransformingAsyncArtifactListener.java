@@ -28,14 +28,14 @@ import java.io.File;
 import java.util.Map;
 import java.util.Optional;
 
-class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArtifactListener {
+public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArtifactListener {
     private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
     private final ExecutionGraphDependenciesResolver dependenciesResolver;
     private final TransformationNodeRegistry transformationNodeRegistry;
     private final BuildOperationQueue<RunnableBuildOperation> actions;
     private final Transformation transformation;
 
-    TransformingAsyncArtifactListener(
+    public TransformingAsyncArtifactListener(
         Transformation transformation,
         BuildOperationQueue<RunnableBuildOperation> actions,
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults,

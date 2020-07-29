@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
@@ -42,18 +43,20 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class SelectorStateResolver<T extends ComponentResolutionState> {
-    private final ModuleConflictResolver conflictResolver;
+    private final ModuleConflictResolver<T> conflictResolver;
     private final ComponentStateFactory<T> componentFactory;
     private final T rootComponent;
     private final ModuleIdentifier rootModuleId;
     private final ResolveOptimizations resolveOptimizations;
+    private final Comparator<Version> versionComparator;
 
-    public SelectorStateResolver(ModuleConflictResolver conflictResolver, ComponentStateFactory<T> componentFactory, T rootComponent, ResolveOptimizations resolveOptimizations) {
+    public SelectorStateResolver(ModuleConflictResolver<T> conflictResolver, ComponentStateFactory<T> componentFactory, T rootComponent, ResolveOptimizations resolveOptimizations, Comparator<Version> versionComparator) {
         this.conflictResolver = conflictResolver;
         this.componentFactory = componentFactory;
         this.rootComponent = rootComponent;
         this.rootModuleId = rootComponent.getId().getModule();
         this.resolveOptimizations = resolveOptimizations;
+        this.versionComparator = versionComparator;
     }
 
     public T selectBest(ModuleIdentifier moduleId, ModuleSelectors<? extends ResolvableSelectorState> selectors) {
@@ -63,7 +66,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
 
         // If the module matches, add the root component into the mix
         if (moduleId.equals(rootModuleId) && !candidates.contains(rootComponent)) {
-            candidates = new ArrayList<T>(candidates);
+            candidates = new ArrayList<>(candidates);
             candidates.add(rootComponent);
         }
 
@@ -89,7 +92,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         return resolveConflicts(candidates);
     }
 
-    private List<T> resolveSelectors(ModuleSelectors selectors, VersionSelector allRejects) {
+    private List<T> resolveSelectors(ModuleSelectors<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
         if (selectors.size() == 1) {
             ResolvableSelectorState selectorState = selectors.first();
             // Short-circuit selector merging for single selector without 'prefer'
@@ -119,7 +122,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      * If not, a minimal set of versions will be provided in the result, and conflict resolution will be required to choose.
      */
     private List<T> buildResolveResults(ModuleSelectors<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
-        SelectorStateResolverResults results = new SelectorStateResolverResults(selectors.size());
+        SelectorStateResolverResults results = new SelectorStateResolverResults(versionComparator, selectors.size());
         TreeSet<ComponentIdResolveResult> preferResults = null; // Created only on demand
 
         for (ResolvableSelectorState selector : selectors) {
@@ -175,7 +178,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      * Given the result of resolving any 'prefer' constraints, see if these can be used to further refine the results
      *  of resolving the 'require' constraints.
      */
-    private void integratePreferResults(ModuleSelectors selectors, SelectorStateResolverResults results, TreeSet<ComponentIdResolveResult> preferResults) {
+    private void integratePreferResults(ModuleSelectors<? extends ResolvableSelectorState> selectors, SelectorStateResolverResults results, TreeSet<ComponentIdResolveResult> preferResults) {
 
         if (preferResults == null) {
             return;
@@ -218,7 +221,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
 
     private T resolveConflicts(Collection<T> candidates) {
         // Do conflict resolution to choose the best out of current selection and candidate.
-        ConflictResolverDetails<T> details = new DefaultConflictResolverDetails<T>(candidates);
+        ConflictResolverDetails<T> details = new DefaultConflictResolverDetails<>(candidates);
         conflictResolver.select(details);
         T selected = details.getSelected();
         if (details.hasFailure()) {

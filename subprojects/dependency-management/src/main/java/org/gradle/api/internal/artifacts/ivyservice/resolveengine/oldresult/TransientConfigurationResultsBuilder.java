@@ -56,8 +56,8 @@ public class TransientConfigurationResultsBuilder {
 
     private final Object lock = new Object();
 
-    private BinaryStore binaryStore;
-    private Store<TransientConfigurationResults> cache;
+    private final BinaryStore binaryStore;
+    private final Store<TransientConfigurationResults> cache;
     private final BuildOperationExecutor buildOperationProcessor;
     private final ResolvedConfigurationIdentifierSerializer resolvedConfigurationIdentifierSerializer;
     private BinaryStore.BinaryData binaryData;
@@ -128,8 +128,8 @@ public class TransientConfigurationResultsBuilder {
 
     private TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, SelectedArtifactResults artifactResults, BuildOperationExecutor buildOperationProcessor) {
         Timer clock = Time.startTimer();
-        Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<Long, DefaultResolvedDependency>();
-        Map<Dependency, DependencyGraphNodeResult> firstLevelDependencies = new LinkedHashMap<Dependency, DependencyGraphNodeResult>();
+        Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<>();
+        Map<Dependency, DependencyGraphNodeResult> firstLevelDependencies = new LinkedHashMap<>();
         DependencyGraphNodeResult root;
         int valuesRead = 0;
         byte type = -1;

@@ -23,13 +23,12 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.execution.TaskExecutionAdapter;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.specs.Spec;
@@ -80,6 +79,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final GradleInternal gradleInternal;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
+    private final BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener;
     private final ProjectStateRegistry projectStateRegistry;
     private final ServiceRegistry globalServices;
     private final DefaultExecutionPlan executionPlan;
@@ -102,6 +102,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         TaskDependencyResolver dependencyResolver,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerBroadcast<TaskExecutionListener> taskListeners,
+        BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener,
         ProjectStateRegistry projectStateRegistry,
         ServiceRegistry globalServices
     ) {
@@ -113,6 +114,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         this.gradleInternal = gradleInternal;
         this.graphListeners = graphListeners;
         this.taskListeners = taskListeners;
+        this.buildScopeListenerRegistrationListener = buildScopeListenerRegistrationListener;
         this.projectStateRegistry = projectStateRegistry;
         this.globalServices = globalServices;
         this.executionPlan = new DefaultExecutionPlan(gradleInternal, taskNodeFactory, dependencyResolver);
@@ -136,7 +138,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
         final Timer clock = Time.startTimer();
 
-        Set<Task> taskSet = new LinkedHashSet<Task>();
+        Set<Task> taskSet = new LinkedHashSet<>();
         for (Task task : tasks) {
             taskSet.add(task);
             requestedTasks.add(task);
@@ -159,12 +161,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         ensurePopulated();
         if (!hasFiredWhenReady) {
             // We know that we're running single-threaded here, so we can use lenient project locking
-            projectStateRegistry.withLenientState(new Runnable() {
-                @Override
-                public void run() {
-                    buildOperationExecutor.run(new NotifyTaskGraphWhenReady(DefaultTaskExecutionGraph.this, graphListeners.getSource(), gradleInternal));
-                }
-            });
+            projectStateRegistry.withLenientState(() -> buildOperationExecutor.run(new NotifyTaskGraphWhenReady(DefaultTaskExecutionGraph.this, graphListeners.getSource(), gradleInternal)));
             hasFiredWhenReady = true;
         } else if (!graphListeners.isEmpty()) {
             LOGGER.warn("Ignoring listeners of task graph ready event, as this build (" + gradleInternal.getIdentityPath() + ") has already executed work.");
@@ -192,12 +189,9 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             );
             LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());
         } finally {
-            coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
-                @Override
-                public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                    executionPlan.clear();
-                    return ResourceLockState.Disposition.FINISHED;
-                }
+            coordinationService.withStateLock(resourceLockState -> {
+                executionPlan.clear();
+                return ResourceLockState.Disposition.FINISHED;
             });
         }
     }
@@ -214,21 +208,17 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public void whenReady(final Closure closure) {
-        graphListeners.add(new ClosureBackedMethodInvocationDispatch("graphPopulated", listenerBuildOperationDecorator.decorate("TaskExecutionGraph.whenReady", closure)));
+        graphListeners.add(new ClosureBackedMethodInvocationDispatch("graphPopulated", listenerBuildOperationDecorator.decorate("TaskExecutionGraph.whenReady", Cast.<Closure<?>>uncheckedCast(closure))));
     }
 
     @Override
     public void whenReady(final Action<TaskExecutionGraph> action) {
-        graphListeners.add(listenerBuildOperationDecorator.decorate("TaskExecutionGraph.whenReady", TaskExecutionGraphListener.class, new TaskExecutionGraphListener() {
-            @Override
-            public void graphPopulated(TaskExecutionGraph graph) {
-                action.execute(graph);
-            }
-        }));
+        graphListeners.add(listenerBuildOperationDecorator.decorate("TaskExecutionGraph.whenReady", TaskExecutionGraphListener.class, action::execute));
     }
 
     @Override
     public void addTaskExecutionListener(TaskExecutionListener listener) {
+        notifyListenerRegistration("TaskExecutionGraph.addTaskExecutionListener", listener);
         taskListeners.add(listener);
     }
 
@@ -239,11 +229,13 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public void beforeTask(final Closure closure) {
+        notifyListenerRegistration("TaskExecutionGraph.beforeTask", closure);
         taskListeners.add(new ClosureBackedMethodInvocationDispatch("beforeExecute", closure));
     }
 
     @Override
     public void beforeTask(final Action<Task> action) {
+        notifyListenerRegistration("TaskExecutionGraph.beforeTask", action);
         taskListeners.add(new TaskExecutionAdapter() {
             @Override
             public void beforeExecute(Task task) {
@@ -254,17 +246,27 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public void afterTask(final Closure closure) {
+        notifyListenerRegistration("TaskExecutionGraph.afterTask", closure);
         taskListeners.add(new ClosureBackedMethodInvocationDispatch("afterExecute", closure));
     }
 
     @Override
     public void afterTask(final Action<Task> action) {
+        notifyListenerRegistration("TaskExecutionGraph.afterTask", action);
         taskListeners.add(new TaskExecutionAdapter() {
             @Override
             public void afterExecute(Task task, TaskState state) {
                 action.execute(task);
             }
         });
+    }
+
+    private void notifyListenerRegistration(String registrationPoint, Object listener) {
+        buildScopeListenerRegistrationListener.onBuildScopeListenerRegistration(
+            listener,
+            registrationPoint,
+            this
+        );
     }
 
     @Override
@@ -365,7 +367,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
         @Override
         public void execute(Node node) {
-            NodeExecutionContext context = projectExecutionServices.forProject((ProjectInternal) node.getOwningProject());
+            NodeExecutionContext context = projectExecutionServices.forProject(node.getOwningProject());
             for (NodeExecutor nodeExecutor : nodeExecutors) {
                 if (nodeExecutor.execute(node, context)) {
                     return;

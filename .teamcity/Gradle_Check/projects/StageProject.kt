@@ -31,7 +31,7 @@ class StageProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBu
     init {
         features {
             if (stage.specificBuilds.contains(SpecificBuild.SanityCheck)) {
-                buildReportTab("API Compatibility Report", "report-distributions-binary-compatibility-report.html")
+                buildReportTab("API Compatibility Report", "report-architectureTest-binary-compatibility-report.html")
                 buildReportTab("Incubating APIs Report", "incubation-reports/all-incubating.html")
             }
             if (stage.performanceTests.isNotEmpty()) {
@@ -47,7 +47,7 @@ class StageProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBu
         performanceTests = stage.performanceTests.map { PerformanceTestCoordinator(model, it, stage) }
         performanceTests.forEach(this::buildType)
 
-        val (topLevelCoverage, allCoverage) = stage.functionalTests.partition { it.testType == TestType.soak }
+        val (topLevelCoverage, allCoverage) = stage.functionalTests.partition { it.testType == TestType.soak || it.testDistribution }
         val topLevelFunctionalTests = topLevelCoverage
             .map { FunctionalTest(model, it.asConfigurationId(model), it.asName(), it.asName(), it, stage = stage) }
         topLevelFunctionalTests.forEach(this::buildType)

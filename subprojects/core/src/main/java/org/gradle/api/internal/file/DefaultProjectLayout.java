@@ -55,7 +55,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileFactory = fileFactory;
         this.projectDir = fileFactory.dir(projectDir);
-        this.buildDir = filePropertyFactory.newDirectoryProperty().fileValue(fileResolver.resolve(Project.DEFAULT_BUILD_DIR_NAME));
+        this.buildDir = filePropertyFactory.newDirectoryProperty().convention(fileFactory.dir(fileResolver.resolve(Project.DEFAULT_BUILD_DIR_NAME)));
     }
 
     @Override
@@ -104,6 +104,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     }
 
     @Override
+    @Deprecated
     public ConfigurableFileCollection configurableFiles(Object... files) {
         DeprecationLogger.deprecateMethod(ProjectLayout.class, "configurableFiles()").replaceWith("ObjectFactory.fileCollection()")
             .willBeRemovedInGradle7()

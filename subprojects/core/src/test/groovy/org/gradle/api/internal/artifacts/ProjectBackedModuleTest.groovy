@@ -29,7 +29,7 @@ class ProjectBackedModuleTest extends AbstractProjectBuilderSpec {
         module.group == project.group.toString()
         module.version == project.version.toString()
         module.status == project.status.toString()
-        module.projectPath == project.path
+        module.projectId == project.mutationState.componentIdentifier
 
         when:
         project.group = "fo${1}o"

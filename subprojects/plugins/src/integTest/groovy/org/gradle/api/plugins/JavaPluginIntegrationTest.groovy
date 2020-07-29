@@ -19,23 +19,24 @@ package org.gradle.api.plugins
 import org.gradle.api.internal.component.BuildableJavaComponent
 import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+
     def appliesBasePluginsAndAddsConventionObject() {
         given:
         buildFile << """
             apply plugin: 'java'
-            
+
             task expect {
+
+                def component = project.services.get(${ComponentRegistry.canonicalName}).mainComponent
+                assert component instanceof ${BuildableJavaComponent.canonicalName}
+                assert component.runtimeClasspath != null
+                assert component.compileDependencies == project.configurations.compileClasspath
+
+                def buildTasks = component.buildTasks as List
                 doLast {
-                    def component = project.services.get(${ComponentRegistry.canonicalName}).mainComponent
-                    
-                    assert component instanceof ${BuildableJavaComponent.canonicalName}
-                    assert component.buildTasks as List == [ JavaBasePlugin.BUILD_TASK_NAME ]
-                    assert component.runtimeClasspath != null
-                    assert component.compileDependencies == project.configurations.compileClasspath
+                    assert buildTasks == [ JavaBasePlugin.BUILD_TASK_NAME ]
                 }
             }
         """
@@ -50,7 +51,7 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
             tasks.named('jar').configure {
                 println "jar task created"
             }
-            
+
             task printArtifacts {
                 doLast {
                     configurations.runtime.artifacts.files.each { println it }

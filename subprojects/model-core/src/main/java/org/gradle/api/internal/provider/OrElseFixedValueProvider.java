@@ -38,12 +38,14 @@ class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
     @Override
     public ValueProducer getProducer() {
         ValueProducer producer = provider.getProducer();
-        if (producer.isProducesDifferentValueOverTime() || provider.isPresent()) {
-            // Value is not available yet or is present
-            return provider.getProducer();
-        } else {
-            return ValueProducer.unknown();
+        if (producer.isProducesDifferentValueOverTime()) {
+            return producer;
         }
+        if (provider.isPresent()) {
+            // isPresent() might have side-effects so we ask for the producer again
+            return provider.getProducer();
+        }
+        return ValueProducer.unknown();
     }
 
     @Override

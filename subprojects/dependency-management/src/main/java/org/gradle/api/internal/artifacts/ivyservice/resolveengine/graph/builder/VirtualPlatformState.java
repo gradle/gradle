@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 
-import java.util.Collections;
+import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -33,7 +33,7 @@ public class VirtualPlatformState {
     private final ModuleResolveState platformModule;
     private final ResolveOptimizations resolveOptimizations;
 
-    private final Set<ModuleResolveState> participatingModules = Sets.newHashSet();
+    private final Set<ModuleResolveState> participatingModules = Sets.newLinkedHashSet();
     private final List<EdgeState> orphanEdges = Lists.newArrayListWithExpectedSize(2);
 
     private boolean hasForcedParticipatingModule;
@@ -61,6 +61,7 @@ public class VirtualPlatformState {
         }
     }
 
+    @Nullable
     private String getForcedVersion() {
         String version = null;
         for (SelectorState selector : platformModule.getSelectors()) {
@@ -88,7 +89,7 @@ public class VirtualPlatformState {
                 sorted.add(selected.getVersion());
             }
         }
-        Collections.sort(sorted, vC);
+        sorted.sort(vC);
         if (forcedVersion != null) {
             return sorted.subList(sorted.indexOf(forcedVersion), sorted.size());
         } else {
@@ -100,6 +101,7 @@ public class VirtualPlatformState {
         return participatingModules;
     }
 
+    @Nullable
     public ComponentIdentifier getSelectedPlatformId() {
         ComponentState selected = platformModule.getSelected();
         if (selected != null) {

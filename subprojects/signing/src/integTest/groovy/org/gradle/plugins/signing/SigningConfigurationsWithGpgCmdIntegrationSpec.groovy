@@ -15,11 +15,40 @@
  */
 package org.gradle.plugins.signing
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider
 import org.gradle.util.Requires
 
 @Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
 class SigningConfigurationsWithGpgCmdIntegrationSpec extends SigningConfigurationsIntegrationSpec {
     SignMethod getSignMethod() {
         return SignMethod.GPG_CMD
+    }
+
+    @ToBeFixedForInstantExecution
+    def "does not leak passphrase at info logging"() {
+        given:
+        buildFile << """
+            ${keyInfo.addAsPropertiesScript()}
+            signing {
+                useGpgCmd()
+                sign(jar)
+                signatories = new ${GnupgSignatoryProvider.name}()
+            }
+        """
+
+        setupGpgCmd()
+
+        when:
+        run "signJar", "-i"
+
+        then:
+        executedAndNotSkipped(":signJar")
+        assertDoesNotLeakPassphrase()
+    }
+
+    private void assertDoesNotLeakPassphrase() {
+        outputContains("--passphrase-fd 0")
+        result.assertNotOutput("--passphrase ")
     }
 }

@@ -17,9 +17,9 @@
 package org.gradle.api.publish.tasks;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
@@ -29,14 +29,14 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.Publication;
-import org.gradle.api.publish.internal.GradleModuleMetadataWriter;
 import org.gradle.api.publish.internal.PublicationInternal;
+import org.gradle.api.publish.internal.metadata.GradleModuleMetadataWriter;
+import org.gradle.api.publish.internal.metadata.ModuleMetadataSpec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -46,12 +46,17 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Try;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.internal.serialization.Cached;
+import org.gradle.internal.serialization.Transient;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -60,50 +65,47 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
+
 /**
  * Generates a Gradle metadata file to represent a published {@link org.gradle.api.component.SoftwareComponent} instance.
  *
  * @since 4.3
  */
 public class GenerateModuleMetadata extends DefaultTask {
-    private final Property<Publication> publication;
-    private final ListProperty<Publication> publications;
+    private final Transient<Property<Publication>> publication;
+    private final Transient<ListProperty<Publication>> publications;
     private final RegularFileProperty outputFile;
-    private final ChecksumService checksumService;
+    private final FileCollection variantFiles;
+    private final Cached<InputState> inputState = Cached.of(this::computeInputState);
 
     public GenerateModuleMetadata() {
         ObjectFactory objectFactory = getProject().getObjects();
-        publication = objectFactory.property(Publication.class);
-        publications = objectFactory.listProperty(Publication.class);
-        outputFile = objectFactory.fileProperty();
-        // TODO - should be incremental
-        getOutputs().upToDateWhen(Specs.<Task>satisfyNone());
-        mustHaveAttachedComponent();
-        // injected here in order to avoid exposing in public API
-        checksumService = ((ProjectInternal)getProject()).getServices().get(ChecksumService.class);
-    }
+        publication = Transient.of(objectFactory.property(Publication.class));
+        publications = Transient.of(objectFactory.listProperty(Publication.class));
 
-    private void mustHaveAttachedComponent() {
-        setOnlyIf(element -> {
-            PublicationInternal<?> publication = Cast.uncheckedNonnullCast(GenerateModuleMetadata.this.publication.get());
-            if (publication.getComponent() == null) {
-                getLogger().warn(publication.getDisplayName() + " isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)");
-                return false;
-            }
-            return true;
-        });
+        outputFile = objectFactory.fileProperty();
+
+        variantFiles = getFileCollectionFactory().create(new VariantFiles());
+
+        // TODO - should be incremental
+        getOutputs().upToDateWhen(Specs.satisfyNone());
+        setOnlyIf(spec(task -> hasAttachedComponent()));
     }
 
     // TODO - this should be an input
+
     /**
      * Returns the publication to generate the metadata file for.
      */
     @Internal
     public Property<Publication> getPublication() {
-        return publication;
+        return publication.get();
     }
 
     // TODO - this should be an input
+
     /**
      * Returns the publications of the current project, used in generation to connect the modules of a component together.
      *
@@ -111,13 +113,13 @@ public class GenerateModuleMetadata extends DefaultTask {
      */
     @Internal
     public ListProperty<Publication> getPublications() {
-        return publications;
+        return publications.get();
     }
 
     @InputFiles
     @PathSensitive(PathSensitivity.NAME_ONLY)
     FileCollection getArtifacts() {
-        return getFileCollectionFactory().create(new VariantFiles());
+        return variantFiles;
     }
 
     /**
@@ -151,6 +153,16 @@ public class GenerateModuleMetadata extends DefaultTask {
     }
 
     /**
+     * Returns the {@link ChecksumService} to use.
+     *
+     * @since 6.6
+     */
+    @Inject
+    protected ChecksumService getChecksumService() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Returns the output file location.
      */
     @OutputFile
@@ -160,57 +172,138 @@ public class GenerateModuleMetadata extends DefaultTask {
 
     @TaskAction
     void run() {
-        File file = outputFile.get().getAsFile();
-        PublicationInternal<?> publication = Cast.uncheckedNonnullCast(this.publication.get());
-        List<PublicationInternal<?>> publications = Cast.uncheckedCast(this.publications.get());
-        try {
-            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf8"));
-            try {
-                new GradleModuleMetadataWriter(getBuildInvocationScopeId(), getProjectDependencyPublicationResolver(), checksumService).generateTo(publication, publications, writer);
-            } finally {
-                writer.close();
-            }
+        InputState inputState = inputState();
+        if (!(inputState instanceof InputState.Ready)) {
+            throw new IllegalStateException(inputState.toString());
+        }
+        writeModuleMetadata(
+            ((InputState.Ready) inputState).moduleMetadataSpec.get()
+        );
+    }
+
+    private void writeModuleMetadata(ModuleMetadataSpec moduleMetadataSpec) {
+        try (Writer writer = bufferedWriterFor(outputFile.get().getAsFile())) {
+            moduleMetadataWriter().writeTo(writer, moduleMetadataSpec);
         } catch (IOException e) {
             throw new UncheckedIOException("Could not generate metadata file " + outputFile.get(), e);
         }
     }
 
+    private BufferedWriter bufferedWriterFor(File file) throws FileNotFoundException {
+        return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), UTF_8));
+    }
+
+    private GradleModuleMetadataWriter moduleMetadataWriter() {
+        return new GradleModuleMetadataWriter(
+            getBuildInvocationScopeId(),
+            getProjectDependencyPublicationResolver(),
+            getChecksumService()
+        );
+    }
+
+    private boolean hasAttachedComponent() {
+        InputState inputState = inputState();
+        if (inputState instanceof InputState.ComponentMissing) {
+            String publicationName = ((InputState.ComponentMissing) inputState).publicationName;
+            getLogger().warn(
+                publicationName + " isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)"
+            );
+            return false;
+        }
+        return true;
+    }
+
+    private InputState computeInputState() {
+        return component() == null
+            ? new InputState.ComponentMissing(publicationName())
+            : new InputState.Ready(moduleMetadataSpec());
+    }
+
+    private Try<ModuleMetadataSpec> moduleMetadataSpec() {
+        return Try.ofFailable(this::computeModuleMetadataSpec);
+    }
+
+    private ModuleMetadataSpec computeModuleMetadataSpec() {
+        return moduleMetadataWriter().moduleMetadataSpecFor(publication(), publications());
+    }
+
+    static class InputState {
+
+        static class Ready extends InputState {
+            final Try<ModuleMetadataSpec> moduleMetadataSpec;
+
+            public Ready(Try<ModuleMetadataSpec> moduleMetadataSpec) {
+                this.moduleMetadataSpec = moduleMetadataSpec;
+            }
+        }
+
+        static class ComponentMissing extends InputState {
+            final String publicationName;
+
+            public ComponentMissing(String publicationName) {
+                this.publicationName = publicationName;
+            }
+        }
+    }
+
     private class VariantFiles implements MinimalFileSet, Buildable {
         @Override
+        @Nonnull
+        public String getDisplayName() {
+            return "files of " + GenerateModuleMetadata.this.getPath();
+        }
+
+        @Override
+        @Nonnull
         public TaskDependency getBuildDependencies() {
-            PublicationInternal<?> publication = Cast.uncheckedNonnullCast(GenerateModuleMetadata.this.publication.get());
-            SoftwareComponentInternal component = publication.getComponent();
             DefaultTaskDependency dependency = new DefaultTaskDependency();
-            if (component == null) {
-                return dependency;
-            }
-            for (UsageContext usageContext : component.getUsages()) {
-                for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
-                    dependency.add(publishArtifact);
-                }
+            SoftwareComponentInternal component = component();
+            if (component != null) {
+                forEachArtifactOf(component, dependency::add);
             }
             return dependency;
         }
 
         @Override
+        @Nonnull
         public Set<File> getFiles() {
-            PublicationInternal<?> publication = Cast.uncheckedNonnullCast(GenerateModuleMetadata.this.publication.get());
-            SoftwareComponentInternal component = publication.getComponent();
-            if (component == null) {
-                return ImmutableSet.of();
-            }
-            Set<File> files = new LinkedHashSet<File>();
-            for (UsageContext usageContext : component.getUsages()) {
-                for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
-                    files.add(publishArtifact.getFile());
-                }
-            }
-            return files;
+            SoftwareComponentInternal component = component();
+            return component == null ? ImmutableSet.of() : filesOf(component);
         }
 
-        @Override
-        public String getDisplayName() {
-            return "files of " + GenerateModuleMetadata.this.getPath();
+        private Set<File> filesOf(SoftwareComponentInternal component) {
+            Set<File> files = new LinkedHashSet<>();
+            forEachArtifactOf(component, artifact -> files.add(artifact.getFile()));
+            return files;
+
         }
+
+        private void forEachArtifactOf(SoftwareComponentInternal component, Action<PublishArtifact> action) {
+            for (UsageContext usageContext : component.getUsages()) {
+                for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
+                    action.execute(publishArtifact);
+                }
+            }
+        }
+    }
+
+    private InputState inputState() {
+        return this.inputState.get();
+    }
+
+    private String publicationName() {
+        return publication().getDisplayName().toString();
+    }
+
+    private SoftwareComponentInternal component() {
+        return publication().getComponent();
+    }
+
+    private PublicationInternal<?> publication() {
+        return Cast.uncheckedNonnullCast(publication.get().get());
+    }
+
+    private List<PublicationInternal<?>> publications() {
+        return Cast.uncheckedCast(publications.get().get());
     }
 }

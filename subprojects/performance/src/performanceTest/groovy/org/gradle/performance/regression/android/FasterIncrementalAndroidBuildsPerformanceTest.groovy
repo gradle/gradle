@@ -16,14 +16,15 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
-import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginSettingsFixture
-import org.gradle.internal.service.scopes.VirtualFileSystemServices
+import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
-import org.gradle.performance.regression.java.JavaInstantExecutionPerformanceTest
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
@@ -77,32 +78,31 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     }
 
     private void buildSpecForSupportedOptimizations(IncrementalAndroidTestProject testProject, @DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure scenarioConfiguration) {
-        supportedOptimizations(testProject).each {name, Set<Optimization> enabledOptimizations ->
+        supportedOptimizations(testProject).each { name, Set<Optimization> enabledOptimizations ->
             runner.buildSpec {
-                passChangedFile(delegate, testProject)
-                invocation.args(*enabledOptimizations*.argument)
+                invocation.args(*enabledOptimizations*.arguments.flatten())
                 testProject.configureForLatestAgpVersionOfMinor(delegate, AGP_TARGET_VERSION)
                 displayName(name)
 
-                final Closure clonedClosure = scenarioConfiguration.clone() as Closure;
-                clonedClosure.setResolveStrategy(Closure.DELEGATE_FIRST);
-                clonedClosure.setDelegate(delegate);
+                final Closure clonedClosure = scenarioConfiguration.clone() as Closure
+                clonedClosure.setResolveStrategy(Closure.DELEGATE_FIRST)
+                clonedClosure.setDelegate(delegate)
                 clonedClosure.call()
             }
         }
     }
 
     private static Map<String, Set<Optimization>> supportedOptimizations(IncrementalAndroidTestProject testProject) {
-        // Kotlin is not supported for instant execution
+        // Kotlin is not supported for configuration caching
         return testProject == SANTA_TRACKER_KOTLIN
             ? [
             "no optimizations": EnumSet.noneOf(Optimization),
-            "VFS retention": EnumSet.of(Optimization.VFS_RETENTION)
+            "FS watching": EnumSet.of(Optimization.WATCH_FS)
         ]
             : [
             "no optimizations": EnumSet.noneOf(Optimization),
-            "VFS retention": EnumSet.of(Optimization.VFS_RETENTION),
-            "instant execution": EnumSet.of(Optimization.INSTANT_EXECUTION),
+            "FS watching": EnumSet.of(Optimization.WATCH_FS),
+            "configuration caching": EnumSet.of(Optimization.CONFIGURATION_CACHING),
             "all optimizations": EnumSet.allOf(Optimization)
         ]
     }
@@ -114,8 +114,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
             builder.invocation.args(
                 "-Dorg.gradle.workers.max=8",
                 "--no-build-cache",
-                "--no-scan",
-                "-Dorg.gradle.unsafe.instant-execution.fail-on-problems=false" // TODO remove
+                "--no-scan"
             )
             builder.invocation.useToolingApi()
             builder.warmUpCount(1)
@@ -130,19 +129,18 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         }
     }
 
-    static void passChangedFile(GradleBuildExperimentSpec.GradleBuilder builder, IncrementalAndroidTestProject testProject) {
-        builder.invocation.args("-D${VirtualFileSystemServices.VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY}=${testProject.pathToChange}")
-    }
-
     enum Optimization {
-        INSTANT_EXECUTION(JavaInstantExecutionPerformanceTest.INSTANT_EXECUTION_ENABLED_PROPERTY),
-        VFS_RETENTION(VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY)
+        CONFIGURATION_CACHING(
+            "--${ConfigurationCacheOption.LONG_OPTION}",
+            "--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn" // TODO remove
+        ),
+        WATCH_FS("--${StartParameterBuildOptions.WatchFileSystemOption.LONG_OPTION}")
 
-        Optimization(String systemProperty) {
-            this.argument = "-D${systemProperty}=true"
+        Optimization(String... arguments) {
+            this.arguments = arguments
         }
 
-        final String argument
+        final List<String> arguments
     }
 
     void applyEnterprisePlugin(GradleBuildExperimentSpec.GradleBuilder builder) {
@@ -154,7 +152,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
                 @Override
                 void beforeScenario(ScenarioContext context) {
                     originalSettingsFileText = settingsFile.text
-                    GradleEnterprisePluginSettingsFixture.applyEnterprisePlugin(settingsFile)
+                    ApplyGradleEnterprisePluginFixture.applyEnterprisePlugin(settingsFile)
                 }
 
                 @Override

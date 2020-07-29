@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.internal.vfs.AdditiveCache;
+import org.gradle.cache.GlobalCache;
 
 import java.io.Closeable;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-public interface ArtifactCachesProvider extends Closeable, AdditiveCache {
+public interface ArtifactCachesProvider extends Closeable, GlobalCache {
     String READONLY_CACHE_ENV_VAR = "GRADLE_RO_DEP_CACHE";
 
     ArtifactCacheMetadata getWritableCacheMetadata();

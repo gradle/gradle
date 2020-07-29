@@ -18,23 +18,12 @@ package org.gradle.instantexecution.inputs.undeclared
 
 class UndeclaredBuildInputsKotlinBuildScriptIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
-    void buildLogicApplication() {
-        buildKotlinFile << """
-            plugins {
-                println("apply BUILDSCRIPT = " + System.getProperty("BUILDSCRIPT"))
-            }
-        """
-        kotlinPlugin(buildKotlinFile)
-        buildKotlinFile << """
-            println("apply SCRIPT = " + System.getProperty("SCRIPT"))
-
-            plugins.apply(SneakyPlugin::class.java)
-        """
+    String getLocation() {
+        return "build file 'build.gradle.kts'"
     }
 
     @Override
-    void additionalProblems() {
-        outputContains("- unknown location: read system property 'BUILDSCRIPT' from '")
-        outputContains("- unknown location: read system property 'SCRIPT' from '")
+    void buildLogicApplication(SystemPropertyRead read) {
+        kotlinDsl(buildKotlinFile, read)
     }
 }

@@ -36,10 +36,10 @@ public class ReadOnlyModuleVersionsCache extends DefaultModuleVersionsCache {
 
     @Override
     public void cacheModuleVersionList(ModuleComponentRepository repository, ModuleIdentifier moduleId, Set<String> listedVersions) {
-        operationShouldNotHaveBeenCalled();
+        throw operationShouldNotHaveBeenCalled();
     }
 
-    private static void operationShouldNotHaveBeenCalled() {
+    private static UnsupportedOperationException operationShouldNotHaveBeenCalled() {
         throw new UnsupportedOperationException("A write operation shouldn't have been called in a read-only cache");
     }
 }

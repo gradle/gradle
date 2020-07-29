@@ -131,7 +131,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         _ * listener.prepareForVisit(_) >> FileCollectionStructureVisitor.VisitType.Visit
         _ * filter.isSatisfiedBy(_) >> true
         1 * files.files >> ([f1, f2] as Set)
-        2 * selector.select(_) >> { ResolvedVariantSet variants -> variants.variants.first() }
+        2 * selector.select(_, _) >> { ResolvedVariantSet variants, f -> variants.variants.first() }
         1 * listener.artifactAvailable({ it.file == f1 })
         1 * listener.artifactAvailable({ it.file == f2 })
         1 * artifactTypeRegistry.mapAttributesFor(f1) >> attrs1
@@ -189,7 +189,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         1 * artifactTypeRegistry.mapAttributesFor(f1) >> attrs1
         1 * artifactTypeRegistry.mapAttributesFor(f2) >> attrs2
         1 * files.files >> ([f1, f2] as Set)
-        2 * selector.select(_) >> { ResolvedVariantSet variants -> variants.variants.first() }
+        2 * selector.select(_, _) >> { ResolvedVariantSet variants, f -> variants.variants.first() }
         1 * visitor.visitArtifact(_, attrs1, {it.file == f1 }) >> { DisplayName displayName, AttributeContainer attrs, ResolvableArtifact artifact ->
             assert displayName.displayName == 'local file'
             assert artifact.id == new OpaqueComponentArtifactIdentifier(f1)

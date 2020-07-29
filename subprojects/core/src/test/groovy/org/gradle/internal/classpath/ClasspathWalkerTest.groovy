@@ -17,7 +17,10 @@
 package org.gradle.internal.classpath
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.file.FileException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -31,6 +34,33 @@ class ClasspathWalkerTest extends Specification {
 
         when:
         walker.visit(tmpDir.file("missing"), visitor)
+
+        then:
+        0 * visitor._
+    }
+
+    @Requires(TestPrecondition.JDK11_OR_LATER)
+    def "throws FileException on badly formed JAR"() {
+        def visitor = Mock(ClasspathEntryVisitor)
+        def file = tmpDir.file("broken").createFile()
+
+        when:
+        walker.visit(file, visitor)
+
+        then:
+        thrown(FileException)
+
+        0 * visitor._
+    }
+
+    // This documents current behaviour, not desired behaviour
+    @Requires(TestPrecondition.JDK10_OR_EARLIER)
+    def "ignores badly formed JAR"() {
+        def visitor = Mock(ClasspathEntryVisitor)
+        def file = tmpDir.file("broken").createFile()
+
+        when:
+        walker.visit(file, visitor)
 
         then:
         0 * visitor._

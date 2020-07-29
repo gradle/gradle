@@ -39,6 +39,9 @@ class DistributionTestExecHandleBuilder {
 
         this.setExecutable("${baseDirName}/playBinary/bin/playBinary${extension}")
         this.environment("PLAY_BINARY_OPTS": "-Dhttp.port=${port}")
+        this.environment("JAVA_HOME", System.getProperty("java.home"))
+        // https://github.com/gradle/dotcom/issues/6071
+        this.environment("JAVA_OPTS", '')
         this.setWorkingDir(baseDirName)
     }
 

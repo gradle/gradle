@@ -27,7 +27,9 @@ import org.gradle.tooling.internal.provider.BuildModelAction
 import org.gradle.tooling.internal.provider.ClientProvidedBuildAction
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
+import spock.lang.Unroll
 
+@Unroll
 class BuildActionSerializerTest extends SerializerSpec {
     def "serializes ExecuteBuildAction with all defaults"() {
         def action = new ExecuteBuildAction(new StartParameterInternal())
@@ -40,18 +42,50 @@ class BuildActionSerializerTest extends SerializerSpec {
     def "serializes ExecuteBuildAction with non-defaults"() {
         def startParameter = new StartParameterInternal()
         startParameter.taskNames = ['a', 'b']
-        startParameter.addDeprecation('warning 1')
-        startParameter.addDeprecation('warning 2')
         def action = new ExecuteBuildAction(startParameter)
 
         expect:
         def result = serialize(action, BuildActionSerializer.create())
         result instanceof ExecuteBuildAction
         result.startParameter.taskNames == ['a', 'b']
-        result.startParameter.deprecations == ['warning 1', 'warning 2'] as Set
     }
 
-    def "serializes other actions"() {
+    def "serializes #buildOptionName boolean build option"() {
+        def startParameter = new StartParameterInternal()
+        boolean expectedValue = !startParameter."${buildOptionName}"
+        startParameter."${buildOptionName}" = expectedValue
+        def action = new ExecuteBuildAction(startParameter)
+
+        expect:
+        def result = serialize(action, BuildActionSerializer.create())
+        result instanceof ExecuteBuildAction
+        result.startParameter."${buildOptionName}" == expectedValue
+
+        where:
+        buildOptionName << [
+            "parallelProjectExecutionEnabled",
+            "searchUpwardsWithoutDeprecationWarning",
+            "buildProjectDependencies",
+            "dryRun",
+            "rerunTasks",
+            "profile",
+            "continueOnFailure",
+            "offline",
+            "refreshDependencies",
+            "buildCacheEnabled",
+            "buildCacheDebugLogging",
+            "watchFileSystem",
+            "configureOnDemand",
+            "continuous",
+            "buildScan",
+            "noBuildScan",
+            "writeDependencyLocks",
+            "refreshKeys",
+            "exportKeys"
+        ]
+    }
+
+    def "serializes other actions #action.class"() {
         expect:
         def result = serialize(action, BuildActionSerializer.create())
         result.class == action.class

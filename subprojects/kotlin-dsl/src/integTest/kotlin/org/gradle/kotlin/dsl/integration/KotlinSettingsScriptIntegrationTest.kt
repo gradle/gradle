@@ -1,6 +1,5 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -20,7 +19,6 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     val pluginPortal: MavenHttpPluginRepository = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
     @Test
-    @ToBeFixedForInstantExecution
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
 
         val pluginJar = file("plugin.jar")
@@ -47,7 +45,6 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
     fun `can apply plugin using plugins block`() {
 
         PluginBuilder(file("plugin")).run {

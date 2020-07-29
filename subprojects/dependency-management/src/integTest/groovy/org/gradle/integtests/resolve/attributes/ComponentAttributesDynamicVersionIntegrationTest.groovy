@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Unroll
 
@@ -25,6 +26,7 @@ import spock.lang.Unroll
 class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     @Unroll("#outcome if component-level attribute is #requested")
+    @ToBeFixedForInstantExecution(iterationMatchers = ['fails.*'])
     def "component attributes are used to reject fixed version"() {
         given:
         repository {
@@ -205,6 +207,7 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
         requested << ["[1.0,)", latestNotation(), "1.+", "1+", "+"]
     }
 
+    @ToBeFixedForInstantExecution
     def "reasonable error message whenever a dynamic version doesn't match any version because of single attribute mismatch"() {
         given:
         repository {
@@ -255,6 +258,7 @@ Versions rejected by attribute matching:
 """)
     }
 
+    @ToBeFixedForInstantExecution
     def "reasonable error message whenever a dynamic version doesn't match any version because of multiple attributes"() {
         given:
         repository {

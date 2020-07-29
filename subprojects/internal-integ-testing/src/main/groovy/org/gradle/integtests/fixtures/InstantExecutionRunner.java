@@ -17,13 +17,13 @@
 package org.gradle.integtests.fixtures;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.instantexecution.SystemProperties;
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption;
 
 /**
  * Intended to be a temporary runner until there is full cross-cutting coverage for all int tests with instant execution enabled.
  */
 public class InstantExecutionRunner extends BehindFlagFeatureRunner {
     public InstantExecutionRunner(Class<?> target) {
-        super(target, ImmutableMap.of(SystemProperties.isEnabled, booleanFeature("instant execution")));
+        super(target, ImmutableMap.of(ConfigurationCacheOption.PROPERTY_NAME, booleanFeature("configuration cache")));
     }
 }

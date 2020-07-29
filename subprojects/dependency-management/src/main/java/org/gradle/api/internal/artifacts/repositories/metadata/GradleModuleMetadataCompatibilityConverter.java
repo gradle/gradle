@@ -36,8 +36,8 @@ public class GradleModuleMetadataCompatibilityConverter {
     private static final Attribute<String> USAGE_STRING_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
     private static final Attribute<String> LIBRARY_ELEMENTS_STRING_ATTRIBUTE = Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class);
 
-    private ImmutableAttributesFactory attributesFactory;
-    private NamedObjectInstantiator instantiator;
+    private final ImmutableAttributesFactory attributesFactory;
+    private final NamedObjectInstantiator instantiator;
 
     public GradleModuleMetadataCompatibilityConverter(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
         this.attributesFactory = attributesFactory;

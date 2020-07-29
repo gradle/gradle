@@ -20,6 +20,8 @@ import org.apache.tools.ant.taskdefs.Manifest
 import org.apache.tools.ant.taskdefs.Manifest.Attribute
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.provider.DefaultProperty
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.java.archives.ManifestMergeSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -76,6 +78,45 @@ class DefaultManifestTest extends Specification {
         then:
         gradleManifest.is(expectToReturnSelf)
         gradleManifest.getAttributes() == attributes + attributes2 + MANIFEST_VERSION_MAP
+    }
+
+    def 'supports Provider'() {
+        given:
+        TestFile manifestFile = tmpDir.file('manifest')
+        fileResolver.resolve('manifest') >> manifestFile
+        def mainValue = new DefaultProperty<>(Mock(PropertyHost), String)
+        mainValue.set('hello')
+        Map mainAttributes = [mainKey: mainValue]
+        def sectionValue = new DefaultProperty<>(Mock(PropertyHost), String)
+        sectionValue.set('world')
+        Map sectionAttributes = [sectionKey: sectionValue]
+        gradleManifest.attributes(mainAttributes).attributes(sectionAttributes, 'section')
+
+        when:
+        gradleManifest.writeTo('manifest')
+
+        then:
+        manifestFile.text.contains('mainKey: hello')
+        manifestFile.text.contains('section')
+        manifestFile.text.contains('sectionKey: world')
+
+    }
+
+    def 'skips unset Provider'() {
+        given:
+        TestFile manifestFile = tmpDir.file('manifest')
+        fileResolver.resolve('manifest') >> manifestFile
+        Map mainAttributes = [mainKey: new DefaultProperty<>(Mock(PropertyHost), String)]
+        Map sectionAttributes = [sectionKey: new DefaultProperty<>(Mock(PropertyHost), String)]
+        gradleManifest.attributes(mainAttributes).attributes(sectionAttributes, 'section')
+
+        when:
+        gradleManifest.writeTo('manifest')
+
+        then:
+        !manifestFile.text.contains('mainKey')
+        manifestFile.text.contains('section')
+        !manifestFile.text.contains('sectionKey')
     }
 
     def testAddSectionAttributes() {

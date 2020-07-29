@@ -26,15 +26,15 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GradleVersion;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.io.Serializable;
 
 public class ZincScalaCompilerFacade implements Compiler<ScalaJavaJointCompileSpec>, Serializable {
     private final CacheRepository cacheRepository;
-    private final Iterable<File> scalaClasspath;
+
+    private final HashedClasspath scalaClasspath;
 
     @Inject
-    public ZincScalaCompilerFacade(CacheFactory cacheFactory, GradleUserHomeDirProvider gradleUserHomeDirProvider, Iterable<File> scalaClasspath) {
+    public ZincScalaCompilerFacade(CacheFactory cacheFactory, GradleUserHomeDirProvider gradleUserHomeDirProvider, HashedClasspath scalaClasspath) {
         // TODO: This should be injectable
         DefaultCacheScopeMapping cacheScopeMapping = new DefaultCacheScopeMapping(
                 gradleUserHomeDirProvider.getGradleUserHomeDirectory(), null, GradleVersion.current());

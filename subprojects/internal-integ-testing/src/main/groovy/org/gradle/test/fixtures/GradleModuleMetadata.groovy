@@ -38,8 +38,16 @@ class GradleModuleMetadata {
         }
         assert values.formatVersion == '1.1'
         assert values.createdBy.gradle.version == GradleVersion.current().version
-        assert values.createdBy.gradle.buildId
         variants = (values.variants ?: []).collect { new Variant(it.name, it) }
+    }
+
+    @Nullable
+    CreatedBy getCreatedBy() {
+        def createdBy = values.createdBy
+        if (createdBy == null) {
+            return null
+        }
+        return new CreatedBy(createdBy.gradle.version, createdBy.gradle.buildId)
     }
 
     @Nullable
@@ -431,6 +439,17 @@ class GradleModuleMetadata {
                 assert actualAttributes == expectedAttributes
                 this
             }
+        }
+    }
+
+    @EqualsAndHashCode
+    static class CreatedBy {
+        final String gradleVersion
+        final String buildId
+
+        CreatedBy(String gradleVersion, String buildId) {
+            this.gradleVersion = gradleVersion
+            this.buildId = buildId
         }
     }
 

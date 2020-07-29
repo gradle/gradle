@@ -17,6 +17,7 @@
 package org.gradle.process.internal.worker;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -139,7 +140,7 @@ class DefaultSingleRequestWorkerProcessBuilder<IN, OUT> implements SingleRequest
                 } catch (Exception e) {
                     throw WorkerProcessException.runFailed(getBaseName(), e);
                 }
-                return (OUT) receiver.getNextResult();
+                return Cast.uncheckedNonnullCast(receiver.getNextResult());
             }
         };
     }

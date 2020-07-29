@@ -155,32 +155,26 @@ fun compileKotlinScriptModuleTo(
     classPath: Iterable<File>,
     messageCollector: LoggingMessageCollector
 ) {
-    // Don't keep the Kotlin compiler environment alive as it might hold onto stale data.
-    // See https://youtrack.jetbrains.com/issue/KT-35394
-    SystemProperties.getInstance().withSystemProperty(
-        KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY,
-        "false"
-    ) {
-        withRootDisposable {
+    withRootDisposable {
 
-            withCompilationExceptionHandler(messageCollector) {
+        withCompilationExceptionHandler(messageCollector) {
 
-                val configuration = compilerConfigurationFor(messageCollector).apply {
-                    put(RETAIN_OUTPUT_IN_MEMORY, false)
-                    put(OUTPUT_DIRECTORY, outputDirectory)
-                    setModuleName(moduleName)
-                    addScriptingCompilerComponents()
-                    addScriptDefinition(scriptDef)
-                    scriptFiles.forEach { addKotlinSourceRoot(it) }
-                    classPath.forEach { addJvmClasspathRoot(it) }
-                }
-                val environment = kotlinCoreEnvironmentFor(configuration).apply {
-                    HasImplicitReceiverCompilerPlugin.apply(project)
-                }
-
-                compileBunchOfSources(environment)
-                    || throw ScriptCompilationException(messageCollector.errors)
+            val configuration = compilerConfigurationFor(messageCollector).apply {
+                put(RETAIN_OUTPUT_IN_MEMORY, false)
+                put(OUTPUT_DIRECTORY, outputDirectory)
+                setModuleName(moduleName)
+                addScriptingCompilerComponents()
+                addScriptDefinition(scriptDef)
+                scriptFiles.forEach { addKotlinSourceRoot(it) }
+                classPath.forEach { addJvmClasspathRoot(it) }
             }
+
+            val environment = kotlinCoreEnvironmentFor(configuration).apply {
+                HasImplicitReceiverCompilerPlugin.apply(project)
+            }
+
+            compileBunchOfSources(environment)
+                || throw ScriptCompilationException(messageCollector.errors)
         }
     }
 }
@@ -381,7 +375,18 @@ fun CompilerConfiguration.addScriptDefinition(scriptDef: ScriptDefinition) {
 private
 fun Disposable.kotlinCoreEnvironmentFor(configuration: CompilerConfiguration): KotlinCoreEnvironment {
     org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
-    return KotlinCoreEnvironment.createForProduction(this, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
+    // Don't keep the Kotlin compiler environment alive as it might hold onto stale data.
+    // See https://youtrack.jetbrains.com/issue/KT-35394
+    return SystemProperties.getInstance().withSystemProperty(
+        KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY,
+        "false"
+    ) {
+        KotlinCoreEnvironment.createForProduction(
+            this,
+            configuration,
+            EnvironmentConfigFiles.JVM_CONFIG_FILES
+        )
+    }
 }
 
 

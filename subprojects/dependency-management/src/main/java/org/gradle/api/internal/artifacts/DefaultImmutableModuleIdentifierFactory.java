@@ -29,11 +29,7 @@ public class DefaultImmutableModuleIdentifierFactory implements ImmutableModuleI
     public ModuleIdentifier module(String group, String name) {
         Map<String, ModuleIdentifier> byName = groupIdToModules.get(group);
         if (byName == null) {
-            byName = groupIdToModules.get(group);
-            if (byName == null) {
-                byName = Maps.newConcurrentMap();
-                groupIdToModules.put(group, byName);
-            }
+            byName = groupIdToModules.computeIfAbsent(group, k -> Maps.newConcurrentMap());
         }
         ModuleIdentifier moduleIdentifier = byName.get(name);
         if (moduleIdentifier == null) {
@@ -53,11 +49,7 @@ public class DefaultImmutableModuleIdentifierFactory implements ImmutableModuleI
     public ModuleVersionIdentifier moduleWithVersion(ModuleIdentifier mi, String version) {
         Map<String, ModuleVersionIdentifier> byVersion = idToVersions.get(mi);
         if (byVersion == null) {
-            byVersion = idToVersions.get(mi);
-            if (byVersion == null) {
-                byVersion = Maps.newConcurrentMap();
-                idToVersions.put(mi, byVersion);
-            }
+            byVersion = idToVersions.computeIfAbsent(mi, k -> Maps.newConcurrentMap());
         }
         ModuleVersionIdentifier identifier = byVersion.get(version);
         if (identifier == null) {

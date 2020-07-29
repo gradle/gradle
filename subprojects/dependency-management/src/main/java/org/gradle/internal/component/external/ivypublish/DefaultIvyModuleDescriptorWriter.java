@@ -52,13 +52,10 @@ public class DefaultIvyModuleDescriptorWriter implements IvyModuleDescriptorWrit
     public void write(IvyModulePublishMetadata module, File output) {
         try {
             output.getParentFile().mkdirs();
-            OutputStream outputStream = new FileOutputStream(output);
-            try {
+            try (OutputStream outputStream = new FileOutputStream(output)) {
                 SimpleXmlWriter xmlWriter = new SimpleXmlWriter(outputStream, "  ");
                 writeTo(module, xmlWriter);
                 xmlWriter.flush();
-            } finally {
-                outputStream.close();
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);

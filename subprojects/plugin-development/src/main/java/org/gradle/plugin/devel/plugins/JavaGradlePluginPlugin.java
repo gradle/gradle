@@ -36,6 +36,7 @@ import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
@@ -167,7 +168,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             Set<String> classList = new HashSet<>();
             PluginDescriptorCollectorAction pluginDescriptorCollector = new PluginDescriptorCollectorAction(descriptors);
             ClassManifestCollectorAction classManifestCollector = new ClassManifestCollectorAction(classList);
-            PluginValidationAction pluginValidationAction = new PluginValidationAction(extension.getPlugins(), descriptors, classList);
+            Provider<Collection<PluginDeclaration>> pluginsProvider = project.provider(() -> extension.getPlugins().getAsMap().values());
+            PluginValidationAction pluginValidationAction = new PluginValidationAction(pluginsProvider, descriptors, classList);
 
             jarTask.filesMatching(PLUGIN_DESCRIPTOR_PATTERN, pluginDescriptorCollector);
             jarTask.filesMatching(CLASSES_PATTERN, classManifestCollector);
@@ -193,11 +195,13 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             pluginUnderTestMetadataTask.setDescription(PLUGIN_UNDER_TEST_METADATA_TASK_DESCRIPTION);
 
             pluginUnderTestMetadataTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(pluginUnderTestMetadataTask.getName()));
-            pluginUnderTestMetadataTask.getPluginClasspath().from((Callable<Object>) () -> {
-                Configuration gradlePluginConfiguration = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi());
-                FileCollection gradleApi = gradlePluginConfiguration.getIncoming().getFiles();
-                return extension.getPluginSourceSet().getRuntimeClasspath().minus(gradleApi);
-            });
+            pluginUnderTestMetadataTask.getPluginClasspath().from(project.provider(
+                (Callable<Object>) () -> {
+                    Configuration gradlePluginConfiguration = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi());
+                    FileCollection gradleApi = gradlePluginConfiguration.getIncoming().getFiles();
+                    return extension.getPluginSourceSet().getRuntimeClasspath().minus(gradleApi);
+                }
+            ));
         });
     }
 
@@ -279,11 +283,11 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
      * Implements plugin validation tasks to validate that a proper plugin jar is produced.
      */
     static class PluginValidationAction implements Action<Task> {
-        private final Collection<PluginDeclaration> plugins;
+        private final Provider<Collection<PluginDeclaration>> plugins;
         private final Collection<PluginDescriptor> descriptors;
         private final Set<String> classes;
 
-        PluginValidationAction(Collection<PluginDeclaration> plugins, @Nullable Collection<PluginDescriptor> descriptors, Set<String> classes) {
+        PluginValidationAction(Provider<Collection<PluginDeclaration>> plugins, @Nullable Collection<PluginDescriptor> descriptors, Set<String> classes) {
             this.plugins = plugins;
             this.descriptors = descriptors;
             this.classes = classes;
@@ -314,7 +318,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
                         LOGGER.warn(String.format(BAD_IMPL_CLASS_WARNING_MESSAGE, task.getPath(), pluginFileName, pluginImplementation));
                     }
                 }
-                for (PluginDeclaration declaration : plugins) {
+                for (PluginDeclaration declaration : plugins.get()) {
                     if (!pluginFileNames.contains(declaration.getId() + ".properties")) {
                         LOGGER.warn(String.format(DECLARED_PLUGIN_MISSING_MESSAGE, task.getPath(), declaration.getName(), declaration.getId()));
                     }

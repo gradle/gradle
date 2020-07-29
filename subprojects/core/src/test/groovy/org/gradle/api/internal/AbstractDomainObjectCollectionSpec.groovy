@@ -27,6 +27,7 @@ import org.gradle.configuration.internal.DefaultUserCodeApplicationContext
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configuration.internal.UserCodeApplicationId
 import org.gradle.internal.Actions
+import org.gradle.internal.DisplayName
 import org.gradle.internal.metaobject.ConfigureDelegate
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.ConfigureUtil
@@ -1752,10 +1753,10 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         containerSupportsBuildOperations()
 
         UserCodeApplicationId id1 = null
-        userCodeApplicationContext.apply {
+        userCodeApplicationContext.apply(Stub(DisplayName)) {
             id1 = it
             container.whenObjectAdded {
-                assert userCodeApplicationContext.current() == id1
+                assert userCodeApplicationContext.current().id == id1
             }
         }
 
@@ -1769,10 +1770,10 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         when:
         UserCodeApplicationId id2 = null
-        userCodeApplicationContext.apply {
+        userCodeApplicationContext.apply(Stub(DisplayName)) {
             id2 = it
             container.whenObjectAdded {
-                assert userCodeApplicationContext.current() == id2
+                assert userCodeApplicationContext.current().id == id2
             }
         }
 
@@ -1790,7 +1791,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         given:
         containerSupportsBuildOperations()
 
-        userCodeApplicationContext.apply {
+        userCodeApplicationContext.apply(Stub(DisplayName)) {
             container.withType(otherType).whenObjectAdded {
                 throw new IllegalStateException()
             }
@@ -1807,7 +1808,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         given:
         containerSupportsBuildOperations()
 
-        userCodeApplicationContext.apply {
+        userCodeApplicationContext.apply(Stub(DisplayName)) {
             container.matching { !it.is(a) }.whenObjectAdded {
                 throw new IllegalStateException()
             }
@@ -1830,10 +1831,10 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         when:
         UserCodeApplicationId id = null
         List<UserCodeApplicationId> ids = []
-        userCodeApplicationContext.apply {
+        userCodeApplicationContext.apply(Stub(DisplayName)) {
             id = it
             container.matching { !it.is(a) }.all {
-                ids << userCodeApplicationContext.current()
+                ids << userCodeApplicationContext.current().id
             }
         }
 
@@ -1870,12 +1871,12 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         UserCodeApplicationId id1 = null
         UserCodeApplicationId id2 = null
         List<UserCodeApplicationId> ids = []
-        userCodeApplicationContext.apply {
+        userCodeApplicationContext.apply(Stub(DisplayName)) {
             id1 = it
             container.all {
                 ids << userCodeApplicationContext.current()
                 if (it.is(a)) {
-                    userCodeApplicationContext.apply {
+                    userCodeApplicationContext.apply(Stub(DisplayName)) {
                         id2 = it
                         container.all {
                             ids << userCodeApplicationContext.current()

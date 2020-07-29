@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.reproducibility
 
 import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Unroll
 
@@ -35,6 +36,45 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
         """
     }
 
+    def "does not fail with a project and direct dependency with non dynamic version"() {
+        settingsFile << """
+            include("other")
+"""
+        buildFile << """
+            dependencies {
+                conf(project(':other'))
+                conf 'org:test:1.0'
+            }
+
+            project(':other') {
+                configurations.create('default')
+            }
+"""
+        repository {
+            'org:test:1.0'()
+        }
+
+        when:
+        repositoryInteractions {
+            'org:test:1.0' {
+                expectResolve()
+            }
+        }
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                project(":other", "test:other:unspecified") {
+                    configuration('default')
+                    noArtifacts()
+                }
+                module('org:test:1.0')
+            }
+        }
+    }
+
+    @ToBeFixedForInstantExecution
     def "fails to resolve a direct dependency using a dynamic version"() {
         buildFile << """
             dependencies {
@@ -61,6 +101,7 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
         failure.assertHasCause("Could not resolve org:test:1.+: Resolution strategy disallows usage of dynamic versions")
     }
 
+    @ToBeFixedForInstantExecution
     def "fails to resolve a transitive dependency which uses a dynamic version"() {
         buildFile << """
             dependencies {
@@ -94,6 +135,7 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
         failure.assertHasCause("Could not resolve org:transitive:1.+: Resolution strategy disallows usage of dynamic versions")
     }
 
+    @ToBeFixedForInstantExecution
     def "fails if a transitive dynamic selector participates in selection"() {
         buildFile << """
             dependencies {
@@ -140,7 +182,7 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
                 conf 'org:testB:1.0'
                 conf 'org:testC:1.0'
             }
-           
+
         """
 
         repository {
@@ -246,6 +288,7 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "fails if exact selector is below the range"() {
         buildFile << """
             dependencies {
@@ -276,6 +319,7 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "fails with combination of selectors (#selector1 and #selector2)"() {
         buildFile << """
             dependencies {

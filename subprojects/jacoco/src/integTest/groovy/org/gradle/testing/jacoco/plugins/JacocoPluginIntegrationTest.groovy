@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -101,6 +103,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         output.contains "org.jacoco:org.jacoco.ant:0.6.0.201210061924"
     }
 
+    @Requires(TestPrecondition.JDK14_OR_EARLIER) // reevaluate when upgrading JaCoco from current 0.8.5
     @ToBeFixedForInstantExecution
     def "jacoco report is incremental"() {
         def reportResourceDir = file("${REPORTING_BASE}/jacoco/test/html/jacoco-resources")

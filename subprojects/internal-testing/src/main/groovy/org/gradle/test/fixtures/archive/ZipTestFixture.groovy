@@ -38,6 +38,8 @@ class ZipTestFixture extends ArchiveTestFixture {
                 String content = getContentForEntry(entry, zipFile)
                 if (!entry.directory) {
                     add(entry.name, content)
+                } else {
+                    addDir(entry.name)
                 }
                 addMode(entry.name, entry.getUnixMode())
             }

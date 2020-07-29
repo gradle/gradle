@@ -16,7 +16,7 @@
 
 package org.gradle.internal.authentication;
 
-import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.authentication.http.BasicAuthentication;
 
 public class DefaultBasicAuthentication extends AbstractAuthentication implements BasicAuthentication {

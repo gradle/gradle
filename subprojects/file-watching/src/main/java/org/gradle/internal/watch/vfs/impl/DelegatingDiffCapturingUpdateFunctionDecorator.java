@@ -26,39 +26,50 @@ import java.util.function.Predicate;
 public class DelegatingDiffCapturingUpdateFunctionDecorator implements SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator {
 
     private final Predicate<String> watchFilter;
-    private SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener;
-    private ErrorHandler errorHandler;
+    private ErrorHandlingDiffPublisher errorHandlingDiffPublisher;
 
     public DelegatingDiffCapturingUpdateFunctionDecorator(Predicate<String> watchFilter) {
         this.watchFilter = watchFilter;
     }
 
     public void setSnapshotDiffListener(SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener, ErrorHandler errorHandler) {
-        this.snapshotDiffListener = snapshotDiffListener;
-        this.errorHandler = errorHandler;
+        this.errorHandlingDiffPublisher = new ErrorHandlingDiffPublisher(snapshotDiffListener, errorHandler);
     }
 
     public void stopListening() {
-        this.snapshotDiffListener = null;
-        this.errorHandler = null;
+        errorHandlingDiffPublisher = null;
     }
 
     @Override
     public AtomicSnapshotHierarchyReference.UpdateFunction decorate(SnapshotHierarchy.DiffCapturingUpdateFunction updateFunction) {
-        SnapshotHierarchy.SnapshotDiffListener currentListener = snapshotDiffListener;
-        if (currentListener == null) {
+        ErrorHandlingDiffPublisher currentErrorHandlingDiffPublisher = errorHandlingDiffPublisher;
+        if (currentErrorHandlingDiffPublisher == null) {
             return root -> updateFunction.update(root, SnapshotHierarchy.NodeDiffListener.NOOP);
         }
 
         SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener(watchFilter);
         return root -> {
             SnapshotHierarchy newRoot = updateFunction.update(root, diffListener);
-            return errorHandler.handleErrors(newRoot, () -> diffListener.publishSnapshotDiff(currentListener));
+            return currentErrorHandlingDiffPublisher.publishSnapshotDiff(diffListener, newRoot);
         };
     }
 
     public interface ErrorHandler {
         @CheckReturnValue
         SnapshotHierarchy handleErrors(SnapshotHierarchy currentRoot, Runnable runnable);
+    }
+
+    private static class ErrorHandlingDiffPublisher {
+        private final SnapshotHierarchy.SnapshotDiffListener diffListener;
+        private final ErrorHandler errorHandler;
+
+        public ErrorHandlingDiffPublisher(SnapshotHierarchy.SnapshotDiffListener diffListener, ErrorHandler errorHandler) {
+            this.diffListener = diffListener;
+            this.errorHandler = errorHandler;
+        }
+
+        public SnapshotHierarchy publishSnapshotDiff(SnapshotCollectingDiffListener collectedDiff, SnapshotHierarchy newRoot) {
+            return errorHandler.handleErrors(newRoot, () -> collectedDiff.publishSnapshotDiff(diffListener));
+        }
     }
 }

@@ -58,9 +58,7 @@ import java.util.List;
  * unexpected client disconnection) the process will exit with 1.
  */
 public class DaemonMain extends EntryPoint {
-
     private static final Logger LOGGER = Logging.getLogger(DaemonMain.class);
-    public static final String SINGLE_USE_FLAG = "--single-use";
 
     private PrintStream originalOut;
     private PrintStream originalErr;

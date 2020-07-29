@@ -16,27 +16,19 @@
 
 package org.gradle.performance.util
 
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+import org.gradle.util.GradleVersion
 
 class Git {
-    private static Git git
+    static final Git INSTANCE = new Git()
     final String commitId
     final String branchName
 
-    public static Git current() {
-        if (git == null) {
-            git = new Git()
-        }
-        return git
+    static Git current() {
+        return INSTANCE
     }
 
     private Git() {
-        def repository = new FileRepositoryBuilder().findGitDir().build()
-        try {
-            branchName = System.getenv("BUILD_BRANCH") ?: repository.branch
-            commitId = repository.resolve(repository.fullBranch).name
-        } finally {
-            repository.close()
-        }
+        commitId = System.getProperty("gradleBuildCommitId", GradleVersion.current().revision)
+        branchName = System.getProperty("gradleBuildBranch", "unknown-branch")
     }
 }

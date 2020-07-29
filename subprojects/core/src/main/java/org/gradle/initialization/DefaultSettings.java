@@ -34,6 +34,7 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
+import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
@@ -60,7 +61,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     private ProjectDescriptor defaultProjectDescriptor;
 
-    private GradleInternal gradle;
+    private final GradleInternal gradle;
 
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope baseClassLoaderScope;
@@ -309,7 +310,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     @Inject
-    public BuildCacheConfiguration getBuildCache() {
+    public BuildCacheConfigurationInternal getBuildCache() {
         throw new UnsupportedOperationException();
     }
 

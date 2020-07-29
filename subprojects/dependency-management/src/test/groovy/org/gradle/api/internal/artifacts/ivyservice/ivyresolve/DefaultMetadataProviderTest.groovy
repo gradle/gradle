@@ -34,7 +34,6 @@ import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata
-import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.serialize.Serializer
@@ -47,7 +46,6 @@ import spock.lang.Specification
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class DefaultMetadataProviderTest extends Specification {
-    def dep = Stub(DependencyMetadata)
     def id = Stub(ModuleComponentIdentifier) {
         getGroup() >> 'group'
         getName() >> 'name'
@@ -57,7 +55,7 @@ class DefaultMetadataProviderTest extends Specification {
     def resolveState = Mock(ModuleComponentResolveState)
     def metadataProvider = new DefaultMetadataProvider(resolveState)
     def cachePolicy = new DefaultCachePolicy()
-    def ruleExecutor = new ComponentMetadataSupplierRuleExecutor(Stub(CacheRepository), Stub(DefaultInMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), new BuildCommencedTimeProvider(), Stub(Serializer))
+    def ruleExecutor = new ComponentMetadataSupplierRuleExecutor(Stub(CacheRepository), Stub(DefaultInMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), Stub(BuildCommencedTimeProvider), Stub(Serializer))
 
     def setup() {
         resolveState.getCachePolicy() >> cachePolicy

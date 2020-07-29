@@ -20,8 +20,11 @@ import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
+
+import static org.junit.Assume.assumeFalse
 
 class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
@@ -45,6 +48,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
     def installApp = appDebug.install
 
     def setup() {
+        assumeFalse(toolChain.family == AvailableToolChains.ToolFamily.CYGWIN_GCC) // [test setup issue] fails with - greet.cpp:2:22: fatal error: app.hpp: No such file or directory
         buildFile << """
             project(':library') {
                 apply plugin: 'cpp-library'

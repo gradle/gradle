@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
 import javax.annotation.Nullable;
 
+@UsedByScanPlugin("test-distribution")
 public abstract class AbstractTestDescriptor implements TestDescriptorInternal {
     private final Object id;
     private final String name;
@@ -62,4 +65,5 @@ public abstract class AbstractTestDescriptor implements TestDescriptorInternal {
     public String getClassDisplayName() {
         return getClassName();
     }
+
 }

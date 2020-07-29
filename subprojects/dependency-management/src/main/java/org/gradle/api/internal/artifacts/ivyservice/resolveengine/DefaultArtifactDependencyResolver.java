@@ -44,6 +44,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultCapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler;
@@ -51,6 +52,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.RejectRemainingCandidates;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.UserConfiguredCapabilityResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -58,7 +60,9 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -85,6 +89,8 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionParser versionParser;
     private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
+    private final Instantiator instantiator;
+    private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
 
     public DefaultArtifactDependencyResolver(BuildOperationExecutor buildOperationExecutor,
                                              List<ResolverProviderFactory> resolverFactories,
@@ -97,7 +103,9 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
                                              ImmutableAttributesFactory attributesFactory,
                                              VersionSelectorScheme versionSelectorScheme,
                                              VersionParser versionParser,
-                                             ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor) {
+                                             ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
+                                             InstantiatorFactory instantiatorFactory,
+                                             ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
         this.resolverFactories = resolverFactories;
         this.projectDependencyResolver = projectDependencyResolver;
         this.ivyFactory = ivyFactory;
@@ -110,6 +118,8 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionParser = versionParser;
         this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
+        this.instantiator = instantiatorFactory.decorateScheme().instantiator();
+        this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
     }
 
     @Override
@@ -142,7 +152,13 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
 
     }
 
-    private DependencyGraphBuilder createDependencyGraphBuilder(ComponentResolversChain componentSource, ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules globalRules, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema, ModuleExclusions moduleExclusions, BuildOperationExecutor buildOperationExecutor) {
+    private DependencyGraphBuilder createDependencyGraphBuilder(ComponentResolversChain componentSource,
+                                                                ResolutionStrategyInternal resolutionStrategy,
+                                                                GlobalDependencyResolutionRules globalRules,
+                                                                Spec<? super DependencyMetadata> edgeFilter,
+                                                                AttributesSchemaInternal attributesSchema,
+                                                                ModuleExclusions moduleExclusions,
+                                                                BuildOperationExecutor buildOperationExecutor) {
 
         DependencyToComponentIdResolver componentIdResolver = componentSource.getComponentIdResolver();
         ComponentMetaDataResolver componentMetaDataResolver = new ClientModuleResolver(componentSource.getComponentResolver(), dependencyDescriptorFactory);
@@ -161,7 +177,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         if (Actions.<DependencySubstitution>doNothing() == rule) {
             applicator = NO_OP;
         } else {
-            applicator = new CachingDependencySubstitutionApplicator(new DefaultDependencySubstitutionApplicator(rule));
+            applicator = new CachingDependencySubstitutionApplicator(new DefaultDependencySubstitutionApplicator(componentSelectionDescriptorFactory, rule, instantiator));
         }
         return applicator;
     }
@@ -183,7 +199,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
 
     private ModuleConflictHandler createModuleConflictHandler(ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules metadataHandler) {
         ConflictResolution conflictResolution = resolutionStrategy.getConflictResolution();
-        ModuleConflictResolver conflictResolver =
+        ModuleConflictResolver<ComponentState> conflictResolver =
             new ConflictResolverFactory(versionComparator, versionParser).createConflictResolver(conflictResolution);
         return new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
     }

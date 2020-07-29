@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+
 import javax.annotation.Nullable;
 
 /**
@@ -26,7 +28,7 @@ public interface Module {
     String DEFAULT_STATUS = "integration";
 
     @Nullable
-    String getProjectPath();
+    ProjectComponentIdentifier getProjectId();
 
     String getGroup();
 

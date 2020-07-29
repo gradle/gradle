@@ -25,6 +25,8 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.RejectedByAttributesVersion;
 import org.gradle.internal.resolve.RejectedByRuleVersion;
 
+import javax.annotation.Nullable;
+
 /**
  * The result of resolving some dynamic version selector to a particular component id.
  */
@@ -68,6 +70,7 @@ public interface ComponentSelectionContext {
     /**
      * Returns the repository content filter, if any.
      */
+    @Nullable
     Action<? super ArtifactResolutionDetails> getContentFilter();
 
     /**

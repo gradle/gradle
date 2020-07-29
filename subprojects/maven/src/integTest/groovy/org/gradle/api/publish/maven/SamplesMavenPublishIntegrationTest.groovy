@@ -18,8 +18,8 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.util.TextUtil
@@ -27,11 +27,11 @@ import org.junit.Rule
 import spock.lang.Unroll
 
 class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
-    @Rule public final Sample sampleProject = new Sample(temporaryFolder)
+    @Rule
+    public final Sample sampleProject = new Sample(temporaryFolder)
 
     @Unroll
     @UsesSample("maven-publish/quickstart")
-    @ToBeFixedForInstantExecution
     def "quickstart publish with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -55,7 +55,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/quickstart")
-    @ToBeFixedForInstantExecution
     def "quickstart publish local with #dsl dsl"() {
         using m2
 
@@ -84,7 +83,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/javaProject")
-    @ToBeFixedForInstantExecution
     def "publish java project with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -113,7 +111,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/multiple-publications")
-    @ToBeFixedForInstantExecution
     def "multiple publications with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -130,15 +127,15 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         then:
         project1sample.assertPublishedAsJavaModule()
-        verifyPomFile(project1sample, "output/project1.pom.xml")
+        verifyPomFile(project1sample, dsl, "output/project1.pom.xml")
 
         and:
         project2api.assertPublishedAsJavaModule()
-        verifyPomFile(project2api, "output/project2-api.pom.xml")
+        verifyPomFile(project2api, dsl, "output/project2-api.pom.xml")
 
         and:
         project2impl.assertPublishedAsJavaModule()
-        verifyPomFile(project2impl, "output/project2-impl.pom.xml")
+        verifyPomFile(project2impl, dsl, "output/project2-impl.pom.xml")
 
         where:
         dsl << ['groovy', 'kotlin']
@@ -146,7 +143,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(
+        iterationMatchers = ".* kotlin dsl"
+    )
     def "conditional publishing with #dsl dsl"() {
         using m2
 
@@ -184,7 +183,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(
+        iterationMatchers = ".* kotlin dsl"
+    )
     def "shorthand publish to external repository with #dsl dsl"() {
         given:
         inDirectory(sampleProject.dir.file(dsl))
@@ -203,7 +204,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(
+        iterationMatchers = ".* kotlin dsl"
+    )
     def "shorthand publish for development with #dsl dsl"() {
         given:
         inDirectory(sampleProject.dir.file(dsl))
@@ -224,7 +227,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/publish-artifact")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(
+        iterationMatchers = ".* kotlin dsl"
+    )
     def "publishes rpm artifact with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -249,27 +254,25 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("maven-publish/pomGeneration")
-    @ToBeFixedForInstantExecution
     def pomGeneration() {
         given:
-        sample sampleProject
+        inDirectory(sampleProject.dir.file('groovy'))
 
         when:
         succeeds "generatePomFileForMavenCustomPublication"
 
         then:
-        def pom = sampleProject.dir.file("build/generated-pom.xml").assertExists()
+        def pom = sampleProject.dir.file("groovy/build/generated-pom.xml").assertExists()
         def parsedPom = new org.gradle.test.fixtures.maven.MavenPom(pom)
         parsedPom.name == "Example"
     }
 
     @Unroll
     @UsesSample("maven-publish/distribution")
-    @ToBeFixedForInstantExecution
     def "publishes distribution archives with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
-        executer.inDirectory(sampleDir).requireGradleDistribution()
+        executer.inDirectory(sampleDir)
 
         and:
         def repo = maven(sampleDir.file("build/repo"))
@@ -291,9 +294,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    private void verifyPomFile(MavenFileModule module, String outputFileName) {
+    private void verifyPomFile(MavenFileModule module, String dsl, String outputFileName) {
         def actualPomXmlText = module.pomFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
-        assert actualPomXmlText == getExpectedPomOutput(sampleProject.dir.file(outputFileName))
+        assert actualPomXmlText == getExpectedPomOutput(sampleProject.dir.file("$dsl/$outputFileName"))
     }
 
     String getExpectedPomOutput(File outputFile) {

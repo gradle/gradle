@@ -144,6 +144,7 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "multiple endorsed strict versions that target the same module fail the build if they conflict"() {
         given:
         repository {

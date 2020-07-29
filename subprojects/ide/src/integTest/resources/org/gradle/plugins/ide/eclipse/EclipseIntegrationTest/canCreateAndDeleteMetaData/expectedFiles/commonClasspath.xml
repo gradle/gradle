@@ -24,6 +24,7 @@
 	<classpathentry kind="src" path="/api">
 		<attributes>
 			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+			<attribute name="without_test_code" value="true"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry sourcepath="GRADLE_USER_HOME/@CACHE@/log4j/log4j/1.2.17/@SHA1@/log4j-1.2.17-sources.jar" kind="var" path="GRADLE_USER_HOME/@CACHE@/log4j/log4j/1.2.17/@SHA1@/log4j-1.2.17.jar">

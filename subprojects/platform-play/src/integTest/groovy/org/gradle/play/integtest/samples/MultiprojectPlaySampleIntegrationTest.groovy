@@ -27,7 +27,7 @@ import static org.gradle.integtests.fixtures.UrlValidator.assertUrlContentContai
 
 class MultiprojectPlaySampleIntegrationTest extends AbstractPlaySampleIntegrationTest {
     @Rule
-    Sample multiprojectSample = new Sample(temporaryFolder, "play/multiproject")
+    Sample multiprojectSample = new Sample(temporaryFolder, "play/multiproject/groovy")
 
     Sample getPlaySample() {
         return multiprojectSample

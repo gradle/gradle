@@ -26,7 +26,7 @@ import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-public class ProjectDependencyFactoryTest extends Specification {
+class ProjectDependencyFactoryTest extends Specification {
 
     def projectDummy = Mock(ProjectInternal)
     def projectFinder = Mock(ProjectFinder)

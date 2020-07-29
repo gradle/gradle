@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.internal.credentials.DefaultPasswordCredentials
@@ -35,24 +35,21 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     @Rule
     HttpServer redirectServer
 
+    final String repoPath = "/repo"
+    final String group = "org.gradle"
+    final String name = "publish"
+    final String version = "2"
+
     MavenHttpRepository mavenRemoteRepo
     MavenHttpModule module
-
-    def repoPath = "/repo"
-    String group
-    String name
-    String version
 
     def setup() {
         server.start()
 
         mavenRemoteRepo = new MavenHttpRepository(server, repoPath, mavenRepo)
-        group = "org.gradle"
-        name = "publish"
-        version = "2"
         module = mavenRemoteRepo.module(group, name, version).withModuleMetadata()
 
-        settingsFile << 'rootProject.name = "publish"'
+        settingsFile << "rootProject.name = '$name'"
     }
 
     @Unroll
@@ -132,27 +129,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         server.authenticationScheme = authScheme
 
-        module.artifact.expectPut(credentials)
-        module.artifact.sha1.expectPut(credentials)
-        module.artifact.sha256.expectPut(credentials)
-        module.artifact.sha512.expectPut(credentials)
-        module.artifact.md5.expectPut(credentials)
-        module.rootMetaData.expectGetMissing(credentials)
-        module.rootMetaData.expectPut(credentials)
-        module.rootMetaData.sha1.expectPut(credentials)
-        module.rootMetaData.sha256.expectPut(credentials)
-        module.rootMetaData.sha512.expectPut(credentials)
-        module.rootMetaData.md5.expectPut(credentials)
-        module.pom.expectPut(credentials)
-        module.pom.sha1.expectPut(credentials)
-        module.pom.sha256.expectPut(credentials)
-        module.pom.sha512.expectPut(credentials)
-        module.pom.md5.expectPut(credentials)
-        module.moduleMetadata.expectPut(credentials)
-        module.moduleMetadata.sha1.expectPut(credentials)
-        module.moduleMetadata.sha256.expectPut(credentials)
-        module.moduleMetadata.sha512.expectPut(credentials)
-        module.moduleMetadata.md5.expectPut(credentials)
+        expectPublishModuleWithCredentials(module, credentials)
 
         when:
         succeeds 'publish'
@@ -342,16 +319,59 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module.assertPublishedAsJavaModule()
     }
 
-    private String publicationBuild(String version, String group, URI uri, PasswordCredentials credentials = null) {
+    @ToBeFixedForInstantExecution
+    def "can publish to authenticated repository using credentials Provider with inferred identity"() {
+        given:
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, "credentials(PasswordCredentials)")
+        server.authenticationScheme = AuthScheme.BASIC
+        PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
+        expectPublishModuleWithCredentials(module, credentials)
+
+        when:
+        executer.withArguments("-PmavenUsername=${credentials.username}", "-PmavenPassword=${credentials.password}")
+
+        then:
+        succeeds 'publish'
+    }
+
+    @ToBeFixedForInstantExecution
+    def "fails at configuration time with helpful error message when username and password provider has no value"() {
+        given:
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, "credentials(PasswordCredentials)")
+
+        when:
+        succeeds 'jar'
+
+        and:
+        succeeds 'tasks'
+
+        and:
+        fails 'publish'
+
+        then:
+        notExecuted(':jar', ':publishMavenPublicationToMavenRepository')
+        failure.assertHasDescription("Credentials required for this build could not be resolved.")
+        failure.assertHasCause("The following Gradle properties are missing for 'maven' credentials:")
+        failure.assertHasErrorOutput("- mavenUsername")
+        failure.assertHasErrorOutput("- mavenPassword")
+    }
+
+    private static String publicationBuild(String version, String group, URI uri, PasswordCredentials credentials = null) {
         String credentialsBlock = credentials ? """
-                        credentials{
+                        credentials {
                             username '${credentials.username}'
                             password '${credentials.password}'
                         }
                         """ : ''
+        return publicationBuild(version, group, uri, credentialsBlock)
+    }
+
+    private static String publicationBuild(String version, String group, URI uri, String credentialsBlock) {
         return """
-            apply plugin: 'java'
-            apply plugin: 'maven-publish'
+            plugins {
+                id 'java'
+                id 'maven-publish'
+            }
             version = '$version'
             group = '$group'
 
@@ -371,7 +391,31 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         """
     }
 
-    private void expectModulePublish(MavenHttpModule module, boolean extraChecksums = true) {
+    private static void expectPublishModuleWithCredentials(MavenHttpModule module, PasswordCredentials credentials) {
+        module.artifact.expectPut(credentials)
+        module.artifact.sha1.expectPut(credentials)
+        module.artifact.sha256.expectPut(credentials)
+        module.artifact.sha512.expectPut(credentials)
+        module.artifact.md5.expectPut(credentials)
+        module.rootMetaData.expectGetMissing(credentials)
+        module.rootMetaData.expectPut(credentials)
+        module.rootMetaData.sha1.expectPut(credentials)
+        module.rootMetaData.sha256.expectPut(credentials)
+        module.rootMetaData.sha512.expectPut(credentials)
+        module.rootMetaData.md5.expectPut(credentials)
+        module.pom.expectPut(credentials)
+        module.pom.sha1.expectPut(credentials)
+        module.pom.sha256.expectPut(credentials)
+        module.pom.sha512.expectPut(credentials)
+        module.pom.md5.expectPut(credentials)
+        module.moduleMetadata.expectPut(credentials)
+        module.moduleMetadata.sha1.expectPut(credentials)
+        module.moduleMetadata.sha256.expectPut(credentials)
+        module.moduleMetadata.sha512.expectPut(credentials)
+        module.moduleMetadata.md5.expectPut(credentials)
+    }
+
+    private static void expectModulePublish(MavenHttpModule module, boolean extraChecksums = true) {
         module.artifact.expectPublish(extraChecksums)
         module.rootMetaData.expectGetMissing()
         module.rootMetaData.expectPublish(extraChecksums)
@@ -379,7 +423,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module.moduleMetadata.expectPublish(extraChecksums)
     }
 
-    private void expectModulePublishViaRedirect(MavenHttpModule module, URI targetServerUri, HttpServer httpServer, PasswordCredentials credentials = null) {
+    private static void expectModulePublishViaRedirect(MavenHttpModule module, URI targetServerUri, HttpServer httpServer, PasswordCredentials credentials = null) {
         String redirectUri = targetServerUri.toString()
         [module.artifact, module.pom, module.rootMetaData, module.moduleMetadata].each { artifact ->
             [artifact, artifact.sha1, artifact.md5, artifact.sha256, artifact.sha512].each { innerArtifact ->

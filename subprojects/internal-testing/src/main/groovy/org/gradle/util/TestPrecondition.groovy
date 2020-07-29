@@ -100,6 +100,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK10_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_1_10
     }),
+    JDK10_OR_EARLIER({
+        JavaVersion.current() <= JavaVersion.VERSION_1_10
+    }),
     JDK11_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_11
     }),
@@ -117,6 +120,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     JDK13_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_13
+    }),
+    JDK14_OR_EARLIER({
+        JavaVersion.current() <= JavaVersion.VERSION_14
     }),
     JDK14_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_14
@@ -159,7 +165,7 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     MSBUILD({
         // Simplistic approach at detecting MSBuild by assuming Windows imply MSBuild is present
-        WINDOWS.fulfilled
+        WINDOWS.fulfilled && "embedded" != System.getProperty("org.gradle.integtest.executer")
     }),
     SUPPORTS_TARGETING_JAVA6({ !JDK12_OR_LATER.fulfilled }),
     // Currently mac agents are not that strong so we avoid running high-concurrency tests on them

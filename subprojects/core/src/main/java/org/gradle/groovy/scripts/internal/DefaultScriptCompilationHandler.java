@@ -20,7 +20,6 @@ import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.GroovyResourceLoader;
 import groovy.lang.Script;
-import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.classgen.Verifier;
@@ -44,7 +43,6 @@ import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ImplementationHashAware;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Serializer;
@@ -146,8 +144,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             }
 
             if (packageDetector.hasPackageStatement) {
-                throw new UnsupportedOperationException(String.format("%s should not contain a package statement.",
-                    StringUtils.capitalize(source.getDisplayName())));
+                throw new UnsupportedOperationException(String.format("%s should not contain a package statement.", source.getLongDisplayName().getCapitalizedDisplayName()));
             }
             serializeMetadata(source, extractingTransformer, metadataDir, emptyScriptDetector.isEmptyScript(), emptyScriptDetector.getHasMethods());
         } finally {
@@ -202,7 +199,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, File scriptCacheDir,
+    public <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, ClassPath scriptClassPath,
                                                                   File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass) {
         File metadataFile = new File(metadataCacheDir, METADATA_FILE_NAME);
         try (KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(metadataFile))) {
@@ -215,7 +212,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             } else {
                 data = null;
             }
-            return new ClassesDirCompiledScript<>(isEmpty, hasMethods, scriptBaseClass, scriptCacheDir, targetScope, source, sourceHashCode, data);
+            return new ClassesDirCompiledScript<>(isEmpty, hasMethods, scriptBaseClass, scriptClassPath, targetScope, source, sourceHashCode, data);
         } catch (Exception e) {
             throw new IllegalStateException(String.format("Failed to deserialize script metadata extracted for %s", source.getDisplayName()), e);
         }
@@ -288,7 +285,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         private final boolean isEmpty;
         private final boolean hasMethods;
         private final Class<T> scriptBaseClass;
-        private final File scriptCacheDir;
+        private final ClassPath scriptClassPath;
         private final ClassLoaderScope targetScope;
         private final ScriptSource source;
         private final HashCode sourceHashCode;
@@ -296,11 +293,11 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         private Class<? extends T> scriptClass;
         private ClassLoaderScope scope;
 
-        public ClassesDirCompiledScript(boolean isEmpty, boolean hasMethods, Class<T> scriptBaseClass, File scriptCacheDir, ClassLoaderScope targetScope, ScriptSource source, HashCode sourceHashCode, M metadata) {
+        public ClassesDirCompiledScript(boolean isEmpty, boolean hasMethods, Class<T> scriptBaseClass, ClassPath scriptClassPath, ClassLoaderScope targetScope, ScriptSource source, HashCode sourceHashCode, M metadata) {
             this.isEmpty = isEmpty;
             this.hasMethods = hasMethods;
             this.scriptBaseClass = scriptBaseClass;
-            this.scriptCacheDir = scriptCacheDir;
+            this.scriptClassPath = scriptClassPath;
             this.targetScope = targetScope;
             this.source = source;
             this.sourceHashCode = sourceHashCode;
@@ -342,9 +339,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     ClassLoader loader = scope.getLocalClassLoader();
                     scriptClass = loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
                 } catch (Exception e) {
-                    File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");
-                    if (!expectedClassFile.exists()) {
-                        throw new GradleException(String.format("Could not load compiled classes for %s from cache. Expected class file %s does not exist.", source.getDisplayName(), expectedClassFile.getAbsolutePath()), e);
+                    if (scriptClassPath.isEmpty()) {
+                        throw new IllegalStateException(String.format("The cache entry for %s appears to be corrupted.", source.getDisplayName()));
                     }
                     throw new GradleException(String.format("Could not load compiled classes for %s from cache.", source.getDisplayName()), e);
                 }
@@ -353,7 +349,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
 
         private ClassLoaderScope prepareClassLoaderScope() {
-            ClassPath scriptClassPath = DefaultClassPath.of(scriptCacheDir);
             String scopeName = "groovy-dsl:" + source.getFileName() + ":" + scriptBaseClass.getSimpleName();
             return targetScope.createLockedChild(scopeName, scriptClassPath, sourceHashCode, parent -> new ScriptClassLoader(source, parent, scriptClassPath, sourceHashCode));
         }

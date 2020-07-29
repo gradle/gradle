@@ -37,13 +37,15 @@ import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 import org.gradle.util.Path;
 
+import java.io.File;
+
 class DefaultRootBuildState extends AbstractBuildState implements RootBuildState, Stoppable {
     private final ListenerManager listenerManager;
     private final GradleLauncher gradleLauncher;
 
     DefaultRootBuildState(BuildDefinition buildDefinition, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, BuildTreeScopeServices parentServices) {
         this.listenerManager = listenerManager;
-        gradleLauncher = gradleLauncherFactory.newInstance(buildDefinition, this, parentServices);
+        this.gradleLauncher = gradleLauncherFactory.newInstance(buildDefinition, this, parentServices);
     }
 
     @Override
@@ -63,6 +65,11 @@ class DefaultRootBuildState extends AbstractBuildState implements RootBuildState
 
     @Override
     public void assertCanAdd(IncludedBuildSpec includedBuildSpec) {
+    }
+
+    @Override
+    public File getBuildRootDir() {
+        return gradleLauncher.getBuildRootDir();
     }
 
     @Override

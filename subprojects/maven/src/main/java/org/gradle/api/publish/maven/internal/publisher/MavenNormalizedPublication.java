@@ -35,7 +35,14 @@ public class MavenNormalizedPublication {
     private final MavenArtifact mainArtifact;
     private final Set<MavenArtifact> allArtifacts;
 
-    public MavenNormalizedPublication(String name, MavenProjectIdentity projectIdentity, String packaging, MavenArtifact pomArtifact, MavenArtifact mainArtifact, Set<MavenArtifact> allArtifacts) {
+    public MavenNormalizedPublication(
+        String name,
+        MavenProjectIdentity projectIdentity,
+        String packaging,
+        MavenArtifact pomArtifact,
+        MavenArtifact mainArtifact,
+        Set<MavenArtifact> allArtifacts
+    ) {
         this.name = name;
         this.coordinates = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(projectIdentity.getGroupId().get(), projectIdentity.getArtifactId().get()), projectIdentity.getVersion().get());
         this.packaging = packaging;

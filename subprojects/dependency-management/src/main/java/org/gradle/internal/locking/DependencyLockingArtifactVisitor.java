@@ -115,7 +115,7 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
 
     private void addChangingModule(ModuleComponentIdentifier id) {
         if (changingResolvedModules == null) {
-            changingResolvedModules = new HashSet<ModuleComponentIdentifier>();
+            changingResolvedModules = new HashSet<>();
         }
         changingResolvedModules.add(id);
     }
@@ -137,7 +137,7 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
     @Override
     public void complete() {
         if (!lockOutOfDate) {
-            Set<ModuleComponentIdentifier> changingModules = this.changingResolvedModules == null ? Collections.<ModuleComponentIdentifier>emptySet() : this.changingResolvedModules;
+            Set<ModuleComponentIdentifier> changingModules = this.changingResolvedModules == null ? Collections.emptySet() : this.changingResolvedModules;
             dependencyLockingProvider.persistResolvedDependencies(configurationName, allResolvedModules, changingModules);
         }
     }

@@ -17,18 +17,23 @@
 package org.gradle.cache.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.cache.GlobalCache;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.List;
+import java.util.regex.Pattern;
 
-public class DefaultCacheScopeMapping implements CacheScopeMapping {
+public class DefaultCacheScopeMapping implements CacheScopeMapping, GlobalCache {
 
     @VisibleForTesting
     public static final String GLOBAL_CACHE_DIR_NAME = "caches";
+    private static final Pattern CACHE_KEY_NAME_PATTERN = Pattern.compile("\\p{Alpha}+[-/.\\w]*");
 
     private final File globalCacheDir;
     private final File projectCacheDir;
@@ -42,7 +47,7 @@ public class DefaultCacheScopeMapping implements CacheScopeMapping {
 
     @Override
     public File getBaseDirectory(@Nullable Object scope, String key, VersionStrategy versionStrategy) {
-        if (key.equalsIgnoreCase("projects") || key.equalsIgnoreCase("tasks") || !key.matches("\\p{Alpha}+[-//.\\w]*")) {
+        if (key.equalsIgnoreCase("projects") || key.equalsIgnoreCase("tasks") || !CACHE_KEY_NAME_PATTERN.matcher(key).matches()) {
             throw new IllegalArgumentException(String.format("Unsupported cache key '%s'.", key));
         }
         File cacheRootDir = getRootDirectory(scope);
@@ -97,5 +102,10 @@ public class DefaultCacheScopeMapping implements CacheScopeMapping {
             return projectCacheDir;
         }
         return new File(rootProject.getProjectDir(), ".gradle");
+    }
+
+    @Override
+    public List<File> getGlobalCacheRoots() {
+        return ImmutableList.of(globalCacheDir);
     }
 }

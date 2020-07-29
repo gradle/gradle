@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import accessors.groovy
-import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.gradlebuild.test.integrationtests.SmokeTest
-import org.gradle.gradlebuild.test.integrationtests.defaultGradleGeneratedApiJarCacheDirProvider
-import org.gradle.gradlebuild.versioning.DetermineCommitId
-import org.gradle.testing.performance.generator.tasks.RemoteProject
+import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.accessors.groovy
+import gradlebuild.integrationtests.addDependenciesAndConfigurations
+import gradlebuild.integrationtests.tasks.SmokeTest
+import gradlebuild.performance.generator.tasks.RemoteProject
 
 plugins {
-    gradlebuild.internal.java
+    id("gradlebuild.internal.java")
 }
 
 val smokeTest: SourceSet by sourceSets.creating {
@@ -29,43 +28,37 @@ val smokeTest: SourceSet by sourceSets.creating {
     runtimeClasspath += sourceSets.main.get().output
 }
 
-val smokeTestImplementation: Configuration by configurations.getting {
-    extendsFrom(configurations.testImplementation.get())
-}
-val smokeTestRuntimeOnly: Configuration by configurations.getting {
-    extendsFrom(configurations.testRuntimeOnly.get())
-}
-val smokeTestCompileClasspath: Configuration by configurations.getting
-val smokeTestRuntimeClasspath: Configuration by configurations.getting
+addDependenciesAndConfigurations("smoke")
+
+val smokeTestImplementation: Configuration by configurations.getting
+val smokeTestDistributionRuntimeOnly: Configuration by configurations.getting
 
 dependencies {
     smokeTestImplementation(project(":baseServices"))
     smokeTestImplementation(project(":coreApi"))
     smokeTestImplementation(project(":testKit"))
-    smokeTestImplementation(project(":internalIntegTesting"))
     smokeTestImplementation(project(":launcher"))
     smokeTestImplementation(project(":persistentCache"))
     smokeTestImplementation(project(":jvmServices"))
-    smokeTestImplementation(library("commons_io"))
-    smokeTestImplementation(library("jgit"))
-    smokeTestImplementation(library("gradleProfiler")) {
+    smokeTestImplementation(project(":buildOption"))
+    smokeTestImplementation(libs.commonsIo)
+    smokeTestImplementation(libs.jgit)
+    smokeTestImplementation(libs.gradleProfiler) {
         because("Using build mutators to change a Java file")
     }
-    smokeTestImplementation(testLibrary("spock"))
+    smokeTestImplementation(libs.spock)
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":versionControl")))
+    smokeTestImplementation(testFixtures(project(":core")))
+    smokeTestImplementation(testFixtures(project(":versionControl")))
+
+    smokeTestDistributionRuntimeOnly(project(":distributionsFull"))
 }
-smokeTestRuntimeClasspath.extendsFrom(configurations.fullGradleRuntime.get())
 
 fun SmokeTest.configureForSmokeTest() {
     group = "Verification"
     testClassesDirs = smokeTest.output.classesDirs
     classpath = smokeTest.runtimeClasspath
     maxParallelForks = 1 // those tests are pretty expensive, we shouldn"t execute them concurrently
-    gradleInstallationForTest.gradleGeneratedApiJarCacheDir.set(
-        defaultGradleGeneratedApiJarCacheDirProvider(rootProject.providers, rootProject.layout)
-    )
 }
 
 tasks.register<SmokeTest>("smokeTest") {
@@ -80,6 +73,8 @@ tasks.register<SmokeTest>("instantSmokeTest") {
 }
 
 plugins.withType<IdeaPlugin>().configureEach {
+    val smokeTestCompileClasspath: Configuration by configurations.getting
+    val smokeTestRuntimeClasspath: Configuration by configurations.getting
     model.module {
         testSourceDirs = testSourceDirs + smokeTest.groovy.srcDirs
         testResourceDirs = testResourceDirs + smokeTest.resources.srcDirs
@@ -101,18 +96,18 @@ tasks {
     register<RemoteProject>("santaTrackerKotlin") {
         remoteUri.set(santaGitUri)
         // Pinned from branch agp-3.6.0
-        ref.set("764ac5150938f45bec0b4de852c323e767ba4bb4")
+        ref.set("3122343674246eaa56a5dd6365ea137edb021780")
     }
 
     register<RemoteProject>("santaTrackerJava") {
         remoteUri.set(santaGitUri)
         // Pinned from branch agp-3.6.0-java
-        ref.set("2fb2273a6f000b369bb719c25cda797d935983cc")
+        ref.set("d8543e51ac5a4803a8ac57f0639229736f11e0a8")
     }
 
     register<RemoteProject>("gradleBuildCurrent") {
         remoteUri.set(rootDir.absolutePath)
-        ref.set(rootProject.tasks.named<DetermineCommitId>("determineCommitId").flatMap { it.determinedCommitId })
+        ref.set(moduleIdentity.gradleBuildCommitId)
     }
 
     val remoteProjects = withType<RemoteProject>()
@@ -130,5 +125,8 @@ tasks {
     withType<SmokeTest>().configureEach {
         dependsOn(remoteProjects)
         inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
+        inputs.files(Callable { remoteProjects.map { it.outputDirectory } })
+            .withPropertyName("remoteProjectsSource")
+            .withPathSensitivity(PathSensitivity.RELATIVE)
     }
 }

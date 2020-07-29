@@ -270,9 +270,10 @@ repositories {
 // end::authenticated-ivy-repo[]
 
 task lookup {
+    def repoNames = repositories.collect { it.name }
     doLast {
-        repositories.each { assert it.name }
-        assert repositories[0].name
+        repoNames.each { assert it }
+        assert repositories[0]
     }
 }
 

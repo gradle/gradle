@@ -24,7 +24,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.plugins.DslObject;
@@ -33,7 +32,6 @@ import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.reporting.ReportingExtension;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.GroovyRuntime;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
@@ -44,6 +42,8 @@ import org.gradle.api.tasks.javadoc.Groovydoc;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
+
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
  * Extends {@link org.gradle.api.plugins.JavaBasePlugin} to provide support for compiling and documenting Groovy
@@ -103,7 +103,12 @@ public class GroovyBasePlugin implements Plugin<Project> {
 
                 final SourceDirectorySet groovySource = groovySourceSet.getGroovy();
                 groovySource.srcDir("src/" + sourceSet.getName() + "/groovy");
-                sourceSet.getResources().getFilter().exclude(new IsGroovySourceSpec(groovySource));
+
+                // Explicitly capture only a FileCollection in the lambda below for compatibility with instant-execution.
+                final FileCollection groovySourceFiles = groovySource;
+                sourceSet.getResources().getFilter().exclude(
+                    spec(element -> groovySourceFiles.contains(element.getFile()))
+                );
                 sourceSet.getAllJava().source(groovySource);
                 sourceSet.getAllSource().source(groovySource);
 
@@ -176,18 +181,5 @@ public class GroovyBasePlugin implements Plugin<Project> {
 
     private JavaPluginConvention java(Convention convention) {
         return convention.getPlugin(JavaPluginConvention.class);
-    }
-
-    private static class IsGroovySourceSpec implements Spec<FileTreeElement> {
-        private final FileCollection groovySource;
-
-        public IsGroovySourceSpec(FileCollection groovySource) {
-            this.groovySource = groovySource;
-        }
-
-        @Override
-        public boolean isSatisfiedBy(FileTreeElement element) {
-            return groovySource.contains(element.getFile());
-        }
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
@@ -24,4 +25,24 @@ import org.gradle.api.Named;
  * @since 1.3
  */
 public interface Publication extends Named {
+
+    /**
+     * Disables publication of a unique build identifier in Gradle Module Metadata.
+     * <p>
+     * The build identifier is published by default.
+     *
+     * @since 6.6
+     */
+    @Incubating
+    void withoutBuildIdentifier();
+
+    /**
+     * Enables publication of a unique build identifier in Gradle Module Metadata.
+     * <p>
+     * The build identifier is published by default.
+     *
+     * @since 6.6
+     */
+    @Incubating
+    void withBuildIdentifier();
 }

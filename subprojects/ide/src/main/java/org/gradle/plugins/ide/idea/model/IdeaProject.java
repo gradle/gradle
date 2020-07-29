@@ -338,6 +338,7 @@ public class IdeaProject implements IdeWorkspace {
         this.pathFactory = pathFactory;
     }
 
+    @SuppressWarnings("unchecked")
     public void mergeXmlProject(Project xmlProject) {
         ipr.getBeforeMerged().execute(xmlProject);
         xmlProject.configure(getModules(), getJdkName(), getLanguageLevel(), getTargetBytecodeVersion(), getWildcards(), getProjectLibraries(), getVcs());

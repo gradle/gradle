@@ -42,7 +42,7 @@ public class ArtifactAtRepositoryKey {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || !(o instanceof ArtifactAtRepositoryKey)) {
+        if (!(o instanceof ArtifactAtRepositoryKey)) {
             return false;
         }
         ArtifactAtRepositoryKey other = (ArtifactAtRepositoryKey) o;

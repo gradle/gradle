@@ -20,9 +20,11 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.plugins.signing.signatory.SignatorySupport;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.SequenceInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,10 +69,18 @@ public class GnupgSignatory extends SignatorySupport {
         project.exec(spec -> {
                 spec.setExecutable(executable);
                 spec.setArgs(arguments);
-                spec.setStandardInput(input);
+                spec.setStandardInput(prepareStdin(input));
                 spec.setStandardOutput(output);
             }
         );
+    }
+
+    private InputStream prepareStdin(InputStream input) {
+        if (passphrase!=null) {
+            return new SequenceInputStream(new ByteArrayInputStream((passphrase + "\n").getBytes()), input);
+        } else {
+            return input;
+        }
     }
 
     private List<String> buildArgumentList() {
@@ -93,8 +103,8 @@ public class GnupgSignatory extends SignatorySupport {
             } else {
                 args.add("--pinentry-mode=loopback");
             }
-            args.add("--passphrase");
-            args.add(passphrase);
+            args.add("--passphrase-fd");
+            args.add("0");
         } else {
             if (useLegacyGpg) {
                 args.add("--use-agent");

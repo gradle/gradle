@@ -61,11 +61,11 @@ public class PathNotationConverter implements NotationConverter<Object, String> 
                 || notation instanceof Boolean) {
             result.converted(notation.toString());
         } else if (notation instanceof Callable) {
-            final Callable callableNotation = (Callable) notation;
+            final Callable<?> callableNotation = (Callable<?>) notation;
             final Object called = uncheckedCall(callableNotation);
             convert(called, result);
         } else if (notation instanceof Provider) {
-            final Provider providerNotation = (Provider) notation;
+            final Provider<?> providerNotation = (Provider<?>) notation;
             final Object called = providerNotation.get();
             convert(called, result);
         }

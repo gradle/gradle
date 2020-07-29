@@ -16,6 +16,8 @@
 
 package org.gradle.internal.event;
 
+import org.gradle.internal.service.scopes.Scopes;
+
 /**
  * Unified manager for all Gradle events.  Provides a simple way to find all listeners of a given type in the
  * system.
@@ -27,7 +29,7 @@ package org.gradle.internal.event;
  */
 public interface ListenerManager {
     /**
-     * Added a listener.  A single object can implement multiple interfaces, and all interfaces are registered by a
+     * Adds a listener.  A single object can implement multiple interfaces, and all interfaces are registered by a
      * single invocation of this method.  There is no order dependency: if a broadcaster has already been made for type
      * T, the listener will be registered with it if <code>(listener instanceof T)</code> returns true.
      *
@@ -110,5 +112,5 @@ public interface ListenerManager {
      *
      * @return The child
      */
-    ListenerManager createChild();
+    ListenerManager createChild(Scopes scope);
 }

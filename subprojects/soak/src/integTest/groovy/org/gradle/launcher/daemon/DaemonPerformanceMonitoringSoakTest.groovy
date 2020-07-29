@@ -20,10 +20,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.launcher.daemon.fixtures.DaemonMultiJdkIntegrationTest
 import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus
-import org.gradle.soak.categories.SoakTest
-import org.junit.experimental.categories.Category
 
-@Category(SoakTest)
 @TargetCoverage({DaemonPerformanceMonitoringCoverage.ALL_VERSIONS})
 class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest {
     def setup() {

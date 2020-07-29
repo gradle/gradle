@@ -19,17 +19,13 @@ package org.gradle.internal.work
 import org.gradle.api.Action
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
-import org.gradle.internal.concurrent.ParallelismConfigurationManager
-import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
-import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.resources.TestTrackedResourceLock
 import spock.lang.Specification
 
-
 class DefaultWorkerLeaseServiceTest extends Specification {
     def coordinationService = new DefaultResourceLockCoordinationService()
-    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, new ParallelismConfigurationManagerFixture(true, 1))
+    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, new DefaultParallelismConfiguration(true, 1))
 
     def "can use withLocks to execute a runnable with resources locked"() {
         boolean executed = false
@@ -156,37 +152,7 @@ class DefaultWorkerLeaseServiceTest extends Specification {
         !lock2.lockedState
     }
 
-    def "registers/deregisters a listener for parallelism configuration changes"() {
-        ParallelismConfigurationManager parallelExecutionManager = new ParallelismConfigurationManagerFixture(true, 1)
-
-        when:
-        workerLeaseService = new DefaultWorkerLeaseService(Mock(ResourceLockCoordinationService), parallelExecutionManager)
-
-        then:
-        parallelExecutionManager.listeners.size() == 1
-
-        when:
-        workerLeaseService.stop()
-
-        then:
-        parallelExecutionManager.listeners.size() == 0
-    }
-
-    def "adjusts max worker count on parallelism configuration change"() {
-        when:
-        workerLeaseService.onParallelismConfigurationChange(new DefaultParallelismConfiguration(true, 2))
-
-        then:
-        workerLeaseService.getMaxWorkerCount() == 2
-
-        when:
-        workerLeaseService.onParallelismConfigurationChange(new DefaultParallelismConfiguration(false, 4))
-
-        then:
-        workerLeaseService.getMaxWorkerCount() == 4
-    }
-
-    TestTrackedResourceLock resourceLock(String displayName, boolean locked, boolean hasLock=false) {
+    TestTrackedResourceLock resourceLock(String displayName, boolean locked, boolean hasLock = false) {
         return new TestTrackedResourceLock(displayName, coordinationService, Mock(Action), Mock(Action), locked, hasLock)
     }
 

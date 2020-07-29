@@ -47,7 +47,7 @@ public class NoInputsRuleAction<T> implements RuleAction<T> {
             return false;
         }
 
-        NoInputsRuleAction that = (NoInputsRuleAction) o;
+        NoInputsRuleAction<?> that = (NoInputsRuleAction<?>) o;
         return action.equals(that.action);
     }
 

@@ -21,9 +21,11 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectScript
 import org.gradle.configuration.ImportsReader
 import org.gradle.configuration.ScriptTarget
-import org.gradle.groovy.scripts.StringScriptSource
+import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.internal.Actions
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.resource.StringTextResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -54,7 +56,7 @@ class BuildScriptTransformerSpec extends Specification {
     }
 
     private CompiledScript<Script, BuildScriptData> parse(String script) {
-        def source = new StringScriptSource("test script", script)
+        def source = new TextResourceScriptSource(new StringTextResource("test script", script))
         def sourceHashCode = Hashing.hashString(script)
         def target = Mock(ScriptTarget) {
             getClasspathBlockName() >> "buildscript"
@@ -66,7 +68,7 @@ class BuildScriptTransformerSpec extends Specification {
         def transformer = new BuildScriptTransformer(source, target)
         def operation = new FactoryBackedCompileOperation<BuildScriptData>("id", 'stage', transformer, transformer, new BuildScriptDataSerializer())
         scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, Actions.doNothing())
-        return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, operation, ProjectScript)
+        return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, DefaultClassPath.of(scriptCacheDir), metadataCacheDir, operation, ProjectScript)
     }
 
     def "empty script does not contain any code"() {
@@ -241,24 +243,24 @@ return 12
         !scriptData.hasMethods
 
         where:
-        script                                         | _
-        "foo = 'bar'"                                  | _
-        "foo"                                          | _
-        '"${foo}"'                                     | _
-        "println 'hi!'"                                | _
-        "return a + 1"                                 | _
-        "return foo"                                   | _
-        'return "${foo}"'                              | _
-        'String s = "a" + "b"'                         | _
-        "if (a) { return null }; foo"                  | _
+        script                        | _
+        "foo = 'bar'"                 | _
+        "foo"                         | _
+        '"${foo}"'                    | _
+        "println 'hi!'"               | _
+        "return a + 1"                | _
+        "return foo"                  | _
+        'return "${foo}"'             | _
+        'String s = "a" + "b"'        | _
+        "if (a) { return null }; foo" | _
         """
 plugins {
 }
 println "hi"
-"""                                         | _
+"""                        | _
         """
 foo
 return null
-"""                                         | _
+"""                        | _
     }
 }

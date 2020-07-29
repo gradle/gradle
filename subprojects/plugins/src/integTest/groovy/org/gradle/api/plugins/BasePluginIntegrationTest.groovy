@@ -16,7 +16,6 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -27,7 +26,6 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
     @Requires(TestPrecondition.MANDATORY_FILE_LOCKING)
     def "clean failure message indicates file"() {
         given:
-        executer.requireGradleDistribution()
         buildFile << """
             apply plugin: 'base'
         """
@@ -68,7 +66,6 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['build', 'check']
     }
 
-    @ToBeFixedForInstantExecution
     def "can define 'default' and 'archives' configurations prior to applying plugin"() {
         buildFile << """
             configurations {
@@ -78,7 +75,7 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: 'base'
 """
         expect:
-        succeeds "tasks"
+        succeeds "help"
     }
 
     def "can override archiveBaseName in custom Jar task"() {

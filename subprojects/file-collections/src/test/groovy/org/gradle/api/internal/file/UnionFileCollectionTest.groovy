@@ -18,12 +18,10 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.Task
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
 import static org.gradle.api.internal.file.AbstractFileCollectionTest.TestFileCollection
 
-@UsesNativeServices
 class UnionFileCollectionTest extends Specification {
     def file1 = new File("1")
     def file2 = new File("2")
@@ -35,16 +33,36 @@ class UnionFileCollectionTest extends Specification {
 
         expect:
         def collection = new UnionFileCollection(source1, source2)
-        collection.files == [file1, file2, file3] as LinkedHashSet
+        collection.files.toList() == [file1, file2, file3]
+        collection.sourceCollections == [source1, source2]
     }
 
     def contentsTrackContentsOfSourceCollections() {
-        def source1 = new TestFileCollection(file1)
-        def source2 = new TestFileCollection(file2, file3)
+        def source1 = Mock(FileCollectionInternal)
+        def source2 = Mock(FileCollectionInternal)
 
-        expect:
         def collection = new UnionFileCollection(source1, source2)
-        collection.files == [file1, file2, file3] as LinkedHashSet
+
+        when:
+        def result = collection.files
+
+        then:
+        result.toList() == [file1, file2, file3]
+
+        1 * source1.visitStructure(_) >> { FileCollectionStructureVisitor visitor -> visitor.visitCollection(null, [file1, file2]) }
+        1 * source2.visitStructure(_) >> { FileCollectionStructureVisitor visitor -> visitor.visitCollection(null, [file2, file3]) }
+        0 * _
+
+        when:
+        def result2 = collection.files
+
+        then:
+        result2 != result
+        result2.toList() == [file1, file2]
+
+        1 * source1.visitStructure(_) >> { FileCollectionStructureVisitor visitor -> visitor.visitCollection(null, [file1]) }
+        1 * source2.visitStructure(_) >> { FileCollectionStructureVisitor visitor -> visitor.visitCollection(null, [file2]) }
+        0 * _
     }
 
     def dependsOnUnionOfDependenciesOfSourceCollections() {
@@ -67,5 +85,33 @@ class UnionFileCollectionTest extends Specification {
         expect:
         def collection = new UnionFileCollection(source1, source2)
         collection.buildDependencies.getDependencies(null) as List == [task1, task2, task3]
+    }
+
+    def "can replace one of the source collections"() {
+        def source1 = Mock(FileCollectionInternal)
+        def source2 = Mock(FileCollectionInternal)
+        def source3 = Mock(FileCollectionInternal)
+        def source4 = Mock(FileCollectionInternal)
+
+        def collection = new UnionFileCollection(source1, source2)
+
+        when:
+        def replaced = collection.replace(source3, {})
+
+        then:
+        1 * source1.replace(source3, _) >> source1
+        1 * source2.replace(source3, _) >> source2
+
+        replaced.is(collection)
+
+        when:
+        def replaced2 = collection.replace(source3, {})
+
+        then:
+        1 * source1.replace(source3, _) >> source1
+        1 * source2.replace(source3, _) >> source4
+
+        replaced2 != collection
+        replaced2.sourceCollections == [source1, source4]
     }
 }

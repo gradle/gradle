@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import org.gradle.sample.app.Main;
 
@@ -20,7 +22,12 @@ public class MainIntegrationTest {
 
             Main.main(new String[0]);
 
-            assertEquals("Hello, World!\n", outStreamForTesting.toString());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            pw.println("Hello, World!");
+            pw.close();
+
+            assertEquals(sw.toString(), outStreamForTesting.toString());
         } finally {
             System.setOut(savedOut);
         }

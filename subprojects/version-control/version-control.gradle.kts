@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -29,11 +29,11 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":dependencyManagement"))
 
-    implementation(library("guava"))
-    implementation(library("inject"))
-    implementation(library("jgit"))
-    implementation(library("commons_httpclient"))
-    implementation(library("jsch"))
+    implementation(libs.guava)
+    implementation(libs.inject)
+    implementation(libs.jgit)
+    implementation(libs.commonsHttpclient)
+    implementation(libs.jsch)
 
     testImplementation(project(":native"))
     testImplementation(project(":snapshots"))
@@ -41,17 +41,14 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
 
     testFixturesImplementation(project(":baseServices"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
 
-    testFixturesImplementation(library("jgit"))
-    testFixturesImplementation(library("commons_io"))
-    testFixturesImplementation(library("commons_httpclient"))
-    testFixturesImplementation(library("jsch"))
-    testFixturesImplementation(library("guava"))
+    testFixturesImplementation(libs.jgit)
+    testFixturesImplementation(libs.commonsIo)
+    testFixturesImplementation(libs.commonsHttpclient)
+    testFixturesImplementation(libs.jsch)
+    testFixturesImplementation(libs.guava)
 
     integTestImplementation(project(":launcher"))
-    integTestRuntimeOnly(project(":pluginDevelopment"))
-    integTestRuntimeOnly(project(":testKit"))
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
 }

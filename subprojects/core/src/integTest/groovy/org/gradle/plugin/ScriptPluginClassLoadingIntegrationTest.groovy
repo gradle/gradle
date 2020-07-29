@@ -17,7 +17,6 @@
 package org.gradle.plugin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Issue
 
@@ -94,7 +93,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "tasks"
+        fails "help"
 
         then:
         failure.assertHasFileName("Script '${file("script2.gradle").absolutePath}'")
@@ -112,7 +111,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "tasks"
+        fails "help"
 
         then:
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
@@ -130,14 +129,13 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "tasks", "-I", file("init.gradle").absolutePath
+        fails "help", "-I", file("init.gradle").absolutePath
 
         then:
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertThatCause(containsText("Could not find method someMethod()"))
     }
 
-    @ToBeFixedForInstantExecution
     def "methods defined in a build script are visible to scripts applied to sub projects"() {
         given:
         settingsFile << "include 'sub'"
@@ -152,7 +150,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         file("sub/script.gradle") << "someMethod()"
 
         when:
-        run "tasks"
+        run "help"
 
         then:
         output.contains("from some method")
@@ -192,14 +190,13 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         file("script2.gradle") << "new Foo()"
 
         when:
-        fails "tasks"
+        fails "help"
 
         then:
         failure.assertHasFileName("Script '${file("script2.gradle").absolutePath}'")
         failure.assertThatCause(containsText("unable to resolve class Foo"))
     }
 
-    @ToBeFixedForInstantExecution
     def "script plugin buildscript does not affect client"() {
         given:
         def jar = file("plugin.jar")
@@ -250,7 +247,6 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "not in sub"
     }
 
-    @ToBeFixedForInstantExecution
     def "script plugin cannot access classes added by buildscript in applying script"() {
         given:
         def jar = file("plugin.jar")
@@ -286,7 +282,6 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "not in script"
     }
 
-    @ToBeFixedForInstantExecution
     def "second level script plugin cannot access classes added by buildscript in applying script"() {
         given:
         def jar = file("plugin.jar")
@@ -326,7 +321,6 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "not in script"
     }
 
-    @ToBeFixedForInstantExecution
     def "Can apply a script plugin to the buildscript block"() {
         given:
         def jar = file("plugin.jar")

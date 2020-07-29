@@ -190,7 +190,6 @@ class IvyResolverTest extends Specification {
                 Stub(LocallyAvailableResourceFinder),
                 false,
                 Stub(FileStore),
-                moduleIdentifierFactory,
                 supplier,
                 lister,
                 metadataSources,

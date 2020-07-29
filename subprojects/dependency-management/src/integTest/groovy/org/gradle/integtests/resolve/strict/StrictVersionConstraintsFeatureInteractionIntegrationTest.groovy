@@ -17,6 +17,7 @@ package org.gradle.integtests.resolve.strict
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class StrictVersionConstraintsFeatureInteractionIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -197,6 +198,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "cannot force a version over an ancestor provided version"() {
         given:
         repository {
@@ -347,8 +349,9 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
 
         buildFile << """
             import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.*
+            import org.gradle.api.internal.*
 
-            def VERSIONED_COMPARATOR = new DefaultVersionComparator()
+            def VERSIONED_COMPARATOR = new DefaultVersionComparator(new FeaturePreviews())
             def VERSION_SCHEME = new DefaultVersionSelectorScheme(VERSIONED_COMPARATOR, new VersionParser())
 
             configurations.all {

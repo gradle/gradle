@@ -16,10 +16,13 @@
 
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.IgnoreIf
 
+@IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
 class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def setup() {
@@ -82,7 +85,7 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
         // Repackage distribution with bin/gradle removed so permissions cannot be set
         TestFile tempUnzipDir = temporaryFolder.createDir("temp-unzip")
         distribution.binDistribution.unzipTo(tempUnzipDir)
-        assert tempUnzipDir.file("gradle-${distribution.version.version}", "bin", "gradle").delete()
+        assert tempUnzipDir.file("gradle-${distribution.version.baseVersion.version}", "bin", "gradle").delete()
         TestFile tempZipDir = temporaryFolder.createDir("temp-zip-foo")
         TestFile malformedDistZip = new TestFile(tempZipDir, "gradle-${distribution.version.version}-bin.zip")
         tempUnzipDir.zipTo(malformedDistZip)

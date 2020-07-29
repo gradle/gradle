@@ -383,7 +383,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
     }
 
 
-    void "can blacklist a version"()
+    void "can deny a version"()
     {
         mavenRepo.module("org.utils", "a",  '1.4').publish()
         mavenRepo.module("org.utils", "a",  '1.3').publish()
@@ -398,7 +398,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations.conf.resolutionStrategy.eachDependency {
-                // a:1.2 is blacklisted, 1.4 should be used instead:
+                // a:1.2 is denied, 1.4 should be used instead:
                 if (it.requested.name == 'a' && it.requested.version == '1.2') {
                     it.useVersion '1.4'
                 }
@@ -424,7 +424,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    void "can blacklist a version that is not used"()
+    void "can deny a version that is not used"()
     {
         mavenRepo.module("org.utils", "a",  '1.3').publish()
         mavenRepo.module("org.utils", "a",  '1.2').publish()
@@ -438,7 +438,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations.conf.resolutionStrategy.eachDependency {
-                // a:1.2 is blacklisted, 1.2.1 should be used instead:
+                // a:1.2 is denied, 1.2.1 should be used instead:
                 if (it.requested.name == 'a' && it.requested.version == '1.2') {
                     it.useVersion '1.2.1'
                 }

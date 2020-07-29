@@ -1,4 +1,4 @@
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
 /*
  * Copyright 2012 the original author or authors.
  *
@@ -15,7 +15,7 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -30,38 +30,34 @@ dependencies {
     implementation(project(":snapshots"))
     implementation(project(":dependencyManagement"))
     implementation(project(":baseServicesGroovy"))
+    implementation(project(":buildOption"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("groovy"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("inject"))
-    implementation(library("jatl"))
+    implementation(libs.slf4jApi)
+    implementation(libs.groovy)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.inject)
+    implementation(libs.jatl)
 
     testImplementation(project(":processServices"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependencyManagement")))
     testImplementation(testFixtures(project(":logging")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
-    testRuntimeOnly(project(":kotlinDsl"))
-    testRuntimeOnly(project(":kotlinDslProviderPlugins"))
-
-    integTestImplementation(testLibrary("jsoup"))
-    integTestImplementation(testLibrary("jetty"))
+    integTestImplementation(libs.jsoup)
+    integTestImplementation(libs.jetty)
 
     testFixturesApi(testFixtures(project(":platformNative")))
     testFixturesImplementation(project(":baseServices"))
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("guava"))
+    testFixturesImplementation(libs.guava)
 
-    // These are only here for 'DiagnosticsComponentReportIntegrationTest.shows details of multiple components'
-    integTestRuntimeOnly(project(":plugins"))
-    integTestRuntimeOnly(project(":platformNative"))
-    integTestRuntimeOnly(project(":languageNative"))
-    integTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
-
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsFull"))  {
+        because("There are integration tests that assert that all the tasks of a full distribution are reported (these should probably move to ':integTests').")
+    }
 }
 
 classycle {

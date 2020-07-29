@@ -15,15 +15,17 @@
  */
 package org.gradle.api.internal.tasks.testing.filter;
 
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.testing.TestFilter;
+import org.gradle.internal.scan.UsedByScanPlugin;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.testing.TestFilter;
-
+@UsedByScanPlugin("test-distribution")
 public class DefaultTestFilter implements TestFilter {
 
     private final Set<String> includeTestNames = new HashSet<String>();
@@ -112,6 +114,7 @@ public class DefaultTestFilter implements TestFilter {
     }
 
     @Input
+    @UsedByScanPlugin("test-distribution")
     public Set<String> getCommandLineIncludePatterns() {
         return commandLineIncludeTestNames;
     }

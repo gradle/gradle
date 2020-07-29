@@ -49,7 +49,7 @@ class SamplesJavaOnlyIfIntegrationTest extends AbstractIntegrationTest {
      */
     @ToBeFixedForInstantExecution(because = "onlyIf spec capturing another task")
     @Test void testOptimizedBuild() {
-        TestFile javaprojectDir = sample.dir
+        TestFile javaprojectDir = sample.dir.file('groovy')
 
         // Build and test projects
         executer.inDirectory(javaprojectDir).withTasks('clean', 'build').run()

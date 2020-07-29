@@ -19,7 +19,7 @@ package org.gradle.execution.plan;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
-import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.resources.ResourceLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -278,12 +278,10 @@ public abstract class Node implements Comparable<Node> {
     public abstract boolean requiresMonitoring();
 
     /**
-     * Returns the project which this node requires mutable access to, if any.
-     *
-     * TODO - this should return an identifier or the {@link org.gradle.api.internal.project.ProjectState} container, or some abstract resource, rather than the mutable project state itself.
+     * Returns the project state that this node requires mutable access to, if any.
      */
     @Nullable
-    public abstract Project getProjectToLock();
+    public abstract ResourceLock getProjectToLock();
 
     /**
      * Returns the project which this node belongs to, and requires access to the execution services of.
@@ -292,7 +290,7 @@ public abstract class Node implements Comparable<Node> {
      * TODO - this should return some kind of abstract 'action context' instead of a mutable project.
      */
     @Nullable
-    public abstract Project getOwningProject();
+    public abstract ProjectInternal getOwningProject();
 
     /**
      * Returns the resources which should be locked before starting this node.

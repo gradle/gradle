@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.logging.events.LogEvent
+import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
 import org.gradle.internal.logging.events.operations.ProgressStartBuildOperationProgressDetails
 import org.gradle.internal.logging.events.operations.StyledTextBuildOperationProgressDetails
@@ -58,13 +59,13 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "different build operation tree")
     def "captures output sources with context"() {
         given:
         executer.requireOwnGradleUserHomeDir()
         mavenHttpRepository.module("org", "foo", '1.0').publish().allowAll()
 
-        file('init.gradle') << """
+        file('init/init.gradle') << """
             logger.warn 'from init.gradle'
         """
         settingsFile << """
@@ -104,24 +105,24 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds("build", '-I', 'init.gradle')
+        succeeds("build", '-I', 'init/init.gradle')
 
         then:
 
-        def applyInitScriptProgress = operations.only('Apply script init.gradle to build').progress
+        def applyInitScriptProgress = operations.only("Apply initialization script 'init${File.separator}init.gradle' to build").progress
         applyInitScriptProgress.size() == 1
         applyInitScriptProgress[0].details.logLevel == 'WARN'
         applyInitScriptProgress[0].details.category == 'org.gradle.api.Script'
         applyInitScriptProgress[0].details.message == 'from init.gradle'
 
-        def applySettingsScriptProgress = operations.only(Pattern.compile('Apply script settings.gradle .*')).progress
+        def applySettingsScriptProgress = operations.only("Apply settings file 'settings.gradle' to settings '$testDirectory.name'").progress
         applySettingsScriptProgress.size() == 1
         applySettingsScriptProgress[0].details.logLevel == 'QUIET'
         applySettingsScriptProgress[0].details.category == 'system.out'
         applySettingsScriptProgress[0].details.spans[0].styleName == 'Normal'
         applySettingsScriptProgress[0].details.spans[0].text == "from settings file${getPlatformLineSeparator()}"
 
-        def applyBuildScriptProgress = operations.only("Apply script build.gradle to root project 'root'").progress
+        def applyBuildScriptProgress = operations.only("Apply build file 'build.gradle' to root project 'root'").progress
         applyBuildScriptProgress.size() == 1
         applyBuildScriptProgress[0].details.logLevel == 'LIFECYCLE'
         applyBuildScriptProgress[0].details.category == 'org.gradle.api.Project'
@@ -201,7 +202,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         succeeds("all")
 
         then:
-        10.times {  projectCount ->
+        10.times { projectCount ->
             def allExecutionOp = operations.only("Execute doLast {} action for :project-${projectCount}:all")
             def allExecutionOpTaskProgresses = allExecutionOp.progress
 
@@ -218,7 +219,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         }
 
         def runBuildProgress = operations.only('Run build').progress
-        def threadedConfigurationProgress = runBuildProgress.find { it.details.spans[0].text == "threaded configuration output${getPlatformLineSeparator()}" }
+        def threadedConfigurationProgress = runBuildProgress.find { it.details.containsKey('spans') && it.details.spans[0].text == "threaded configuration output${getPlatformLineSeparator()}" }
         threadedConfigurationProgress.details.category == 'system.out'
         threadedConfigurationProgress.details.spans.size == 1
         threadedConfigurationProgress.details.spans[0].styleName == 'Normal'
@@ -244,7 +245,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         assertNestedTaskOutputTracked(':buildSrc')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "captures output from composite builds"() {
         given:
         configureNestedBuild()
@@ -262,7 +263,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         assertNestedTaskOutputTracked()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "GradleBuild task")
     def "captures output from GradleBuild task builds"() {
         given:
         configureNestedBuild()
@@ -281,7 +282,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         assertNestedTaskOutputTracked()
     }
 
-    @IgnoreIf({ GradleContextualExecuter.vfsRetention })
+    @IgnoreIf({ GradleContextualExecuter.watchFs })
     def "supports debug level logging"() {
         when:
         buildFile << """
@@ -426,9 +427,20 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         succeeds 'build'
 
         then:
-        def progressOutputEvents = operations.all(Pattern.compile('.*')).collect { it.progress }.flatten()
+        def progressOutputEvents = operations.all(Pattern.compile('.*'))
+            .collect { it.progress }
+            .flatten()
+            .with { it as List<BuildOperationRecord.Progress> }
+            .findAll { OutputEvent.isAssignableFrom(it.detailsType) }
+        // Watching the file system is an incubating feature.
+        // Spent 18 ms registering watches for file system events
+        // Virtual file system retained information about 0 files, 0 directories and 0 missing files since last build
+        // Received 50 file system events for current build
+        // Watching 20 directories to track changes
+        // Virtual file system retains information about 21 files, 15 directories and 3 missing files till next build
+        def watchFsExtraEvents = GradleContextualExecuter.watchFs ? 6 : 0
         assert progressOutputEvents
-            .size() == 14 // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
+            .size() == 14 + watchFsExtraEvents // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
     }
 
     private void assertNestedTaskOutputTracked(String projectPath = ':nested') {

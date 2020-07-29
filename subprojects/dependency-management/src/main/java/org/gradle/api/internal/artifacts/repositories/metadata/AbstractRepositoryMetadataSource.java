@@ -117,7 +117,7 @@ abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponent
     }
 
     private void checkModuleIdentifier(ModuleComponentIdentifier expectedId, ModuleVersionIdentifier actualId) {
-        List<String> errors = new ArrayList<String>();
+        List<String> errors = new ArrayList<>();
         checkEquals("group", expectedId.getGroup(), actualId.getGroup(), errors);
         checkEquals("module name", expectedId.getModule(), actualId.getName(), errors);
         checkEquals("version", expectedId.getVersion(), actualId.getVersion(), errors);

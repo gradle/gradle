@@ -82,7 +82,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     private final String displayName;
     private final ServiceProvider thisAsServiceProvider;
 
-    private AtomicReference<State> state = new AtomicReference<State>(State.INIT);
+    private final AtomicReference<State> state = new AtomicReference<State>(State.INIT);
 
     public DefaultServiceRegistry() {
         this(null, NO_PARENTS);

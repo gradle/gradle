@@ -293,7 +293,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
                 signAsciiArmored(it)
                 if (name.endsWith(".jar")) {
                     // change contents of original file so that the signature doesn't match anymore
-                    bytes = [0, 1, 2, 3]
+                    tamperWithFile(it)
                 }
             }
         }
@@ -341,7 +341,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
                 signAsciiArmored(it)
                 if (name.endsWith(".jar")) {
                     // change contents of original file so that the signature doesn't match anymore
-                    bytes = [0, 1, 2, 3]
+                    tamperWithFile(it)
                 }
             }
         }
@@ -657,6 +657,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         terse << [true, false]
     }
 
+    @ToBeFixedForInstantExecution
     @Unroll
     def "caches missing keys (terse output=#terse)"() {
         createMetadataFile {
@@ -726,6 +727,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
 
+    @ToBeFixedForInstantExecution
     def "cache takes ignored keys into consideration"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -1056,7 +1058,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
                 signAsciiArmored(it)
             }
         }
-        module.artifactFile.bytes = [0, 1, 2]
+        tamperWithFile(module.artifactFile)
 
         buildFile << """
             dependencies {
@@ -1108,7 +1110,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
                 signAsciiArmored(it)
             }
         }
-        module.artifactFile.bytes = [0, 1, 2]
+        tamperWithFile(module.artifactFile)
 
         buildFile << """
             dependencies {
@@ -1382,5 +1384,9 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
 """
         where:
         terse << [true, false]
+    }
+
+    private static void tamperWithFile(File file) {
+        file.bytes = [0, 1, 2, 3] + file.readBytes().toList() as byte[]
     }
 }

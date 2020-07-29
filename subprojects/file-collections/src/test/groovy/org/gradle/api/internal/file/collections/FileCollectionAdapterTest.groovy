@@ -35,19 +35,6 @@ class FileCollectionAdapterTest extends Specification {
         0 * _._
     }
 
-    def resolveAddsTargetCollectionToContext() {
-        MinimalFileSet fileSet = Mock()
-        FileCollectionAdapter adapter = new FileCollectionAdapter(fileSet)
-        FileCollectionResolveContext context = Mock()
-
-        when:
-        adapter.visitContents(context)
-
-        then:
-        1 * context.add(fileSet)
-        0 * _._
-    }
-
     def visitDependenciesDelegatesToTargetCollectionWhenItImplementsBuildable() {
         TestFileSet fileSet = Mock()
         FileCollectionAdapter adapter = new FileCollectionAdapter(fileSet)

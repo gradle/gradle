@@ -19,11 +19,13 @@ package org.gradle.plugin.use.internal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.management.internal.PluginRequests;
 
 import javax.annotation.Nullable;
 
-// Implementation is provided by 'plugin-use' module
+@ServiceScope(Scopes.Build)
 public interface PluginRequestApplicator {
 
     /**

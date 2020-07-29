@@ -111,7 +111,7 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
         @Override
         public Object find(Type serviceType) throws ServiceLookupException {
             Object service = serviceRegistry.find(serviceType);
-            if (ImplicitInputsProvidingService.class.isInstance(service)) {
+            if (service instanceof ImplicitInputsProvidingService) {
                 return ((ImplicitInputsProvidingService)service).withImplicitInputRecorder(registrar);
             }
             return service;

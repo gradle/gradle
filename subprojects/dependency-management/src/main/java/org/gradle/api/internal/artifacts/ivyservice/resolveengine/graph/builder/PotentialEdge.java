@@ -20,7 +20,10 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+
+import javax.annotation.Nullable;
 
 /**
  * This class wraps knowledge about a potential edge to a component. It's called potential,
@@ -36,7 +39,7 @@ class PotentialEdge {
     final ComponentResolveMetadata metadata;
     final ComponentState component;
 
-    private PotentialEdge(EdgeState edge, ModuleVersionIdentifier toModuleVersionId, ComponentResolveMetadata metadata, ComponentState component) {
+    private PotentialEdge(EdgeState edge, ModuleVersionIdentifier toModuleVersionId, @Nullable ComponentResolveMetadata metadata, ComponentState component) {
         this.edge = edge;
         this.toModuleVersionId = toModuleVersionId;
         this.metadata = metadata;
@@ -50,7 +53,11 @@ class PotentialEdge {
     static PotentialEdge of(ResolveState resolveState, NodeState from, ModuleComponentIdentifier toComponent, ModuleComponentSelector toSelector, ComponentIdentifier owner, boolean force, boolean transitive) {
         DependencyState dependencyState = new DependencyState(new LenientPlatformDependencyMetadata(resolveState, from, toSelector, toComponent, owner, force || hasStrongOpinion(from), transitive), resolveState.getComponentSelectorConverter());
         dependencyState = NodeState.maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
-        EdgeState edge = new EdgeState(from, dependencyState, from.previousTraversalExclusions, resolveState);
+        ExcludeSpec exclusions = from.previousTraversalExclusions;
+        if (exclusions == null) {
+            exclusions = resolveState.getModuleExclusions().nothing();
+        }
+        EdgeState edge = new EdgeState(from, dependencyState, exclusions, resolveState);
         edge.computeSelector();
         ModuleVersionIdentifier toModuleVersionId = DefaultModuleVersionIdentifier.newId(toSelector.getModuleIdentifier(), toSelector.getVersion());
         ComponentState version = resolveState.getModule(toSelector.getModuleIdentifier()).getVersion(toModuleVersionId, toComponent);

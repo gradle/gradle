@@ -1,4 +1,3 @@
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -14,8 +13,11 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradlebuild.cleanup.WhenNotEmpty
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
+
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -38,12 +40,12 @@ dependencies {
     implementation(project(":ear"))
     implementation(project(":toolingApi"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("commons_io"))
-    implementation(library("inject"))
+    implementation(libs.groovy)
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
+    implementation(libs.inject)
 
     testFixturesApi(project(":baseServices")) {
         because("test fixtures export the Action class")
@@ -51,23 +53,25 @@ dependencies {
     testFixturesApi(project(":logging")) {
         because("test fixtures export the ConsoleOutput class")
     }
-    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
 
     testImplementation(project(":dependencyManagement"))
-    testImplementation(testLibrary("xmlunit"))
-    testImplementation("nl.jqno.equalsverifier:equalsverifier:2.1.6")
+    testImplementation(libs.xmlunit)
+    testImplementation(libs.equalsverifier)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependencyManagement")))
 
-    testRuntimeOnly(project(":runtimeApiInfo"))
+    integTestImplementation(libs.jetty)
 
-    integTestImplementation(testLibrary("jetty"))
-    integTestRuntimeOnly(project(":testKit"))
+    testRuntimeOnly(project(":distributionsCore")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributionsJvm"))
 }
 
 strictCompile {
-    ignoreParameterizedVarargType() // TODO remove this and address warnings and/or add the RIGHT ignores here
+    ignoreRawTypes()
 }
 
 classycle {
@@ -82,3 +86,5 @@ classycle {
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
+
+integrationTestUsesSampleDir("subprojects/ide/src/main")

@@ -20,7 +20,6 @@ import org.gradle.api.tasks.CompileClasspath
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -32,7 +31,6 @@ import static org.gradle.work.ChangeType.MODIFIED
 
 @Unroll
 @Requires(TestPrecondition.SYMLINKS)
-@ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/11851")
 class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
     def "#desc can handle symlinks"() {
@@ -470,7 +468,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
     void maybeDeprecated(String expression) {
         if (expression.contains("configurableFiles")) {
-            executer.expectDeprecationWarning()
+            executer.expectDocumentedDeprecationWarning("The ProjectLayout.configurableFiles() method has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the ObjectFactory.fileCollection() method instead. See https://docs.gradle.org/current/userguide/lazy_configuration.html#property_files_api_reference for more details.")
         }
     }
 }

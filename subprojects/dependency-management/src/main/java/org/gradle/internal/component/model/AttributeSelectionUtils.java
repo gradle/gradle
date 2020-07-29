@@ -29,7 +29,7 @@ public class AttributeSelectionUtils {
             extraAttributes.addAll(attributes.keySet());
         }
         removeSameAttributes(requested, extraAttributes);
-        Attribute<?>[] extraAttributesArray = extraAttributes.toArray(new Attribute[0]);
+        Attribute<?>[] extraAttributesArray = extraAttributes.toArray(new Attribute<?>[0]);
         for (int i = 0; i < extraAttributesArray.length; i++) {
             Attribute<?> extraAttribute = extraAttributesArray[i];
             Attribute<?> schemaAttribute = schema.getAttribute(extraAttribute.getName());

@@ -18,20 +18,16 @@ package org.gradle.initialization;
 
 import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.internal.buildoption.BuildOption;
-
-import java.util.List;
 
 public class LayoutCommandLineConverter extends AbstractCommandLineConverter<BuildLayoutParameters> {
-    private List<BuildOption<BuildLayoutParameters>> buildOptions = BuildLayoutParametersBuildOptions.get();
+    private final CommandLineConverter<BuildLayoutParameters> converter = new BuildLayoutParametersBuildOptions().commandLineConverter();
 
     @Override
     public BuildLayoutParameters convert(ParsedCommandLine options, BuildLayoutParameters target) throws CommandLineArgumentException {
-        for (BuildOption<BuildLayoutParameters> option : buildOptions) {
-            option.applyFromCommandLine(options, target);
-        }
+        converter.convert(options, target);
 
         if (options.getExtraArguments().contains("init")) {
             target.setSearchUpwards(false);
@@ -46,8 +42,6 @@ public class LayoutCommandLineConverter extends AbstractCommandLineConverter<Bui
 
     @Override
     public void configure(CommandLineParser parser) {
-        for (BuildOption<BuildLayoutParameters> option : buildOptions) {
-            option.configure(parser);
-        }
+        converter.configure(parser);
     }
 }

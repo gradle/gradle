@@ -17,14 +17,14 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 abstract class AbstractProjectRelocationIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
+    @Requires(TestPrecondition.JDK14_OR_EARLIER) // reevaluate when upgrading JaCoco from current 0.8.5
     @ToBeFixedForInstantExecution(bottomSpecs = [
         "JavaGradlePluginRelocationTest",
-        "Antlr2RelocationIntegrationTest",
-        "Antlr3RelocationIntegrationTest",
-        "Antlr4RelocationIntegrationTest",
         "CheckstyleRelocationIntegrationTest",
         "PmdRelocationIntegrationTest",
         "CodeNarcRelocationIntegrationTest",

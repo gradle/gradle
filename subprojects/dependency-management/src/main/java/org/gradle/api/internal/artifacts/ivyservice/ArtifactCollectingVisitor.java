@@ -33,7 +33,7 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     private final Set<ResolvedArtifact> artifacts;
 
     public ArtifactCollectingVisitor() {
-        this(Sets.<ResolvedArtifact>newLinkedHashSet());
+        this(Sets.newLinkedHashSet());
     }
 
     public ArtifactCollectingVisitor(Set<ResolvedArtifact> artifacts) {

@@ -16,7 +16,6 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -41,7 +40,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("bash") })
-    @ToBeFixedForInstantExecution
     def "can execute generated Unix start script in Bash"() {
         given:
         succeeds('installDist')
@@ -54,7 +52,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("dash") })
-    @ToBeFixedForInstantExecution
     def "can execute generated Unix start script in Dash"() {
         given:
         succeeds('installDist')
@@ -67,7 +64,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("static-sh") })
-    @ToBeFixedForInstantExecution
     def "can execute generated Unix start script in BusyBox"() {
         given:
         succeeds('installDist')
@@ -80,7 +76,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("bash") })
-    @ToBeFixedForInstantExecution
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script in Bash"() {
         given:
         extendBuildFileWithAppHomeProperty()
@@ -94,7 +89,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("dash") })
-    @ToBeFixedForInstantExecution
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script in Dash"() {
         given:
         extendBuildFileWithAppHomeProperty()
@@ -108,7 +102,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("static-sh") })
-    @ToBeFixedForInstantExecution
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script in BusyBox"() {
         given:
         extendBuildFileWithAppHomeProperty()
@@ -122,7 +115,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("bash") })
-    @ToBeFixedForInstantExecution
     def "can pass argument to App with custom start script in Bash"() {
         given:
         succeeds('installDist')
@@ -138,7 +130,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("dash") })
-    @ToBeFixedForInstantExecution
     def "can pass argument to App with custom start script in Dash"() {
         given:
         succeeds('installDist')
@@ -154,7 +145,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("static-sh") })
-    @ToBeFixedForInstantExecution
     def "can pass argument to App with custom start script in BusyBox"() {
         given:
         succeeds('installDist')
@@ -170,7 +160,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(adhoc = { TestPrecondition.JDK9_OR_LATER.fulfilled && ApplicationPluginUnixShellsIntegrationTest.shellAvailable("bash") })
-    @ToBeFixedForInstantExecution
     def "can execute generated Unix start script for Java module in Bash"() {
         given:
         turnSampleProjectIntoModule()
@@ -184,7 +173,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(adhoc = { TestPrecondition.JDK9_OR_LATER.fulfilled && ApplicationPluginUnixShellsIntegrationTest.shellAvailable("dash") })
-    @ToBeFixedForInstantExecution
     def "can execute generated Unix start script for Java module in Dash"() {
         given:
         turnSampleProjectIntoModule()
@@ -198,7 +186,6 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(adhoc = { TestPrecondition.JDK9_OR_LATER.fulfilled && ApplicationPluginUnixShellsIntegrationTest.shellAvailable("static-sh") })
-    @ToBeFixedForInstantExecution
     def "can execute generated Unix start script for Java module in BusyBox"() {
         given:
         turnSampleProjectIntoModule()

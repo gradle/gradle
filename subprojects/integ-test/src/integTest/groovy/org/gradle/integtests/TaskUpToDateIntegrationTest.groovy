@@ -20,7 +20,6 @@ package org.gradle.integtests
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -28,7 +27,6 @@ import spock.lang.Unroll
 class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     @Issue("https://issues.gradle.org/browse/GRADLE-3540")
-    @ToBeFixedForInstantExecution
     def "order of #annotation marks task not up-to-date"() {
         buildFile << """
             class MyTask extends DefaultTask {
@@ -40,7 +38,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task myTask(type: MyTask) {
-                if (project.hasProperty("reverse")) {
+                if (providers.gradleProperty("reverse").forUseAtConfigurationTime().isPresent()) {
                     out = files("out2", "out1")
                 } else {
                     out = files("out1", "out2")
@@ -68,7 +66,6 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3540")
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "hash set output files marks task up-to-date"() {
         buildFile << """
             class MyTask extends DefaultTask {
@@ -97,9 +94,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         skipped ':myTask'
     }
 
-
     @Issue("https://github.com/gradle/gradle/issues/3073")
-    @ToBeFixedForInstantExecution
     def "optional output changed from null to non-null marks task not up-to-date"() {
         buildFile << """
             class CustomTask extends DefaultTask {
@@ -116,7 +111,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task customTask(type: CustomTask) {
-                outputFile = project.hasProperty('outputFile') ? file(project.property("outputFile")) : null
+                outputFile = providers.gradleProperty('outputFile').forUseAtConfigurationTime().map { file(it) }.orNull
             }
         """
 
@@ -132,7 +127,6 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3073")
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*not up-to-date")
     def "output files changed from #before to #after marks task #upToDateString"() {
         buildFile << """
             class CustomTask extends DefaultTask {
@@ -151,13 +145,17 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
 
             def lazyProperty(String name) {
-                def value = project.findProperty(name)
-                def outputFile = value ? file(value) : null
+                def outputFile =
+                    providers.gradleProperty(name).forUseAtConfigurationTime().map { value ->
+                        value ? file(value) : null
+                    }.orNull
                 return { -> outputFile }
             }
 
             task customTask(type: CustomTask) {
-                int numOutputs = Integer.valueOf(project.findProperty('numOutputs'))
+                int numOutputs = Integer.valueOf(
+                    providers.gradleProperty('numOutputs').forUseAtConfigurationTime().get()
+                )
                 outputFiles = (0..(numOutputs-1)).collect { lazyProperty("output\$it") }
             }
         """
@@ -190,13 +188,11 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         upToDateString = upToDate ? 'up-to-date' : 'not up-to-date'
     }
 
-
     private static String[] customTaskWithOutputs(List<String> outputs) {
         (["customTask", "-PnumOutputs=${outputs.size()}"] + outputs.withIndex().collect { value, idx -> "-Poutput${idx}" + (value ? "=${value}" : '') }) as String[]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3073")
-    @ToBeFixedForInstantExecution
     def "optional input changed from null to non-null marks task not up-to-date"() {
         file("input.txt") << "Input data"
         buildFile << """
@@ -217,7 +213,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task customTask(type: CustomTask) {
-                inputFile = project.hasProperty('inputFile') ? file(project.property("inputFile")) : null
+                inputFile = providers.gradleProperty('inputFile').forUseAtConfigurationTime().map { file(it) }.orNull
                 outputFile = file("output.txt")
             }
         """
@@ -353,7 +349,6 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4204")
-    @ToBeFixedForInstantExecution
     def "changing path of empty root directory makes task out of date for #inputAnnotation"() {
         buildFile << """
             class MyTask extends DefaultTask {
@@ -369,7 +364,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task myTask(type: MyTask) {
-                input = file(inputDir)
+                input = providers.gradleProperty('inputDir').forUseAtConfigurationTime().map { file(it) }.get()
                 output = project.file("build/output.txt")
             }
 

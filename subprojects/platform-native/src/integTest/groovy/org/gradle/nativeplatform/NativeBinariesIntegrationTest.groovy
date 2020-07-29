@@ -34,7 +34,6 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         settingsFile << "rootProject.name = 'test'"
     }
 
-    @ToBeFixedForInstantExecution
     def "skips building executable binary with no source"() {
         given:
         buildFile << """
@@ -93,7 +92,7 @@ model {
     }
 
     @ToBeFixedForInstantExecution
-    def "assemble task produces sensible error when there are no buildable binaries" () {
+    def "assemble task produces sensible error when there are no buildable binaries"() {
         buildFile << """
 apply plugin: 'c'
 
@@ -246,7 +245,7 @@ model {
         fails "mainExecutable"
         failure.assertHasCause("Exception thrown while executing model rule: main(org.gradle.nativeplatform.NativeExecutableSpec) { ... } @ build.gradle line 8, column 9");
         failure.assertHasCause("Cannot create a 'org.gradle.language.java.JavaSourceSet' because this type is not known to sourceSets. " +
-                "Known types are: org.gradle.language.c.CSourceSet, org.gradle.language.cpp.CppSourceSet")
+            "Known types are: org.gradle.language.c.CSourceSet, org.gradle.language.cpp.CppSourceSet")
     }
 
     private def useMixedSources() {

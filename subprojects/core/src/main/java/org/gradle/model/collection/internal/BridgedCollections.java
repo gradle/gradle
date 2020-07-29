@@ -23,6 +23,7 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.DefaultNamedDomainObjectCollection;
 import org.gradle.api.internal.tasks.DefaultTaskCollection;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelPath;
@@ -72,8 +73,8 @@ public abstract class BridgedCollections {
                             if (!containerNode.hasLink(name)) {
                                 ModelRegistration itemRegistration = ModelRegistrations
                                     .unmanagedInstanceOf(
-                                        ModelReference.of(containerPath.child(name), (Class)info.getType()),
-                                        new ExtractFromParentContainer<I, C>(name, containerType)
+                                        ModelReference.of(containerPath.child(name), Cast.<Class<I>>uncheckedNonnullCast(info.getType())),
+                                        new ExtractFromParentContainer<>(name, containerType)
                                     )
                                     .descriptor(new SimpleModelRuleDescriptor(new Factory<String>() {
                                         @Override

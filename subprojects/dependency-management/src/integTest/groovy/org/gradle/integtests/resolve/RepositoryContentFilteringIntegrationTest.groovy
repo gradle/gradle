@@ -26,7 +26,7 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"
-        buildFile << """                      
+        buildFile << """
             configurations {
                 conf
             }
@@ -316,7 +316,7 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
 
         given:
         repositories {
-            maven("""content { 
+            maven("""content {
                 onlyForConfigurations("conf2")
             }""")
         }
@@ -330,7 +330,7 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
             }
             tasks.register("verify") {
                 doFirst {
-                    $check1               
+                    $check1
                     $check2
                 }
             }
@@ -360,7 +360,7 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         """
         given:
         repositories {
-            maven("""content { 
+            maven("""content {
                 onlyForAttribute(colorAttribute, 'red')
             }""")
             ivy()
@@ -638,6 +638,24 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
                 snapshot('org:foo:1.0-SNAPSHOT', latestSnapshot.uniqueSnapshotVersion, 'latest.integration')
             }
         }
+    }
+
+    def "mavenContent does not resolve repository url eagerly"() {
+        given:
+        buildFile << """
+            repositories {
+                maven {
+                    url = { throw new RuntimeException("url resolved") }
+                    mavenContent { snapshotsOnly() }
+                }
+            }
+            dependencies {
+                conf "org:foo:latest.integration"
+            }
+        """
+
+        expect:
+        succeeds("help")
     }
 
     static String checkConfIsUnresolved() {

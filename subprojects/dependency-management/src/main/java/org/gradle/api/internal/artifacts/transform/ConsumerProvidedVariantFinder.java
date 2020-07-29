@@ -52,17 +52,15 @@ public class ConsumerProvidedVariantFinder {
 
     public ConsumerVariantMatchResult collectConsumerVariants(AttributeContainerInternal actual, AttributeContainerInternal requested) {
         AttributeSpecificCache toCache = getCache(requested);
-        return toCache.transforms.computeIfAbsent(actual, attrs -> {
-            return findProducersFor(actual, requested).asImmutable();
-        });
+        return toCache.transforms.computeIfAbsent(actual, attrs -> findProducersFor(actual, requested).asImmutable());
     }
 
-    private ConsumerVariantMatchResult findProducersFor(AttributeContainerInternal actual, AttributeContainerInternal requested) {
+    private MutableConsumerVariantMatchResult findProducersFor(AttributeContainerInternal actual, AttributeContainerInternal requested) {
         // Prefer direct transformation over indirect transformation
-        List<ArtifactTransformRegistration> candidates = new ArrayList<ArtifactTransformRegistration>();
+        List<ArtifactTransformRegistration> candidates = new ArrayList<>();
         List<ArtifactTransformRegistration> transforms = variantTransforms.getTransforms();
         int nbOfTransforms = transforms.size();
-        ConsumerVariantMatchResult result = new ConsumerVariantMatchResult(nbOfTransforms * nbOfTransforms);
+        MutableConsumerVariantMatchResult result = new MutableConsumerVariantMatchResult(nbOfTransforms * nbOfTransforms);
         for (ArtifactTransformRegistration registration : transforms) {
             if (matchAttributes(registration.getTo(), requested)) {
                 if (matchAttributes(actual, registration.getFrom())) {
@@ -84,7 +82,7 @@ public class ConsumerProvidedVariantFinder {
             if (!inputVariants.hasMatches()) {
                 continue;
             }
-            for (ConsumerVariantMatchResult.ConsumerVariant inputVariant : inputVariants.getMatches()) {
+            for (MutableConsumerVariantMatchResult.ConsumerVariant inputVariant : inputVariants.getMatches()) {
                 ImmutableAttributes variantAttributes = attributesFactory.concat(inputVariant.attributes.asImmutable(), candidate.getTo().asImmutable());
                 Transformation transformation = new TransformationChain(inputVariant.transformation, candidate.getTransformationStep());
                 result.matched(variantAttributes, transformation, inputVariant.depth + 1);

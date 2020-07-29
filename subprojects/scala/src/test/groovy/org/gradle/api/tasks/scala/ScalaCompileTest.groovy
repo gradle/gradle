@@ -106,5 +106,6 @@ class ScalaCompileTest extends AbstractCompileTest {
         scalaCompilerPlugins.iterator() >> Collections.emptyIterator()
         BaseScalaCompileOptions options = compile.getScalaCompileOptions()
         options.getIncrementalOptions().setAnalysisFile(new File("analysisFile"))
+        options.getIncrementalOptions().setClassfileBackupDir(new File("classfileBackupDir"))
     }
 }

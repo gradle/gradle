@@ -118,6 +118,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
     }
 
     @ToBeFixedForInstantExecution(
+        because = "Kotlin Gradle Plugin",
         bottomSpecs = [
             "PropertyKotlinInterOpIntegrationTest",
             "ManagedPropertyKotlinInterOpIntegrationTest"

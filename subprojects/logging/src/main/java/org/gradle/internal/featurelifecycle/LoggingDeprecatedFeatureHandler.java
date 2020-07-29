@@ -22,6 +22,7 @@ import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,17 +47,17 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private UsageLocationReporter locationReporter;
 
     private WarningMode warningMode = WarningMode.Summary;
-    private DeprecatedUsageBuildOperationProgressBroadcaster buildOperationProgressBroadcaster;
+    private BuildOperationProgressEventEmitter progressEventEmitter;
     private GradleException error;
 
     public LoggingDeprecatedFeatureHandler() {
         this.locationReporter = DoNothingReporter.INSTANCE;
     }
 
-    public void init(UsageLocationReporter reporter, WarningMode warningMode, DeprecatedUsageBuildOperationProgressBroadcaster buildOperationProgressBroadcaster) {
+    public void init(UsageLocationReporter reporter, WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter) {
         this.locationReporter = reporter;
         this.warningMode = warningMode;
-        this.buildOperationProgressBroadcaster = buildOperationProgressBroadcaster;
+        this.progressEventEmitter = progressEventEmitter;
     }
 
     @Override
@@ -83,13 +84,13 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     }
 
     private void fireDeprecatedUsageBuildOperationProgress(DeprecatedFeatureUsage usage) {
-        if (buildOperationProgressBroadcaster != null) {
-            buildOperationProgressBroadcaster.progress(usage);
+        if (progressEventEmitter != null) {
+            progressEventEmitter.emitNowIfCurrent(new DefaultDeprecatedUsageProgressDetails(usage));
         }
     }
 
     public void reset() {
-        buildOperationProgressBroadcaster = null;
+        progressEventEmitter = null;
         messages.clear();
         error = null;
     }
@@ -143,7 +144,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         fileName = fileName.toLowerCase(Locale.US);
         if (fileName.endsWith(".gradle") // ordinary Groovy Gradle script
             || fileName.endsWith(".gradle.kts") // Kotlin Gradle script
-            ) {
+        ) {
             return true;
         }
         return false;

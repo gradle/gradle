@@ -118,7 +118,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     private <U> SpecRuleAction<? super U> createAllSpecRuleAction(RuleAction<? super U> ruleAction) {
-        return new SpecRuleAction<U>(ruleAction, Specs.<U>satisfyAll());
+        return new SpecRuleAction<>(ruleAction, Specs.satisfyAll());
     }
 
     private SpecRuleAction<? super ComponentMetadataDetails> createSpecRuleActionForModule(Object id, RuleAction<? super ComponentMetadataDetails> ruleAction) {
@@ -131,7 +131,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         }
 
         Spec<ComponentMetadataDetails> spec = new ComponentMetadataDetailsMatchingSpec(moduleIdentifier);
-        return new SpecRuleAction<ComponentMetadataDetails>(ruleAction, spec);
+        return new SpecRuleAction<>(ruleAction, spec);
     }
 
     @Override
@@ -166,22 +166,22 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
 
     @Override
     public ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule) {
-        return addClassBasedRule(createAllSpecConfigurableRule(DefaultConfigurableRule.<ComponentMetadataContext>of(rule)));
+        return addClassBasedRule(createAllSpecConfigurableRule(DefaultConfigurableRule.of(rule)));
     }
 
     @Override
     public ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction) {
-        return addClassBasedRule(createAllSpecConfigurableRule(DefaultConfigurableRule.<ComponentMetadataContext>of(rule, configureAction, isolatableFactory)));
+        return addClassBasedRule(createAllSpecConfigurableRule(DefaultConfigurableRule.of(rule, configureAction, isolatableFactory)));
     }
 
     @Override
     public ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule) {
-        return addClassBasedRule(createModuleSpecConfigurableRule(id, DefaultConfigurableRule.<ComponentMetadataContext>of(rule)));
+        return addClassBasedRule(createModuleSpecConfigurableRule(id, DefaultConfigurableRule.of(rule)));
     }
 
     @Override
     public ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction) {
-        return addClassBasedRule(createModuleSpecConfigurableRule(id, DefaultConfigurableRule.<ComponentMetadataContext>of(rule, configureAction, isolatableFactory)));
+        return addClassBasedRule(createModuleSpecConfigurableRule(id, DefaultConfigurableRule.of(rule, configureAction, isolatableFactory)));
     }
 
     private SpecConfigurableRule createModuleSpecConfigurableRule(Object id, ConfigurableRule<ComponentMetadataContext> instantiatingAction) {
@@ -198,7 +198,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     private SpecConfigurableRule createAllSpecConfigurableRule(ConfigurableRule<ComponentMetadataContext> instantiatingAction) {
-        return new SpecConfigurableRule(instantiatingAction, Specs.<ModuleVersionIdentifier>satisfyAll());
+        return new SpecConfigurableRule(instantiatingAction, Specs.satisfyAll());
     }
 
     @Override
@@ -211,8 +211,13 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         metadataRuleContainer.setVariantDerivationStrategy(strategy);
     }
 
+    @Override
+    public VariantDerivationStrategy getVariantDerivationStrategy() {
+        return metadataRuleContainer.getVariantDerivationStrategy();
+    }
+
     static class ComponentMetadataDetailsMatchingSpec implements Spec<ComponentMetadataDetails> {
-        private ModuleIdentifier target;
+        private final ModuleIdentifier target;
 
         ComponentMetadataDetailsMatchingSpec(ModuleIdentifier target) {
             this.target = target;
@@ -226,7 +231,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     static class ModuleVersionIdentifierSpec implements Spec<ModuleVersionIdentifier> {
-        private ModuleIdentifier target;
+        private final ModuleIdentifier target;
 
         ModuleVersionIdentifierSpec(ModuleIdentifier target) {
             this.target = target;

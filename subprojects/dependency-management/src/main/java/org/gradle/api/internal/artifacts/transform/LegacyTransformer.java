@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -41,20 +40,20 @@ import java.io.File;
 import java.util.List;
 
 @SuppressWarnings("deprecation")
-public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
+public class LegacyTransformer extends AbstractTransformer<org.gradle.api.artifacts.transform.ArtifactTransform> {
 
     private final Instantiator instantiator;
     private final HashCode secondaryInputsHash;
     private final Isolatable<Object[]> isolatableParameters;
 
-    public LegacyTransformer(Class<? extends ArtifactTransform> implementationClass, Object[] parameters, InstantiationScheme actionInstantiationScheme, ImmutableAttributes fromAttributes, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory) {
+    public LegacyTransformer(Class<? extends org.gradle.api.artifacts.transform.ArtifactTransform> implementationClass, Object[] parameters, InstantiationScheme actionInstantiationScheme, ImmutableAttributes fromAttributes, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory) {
         super(implementationClass, fromAttributes);
         this.instantiator = actionInstantiationScheme.instantiator();
         this.isolatableParameters = isolatableFactory.isolate(parameters);
         this.secondaryInputsHash = hashSecondaryInputs(isolatableParameters, implementationClass, classLoaderHierarchyHasher);
     }
 
-    public LegacyTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> isolatableParameters, HashCode secondaryInputsHash, InstantiationScheme actionInstantiationScheme, ImmutableAttributes fromAttributes) {
+    public LegacyTransformer(Class<? extends org.gradle.api.artifacts.transform.ArtifactTransform> implementationClass, Isolatable<Object[]> isolatableParameters, HashCode secondaryInputsHash, InstantiationScheme actionInstantiationScheme, ImmutableAttributes fromAttributes) {
         super(implementationClass, fromAttributes);
         this.instantiator = actionInstantiationScheme.instantiator();
         this.secondaryInputsHash = secondaryInputsHash;
@@ -87,7 +86,7 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     @Override
     public ImmutableList<File> transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges) {
         File inputArtifact = inputArtifactProvider.get().getAsFile();
-        ArtifactTransform transformer = newTransformer();
+        org.gradle.api.artifacts.transform.ArtifactTransform transformer = newTransformer();
         transformer.setOutputDirectory(outputDir);
         List<File> outputs = transformer.transform(inputArtifact);
         if (outputs == null) {
@@ -134,12 +133,12 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     public void isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
     }
 
-    private ArtifactTransform newTransformer() {
+    private org.gradle.api.artifacts.transform.ArtifactTransform newTransformer() {
         Object[] isolatedParameters = isolatableParameters.isolate();
         return instantiator.newInstance(getImplementationClass(), isolatedParameters);
     }
 
-    private static HashCode hashSecondaryInputs(Isolatable<Object[]> isolatableParameters, Class<? extends ArtifactTransform> implementationClass, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+    private static HashCode hashSecondaryInputs(Isolatable<Object[]> isolatableParameters, Class<? extends org.gradle.api.artifacts.transform.ArtifactTransform> implementationClass, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         Hasher hasher = Hashing.newHasher();
         appendActionImplementation(implementationClass, hasher, classLoaderHierarchyHasher);
         isolatableParameters.appendToHasher(hasher);

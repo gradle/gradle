@@ -79,6 +79,11 @@ public class ForcedDependencyMetadataWrapper implements ForcingDependencyMetadat
     }
 
     @Override
+    public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
+        return new ForcedDependencyMetadataWrapper((ModuleDependencyMetadata) delegate.withTargetAndArtifacts(target, artifacts));
+    }
+
+    @Override
     public boolean isChanging() {
         return delegate.isChanging();
     }

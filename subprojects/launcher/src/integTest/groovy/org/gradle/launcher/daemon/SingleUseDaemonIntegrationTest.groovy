@@ -52,7 +52,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
     def "forks build when default client VM memory is used and user didn't specify a different limit"() {
         executer.withCommandLineGradleOpts('-Xmx64m')
         executer.useOnlyRequestedJvmOpts()
-        executer.requireGradleDistribution()
+        executer.requireDaemon()
 
         when:
         succeeds()

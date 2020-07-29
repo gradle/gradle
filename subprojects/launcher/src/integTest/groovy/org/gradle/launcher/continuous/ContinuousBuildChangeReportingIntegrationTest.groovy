@@ -18,6 +18,7 @@ package org.gradle.launcher.continuous
 
 import groovy.transform.TupleConstructor
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 
@@ -177,6 +178,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         assertReportsChanges([new ChangeEntry("new file", newfile1), new ChangeEntry("modified", inputFiles[2]), new ChangeEntry("deleted", inputFiles[7]), new ChangeEntry("new file", newfile2)], true)
     }
 
+    @ToBeFixedForInstantExecution(because = "taskGraph.afterTask")
     def "should report changes that happen when the build is executing"() {
         given:
         buildFile << """

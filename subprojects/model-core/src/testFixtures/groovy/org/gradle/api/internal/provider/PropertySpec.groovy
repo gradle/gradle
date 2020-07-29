@@ -2553,6 +2553,30 @@ The value of this provider is derived from:
         value.changingValue.get() == someOtherValue()
     }
 
+    def "can calculate execution time value without finalizing when finalize on read is enabled"() {
+        def property = propertyWithNoValue()
+        property.set(someValue())
+        property.finalizeValueOnRead()
+
+        expect:
+        property.calculateExecutionTimeValue().getFixedValue() == someValue()
+        property.set(someOtherValue())
+        property.calculateExecutionTimeValue().getFixedValue() == someOtherValue()
+        property.get() == someOtherValue()
+    }
+
+    def "can calculate execution time value without finalizing when unsafe read disallowed"() {
+        def property = propertyWithNoValue()
+        property.set(someValue())
+        property.disallowUnsafeRead()
+
+        expect:
+        property.calculateExecutionTimeValue().getFixedValue() == someValue()
+        property.set(someOtherValue())
+        property.calculateExecutionTimeValue().getFixedValue() == someOtherValue()
+        property.get() == someOtherValue()
+    }
+
     def "mapped value has changing execution time value when producer task attached to original property"() {
         def task = Mock(Task)
         def property = propertyWithDefaultValue()

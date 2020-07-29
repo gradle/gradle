@@ -48,6 +48,7 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
@@ -80,8 +81,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private boolean reusable;
     private boolean markedReusableAlready;
 
-    // The following state needs to be tracked to consistently construct `ComponentOverrideMetadata` independent of the order dependencies are visited
-    private IvyArtifactName firstDependencyArtifact;
     private ClientModule clientModule;
     private boolean changing;
 
@@ -157,6 +156,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     /**
      * Return any failure to resolve the component selector to id, or failure to resolve component metadata for id.
      */
+    @Nullable
     ModuleVersionResolveException getFailure() {
         return failure;
     }
@@ -180,7 +180,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         return preferResult;
     }
 
-    private ComponentIdResolveResult resolve(VersionSelector selector, VersionSelector rejector, ComponentIdResolveResult previousResult) {
+    private ComponentIdResolveResult resolve(@Nullable VersionSelector selector, VersionSelector rejector, ComponentIdResolveResult previousResult) {
         try {
             if (!requiresResolve(previousResult, rejector)) {
                 return previousResult;
@@ -203,16 +203,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         }
     }
 
-    @Override
-    public void failed(ModuleVersionResolveException failure) {
-        this.failure = failure;
-        BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
-        idResolveResult.failed(failure);
-        this.requireResult = idResolveResult;
-        this.preferResult = idResolveResult;
-    }
-
-    private boolean requiresResolve(ComponentIdResolveResult previousResult, VersionSelector allRejects) {
+    private boolean requiresResolve(@Nullable ComponentIdResolveResult previousResult, @Nullable VersionSelector allRejects) {
         this.reusable = false;
         // If we've never resolved, must resolve
         if (previousResult == null) {
@@ -230,11 +221,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         }
 
         // If the previous result is still not rejected, do not need to re-resolve. The previous result is still good.
-        if (allRejects == null || !allRejects.accept(previousResult.getModuleVersionId().getVersion())) {
-            return false;
-        }
-
-        return true;
+        return allRejects != null && allRejects.accept(previousResult.getModuleVersionId().getVersion());
     }
 
     @Override
@@ -339,7 +326,8 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     @Override
     public IvyArtifactName getFirstDependencyArtifact() {
-        return firstDependencyArtifact;
+        List<IvyArtifactName> artifacts = dependencyState.getDependency().getArtifacts();
+        return artifacts == null || artifacts.isEmpty() ? null : artifacts.get(0);
     }
 
     @Override
@@ -401,12 +389,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     private void trackDetailsForOverrideMetadata(DependencyState dependencyState) {
-        if (firstDependencyArtifact == null) {
-            List<IvyArtifactName> artifacts = dependencyState.getDependency().getArtifacts();
-            if (!artifacts.isEmpty()) {
-                firstDependencyArtifact = artifacts.get(0);
-            }
-        }
         ClientModule nextClientModule = DefaultComponentOverrideMetadata.extractClientModule(dependencyState.getDependency());
         if (nextClientModule != null && !nextClientModule.equals(clientModule)) {
             if (clientModule == null) {
@@ -448,7 +430,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         private final String version;
         private final String reason;
 
-        private RejectedByRuleReason(String version, String reason) {
+        private RejectedByRuleReason(String version, @Nullable String reason) {
             this.version = version;
             this.reason = reason;
         }

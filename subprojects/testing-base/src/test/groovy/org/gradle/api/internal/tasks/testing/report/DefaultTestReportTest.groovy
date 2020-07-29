@@ -19,8 +19,7 @@ import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.concurrent.ParallelismConfigurationManager
-import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.DefaultBuildOperationExecutor
@@ -48,10 +47,10 @@ class DefaultTestReportTest extends Specification {
     final WorkerLeaseService workerLeaseService = new TestWorkerLeaseService()
 
     def reportWithMaxThreads(int numThreads) {
-        ParallelismConfigurationManager parallelExecutionManager = new ParallelismConfigurationManagerFixture(false, numThreads)
+        def parallelismConfiguration = new DefaultParallelismConfiguration(false, numThreads)
         buildOperationExecutor = new DefaultBuildOperationExecutor(
             Mock(BuildOperationListener), Mock(Clock), new NoOpProgressLoggerFactory(),
-            new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), parallelExecutionManager, new DefaultBuildOperationIdFactory())
+            new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), parallelismConfiguration, new DefaultBuildOperationIdFactory())
         return new DefaultTestReport(buildOperationExecutor)
     }
 
@@ -130,7 +129,7 @@ class DefaultTestReportTest extends Specification {
         alsoPassedClassDetails.assertLinksTo("classes/org.gradle.passing.subpackage.AlsoPassed.html");
 
         where:
-        numThreads << [ 1, 4 ]
+        numThreads << [1, 4]
     }
 
     @Unroll
@@ -220,7 +219,7 @@ class DefaultTestReportTest extends Specification {
         someFailedClassDetails.assertLinksTo("classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed.html");
 
         where:
-        numThreads << [ 1, 4 ]
+        numThreads << [1, 4]
     }
 
     @Unroll
@@ -299,7 +298,7 @@ class DefaultTestReportTest extends Specification {
         someFailedClassDetails.assertLinksTo("classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed.html");
 
         where:
-        numThreads << [ 1, 4 ]
+        numThreads << [1, 4]
     }
 
     @Unroll
@@ -381,7 +380,7 @@ class DefaultTestReportTest extends Specification {
         failingClassFile.assertHasFailure('failed', 'something failed\n\nthis is the failure\nat someClass\n')
 
         where:
-        numThreads << [ 1, 4 ]
+        numThreads << [1, 4]
     }
 
     @Unroll
@@ -421,7 +420,7 @@ class DefaultTestReportTest extends Specification {
         mixedClassFile.assertHasFailure('second', 'something failed\n\nthis is the failure\nat someClass\n')
 
         where:
-        numThreads << [ 1, 4 ]
+        numThreads << [1, 4]
     }
 
     @Unroll
@@ -463,7 +462,7 @@ class DefaultTestReportTest extends Specification {
         mixedClassFile.assertHasFailure('secondAlternative', 'something failed\n\nthis is the failure\nat someClass\n')
 
         where:
-        numThreads << [ 1, 4 ]
+        numThreads << [1, 4]
     }
 
     def reportsOnClassesInDefaultPackage() {

@@ -17,10 +17,13 @@
 package org.gradle.plugin.devel.impldeps
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import java.util.zip.ZipFile
 
+@IgnoreIf({ GradleContextualExecuter.embedded }) // Gradle API and TestKit JARs are not generated when running embedded
 class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeIntegrationTest {
 
     def setup() {
@@ -28,7 +31,6 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeInt
         buildFile << testablePluginProject(applyJavaPlugin())
     }
 
-    @ToBeFixedForInstantExecution
     def "gradle api jar is generated only when requested"() {
         setup:
         productionCode()
@@ -37,7 +39,7 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeInt
         def generatedJarsDirectory = "user-home/caches/$version/generated-gradle-jars"
 
         when:
-        succeeds("tasks")
+        succeeds("help")
 
         then:
         file(generatedJarsDirectory).assertIsEmptyDir()
@@ -50,7 +52,7 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeInt
 
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "testkit jar generated eagerly")
     def "gradle testkit jar is generated only when requested"() {
         setup:
         testCode()
