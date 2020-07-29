@@ -112,7 +112,7 @@ fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath): Accessor
             )
             workExecutor.execute(object : ExecutionRequestContext {
                 override fun getWork() = work
-                override fun getRebuildReason() = Optional.of("REBUILD")
+                override fun getRebuildReason() = Optional.empty<String>()
             })
             AccessorsClassPath(
                 DefaultClassPath.of(classesOutputDir),
