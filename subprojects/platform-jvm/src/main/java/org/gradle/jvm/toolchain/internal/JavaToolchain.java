@@ -40,8 +40,8 @@ public class JavaToolchain implements Describable {
         return new DefaultToolchainJavaCompiler(this, compilerFactory);
     }
 
-    public Provider<JavaLauncher> getJavaLauncher() {
-        return Providers.of(new DefaultToolchainJavaLauncher(installation.getJavaExecutable().getAsFile()));
+    public JavaLauncher getJavaLauncher() {
+        return new DefaultToolchainJavaLauncher(installation.getJavaExecutable().getAsFile());
     }
 
     public JavaVersion getJavaMajorVersion() {

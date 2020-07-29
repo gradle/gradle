@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
@@ -50,9 +51,7 @@ import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationRegistry;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -184,12 +183,8 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             compileTask.getOptions().getHeaderOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(generatedHeadersDir));
             JavaPluginExtension javaPluginExtension = target.getExtensions().getByType(JavaPluginExtension.class);
             compileTask.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
-            compileTask.getJavaCompiler().convention(toolchainCompiler(javaPluginExtension.getToolchain()));
+            compileTask.getJavaCompiler().convention(getToolchainTool(target, JavaToolchain::getJavaCompiler));
         });
-    }
-
-    private Provider<JavaCompiler> toolchainCompiler(JavaToolchainSpec filter) {
-        return getJavaToolchainQueryService().findMatchingToolchain(filter).map(JavaToolchain::getJavaCompiler).orElse(Providers.notDefined());
     }
 
     private void createProcessResourcesTask(final SourceSet sourceSet, final SourceDirectorySet resourceSet, final Project target) {
@@ -366,6 +361,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         htmlReport.getOutputLocation().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getTestReportDir(), test.getName()).getAbsolutePath())));
         test.getBinaryResultsDirectory().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getTestResultsDir(), test.getName() + "/binary").getAbsolutePath())));
         test.workingDir(project.getProjectDir());
+        test.getJavaLauncher().convention(getToolchainTool(project, JavaToolchain::getJavaLauncher));
+    }
+
+    private <T> Provider<T> getToolchainTool(Project project, Transformer<T, JavaToolchain> toolMapper) {
+        final JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
+        return getJavaToolchainQueryService().findMatchingToolchain(extension.getToolchain()).map(toolMapper).orElse(Providers.notDefined());
     }
 
     @Inject

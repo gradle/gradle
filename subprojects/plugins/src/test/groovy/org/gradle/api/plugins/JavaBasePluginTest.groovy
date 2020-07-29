@@ -223,6 +223,22 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         configuredToolchain.displayName == someJdk.javaHome.absolutePath
     }
 
+    void "wires toolchain for test if toolchain is configured"() {
+        given:
+        def someJdk = Jvm.current()
+        project.pluginManager.apply(JavaPlugin)
+        project.java.toolchain.languageVersion = someJdk.javaVersion
+        // workaround for https://github.com/gradle/gradle/issues/13122
+        ((DefaultProject) project).getServices().get(GradlePropertiesController.class).loadGradlePropertiesFrom(project.projectDir)
+
+        when:
+        project.tasks.all { println it }
+        def testTask = project.tasks.named("test", Test).get()
+        def configuredJavaLauncher = testTask.javaLauncher.get()
+
+        then:
+        configuredJavaLauncher.javaExecutable == someJdk.javaExecutable.absolutePath
+    }
 
     void tasksReflectChangesToSourceSetConfiguration() {
         def classesDir = project.file('target/classes')
