@@ -20,6 +20,7 @@ import com.google.common.io.Files;
 import net.rubygrapefruit.platform.SystemInfo;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.slf4j.Logger;
@@ -53,8 +54,10 @@ public class AdoptOpenJdkRemoteBinary {
     // Adds risk as AdoptOpenJDK is hosted on S3 which does not allow HEAD requests; they
     // currently have a workaround to support HEAD requests for the "Gradle" User agent
     // Not using accessor might help us to move all of this into jvmServices for TD reuse
-    // TODO: [bm] Need to handle if Adopt does not offer a matching jdk
     public Optional<File> download(JavaToolchainSpec spec) {
+        if (!canProvidesMatchingJdk(spec)) {
+            return Optional.empty();
+        }
         File tmpFile = new File(Files.createTempDir(), toFilename(spec));
         int defaultTimeout = (int) TimeUnit.MINUTES.toMillis(5);
         URL source = toDownloadUrl(spec);
@@ -67,6 +70,10 @@ public class AdoptOpenJdkRemoteBinary {
         return Optional.of(tmpFile);
     }
 
+    private boolean canProvidesMatchingJdk(JavaToolchainSpec spec) {
+        return getLanguageVersion(spec).isJava8Compatible();
+    }
+
     private URL toDownloadUrl(JavaToolchainSpec spec) {
         try {
             return constructUri(spec).toURL();
@@ -77,7 +84,7 @@ public class AdoptOpenJdkRemoteBinary {
 
     private URI constructUri(JavaToolchainSpec spec) {
         return URI.create(getServerBaseUri() +
-            "v3/binary/latest/" + getMajorVersion(spec) +
+            "v3/binary/latest/" + getLanguageVersion(spec).getMajorVersion() +
             "/" +
             determineReleaseState() +
             "/" +
@@ -88,7 +95,7 @@ public class AdoptOpenJdkRemoteBinary {
     }
 
     private String toFilename(JavaToolchainSpec spec) {
-        return String.format("adoptopenjdk-%s-%s-%s.%s", getMajorVersion(spec), determineArch(), determineOs(), determineFileExtension());
+        return String.format("adoptopenjdk-%s-%s-%s.%s", getLanguageVersion(spec), determineArch(), determineOs(), determineFileExtension());
     }
 
     private String determineFileExtension() {
@@ -98,8 +105,8 @@ public class AdoptOpenJdkRemoteBinary {
         return "tar.gz";
     }
 
-    private String getMajorVersion(JavaToolchainSpec spec) {
-        return spec.getLanguageVersion().get().getMajorVersion();
+    private JavaVersion getLanguageVersion(JavaToolchainSpec spec) {
+        return spec.getLanguageVersion().get();
     }
 
     private String determineArch() {
