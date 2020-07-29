@@ -18,14 +18,10 @@ package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 
-// TODO: [bm] Should we keep this test as it downloads a whole JDK?
 class JavaToolchainDownloadIntegrationTest extends AbstractPluginIntegrationTest {
 
     def "can download missing jdk automatically"() {
         buildFile << """
-            import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService
-            import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
-
             apply plugin: "java"
 
             java {
