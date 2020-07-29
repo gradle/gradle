@@ -54,7 +54,7 @@ val propagatedEnvironmentVariables = listOf(
 )
 
 
-val propagatedBlockList = listOf(
+val credentialsKeywords = listOf(
     "api_key",
     "access_key",
     "apikey",
