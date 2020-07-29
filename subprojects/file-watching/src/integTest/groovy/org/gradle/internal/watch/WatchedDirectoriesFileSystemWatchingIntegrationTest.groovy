@@ -21,13 +21,17 @@ import org.apache.commons.io.FileUtils
 import org.gradle.cache.GlobalCacheLocations
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.util.TextUtil
+import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
 
+@Unroll
 class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
+    @Rule
+    public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
 
     def "watches the project directory"() {
         buildFile << """
@@ -62,7 +66,6 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
     }
 
     @ToBeFixedForInstantExecution(because = "composite build not yet supported")
-    @Requires(TestPrecondition.NOT_WINDOWS) // https://github.com/gradle/gradle-private/issues/3116
     def "works with composite build"() {
         buildTestFixture.withBuildInSubDir()
         def includedBuild = singleProjectBuild("includedBuild") {
@@ -109,7 +112,6 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         executedAndNotSkipped(":includedBuild:jar")
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS) // https://github.com/gradle/gradle-private/issues/3116
     @ToBeFixedForInstantExecution(because = "GradleBuild task is not yet supported")
     def "works with GradleBuild task"() {
         buildTestFixture.withBuildInSubDir()
@@ -175,7 +177,6 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
 
     }
 
-    @Unroll
     def "detects when a task removes the build directory #buildDir"() {
         buildFile << """
             apply plugin: 'base'
@@ -249,19 +250,108 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         succeeds "help"
     }
 
+    def "watches the roots of #repositoryType file repositories"() {
+        def repo = this."${repositoryType}"("repo")
+        def moduleA = repo.module('group', 'projectA', '9.1')
+        moduleA.publish()
+
+        def projectDir = file("project")
+        projectDir.file("build.gradle") << """
+            configurations { implementation }
+            repositories { ${repositoryType} { url "${repo.uri}" } }
+            dependencies { implementation 'group:projectA:9.1' }
+
+            task retrieve(type: Sync) {
+                from configurations.implementation
+                into 'build'
+            }
+        """
+        executer.beforeExecute { inDirectory(projectDir) }
+
+        when:
+        withWatchFs().run "retrieve", "--info"
+        then:
+        assertWatchedHierarchies([projectDir, moduleA."${artifactFileProperty}".parentFile])
+
+        where:
+        repositoryType | artifactFileProperty
+        "maven"        | "artifactFile"
+        "mavenLocal"   | "artifactFile"
+        "ivy"          | "jarFile"
+    }
+
+    def "does not watch mavenLocal when not declared and dependency is copied into cache"() {
+        server.start()
+        def mavenRepository = maven("repo")
+        def mavenHttpRepository = new MavenHttpRepository(server, mavenRepository)
+        m2.generateGlobalSettingsFile()
+        def remoteModule = mavenHttpRepository.module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
+        def m2Module = m2.mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
+
+        def projectDir = file("projectDir")
+
+        projectDir.file("build.gradle") << """
+            repositories {
+                maven { url "${mavenHttpRepository.uri}" }
+            }
+            configurations { compile }
+            dependencies {
+                compile 'gradletest.maven.local.cache.test:foo:1.0'
+            }
+            task retrieve(type: Sync) {
+                from configurations.compile
+                into 'build'
+            }
+        """
+        executer.beforeExecute { inDirectory(projectDir) }
+
+        remoteModule.pom.expectHead()
+        remoteModule.pom.sha1.expectGet()
+        remoteModule.artifact.expectHead()
+        remoteModule.artifact.sha1.expectGet()
+
+        when:
+        using m2
+        withWatchFs().run 'retrieve', "--info"
+
+        then:
+        projectDir.file('build/foo-1.0.jar').assertIsCopyOf(m2Module.artifactFile)
+        assertWatchedHierarchies([projectDir])
+    }
+
     void assertWatchedRootDirectories(List<Set<File>> expectedWatchedRootDirectories) {
-        if (OperatingSystem.current().linux) {
+        if (!hierarchicalWatcher) {
             // There is no info logging for non-hierarchical watchers
             return
         }
         assert determineWatchedBuildRootDirectories(output) == expectedWatchedRootDirectories
     }
 
+    void assertWatchedHierarchies(Iterable<File> expected) {
+        if (!hierarchicalWatcher) {
+            // No hierarchies to expect
+            return
+        }
+        def watchedHierarchies = output.readLines()
+            .find { it.contains("Watched directory hierarchies: [") }
+            .with { line ->
+                def matcher = line =~ /Watched directory hierarchies: \[(.*)]/
+                String directories = matcher[0][1]
+                return directories.split(', ').collect { new File(it) } as Set
+            }
+
+        assert watchedHierarchies == (expected as Set)
+    }
+
+    private static boolean isHierarchicalWatcher() {
+        !OperatingSystem.current().linux
+    }
+
     private static List<Set<File>> determineWatchedBuildRootDirectories(String output) {
         output.readLines()
             .findAll { it.contains("] as root project directories") }
             .collect { line ->
-                def matcher = line =~ /Now considering watching \[(.*)\] as root project directories/
+                def matcher = line =~ /Now considering watching \[(.*)] as root project directories/
                 String directories = matcher[0][1]
                 return directories.split(', ').collect { new File(it) } as Set
             }

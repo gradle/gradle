@@ -24,23 +24,6 @@ class BroadcastChangingOutputsStepTest extends ContextInsensitiveStepSpec {
     def step = new BroadcastChangingOutputsStep<>(outputChangeListener, delegate)
     def delegateResult = Mock(Result)
 
-    def "notifies listener about all outputs changing"() {
-        when:
-        def result = step.execute(context)
-
-        then:
-        result == delegateResult
-
-        _ * work.changingOutputs >> Optional.empty()
-
-        then:
-        1 * outputChangeListener.beforeOutputChange()
-
-        then:
-        1 * delegate.execute(context) >> delegateResult
-        0 * _
-    }
-
     def "notifies listener about specific outputs changing"() {
         def changingOutputs = ["output.txt"]
 
@@ -50,7 +33,7 @@ class BroadcastChangingOutputsStepTest extends ContextInsensitiveStepSpec {
         then:
         result == delegateResult
 
-        _ * work.changingOutputs >> Optional.of(changingOutputs)
+        _ * work.changingOutputs >> changingOutputs
 
         then:
         1 * outputChangeListener.beforeOutputChange(changingOutputs)

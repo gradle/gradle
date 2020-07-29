@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -105,6 +106,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                                          CollectionCallbackActionDecorator callbackDecorator,
                                          UserCodeApplicationContext userCodeApplicationContext,
                                          DomainObjectCollectionFactory domainObjectCollectionFactory,
+                                         NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
                                          ObjectFactory objectFactory) {
         super(Configuration.class, instantiator, new Configuration.Namer(), callbackDecorator);
         this.resolver = resolver;
@@ -125,7 +127,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         NotationParser<Object, Capability> dependencyCapabilityNotationParser = new CapabilityNotationParserFactory(false).create();
         resolutionStrategyFactory = () -> {
             CapabilitiesResolutionInternal capabilitiesResolutionInternal = instantiator.newInstance(DefaultCapabilitiesResolution.class, new CapabilityNotationParserFactory(false).create(), new ComponentIdentifierParserFactory().create());
-            return instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, vcsMappingsStore, componentIdentifierFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, capabilitiesResolutionInternal, instantiator, objectFactory, attributesFactory, dependencyCapabilityNotationParser);
+            return instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, vcsMappingsStore, componentIdentifierFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, capabilitiesResolutionInternal, instantiator, objectFactory, attributesFactory, moduleSelectorNotationParser, dependencyCapabilityNotationParser);
         };
         this.rootComponentMetadataBuilder = new DefaultRootComponentMetadataBuilder(dependencyMetaDataProvider, componentIdentifierFactory, moduleIdentifierFactory, localComponentMetadataBuilder, this, projectStateRegistry, dependencyLockingProvider);
     }

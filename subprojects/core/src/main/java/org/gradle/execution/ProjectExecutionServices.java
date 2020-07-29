@@ -20,7 +20,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.internal.TaskInputsListeners;
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionModeResolver;
@@ -70,10 +69,8 @@ import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRe
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
-import org.gradle.util.IncubationLogger;
 
 import java.util.List;
 
@@ -137,17 +134,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         TaskSnapshotter taskSnapshotter,
         WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor
     ) {
-        StartParameterInternal startParameterInternal = (StartParameterInternal) startParameter;
-        ExecuteActionsTaskExecuter.VfsInvalidationStrategy vfsInvalidationStrategy = VirtualFileSystemServices.isPartialInvalidationEnabled(startParameterInternal)
-            ? ExecuteActionsTaskExecuter.VfsInvalidationStrategy.PARTIAL
-            : ExecuteActionsTaskExecuter.VfsInvalidationStrategy.COMPLETE;
-
-        // TODO: The incubation message should be printed in VirtualFileSystemServices.
-        //   The problem is that `RootBuildLifecycleListener.afterStart` is called to early to have the system properties from gradle.properties available
-        //   We log the message now here as a workaround.
-        if (vfsInvalidationStrategy == ExecuteActionsTaskExecuter.VfsInvalidationStrategy.PARTIAL && !startParameterInternal.isWatchFileSystem()) {
-            IncubationLogger.incubatingFeatureUsed("Partial virtual file system invalidation");
-        }
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             buildCacheController.isEnabled()
                 ? ExecuteActionsTaskExecuter.BuildCacheState.ENABLED
@@ -155,7 +141,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             gradleEnterprisePluginManager.isPresent()
                 ? ExecuteActionsTaskExecuter.ScanPluginState.APPLIED
                 : ExecuteActionsTaskExecuter.ScanPluginState.NOT_APPLIED,
-            vfsInvalidationStrategy,
             taskSnapshotter,
             executionHistoryStore,
             buildOperationExecutor,

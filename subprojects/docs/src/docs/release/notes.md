@@ -20,18 +20,9 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
-<!-- 
-Add release features here!
-## 1
+## Configuration cache improvements
 
-details of 1
-
-## 2
-
-details of 2
-
-## n
--->
+TBD - load from cache performance improvements and reduced memory consumption for Android builds
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

@@ -35,7 +35,6 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableModuleDependencyCapabilitiesHandler;
@@ -78,15 +77,8 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
     private boolean hasDependencySubstitutionRule;
 
-    private static NotationParser<Object, ComponentSelector> moduleSelectorNotationConverter(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        return NotationParserBuilder
-            .toType(ComponentSelector.class)
-            .converter(new ModuleSelectorStringNotationConverter(moduleIdentifierFactory))
-            .toComposite();
-    }
-
     public static DefaultDependencySubstitutions forResolutionStrategy(ComponentIdentifierFactory componentIdentifierFactory,
-                                                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                                       NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
                                                                        Instantiator instantiator,
                                                                        ObjectFactory objectFactory,
                                                                        ImmutableAttributesFactory attributesFactory,
@@ -98,7 +90,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         return instantiator.newInstance(DefaultDependencySubstitutions.class,
             ComponentSelectionReasons.SELECTED_BY_RULE,
             projectSelectorNotationParser,
-            moduleIdentifierFactory,
+            moduleSelectorNotationParser,
             instantiator,
             objectFactory,
             attributesFactory,
@@ -106,27 +98,27 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     public static DefaultDependencySubstitutions forIncludedBuild(IncludedBuildState build,
-                                                                  ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                                   Instantiator instantiator,
                                                                   ObjectFactory objectFactory,
                                                                   ImmutableAttributesFactory attributesFactory,
+                                                                  NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
                                                                   NotationParser<Object, Capability> capabilityNotationParser) {
         NotationParser<Object, ComponentSelector> projectSelectorNotationParser = NotationParserBuilder
             .toType(ComponentSelector.class)
             .fromCharSequence(new CompositeProjectPathConverter(build))
             .toComposite();
-        return instantiator.newInstance(CompositeBuildAwareSubstitutions.class, projectSelectorNotationParser, moduleIdentifierFactory, instantiator, objectFactory, attributesFactory, capabilityNotationParser, build);
+        return instantiator.newInstance(CompositeBuildAwareSubstitutions.class, projectSelectorNotationParser, moduleSelectorNotationParser, instantiator, objectFactory, attributesFactory, capabilityNotationParser, build);
     }
 
     @Inject
     public DefaultDependencySubstitutions(ComponentSelectionDescriptor reason,
                                           NotationParser<Object, ComponentSelector> projectSelectorNotationParser,
-                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                          NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
                                           Instantiator instantiator,
                                           ObjectFactory objectFactory,
                                           ImmutableAttributesFactory attributesFactory,
                                           NotationParser<Object, Capability> capabilityNotationParser) {
-        this(reason, new LinkedHashSet<>(), moduleSelectorNotationConverter(moduleIdentifierFactory), projectSelectorNotationParser, instantiator, objectFactory, attributesFactory, capabilityNotationParser);
+        this(reason, new LinkedHashSet<>(), moduleSelectorNotationParser, projectSelectorNotationParser, instantiator, objectFactory, attributesFactory, capabilityNotationParser);
     }
 
     private DefaultDependencySubstitutions(ComponentSelectionDescriptor reason,
@@ -596,7 +588,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         private final IncludedBuildState build;
 
         @Inject
-        public CompositeBuildAwareSubstitutions(NotationParser<Object, ComponentSelector> projectSelectorNotationParser, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Instantiator instantiator, ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory, NotationParser<Object, Capability> capabilityNotationParser, IncludedBuildState build) {
+        public CompositeBuildAwareSubstitutions(NotationParser<Object, ComponentSelector> projectSelectorNotationParser, NotationParser<Object, ComponentSelector> moduleIdentifierFactory, Instantiator instantiator, ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory, NotationParser<Object, Capability> capabilityNotationParser, IncludedBuildState build) {
             super(ComponentSelectionReasons.COMPOSITE_BUILD, projectSelectorNotationParser, moduleIdentifierFactory, instantiator, objectFactory, attributesFactory, capabilityNotationParser);
             this.build = build;
         }
