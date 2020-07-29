@@ -16,8 +16,6 @@
 
 package org.gradle.internal.operations;
 
-import com.google.common.base.Preconditions;
-
 import java.io.Serializable;
 
 public class OperationIdentifier implements Serializable {
@@ -25,7 +23,9 @@ public class OperationIdentifier implements Serializable {
     private final long id;
 
     public OperationIdentifier(long id) {
-        Preconditions.checkArgument(id != 0, "Operation ID value must be non-zero");
+        if (id == 0) {
+            throw new IllegalArgumentException("Operation ID value must be non-zero");
+        }
         this.id = id;
     }
 
@@ -52,6 +52,6 @@ public class OperationIdentifier implements Serializable {
     }
 
     public int hashCode() {
-        return Long.hashCode(id);
+        return (int) (id ^ (id >>> 32));
     }
 }
