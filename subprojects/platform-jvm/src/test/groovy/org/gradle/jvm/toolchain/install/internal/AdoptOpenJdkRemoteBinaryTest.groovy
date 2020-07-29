@@ -113,7 +113,6 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         customBaseUrl << ["http://foobar", "http://foobar/"]
     }
 
-    @Unroll
     def "can download toolchain"() {
         given:
         def spec = newSpec()
@@ -133,7 +132,25 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         then:
         downloadedJdk.get().exists()
         downloadedJdk.get().text == "binary"
+    }
 
+    @Unroll
+    def "skips downloading unsupported java version #javaVersion"() {
+        given:
+        def spec = newSpec(javaVersion)
+        def systemInfo = Mock(SystemInfo)
+        systemInfo.architecture >> SystemInfo.Architecture.amd64
+        def operatingSystem = OperatingSystem.MAC_OS
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem)
+
+        when:
+        def file = binary.download(spec)
+
+        then:
+        !file.present
+
+        where:
+        javaVersion << [5, 6, 7]
     }
 
     def setupApiOnFilesystem() {
