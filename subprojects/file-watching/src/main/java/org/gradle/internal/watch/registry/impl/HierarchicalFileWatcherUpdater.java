@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -118,6 +119,21 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         allowedDirectoriesToWatch.clear();
         allowedDirectoriesToWatch.addAll(resolveHierarchiesToWatch(Stream.concat(knownRootProjectDirectoriesFromCurrentBuild.stream(), watchedRootProjectDirectoriesFromPreviousBuild.stream())
             .collect(Collectors.toSet())));
+
+        Set<Path> nonWatchedDirs = new HashSet<>(allowedDirectoriesToWatch);
+        nonWatchedDirs.removeAll(watchedHierarchies);
+
+        nonWatchedDirs.forEach(nonWatchedDir -> root.visitSnapshotRoots(nonWatchedDir.toString(), snapshotRoot -> {
+            if (snapshotRoot.getAccessType() == FileMetadata.AccessType.DIRECT) {
+                Path snapshotRootPath = Paths.get(snapshotRoot.getAbsolutePath());
+                if (watchedHierarchies.stream().noneMatch(snapshotRootPath::startsWith)) {
+                    throw new RuntimeException(String.format(
+                        "Found existing snapshot at '%s' for unwatched hierarchy '%s'",
+                        snapshotRoot.getAbsolutePath(),
+                        nonWatchedDir));
+                }
+            }
+        }));
 
         determineAndUpdateDirectoriesToWatch(root);
     }
