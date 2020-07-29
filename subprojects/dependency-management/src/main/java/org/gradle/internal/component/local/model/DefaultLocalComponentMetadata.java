@@ -32,7 +32,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -52,6 +51,7 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -111,7 +111,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             for (ComponentArtifactMetadata oldArtifact : oldVariant.getArtifacts()) {
                 newArtifacts.add(copyArtifact((LocalComponentArtifactMetadata) oldArtifact, artifacts, transformedArtifacts));
             }
-            copy.allVariants.put(entry.getKey(), new DefaultVariantMetadata(oldVariant.getName(), oldVariant.asDescribable(), oldVariant.getAttributes(), newArtifacts.build(), oldVariant.getCapabilities()));
+            copy.allVariants.put(entry.getKey(), new DefaultVariantMetadata(oldVariant.getName(), oldVariant.getIdentifier(), oldVariant.asDescribable(), oldVariant.getAttributes(), newArtifacts.build(), oldVariant.getCapabilities()));
         }
 
         for (DefaultLocalConfigurationMetadata configuration : allConfigurations.values()) {
@@ -139,7 +139,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
+    public void addArtifacts(String configuration, Collection<? extends PublishArtifact> artifacts) {
         for (PublishArtifact artifact : artifacts) {
             LocalComponentArtifactMetadata artifactMetadata = new PublishArtifactLocalArtifactMetadata(componentId, artifact);
             allArtifacts.put(configuration, artifactMetadata);
@@ -147,18 +147,18 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public void addVariant(String configuration, OutgoingVariant variant) {
+    public void addVariant(String configuration, String name, VariantResolveMetadata.Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> publishArtifacts) {
         ImmutableList<LocalComponentArtifactMetadata> artifacts;
-        if (variant.getArtifacts().isEmpty()) {
+        if (publishArtifacts.isEmpty()) {
             artifacts = ImmutableList.of();
         } else {
             ImmutableList.Builder<LocalComponentArtifactMetadata> builder = ImmutableList.builder();
-            for (PublishArtifact artifact : variant.getArtifacts()) {
+            for (PublishArtifact artifact : publishArtifacts) {
                 builder.add(new PublishArtifactLocalArtifactMetadata(componentId, artifact));
             }
             artifacts = builder.build();
         }
-        allVariants.put(configuration, new DefaultVariantMetadata(configuration, variant.asDescribable(), variant.getAttributes().asImmutable(), artifacts, null));
+        allVariants.put(configuration, new DefaultVariantMetadata(name, identifier, displayName, attributes, artifacts, null));
     }
 
     @Override
@@ -283,7 +283,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
         private final List<LocalOriginDependencyMetadata> definedDependencies = Lists.newArrayList();
         private final List<ExcludeMetadata> definedExcludes = Lists.newArrayList();
-        private final List<LocalFileDependencyMetadata> definedFiles= Lists.newArrayList();
+        private final List<LocalFileDependencyMetadata> definedFiles = Lists.newArrayList();
 
         private ImmutableList<LocalOriginDependencyMetadata> configurationDependencies;
         private ImmutableSet<LocalFileDependencyMetadata> configurationFileDependencies;

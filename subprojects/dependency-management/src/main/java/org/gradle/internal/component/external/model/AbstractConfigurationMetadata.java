@@ -104,6 +104,11 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     }
 
     @Override
+    public Identifier getIdentifier() {
+        return null;
+    }
+
+    @Override
     public ImmutableSet<String> getHierarchy() {
         return hierarchy;
     }
@@ -151,7 +156,7 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
 
     @Override
     public Set<? extends VariantResolveMetadata> getVariants() {
-        return ImmutableSet.of(new DefaultVariantMetadata(name, asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
+        return ImmutableSet.of(new DefaultVariantMetadata(name, null, asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
     }
 
     @Override

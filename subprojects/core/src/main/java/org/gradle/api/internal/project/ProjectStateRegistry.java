@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -30,6 +32,7 @@ import java.util.Collection;
  * A registry of all of the projects present in a build tree.
  */
 @ThreadSafe
+@ServiceScope(Scopes.BuildTree.class)
 public interface ProjectStateRegistry {
     /**
      * Returns all projects in the build tree.

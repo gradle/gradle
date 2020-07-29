@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
-import org.gradle.api.artifacts.ModuleIdentifier
+
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.project.ProjectState
@@ -36,7 +36,9 @@ class ProjectDependencyResolverTest extends Specification {
     final LocalComponentRegistry registry = Mock()
     final ComponentIdentifierFactory componentIdentifierFactory = Mock()
     final ProjectStateRegistry projectRegistry = Stub()
-    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, componentIdentifierFactory, projectRegistry)
+    final ProjectArtifactResolver projectArtifactResolver = Stub()
+    final ProjectArtifactSetResolver projectArtifactSetResolver = Stub()
+    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, componentIdentifierFactory, projectArtifactSetResolver, projectArtifactResolver)
 
     def setup() {
         def projectState = Stub(ProjectState)
@@ -82,7 +84,6 @@ class ProjectDependencyResolverTest extends Specification {
     def "doesn't try to resolve non-project dependency"() {
         def result = Mock(BuildableComponentIdResolveResult)
         def dependencyMetaData = Stub(DependencyMetadata)
-        def targetModuleId = Stub(ModuleIdentifier)
 
         when:
         resolver.resolve(dependencyMetaData, null, null, result)

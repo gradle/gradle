@@ -42,6 +42,7 @@ import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -145,7 +146,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
-        public Identifier getIdentifier() {
+        public VariantResolveMetadata.Identifier getIdentifier() {
             return null;
         }
 

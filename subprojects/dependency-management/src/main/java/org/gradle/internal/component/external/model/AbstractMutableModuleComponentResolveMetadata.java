@@ -37,6 +37,7 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentConfigurationIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -575,6 +576,11 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         @Override
         public String getName() {
             return name;
+        }
+
+        @Override
+        public Identifier getIdentifier() {
+            return new ComponentConfigurationIdentifier(componentId, name);
         }
 
         @Override

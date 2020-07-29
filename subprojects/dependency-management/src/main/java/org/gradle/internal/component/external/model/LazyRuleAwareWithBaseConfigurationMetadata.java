@@ -67,6 +67,11 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     }
 
     @Override
+    public Identifier getIdentifier() {
+        return null;
+    }
+
+    @Override
     public List<? extends ModuleDependencyMetadata> getDependencies() {
         if (computedDependencies == null) {
             computedDependencies = variantMetadataRules.applyDependencyMetadataRules(this, base == null ? ImmutableList.of() : base.getDependencies());
@@ -105,7 +110,7 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
 
     @Override
     public Set<? extends VariantResolveMetadata> getVariants() {
-        return ImmutableSet.of(new DefaultVariantMetadata(name, asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
+        return ImmutableSet.of(new DefaultVariantMetadata(name, null, asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
     }
 
     @Override

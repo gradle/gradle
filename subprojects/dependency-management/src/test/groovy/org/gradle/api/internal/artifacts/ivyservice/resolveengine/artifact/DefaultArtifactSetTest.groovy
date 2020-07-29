@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.transform.VariantSelector
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.internal.DisplayName
 import org.gradle.internal.component.model.VariantResolveMetadata
 import spock.lang.Specification
 
