@@ -36,7 +36,9 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.api.internal.tasks.testing.report.TestReporter
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.work.WorkerLeaseRegistry
+import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher
 import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.process.internal.worker.WorkerProcessBuilder
 
@@ -276,6 +278,17 @@ class TestTest extends AbstractConventionTaskTest {
 
         then:
         javaForkOptions.getJvmArgs() == ['First', 'Second']
+    }
+
+    def "java version is determined with toolchain if set"() {
+
+        def launcher = new DefaultToolchainJavaLauncher(Jvm.current().javaExecutable)
+
+        when:
+        test.javaLauncher.set(launcher)
+
+        then:
+        test.getJavaVersion() == Jvm.current().javaVersion
     }
 
     private void assertIsDirectoryTree(FileTreeInternal classFiles, Set<String> includes, Set<String> excludes) {
