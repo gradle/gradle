@@ -21,6 +21,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
+import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
@@ -29,7 +30,6 @@ import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherUpdater
-import org.gradle.internal.watch.vfs.impl.NotifyingUpdateFunctionRunner
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -47,14 +47,13 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     def watcher = Mock(FileWatcher)
     def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [])
-    def decorator = new NotifyingUpdateFunctionRunner({ String path -> true})
-    def root = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
+    def root = new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE), { String path -> true})
 
     FileWatcherUpdater updater
 
     def setup() {
         updater = createUpdater(watcher)
-        decorator.setSnapshotDiffListener(updater) { SnapshotHierarchy currentRoot, Runnable runnable ->
+        root.setSnapshotDiffListener(updater) { SnapshotHierarchy currentRoot, Runnable runnable ->
             runnable.run()
             return currentRoot
         }
@@ -71,11 +70,11 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     void addSnapshot(CompleteFileSystemLocationSnapshot snapshot) {
-        root = decorator.runUpdateFunction({ currentRoot, listener -> currentRoot.store(snapshot.absolutePath, snapshot, listener) }, root)
+        root.update({ currentRoot, listener -> currentRoot.store(snapshot.absolutePath, snapshot, listener) })
     }
 
     void invalidate(String absolutePath) {
-        root = decorator.runUpdateFunction({ currentRoot, listener -> currentRoot.invalidate(absolutePath, listener) }, root)
+        root.update({ currentRoot, listener -> currentRoot.invalidate(absolutePath, listener) })
     }
 
     void invalidate(CompleteFileSystemLocationSnapshot snapshot) {

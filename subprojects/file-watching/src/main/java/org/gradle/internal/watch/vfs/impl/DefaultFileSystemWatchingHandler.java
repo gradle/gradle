@@ -50,7 +50,6 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
 
     private final FileWatcherRegistryFactory watcherRegistryFactory;
     private final AtomicSnapshotHierarchyReference root;
-    private final NotifyingUpdateFunctionRunner updateFunctionRunner;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
     private final LocationsUpdatedByCurrentBuild locationsUpdatedByCurrentBuild;
     private final Set<File> rootProjectDirectoriesForWatching = new HashSet<>();
@@ -67,13 +66,11 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
     public DefaultFileSystemWatchingHandler(
         FileWatcherRegistryFactory watcherRegistryFactory,
         AtomicSnapshotHierarchyReference root,
-        NotifyingUpdateFunctionRunner updateFunctionRunner,
         DaemonDocumentationIndex daemonDocumentationIndex,
         LocationsUpdatedByCurrentBuild locationsUpdatedByCurrentBuild
     ) {
         this.watcherRegistryFactory = watcherRegistryFactory;
         this.root = root;
-        this.updateFunctionRunner = updateFunctionRunner;
         this.daemonDocumentationIndex = daemonDocumentationIndex;
         this.locationsUpdatedByCurrentBuild = locationsUpdatedByCurrentBuild;
     }
@@ -185,7 +182,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
                 }
             });
             watchRegistry.getFileWatcherUpdater().updateRootProjectDirectories(rootProjectDirectoriesForWatching);
-            updateFunctionRunner.setSnapshotDiffListener(snapshotDiffListener, this::withWatcherChangeErrorHandling);
+            root.setSnapshotDiffListener(snapshotDiffListener, this::withWatcherChangeErrorHandling);
             long endTime = System.currentTimeMillis() - startTime;
             LOGGER.warn("Spent {} ms registering watches for file system events", endTime);
             // TODO: Move start watching early enough so that the root is always empty
@@ -237,7 +234,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
             try {
                 FileWatcherRegistry toBeClosed = watchRegistry;
                 watchRegistry = null;
-                updateFunctionRunner.stopListening();
+                root.stopListening();
                 toBeClosed.close();
             } catch (IOException ex) {
                 LOGGER.error("Unable to close file watcher registry", ex);
@@ -328,7 +325,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
         }
     }
 
-    private class SymlinkRemovingFileSystemSnapshotVisitor implements FileSystemSnapshotVisitor {
+    private static class SymlinkRemovingFileSystemSnapshotVisitor implements FileSystemSnapshotVisitor {
         private SnapshotHierarchy root;
 
         public SymlinkRemovingFileSystemSnapshotVisitor(SnapshotHierarchy root) {
@@ -356,10 +353,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
         }
 
         private void invalidateSymlink(CompleteFileSystemLocationSnapshot snapshot) {
-            root = updateFunctionRunner.runUpdateFunction(
-                (root, diffListener) -> root.invalidate(snapshot.getAbsolutePath(), diffListener),
-                root
-            );
+            root = root.invalidate(snapshot.getAbsolutePath(), SnapshotHierarchy.NodeDiffListener.NOOP);
         }
 
         public SnapshotHierarchy getRootWithSymlinksRemoved() {

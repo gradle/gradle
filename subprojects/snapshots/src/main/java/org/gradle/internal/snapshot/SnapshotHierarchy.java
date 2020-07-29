@@ -120,13 +120,4 @@ public interface SnapshotHierarchy {
     interface UpdateFunction {
         SnapshotHierarchy update(SnapshotHierarchy root, NodeDiffListener diffListener);
     }
-
-    /**
-     * Creates a {@link NodeDiffListener} for a {@link UpdateFunction} and runs the function.
-     */
-    interface UpdateFunctionRunner {
-        UpdateFunctionRunner WITHOUT_LISTENERS = (updateFunction, root) -> updateFunction.update(root, NodeDiffListener.NOOP);
-
-        SnapshotHierarchy runUpdateFunction(UpdateFunction updateFunction, SnapshotHierarchy root);
-    }
 }

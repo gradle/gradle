@@ -29,7 +29,6 @@ import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
-import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -56,7 +55,7 @@ abstract class AbstractVirtualFileSystemTest extends Specification {
         stat,
         new AtomicSnapshotHierarchyReference(
             DefaultSnapshotHierarchy.empty(CASE_SENSITIVE),
-            SnapshotHierarchy.UpdateFunctionRunner.WITHOUT_LISTENERS
+            { path -> true }
         ),
         updateListener
     )

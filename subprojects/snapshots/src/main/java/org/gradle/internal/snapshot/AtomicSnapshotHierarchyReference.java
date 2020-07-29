@@ -16,16 +16,21 @@
 
 package org.gradle.internal.snapshot;
 
+import org.gradle.internal.vfs.impl.SnapshotCollectingDiffListener;
+
+import javax.annotation.CheckReturnValue;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Predicate;
 
 public class AtomicSnapshotHierarchyReference {
     private volatile SnapshotHierarchy root;
-    private final SnapshotHierarchy.UpdateFunctionRunner updateFunctionRunner;
+    private final Predicate<String> watchFilter;
     private final ReentrantLock updateLock = new ReentrantLock();
+    private ErrorHandlingDiffPublisher errorHandlingDiffPublisher;
 
-    public AtomicSnapshotHierarchyReference(SnapshotHierarchy root, SnapshotHierarchy.UpdateFunctionRunner updateFunctionRunner) {
+    public AtomicSnapshotHierarchyReference(SnapshotHierarchy root, Predicate<String> watchFilter) {
         this.root = root;
-        this.updateFunctionRunner = updateFunctionRunner;
+        this.watchFilter = watchFilter;
     }
 
     public SnapshotHierarchy get() {
@@ -36,10 +41,44 @@ public class AtomicSnapshotHierarchyReference {
         updateLock.lock();
         try {
             // Store the current root in a local variable to make the call atomic
+            ErrorHandlingDiffPublisher currentErrorHandlingDiffPublisher = errorHandlingDiffPublisher;
             SnapshotHierarchy currentRoot = root;
-            root = updateFunctionRunner.runUpdateFunction(updateFunction, currentRoot);
+            if (currentErrorHandlingDiffPublisher == null) {
+                root = updateFunction.update(currentRoot, SnapshotHierarchy.NodeDiffListener.NOOP);
+            } else {
+                SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener(watchFilter);
+                SnapshotHierarchy newRoot = updateFunction.update(currentRoot, diffListener);
+                root = currentErrorHandlingDiffPublisher.publishSnapshotDiff(diffListener, newRoot);
+            }
         } finally {
             updateLock.unlock();
+        }
+    }
+
+    public interface ErrorHandler {
+        @CheckReturnValue
+        SnapshotHierarchy handleErrors(SnapshotHierarchy currentRoot, Runnable runnable);
+    }
+
+    public void setSnapshotDiffListener(SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener, ErrorHandler errorHandler) {
+        this.errorHandlingDiffPublisher = new ErrorHandlingDiffPublisher(snapshotDiffListener, errorHandler);
+    }
+
+    public void stopListening() {
+        errorHandlingDiffPublisher = null;
+    }
+
+    private static class ErrorHandlingDiffPublisher {
+        private final SnapshotHierarchy.SnapshotDiffListener diffListener;
+        private final ErrorHandler errorHandler;
+
+        public ErrorHandlingDiffPublisher(SnapshotHierarchy.SnapshotDiffListener diffListener, ErrorHandler errorHandler) {
+            this.diffListener = diffListener;
+            this.errorHandler = errorHandler;
+        }
+
+        public SnapshotHierarchy publishSnapshotDiff(SnapshotCollectingDiffListener collectedDiff, SnapshotHierarchy newRoot) {
+            return errorHandler.handleErrors(newRoot, () -> collectedDiff.publishSnapshotDiff(diffListener));
         }
     }
 }

@@ -31,18 +31,16 @@ class DefaultFileSystemWatchingHandlerTest extends Specification {
     def watcherRegistryFactory = Mock(FileWatcherRegistryFactory)
     def watcherRegistry = Mock(FileWatcherRegistry)
     def fileWatcherUpdater = Mock(FileWatcherUpdater)
-    def capturingUpdateFunctionDecorator = new NotifyingUpdateFunctionRunner({ -> true })
     def emptySnapshotHierarchy = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
     def nonEmptySnapshotHierarchy = Stub(SnapshotHierarchy) {
         empty() >> emptySnapshotHierarchy
     }
-    def root = new AtomicSnapshotHierarchyReference(nonEmptySnapshotHierarchy, capturingUpdateFunctionDecorator)
+    def root = new AtomicSnapshotHierarchyReference(nonEmptySnapshotHierarchy, { path -> true })
     def daemonDocumentationIndex = Mock(DaemonDocumentationIndex)
     def locationsUpdatedByCurrentBuild = Mock(LocationsUpdatedByCurrentBuild)
     def watchingHandler = new DefaultFileSystemWatchingHandler(
         watcherRegistryFactory,
         root,
-        capturingUpdateFunctionDecorator,
         daemonDocumentationIndex,
         locationsUpdatedByCurrentBuild
     )

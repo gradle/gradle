@@ -79,7 +79,6 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
 import org.gradle.internal.snapshot.CaseSensitivity;
-import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
@@ -90,7 +89,6 @@ import org.gradle.internal.watch.registry.impl.WindowsFileWatcherRegistryFactory
 import org.gradle.internal.watch.vfs.FileSystemWatchingHandler;
 import org.gradle.internal.watch.vfs.impl.DefaultFileSystemWatchingHandler;
 import org.gradle.internal.watch.vfs.impl.LocationsUpdatedByCurrentBuild;
-import org.gradle.internal.watch.vfs.impl.NotifyingUpdateFunctionRunner;
 import org.gradle.internal.watch.vfs.impl.WatchingNotSupportedFileSystemWatchingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -188,13 +186,9 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return path -> !globalCacheLocations.isInsideGlobalCache(path);
         }
 
-        NotifyingUpdateFunctionRunner createUpdateFunctionDecorator(WatchFilter watchFilter) {
-            return new NotifyingUpdateFunctionRunner(watchFilter);
-        }
-
-        AtomicSnapshotHierarchyReference createRoot(FileSystem fileSystem, SnapshotHierarchy.UpdateFunctionRunner updateFunctionRunner) {
+        AtomicSnapshotHierarchyReference createRoot(FileSystem fileSystem, WatchFilter watchFilter) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
-            return new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity), updateFunctionRunner);
+            return new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity), watchFilter);
         }
 
         VirtualFileSystem createVirtualFileSystem(
@@ -245,14 +239,12 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             LocationsUpdatedByCurrentBuild locationsUpdatedByCurrentBuild,
             DocumentationRegistry documentationRegistry,
             NativeCapabilities nativeCapabilities,
-            NotifyingUpdateFunctionRunner updateFunctionRunner,
             ListenerManager listenerManager
         ) {
             FileSystemWatchingHandler watchingHandler = determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities)
                 .<FileSystemWatchingHandler>map(watcherRegistryFactory -> new DefaultFileSystemWatchingHandler(
                     watcherRegistryFactory,
                     root,
-                    updateFunctionRunner,
                     sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId),
                     locationsUpdatedByCurrentBuild
                 ))
