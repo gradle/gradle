@@ -136,7 +136,7 @@ class InstantExecutionProblems(
             val tooManyProblems = problems.size > startParameter.maxProblems
             if (cacheAction == STORE && (isFailOnProblems || tooManyProblems)) {
                 // Invalidate stored state if problems fail the build
-                invalidateStoredState!!()
+                requireNotNull(invalidateStoredState).invoke()
             }
             val cacheActionText = requireNotNull(cacheAction).summaryText()
             val outputDirectory = outputDirectoryFor(result.gradle?.rootProject?.buildDir ?: startParameter.rootDirectory)
@@ -197,14 +197,16 @@ class InstantExecutionProblems(
 
         override fun beforeComplete(gradle: GradleInternal) {
             if (cacheAction == null) return
+            val hasProblems = problems.isNotEmpty()
+            val hasTooManyProblems = problems.size > startParameter.maxProblems
             when {
-                isFailingBuildDueToSerializationError && problems.isEmpty() -> log("Configuration cache entry discarded.")
+                isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCount)
-                cacheAction == STORE && isFailOnProblems && problems.isNotEmpty() -> log("Configuration cache entry discarded with {}.", problemCount)
-                cacheAction == STORE && problems.size > startParameter.maxProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCount)
-                cacheAction == LOAD && problems.isEmpty() -> log("Configuration cache entry reused.")
+                cacheAction == STORE && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCount)
+                cacheAction == STORE && isFailOnProblems && hasProblems -> log("Configuration cache entry discarded with {}.", problemCount)
+                cacheAction == LOAD && !hasProblems -> log("Configuration cache entry reused.")
                 cacheAction == LOAD -> log("Configuration cache entry reused with {}.", problemCount)
-                problems.isEmpty() -> log("Configuration cache entry stored.")
+                !hasProblems -> log("Configuration cache entry stored.")
                 else -> log("Configuration cache entry stored with {}.", problemCount)
             }
         }
