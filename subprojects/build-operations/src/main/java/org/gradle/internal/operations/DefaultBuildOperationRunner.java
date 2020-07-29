@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
-import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -229,9 +228,6 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         }
         if (t instanceof Error) {
             throw (Error) t;
-        }
-        if (t instanceof IOException) {
-            throw new RuntimeException(t.getMessage(), t);
         }
         throw new RuntimeException(t.getMessage(), t);
     }
