@@ -193,7 +193,7 @@ fun configureTests() {
     }
 
     tasks.withType<Test>().configureEach {
-        configurePropagatedEnvVariables()
+        filterEnvironmentVariables()
 
         maxParallelForks = project.maxParallelForks
 

@@ -66,11 +66,11 @@ val credentialsKeywords = listOf(
 )
 
 
-fun Test.configurePropagatedEnvVariables() {
+fun Test.filterEnvironmentVariables() {
     environment = System.getenv().entries.mapNotNull(::sanitize).toMap()
     environment.forEach { (key, value) ->
-        if (propagatedBlockList.any { key.contains(it, true) } || propagatedBlockList.any { value.toString().contains(it, true) }) {
-            throw IllegalArgumentException("Found sensitive data in filtered environment variables: $key:$value")
+        if (credentialsKeywords.any { key.contains(it, true) } || credentialsKeywords.any { value.toString().contains(it, true) }) {
+            throw IllegalArgumentException("Found sensitive data in filtered environment variables: $key")
         }
     }
 }
@@ -79,14 +79,13 @@ fun Test.configurePropagatedEnvVariables() {
 private
 fun sanitize(entry: MutableMap.MutableEntry<String, String>): Pair<String, String>? {
     return when {
-        entry.key in propagatedEnvAllowList -> entry.key to entry.value
+        entry.key in propagatedEnvironmentVariables -> entry.key to entry.value
         entry.key.startsWith("LC_") -> entry.key to entry.value
         entry.key.startsWith("LANG") -> entry.key to entry.value
         entry.key.startsWith("JDK_") -> entry.key to entry.value
         entry.key.startsWith("JRE_") -> entry.key to entry.value
 
         // For Build Distribution build
-        entry.key.startsWith("TEAMCITY_") -> entry.key to entry.value
         entry.key.startsWith("BUILD_") -> entry.key to entry.value
 
         // Visual Studio installation info
