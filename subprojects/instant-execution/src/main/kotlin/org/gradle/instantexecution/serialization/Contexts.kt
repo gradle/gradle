@@ -75,6 +75,9 @@ class DefaultWriteContext(
     var pendingWriteCall: WriteCall? = null
 
     private
+    var writeCallResult: Result<Any?> = UNDEFINED_RESULT
+
+    private
     var writeCallDepth: Int = 0
 
     /**
@@ -119,6 +122,7 @@ class DefaultWriteContext(
         } finally {
             inCallLoop = false
             pendingWriteCall = null
+            writeCallResult = UNDEFINED_RESULT
         }
     }
 
@@ -130,7 +134,8 @@ class DefaultWriteContext(
         @Suppress("unchecked_cast")
         val unsafeWrite = ::stackUnsafeWrite as Function2<Any?, Continuation<Unit>, Any>
         while (true) {
-            val call = nextWriteCall() ?: break
+            val call = nextWriteCall()
+                ?: return Unit.also { writeCallResult.getOrThrow() }
             val k = call.k
             if (Thread.interrupted()) {
                 k.resumeWithException(InterruptedException())
@@ -161,7 +166,7 @@ class DefaultWriteContext(
 
         override fun resumeWith(result: Result<Unit>) {
             pendingWriteCall = null
-            result.getOrThrow()
+            writeCallResult = result
         }
     }
 
