@@ -104,7 +104,7 @@ fun pluginSpecBuildersClassPath(project: Project): AccessorsClassPath = project.
         val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher = rootProject.serviceOf()
         val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
         val workspaceProvider: KotlinDslWorkspaceProvider = rootProject.serviceOf()
-        workspaceProvider.withWorkspace(classLoaderHash.toString()) { workspace, executionHistoryStore ->
+        workspaceProvider.withWorkspace("$accessorsWorkspacePrefix/$classLoaderHash") { workspace, executionHistoryStore ->
             val sourcesOutputDir = File(workspace, "sources")
             val classesOutputDir = File(workspace, "classes")
             val work = GeneratePluginAccessors(

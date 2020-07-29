@@ -588,11 +588,11 @@ fun classLoaderScopeOf(project: Project) =
 
 
 internal
-const val accessorCacheKeyPrefix = "gradle-kotlin-dsl-accessors"
+const val accessorsWorkspacePrefix = "accessors"
 
 
 internal
-val accessorsCacheKeySpecPrefix = CacheKeySpec.withPrefix(accessorCacheKeyPrefix)
+val accessorsCacheKeySpecPrefix = CacheKeySpec.withPrefix(accessorsWorkspacePrefix)
 
 
 private
