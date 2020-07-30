@@ -1140,6 +1140,8 @@ For up to date checks and the <<build_cache.adoc#build_cache,build cache>> Gradl
 In order to do so, Gradle first normalizes both inputs and then compares the result.
 For example, for a compile classpath, Gradle extracts the ABI signature from the classes on the classpath and then compares signatures between the last Gradle run and the current Gradle run as described in <<java_plugin.adoc#sec:java_compile_avoidance,Java compile avoidance>>.
 
+Normalization applies to all zip files on the classpath (e.g. jars, wars, aars, apks, etc).  This allows Gradle to recognize when two zip files are functionally the same, even though the zip files themselves might be slightly different due to metadata (such as timestamps or file order).  Normalization applies not only to zip files directly on the classpath, but also to zip files nested inside directories or inside other zip files on the classpath.
+
 It is possible to customize Gradle's built-in strategy for runtime classpath normalization.
 All inputs annotated with `@link:{javadocPath}/org/gradle/api/tasks/Classpath.html[Classpath]` are considered to be runtime classpaths.
 
