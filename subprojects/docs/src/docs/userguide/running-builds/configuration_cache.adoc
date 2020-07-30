@@ -355,7 +355,7 @@ include::sample[dir="snippets/configurationCache/problemsKotlin/kotlin",files="b
 Running that task fails and print the following in the console:
 
 ----
-❯ gradle --configuration-cache someTask -DsomeMessage=hello
+❯ gradle --configuration-cache someTask -DsomeDestination=dest
 ...
 include::{snippetsPath}/configurationCache/problemsGroovy/tests/fail.out[]
 Configuration cache entry discarded with 2 problems.
