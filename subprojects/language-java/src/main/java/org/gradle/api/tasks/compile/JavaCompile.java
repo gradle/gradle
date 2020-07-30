@@ -163,13 +163,13 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     /**
      * Configures the java compiler to be used to compile the Java source.
      *
+     * @see org.gradle.jvm.toolchain.JavaToolchainSpec
      * @since 6.7
      */
     @Incubating
     @Nested
     @Optional
     public Property<JavaCompiler> getJavaCompiler() {
-        // TODO: add proper @see tags once the DSL is available
         return javaCompiler;
     }
 
