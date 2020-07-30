@@ -32,7 +32,7 @@ object StartReleaseCycleTest : BasePromotionBuildType(vcsRoot = Gradle_Promotion
                 name = "PromoteTest"
                 tasks = "clean promoteStartReleaseCycle"
                 useGradleWrapper = true
-                gradleParams = "-PconfirmationCode=startCycle -Igradle/buildScanInit.gradle -PtestRun=1"
+                gradleParams = "-PconfirmationCode=startCycle -PtestRun=1"
             }
         }
 
