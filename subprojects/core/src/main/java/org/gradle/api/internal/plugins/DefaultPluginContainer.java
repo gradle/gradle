@@ -92,7 +92,8 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
             Plugin<?> plugin = Iterables.tryFind(DefaultPluginContainer.this, new Predicate<Plugin>() {
                 @Override
                 public boolean apply(Plugin plugin) {
-                    return pluginWithId.clazz.equals(plugin.getClass());
+                    Class<?> pluginType = GeneratedSubclasses.unpackType(plugin);
+                    return pluginWithId.clazz.equals(pluginType);
                 }
             }).orNull();
 
@@ -155,8 +156,9 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
             public void execute(final DefaultPluginManager.PluginWithId pluginWithId) {
                 matching(new Spec<Plugin>() {
                     @Override
-                    public boolean isSatisfiedBy(Plugin element) {
-                        return pluginWithId.clazz.equals(element.getClass());
+                    public boolean isSatisfiedBy(Plugin plugin) {
+                        Class<?> pluginType = GeneratedSubclasses.unpackType(plugin);
+                        return pluginWithId.clazz.equals(pluginType);
                     }
                 }).all(action);
             }
