@@ -52,7 +52,7 @@ public class NativePlatformConsoleDetector implements ConsoleDetector {
             }
         } catch (NativeException ex) {
             // if a native terminal exists but cannot be resolved, use dumb terminal settings
-            // this can happen if a terminal is in use that does not have its terminfo installed  
+            // this can happen if a terminal is in use that does not have its terminfo installed
             return null;
         }
     }
