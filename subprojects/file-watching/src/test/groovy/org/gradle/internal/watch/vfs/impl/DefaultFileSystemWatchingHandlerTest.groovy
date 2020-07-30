@@ -37,7 +37,7 @@ class DefaultFileSystemWatchingHandlerTest extends Specification {
     }
     def root = new AtomicSnapshotHierarchyReference(nonEmptySnapshotHierarchy, { path -> true })
     def daemonDocumentationIndex = Mock(DaemonDocumentationIndex)
-    def locationsUpdatedByCurrentBuild = Mock(LocationsUpdatedByCurrentBuild)
+    def locationsUpdatedByCurrentBuild = Mock(LocationsWrittenByCurrentBuild)
     def watchingHandler = new DefaultFileSystemWatchingHandler(
         watcherRegistryFactory,
         root,

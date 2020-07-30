@@ -114,7 +114,7 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
 
         when:
         allowFileSystemAccess(false)
-        fileSystemAccess.update([someFile.absolutePath]) {
+        fileSystemAccess.write([someFile.absolutePath]) {
             someFile << "Updated"
         }
 
@@ -135,7 +135,7 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
         assertIsFileSnapshot(read(someFile), someFile)
 
         when:
-        fileSystemAccess.update([someFile.absolutePath]) {
+        fileSystemAccess.write([someFile.absolutePath]) {
             someFile.text = "Updated again"
         }
         and:
@@ -160,7 +160,7 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
 
         when:
         allowFileSystemAccess(false)
-        fileSystemAccess.update([nonExistingFileInDir.absolutePath]) {
+        fileSystemAccess.write([nonExistingFileInDir.absolutePath]) {
             nonExistingFileInDir.text = "created"
         }
         then:

@@ -51,7 +51,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
     private final AtomicSnapshotHierarchyReference root;
     private final Stat stat;
     private final Interner<String> stringInterner;
-    private final UpdateListener updateListener;
+    private final WriteListener writeListener;
     private ImmutableList<String> defaultExcludes;
     private DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
@@ -62,12 +62,12 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
         Interner<String> stringInterner,
         Stat stat,
         AtomicSnapshotHierarchyReference root,
-        UpdateListener updateListener,
+        WriteListener writeListener,
         String... defaultExcludes
     ) {
         this.stringInterner = stringInterner;
         this.stat = stat;
-        this.updateListener = updateListener;
+        this.writeListener = writeListener;
         this.defaultExcludes = ImmutableList.copyOf(defaultExcludes);
         this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, this.defaultExcludes);
         this.hasher = hasher;
@@ -174,8 +174,8 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
     }
 
     @Override
-    public void update(Iterable<String> locations, Runnable action) {
-        updateListener.locationsUpdated(locations);
+    public void write(Iterable<String> locations, Runnable action) {
+        writeListener.locationsWritten(locations);
         root.update((outerRoot, outerDiffListener) -> {
             for (String location : locations) {
                 root.update((innerRoot, diffListener) -> innerRoot.invalidate(location, diffListener));
@@ -196,7 +196,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
     }
 
     @Override
-    public void updateWithKnownSnapshot(CompleteFileSystemLocationSnapshot snapshot) {
+    public void record(CompleteFileSystemLocationSnapshot snapshot) {
         root.update((currentRoot, changeListener) -> currentRoot.store(snapshot.getAbsolutePath(), snapshot, changeListener));
     }
 

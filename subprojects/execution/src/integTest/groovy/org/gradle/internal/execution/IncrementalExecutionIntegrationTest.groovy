@@ -89,7 +89,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         @Override
         void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-            fileSystemAccess.update(affectedOutputPaths) {}
+            fileSystemAccess.write(affectedOutputPaths) {}
         }
     }
     def buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())

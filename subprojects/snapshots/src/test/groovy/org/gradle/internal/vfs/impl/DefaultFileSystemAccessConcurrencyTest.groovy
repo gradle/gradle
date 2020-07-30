@@ -37,7 +37,7 @@ class DefaultFileSystemAccessConcurrencyTest extends AbstractFileSystemAccessTes
         (1..1000).each { num ->
             executorService.submit({
                 def locationToUpdate = dir.file(num).file("in-dir.txt")
-                fileSystemAccess.update([locationToUpdate.absolutePath]) {
+                fileSystemAccess.write([locationToUpdate.absolutePath]) {
                     locationToUpdate.text = "updated"
                 }
             })

@@ -516,7 +516,7 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     private HashCode getContentHash(File file) {
-        fileSystemAccess.update([file.absolutePath], {})
+        fileSystemAccess.write([file.absolutePath], {})
         return fileSystemAccess.readRegularFileContentHash(file.getAbsolutePath(), { it })
             .orElse(new MissingFileSnapshot(file.getAbsolutePath(), file.getName(), AccessType.DIRECT).hash)
     }

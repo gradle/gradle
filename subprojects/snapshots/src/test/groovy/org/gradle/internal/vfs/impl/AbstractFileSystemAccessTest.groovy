@@ -48,7 +48,7 @@ abstract class AbstractFileSystemAccessTest extends Specification {
 
     def fileHasher = new AllowingHasher(TestFiles.fileHasher())
     def stat = new AllowingStat(TestFiles.fileSystem())
-    def updateListener = Mock(FileSystemAccess.UpdateListener)
+    def updateListener = Mock(FileSystemAccess.WriteListener)
     def fileSystemAccess = new DefaultFileSystemAccess(
         fileHasher,
         new StringInterner(),

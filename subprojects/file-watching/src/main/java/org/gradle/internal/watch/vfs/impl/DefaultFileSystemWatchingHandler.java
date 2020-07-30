@@ -51,7 +51,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
     private final FileWatcherRegistryFactory watcherRegistryFactory;
     private final AtomicSnapshotHierarchyReference root;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
-    private final LocationsUpdatedByCurrentBuild locationsUpdatedByCurrentBuild;
+    private final LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild;
     private final Set<File> rootProjectDirectoriesForWatching = new HashSet<>();
 
     private FileWatcherRegistry watchRegistry;
@@ -67,12 +67,12 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
         FileWatcherRegistryFactory watcherRegistryFactory,
         AtomicSnapshotHierarchyReference root,
         DaemonDocumentationIndex daemonDocumentationIndex,
-        LocationsUpdatedByCurrentBuild locationsUpdatedByCurrentBuild
+        LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild
     ) {
         this.watcherRegistryFactory = watcherRegistryFactory;
         this.root = root;
         this.daemonDocumentationIndex = daemonDocumentationIndex;
-        this.locationsUpdatedByCurrentBuild = locationsUpdatedByCurrentBuild;
+        this.locationsWrittenByCurrentBuild = locationsWrittenByCurrentBuild;
     }
 
     @Override
@@ -166,7 +166,7 @@ public class DefaultFileSystemWatchingHandler implements FileSystemWatchingHandl
                     try {
                         LOGGER.debug("Handling VFS change {} {}", type, path);
                         String absolutePath = path.toString();
-                        if (!locationsUpdatedByCurrentBuild.wasLocationUpdated(absolutePath)) {
+                        if (!locationsWrittenByCurrentBuild.wasLocationWritten(absolutePath)) {
                             root.update((root, diffListener) -> root.invalidate(absolutePath, diffListener));
                         }
                     } catch (Exception e) {

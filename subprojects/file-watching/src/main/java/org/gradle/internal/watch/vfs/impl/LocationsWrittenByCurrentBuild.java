@@ -23,12 +23,12 @@ import org.gradle.internal.vfs.FileSystemAccess;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class LocationsUpdatedByCurrentBuild implements FileSystemAccess.UpdateListener {
+public class LocationsWrittenByCurrentBuild implements FileSystemAccess.WriteListener {
     private final AtomicReference<FileHierarchySet> producedByCurrentBuild = new AtomicReference<>(DefaultFileHierarchySet.of());
     private volatile boolean buildRunning;
 
     @Override
-    public void locationsUpdated(Iterable<String> locations) {
+    public void locationsWritten(Iterable<String> locations) {
         if (buildRunning) {
             producedByCurrentBuild.updateAndGet(currentValue -> {
                 FileHierarchySet newValue = currentValue;
@@ -40,7 +40,7 @@ public class LocationsUpdatedByCurrentBuild implements FileSystemAccess.UpdateLi
         }
     }
 
-    public boolean wasLocationUpdated(String location) {
+    public boolean wasLocationWritten(String location) {
         return producedByCurrentBuild.get().contains(location);
     }
 

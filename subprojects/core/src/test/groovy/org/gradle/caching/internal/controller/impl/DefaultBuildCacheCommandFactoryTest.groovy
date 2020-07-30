@@ -80,17 +80,17 @@ class DefaultBuildCacheCommandFactoryTest extends Specification {
 
         then:
         1 * originFactory.createReader(entity) >> originReader
-        1 * fileSystemAccess.update([outputDir.absolutePath, outputFile.absolutePath], _)
+        1 * fileSystemAccess.write([outputDir.absolutePath, outputFile.absolutePath], _)
 
         then:
         1 * packer.unpack(entity, input, originReader) >> new BuildCacheEntryPacker.UnpackResult(originMetadata, 123L, fileSnapshots)
 
         then:
-        1 * fileSystemAccess.updateWithKnownSnapshot(_ as CompleteDirectorySnapshot) >> { CompleteFileSystemLocationSnapshot snapshot  ->
+        1 * fileSystemAccess.record(_ as CompleteDirectorySnapshot) >> { CompleteFileSystemLocationSnapshot snapshot  ->
             assert snapshot.absolutePath == outputDir.absolutePath
             assert snapshot.name == outputDir.name
         }
-        1 * fileSystemAccess.updateWithKnownSnapshot(_ as RegularFileSnapshot) >> { CompleteFileSystemLocationSnapshot snapshot ->
+        1 * fileSystemAccess.record(_ as RegularFileSnapshot) >> { CompleteFileSystemLocationSnapshot snapshot ->
             assert snapshot.absolutePath == outputFileSnapshot.absolutePath
             assert snapshot.name == outputFileSnapshot.name
             assert snapshot.hash == outputFileSnapshot.hash
@@ -116,7 +116,7 @@ class DefaultBuildCacheCommandFactoryTest extends Specification {
 
         then:
         1 * originFactory.createReader(entity) >> originReader
-        1 * fileSystemAccess.update([outputFile.absolutePath], _)
+        1 * fileSystemAccess.write([outputFile.absolutePath], _)
 
         then:
         1 * packer.unpack(entity, input, originReader) >> {

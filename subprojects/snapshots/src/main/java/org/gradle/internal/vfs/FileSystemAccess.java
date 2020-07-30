@@ -56,21 +56,21 @@ public interface FileSystemAccess {
     void read(String location, SnapshottingFilter filter, Consumer<CompleteFileSystemLocationSnapshot> visitor);
 
     /**
-     * Runs an action which potentially updates the given locations.
+     * Runs an action which potentially writes to the given locations.
      */
-    void update(Iterable<String> locations, Runnable action);
+    void write(Iterable<String> locations, Runnable action);
+
+    /**
+     * Updates the cached state at the location with the snapshot.
+     */
+    void record(CompleteFileSystemLocationSnapshot snapshot);
 
     /**
      * Removes all cached state from the virtual file system.
      */
     void invalidateAll();
 
-    /**
-     * Updates the cached state at the location with the snapshot.
-     */
-    void updateWithKnownSnapshot(CompleteFileSystemLocationSnapshot snapshot);
-
-    interface UpdateListener {
-        void locationsUpdated(Iterable<String> locations);
+    interface WriteListener {
+        void locationsWritten(Iterable<String> locations);
     }
 }
